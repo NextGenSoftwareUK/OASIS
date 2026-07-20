@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Web7.Core.Enums;
 using NextGenSoftware.OASIS.Web7.Core.Managers;
@@ -72,6 +73,24 @@ namespace NextGenSoftware.OASIS.Web7.WebAPI.GraphQL
 
             if (result.IsError)
                 throw new Exception(result.Message ?? "Failed to start symbiosis session.");
+
+            return result.Result;
+        }
+
+        /// <summary>
+        /// Submits a batch of raw bio-signal samples for the given session and returns the freshly computed intention state.
+        /// </summary>
+        public async Task<IntentionState> SubmitSymbiosisSignalsAsync(string avatarId, string sessionId, List<BioSignalSample> samples)
+        {
+            if (!Guid.TryParse(avatarId, out Guid parsedAvatarId) ||
+                !Guid.TryParse(sessionId, out Guid parsedSessionId))
+                throw new ArgumentException("avatarId and sessionId must be valid GUIDs.");
+
+            var manager = new SymbiosisSessionManager(parsedAvatarId);
+            var result = await manager.SubmitSignalsAsync(parsedSessionId, samples);
+
+            if (result.IsError)
+                throw new Exception(result.Message ?? "Failed to submit signals.");
 
             return result.Result;
         }
