@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+import "Protos/common.proto";
+
+service AiService {
+  rpc Complete (CompleteRequest) returns (CompleteReply);
+  rpc CompleteToolResult (CompleteRequest) returns (CompleteReply);
+  rpc Embed (EmbedRequest) returns (EmbedReply);
+  rpc ListOpenServModels (EmptyRequest) returns (OpenServModelsReply);
+  rpc ListMLModels (EmptyRequest) returns (MLModelsReply);
+  rpc ClassifyTask (TextRequest) returns (ClassifyTaskReply);
+  rpc AnalyseSentiment (TextRequest) returns (SentimentReply);
+  rpc TrainTaskClassifier (TrainRequest) returns (BaseReply);
+  rpc GenerateImage (ImageGenRequest) returns (ImageGenReply);
+}
+
+message ChatMessageProto {
+  string role = 1;
+  string content = 2;
+}
+
+message CompleteRequest {
+  string avatar_id = 1;
+  string provider = 2;
+  string model = 3;
+  repeated ChatMessageProto messages = 4;
+  bool use_fahrn = 5;
+  bool use_holonic_braid = 6;
+  string fahrn_task_type = 7;
+  bool inject_avatar_context = 8;
+}
+
+message CompleteReply {
+  bool is_error = 1;
+  string message = 2;
+  string provider = 3;
+  string model = 4;
+  string content = 5;
+  int32 prompt_tokens = 6;
+  int32 completion_tokens = 7;
+  double estimated_cost_usd = 8;
+}
+
+message EmbedRequest {
+  repeated string inputs = 1;
+  string provider = 2;
+  string model = 3;
+  string avatar_id = 4;
+}
+
+message EmbeddingVector {
+  repeated float values = 1;
+}
+
+message EmbedReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated EmbeddingVector embeddings = 3;
+}
+
+message OpenServModelsReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated string models = 3;
+}
+
+message MLModelInfo {
+  string name = 1;
+  string type = 2;
+  string status = 3;
+  string description = 4;
+}
+
+message MLModelsReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated MLModelInfo models = 3;
+}
+
+message TextRequest {
+  string text = 1;
+}
+
+message ClassifyTaskReply {
+  bool is_error = 1;
+  string message = 2;
+  string task_type = 3;
+}
+
+message SentimentReply {
+  bool is_error = 1;
+  string message = 2;
+  string sentiment = 3;
+}
+
+message MLSampleProto {
+  string problem = 1;
+  string task_type = 2;
+}
+
+message TrainRequest {
+  repeated MLSampleProto samples = 1;
+}
+
+message ImageGenRequest {
+  string prompt = 1;
+  string provider = 2;
+  string model = 3;
+  int32 width = 4;
+  int32 height = 5;
+  string avatar_id = 6;
+}
+
+message ImageGenReply {
+  bool is_error = 1;
+  string message = 2;
+  string url = 3;
+  string base64_image = 4;
+}
