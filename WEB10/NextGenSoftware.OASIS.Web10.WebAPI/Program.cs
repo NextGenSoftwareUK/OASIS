@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web10.WebAPI.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,10 +24,17 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
+    var path = System.IO.Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
     if (File.Exists(path))
         c.IncludeXmlComments(path, includeControllerXmlComments: true);
 });
+
+builder.Services.AddGrpc();
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<NextGenSoftware.OASIS.Web10.WebAPI.GraphQL.Query>()
+    .AddMutationType<NextGenSoftware.OASIS.Web10.WebAPI.GraphQL.Mutation>();
 
 builder.Services.AddCors(options =>
 {
@@ -45,6 +53,8 @@ app.UseCors("AllowAll");
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web10.WebAPI.Middleware.JwtMiddleware>();
 
+app.MapGrpcService<SourceGrpcService>();
+app.MapGraphQL();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
