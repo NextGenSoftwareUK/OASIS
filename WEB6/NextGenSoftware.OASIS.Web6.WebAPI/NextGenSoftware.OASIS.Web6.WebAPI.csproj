@@ -38,12 +38,23 @@
 - Multiple bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.0.0-preview.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
 
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\common.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\ai.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\agents.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\memory.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\network.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\identity.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\telemetry.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
