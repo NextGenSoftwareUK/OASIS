@@ -110,6 +110,48 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GraphQL
                 Score   = r.Entry?.Score ?? 0
             });
         }
+
+        /// <summary>Returns health and latency status for all configured AI providers.</summary>
+        public async Task<IEnumerable<ProviderStatusDto>> GetProviderStatusAsync(
+            [GraphQLDescription("Set true to force a live re-ping of all providers.")] bool refresh = false)
+        {
+            var monitor = new NextGenSoftware.OASIS.Web6.Core.Managers.ProviderHealthMonitor(Guid.Empty, DNA);
+            var status = await monitor.GetStatusAsync(forceRefresh: refresh);
+            return status.Select(s => new ProviderStatusDto
+            {
+                Provider      = s.Provider ?? "",
+                Healthy       = s.Healthy,
+                LatencyMs     = s.LatencyMs ?? 0,
+                Error         = s.Error ?? "",
+                LastCheckedUtc = s.LastCheckedUtc.ToString("O")
+            });
+        }
+
+        /// <summary>Returns token usage and spend summary for an avatar in the current billing period.</summary>
+        public async Task<UsageSummaryDto?> GetUsageSummaryAsync(
+            [GraphQLDescription("Avatar GUID to look up usage for.")] string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var aid))
+                return null;
+
+            var manager = new NextGenSoftware.OASIS.Web6.Core.Managers.UsageMeteringManager(aid, DNA);
+            var result = await manager.GetUsageSummaryAsync();
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var s = result.Result;
+            return new UsageSummaryDto
+            {
+                AvatarId           = s.AvatarId.ToString(),
+                PeriodMonth        = s.PeriodMonth ?? "",
+                MonthlySpendUSD    = s.MonthlySpendUSD,
+                MonthlyBudgetUSD   = s.MonthlyBudgetUSD,
+                RemainingBudgetUSD = s.RemainingBudgetUSD,
+                DailyTokensUsed    = s.DailyTokensUsed,
+                DailyTokenLimit    = s.DailyTokenLimit,
+                RemainingTokensToday = s.RemainingTokensToday
+            };
+        }
     }
 
     // ──────────────────────────── DTO types ───────────────────────────────────
@@ -136,5 +178,26 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GraphQL
         public string Content { get; set; } = "";
         public string Source  { get; set; } = "";
         public double Score   { get; set; }
+    }
+
+    public class ProviderStatusDto
+    {
+        public string Provider       { get; set; } = "";
+        public bool   Healthy        { get; set; }
+        public long   LatencyMs      { get; set; }
+        public string Error          { get; set; } = "";
+        public string LastCheckedUtc { get; set; } = "";
+    }
+
+    public class UsageSummaryDto
+    {
+        public string AvatarId            { get; set; } = "";
+        public string PeriodMonth         { get; set; } = "";
+        public double MonthlySpendUSD     { get; set; }
+        public double MonthlyBudgetUSD    { get; set; }
+        public double RemainingBudgetUSD  { get; set; }
+        public int    DailyTokensUsed     { get; set; }
+        public int    DailyTokenLimit     { get; set; }
+        public int    RemainingTokensToday { get; set; }
     }
 }

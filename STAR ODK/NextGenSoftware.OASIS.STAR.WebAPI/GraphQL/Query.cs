@@ -9,9 +9,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        // ── STAR Status ───────────────────────────────────────────────────────
+
+        public bool GetStarStatus() => _starAPI.IsOASISBooted;
+
         // ── Celestial Bodies ──────────────────────────────────────────────────
 
-        /// <summary>Returns all celestial bodies visible to the caller.</summary>
         public async Task<IEnumerable<CelestialBodyDto>> GetCelestialBodiesAsync()
         {
             var result = await _starAPI.CelestialBodies.LoadAllAsync(Guid.Empty, null);
@@ -26,7 +29,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             });
         }
 
-        /// <summary>Returns a single celestial body by ID.</summary>
         public async Task<CelestialBodyDto?> GetCelestialBodyAsync(string id)
         {
             if (!Guid.TryParse(id, out var guid))
@@ -40,9 +42,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return new CelestialBodyDto { Id = b.Id.ToString(), Name = b.Name ?? string.Empty, Description = b.Description ?? string.Empty };
         }
 
+        // ── Celestial Spaces ──────────────────────────────────────────────────
+
+        public async Task<IEnumerable<CelestialSpaceDto>> GetCelestialSpacesAsync()
+        {
+            var result = await _starAPI.CelestialSpaces.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<CelestialSpaceDto>();
+
+            return result.Result.Select(s => new CelestialSpaceDto
+            {
+                Id = s.Id.ToString(),
+                Name = s.Name ?? string.Empty,
+                Description = s.Description ?? string.Empty,
+            });
+        }
+
+        public async Task<CelestialSpaceDto?> GetCelestialSpaceAsync(string id)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.CelestialSpaces.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var s = result.Result;
+            return new CelestialSpaceDto { Id = s.Id.ToString(), Name = s.Name ?? string.Empty, Description = s.Description ?? string.Empty };
+        }
+
         // ── NFTs ──────────────────────────────────────────────────────────────
 
-        /// <summary>Returns all NFTs.</summary>
         public async Task<IEnumerable<NftDto>> GetNftsAsync()
         {
             var result = await _starAPI.NFTs.LoadAllAsync(Guid.Empty, null);
@@ -57,7 +87,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             });
         }
 
-        /// <summary>Returns a single NFT by ID.</summary>
         public async Task<NftDto?> GetNftAsync(string id)
         {
             if (!Guid.TryParse(id, out var guid))
@@ -71,36 +100,325 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return new NftDto { Id = n.Id.ToString(), Name = n.Name ?? string.Empty, Description = n.Description ?? string.Empty };
         }
 
-        // ── STAR Status ───────────────────────────────────────────────────────
+        // ── Holons ────────────────────────────────────────────────────────────
 
-        /// <summary>Returns whether the STAR ODK engine is currently ignited (booted).</summary>
-        public bool GetStarStatus() => _starAPI.IsOASISBooted;
-
-        // ── oApps ─────────────────────────────────────────────────────────────
-
-        /// <summary>Returns all registered oApps. TODO: wire to _starAPI.OApps when available.</summary>
-        public IEnumerable<string> GetOApps()
+        public async Task<IEnumerable<HolonDto>> GetHolonsAsync()
         {
-            // TODO: return real oApp list when _starAPI.OApps is surfaced
-            return Enumerable.Empty<string>();
+            var result = await _starAPI.Holons.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<HolonDto>();
+
+            return result.Result.Select(h => new HolonDto
+            {
+                Id = h.Id.ToString(),
+                Name = h.Name ?? string.Empty,
+                Description = h.Description ?? string.Empty,
+                HolonType = h.HolonType.ToString(),
+                Status = h.IsActive ? "Active" : "Inactive",
+            });
+        }
+
+        public async Task<HolonDto?> GetHolonAsync(string id)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.Holons.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var h = result.Result;
+            return new HolonDto
+            {
+                Id = h.Id.ToString(),
+                Name = h.Name ?? string.Empty,
+                Description = h.Description ?? string.Empty,
+                HolonType = h.HolonType.ToString(),
+                Status = h.IsActive ? "Active" : "Inactive",
+            };
+        }
+
+        // ── Quests ────────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<QuestDto>> GetQuestsAsync()
+        {
+            var result = await _starAPI.Quests.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<QuestDto>();
+
+            return result.Result.Select(q => new QuestDto
+            {
+                Id = q.Id.ToString(),
+                Name = q.Name ?? string.Empty,
+                Description = q.Description ?? string.Empty,
+                QuestType = q.QuestType.ToString(),
+            });
+        }
+
+        public async Task<QuestDto?> GetQuestAsync(string id)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.Quests.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var q = result.Result;
+            return new QuestDto
+            {
+                Id = q.Id.ToString(),
+                Name = q.Name ?? string.Empty,
+                Description = q.Description ?? string.Empty,
+                QuestType = q.QuestType.ToString(),
+            };
+        }
+
+        // ── Missions ──────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<MissionDto>> GetMissionsAsync()
+        {
+            var result = await _starAPI.Missions.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<MissionDto>();
+
+            return result.Result.Select(m => new MissionDto
+            {
+                Id = m.Id.ToString(),
+                Name = m.Name ?? string.Empty,
+                Description = m.Description ?? string.Empty,
+            });
+        }
+
+        public async Task<MissionDto?> GetMissionAsync(string id)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.Missions.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var m = result.Result;
+            return new MissionDto { Id = m.Id.ToString(), Name = m.Name ?? string.Empty, Description = m.Description ?? string.Empty };
+        }
+
+        // ── Chapters ──────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<ChapterDto>> GetChaptersAsync()
+        {
+            var result = await _starAPI.Chapters.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<ChapterDto>();
+
+            return result.Result.Select(c => new ChapterDto
+            {
+                Id = c.Id.ToString(),
+                Name = c.Name ?? string.Empty,
+                Description = c.Description ?? string.Empty,
+            });
+        }
+
+        // ── GeoHotSpots ───────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<GeoHotSpotDto>> GetGeoHotSpotsAsync()
+        {
+            var result = await _starAPI.GeoHotSpots.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<GeoHotSpotDto>();
+
+            return result.Result.Select(g => new GeoHotSpotDto
+            {
+                Id = g.Id.ToString(),
+                Name = g.Name ?? string.Empty,
+                Description = g.Description ?? string.Empty,
+                Lat = g.Lat,
+                Long = g.Long,
+            });
+        }
+
+        public async Task<GeoHotSpotDto?> GetGeoHotSpotAsync(string id)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.GeoHotSpots.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var g = result.Result;
+            return new GeoHotSpotDto { Id = g.Id.ToString(), Name = g.Name ?? string.Empty, Description = g.Description ?? string.Empty, Lat = g.Lat, Long = g.Long };
+        }
+
+        // ── GeoNFTs ───────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<GeoNFTDto>> GetGeoNFTsAsync()
+        {
+            var result = await _starAPI.GeoNFTs.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<GeoNFTDto>();
+
+            return result.Result.Select(g => new GeoNFTDto
+            {
+                Id = g.Id.ToString(),
+                Name = g.Name ?? string.Empty,
+                Description = g.Description ?? string.Empty,
+                NftType = g.NFTType.ToString(),
+            });
+        }
+
+        // ── InventoryItems ────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<InventoryItemDto>> GetInventoryItemsAsync()
+        {
+            var result = await _starAPI.InventoryItems.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<InventoryItemDto>();
+
+            return result.Result.Select(i => new InventoryItemDto
+            {
+                Id = i.Id.ToString(),
+                Name = i.Name ?? string.Empty,
+                Description = i.Description ?? string.Empty,
+            });
+        }
+
+        // ── OAPPs ─────────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<OAPPDto>> GetOAPPsAsync()
+        {
+            var result = await _starAPI.OAPPs.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<OAPPDto>();
+
+            return result.Result.Select(o => new OAPPDto
+            {
+                Id = o.Id.ToString(),
+                Name = o.Name ?? string.Empty,
+                Description = o.Description ?? string.Empty,
+            });
+        }
+
+        public async Task<OAPPDto?> GetOAPPAsync(string id)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.OAPPs.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var o = result.Result;
+            return new OAPPDto { Id = o.Id.ToString(), Name = o.Name ?? string.Empty, Description = o.Description ?? string.Empty };
         }
 
         // ── Games ─────────────────────────────────────────────────────────────
 
-        /// <summary>Returns all registered games. TODO: wire to _starAPI.Games when available.</summary>
-        public IEnumerable<string> GetGames()
+        public async Task<IEnumerable<GameDto>> GetGamesAsync()
         {
-            // TODO: return real game list when _starAPI.Games is surfaced
-            return Enumerable.Empty<string>();
+            var result = await _starAPI.Game.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<GameDto>();
+
+            return result.Result.Select(g => new GameDto
+            {
+                Id = g.Id.ToString(),
+                Name = g.Name ?? string.Empty,
+                Description = g.Description ?? string.Empty,
+            });
         }
 
-        // ── Social ────────────────────────────────────────────────────────────
-
-        /// <summary>Returns social posts/feed for an avatar. TODO: wire to social manager.</summary>
-        public IEnumerable<string> GetSocialFeed(string avatarId)
+        public async Task<GameDto?> GetGameAsync(string id)
         {
-            // TODO: wire to _starAPI.Social or SocialManager
-            return Enumerable.Empty<string>();
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            var result = await _starAPI.Game.LoadAsync(Guid.Empty, guid, 0);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var g = result.Result;
+            return new GameDto { Id = g.Id.ToString(), Name = g.Name ?? string.Empty, Description = g.Description ?? string.Empty };
+        }
+
+        // ── Plugins ───────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<PluginDto>> GetPluginsAsync()
+        {
+            var result = await _starAPI.Plugins.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<PluginDto>();
+
+            return result.Result.Select(p => new PluginDto
+            {
+                Id = p.Id.ToString(),
+                Name = p.Name ?? string.Empty,
+                Description = p.Description ?? string.Empty,
+            });
+        }
+
+        // ── Libraries ─────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<LibraryDto>> GetLibrariesAsync()
+        {
+            var result = await _starAPI.Libraries.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<LibraryDto>();
+
+            return result.Result.Select(l => new LibraryDto
+            {
+                Id = l.Id.ToString(),
+                Name = l.Name ?? string.Empty,
+                Description = l.Description ?? string.Empty,
+            });
+        }
+
+        // ── Runtimes ──────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<RuntimeDto>> GetRuntimesAsync()
+        {
+            var result = await _starAPI.Runtimes.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<RuntimeDto>();
+
+            return result.Result.Select(r => new RuntimeDto
+            {
+                Id = r.Id.ToString(),
+                Name = r.Name ?? string.Empty,
+                Description = r.Description ?? string.Empty,
+            });
+        }
+
+        // ── OAPP Templates ────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<OAPPTemplateDto>> GetOAPPTemplatesAsync()
+        {
+            var result = await _starAPI.OAPPTemplates.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<OAPPTemplateDto>();
+
+            return result.Result.Select(t => new OAPPTemplateDto
+            {
+                Id = t.Id.ToString(),
+                Name = t.Name ?? string.Empty,
+                Description = t.Description ?? string.Empty,
+            });
+        }
+
+        // ── Zomes ─────────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<ZomeDto>> GetZomesAsync()
+        {
+            var result = await _starAPI.Zomes.LoadAllAsync(Guid.Empty, null);
+            if (result.IsError || result.Result == null)
+                return Enumerable.Empty<ZomeDto>();
+
+            return result.Result.Select(z => new ZomeDto
+            {
+                Id = z.Id.ToString(),
+                Name = z.Name ?? string.Empty,
+                Description = z.Description ?? string.Empty,
+            });
         }
     }
 }
