@@ -4,6 +4,7 @@ option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
 package oasis.web4;
 
 import "google/protobuf/timestamp.proto";
+import "Protos/common.proto";
 
 service AvatarService {
   rpc Register (RegisterAvatarRequest) returns (AvatarResponse);
@@ -88,11 +89,6 @@ message AddXpToAvatarRequest {
 }
 
 // ── Response messages ───────────────────────────────────────────────────────
-
-message OASISGrpcResponse {
-  bool   is_error = 1;
-  string message = 2;
-}
 
 message AvatarMessage {
   string id = 1;

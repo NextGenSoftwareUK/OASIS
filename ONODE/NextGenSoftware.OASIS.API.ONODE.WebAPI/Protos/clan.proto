@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service ClanService {
+  rpc GetClan (GetClanRequest) returns (JsonResponse);
+  rpc GetClanByName (GetClanByNameRequest) returns (JsonResponse);
+  rpc GetAllClans (GetAllClansRequest) returns (JsonResponse);
+  rpc GetClanMembers (GetClanMembersRequest) returns (StringListResponse);
+  rpc CreateClan (CreateClanRequest) returns (JsonResponse);
+  rpc DeleteClan (DeleteClanRequest) returns (OASISGrpcResponse);
+  rpc AddAvatarToClan (AddAvatarToClanRequest) returns (OASISGrpcResponse);
+  rpc RemoveAvatarFromClan (RemoveAvatarFromClanRequest) returns (OASISGrpcResponse);
+  rpc SendItemToClan (SendItemToClanRequest) returns (OASISGrpcResponse);
+}
+
+message GetClanRequest { string clan_id = 1; }
+message GetClanByNameRequest { string name = 1; }
+message GetAllClansRequest { string owner_avatar_id = 1; }
+message GetClanMembersRequest { string clan_id = 1; }
+message CreateClanRequest {
+  string owner_avatar_id = 1;
+  string name = 2;
+  string description = 3;
+}
+message DeleteClanRequest { string clan_id = 1; }
+message AddAvatarToClanRequest { string clan_id = 1; string avatar_id = 2; }
+message RemoveAvatarFromClanRequest { string clan_id = 1; string avatar_id = 2; }
+message SendItemToClanRequest {
+  string sender_avatar_id = 1;
+  string clan_id = 2;
+  string item_name = 3;
+  int32 quantity = 4;
+}

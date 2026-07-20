@@ -103,9 +103,30 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\common.proto" GrpcServices="None" />
     <Protobuf Include="Protos\avatar.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\karma.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\data.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\social.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\clan.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\chat.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\messaging.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\files.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\gifts.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\eggs.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\video.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\stats.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\settings.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\hyperdrive.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\bridge.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\wallet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\competition.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\seeds.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\search.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\onet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\onode.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\provider.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\keys.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>
