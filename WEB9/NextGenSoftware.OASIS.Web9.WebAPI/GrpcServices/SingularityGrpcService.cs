@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.Web9.WebAPI.GrpcServices
         {
             try
             {
-                UnifiedStatusReport report = await _manager.GetUnifiedStatusAsync();
+                NextGenSoftware.OASIS.Web9.Core.Models.UnifiedStatusReport report = await _manager.GetUnifiedStatusAsync();
 
                 var grpcReport = new Grpc.UnifiedStatusReport
                 {

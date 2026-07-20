@@ -33,7 +33,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
+    var path = System.IO.Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
     if (File.Exists(path))
         c.IncludeXmlComments(path, includeControllerXmlComments: true);
 });
