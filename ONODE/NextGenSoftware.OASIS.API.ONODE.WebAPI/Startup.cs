@@ -255,7 +255,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()
-                .AddMutationType<Mutation>();
+                .AddMutationType<Mutation>()
+                .AddType<GraphQL.Types.AvatarType>()
+                .AddType<GraphQL.Types.HolonType>();
 
             //services.AddCors(options =>
             //{
