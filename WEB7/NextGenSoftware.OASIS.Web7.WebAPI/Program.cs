@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web7.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web7.WebAPI.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,10 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
+builder.Services.AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -41,7 +47,7 @@ builder.Services.AddSwaggerGen(c =>
 
     foreach (var xml in xmlFiles)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, xml);
+        var path = System.IO.Path.Combine(AppContext.BaseDirectory, xml);
         if (File.Exists(path))
             c.IncludeXmlComments(path, includeControllerXmlComments: true);
     }
@@ -93,9 +99,12 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.JwtMiddleware>();
 
 app.MapControllers();
+app.MapGraphQL();
+app.MapGrpcService<CollectiveConsciousnessGrpcService>();
+app.MapGrpcService<SymbiosisGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
-var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+var dnaPath = OASISBootLoader.OASISDNAPath ?? System.IO.Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
 var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
 if (bootResult.IsError)
     OASISErrorHandling.HandleError($"Warning: WEB7 OASIS boot failed: {bootResult.Message}");
