@@ -35,10 +35,23 @@
 - Multiple bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-  
+
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\avatar.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\celestial.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\holons.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\nfts.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\games.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\oapps.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\social.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\star.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
