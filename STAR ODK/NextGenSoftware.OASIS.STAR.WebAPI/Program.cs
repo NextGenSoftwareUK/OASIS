@@ -27,6 +27,12 @@ using NextGenSoftware.OASIS.STAR.WebAPI.GraphQL.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
+
 // Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 

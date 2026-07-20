@@ -111,6 +111,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.ConfigureKestrel(options =>
+                    {
+                        var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+                        options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+                    });
                 });
     }
 }

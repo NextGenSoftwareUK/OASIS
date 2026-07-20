@@ -7,6 +7,12 @@ using NextGenSoftware.OASIS.Web9.WebAPI.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
