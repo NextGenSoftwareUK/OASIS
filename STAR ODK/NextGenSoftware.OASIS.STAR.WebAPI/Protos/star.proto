@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+service StarService {
+  rpc GetStatus (StarEmptyMsg) returns (StarStatusResponse);
+  rpc Ignite (IgniteMsg) returns (StarGenericResponse);
+  rpc Extinguish (StarEmptyMsg) returns (StarGenericResponse);
+  rpc GetHealth (StarEmptyMsg) returns (HealthResponse);
+}
+
+message StarEmptyMsg {}
+
+message IgniteMsg {
+  string username = 1;
+  string password = 2;
+}
+
+message StarStatusResponse {
+  bool is_error = 1;
+  string message = 2;
+  bool is_ignited = 3;
+  string status = 4;
+}
+
+message StarGenericResponse {
+  bool is_error = 1;
+  string message = 2;
+}
+
+message HealthResponse {
+  bool is_error = 1;
+  string message = 2;
+  string status = 3;
+  string service = 4;
+  string version = 5;
+}

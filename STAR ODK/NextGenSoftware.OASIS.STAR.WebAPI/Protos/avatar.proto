@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+import "google/protobuf/timestamp.proto";
+
+service AvatarService {
+  rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse);
+  rpc GetCurrentAvatar (EmptyRequest) returns (AvatarResponse);
+  rpc SetActiveQuest (SetActiveQuestRequest) returns (BoolResponse);
+  rpc GetInventory (EmptyRequest) returns (InventoryListResponse);
+  rpc AddItemToInventory (InventoryItemMessage) returns (InventoryItemResponse);
+  rpc RemoveItemFromInventory (IdRequest) returns (BoolResponse);
+  rpc HasItem (IdRequest) returns (BoolResponse);
+  rpc HasItemByName (NameRequest) returns (BoolResponse);
+  rpc SearchInventory (SearchRequest) returns (InventoryListResponse);
+  rpc GetInventoryItem (IdRequest) returns (InventoryItemResponse);
+  rpc AddXp (AddXpRequest) returns (GenericResponse);
+  rpc SendItemToAvatar (SendItemRequest) returns (BoolResponse);
+  rpc SendItemToClan (SendItemRequest) returns (BoolResponse);
+}
+
+message EmptyRequest {}
+
+message IdRequest {
+  string id = 1;
+}
+
+message NameRequest {
+  string name = 1;
+}
+
+message SearchRequest {
+  string search_term = 1;
+}
+
+message AuthenticateRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthenticateResponse {
+  bool is_error = 1;
+  string message = 2;
+  string jwt_token = 3;
+  string refresh_token = 4;
+  string avatar_id = 5;
+  string username = 6;
+  string email = 7;
+}
+
+message AvatarResponse {
+  bool is_error = 1;
+  string message = 2;
+  string id = 3;
+  string username = 4;
+  string email = 5;
+  string full_name = 6;
+  string avatar_type = 7;
+  bool is_active = 8;
+  bool is_verified = 9;
+}
+
+message SetActiveQuestRequest {
+  string active_quest_id = 1;
+  string active_objective_id = 2;
+}
+
+message InventoryItemMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 quantity = 4;
+}
+
+message InventoryItemResponse {
+  bool is_error = 1;
+  string message = 2;
+  InventoryItemMessage result = 3;
+}
+
+message InventoryListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated InventoryItemMessage items = 3;
+}
+
+message AddXpRequest {
+  int32 amount = 1;
+}
+
+message SendItemRequest {
+  string target = 1;
+  string item_name = 2;
+  string item_id = 3;
+  int32 quantity = 4;
+}
+
+message BoolResponse {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message GenericResponse {
+  bool is_error = 1;
+  string message = 2;
+}
