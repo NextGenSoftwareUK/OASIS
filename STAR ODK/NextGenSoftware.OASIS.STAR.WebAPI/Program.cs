@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
+using NextGenSoftware.OASIS.STAR.WebAPI.GrpcServices;
 
 //const string VERSION = "WEB 5 STAR API v1.3.0";
 
@@ -48,6 +49,7 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new IHolonJsonConverter());
     });
 builder.Services.AddHttpClient();
+builder.Services.AddGrpc();
 builder.Services.AddSingleton<NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.ISubscriptionService,
     NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.SubscriptionService>();
 builder.Services.AddEndpointsApiExplorer();
@@ -369,6 +371,14 @@ app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapControllers();
+app.MapGrpcService<AvatarGrpcService>();
+app.MapGrpcService<CelestialGrpcService>();
+app.MapGrpcService<HolonsGrpcService>();
+app.MapGrpcService<NftsGrpcService>();
+app.MapGrpcService<GamesGrpcService>();
+app.MapGrpcService<OappsGrpcService>();
+app.MapGrpcService<SocialGrpcService>();
+app.MapGrpcService<StarGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
