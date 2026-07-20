@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service ChatService {
+  rpc GetActiveChatSessions (GetActiveChatSessionsRequest) returns (JsonResponse);
+  rpc GetChatHistory (GetChatHistoryRequest) returns (JsonResponse);
+  rpc GetChatStats (GetChatStatsRequest) returns (JsonResponse);
+  rpc StartChatSession (StartChatSessionRequest) returns (StringResponse);
+  rpc SendChatMessage (SendChatMessageRequest) returns (OASISGrpcResponse);
+  rpc EndChatSession (EndChatSessionRequest) returns (OASISGrpcResponse);
+}
+
+message GetActiveChatSessionsRequest { string avatar_id = 1; }
+message GetChatHistoryRequest { string session_id = 1; int32 limit = 2; int32 offset = 3; }
+message GetChatStatsRequest { string avatar_id = 1; }
+message StartChatSessionRequest {
+  repeated string participant_ids = 1;
+  string session_name = 2;
+}
+message SendChatMessageRequest {
+  string session_id = 1;
+  string sender_id = 2;
+  string message = 3;
+}
+message EndChatSessionRequest {
+  string session_id = 1;
+  string ended_by_id = 2;
+}
