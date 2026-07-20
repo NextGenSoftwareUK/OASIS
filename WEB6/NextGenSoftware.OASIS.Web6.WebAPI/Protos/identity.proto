@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+import "Protos/common.proto";
+
+service IdentityService {
+  rpc CreateDid (CreateDidRequest) returns (DidReply);
+  rpc ResolveDid (ResolveDidRequest) returns (DidReply);
+  rpc IssueVc (IssueVcRequest) returns (VcReply);
+  rpc VerifyVc (VerifyVcRequest) returns (VcVerifyReply);
+  rpc UpsertKey (UpsertKeyGrpcRequest) returns (BaseReply);
+  rpc ListKeyProviders (EmptyRequest) returns (StringListReply);
+  rpc DeleteKey (DeleteKeyRequest) returns (BaseReply);
+}
+
+message CreateDidRequest {
+  string avatar_id = 1;
+}
+
+message ResolveDidRequest {
+  string did = 1;
+}
+
+message DidReply {
+  bool is_error = 1;
+  string message = 2;
+  string did = 3;
+  string document_json = 4;
+}
+
+message IssueVcRequest {
+  string subject_did = 1;
+  string avatar_id = 2;
+  string claims_json = 3;
+}
+
+message VcReply {
+  bool is_error = 1;
+  string message = 2;
+  string credential_json = 3;
+}
+
+message VerifyVcRequest {
+  string credential_json = 1;
+  string issuer_avatar_id = 2;
+}
+
+message VcVerifyReply {
+  bool is_error = 1;
+  string message = 2;
+  bool valid = 3;
+}
+
+message UpsertKeyGrpcRequest {
+  string provider = 1;
+  string api_key = 2;
+  string avatar_id = 3;
+}
+
+message DeleteKeyRequest {
+  string provider = 1;
+  string avatar_id = 2;
+}

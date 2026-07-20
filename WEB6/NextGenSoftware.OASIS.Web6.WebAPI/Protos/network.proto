@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+import "Protos/common.proto";
+
+service NetworkService {
+  rpc FahrnSolve (FahrnSolveGrpcRequest) returns (FahrnSolveGrpcReply);
+  rpc FahrnBudgetEstimate (BudgetEstimateRequest) returns (BudgetEstimateReply);
+  rpc GetProviderStatus (ProviderStatusRequest) returns (ProviderStatusReply);
+  rpc WebSocketSession (EmptyRequest) returns (BaseReply);
+}
+
+message FahrnSolveGrpcRequest {
+  string problem = 1;
+  string avatar_id = 2;
+  bool return_reasoning = 3;
+  string task_type = 4;
+}
+
+message FahrnSolveGrpcReply {
+  bool is_error = 1;
+  string message = 2;
+  string answer = 3;
+  string mermaid_plan = 4;
+  string mode_used = 5;
+  int64 total_latency_ms = 6;
+}
+
+message BudgetEstimateRequest {
+  string task_type = 1;
+  string mode = 2;
+  int32 agent_count = 3;
+}
+
+message BudgetEstimateReply {
+  bool is_error = 1;
+  string message = 2;
+  string task_type = 3;
+  string mode_assumed = 4;
+  int32 agent_count = 5;
+  int32 estimated_tokens_per_agent = 6;
+  int32 estimated_total_tokens = 7;
+  double estimated_cost_usd = 8;
+  string pricing_note = 9;
+}
+
+message ProviderStatusRequest {
+  bool refresh = 1;
+}
+
+message ProviderStatusEntry {
+  string provider = 1;
+  bool healthy = 2;
+  int64 latency_ms = 3;
+  string error = 4;
+}
+
+message ProviderStatusReply {
+  bool is_error = 1;
+  string message = 2;
+  string status_json = 3;
+}

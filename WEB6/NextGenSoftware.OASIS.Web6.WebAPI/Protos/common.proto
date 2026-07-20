@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+// Shared primitive messages used across all Web6 gRPC services.
+
+message EmptyRequest {}
+
+message BaseReply {
+  bool is_error = 1;
+  string message = 2;
+}
+
+message StringListReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated string values = 3;
+}

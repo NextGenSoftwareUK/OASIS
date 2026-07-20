@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
+using NextGenSoftware.OASIS.Web6.WebAPI.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,7 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -145,6 +147,12 @@ app.UseAuthorization();
 app.UseWebSockets();
 
 app.MapControllers();
+app.MapGrpcService<AiGrpcService>();
+app.MapGrpcService<AgentsGrpcService>();
+app.MapGrpcService<MemoryGrpcService>();
+app.MapGrpcService<NetworkGrpcService>();
+app.MapGrpcService<IdentityGrpcService>();
+app.MapGrpcService<TelemetryGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // Priority 1: mount /mcp HTTP endpoint
