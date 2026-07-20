@@ -1,6 +1,9 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web9.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web9.WebAPI.GraphQL.Types;
+using NextGenSoftware.OASIS.Web9.WebAPI.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -28,6 +32,13 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(path, includeControllerXmlComments: true);
 });
 
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<UnifiedStatusType>()
+    .AddType<LayerStatusType>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
@@ -45,6 +56,8 @@ app.UseCors("AllowAll");
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.JwtMiddleware>();
 
+app.MapGrpcService<SingularityGrpcService>();
+app.MapGraphQL();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
