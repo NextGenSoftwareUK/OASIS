@@ -63,7 +63,22 @@ builder.Services
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddType<CelestialBodyType>()
-    .AddType<NftType>();
+    .AddType<CelestialSpaceObjectType>()
+    .AddType<NftType>()
+    .AddType<HolonObjectType>()
+    .AddType<QuestObjectType>()
+    .AddType<MissionObjectType>()
+    .AddType<ChapterObjectType>()
+    .AddType<GeoHotSpotObjectType>()
+    .AddType<GeoNFTObjectType>()
+    .AddType<InventoryItemObjectType>()
+    .AddType<OAPPObjectType>()
+    .AddType<GameObjectType>()
+    .AddType<PluginObjectType>()
+    .AddType<LibraryObjectType>()
+    .AddType<RuntimeObjectType>()
+    .AddType<OAPPTemplateObjectType>()
+    .AddType<ZomeObjectType>();
 builder.Services.AddSingleton<NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.ISubscriptionService,
     NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.SubscriptionService>();
 builder.Services.AddEndpointsApiExplorer();

@@ -100,6 +100,57 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GraphQL
         }
 
         /// <summary>
+        /// Send a completion request to any configured AI provider.
+        /// Returns the generated text along with token usage and cost estimate.
+        /// Provider options: openai, anthropic, gemini, groq, mistral, cohere, xai, deepseek, auto.
+        /// </summary>
+        public async Task<CompletionResult> CompleteAsync(
+            [GraphQLDescription("The prompt or last user message.")] string prompt,
+            [GraphQLDescription("System instruction prepended to the conversation.")] string systemPrompt = "",
+            [GraphQLDescription("AI provider to use (auto selects the best available).")] string provider = "auto",
+            [GraphQLDescription("Model override (leave empty for provider default).")] string model = "",
+            [GraphQLDescription("Max tokens to generate.")] int maxTokens = 1024,
+            [GraphQLDescription("Temperature (0–2). Lower = more deterministic.")] double temperature = 0.7,
+            [GraphQLDescription("Avatar GUID for karma-gated access and usage tracking.")] string avatarId = "")
+        {
+            Guid aid = Guid.TryParse(avatarId, out var g) ? g : Guid.Empty;
+
+            var request = new NextGenSoftware.OASIS.Web6.Core.Models.CompletionRequest
+            {
+                AvatarId    = aid,
+                Provider    = provider,
+                Model       = model,
+                MaxTokens   = maxTokens,
+                Temperature = temperature,
+                Messages    = new System.Collections.Generic.List<NextGenSoftware.OASIS.Web6.Core.Models.ChatMessage>
+                {
+                    new NextGenSoftware.OASIS.Web6.Core.Models.ChatMessage { Role = "user", Content = prompt }
+                }
+            };
+            if (!string.IsNullOrWhiteSpace(systemPrompt))
+                request.Messages.Insert(0, new NextGenSoftware.OASIS.Web6.Core.Models.ChatMessage { Role = "system", Content = systemPrompt });
+
+            var manager = new NextGenSoftware.OASIS.Web6.Core.Managers.AIProviderManager(aid, DNA);
+            var result = await manager.CompleteAsync(request);
+            if (result.IsError)
+                return new CompletionResult { IsError = true, Message = result.Message ?? "Completion failed." };
+
+            var r = result.Result;
+            return new CompletionResult
+            {
+                IsError          = false,
+                Content          = r?.Content ?? "",
+                Provider         = r?.Provider ?? "",
+                Model            = r?.Model ?? "",
+                PromptTokens     = r?.PromptTokens ?? 0,
+                CompletionTokens = r?.CompletionTokens ?? 0,
+                LatencyMs        = r?.LatencyMs ?? 0,
+                EstimatedCostUsd = r?.EstimatedCostUSD ?? 0,
+                FailedOver       = r?.FailedOver ?? false
+            };
+        }
+
+        /// <summary>
         /// Generate an image from a text prompt using the configured image-generation provider.
         /// Returns the image as a base64-encoded string.
         /// </summary>
@@ -139,6 +190,20 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GraphQL
     }
 
     // ──────────────────────────── Result types ────────────────────────────────
+
+    public class CompletionResult
+    {
+        public bool   IsError          { get; set; }
+        public string Message          { get; set; } = "";
+        public string Content          { get; set; } = "";
+        public string Provider         { get; set; } = "";
+        public string Model            { get; set; } = "";
+        public int    PromptTokens     { get; set; }
+        public int    CompletionTokens { get; set; }
+        public long   LatencyMs        { get; set; }
+        public double EstimatedCostUsd { get; set; }
+        public bool   FailedOver       { get; set; }
+    }
 
     public class EmbeddingsResult
     {

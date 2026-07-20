@@ -12,14 +12,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
 
         // ── STAR Engine ───────────────────────────────────────────────────────
 
-        /// <summary>Ignites (boots) the STAR ODK engine.</summary>
         public async Task<string> IgniteStarAsync(string username, string password)
         {
             var result = await _starAPI.BootOASISAsync(username, password);
             return result.Message ?? (result.IsError ? "Failed to ignite STAR." : "STAR ignited successfully.");
         }
 
-        /// <summary>Extinguishes (shuts down) the STAR ODK engine.</summary>
         public async Task<string> ExtinguishStarAsync()
         {
             var result = await STARAPI.ShutdownOASISAsync();
@@ -28,7 +26,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
 
         // ── Celestial Bodies ──────────────────────────────────────────────────
 
-        /// <summary>Creates a new celestial body.</summary>
         public async Task<CelestialBodyDto?> CreateCelestialBodyAsync(string name, string description, string avatarId)
         {
             if (!Guid.TryParse(avatarId, out var avId))
@@ -42,7 +39,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return new CelestialBodyDto { Id = b.Id.ToString(), Name = b.Name ?? string.Empty, Description = b.Description ?? string.Empty };
         }
 
-        /// <summary>Updates an existing celestial body.</summary>
         public async Task<CelestialBodyDto?> UpdateCelestialBodyAsync(string id, string name, string description, string avatarId)
         {
             if (!Guid.TryParse(id, out var guid))
@@ -59,7 +55,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return new CelestialBodyDto { Id = b.Id.ToString(), Name = b.Name ?? string.Empty, Description = b.Description ?? string.Empty };
         }
 
-        /// <summary>Deletes a celestial body by ID.</summary>
         public async Task<bool> DeleteCelestialBodyAsync(string id, string avatarId)
         {
             if (!Guid.TryParse(id, out var guid))
@@ -73,7 +68,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
 
         // ── NFTs ──────────────────────────────────────────────────────────────
 
-        /// <summary>Mints a new NFT.</summary>
         public async Task<NftDto?> MintNftAsync(string name, string description, string avatarId)
         {
             if (!Guid.TryParse(avatarId, out var avId))
@@ -88,7 +82,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return new NftDto { Id = n.Id.ToString(), Name = n.Name ?? string.Empty, Description = n.Description ?? string.Empty, MintedByAvatarId = avatarId };
         }
 
-        /// <summary>Updates an existing NFT's metadata.</summary>
         public async Task<NftDto?> UpdateNftAsync(string id, string name, string description, string avatarId)
         {
             if (!Guid.TryParse(id, out var guid))
@@ -105,7 +98,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return new NftDto { Id = n.Id.ToString(), Name = n.Name ?? string.Empty, Description = n.Description ?? string.Empty, MintedByAvatarId = avatarId };
         }
 
-        /// <summary>Deletes (burns) an NFT by ID.</summary>
         public async Task<bool> DeleteNftAsync(string id, string avatarId)
         {
             if (!Guid.TryParse(id, out var guid))
@@ -117,22 +109,211 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             return !result.IsError;
         }
 
-        // ── oApps ─────────────────────────────────────────────────────────────
+        // ── Holons ────────────────────────────────────────────────────────────
 
-        /// <summary>Creates a new oApp. TODO: wire to _starAPI.OApps when available.</summary>
-        public string CreateOApp(string name, string description, string avatarId)
+        public async Task<HolonDto?> CreateHolonAsync(string name, string description, string avatarId)
         {
-            // TODO: wire to _starAPI.OApps.CreateAsync when the OApps manager is surfaced on STARAPI
-            return $"TODO: oApp '{name}' creation not yet wired.";
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var holon = new STARHolon { Name = name, Description = description };
+            var result = await _starAPI.Holons.UpdateAsync(avId, holon);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var h = result.Result;
+            return new HolonDto
+            {
+                Id = h.Id.ToString(),
+                Name = h.Name ?? string.Empty,
+                Description = h.Description ?? string.Empty,
+                HolonType = h.HolonType.ToString(),
+                Status = h.IsActive ? "Active" : "Inactive",
+            };
+        }
+
+        public async Task<bool> DeleteHolonAsync(string id, string avatarId)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return false;
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var result = await _starAPI.Holons.DeleteAsync(avId, guid, 0);
+            return !result.IsError;
+        }
+
+        // ── OAPPs ─────────────────────────────────────────────────────────────
+
+        public async Task<OAPPDto?> CreateOAPPAsync(string name, string description, string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var oapp = new OAPP { Name = name, Description = description };
+            var result = await _starAPI.OAPPs.UpdateAsync(avId, oapp);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var o = result.Result;
+            return new OAPPDto { Id = o.Id.ToString(), Name = o.Name ?? string.Empty, Description = o.Description ?? string.Empty };
+        }
+
+        public async Task<bool> DeleteOAPPAsync(string id, string avatarId)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return false;
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var result = await _starAPI.OAPPs.DeleteAsync(avId, guid, 0);
+            return !result.IsError;
         }
 
         // ── Quests ────────────────────────────────────────────────────────────
 
-        /// <summary>Seeds a new quest. TODO: wire to quest manager.</summary>
-        public string SeedQuest(string name, string description, string avatarId)
+        public async Task<QuestDto?> CreateQuestAsync(string name, string description, string avatarId)
         {
-            // TODO: wire to _starAPI.Quests.CreateAsync when available
-            return $"TODO: Quest '{name}' seeding not yet wired.";
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var quest = new Quest { Name = name, Description = description };
+            var result = await _starAPI.Quests.UpdateAsync(avId, quest);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var q = result.Result;
+            return new QuestDto
+            {
+                Id = q.Id.ToString(),
+                Name = q.Name ?? string.Empty,
+                Description = q.Description ?? string.Empty,
+                QuestType = q.QuestType.ToString(),
+            };
+        }
+
+        public async Task<bool> DeleteQuestAsync(string id, string avatarId)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return false;
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var result = await _starAPI.Quests.DeleteAsync(avId, guid, 0);
+            return !result.IsError;
+        }
+
+        // ── Missions ──────────────────────────────────────────────────────────
+
+        public async Task<MissionDto?> CreateMissionAsync(string name, string description, string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var mission = new Mission { Name = name, Description = description };
+            var result = await _starAPI.Missions.UpdateAsync(avId, mission);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var m = result.Result;
+            return new MissionDto { Id = m.Id.ToString(), Name = m.Name ?? string.Empty, Description = m.Description ?? string.Empty };
+        }
+
+        public async Task<bool> DeleteMissionAsync(string id, string avatarId)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return false;
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var result = await _starAPI.Missions.DeleteAsync(avId, guid, 0);
+            return !result.IsError;
+        }
+
+        // ── Games ─────────────────────────────────────────────────────────────
+
+        public async Task<GameDto?> CreateGameAsync(string name, string description, string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var game = new Game { Name = name, Description = description };
+            var result = await _starAPI.Game.UpdateAsync(avId, game);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var g = result.Result;
+            return new GameDto { Id = g.Id.ToString(), Name = g.Name ?? string.Empty, Description = g.Description ?? string.Empty };
+        }
+
+        public async Task<bool> DeleteGameAsync(string id, string avatarId)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return false;
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var result = await _starAPI.Game.DeleteAsync(avId, guid, 0);
+            return !result.IsError;
+        }
+
+        // ── GeoHotSpots ───────────────────────────────────────────────────────
+
+        public async Task<GeoHotSpotDto?> CreateGeoHotSpotAsync(string name, string description, double lat, double lon, string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var spot = new GeoHotSpot { Name = name, Description = description, Lat = lat, Long = lon };
+            var result = await _starAPI.GeoHotSpots.UpdateAsync(avId, spot);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var g = result.Result;
+            return new GeoHotSpotDto { Id = g.Id.ToString(), Name = g.Name ?? string.Empty, Description = g.Description ?? string.Empty, Lat = g.Lat, Long = g.Long };
+        }
+
+        public async Task<bool> DeleteGeoHotSpotAsync(string id, string avatarId)
+        {
+            if (!Guid.TryParse(id, out var guid))
+                return false;
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var result = await _starAPI.GeoHotSpots.DeleteAsync(avId, guid, 0);
+            return !result.IsError;
+        }
+
+        // ── Plugins ───────────────────────────────────────────────────────────
+
+        public async Task<PluginDto?> CreatePluginAsync(string name, string description, string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var plugin = new Plugin { Name = name, Description = description };
+            var result = await _starAPI.Plugins.UpdateAsync(avId, plugin);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var p = result.Result;
+            return new PluginDto { Id = p.Id.ToString(), Name = p.Name ?? string.Empty, Description = p.Description ?? string.Empty };
+        }
+
+        // ── Zomes ─────────────────────────────────────────────────────────────
+
+        public async Task<ZomeDto?> CreateZomeAsync(string name, string description, string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var avId))
+                avId = Guid.Empty;
+
+            var zome = new STARZome { Name = name, Description = description };
+            var result = await _starAPI.Zomes.UpdateAsync(avId, zome);
+            if (result.IsError || result.Result == null)
+                return null;
+
+            var z = result.Result;
+            return new ZomeDto { Id = z.Id.ToString(), Name = z.Name ?? string.Empty, Description = z.Description ?? string.Empty };
         }
     }
 }
