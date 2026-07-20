@@ -1,10 +1,14 @@
 using System.Reflection;
+using Path = System.IO.Path;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web8.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web8.WebAPI.GraphQL.Types;
+using NextGenSoftware.OASIS.Web8.WebAPI.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +28,13 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<MeshNodeType>()
+    .AddType<MeshLinkType>();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -93,6 +104,9 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.JwtMiddleware>();
 
 app.MapControllers();
+app.MapGraphQL();
+app.MapGrpcService<MeshGrpcService>();
+app.MapGrpcService<ProtocolBridgeGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
