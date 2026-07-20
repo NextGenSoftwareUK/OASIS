@@ -17,6 +17,8 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -249,6 +251,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            services.AddGrpc();
+
+            services.AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddMutationType<Mutation>();
 
             //services.AddCors(options =>
             //{
@@ -385,6 +392,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGrpcService<AvatarGrpcService>();
+                endpoints.MapGrpcService<KarmaGrpcService>();
+                endpoints.MapGrpcService<DataGrpcService>();
+                endpoints.MapGraphQL();
                 endpoints.MapGet("/", context =>
                 {
                     context.Response.Redirect("/swagger");
