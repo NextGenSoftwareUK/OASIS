@@ -5,6 +5,13 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 {
@@ -394,6 +401,213 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             var pt = Enum.TryParse<ProviderType>(walletProviderType, true, out var parsed) ? parsed : ProviderType.Default;
             var result = await manager.CreateWalletForAvatarByIdAsync(avatarId, name, description, pt);
             return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IProviderWallet?> CreateWalletByUsername(string username, string name, string description, string walletProviderType)
+        {
+            var manager = CreateWalletManager();
+            var pt = Enum.TryParse<ProviderType>(walletProviderType, true, out var parsed) ? parsed : ProviderType.Default;
+            var result = await manager.CreateWalletForAvatarByUsernameAsync(username, name, description, pt);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IProviderWallet?> CreateWalletByEmail(string email, string name, string description, string walletProviderType)
+        {
+            var manager = CreateWalletManager();
+            var pt = Enum.TryParse<ProviderType>(walletProviderType, true, out var parsed) ? parsed : ProviderType.Default;
+            var result = await manager.CreateWalletForAvatarByEmailAsync(email, name, description, pt);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── Competition ───────────────────────────────────────────────────────────
+
+        public async Task<bool> JoinTournament(Guid avatarId, Guid tournamentId)
+        {
+            var result = await CompetitionManager.Instance.JoinTournamentAsync(avatarId, tournamentId);
+            return !result.IsError;
+        }
+
+        // ── Settings ──────────────────────────────────────────────────────────────
+
+        public async Task<bool> UpdateHyperDriveSettings(Guid avatarId, Dictionary<string, object> settings)
+        {
+            var result = await SettingsManager.Instance.UpdateHyperDriveSettingsAsync(avatarId, settings);
+            return !result.IsError;
+        }
+
+        public async Task<bool> UpdateSystemSettings(Guid avatarId, Dictionary<string, object> settings)
+        {
+            var result = await SettingsManager.Instance.UpdateSystemSettingsAsync(avatarId, settings);
+            return !result.IsError;
+        }
+
+        public async Task<bool> UpdateSubscriptionSettings(Guid avatarId, Dictionary<string, object> settings)
+        {
+            var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings);
+            return !result.IsError;
+        }
+
+        public async Task<bool> UpdateNotificationSettings(Guid avatarId, Dictionary<string, object> settings)
+        {
+            var result = await SettingsManager.Instance.UpdateNotificationSettingsAsync(avatarId, settings);
+            return !result.IsError;
+        }
+
+        public async Task<bool> UpdatePrivacySettings(Guid avatarId, Dictionary<string, object> settings)
+        {
+            var result = await SettingsManager.Instance.UpdatePrivacySettingsAsync(avatarId, settings);
+            return !result.IsError;
+        }
+
+        // ── HyperDrive ────────────────────────────────────────────────────────────
+
+        public bool UpdateHyperDriveConfig(OASISHyperDriveConfig config)
+        {
+            var result = OASISHyperDriveConfigManager.Instance.UpdateConfiguration(config);
+            return !result.IsError;
+        }
+
+        public bool ValidateHyperDriveConfig()
+        {
+            var result = OASISHyperDriveConfigManager.Instance.ValidateConfiguration();
+            return !result.IsError;
+        }
+
+        public bool ResetHyperDriveConfig()
+        {
+            var result = OASISHyperDriveConfigManager.Instance.ResetToDefaults();
+            return !result.IsError;
+        }
+
+        public void ResetHyperDriveProviderMetrics(string providerType)
+        {
+            var pt = Enum.TryParse<ProviderType>(providerType, true, out var parsed) ? parsed : ProviderType.Default;
+            PerformanceMonitor.Instance.ResetMetrics(pt);
+        }
+
+        public void ResetAllHyperDriveMetrics()
+        {
+            PerformanceMonitor.Instance.ResetAllMetrics();
+        }
+
+        // ── Bridge ────────────────────────────────────────────────────────────────
+
+        public async Task<CreateBridgeOrderResponse?> CreateBridgeOrder(string fromToken, string toToken, decimal amount)
+        {
+            var request = new CreateBridgeOrderRequest { FromToken = fromToken, ToToken = toToken, Amount = amount };
+            var result = await BridgeManager.Instance.CreateBridgeOrderAsync(request);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<CreateBridgeOrderResponse?> CreatePrivateBridgeOrder(string fromToken, string toToken, decimal amount)
+        {
+            var request = new CreateBridgeOrderRequest
+            {
+                FromToken = fromToken,
+                ToToken = toToken,
+                Amount = amount,
+                EnableViewingKeyAudit = true,
+                RequireProofVerification = true,
+            };
+            var result = await BridgeManager.Instance.CreateBridgeOrderAsync(request);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<bool> VerifyBridgeProof(string proofPayload, string proofType)
+        {
+            var result = await BridgeManager.Instance.VerifyProofAsync(proofPayload, proofType);
+            return !result.IsError && result.Result;
+        }
+
+        // ── Seeds ─────────────────────────────────────────────────────────────────
+
+        private static SeedsManager CreateSeedsManager(Guid avatarId)
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new SeedsManager(result.Result, avatarId);
+        }
+
+        public async Task<SeedTransaction?> SaveSeedTransaction(Guid avatarId, string avatarUsername, int amount, string memo)
+        {
+            var manager = CreateSeedsManager(avatarId);
+            var result = await manager.SaveSeedTransactionAsync(avatarId, avatarUsername, amount, memo);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── ONET ──────────────────────────────────────────────────────────────────
+
+        private static ONETManager CreateONETManager()
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
+        }
+
+        private static ONODEManager CreateONODEManager()
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
+        }
+
+        public async Task<bool> UpdateOASISDNA(OASISDNA oasisdna)
+        {
+            var result = await CreateONETManager().UpdateOASISDNAAsync(oasisdna);
+            return !result.IsError;
+        }
+
+        public async Task<bool> ConnectToNode(string nodeId, string nodeAddress)
+        {
+            var result = await CreateONETManager().ConnectToNodeAsync(nodeId, nodeAddress);
+            return !result.IsError;
+        }
+
+        public async Task<bool> DisconnectFromNode(string nodeId)
+        {
+            var result = await CreateONETManager().DisconnectFromNodeAsync(nodeId);
+            return !result.IsError;
+        }
+
+        public async Task<bool> StartNetwork()
+        {
+            var result = await CreateONETManager().StartNetworkAsync();
+            return !result.IsError;
+        }
+
+        public async Task<bool> StopNetwork()
+        {
+            var result = await CreateONETManager().StopNetworkAsync();
+            return !result.IsError;
+        }
+
+        public async Task<bool> BroadcastNetworkMessage(string message, string messageType = "general")
+        {
+            var result = await CreateONETManager().BroadcastMessageAsync(message, messageType);
+            return !result.IsError;
+        }
+
+        // ── ONODE ─────────────────────────────────────────────────────────────────
+
+        public async Task<bool> StartNode()
+        {
+            var result = await CreateONODEManager().StartNodeAsync();
+            return !result.IsError;
+        }
+
+        public async Task<bool> StopNode()
+        {
+            var result = await CreateONODEManager().StopNodeAsync();
+            return !result.IsError;
+        }
+
+        public async Task<bool> RestartNode()
+        {
+            var result = await CreateONODEManager().RestartNodeAsync();
+            return !result.IsError;
+        }
+
+        public async Task<bool> UpdateNodeConfig(Dictionary<string, object> config)
+        {
+            var result = await CreateONODEManager().UpdateNodeConfigAsync(config);
+            return !result.IsError;
         }
     }
 }
