@@ -1114,8 +1114,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            //return await _avatarService.GetByUsername(username);
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+            try
+            {
+                return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = ex.Message }, HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
