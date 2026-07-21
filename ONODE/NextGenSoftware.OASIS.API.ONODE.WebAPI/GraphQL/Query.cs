@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -700,6 +701,173 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         {
             var result = await CreateONODEManager().GetNodeStatsAsync();
             return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        // EOSIO
+        private static NextGenSoftware.OASIS.API.Core.Managers.KeyManager CreateKeyManagerQ()
+        {
+            var r = System.Threading.Tasks.Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new NextGenSoftware.OASIS.API.Core.Managers.KeyManager(r.Result);
+        }
+
+        public IEnumerable<string> GetEOSIOAccountNamesForAvatar(Guid avatarId)
+        {
+            var r = CreateKeyManagerQ().GetProviderPublicKeysForAvatarById(avatarId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS);
+            return r == null || r.IsError || r.Result == null ? Enumerable.Empty<string>() : r.Result;
+        }
+
+        public string GetAvatarIdForEOSIOAccountName(string accountName)
+        {
+            var eosio = (NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS)
+                System.Threading.Tasks.Task.Run(async () => await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS)).Result.Result;
+            return eosio.GetAvatarIdForEOSIOAccountName(accountName).ToString();
+        }
+
+        public string GetEOSIOBalanceForAccount(string accountName, string code, string symbol)
+        {
+            var eosio = (NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS)
+                System.Threading.Tasks.Task.Run(async () => await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS)).Result.Result;
+            return eosio.GetBalanceForEOSIOAccount(accountName, code, symbol);
+        }
+
+        public string GetEOSIOBalanceForAvatar(Guid avatarId, string code, string symbol)
+        {
+            var eosio = (NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS)
+                System.Threading.Tasks.Task.Run(async () => await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS)).Result.Result;
+            return eosio.GetBalanceForAvatar(avatarId, code, symbol);
+        }
+
+        // Holochain
+        public IEnumerable<string> GetHolochainAgentIdsForAvatar(Guid avatarId)
+        {
+            var r = CreateKeyManagerQ().GetProviderPublicKeysForAvatarById(avatarId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS);
+            return r == null || r.IsError || r.Result == null ? Enumerable.Empty<string>() : r.Result;
+        }
+
+        public IEnumerable<string> GetHolochainAgentPrivateKeysForAvatar(Guid avatarId)
+        {
+            var r = CreateKeyManagerQ().GetProviderPrivateKeysForAvatarById(avatarId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS);
+            return r == null || r.IsError || r.Result == null ? Enumerable.Empty<string>() : r.Result;
+        }
+
+        public string GetAvatarIdForHolochainAgentId(string agentId)
+        {
+            var r = CreateKeyManagerQ().GetAvatarIdForProviderPublicKey(agentId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS);
+            return r.IsError ? null : r.Result.ToString();
+        }
+
+        // Map
+        public async Task<string> SearchMapLocations(string query, string locationTypeStr, double? latitude, double? longitude, double? radiusKm)
+        {
+            NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType? lt = null;
+            if (!string.IsNullOrWhiteSpace(locationTypeStr) && System.Enum.TryParse<NextGenSoftware.OASIS.API.ONODE.Core.Managers.LocationType>(locationTypeStr, true, out var ltv)) lt = ltv;
+            var r = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(Guid.Empty).SearchLocationsAsync(query, lt, latitude, longitude, radiusKm);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> GetNearbyLocations(Guid avatarId, double latitude, double longitude, double radiusKm)
+        {
+            var r = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(avatarId).GetNearbyLocationsAsync(avatarId, latitude, longitude, radiusKm);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> GetVisitHistory(Guid avatarId)
+        {
+            var r = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(avatarId).GetVisitHistoryAsync(avatarId, 50, 0);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> GetMapStats(Guid avatarId)
+        {
+            var r = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(avatarId).GetMapStatsAsync(avatarId);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // OLand
+        public async Task<string> GetOlandPrice(int count, string couponCode)
+        {
+            var manager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.OLandManager(new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty), Guid.Empty);
+            var r = await manager.GetOlandPriceAsync(count, couponCode);
+            return r.IsError ? null : r.Result.ToString();
+        }
+
+        public async Task<string> LoadAllOlands()
+        {
+            var manager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.OLandManager(new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty), Guid.Empty);
+            var r = await manager.LoadAllOlandsAsync();
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> LoadOland(Guid id)
+        {
+            var manager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.OLandManager(new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty), Guid.Empty);
+            var r = await manager.LoadOlandAsync(id);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // NFT
+        private static NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager CreateNFTManagerQ() => new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty);
+
+        public async Task<string> GetWeb4NftById(Guid id)
+        {
+            var r = await CreateNFTManagerQ().LoadWeb4NftAsync(id);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public Task<string> GetAllWeb4NftsForAvatar(Guid avatarId)
+        {
+            return System.Threading.Tasks.Task.FromResult<string>(null); // LoadAllNftsForAvatarAsync not yet in NFTManager
+        }
+
+        public Task<string> GetAllGeoNfts()
+        {
+            return System.Threading.Tasks.Task.FromResult<string>(null); // LoadAllGeoNFTsAsync not yet in NFTManager
+        }
+
+        public Task<string> GetGeoNftsForAvatar(Guid avatarId)
+        {
+            return System.Threading.Tasks.Task.FromResult<string>(null); // LoadAllGeoNFTsForAvatarAsync not yet in NFTManager
+        }
+
+        // Subscription
+        public async Task<string> GetSubscriptionPlans([Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            var plans = new[] {
+                new { id = "free", name = "Free", priceMonthly = 0 },
+                new { id = "bronze", name = "Bronze", priceMonthly = 9 },
+                new { id = "silver", name = "Silver", priceMonthly = 29 },
+                new { id = "gold", name = "Gold", priceMonthly = 99 }
+            };
+            return System.Text.Json.JsonSerializer.Serialize(plans);
+        }
+
+        public async Task<string> GetMySubscription(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            var r = await subscriptionService.GetSubscriptionAsync(userId);
+            return System.Text.Json.JsonSerializer.Serialize(r);
+        }
+
+        public async Task<string> GetMyOrders(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            var r = await subscriptionService.GetOrdersAsync(userId);
+            return System.Text.Json.JsonSerializer.Serialize(r);
+        }
+
+        public async Task<string> GetUsage(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            var now = DateTime.UtcNow;
+            var r = await subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
+            return System.Text.Json.JsonSerializer.Serialize(r);
+        }
+
+        public Task<string> GetHyperDriveUsage(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            return Task.FromResult("{}");
+        }
+
+        public Task<bool> CheckHyperDriveQuota(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            return Task.FromResult(true);
         }
     }
 

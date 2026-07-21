@@ -420,6 +420,14 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 endpoints.MapGrpcService<ONODEGrpcService>();
                 endpoints.MapGrpcService<ProviderGrpcService>();
                 endpoints.MapGrpcService<KeysGrpcService>();
+                endpoints.MapGrpcService<EOSIOGrpcService>();
+                endpoints.MapGrpcService<HolochainGrpcService>();
+                endpoints.MapGrpcService<MapGrpcService>();
+                endpoints.MapGrpcService<OLandGrpcService>();
+                endpoints.MapGrpcService<ShareGrpcService>();
+                endpoints.MapGrpcService<SolanaGrpcService>();
+                endpoints.MapGrpcService<NftGrpcService>();
+                endpoints.MapGrpcService<SubscriptionGrpcService>();
                 endpoints.MapGet("/", context =>
                 {
                     context.Response.Redirect("/swagger");

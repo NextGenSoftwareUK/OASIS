@@ -124,8 +124,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         HarmingNature,
         BeingSelfish,
         NotTeamPlayer,
-        //NutritionEatMeat,
-        //NutritionEatDiary,
+        NutritionEatMeat,
+        NutritionEatDiary,
         NutritionEatDrinkUnhealthy,
         SpamAbuse,
         Other

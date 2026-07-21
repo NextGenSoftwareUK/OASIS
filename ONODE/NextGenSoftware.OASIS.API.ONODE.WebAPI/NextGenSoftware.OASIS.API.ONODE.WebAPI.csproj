@@ -127,6 +127,14 @@
     <Protobuf Include="Protos\onode.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\provider.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\keys.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\eosio.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\holochain.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\map.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\oland.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\share.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\solana.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\nft.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\subscription.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

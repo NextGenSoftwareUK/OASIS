@@ -1,0 +1,41 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service MapService {
+  rpc SearchMapLocations(MapSearchRequest) returns (JsonResponse);
+  rpc GetNearbyLocations(GetNearbyLocationsRequest) returns (JsonResponse);
+  rpc GetVisitHistory(MapByAvatarRequest) returns (JsonResponse);
+  rpc GetMapStats(MapByAvatarRequest) returns (JsonResponse);
+  rpc VisitLocation(VisitLocationRequest) returns (OASISGrpcResponse);
+  rpc CreateAndDrawRouteOnMapBetweenHolons(DrawRouteBetweenHolonsRequest) returns (OASISGrpcResponse);
+  rpc CreateAndDrawRouteOnMapBeweenPoints(DrawRouteBetweenPointsRequest) returns (OASISGrpcResponse);
+  rpc Draw2DSpriteOnHUD(DrawSpriteRequest) returns (OASISGrpcResponse);
+  rpc Draw2DSpriteOnMap(DrawSpriteRequest) returns (OASISGrpcResponse);
+  rpc Draw3DObjectOnMap(DrawSpriteRequest) returns (OASISGrpcResponse);
+  rpc HighlightBuildingOnMap(BuildingJsonRequest) returns (OASISGrpcResponse);
+  rpc SelectBuildingOnMap(BuildingJsonRequest) returns (OASISGrpcResponse);
+  rpc SelectHolonOnMap(HolonJsonRequest) returns (OASISGrpcResponse);
+  rpc SelectQuestOnMap(QuestJsonRequest) returns (OASISGrpcResponse);
+  rpc ZoomMapIn(MapFloatRequest) returns (OASISGrpcResponse);
+  rpc ZoomMapOut(MapFloatRequest) returns (OASISGrpcResponse);
+  rpc PanMapUp(MapFloatRequest) returns (OASISGrpcResponse);
+  rpc PanMapDown(MapFloatRequest) returns (OASISGrpcResponse);
+  rpc PanMapLeft(MapFloatRequest) returns (OASISGrpcResponse);
+  rpc PanMapRight(MapFloatRequest) returns (OASISGrpcResponse);
+  rpc ZoomToHolonOnMap(HolonJsonRequest) returns (OASISGrpcResponse);
+  rpc ZoomToQuestOnMap(QuestJsonRequest) returns (OASISGrpcResponse);
+}
+
+message MapByAvatarRequest { string avatar_id = 1; }
+message MapSearchRequest { string query = 1; string location_type = 2; double latitude = 3; double longitude = 4; double radius_km = 5; bool has_location = 6; }
+message GetNearbyLocationsRequest { string avatar_id = 1; double latitude = 2; double longitude = 3; double radius_km = 4; }
+message VisitLocationRequest { string avatar_id = 1; string location_id = 2; string purpose = 3; }
+message DrawRouteBetweenHolonsRequest { string from_holon_id = 1; string to_holon_id = 2; }
+message DrawRouteBetweenPointsRequest { float from_x = 1; float from_y = 2; float to_x = 3; float to_y = 4; }
+message DrawSpriteRequest { string sprite = 1; float x = 2; float y = 3; }
+message BuildingJsonRequest { string building_json = 1; }
+message HolonJsonRequest { string holon_json = 1; }
+message QuestJsonRequest { string quest_json = 1; }
+message MapFloatRequest { float value = 1; }
