@@ -251,6 +251,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            services.AddAuthentication("OASIS")
+                .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, Middleware.OASISAuthHandler>("OASIS", null);
             services.AddGrpc();
 
             services.AddGraphQLServer()
@@ -383,12 +385,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
 
-            app.UseAuthorization();
-
             app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
+            app.UseAuthentication();
+            app.UseAuthorization();
             //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
 
             app.UseEndpoints(endpoints =>
