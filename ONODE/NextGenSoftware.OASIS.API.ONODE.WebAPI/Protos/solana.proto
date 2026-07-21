@@ -1,0 +1,12 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service SolanaService {
+  rpc MintSolanaNft(MintSolanaNftRequest) returns (JsonResponse);
+  rpc SendSolanaTransaction(SendSolanaTransactionRequest) returns (JsonResponse);
+}
+
+message MintSolanaNftRequest { string request_json = 1; }
+message SendSolanaTransactionRequest { string from_account = 1; string to_account = 2; int64 lamports = 3; }
