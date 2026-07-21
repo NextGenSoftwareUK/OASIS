@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -608,6 +610,154 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         {
             var result = await CreateONODEManager().UpdateNodeConfigAsync(config);
             return !result.IsError;
+        }
+
+        // EOSIO
+        private static NextGenSoftware.OASIS.API.Core.Managers.KeyManager CreateKeyManagerM()
+        {
+            var r = System.Threading.Tasks.Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new NextGenSoftware.OASIS.API.Core.Managers.KeyManager(r.Result);
+        }
+
+        public string LinkEOSIOAccountToAvatar(Guid walletId, Guid avatarId, string accountName, string walletAddress)
+        {
+            var r = CreateKeyManagerM().LinkProviderPublicKeyToAvatarById(walletId, avatarId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EOSIOOASIS, accountName, walletAddress);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // Holochain
+        public string LinkHolochainAgentIdToAvatar(Guid walletId, Guid avatarId, string agentId, string providerType)
+        {
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType pt = NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default;
+            if (!string.IsNullOrWhiteSpace(providerType)) System.Enum.TryParse(providerType, true, out pt);
+            var r = CreateKeyManagerM().LinkProviderPublicKeyToAvatarById(walletId, avatarId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS, agentId, null, providerToLoadAvatarFrom: pt);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // Map
+        public async Task<bool> VisitLocation(Guid avatarId, Guid locationId, string purpose)
+        {
+            var r = await new NextGenSoftware.OASIS.API.ONODE.Core.Managers.MapManager(avatarId).VisitLocationAsync(avatarId, locationId, purpose);
+            return !r.IsError;
+        }
+
+        // OLand
+        public async Task<string> PurchaseOland(string purchaseOlandRequestJson)
+        {
+            var req = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.ONODE.Core.Objects.PurchaseOlandRequest>(purchaseOlandRequestJson);
+            if (req == null) return null;
+            var manager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.OLandManager(new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty), Guid.Empty);
+            var r = await manager.PurchaseOlandAsync(req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<bool> DeleteOland(Guid olandId, Guid avatarId)
+        {
+            var manager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.OLandManager(new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty), Guid.Empty);
+            var r = await manager.DeleteOlandAsync(olandId, avatarId);
+            return !r.IsError;
+        }
+
+        public async Task<bool> SaveOland(string olandJson)
+        {
+            var oland = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Objects.Oland>(olandJson);
+            if (oland == null) return false;
+            var manager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.OLandManager(new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty), Guid.Empty);
+            var r = await manager.SaveOlandAsync(oland);
+            return !r.IsError;
+        }
+
+        // Share
+        public async Task<bool> ShareHolonToMany(Guid holonId, string avatarIdsCsv)
+        {
+            var ids = avatarIdsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).ToList();
+            var r = System.Threading.Tasks.Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            var mgr = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(r.Result);
+            var holon = await mgr.LoadHolonAsync(holonId);
+            if (holon == null || holon.IsError || holon.Result == null) return false;
+            if (holon.Result.MetaData == null) holon.Result.MetaData = new Dictionary<string, object>();
+            holon.Result.MetaData["SHARED_AVATAR_IDS"] = System.Text.Json.JsonSerializer.Serialize(ids);
+            var save = await mgr.SaveHolonAsync(holon.Result, Guid.Empty);
+            return save != null && !save.IsError;
+        }
+
+        // Solana
+        public async Task<string> MintSolanaNft(string requestJson, [Service] NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana.ISolanaService solanaService)
+        {
+            var req = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.MintWeb3NFTRequest>(requestJson);
+            if (req == null) return null;
+            var r = await solanaService.MintNftAsync(req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> SendSolanaTransaction(string fromAccount, string toAccount, long lamports, [Service] NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana.ISolanaService solanaService)
+        {
+            var req = new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests.SendTransactionRequest
+            {
+                FromAccount = new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common.BaseAccountRequest { PublicKey = fromAccount },
+                ToAccount = new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common.BaseAccountRequest { PublicKey = toAccount },
+                Amount = (ulong)lamports
+            };
+            var r = await solanaService.SendTransaction(req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // NFT
+        private static NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager CreateNFTManagerM() => new NextGenSoftware.OASIS.API.ONODE.Core.Managers.NFTManager(Guid.Empty);
+
+        public async Task<string> CollectNft(string requestJson)
+        {
+            var req = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Objects.NFT.Request.CollectGeoNFTRequest>(requestJson);
+            if (req == null) return null;
+            var r = await CreateNFTManagerM().CollectNFTAsync(req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public Task<string> PlaceGeoNft(string requestJson)
+        {
+            return System.Threading.Tasks.Task.FromResult<string>(null); // PlaceGeoNFTAsync not yet implemented in NFTManager
+        }
+
+        public async Task<string> MintWeb4Nft(string requestJson)
+        {
+            var req = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.MintWeb4NFTRequest>(requestJson);
+            if (req == null) return null;
+            var r = await CreateNFTManagerM().MintNftAsync(req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> SendNft(string requestJson)
+        {
+            var req = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.SendWeb4NFTRequest>(requestJson);
+            if (req == null) return null;
+            var r = await CreateNFTManagerM().SendNFTAsync(Guid.Empty, req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> ImportWeb3Nft(string requestJson)
+        {
+            var req = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.ImportWeb3NFTRequest>(requestJson);
+            if (req == null) return null;
+            var r = await CreateNFTManagerM().ImportWeb3NFTAsync(req);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // Subscription
+        public Task<string> CreateCheckoutSession(string requestJson, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            return Task.FromResult<string>(null);
+        }
+
+        public async Task<bool> TogglePayAsYouGo(string userId, bool enable, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            await subscriptionService.SetPayAsYouGoAsync(userId, enable);
+            return true;
+        }
+
+        public Task<bool> UpdateSubscriptionHyperDriveConfig(string requestJson, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        {
+            return Task.FromResult(false);
         }
     }
 }
