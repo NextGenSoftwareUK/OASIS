@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
@@ -804,6 +805,62 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null)
                 return new OASISResult<IWeb4NFTCollection> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for the Web4 NFT collection (e.g. Name, Description)." };
             return await NFTManager.CreateWeb4NFTCollectionAsync(request, providerType);
+        }
+
+        /// <summary>
+        /// Creates an on-chain collection NFT (Metaplex standard) and sets its collection size.
+        /// Required for Phantom wallet to display minted NFTs under the Collections tab via the Helius DAS API.
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        [Route("create-collection-nft")]
+        [ProducesResponseType(typeof(OASISResult<IWeb3NFTTransactionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync([FromBody] Models.NFT.CreateCollectionNFTRequest request)
+        {
+            if (request == null)
+                return new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = "The request body is required." };
+
+            ProviderType providerType = ProviderType.SolanaOASIS;
+
+            if (!string.IsNullOrWhiteSpace(request.OnChainProvider))
+            {
+                if (!Enum.TryParse(request.OnChainProvider, out providerType))
+                    return new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = $"The OnChainProvider '{request.OnChainProvider}' is not valid." };
+            }
+
+            return await NFTManager.CreateCollectionNFTAsync(new API.Core.Objects.NFT.Requests.CreateCollectionNFTRequest
+            {
+                Title = request.Title,
+                Symbol = request.Symbol,
+                MetadataUri = request.MetadataUri,
+                InitialSize = request.InitialSize
+            }, providerType);
+        }
+
+        /// <summary>
+        /// Sets the collectionDetails size on an existing on-chain collection NFT.
+        /// Use this to fix an existing collection NFT that is missing collectionDetails (required by Helius DAS API).
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        [Route("set-collection-size")]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<string>> SetCollectionSizeAsync([FromBody] Models.NFT.SetCollectionSizeRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.CollectionMintAddress))
+                return new OASISResult<string> { IsError = true, Message = "CollectionMintAddress is required." };
+
+            ProviderType providerType = ProviderType.SolanaOASIS;
+
+            if (!string.IsNullOrWhiteSpace(request.OnChainProvider))
+            {
+                if (!Enum.TryParse(request.OnChainProvider, out providerType))
+                    return new OASISResult<string> { IsError = true, Message = $"The OnChainProvider '{request.OnChainProvider}' is not valid." };
+            }
+
+            return await NFTManager.SetCollectionSizeAsync(request.CollectionMintAddress, request.Size, providerType);
         }
 
         /// <summary>
