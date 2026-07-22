@@ -249,7 +249,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             string logs = simResult.Result.Value.Logs != null
                 ? string.Join(" | ", simResult.Result.Value.Logs)
                 : "no logs";
-            throw new Exception($"SetAndVerifyCollection simulation failed: {simResult.Result.Value.Error} — logs: {logs}");
+            throw new Exception($"SetAndVerifyCollection simulation failed [ix={string.Join(",", instructionData)} accounts={accounts.Count}]: {simResult.Result.Value.Error} — logs: {logs}");
         }
 
         RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
