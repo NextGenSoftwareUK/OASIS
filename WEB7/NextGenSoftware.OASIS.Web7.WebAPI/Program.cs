@@ -5,8 +5,16 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web7.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web7.WebAPI.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
 
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
@@ -24,6 +32,10 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
+builder.Services.AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -31,8 +43,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB7 OASIS Symbiotic Layer API" },
-        Description = "WEB7 - the non-invasive human/AI symbiosis layer. Real bio-signal DSP (EEG/HRV/GSR), consent-gated sessions enforcing the Borg-Free pledge, and collective consciousness spaces.",
-        Title = "WEB7 OASIS Symbiotic Layer API",
+        Description = $"WEB7 v{OASISBootLoader.WEB7APIVersion} - the non-invasive human/AI symbiosis layer. Real bio-signal DSP (EEG/HRV/GSR), consent-gated sessions enforcing the Borg-Free pledge, and collective consciousness spaces." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB7/NextGenSoftware.OASIS.Web7.WebAPI/WEB7%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB7 OASIS Symbiotic Layer API v", OASISBootLoader.WEB7APIVersion),
         Version = "v1"
     });
 
@@ -40,7 +53,7 @@ builder.Services.AddSwaggerGen(c =>
 
     foreach (var xml in xmlFiles)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, xml);
+        var path = System.IO.Path.Combine(AppContext.BaseDirectory, xml);
         if (File.Exists(path))
             c.IncludeXmlComments(path, includeControllerXmlComments: true);
     }
@@ -54,7 +67,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB7 OASIS Symbiotic Layer API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB7 OASIS Symbiotic Layer API v", OASISBootLoader.WEB7APIVersion)));
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
     app.UseHttpsRedirection();
@@ -92,9 +105,12 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.JwtMiddleware>();
 
 app.MapControllers();
+app.MapGraphQL();
+app.MapGrpcService<CollectiveConsciousnessGrpcService>();
+app.MapGrpcService<SymbiosisGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
-var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+var dnaPath = OASISBootLoader.OASISDNAPath ?? System.IO.Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
 var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
 if (bootResult.IsError)
     OASISErrorHandling.HandleError($"Warning: WEB7 OASIS boot failed: {bootResult.Message}");

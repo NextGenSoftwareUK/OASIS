@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -149,11 +149,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.ResetTokenExpires = avatarResult.Result.ResetTokenExpires;
             result.Result.VerificationToken = avatarResult.Result.VerificationToken;
             result.Result.Verified = avatarResult.Result.Verified;
-            result.Result.CreatedByAvatarId = Guid.Parse(avatarResult.Result.CreatedByAvatarId);
+            result.Result.CreatedByAvatarId = Guid.TryParse(avatarResult.Result.CreatedByAvatarId, out var createdByG1) ? createdByG1 : Guid.Empty;
             result.Result.CreatedDate = avatarResult.Result.CreatedDate;
-            result.Result.DeletedByAvatarId = Guid.Parse(avatarResult.Result.DeletedByAvatarId);
+            result.Result.DeletedByAvatarId = Guid.TryParse(avatarResult.Result.DeletedByAvatarId, out var deletedByG1) ? deletedByG1 : Guid.Empty;
             result.Result.DeletedDate = avatarResult.Result.DeletedDate;
-            result.Result.ModifiedByAvatarId = Guid.Parse(avatarResult.Result.ModifiedByAvatarId);
+            result.Result.ModifiedByAvatarId = Guid.TryParse(avatarResult.Result.ModifiedByAvatarId, out var modifiedByG1) ? modifiedByG1 : Guid.Empty;
             result.Result.ModifiedDate = avatarResult.Result.ModifiedDate;
             result.Result.DeletedDate = avatarResult.Result.DeletedDate;
             result.Result.LastBeamedIn = avatarResult.Result.LastBeamedIn;
@@ -202,11 +202,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             // oasisAvatar.AvatarType = avatar.Result.AvatarType;
             oasisAvatar.HolonType = avatar.Result.HolonType;
             oasisAvatar.IsChanged = avatar.Result.IsChanged;
-            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.Result.CreatedByAvatarId);
+            oasisAvatar.CreatedByAvatarId = Guid.TryParse(avatar.Result.CreatedByAvatarId, out var createdByG2) ? createdByG2 : Guid.Empty;
             oasisAvatar.CreatedDate = avatar.Result.CreatedDate;
-            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.Result.DeletedByAvatarId);
+            oasisAvatar.DeletedByAvatarId = Guid.TryParse(avatar.Result.DeletedByAvatarId, out var deletedByG2) ? deletedByG2 : Guid.Empty;
             oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
-            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.Result.ModifiedByAvatarId);
+            oasisAvatar.ModifiedByAvatarId = Guid.TryParse(avatar.Result.ModifiedByAvatarId, out var modifiedByG2) ? modifiedByG2 : Guid.Empty;
             oasisAvatar.ModifiedDate = avatar.Result.ModifiedDate;
             oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
             oasisAvatar.Version = avatar.Result.Version;
@@ -777,11 +777,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     oasisHolon.Nodes.Add(node);
             }
 
-            oasisHolon.CreatedByAvatarId = Guid.Parse(holon.CreatedByAvatarId);
+            oasisHolon.CreatedByAvatarId = Guid.TryParse(holon.CreatedByAvatarId, out var createdByG3) ? createdByG3 : Guid.Empty;
             oasisHolon.CreatedDate = holon.CreatedDate;
-            oasisHolon.DeletedByAvatarId = Guid.Parse(holon.DeletedByAvatarId);
+            oasisHolon.DeletedByAvatarId = Guid.TryParse(holon.DeletedByAvatarId, out var deletedByG3) ? deletedByG3 : Guid.Empty;
             oasisHolon.DeletedDate = holon.DeletedDate;
-            oasisHolon.ModifiedByAvatarId = Guid.Parse(holon.ModifiedByAvatarId);
+            oasisHolon.ModifiedByAvatarId = Guid.TryParse(holon.ModifiedByAvatarId, out var modifiedByG3) ? modifiedByG3 : Guid.Empty;
             oasisHolon.ModifiedDate = holon.ModifiedDate;
             oasisHolon.DeletedDate = holon.DeletedDate;
             oasisHolon.Version = holon.Version;

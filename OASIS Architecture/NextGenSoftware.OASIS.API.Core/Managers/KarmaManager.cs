@@ -370,23 +370,104 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             switch (karmaType)
             {
-                case KarmaTypePositive.BeAHero: return 7;
-                case KarmaTypePositive.BeASuperHero: return 8;
-                case KarmaTypePositive.BeATeamPlayer: return 5;
-                case KarmaTypePositive.BeingDetermined: return 5;
-                case KarmaTypePositive.BeingFast: return 5;
-                case KarmaTypePositive.ContributingTowardsAGoodCauseAdministrator: return 3;
-                case KarmaTypePositive.ContributingTowardsAGoodCauseSpeaker: return 8;
-                case KarmaTypePositive.ContributingTowardsAGoodCauseContributor: return 5;
-                case KarmaTypePositive.ContributingTowardsAGoodCauseCreatorOrganiser: return 10;
-                case KarmaTypePositive.ContributingTowardsAGoodCauseFunder: return 8;
-                case KarmaTypePositive.ContributingTowardsAGoodCausePeacefulProtesterActivist: return 5;
-                case KarmaTypePositive.ContributingTowardsAGoodCauseSharer: return 3;
-                case KarmaTypePositive.HelpingAnimals: return 5;
-                case KarmaTypePositive.HelpingTheEnvironment: return 5;
-                case KarmaTypePositive.Other: return 2;
-                case KarmaTypePositive.OurWorld: return 5;
-                case KarmaTypePositive.SelfHelpImprovement: return 2;
+                // OASIS platform actions
+                case KarmaTypePositive.CreateAvatar: return 25;
+                case KarmaTypePositive.CompleteProfile: return 40;
+                case KarmaTypePositive.CreateBenevolentOApp: return 75;
+                case KarmaTypePositive.DeployBenevolentOApp: return 100;
+                case KarmaTypePositive.CreateBenevolentQuest: return 60;
+                case KarmaTypePositive.CompleteBenevolentQuest: return 80;
+                //case KarmaTypePositive.CreateHolon: return 1; // TODO: Define what a BenevolentHolon is before rewarding this
+                case KarmaTypePositive.GiftSeeds: return 50;
+                case KarmaTypePositive.DonateSeeds: return 75;
+                case KarmaTypePositive.PlaceBenevolentGeoNFT: return 25;
+                case KarmaTypePositive.CollectBenevolentGeoNFT: return 15;
+                case KarmaTypePositive.MintBenevolentNFT: return 20;
+                case KarmaTypePositive.MintBenevolentGeoNFT: return 20;
+                case KarmaTypePositive.PayWithSeeds: return 50;
+                case KarmaTypePositive.DonateWithSeeds: return 75;
+                case KarmaTypePositive.RewardWithSeeds: return 60;
+                case KarmaTypePositive.SendInviteToJoinSeeds: return 30;
+                case KarmaTypePositive.AcceptInviteToJoinSeeds: return 25;
+                case KarmaTypePositive.ContributingToTheOASISWithCode: return 500;
+                case KarmaTypePositive.ContributingToTheOASISWithPR: return 450;
+                case KarmaTypePositive.ContributingToTheOASISWithSupport: return 300;
+                case KarmaTypePositive.ContributingToTheOASISWithMarketing: return 450;
+                case KarmaTypePositive.ContributingToTheOASISWithFunding: return 500;
+                case KarmaTypePositive.ContributingToTheOASISWithSales: return 450;
+                case KarmaTypePositive.ContributingToTheOASIS: return 300;
+                // OurWorld in-game actions (lower than real-world equivalents)
+                //case KarmaTypePositive.OurWorld: return 230;
+                case KarmaTypePositive.OurWorldPickupLitter: return 150;
+                case KarmaTypePositive.OurWorldHelpOtherPlayer: return 100;
+                case KarmaTypePositive.OurWorldHelpOtherPlayers: return 150;
+                case KarmaTypePositive.OurWorldDefendPlayer: return 125;
+                case KarmaTypePositive.OurWorldDefendPlayers: return 175;
+                case KarmaTypePositive.OurWorldDefendBase: return 150;
+                case KarmaTypePositive.OurWorldBeSelfless: return 175;
+                case KarmaTypePositive.OurWorldBeAHero: return 200;
+                case KarmaTypePositive.OurWorldBeASuperHero: return 250;
+                case KarmaTypePositive.OurWorldBeSuperman: return 300;
+                case KarmaTypePositive.OurWorlBeATeamPlayer: return 150;
+                case KarmaTypePositive.OurWorldLevelUp: return 100;
+                case KarmaTypePositive.OurWorldBeingPresent: return 100;
+                case KarmaTypePositive.OurWorldBeingDetermined: return 125;
+                case KarmaTypePositive.OurWorldBeingMindful: return 100;
+                case KarmaTypePositive.OurWorldBeingHappy: return 100;
+                case KarmaTypePositive.OurWorldBeingPeaceful: return 100;
+                case KarmaTypePositive.OurWorldBeingWise: return 125;
+                case KarmaTypePositive.OurWorldBeingPositive: return 100;
+                case KarmaTypePositive.OurWorldBeingFast: return 100;
+                case KarmaTypePositive.OurWorldBeingSuperFast: return 150;
+                case KarmaTypePositive.OurWorldBeingStrong: return 100;
+                case KarmaTypePositive.OurWorldBeingSuperStrong: return 150;
+                case KarmaTypePositive.OurWorldBeingGrateful: return 100;
+                case KarmaTypePositive.OurWorldSpeakingYourTruth: return 125;
+                case KarmaTypePositive.OurWorldOther: return 75;
+                // Real-world positive actions (significantly higher than platform actions to reflect real impact)
+                case KarmaTypePositive.PickupLitter: return 200;
+                case KarmaTypePositive.HelpOtherPerson: return 225;
+                case KarmaTypePositive.HelpOtherPeople: return 275;
+                case KarmaTypePositive.DefendOtherPerson: return 250;
+                case KarmaTypePositive.DefendOtherPeople: return 300;
+                case KarmaTypePositive.BeSelfless: return 250;
+                case KarmaTypePositive.BeAHero: return 280;
+                case KarmaTypePositive.BeASuperHero: return 330;
+                case KarmaTypePositive.BeSuperman: return 400;
+                case KarmaTypePositive.BeATeamPlayer: return 200;
+                case KarmaTypePositive.LevelUp: return 200;
+                case KarmaTypePositive.BeingPresent: return 215;
+                case KarmaTypePositive.BeingDetermined: return 200;
+                case KarmaTypePositive.BeingMindful: return 215;
+                case KarmaTypePositive.BeingHappy: return 215;
+                case KarmaTypePositive.BeingPeaceful: return 215;
+                case KarmaTypePositive.BeingWise: return 225;
+                case KarmaTypePositive.BeingPositive: return 215;
+                case KarmaTypePositive.BeingFast: return 200;
+                case KarmaTypePositive.BeingSuperFast: return 225;
+                case KarmaTypePositive.BeingStrong: return 215;
+                case KarmaTypePositive.BeingSuperStrong: return 250;
+                case KarmaTypePositive.BeingGrateful: return 215;
+                case KarmaTypePositive.SpeakingYourTruth: return 225;
+                case KarmaTypePositive.NutritionEatDrinkHealthy: return 200;
+                case KarmaTypePositive.SelfHelpImprovement: return 215;
+                case KarmaTypePositive.HelpingTheEnvironment: return 400;
+                case KarmaTypePositive.HelpingAnimals: return 400;
+                case KarmaTypePositive.KeepThePeace: return 400;
+                case KarmaTypePositive.HelpLocalCommunity: return 400;
+                case KarmaTypePositive.HelpElderly: return 450;
+                case KarmaTypePositive.HelpTheHomeless: return 450;
+                case KarmaTypePositive.HelpKidsOnStreets: return 500;
+                case KarmaTypePositive.HelpKids: return 450;
+                case KarmaTypePositive.Volunteering: return 350;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseContributor: return 350;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSharer: return 350;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseAdministrator: return 350;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseCreatorOrganiser: return 777;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseFunder: return 500;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSpeaker: return 350;
+                case KarmaTypePositive.ContributingTowardsAGoodCausePeacefulProtesterActivist: return 350;
+                case KarmaTypePositive.Other: return 210;
                 default: return 0;
             }
         }
@@ -395,24 +476,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             switch (karmaType)
             {
-                case KarmaTypeNegative.AttackPhysciallyOtherPersonOrPeople: return 10;
-                case KarmaTypeNegative.AttackVerballyOtherPersonOrPeople: return 5;
-                case KarmaTypeNegative.BeingSelfish: return 3;
-                case KarmaTypeNegative.DisrespectPersonOrPeople: return 4;
-                case KarmaTypeNegative.DropLitter: return 9;
-                case KarmaTypeNegative.HarmingAnimals: return 10;
-                case KarmaTypeNegative.HarmingChildren: return 9;
-                case KarmaTypeNegative.HarmingNature: return 10;
-                case KarmaTypeNegative.NotTeamPlayer: return 3;
-                case KarmaTypeNegative.NutritionEatDiary: return 6;
-                case KarmaTypeNegative.NutritionEatDrinkUnhealthy: return 3;
-                case KarmaTypeNegative.NutritionEatMeat: return 7;
-                case KarmaTypeNegative.Other: return 1;
-                case KarmaTypeNegative.OurWorldAttackOtherPlayer: return 7;
-                case KarmaTypeNegative.OurWorldBeSelfish: return 4;
-                case KarmaTypeNegative.OurWorldDisrespectOtherPlayer: return 5;
-                case KarmaTypeNegative.OurWorldDropLitter: return 7;
-                case KarmaTypeNegative.OurWorldNotTeamPlayer: return 3;
+                case KarmaTypeNegative.AttackPhysciallyOtherPersonOrPeople: return 2000;
+                case KarmaTypeNegative.AttackVerballyOtherPersonOrPeople: return 500;
+                case KarmaTypeNegative.BeingSelfish: return 50;
+                case KarmaTypeNegative.DisrespectPersonOrPeople: return 50;
+                case KarmaTypeNegative.DropLitter: return 500;
+                case KarmaTypeNegative.HarmingAnimals: return 2000;
+                case KarmaTypeNegative.HarmingChildren: return 2000;
+                case KarmaTypeNegative.HarmingNature: return 2000;
+                case KarmaTypeNegative.NotTeamPlayer: return 15;
+                case KarmaTypeNegative.NutritionEatDrinkUnhealthy: return 10;
+                case KarmaTypeNegative.SpamAbuse: return 150;
+                case KarmaTypeNegative.OurWorldAttackOtherPlayer: return 200;
+                case KarmaTypeNegative.OurWorldBeSelfish: return 50;
+                case KarmaTypeNegative.OurWorldDisrespectOtherPlayer: return 20;
+                case KarmaTypeNegative.OurWorldDropLitter: return 250;
+                case KarmaTypeNegative.OurWorldNotTeamPlayer: return 15;
+                case KarmaTypeNegative.Other: return 5;
                 default: return 0;
             }
         }

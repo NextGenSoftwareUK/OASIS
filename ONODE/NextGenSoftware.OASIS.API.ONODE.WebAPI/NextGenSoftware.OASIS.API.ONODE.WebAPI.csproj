@@ -57,7 +57,7 @@
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
   
-    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,6 +72,8 @@
   <ItemGroup>
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
     <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
 	  <PackageReference Include="AutoMapper" Version="16.2.0" />
 	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 	  <PackageReference Include="MailKit" Version="4.17.0" />
@@ -84,6 +86,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageReference Include="Stripe.net" Version="45.0.0" />
@@ -97,6 +100,41 @@
 
   <ItemGroup>
     <Folder Include="Pages\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\common.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\avatar.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\karma.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\data.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\social.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\clan.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\chat.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\messaging.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\files.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\gifts.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\eggs.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\video.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\stats.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\settings.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\hyperdrive.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\bridge.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\wallet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\competition.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\seeds.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\search.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\onet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\onode.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\provider.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\keys.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\eosio.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\holochain.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\map.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\oland.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\share.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\solana.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\nft.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\subscription.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

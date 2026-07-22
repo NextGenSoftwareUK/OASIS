@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service HyperDriveService {
+  rpc GetHyperDriveAIRecommendations (HyperDriveEmptyRequest) returns (JsonResponse);
+  rpc GetHyperDriveAnalyticsReport (GetHyperDriveAnalyticsReportRequest) returns (JsonResponse);
+  rpc GetHyperDriveDashboard (HyperDriveEmptyRequest) returns (JsonResponse);
+  rpc GetHyperDriveFailoverPredictions (HyperDriveEmptyRequest) returns (JsonResponse);
+  rpc GetHyperDriveCostOptimizationRecommendations (HyperDriveEmptyRequest) returns (JsonResponse);
+  rpc GetHyperDriveSecurityRecommendations (HyperDriveEmptyRequest) returns (JsonResponse);
+  rpc UpdateHyperDriveConfig (UpdateHyperDriveConfigRequest) returns (OASISGrpcResponse);
+  rpc ValidateHyperDriveConfig (HyperDriveEmptyRequest) returns (OASISGrpcResponse);
+  rpc ResetHyperDriveConfig (HyperDriveEmptyRequest) returns (OASISGrpcResponse);
+  rpc ResetHyperDriveProviderMetrics (ResetHyperDriveProviderMetricsRequest) returns (OASISGrpcResponse);
+  rpc ResetAllHyperDriveMetrics (HyperDriveEmptyRequest) returns (OASISGrpcResponse);
+}
+
+message HyperDriveEmptyRequest {}
+message GetHyperDriveAnalyticsReportRequest {
+  string provider_type = 1;
+  string time_range = 2;
+}
+message UpdateHyperDriveConfigRequest { string config_json = 1; }
+message ResetHyperDriveProviderMetricsRequest { string provider_type = 1; }
+

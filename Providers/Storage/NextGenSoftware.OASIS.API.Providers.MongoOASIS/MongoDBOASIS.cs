@@ -117,15 +117,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                // Properly dispose MongoDB resources
                 if (Database != null)
                 {
                     Database.MongoDB = null;
                     Database.MongoClient = null;
                     Database = null;
                 }
-                
-                // Dispose repositories
+
                 _avatarRepository = null;
                 _holonRepository = null;
                 _searchRepository = null;
@@ -176,15 +174,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                // Properly dispose MongoDB resources
                 if (Database != null)
                 {
                     Database.MongoDB = null;
                     Database.MongoClient = null;
                     Database = null;
                 }
-                
-                // Dispose repositories
+
                 _avatarRepository = null;
                 _holonRepository = null;
                 _searchRepository = null;
@@ -263,28 +259,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
                await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                _avatarRepository.Add(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
                _avatarRepository.Update(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
                await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                 _avatarRepository.Add(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
                 _avatarRepository.Update(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
         }
@@ -356,6 +352,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
+            if (_avatarRepository == null)
+                return new OASISResult<IAvatarDetail> { IsError = true, Message = "MongoDBOASIS provider is not fully initialised (avatarRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry." };
+
             return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
         }
 
@@ -571,6 +570,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             //return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetHolonsByMetaData(metaKey, metaValue, type), loadChildrenFromProvider));
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (_holonRepository == null)
+            {
+                result.IsError = true;
+                result.Message = "MongoDBOASIS provider is not fully initialised (holonRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry.";
+                return result;
+            }
+
             OASISResult<IEnumerable<Holon>> repoResult = _holonRepository.GetHolonsByMetaData(metaKey, metaValue, type);
 
             if (repoResult.IsError)
@@ -587,6 +594,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (_holonRepository == null)
+            {
+                result.IsError = true;
+                result.Message = "MongoDBOASIS provider is not fully initialised (holonRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry.";
+                return result;
+            }
+
             OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
 
             if (repoResult.IsError)
@@ -660,7 +675,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //     ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
             //     : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
 
-            OASISResult<IHolon> result = holon.IsNewHolon
+            //OASISResult<IHolon> result = holon.IsNewHolon
+            OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
                 ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
                 : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
 
@@ -682,7 +698,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IHolon> result = holon.IsNewHolon
+            OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
                 ? DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Add(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
                 : DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Update(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
 

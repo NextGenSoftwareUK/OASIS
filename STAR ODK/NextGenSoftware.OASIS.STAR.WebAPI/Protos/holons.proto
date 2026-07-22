@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+service HolonsService {
+  // Holons CRUD
+  rpc GetAllHolons (HolonEmptyMsg) returns (HolonListResponse);
+  rpc GetHolon (HolonIdMsg) returns (HolonResponse);
+  rpc CreateHolon (HolonMessage) returns (HolonResponse);
+  rpc UpdateHolon (HolonMessage) returns (HolonResponse);
+  rpc DeleteHolon (HolonIdMsg) returns (HolonBoolMsg);
+  rpc GetHolonsByType (HolonTypeMsg) returns (HolonListResponse);
+  rpc GetHolonsByParent (HolonIdMsg) returns (HolonListResponse);
+  rpc GetHolonsByMetadata (MetadataQuery) returns (HolonListResponse);
+  rpc SearchHolons (HolonSearchMsg) returns (HolonListResponse);
+  rpc LoadAllHolonsForAvatar (HolonEmptyMsg) returns (HolonListResponse);
+  rpc PublishHolon (HolonPublishMsg) returns (HolonResponse);
+  rpc DownloadHolon (HolonDownloadMsg) returns (HolonResponse);
+  rpc ActivateHolon (HolonVersionedIdMsg) returns (HolonResponse);
+  rpc DeactivateHolon (HolonVersionedIdMsg) returns (HolonResponse);
+  rpc UnpublishHolon (HolonVersionedIdMsg) returns (HolonResponse);
+  rpc RepublishHolon (HolonVersionedIdMsg) returns (HolonResponse);
+  rpc GetHolonVersions (HolonIdMsg) returns (HolonListResponse);
+  // Zomes
+  rpc GetAllZomes (HolonEmptyMsg) returns (ZomeListResponse);
+  rpc GetZome (HolonIdMsg) returns (ZomeResponse);
+  rpc CreateZome (ZomeMessage) returns (ZomeResponse);
+  rpc UpdateZome (ZomeMessage) returns (ZomeResponse);
+  rpc DeleteZome (HolonIdMsg) returns (HolonBoolMsg);
+}
+
+message HolonEmptyMsg {}
+message HolonIdMsg { string id = 1; }
+message HolonVersionedIdMsg { string id = 1; int32 version = 2; }
+message HolonTypeMsg { string holon_type = 1; }
+message HolonSearchMsg { string query = 1; }
+message MetadataQuery { string key = 1; string value = 2; }
+
+message HolonPublishMsg {
+  string id = 1;
+  string source_path = 2;
+  string launch_target = 3;
+  string publish_path = 4;
+  bool register_on_starnet = 5;
+}
+
+message HolonDownloadMsg {
+  string id = 1;
+  int32 version = 2;
+  string download_path = 3;
+  bool re_install = 4;
+}
+
+message HolonMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string holon_type = 4;
+  string status = 5;
+}
+
+message HolonResponse {
+  bool is_error = 1;
+  string message = 2;
+  HolonMessage result = 3;
+}
+
+message HolonListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated HolonMessage items = 3;
+}
+
+message HolonBoolMsg {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message ZomeMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message ZomeResponse {
+  bool is_error = 1;
+  string message = 2;
+  ZomeMessage result = 3;
+}
+
+message ZomeListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated ZomeMessage items = 3;
+}

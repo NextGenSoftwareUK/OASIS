@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -68,6 +70,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
 
+                // Apply the configured encryption stack (BCrypt → Rijndael-256 → AES-256-GCM) if not already done.
+                var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
+                    avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettings);
+
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;
 
@@ -109,6 +116,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
                     if ((autoReplicationMode == AutoReplicationMode.UseGlobalDefaultInOASISDNA && ProviderManager.Instance.IsAutoReplicationEnabled) || autoReplicationMode == AutoReplicationMode.True)
                         result = await AutoReplicateAvatarAsync(avatar, result, previousProviderType, waitForAutoReplicationResult);
+
+                    // Sync username/email changes back to AvatarDetail so both stay in sync.
+                    var detailResult = await LoadAvatarDetailAsync(avatar.Id);
+                    if (!detailResult.IsError && detailResult.Result != null)
+                    {
+                        bool detailChanged = false;
+                        if (!string.IsNullOrEmpty(avatar.Username) && detailResult.Result.Username != avatar.Username)
+                        { detailResult.Result.Username = avatar.Username; detailChanged = true; }
+                        if (!string.IsNullOrEmpty(avatar.Email) && detailResult.Result.Email != avatar.Email)
+                        { detailResult.Result.Email = avatar.Email; detailChanged = true; }
+                        if (detailChanged)
+                            await SaveAvatarDetailAsync(detailResult.Result);
+                    }
                 }
 
                 await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
@@ -148,6 +168,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
+
+                var pwdSettingsSync = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
+                    avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettingsSync);
 
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;

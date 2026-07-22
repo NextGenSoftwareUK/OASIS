@@ -59,20 +59,25 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
     public static class OASISBootLoader
     {
         //private static string _OASISVersion = null;
-        private const string SYSTEM_EMAIL = "anorak@oasisweb4.com";
+        private const string SYSTEM_EMAIL = "anorak@oasisomniverse.one";
         public static bool IsOASISBooted { get; private set; } = false;
         public static bool IsOASISBooting { get; private set; } = false;
 
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISRuntimeVersion { get; set; } = "4.5.1";
-        public static string OASISAPIVersion { get; set; } = "4.6.0";
-        public static string COSMICVersion { get; set; } = "2.1.1";
-        public static string STARODKVersion { get; set; } = "3.5.0";
-        public static string STARRuntimeVersion { get; set; } = "3.5.0";
-        public static string STARNETVersion { get; set; } = "2.4.0";
-        public static string STARAPIVersion { get; set; } = "1.3.0";
+        public static string OASISRuntimeVersion { get; set; } = "5.0.0";
+        public static string OASISAPIVersion { get; set; } = "5.0.0";
+        public static string COSMICVersion { get; set; } = "2.2.2";
+        public static string STARODKVersion { get; set; } = "4.0.0";
+        public static string STARRuntimeVersion { get; set; } = "4.0.0";
+        public static string STARNETVersion { get; set; } = "2.5.0";
+        public static string STARAPIVersion { get; set; } = "2.0.0";
+        public static string WEB6APIVersion { get; set; } = "2.0.0";
+        public static string WEB7APIVersion { get; set; } = "1.0.0";
+        public static string WEB8APIVersion { get; set; } = "1.0.0";
+        public static string WEB9APIVersion { get; set; } = "1.0.0";
+        public static string WEB10APIVersion { get; set; } = "1.0.0";
 
         public static string DotNetVersion
         {
@@ -348,6 +353,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($"STAR ODK VERSION:      v{STARODKVersion}.", LogType.Info);
                         LoggingManager.Log($"STARNET VERSION:       v{STARNETVersion}.", LogType.Info);
                         LoggingManager.Log($"STAR API VERSION:      v{STARAPIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB6 API VERSION:      v{WEB6APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB7 API VERSION:      v{WEB7APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB8 API VERSION:      v{WEB8APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB9 API VERSION:      v{WEB9APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB10 API VERSION:     v{WEB10APIVersion}.", LogType.Info);
                         LoggingManager.Log($".NET VERSION:          v{DotNetVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);

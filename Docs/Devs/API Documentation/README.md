@@ -103,6 +103,17 @@ The WEB10 Source Layer is the root identity and ontological foundation of the OA
 
 [View WEB10 MCP Tool Reference →](WEB10/WEB10_MCP_Tool_Reference.md)
 
+### [ONODE Manager](ONODE-Manager-Architecture.md) *(Alpha)*
+
+Desktop tray app for managing OASIS Web4–Web10 node services locally and remotely.
+
+- **Local mode** — direct REST to ONODEService on `127.0.0.1:8765`; real-time WebSocket state push
+- **Remote mode** — CommandHolon bridge via Web4 API (~6s round-trip)
+- **Tech**: Avalonia UI 11.3, .NET 10, LiveCharts2, SQLite, Velopack auto-update, SkiaSharp icons
+- **Download (Alpha)**: [GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0)
+
+[View ONODE Manager Architecture & Operations Manual →](ONODE-Manager-Architecture.md)
+
 ## Getting Started
 
 ### Authentication
