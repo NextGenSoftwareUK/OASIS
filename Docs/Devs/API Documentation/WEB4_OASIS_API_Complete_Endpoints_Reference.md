@@ -185,7 +185,9 @@ GET    /api/nft/load-web3-nft-by-hash/{onChainNftHash}                         #
 GET    /api/nft/load-all-web3-nfts-for-avatar/{avatarId}                       # Web3 NFTs for avatar
 GET    /api/nft/load-all-web3-nfts-for-mint-address/{mintWalletAddress}        # Web3 NFTs for mint address
 GET    /api/nft/load-all-web3-nfts                                             # All Web3 NFTs (admin)
-POST   /api/nft/create-web4-nft-collection                                     # Create NFT collection
+POST   /api/nft/create-web4-nft-collection                                     # Create Web4 NFT collection (off-chain metadata)
+POST   /api/nft/create-collection-nft                                          # Create on-chain Solana/Metaplex collection NFT (sets collectionDetails for Helius DAS/Phantom)
+POST   /api/nft/set-collection-size                                            # Set collectionDetails.size on existing Solana collection NFT (Metaplex instruction 33)
 GET    /api/nft/search-web4-nfts/{searchTerm}/{avatarId}                       # Search Web4 NFTs
 GET    /api/nft/search-web4-geo-nfts/{searchTerm}/{avatarId}                   # Search GeoNFTs
 GET    /api/nft/search-web4-nft-collections/{searchTerm}/{avatarId}            # Search NFT collections
