@@ -203,18 +203,18 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<string> SetAndVerifyCollectionAsync(string collectionMintAddress, string nftMintAddress)
     {
         PublicKey metadataProgram = new("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-        PublicKey systemProgram   = new("11111111111111111111111111111111");
         PublicKey nftMint         = new(nftMintAddress);
         PublicKey collectionMint  = new(collectionMintAddress);
 
-        PublicKey nftMetadataPda          = DeriveMetadataPda(nftMint, metadataProgram);
-        PublicKey collectionMetadataPda   = DeriveMetadataPda(collectionMint, metadataProgram);
+        PublicKey nftMetadataPda             = DeriveMetadataPda(nftMint, metadataProgram);
+        PublicKey collectionMetadataPda      = DeriveMetadataPda(collectionMint, metadataProgram);
         PublicKey collectionMasterEditionPda = DeriveMasterEditionPda(collectionMint, metadataProgram);
 
-        // Instruction 25 = SetAndVerifyCollection
-        // Account 7 (collectionAuthorityRecord) is passed as System Program to indicate
-        // "no delegated authority — use update authority directly". Required for sized collections.
-        byte[] instructionData = new byte[] { 25 };
+        // Instruction 32 = SetAndVerifySizedCollectionItem (for sized collections).
+        // Instruction 25 (SetAndVerifyCollection) is hard-blocked for sized collections
+        // with error 0x66: "Can't use this function on a sized collection".
+        // Instruction 32 also increments collectionDetails.size, so collectionMetadata must be writable.
+        byte[] instructionData = new byte[] { 32 };
 
         List<AccountMeta> accounts = new()
         {
@@ -223,9 +223,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             AccountMeta.Writable(oasisAccount.PublicKey, true),       // 2 payer (signer)
             AccountMeta.ReadOnly(oasisAccount.PublicKey, false),      // 3 update authority of NFT + collection
             AccountMeta.ReadOnly(collectionMint, false),              // 4 collection mint
-            AccountMeta.Writable(collectionMetadataPda, false),       // 5 collection metadata (writable — sized collection increments size)
+            AccountMeta.Writable(collectionMetadataPda, false),       // 5 collection metadata (writable — increments size)
             AccountMeta.ReadOnly(collectionMasterEditionPda, false),  // 6 collection master edition
-            AccountMeta.ReadOnly(systemProgram, false),               // 7 collectionAuthorityRecord = System Program (none/direct authority)
         };
 
         TransactionInstruction verifyInstruction = new()
