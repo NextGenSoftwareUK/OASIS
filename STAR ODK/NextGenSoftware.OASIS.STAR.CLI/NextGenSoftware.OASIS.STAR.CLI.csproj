@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR.CLI.Lib\NextGenSoftware.OASIS.STAR.CLI.Lib.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
+    <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.ONODE.Client\NextGenSoftware.OASIS.ONODE.Client.csproj" />
   </ItemGroup>
 
   <!-- DNA folder: JSON only (STARDNA.cs is chosen at build time in STAR.DNA project) -->

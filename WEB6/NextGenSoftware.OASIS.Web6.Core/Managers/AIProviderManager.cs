@@ -68,6 +68,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             ApiKeys[AIProviderType.Bittensor]   = Resolve("BITTENSOR_API_KEY",   null);
             ApiKeys[AIProviderType.GaiaNet]     = Resolve("GAIANET_API_KEY",     null);
             ApiKeys[AIProviderType.Custom]      = Resolve("CUSTOM_AI_API_KEY",   null);
+            ApiKeys[AIProviderType.LeelaAI]     = Resolve("LEELA_API_KEY",        dna?.LeelaAI);
         }
 
         /// <summary>Returns the env var value if set and non-empty, otherwise the OASIS_DNA fallback.</summary>
@@ -193,6 +194,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 case AIProviderType.Bittensor:
                 case AIProviderType.GaiaNet:
                 case AIProviderType.Custom:
+                case AIProviderType.LeelaAI:
                     return await CallOpenAICompatibleAsync(provider, request);
 
                 case AIProviderType.Anthropic:
@@ -242,6 +244,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 AIProviderType.Bittensor  => (Environment.GetEnvironmentVariable("BITTENSOR_API_URL") ?? "https://api.corcel.io/v1/chat/completions", "bittensor-mistral-7b"),
                 AIProviderType.GaiaNet    => ($"{Environment.GetEnvironmentVariable("GAIANET_NODE_URL") ?? "https://llama.us.gaianet.network"}/v1/chat/completions", "llama"),
                 AIProviderType.Custom     => (Environment.GetEnvironmentVariable("CUSTOM_AI_BASE_URL") ?? "", "custom"),
+                AIProviderType.LeelaAI    => (
+                    $"{(Environment.GetEnvironmentVariable("LEELA_BASE_URL") ?? OASISDNA?.OASIS?.Web6?.LeelaAI?.BaseUrl ?? "https://namozyqyvwf62hqxpzujt7e5hq0njhge.lambda-url.eu-west-1.on.aws").TrimEnd('/')}/v1/chat/completions",
+                    "leela"),
                 _ => ("https://api.openai.com/v1/chat/completions", "gpt-4o"),
             };
         }
@@ -256,7 +261,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             if (string.IsNullOrEmpty(apiKey) && !keyOptional)
                 throw new InvalidOperationException($"No API key configured for {provider}.");
 
-            bool hasTools = request.Tools?.Count > 0;
+            // LeelaAI rejects tool definitions with 400; suppress them for that provider.
+            bool hasTools = request.Tools?.Count > 0 && provider != AIProviderType.LeelaAI;
 
             var payloadObj = new System.Collections.Generic.Dictionary<string, object>
             {

@@ -203,27 +203,29 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<string> SetAndVerifyCollectionAsync(string collectionMintAddress, string nftMintAddress)
     {
         PublicKey metadataProgram = new("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-        PublicKey nftMint = new(nftMintAddress);
-        PublicKey collectionMint = new(collectionMintAddress);
+        PublicKey nftMint         = new(nftMintAddress);
+        PublicKey collectionMint  = new(collectionMintAddress);
 
-        // Derive PDAs manually (seeds: "metadata", programId, mintAddress)
-        PublicKey nftMetadataPda = DeriveMetadataPda(nftMint, metadataProgram);
-        PublicKey collectionMetadataPda = DeriveMetadataPda(collectionMint, metadataProgram);
+        PublicKey nftMetadataPda             = DeriveMetadataPda(nftMint, metadataProgram);
+        PublicKey collectionMetadataPda      = DeriveMetadataPda(collectionMint, metadataProgram);
         PublicKey collectionMasterEditionPda = DeriveMasterEditionPda(collectionMint, metadataProgram);
 
-        // Instruction discriminator 25 = SetAndVerifyCollection
-        byte[] instructionData = new byte[] { 25 };
+        // Instruction 32 = SetAndVerifySizedCollectionItem (for sized collections).
+        // Instruction 25 (SetAndVerifyCollection) is hard-blocked for sized collections
+        // with error 0x66: "Can't use this function on a sized collection".
+        // Instruction 32 also increments collectionDetails.size, so collectionMetadata must be writable.
+        byte[] instructionData = new byte[] { 32 };
 
         List<AccountMeta> accounts = new()
-    {
-        AccountMeta.Writable(nftMetadataPda, false),           // NFT metadata
-        AccountMeta.Writable(oasisAccount.PublicKey, true),    // collection authority (signer)
-        AccountMeta.Writable(oasisAccount.PublicKey, true),    // payer (signer)
-        AccountMeta.ReadOnly(oasisAccount.PublicKey, false),   // update authority of NFT
-        AccountMeta.ReadOnly(collectionMint, false),           // collection mint
-        AccountMeta.Writable(collectionMetadataPda, false),    // collection metadata
-        AccountMeta.ReadOnly(collectionMasterEditionPda, false) // collection master edition
-    };
+        {
+            AccountMeta.Writable(nftMetadataPda, false),              // 0 NFT metadata
+            AccountMeta.Writable(oasisAccount.PublicKey, true),       // 1 collection authority (signer)
+            AccountMeta.Writable(oasisAccount.PublicKey, true),       // 2 payer (signer)
+            AccountMeta.ReadOnly(oasisAccount.PublicKey, false),      // 3 update authority of NFT + collection
+            AccountMeta.ReadOnly(collectionMint, false),              // 4 collection mint
+            AccountMeta.Writable(collectionMetadataPda, false),       // 5 collection metadata (writable — increments size)
+            AccountMeta.ReadOnly(collectionMasterEditionPda, false),  // 6 collection master edition
+        };
 
         TransactionInstruction verifyInstruction = new()
         {
@@ -232,14 +234,23 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             Data = instructionData
         };
 
-        // ✅ Correct Solnet v8 pattern — TransactionBuilder, not Transaction
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
 
         byte[] txBytes = new TransactionBuilder()
             .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
             .SetFeePayer(oasisAccount)
             .AddInstruction(verifyInstruction)
-            .Build(oasisAccount);  // signs in one step
+            .Build(oasisAccount);
+
+        // Simulate first so we can surface the actual program error logs if it fails
+        var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
+        if (simResult?.Result?.Value?.Error != null)
+        {
+            string logs = simResult.Result.Value.Logs != null
+                ? string.Join(" | ", simResult.Result.Value.Logs)
+                : "no logs";
+            throw new Exception($"SetAndVerifyCollection simulation failed: {simResult.Result.Value.Error} — logs: {logs}");
+        }
 
         RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
 
@@ -284,6 +295,122 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
         if (!success) throw new Exception($"Failed to derive master edition PDA for {mint}");
         return pda;
+    }
+
+    public async Task<OASISResult<CreateCollectionNftResult>> CreateCollectionNftAsync(
+        string name, string symbol, string metadataUri, ulong initialSize = 0)
+    {
+        try
+        {
+            Account collectionMintAccount = new();
+
+            Metadata tokenMetadata = new()
+            {
+                name = name,
+                symbol = symbol,
+                sellerFeeBasisPoints = SellerFeeBasisPoints,
+                uri = metadataUri,
+                creators = _creators,
+                collection = null  // collection NFTs have no parent
+            };
+
+            var originalConsoleOut = Console.Out;
+            try
+            {
+                Console.SetOut(new NullTextWriter());
+
+                RequestResult<string> createResult = await MetadataClient.CreateNFT(
+                    ownerAccount: oasisAccount,
+                    mintAccount: collectionMintAccount,
+                    TokenStandard.NonFungible,
+                    tokenMetadata,
+                    isMasterEdition: true,
+                    isMutable: true);
+
+                if (!createResult.WasSuccessful)
+                {
+                    bool isBalanceError =
+                        createResult.ErrorData?.Error.Type is TransactionErrorType.InsufficientFundsForFee
+                            or TransactionErrorType.InvalidRentPayingAccount;
+
+                    bool isLamportError = createResult.ErrorData?.Logs?.Any(log =>
+                        log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
+
+                    if (isBalanceError || isLamportError)
+                        return HandleError<CreateCollectionNftResult>($"{createResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+
+                    return HandleError<CreateCollectionNftResult>(createResult.Reason);
+                }
+
+                // Immediately set collectionDetails so Phantom/DAS API recognises this as a collection parent.
+                string setSizeTxHash = await SetCollectionSizeAsync(collectionMintAccount.PublicKey.Key, initialSize);
+
+                return new OASISResult<CreateCollectionNftResult>
+                {
+                    IsSaved = true,
+                    IsError = false,
+                    Result = new CreateCollectionNftResult(
+                        collectionMintAccount.PublicKey.Key,
+                        Solana,
+                        createResult.Result,
+                        setSizeTxHash)
+                };
+            }
+            finally
+            {
+                Console.SetOut(originalConsoleOut);
+            }
+        }
+        catch (Exception ex)
+        {
+            return HandleError<CreateCollectionNftResult>(ex.Message);
+        }
+    }
+
+    // Sets collectionDetails on a collection NFT so Phantom/Helius DAS API recognises it as a
+    // collection parent and groups child NFTs under it in the wallet's Collections tab.
+    // Call this on any existing collection NFT that was created without collectionDetails.
+    public async Task<string> SetCollectionSizeAsync(string collectionMintAddress, ulong size)
+    {
+        PublicKey metadataProgram = new("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+        PublicKey collectionMint = new(collectionMintAddress);
+        PublicKey collectionMetadataPda = DeriveMetadataPda(collectionMint, metadataProgram);
+
+        // Instruction 33 = SetCollectionSize; data = [discriminator (1)] + [size as u64 LE (8)]
+        byte[] sizeBytes = BitConverter.GetBytes(size);
+        if (!BitConverter.IsLittleEndian) Array.Reverse(sizeBytes);
+        byte[] instructionData = new byte[9];
+        instructionData[0] = 33;
+        Buffer.BlockCopy(sizeBytes, 0, instructionData, 1, 8);
+
+        List<AccountMeta> accounts =
+        [
+            AccountMeta.Writable(collectionMetadataPda, false),   // collection metadata
+            AccountMeta.Writable(oasisAccount.PublicKey, true),   // update authority (signer)
+            AccountMeta.ReadOnly(collectionMint, false),           // collection mint
+        ];
+
+        TransactionInstruction instruction = new()
+        {
+            ProgramId = metadataProgram.KeyBytes,
+            Keys = accounts,
+            Data = instructionData
+        };
+
+        var blockHash = await rpcClient.GetLatestBlockHashAsync();
+
+        byte[] txBytes = new TransactionBuilder()
+            .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+            .SetFeePayer(oasisAccount)
+            .AddInstruction(instruction)
+            .Build(oasisAccount);
+
+        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
+
+        if (!sendResult.WasSuccessful)
+            throw new Exception($"SetCollectionSize failed: {sendResult.Reason}");
+
+        return sendResult.Result;
     }
 
     public async Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest mintNftRequest)

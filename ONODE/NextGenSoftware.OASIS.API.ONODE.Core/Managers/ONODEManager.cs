@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
@@ -164,6 +165,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 // Join ONET so this node is discoverable by peers.
                 if (_onetManager != null)
                 {
+                    // Guard: ONET is a multi-node network so the DID challenge store must be Redis,
+                    // not InMemory. InMemory nonces are local to each ONODE instance — a challenge
+                    // issued by one node cannot be validated by another, breaking DID authentication
+                    // for any user whose requests are routed across different nodes.
+                    var didStore = _oasisdna?.OASIS?.Security?.DIDChallengeStore;
+                    if (_oasisdna?.OASIS?.Security?.DIDEnabled == true &&
+                        !string.Equals(didStore?.Provider, "Redis", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var warning = "WARNING: This ONODE is joining ONET but DIDChallengeStore.Provider is not set to 'Redis'. " +
+                                      "DID authentication will fail for users whose requests are routed to different ONODE instances. " +
+                                      "Set OASIS.Security.DIDChallengeStore.Provider to 'Redis' and provide a RedisConnectionString in OASIS_DNA.json.";
+                        _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] {warning}");
+                        LoggingManager.Log(warning, LogType.Warning);
+                    }
+
                     var netResult = await _onetManager.StartNetworkAsync();
                     if (netResult.IsError)
                         _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] WARNING: ONET network start failed: {netResult.Message}");

@@ -1095,3 +1095,46 @@ Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime
 Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
 
 ----------------------------------------------------------------------------------------------------------------------------
+
+## 4.6.0 (01/03/26)
+
+Way too many changes to list here, there were numerous internal releases between v4.4.4 and v4.6.0, some of these changes are listed below:
+
+- New OASIS Omniverse integrations: ODOOM (Doom engine) and OQUAKE (Quake engine) now integrated with the OASIS Avatar & inventory system — players earn XP, mint NFTs on monster kills, and store pickups in their OASIS inventory for later use.
+- STARAPIClient introduced, providing a native C shared library (star_api.so) so games and apps on any platform/language can call the WEB4 OASIS API and WEB5 STAR API without needing .NET.
+- New XP endpoint added to WEB4 OASIS API (get avatar with XP) to support real-time XP display in ODOOM/OQUAKE.
+- NFT API improvements: added WaitTillNFTBurnt, WaitTillNFTVerified, WaitForNFTToBurnInSeconds, WaitForNFTToVerifyInSeconds, AttemptToBurnEveryXSeconds & AttemptToVerifyEveryXSeconds to burn/verify request models.
+- Wallet API & Key Manager: numerous bug fixes in WalletManager (LoadProviderWalletsForAvatarByIdAsync, SaveProviderWalletsForAvatarByIdAsync, CreateWalletWithoutSaving) and KeyManager.
+- Provider bug fixes: MongoDBOASIS, SQLLiteDBOASIS, LocalFileOASIS, EthereumOASIS and numerous other providers received fixes and improvements.
+- OAPP Generation fixes and improvements.
+- STAR CLI improvements: better welcome/support messaging, improved NFT commands (start/stop WEB4 & WEB5 API servers from CLI), various bug fixes.
+- Cross-platform support: Linux, macOS and Windows build scripts added for ODOOM, OQUAKE and STARAPIClient; cross-platform STAR CLI getting started guides added to docs.
+- Various performance improvements, bug fixes and misc improvements.
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v4.4.4...OASIS-Runtime-v4.6.0
+
+----------------------------------------------------------------------------------------------------------------------------
+
+## 5.0.0 (17/07/26)
+
+Way too many changes to list here, there were numerous internal releases between v4.6.0 and v5.0.0, some of these changes are listed below:
+
+- **Quest System/API overhaul**: completely rewritten to support cross-game dynamic objectives, an objective/quest builder system, sub-quests, pre-requisites and progress tracking. ODOOM and OQUAKE now both show a quest popup and a HUD tracker; active quests and objectives now persist correctly across sessions.
+- **GeoHotSpot API upgraded**: now supports Text, Image, Video & Weblink hotspot types in addition to GeoNFTs, forming the foundation of the cross-game/cross-app OGEngine (WEB4 OASIS API + WEB5 STAR API + STARAPIClient).
+- **ONET/ONODE system** (Phases 1–7 completed): P2P ONET bootstrap/registration with NodeId keypair generation; ONODEService supervisor with Velopack auto-update; Avalonia system-tray app with Metrics/Network/Audit tabs and toast notifications; ONODE Manager CLI extensions; Web4 Holon bridge endpoints; SQLite metrics history; WebSocket push; SkiaSharp icon generation; rate limiting; audit log; active-nodes endpoint; provider management; GitHub Actions release workflow; comprehensive unit and integration test coverage for both ONET and ONODE.
+- **DID SSO & 3-layer password encryption**: avatar passwords now protected by three encryption layers (BCrypt hash + AES256 + Rijndael); full Decentralised Identity (DID) SSO support added including a DID challenge nonce endpoint (GET /api/avatar/did-challenge/{did}); pluggable DID nonce store with InMemory (default) and Redis (multi-node) backends.
+- **Critical security fix**: BCrypt password hashing now applied in all update-by-id/email/username endpoints (was previously only applied on register/authenticate).
+- **WEB6 AI layer** introduced: 250+ MCP tools across WEB4–WEB10; full WEB6 REST API reference and MCP tool reference documentation; Leela AI added as a WEB6 AI provider.
+- **WEB7–WEB10 documentation** added covering architecture, API docs and MCP tool references for all layers.
+- **Subscription system**: built from scratch replacing all mock stubs; persists via HolonManager; Stripe keys loaded from env vars with OASISDNA fallback; SubscriptionMiddleware.
+- **Wizard account overrides**: Wizards can now pass MintedByAvatarId to mint NFTs on behalf of other avatars; VerificationToken returned in register response for Wizard flows; SuppressVerificationEmail per-request param.
+- **NFT API improvements**: NFT collection support via CollectionPublicKey; WaitTillNFTVerified / WaitForNFTToVerifyInSeconds / AttemptToVerifyEveryXSeconds added to Web3NFTRequest; updating existing NFTs now supported; CollectNFT & CollectGeoNFT methods added; Lat/Long changed to double for GeoNFTs; NFT send failures downgraded from errors to warnings so mint success is not masked.
+- **New OASIS Providers**: AptosOASIS and ElrondOASIS stubs implemented; NEAROASIS provider wired up; Leela AI WEB6 provider added.
+- **MongoDBOASIS fixes**: NullReferenceException in DeActivate fixed; insert-vs-update logic (IsNewHolon || CreatedDate==MinValue) applied to all save methods; null repository race condition guard added.
+- **InnerMessages / StackTraces / MetaData** now serialise correctly to JSON (converted from fields to properties).
+- **Swagger fixes**: resolved 500 errors from duplicate schema IDs, bare-Task SSE/WebSocket endpoints, .well-known discovery route conflicts and System.Text.Json node type mappings.
+- **Upgraded to .NET 10** and all 85 OASIS NuGet packages bumped to 2.0.1 with updated metadata (copyright 2026, oasisomniverse.one URLs, improved descriptions).
+- Azure Container deployment fixes and Docker build improvements.
+- Various performance improvements, bug fixes and misc improvements.
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v4.6.0...OASIS-Runtime-v5.0.0

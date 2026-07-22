@@ -100,6 +100,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 {
                     OASISRequestContext.CurrentAvatarId = avatarId;
                 }
+                else if (avatarId == Guid.Empty &&
+                         HttpContext.Items.TryGetValue("AvatarId", out var itemId) &&
+                         itemId is Guid itemGuid && itemGuid != Guid.Empty)
+                {
+                    avatarId = itemGuid;
+                    OASISRequestContext.CurrentAvatarId = avatarId;
+                }
 
                 return avatarId;
             }

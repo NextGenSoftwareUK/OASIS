@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "google/protobuf/timestamp.proto";
+
+service DataService {
+  rpc SaveHolon (SaveHolonGrpcRequest) returns (HolonResponse);
+  rpc LoadHolon (LoadHolonGrpcRequest) returns (HolonResponse);
+  rpc LoadAllHolons (LoadAllHolonsGrpcRequest) returns (LoadAllHolonsResponse);
+  rpc DeleteHolon (DeleteHolonGrpcRequest) returns (OASISDataResponse);
+  rpc SaveData (SaveDataGrpcRequest) returns (OASISDataResponse);
+  rpc LoadData (LoadDataGrpcRequest) returns (LoadDataGrpcResponse);
+}
+
+// ── Request messages ────────────────────────────────────────────────────────
+
+message SaveHolonGrpcRequest {
+  HolonMessage holon = 1;
+  string provider_type = 2;
+  bool   set_globally = 3;
+  bool   save_children = 4;
+  bool   recursive = 5;
+  int32  max_child_depth = 6;
+  bool   continue_on_error = 7;
+  bool   save_children_for_all_providers = 8;
+}
+
+message LoadHolonGrpcRequest {
+  string id = 1;
+  bool   load_children = 2;
+  bool   recursive = 3;
+  int32  max_child_depth = 4;
+  bool   continue_on_error = 5;
+  int32  version = 6;
+  string provider_type = 7;
+  bool   set_globally = 8;
+}
+
+message LoadAllHolonsGrpcRequest {
+  string holon_type = 1;
+  bool   load_children = 2;
+  bool   recursive = 3;
+  int32  max_child_depth = 4;
+  bool   continue_on_error = 5;
+  int32  version = 6;
+  string provider_type = 7;
+  bool   set_globally = 8;
+}
+
+message DeleteHolonGrpcRequest {
+  string id = 1;
+  bool   soft_delete = 2;
+  string provider_type = 3;
+  bool   set_globally = 4;
+}
+
+message SaveDataGrpcRequest {
+  string key = 1;
+  string value = 2;
+  string provider_type = 3;
+  bool   set_globally = 4;
+}
+
+message LoadDataGrpcRequest {
+  string key = 1;
+  string provider_type = 2;
+  bool   set_globally = 3;
+}
+
+// ── Response messages ───────────────────────────────────────────────────────
+
+message OASISDataResponse {
+  bool   is_error = 1;
+  string message = 2;
+}
+
+message HolonMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string holon_type = 4;
+  string parent_holon_id = 5;
+  bool   is_active = 6;
+  google.protobuf.Timestamp created_date = 7;
+  google.protobuf.Timestamp modified_date = 8;
+}
+
+message HolonResponse {
+  bool         is_error = 1;
+  string       message = 2;
+  HolonMessage holon = 3;
+}
+
+message LoadAllHolonsResponse {
+  bool                   is_error = 1;
+  string                 message = 2;
+  repeated HolonMessage  holons = 3;
+}
+
+message LoadDataGrpcResponse {
+  bool   is_error = 1;
+  string message = 2;
+  string value = 3;
+}

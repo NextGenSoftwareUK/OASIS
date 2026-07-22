@@ -1,12 +1,22 @@
 using System.Reflection;
+using Path = System.IO.Path;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web8.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web8.WebAPI.GraphQL.Types;
+using NextGenSoftware.OASIS.Web8.WebAPI.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
 
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
@@ -24,6 +34,13 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<MeshNodeType>()
+    .AddType<MeshLinkType>();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -31,8 +48,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB8 OASIS Inter-Galactic Layer API" },
-        Description = "WEB8 - the fractal holonic mesh-networking layer. Real node registry, Dijkstra shortest-path routing with self-healing failover, and a universal protocol bridge.",
-        Title = "WEB8 OASIS Inter-Galactic Layer API",
+        Description = $"WEB8 v{OASISBootLoader.WEB8APIVersion} - the fractal holonic mesh-networking layer. Real node registry, Dijkstra shortest-path routing with self-healing failover, and a universal protocol bridge." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB8/NextGenSoftware.OASIS.Web8.WebAPI/WEB8%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB8 OASIS Inter-Galactic Layer API v", OASISBootLoader.WEB8APIVersion),
         Version = "v1"
     });
 
@@ -54,7 +72,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB8 OASIS Inter-Galactic Layer API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB8 OASIS Inter-Galactic Layer API v", OASISBootLoader.WEB8APIVersion)));
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
     app.UseHttpsRedirection();
@@ -92,6 +110,9 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.JwtMiddleware>();
 
 app.MapControllers();
+app.MapGraphQL();
+app.MapGrpcService<MeshGrpcService>();
+app.MapGrpcService<ProtocolBridgeGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");

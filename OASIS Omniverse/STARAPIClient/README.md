@@ -1,8 +1,12 @@
-# WEB5 STAR API C# Client (C/C++ Compatible)
+﻿# WEB5 STAR API C# Client (C/C++ Compatible)
 
 This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games. ODOOM and OQuake use **STARAPIClient only**—do not use NativeWrapper. This C# client implements the C ABI entry points (`star_api_*`) used by game integrations.
 
-**Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker. See **[ARCHITECTURE.md](../Docs/ARCHITECTURE.md)** in **OASIS Omniverse/Docs** for the full architecture and porting checklist.
+**Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker.
+
+**Architecture:** See **[OASIS Omniverse/ARCHITECTURE.md](../ARCHITECTURE.md)** for the full system design, layer responsibilities, and porting checklist.
+
+**Game integration library:** For the boilerplate that every C game needs on top of STARAPIClient (config loading, beamin workflow, runtime DLL forwarders, cross-game mapping), see **[OGLib](../OGLib/README.md)**. Using STARAPIClient directly without OGLib is fully supported for lightweight or non-game use cases.
 
 **Quest system (endpoints, `star_api_*`, game hooks):** **`OASIS Omniverse/Docs/STAR_Quest_System_Developer_Guide.md`**. **Players:** **`OASIS Omniverse/Docs/STAR_Games_User_Guide.md`**.
 

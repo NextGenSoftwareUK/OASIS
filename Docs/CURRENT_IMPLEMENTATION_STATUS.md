@@ -89,6 +89,20 @@ OASIS has achieved significant implementation milestones with 11 blockchain prov
 - **Predictive Failover**: AI-powered failure prevention
 - **Advanced Analytics**: Comprehensive performance and cost analytics
 
+### **OASIS HyperDrive Client - Desktop App** *(Alpha)*
+**✅ Phase 1 + Phase 2 Complete:**
+- Cross-platform system-tray desktop app (Windows, macOS, Linux) built with Avalonia UI 12.1.0 / .NET 10
+- Neon-glowing "O" tray icon rendered at runtime via SkiaSharp with colour-coded health states
+- File browser (DataGrid) showing holons, files, NFTs, GeoNFTs across all OASIS providers
+- Full CRUD: upload, download, rename, delete (soft + hard), metadata viewer
+- Send to Avatar: search avatars and transfer any holon/file to another user's HyperDrive
+- Right-click context menu, toolbar commands, OS toast notifications
+- Live HyperDrive dashboard window with provider health, alerts, and metrics
+- Settings window: API URL, default provider, auto-start, refresh rate, notification prefs
+- Auto-start on login (Windows registry / macOS LaunchAgent / Linux .desktop)
+- 17 unit tests (xUnit + NSubstitute); self-contained single-file cross-platform builds
+- **Docs**: [Design Spec](./Devs/OASIS-HyperDrive-Client-Design-Spec.md) | [Implementation Reference](./Devs/OASIS-HyperDrive-Client-Implementation.md)
+
 ### **STAR CLI - Revolutionary Development Tools**
 **✅ Fully Implemented:**
 - **Command-Line Interface**: Complete CLI for OASIS development

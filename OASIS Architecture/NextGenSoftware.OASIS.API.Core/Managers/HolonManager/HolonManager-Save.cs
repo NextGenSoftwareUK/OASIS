@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -660,7 +660,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var id = AvatarManager.LoggedInAvatar.Id;
             if (id != Guid.Empty)
                 return id;
-            return AvatarManager.LoggedInAvatar.AvatarId;
+            return AvatarManager.LoggedInAvatar.Id;
         }
     }
 }

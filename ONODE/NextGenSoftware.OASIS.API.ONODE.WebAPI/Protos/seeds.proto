@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service SeedsService {
+  rpc GetSeedTransactionsForAvatar (GetSeedTransactionsRequest) returns (JsonResponse);
+  rpc SaveSeedTransaction (SaveSeedTransactionRequest) returns (JsonResponse);
+}
+
+message GetSeedTransactionsRequest { string avatar_id = 1; }
+message SaveSeedTransactionRequest {
+  string avatar_id = 1;
+  string avatar_username = 2;
+  int32 amount = 3;
+  string memo = 4;
+}
+
+

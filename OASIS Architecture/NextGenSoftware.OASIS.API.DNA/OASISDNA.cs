@@ -98,6 +98,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public FAHRNSettings FAHRN { get; set; } = new FAHRNSettings();
         public HolonicBraidSettings HolonicBraid { get; set; } = new HolonicBraidSettings();
         public HolonicMemorySettings HolonicMemory { get; set; } = new HolonicMemorySettings();
+        public LeelaAISettings LeelaAI { get; set; } = new LeelaAISettings();
 
         /// <summary>
         /// AI provider API keys. Environment variables always take priority (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
@@ -161,6 +162,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string StabilityAI { get; set; } = "";
         /// <summary>OpenServ SERV gateway key — reaches OpenAI, Anthropic, Google, xAI, Qwen, DeepSeek behind one key.</summary>
         public string OpenServ { get; set; } = "";
+        /// <summary>Leela AI API key. Env var LEELA_API_KEY takes priority.</summary>
+        public string LeelaAI { get; set; } = "";
+    }
+
+    /// <summary>Settings for Leela AI — spiritual intelligence / karmic-pattern reasoning provider.</summary>
+    public class LeelaAISettings
+    {
+        /// <summary>Leela AI Lambda endpoint. Env var LEELA_BASE_URL takes priority.</summary>
+        public string BaseUrl { get; set; } = "https://namozyqyvwf62hqxpzujt7e5hq0njhge.lambda-url.eu-west-1.on.aws/";
     }
 
     /// <summary>
@@ -247,6 +257,29 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int RefreshTokenExpirationDays { get; set; } = 7;
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+        /// <summary>When true each avatar is assigned a W3C DID (did:oasis:&lt;avatarId&gt;) and the DID is included in issued JWT tokens.</summary>
+        public bool DIDEnabled { get; set; }
+        /// <summary>DID challenge nonce store configuration.</summary>
+        public DIDChallengeStoreSettings DIDChallengeStore { get; set; } = new();
+    }
+
+    public class DIDChallengeStoreSettings
+    {
+        /// <summary>
+        /// Which backing store to use for DID challenge nonces.
+        /// "InMemory" (default) — single-node, zero dependencies.
+        /// "Redis"    — multi-node; requires <see cref="RedisConnectionString"/>.
+        /// </summary>
+        public string Provider { get; set; } = "InMemory";
+
+        /// <summary>StackExchange.Redis connection string, e.g. "localhost:6379" or "redis.myhost.com:6379,password=secret".</summary>
+        public string RedisConnectionString { get; set; }
+
+        /// <summary>Redis key prefix to namespace OASIS nonces. Defaults to "oasis:did:challenge:".</summary>
+        public string RedisKeyPrefix { get; set; } = "oasis:did:challenge:";
+
+        /// <summary>Nonce TTL in seconds. Defaults to 300 (5 minutes).</summary>
+        public int NonceTtlSeconds { get; set; } = 300;
     }
 
     public class ErrorHandlingSettings
@@ -413,7 +446,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool BCryptEncryptionEnabled { get; set; }
         public bool Rijndael256EncryptionEnabled { get; set; }
         public string Rijndael256Key { get; set; }
+        /// <summary>Enables AES-256-GCM post-quantum symmetric encryption as the outermost password layer.</summary>
         public bool QuantumEncryptionEnabled { get; set; }
+        /// <summary>Passphrase used to derive the AES-256-GCM key for the quantum encryption layer. Generate a long random string.</summary>
+        public string QuantumEncryptionKey { get; set; }
     }
 
     public class StorageProviderSettings

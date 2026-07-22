@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "google/protobuf/timestamp.proto";
+import "Protos/common.proto";
+
+service AvatarService {
+  rpc Register (RegisterAvatarRequest) returns (AvatarResponse);
+  rpc Authenticate (AuthenticateAvatarRequest) returns (AuthenticateAvatarResponse);
+  rpc GetById (GetAvatarByIdRequest) returns (AvatarResponse);
+  rpc GetByEmail (GetAvatarByEmailRequest) returns (AvatarResponse);
+  rpc GetByUsername (GetAvatarByUsernameRequest) returns (AvatarResponse);
+  rpc GetAll (GetAllAvatarsRequest) returns (GetAllAvatarsResponse);
+  rpc Delete (DeleteAvatarRequest) returns (OASISGrpcResponse);
+  rpc AddKarmaToAvatar (AvatarKarmaRequest) returns (AvatarResponse);
+  rpc RemoveKarmaFromAvatar (AvatarKarmaRequest) returns (AvatarResponse);
+  rpc AddXpToAvatar (AddXpToAvatarRequest) returns (AvatarResponse);
+}
+
+// ── Request messages ────────────────────────────────────────────────────────
+
+message RegisterAvatarRequest {
+  string title = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string password = 5;
+  string username = 6;
+  string avatar_type = 7;          // AvatarType enum name, e.g. "User"
+  string provider_type = 8;
+  bool   set_globally = 9;
+  bool   suppress_verification_email = 10;
+}
+
+message AuthenticateAvatarRequest {
+  string username = 1;
+  string password = 2;
+  string provider_type = 3;
+  bool   set_globally = 4;
+}
+
+message GetAvatarByIdRequest {
+  string id = 1;                   // GUID as string
+  string provider_type = 2;
+  bool   set_globally = 3;
+}
+
+message GetAvatarByEmailRequest {
+  string email = 1;
+  string provider_type = 2;
+  bool   set_globally = 3;
+}
+
+message GetAvatarByUsernameRequest {
+  string username = 1;
+  string provider_type = 2;
+  bool   set_globally = 3;
+}
+
+message GetAllAvatarsRequest {
+  string provider_type = 1;
+  bool   set_globally = 2;
+}
+
+message DeleteAvatarRequest {
+  string id = 1;
+  string provider_type = 2;
+  bool   set_globally = 3;
+}
+
+message AvatarKarmaRequest {
+  string avatar_id = 1;
+  string karma_type_positive = 2;  // KarmaTypePositive enum name (for add)
+  string karma_type_negative = 3;  // KarmaTypeNegative enum name (for remove)
+  string karma_source = 4;         // KarmaSourceType enum name
+  string karma_source_title = 5;
+  string karma_source_desc = 6;
+  string provider_type = 7;
+  bool   set_globally = 8;
+}
+
+message AddXpToAvatarRequest {
+  string avatar_id = 1;
+  int32  xp_to_add = 2;
+  string provider_type = 3;
+  bool   set_globally = 4;
+}
+
+// ── Response messages ───────────────────────────────────────────────────────
+
+message AvatarMessage {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string title = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string full_name = 7;
+  string avatar_type = 8;
+  bool   is_active = 9;
+  bool   is_verified = 10;
+  google.protobuf.Timestamp created_date = 11;
+  google.protobuf.Timestamp modified_date = 12;
+}
+
+message AvatarResponse {
+  bool          is_error = 1;
+  string        message = 2;
+  AvatarMessage avatar = 3;
+}
+
+message AuthenticateAvatarResponse {
+  bool          is_error = 1;
+  string        message = 2;
+  AvatarMessage avatar = 3;
+  string        jwt_token = 4;
+  string        refresh_token = 5;
+}
+
+message GetAllAvatarsResponse {
+  bool                   is_error = 1;
+  string                 message = 2;
+  repeated AvatarMessage avatars = 3;
+}

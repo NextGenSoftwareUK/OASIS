@@ -37,17 +37,26 @@
             "RemoveOldRefreshTokensAfterXDays": 0,
             "JwtTokenExpirationMinutes": 15,
             "RefreshTokenExpirationDays": 7,
+            "DIDEnabled": false,
+            "DIDChallengeStore": {
+                "Provider": "InMemory",
+                "RedisConnectionString": "",
+                "RedisKeyPrefix": "oasis:did:challenge:",
+                "NonceTtlSeconds": 300
+            },
             "AvatarPassword": {
                 "BCryptEncryptionEnabled": true,
-                "Rijndael256EncryptionEnabled": true,
+                "Rijndael256EncryptionEnabled": false,
                 "Rijndael256Key": "",
-                "QuantumEncryptionEnabled": true
+                "QuantumEncryptionEnabled": false,
+                "QuantumEncryptionKey": ""
             },
             "OASISProviderPrivateKeys": {
                 "BCryptEncryptionEnabled": true,
-                "Rijndael256EncryptionEnabled": true,
+                "Rijndael256EncryptionEnabled": false,
                 "Rijndael256Key": "",
-                "QuantumEncryptionEnabled": true
+                "QuantumEncryptionEnabled": false,
+                "QuantumEncryptionKey": ""
             }
         },
         "Email": {

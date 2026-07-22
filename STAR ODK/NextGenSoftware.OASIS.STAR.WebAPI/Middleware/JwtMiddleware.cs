@@ -37,6 +37,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
 
         private async Task<bool> AttachAccountToContext(HttpContext context, string token)
         {
+            // Step 1: validate the token signature — a real invalid token returns 401.
+            SecurityToken validatedToken;
+            Guid id;
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -50,20 +53,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                     ValidateAudience = true,
                     ValidAudience = "OASIS",
                     ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
+                }, out validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    context.Items["Avatar"] = avatarResult.Result;
-                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
-                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatarResult.Result;
-                }
-                return true;
+                id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
             }
             catch (Exception ex)
             {
@@ -80,6 +73,34 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 try { await context.Response.Body.WriteAsync(body); } catch { }
                 return false;
             }
+
+            // Step 2: load the avatar — infrastructure failures here should NOT block the request
+            // with a 401; the controller can still serve unauthenticated-friendly responses.
+            try
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
+
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    context.Items["Avatar"] = avatarResult.Result;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatarResult.Result;
+                }
+                else
+                {
+                    // Token was valid — store the ID even if the full avatar didn't load.
+                    context.Items["AvatarId"] = id;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
+                }
+            }
+            catch
+            {
+                // Token was valid — store the ID so AvatarId property still works in controllers.
+                context.Items["AvatarId"] = id;
+                NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
+            }
+
+            return true;
         }
     }
 }

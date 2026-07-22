@@ -1,0 +1,18 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service HolochainService {
+  rpc GetHolochainAgentIdsForAvatar(HoloByAvatarRequest) returns (StringListResponse);
+  rpc GetHolochainAgentPrivateKeysForAvatar(HoloByAvatarRequest) returns (StringListResponse);
+  rpc GetAvatarIdForHolochainAgentId(HoloByAgentIdRequest) returns (StringResponse);
+  rpc GetAvatarForHolochainAgentId(HoloByAgentIdRequest) returns (JsonResponse);
+  rpc GetHoloFuelBalanceForAgentId(HoloByAgentIdRequest) returns (StringResponse);
+  rpc GetHoloFuelBalanceForAvatar(HoloByAvatarRequest) returns (StringResponse);
+  rpc LinkHolochainAgentIdToAvatar(LinkHolochainAgentRequest) returns (JsonResponse);
+}
+
+message HoloByAvatarRequest { string avatar_id = 1; }
+message HoloByAgentIdRequest { string agent_id = 1; }
+message LinkHolochainAgentRequest { string wallet_id = 1; string avatar_id = 2; string agent_id = 3; string provider_type = 4; }
