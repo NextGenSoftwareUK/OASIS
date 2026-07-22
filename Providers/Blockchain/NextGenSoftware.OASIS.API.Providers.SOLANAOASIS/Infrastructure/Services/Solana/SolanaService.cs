@@ -92,7 +92,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                     TokenStandard.NonFungible,
                     tokenMetadata,
                     isMasterEdition: true,
-                    isMutable: true);
+                    isMutable: false);
 
                 if (!createNftResult.WasSuccessful)
                 {
@@ -325,7 +325,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                     TokenStandard.NonFungible,
                     tokenMetadata,
                     isMasterEdition: true,
-                    isMutable: true);
+                    isMutable: false);
 
                 if (!createResult.WasSuccessful)
                 {
