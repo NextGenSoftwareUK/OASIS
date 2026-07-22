@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
@@ -2935,6 +2936,69 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             OASISErrorHandling.HandleError(ref result,
                 $"Error occured in SolanaOASIS Provider. Reason: {e.Message}");
+        }
+
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> CreateCollectionNFT(ICreateCollectionNFTRequest request)
+    {
+        return CreateCollectionNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+
+        try
+        {
+            OASISResult<CreateCollectionNftResult> createResult =
+                await _solanaService.CreateCollectionNftAsync(request.Title, request.Symbol, request.MetadataUri, request.InitialSize);
+
+            if (createResult.IsError || createResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, createResult.Message, createResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Result.Web3NFT = new Web3NFT
+            {
+                NFTTokenAddress = createResult.Result.CollectionMintAddress,
+                MintTransactionHash = createResult.Result.TransactionHash
+            };
+            result.Result.TransactionResult = createResult.Result.TransactionHash;
+            result.Result.VerifyCollectionTransactionHash = createResult.Result.SetCollectionSizeTransactionHash;
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
+        }
+
+        return result;
+    }
+
+    public OASISResult<string> SetCollectionSize(string collectionMintAddress, ulong size)
+    {
+        return SetCollectionSizeAsync(collectionMintAddress, size).Result;
+    }
+
+    public async Task<OASISResult<string>> SetCollectionSizeAsync(string collectionMintAddress, ulong size)
+    {
+        OASISResult<string> result = new();
+
+        try
+        {
+            result.Result = await _solanaService.SetCollectionSizeAsync(collectionMintAddress, size);
+            result.IsError = false;
+            result.IsSaved = true;
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;

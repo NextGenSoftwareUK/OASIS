@@ -48,5 +48,18 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null);
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress);
         public Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress);
+
+        // On-chain collection NFT management (Solana/Metaplex). Other providers return a not-supported error by default.
+        public OASISResult<IWeb3NFTTransactionResponse> CreateCollectionNFT(ICreateCollectionNFTRequest request)
+            => new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = "CreateCollectionNFT is not supported by this provider." };
+
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request)
+            => Task.FromResult(new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = "CreateCollectionNFTAsync is not supported by this provider." });
+
+        public OASISResult<string> SetCollectionSize(string collectionMintAddress, ulong size)
+            => new OASISResult<string> { IsError = true, Message = "SetCollectionSize is not supported by this provider." };
+
+        public Task<OASISResult<string>> SetCollectionSizeAsync(string collectionMintAddress, ulong size)
+            => Task.FromResult(new OASISResult<string> { IsError = true, Message = "SetCollectionSizeAsync is not supported by this provider." });
     }
 }
