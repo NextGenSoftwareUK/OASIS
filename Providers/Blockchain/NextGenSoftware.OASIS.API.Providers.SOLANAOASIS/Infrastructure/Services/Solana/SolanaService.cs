@@ -242,6 +242,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             .AddInstruction(verifyInstruction)
             .Build(oasisAccount);
 
+        Console.WriteLine($"[DEBUG] SetAndVerify instructionData bytes: [{string.Join(",", instructionData)}] accountCount: {accounts.Count}");
+
         // Simulate first so we can surface the actual program error logs if it fails
         var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
         if (simResult?.Result?.Value?.Error != null)
