@@ -203,27 +203,30 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<string> SetAndVerifyCollectionAsync(string collectionMintAddress, string nftMintAddress)
     {
         PublicKey metadataProgram = new("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-        PublicKey nftMint = new(nftMintAddress);
-        PublicKey collectionMint = new(collectionMintAddress);
+        PublicKey systemProgram   = new("11111111111111111111111111111111");
+        PublicKey nftMint         = new(nftMintAddress);
+        PublicKey collectionMint  = new(collectionMintAddress);
 
-        // Derive PDAs manually (seeds: "metadata", programId, mintAddress)
-        PublicKey nftMetadataPda = DeriveMetadataPda(nftMint, metadataProgram);
-        PublicKey collectionMetadataPda = DeriveMetadataPda(collectionMint, metadataProgram);
+        PublicKey nftMetadataPda          = DeriveMetadataPda(nftMint, metadataProgram);
+        PublicKey collectionMetadataPda   = DeriveMetadataPda(collectionMint, metadataProgram);
         PublicKey collectionMasterEditionPda = DeriveMasterEditionPda(collectionMint, metadataProgram);
 
-        // Instruction discriminator 25 = SetAndVerifyCollection
+        // Instruction 25 = SetAndVerifyCollection
+        // Account 7 (collectionAuthorityRecord) is passed as System Program to indicate
+        // "no delegated authority — use update authority directly". Required for sized collections.
         byte[] instructionData = new byte[] { 25 };
 
         List<AccountMeta> accounts = new()
-    {
-        AccountMeta.Writable(nftMetadataPda, false),           // NFT metadata
-        AccountMeta.Writable(oasisAccount.PublicKey, true),    // collection authority (signer)
-        AccountMeta.Writable(oasisAccount.PublicKey, true),    // payer (signer)
-        AccountMeta.ReadOnly(oasisAccount.PublicKey, false),   // update authority of NFT
-        AccountMeta.ReadOnly(collectionMint, false),           // collection mint
-        AccountMeta.Writable(collectionMetadataPda, false),    // collection metadata
-        AccountMeta.ReadOnly(collectionMasterEditionPda, false) // collection master edition
-    };
+        {
+            AccountMeta.Writable(nftMetadataPda, false),              // 0 NFT metadata
+            AccountMeta.Writable(oasisAccount.PublicKey, true),       // 1 collection authority (signer)
+            AccountMeta.Writable(oasisAccount.PublicKey, true),       // 2 payer (signer)
+            AccountMeta.ReadOnly(oasisAccount.PublicKey, false),      // 3 update authority of NFT + collection
+            AccountMeta.ReadOnly(collectionMint, false),              // 4 collection mint
+            AccountMeta.Writable(collectionMetadataPda, false),       // 5 collection metadata (writable — sized collection increments size)
+            AccountMeta.ReadOnly(collectionMasterEditionPda, false),  // 6 collection master edition
+            AccountMeta.ReadOnly(systemProgram, false),               // 7 collectionAuthorityRecord = System Program (none/direct authority)
+        };
 
         TransactionInstruction verifyInstruction = new()
         {
@@ -232,14 +235,23 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             Data = instructionData
         };
 
-        // ✅ Correct Solnet v8 pattern — TransactionBuilder, not Transaction
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
 
         byte[] txBytes = new TransactionBuilder()
             .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
             .SetFeePayer(oasisAccount)
             .AddInstruction(verifyInstruction)
-            .Build(oasisAccount);  // signs in one step
+            .Build(oasisAccount);
+
+        // Simulate first so we can surface the actual program error logs if it fails
+        var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
+        if (simResult?.Result?.Value?.Error != null)
+        {
+            string logs = simResult.Result.Value.Logs != null
+                ? string.Join(" | ", simResult.Result.Value.Logs)
+                : "no logs";
+            throw new Exception($"SetAndVerifyCollection simulation failed: {simResult.Result.Value.Error} — logs: {logs}");
+        }
 
         RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
 
