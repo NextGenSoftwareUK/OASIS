@@ -1,0 +1,227 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using CommunityToolkit.Mvvm.Input;
+using NextGenSoftware.OASIS.ONODE.Manager.ViewModels;
+using NextGenSoftware.OASIS.ONODE.Manager.Views;
+using Velopack;
+
+namespace NextGenSoftware.OASIS.ONODE.Manager.Services;
+
+/// <summary>
+/// Manages the system tray icon, its state transitions, and the right-click context menu.
+/// Icon states: Blue (running), Grey (stopped), Yellow (degraded), Red (crashed).
+/// </summary>
+public class TrayIconManager
+{
+    private readonly MainWindowViewModel _vm;
+    private readonly IClassicDesktopStyleApplicationLifetime _desktop;
+    private TrayIcon? _tray;
+    private MainWindow? _mainWindow;
+    private readonly System.Timers.Timer _iconTimer;
+    private readonly System.Timers.Timer _blinkTimer;
+    private bool _blinkOn;
+
+    // Embedded resource paths kept as fallback only
+    private static readonly Dictionary<string, string> EmbeddedIconPaths = new()
+    {
+        ["blue"]   = "avares://NextGenSoftware.OASIS.ONODE.Manager/Assets/Icons/onode-blue.png",
+        ["grey"]   = "avares://NextGenSoftware.OASIS.ONODE.Manager/Assets/Icons/onode-grey.png",
+        ["yellow"] = "avares://NextGenSoftware.OASIS.ONODE.Manager/Assets/Icons/onode-yellow.png",
+        ["red"]    = "avares://NextGenSoftware.OASIS.ONODE.Manager/Assets/Icons/onode-red.png",
+    };
+
+    public TrayIconManager(MainWindowViewModel vm, IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        _vm = vm;
+        _desktop = desktop;
+        _iconTimer = new System.Timers.Timer(3000);
+        _iconTimer.Elapsed += (_, _) => UpdateIcon();
+        _iconTimer.Start();
+
+        _blinkTimer = new System.Timers.Timer(500);
+        _blinkTimer.Elapsed += (_, _) => BlinkIcon();
+        _blinkTimer.Start();
+    }
+
+    public void Initialise()
+    {
+        _tray = new TrayIcon
+        {
+            ToolTipText = "ONODE Manager",
+            Icon = LoadIcon("grey"),
+            Menu = BuildMenu(),
+            IsVisible = true,
+        };
+
+        _tray.Clicked += (_, _) => ShowMainWindow();
+        UpdateIcon();
+    }
+
+    NativeMenu BuildMenu()
+    {
+        var menu = new NativeMenu();
+
+        // Status header (non-clickable)
+        menu.Add(new NativeMenuItem("ONODE Manager") { IsEnabled = false });
+        menu.Add(new NativeMenuItemSeparator());
+
+        // Global actions
+        menu.Add(new NativeMenuItem("▶  Start All")  { Command = _vm.StartAllCommand });
+        menu.Add(new NativeMenuItem("■  Stop All")   { Command = _vm.StopAllCommand });
+        menu.Add(new NativeMenuItem("↺  Restart All") { Command = _vm.RestartAllCommand });
+        menu.Add(new NativeMenuItemSeparator());
+
+        // Per-service entries
+        foreach (var svcId in new[] { "web4", "web5", "web6", "web7", "web8", "web9", "web10" })
+        {
+            var sub = new NativeMenuItem(svcId.ToUpper());
+            var subMenu = new NativeMenu();
+            subMenu.Add(new NativeMenuItem("▶  Start")   { Command = new AsyncRelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().StartAsync(svcId)) });
+            subMenu.Add(new NativeMenuItem("■  Stop")    { Command = new AsyncRelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().StopAsync(svcId)) });
+            subMenu.Add(new NativeMenuItem("↺  Restart") { Command = new AsyncRelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().RestartAsync(svcId)) });
+            sub.Menu = subMenu;
+            menu.Add(sub);
+        }
+
+        menu.Add(new NativeMenuItemSeparator());
+        menu.Add(new NativeMenuItem("Open ONODE Manager…")   { Command = new RelayCommand(_ => ShowMainWindow()) });
+        menu.Add(new NativeMenuItem("Open OPORTAL…")         { Command = new RelayCommand(_ => OpenOPORTAL()) });
+        menu.Add(new NativeMenuItem("Check for Updates…")    { Command = new RelayCommand(_ => CheckForUpdates()) });
+        menu.Add(new NativeMenuItemSeparator());
+        menu.Add(new NativeMenuItem("Quit") { Command = new RelayCommand(_ => Quit()) });
+
+        return menu;
+    }
+
+    bool IsTransitioning()
+    {
+        // Check if any service is in a transitional state
+        var services = _vm.Services;
+        return services.Any(s => s.Status is "Starting" or "Stopping" or "Restarting");
+    }
+
+    void BlinkIcon()
+    {
+        if (_tray == null || !IsTransitioning()) return;
+        _blinkOn = !_blinkOn;
+        var iconKey = _blinkOn ? "yellow" : "grey";
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            try { _tray.Icon = LoadIcon(iconKey); } catch { }
+        });
+    }
+
+    void UpdateIcon()
+    {
+        if (_tray == null || IsTransitioning()) return;
+        var status = _vm.OverallStatus;
+        var iconKey = status switch
+        {
+            "All Running" => "blue",
+            "All Stopped" => "grey",
+            "Error"       => "red",
+            "Partial"     => "yellow",
+            _             => "grey"
+        };
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _tray.Icon = LoadIcon(iconKey);
+            _tray.ToolTipText = $"ONODE Manager — {status}";
+        });
+    }
+
+    WindowIcon LoadIcon(string key)
+    {
+        // 1. Try runtime-generated PNG from ~/.oasis/icons/
+        var generated = IconGenerator.GetIconPath(key);
+        if (File.Exists(generated))
+        {
+            try
+            {
+                using var stream = File.OpenRead(generated);
+                return new WindowIcon(stream);
+            }
+            catch { }
+        }
+
+        // 2. Try embedded resource
+        if (EmbeddedIconPaths.TryGetValue(key, out var embedPath))
+        {
+            try
+            {
+                using var stream = AssetLoader.Open(new Uri(embedPath));
+                return new WindowIcon(stream);
+            }
+            catch { }
+        }
+
+        // 3. Fallback: empty 1×1 bitmap
+        return new WindowIcon(new WriteableBitmap(
+            new Avalonia.PixelSize(1, 1),
+            new Avalonia.Vector(96, 96),
+            Avalonia.Platform.PixelFormat.Rgba8888));
+    }
+
+    void ShowMainWindow()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (_mainWindow == null || !_mainWindow.IsVisible)
+            {
+                _mainWindow = new MainWindow(_vm);
+                _mainWindow.Show();
+            }
+            else
+            {
+                _mainWindow.Activate();
+            }
+        });
+    }
+
+    static async void CheckForUpdates()
+    {
+        try
+        {
+            var mgr = new UpdateManager("https://releases.oasisomniverse.one/onode-manager");
+            var update = await mgr.CheckForUpdatesAsync();
+            if (update == null)
+                Views.ToastWindow.Show("ONODE Manager", "You are running the latest version.");
+            else
+                Views.ToastWindow.Show("Update Available",
+                    $"Version {update.TargetFullRelease.Version} is available. Download at oasisomniverse.one", 8000);
+        }
+        catch
+        {
+            Views.ToastWindow.Show("Update Check", "Could not reach update server.");
+        }
+    }
+
+    static void OpenOPORTAL()
+    {
+        var url = "https://oportal.oasisomniverse.one/onode";
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+    }
+
+    void Quit()
+    {
+        _iconTimer.Dispose();
+        _blinkTimer.Dispose();
+        _tray?.Dispose();
+        _vm.Dispose();
+        _desktop.Shutdown();
+    }
+}
+
+// Minimal ICommand implementation for tray menu items
+internal class RelayCommand : System.Windows.Input.ICommand
+{
+    private readonly Action<object?> _execute;
+    public RelayCommand(Action<object?> execute) => _execute = execute;
+    public event EventHandler? CanExecuteChanged;
+    public bool CanExecute(object? p) => true;
+    public void Execute(object? p) => _execute(p);
+}

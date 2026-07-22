@@ -8,6 +8,7 @@ Welcome to the WEB4 OASIS API documentation. This API provides the foundational 
 
 ### Core APIs
 - [Avatar API](Avatar-API.md) - User identity and profile management (`/api/avatar`)
+- [Security: Encryption & DID](Security-Encryption-DID.md) - 3-layer password encryption and DID SSO
 - [Keys API](Keys-API.md) - Cryptographic key management (`/api/keys`)
 - [Karma API](Karma-API.md) - Reputation and karma tracking (`/api/karma`)
 - [Data API](Data-API.md) - Data storage and management (`/api/data`)

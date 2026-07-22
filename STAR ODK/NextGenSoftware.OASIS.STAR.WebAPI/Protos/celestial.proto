@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+import "google/protobuf/timestamp.proto";
+
+service CelestialService {
+  // CelestialBodies
+  rpc GetAllCelestialBodies (EmptyMsg) returns (CelestialBodyListResponse);
+  rpc GetCelestialBody (IdMsg) returns (CelestialBodyResponse);
+  rpc CreateCelestialBody (CelestialBodyMessage) returns (CelestialBodyResponse);
+  rpc UpdateCelestialBody (CelestialBodyMessage) returns (CelestialBodyResponse);
+  rpc DeleteCelestialBody (IdMsg) returns (BoolMsg);
+  rpc PublishCelestialBody (PublishMsg) returns (CelestialBodyResponse);
+  rpc DownloadCelestialBody (DownloadMsg) returns (CelestialBodyResponse);
+  rpc ActivateCelestialBody (VersionedIdMsg) returns (CelestialBodyResponse);
+  rpc DeactivateCelestialBody (VersionedIdMsg) returns (CelestialBodyResponse);
+  // CelestialSpaces
+  rpc GetAllCelestialSpaces (EmptyMsg) returns (CelestialSpaceListResponse);
+  rpc GetCelestialSpace (IdMsg) returns (CelestialSpaceResponse);
+  rpc CreateCelestialSpace (CelestialSpaceMessage) returns (CelestialSpaceResponse);
+  rpc UpdateCelestialSpace (CelestialSpaceMessage) returns (CelestialSpaceResponse);
+  rpc DeleteCelestialSpace (IdMsg) returns (BoolMsg);
+  // Cosmic
+  rpc GetCosmicStatus (EmptyMsg) returns (GenericMsg);
+}
+
+message EmptyMsg {}
+message IdMsg { string id = 1; }
+message VersionedIdMsg { string id = 1; int32 version = 2; }
+message PublishMsg { string id = 1; string source_path = 2; string launch_target = 3; }
+message DownloadMsg { string id = 1; int32 version = 2; string download_path = 3; }
+
+message CelestialBodyMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string celestial_body_type = 4;
+}
+
+message CelestialBodyResponse {
+  bool is_error = 1;
+  string message = 2;
+  CelestialBodyMessage result = 3;
+}
+
+message CelestialBodyListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated CelestialBodyMessage items = 3;
+}
+
+message CelestialSpaceMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message CelestialSpaceResponse {
+  bool is_error = 1;
+  string message = 2;
+  CelestialSpaceMessage result = 3;
+}
+
+message CelestialSpaceListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated CelestialSpaceMessage items = 3;
+}
+
+message BoolMsg {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message GenericMsg {
+  bool is_error = 1;
+  string message = 2;
+}

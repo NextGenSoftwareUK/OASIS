@@ -116,14 +116,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                if (avatarId != Guid.Empty)
-                    avatarDetailResult = await LoadAvatarDetailAsync(avatarId);
-                else if (!string.IsNullOrEmpty(username))
+                if (!string.IsNullOrEmpty(username))
                     avatarDetailResult = await LoadAvatarDetailByUsernameAsync(username);
-                else
+
+                if ((avatarDetailResult == null || avatarDetailResult.IsError || avatarDetailResult.Result == null) && !string.IsNullOrEmpty(email))
                     avatarDetailResult = await LoadAvatarDetailByEmailAsync(email);
 
-                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                if ((avatarDetailResult == null || avatarDetailResult.IsError || avatarDetailResult.Result == null) && avatarId != Guid.Empty)
+                    avatarDetailResult = await LoadAvatarDetailAsync(avatarId);
+
+                if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                 {
                     avatarDetailResult.Result.Portrait = imageBase64;
                     OASISResult<IAvatarDetail> saveResult = SaveAvatarDetail(avatarDetailResult.Result);

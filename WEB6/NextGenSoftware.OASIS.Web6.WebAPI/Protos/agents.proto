@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+import "Protos/common.proto";
+
+service AgentsService {
+  rpc SendA2ATask (SendA2ATaskRequest) returns (A2ATaskReply);
+  rpc GetA2ATask (TaskIdRequest) returns (A2ATaskReply);
+  rpc CancelA2ATask (TaskIdRequest) returns (BaseReply);
+  rpc RegisterOrchestrator (OrchestratorConfigRequest) returns (OrchestratorConfigReply);
+  rpc GetOrchestrators (EmptyRequest) returns (OrchestratorListReply);
+  rpc InvokeOrchestrator (InvokeOrchestratorRequest) returns (InvokeOrchestratorReply);
+  rpc RegisterReasoningAgent (ReasoningAgentRequest) returns (ReasoningAgentReply);
+  rpc GetReasoningAgents (EmptyRequest) returns (ReasoningAgentListReply);
+  rpc SeedOpenServAgents (EmptyRequest) returns (ReasoningAgentListReply);
+  rpc Dispatch (DispatchAgentRequest) returns (DispatchAgentReply);
+  rpc GetSkill (SkillRequest) returns (SkillReply);
+  rpc EvolveSkill (SkillRequest) returns (SkillReply);
+  rpc GetBraidGraph (TaskTypeRequest) returns (BraidGraphReply);
+  rpc SaveBraidGraph (SaveBraidGraphRequest) returns (BraidGraphReply);
+}
+
+message SendA2ATaskRequest {
+  string id = 1;
+  string role = 2;
+  string text = 3;
+}
+
+message TaskIdRequest {
+  string id = 1;
+}
+
+message A2ATaskReply {
+  bool is_error = 1;
+  string message = 2;
+  string id = 3;
+  string state = 4;
+  string output = 5;
+  string created_at_utc = 6;
+  string completed_at_utc = 7;
+}
+
+message OrchestratorConfigRequest {
+  string name = 1;
+  string protocol = 2;
+  string endpoint_url = 3;
+}
+
+message OrchestratorConfigReply {
+  bool is_error = 1;
+  string message = 2;
+  string name = 3;
+  string protocol = 4;
+  string endpoint_url = 5;
+}
+
+message OrchestratorListReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated OrchestratorConfigReply adapters = 3;
+}
+
+message InvokeOrchestratorRequest {
+  string adapter_name = 1;
+  string input = 2;
+  string avatar_id = 3;
+}
+
+message InvokeOrchestratorReply {
+  bool is_error = 1;
+  string message = 2;
+  string output = 3;
+}
+
+message ReasoningAgentRequest {
+  string agent_id = 1;
+  string agent_name = 2;
+  string provider = 3;
+  string model = 4;
+  string specialisms = 5;
+  double composite_score = 6;
+}
+
+message ReasoningAgentReply {
+  bool is_error = 1;
+  string message = 2;
+  string agent_id = 3;
+  string agent_name = 4;
+  string provider = 5;
+  string model = 6;
+  double composite_score = 7;
+}
+
+message ReasoningAgentListReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated ReasoningAgentReply agents = 3;
+}
+
+message DispatchAgentRequest {
+  string problem = 1;
+  string task_type = 2;
+  string avatar_id = 3;
+}
+
+message DispatchAgentReply {
+  bool is_error = 1;
+  string message = 2;
+  string final_mermaid_plan = 3;
+  string mode_used = 4;
+  int64 total_latency_ms = 5;
+  string answer = 6;
+}
+
+message SkillRequest {
+  string agent_id = 1;
+  string category = 2;
+}
+
+message SkillReply {
+  bool is_error = 1;
+  string message = 2;
+  string skill_document_json = 3;
+}
+
+message TaskTypeRequest {
+  string task_type = 1;
+}
+
+message BraidGraphReply {
+  bool is_error = 1;
+  string message = 2;
+  string task_type = 3;
+  string mermaid_diagram = 4;
+  string generated_by_model = 5;
+}
+
+message SaveBraidGraphRequest {
+  string task_type = 1;
+  string mermaid_diagram = 2;
+  string generated_by_model = 3;
+}

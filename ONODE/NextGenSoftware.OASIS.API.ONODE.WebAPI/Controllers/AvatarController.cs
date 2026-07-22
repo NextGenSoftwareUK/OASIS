@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -95,7 +95,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 model.Username,
                 model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
                 OASISType.OASISAPIREST,
-                callerIsWizard: callerIsWizard
+                callerIsWizard: callerIsWizard,
+                suppressVerificationEmail: callerIsWizard && model.SuppressVerificationEmail
             );
 
             return HttpResponseHelper.FormatResponse(result);
@@ -292,6 +293,53 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Authenticate(JWTToken);
+        }
+
+        /// <summary>
+        /// Generate a short-lived server-side nonce to use as the challenge in DID authentication.
+        /// Sign the returned nonce with your DID private key (SHA-256 of the nonce string) and submit
+        /// it together with the nonce to POST /authenticate-did within 5 minutes.
+        /// Requires DIDEnabled = true in OASISDNA.Security.
+        /// </summary>
+        /// <param name="did">The avatar's W3C DID (did:oasis:&lt;avatarId&gt;)</param>
+        [HttpGet("did-challenge/{did}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public OASISHttpResponseMessage<string> GetDIDChallenge(string did)
+        {
+            var result = Program.AvatarManager.GenerateDIDChallenge(did);
+            return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
+        }
+
+        /// <summary>
+        /// Authenticate using a W3C Decentralized Identifier (DID) and secp256k1 challenge-response.
+        /// The client signs SHA-256(challenge) with their P-256 DID private key and submits the
+        /// 64-byte IEEE P1363 signature (Base64-encoded) together with the challenge string.
+        /// The server verifies the signature against the DIDPublicKey stored on the avatar and,
+        /// on success, issues a JWT token exactly like the standard authenticate endpoint.
+        /// Requires DIDEnabled = true in OASISDNA.Security.
+        /// </summary>
+        /// <param name="request">DID, challenge string, and hex-encoded signature.</param>
+        /// <returns>Avatar with JWT and refresh tokens on success.</returns>
+        [HttpPost("authenticate-did")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IAvatar>> AuthenticateWithDID([FromBody] AuthenticateWithDIDRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.DID) ||
+                string.IsNullOrWhiteSpace(request.Challenge) || string.IsNullOrWhiteSpace(request.Signature))
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "DID, Challenge and Signature are required." }, HttpStatusCode.BadRequest);
+
+            var result = await Program.AvatarManager.AuthenticateWithDIDAsync(request.DID, request.Challenge, request.Signature, ipAddress());
+
+            if (!result.IsError && result.Result != null)
+            {
+                setTokenCookie(result.Result.RefreshToken);
+                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK);
+            }
+
+            return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized);
         }
 
         /// <summary>
@@ -699,7 +747,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("upload-avatar-portrait")]
         public async Task<OASISHttpResponseMessage<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait)
         {
-            if (avatarPortrait.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+            if (avatarPortrait.AvatarId != Avatar.Id && avatarPortrait.Username != Avatar.Username && avatarPortrait.Email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
             return HttpResponseHelper.FormatResponse(await AvatarManager.UploadAvatarPortraitAsync(avatarPortrait.AvatarId, avatarPortrait.Username, avatarPortrait.Email, avatarPortrait.ImageBase64));
@@ -1066,8 +1114,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            //return await _avatarService.GetByUsername(username);
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+            try
+            {
+                return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = ex.Message }, HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -1294,6 +1348,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var existingAvatar = existingAvatarResult.Result;
             
+            // Enforce uniqueness before applying username/email changes
+            if (!string.IsNullOrEmpty(avatar.Username) && !string.Equals(avatar.Username, existingAvatar.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameCheck = Program.AvatarManager.CheckIfUsernameIsAlreadyInUse(avatar.Username);
+                if (usernameCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Username '{avatar.Username}' is already taken." }, HttpStatusCode.Conflict);
+            }
+            if (!string.IsNullOrEmpty(avatar.Email) && !string.Equals(avatar.Email, existingAvatar.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = Program.AvatarManager.CheckIfEmailIsAlreadyInUse(avatar.Email, false);
+                if (emailCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Email '{avatar.Email}' is already registered to another account." }, HttpStatusCode.Conflict);
+            }
+
             // Update avatar properties from UpdateRequest
             if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
             if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
@@ -1354,6 +1422,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var existingAvatar = existingAvatarResult.Result;
             
+            // Enforce uniqueness before applying username/email changes
+            if (!string.IsNullOrEmpty(avatar.Username) && !string.Equals(avatar.Username, existingAvatar.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameCheck = Program.AvatarManager.CheckIfUsernameIsAlreadyInUse(avatar.Username);
+                if (usernameCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Username '{avatar.Username}' is already taken." }, HttpStatusCode.Conflict);
+            }
+            if (!string.IsNullOrEmpty(avatar.Email) && !string.Equals(avatar.Email, existingAvatar.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = Program.AvatarManager.CheckIfEmailIsAlreadyInUse(avatar.Email, false);
+                if (emailCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Email '{avatar.Email}' is already registered to another account." }, HttpStatusCode.Conflict);
+            }
+
             // Update avatar properties from UpdateRequest
             if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
             if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
@@ -1410,6 +1492,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var existingAvatar = existingAvatarResult.Result;
             
+            // Enforce uniqueness before applying username/email changes
+            if (!string.IsNullOrEmpty(avatar.Username) && !string.Equals(avatar.Username, existingAvatar.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameCheck = Program.AvatarManager.CheckIfUsernameIsAlreadyInUse(avatar.Username);
+                if (usernameCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Username '{avatar.Username}' is already taken." }, HttpStatusCode.Conflict);
+            }
+            if (!string.IsNullOrEmpty(avatar.Email) && !string.Equals(avatar.Email, existingAvatar.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = Program.AvatarManager.CheckIfEmailIsAlreadyInUse(avatar.Email, false);
+                if (emailCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Email '{avatar.Email}' is already registered to another account." }, HttpStatusCode.Conflict);
+            }
+
             // Update avatar properties from UpdateRequest
             if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
             if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;

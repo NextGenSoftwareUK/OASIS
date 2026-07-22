@@ -11,6 +11,9 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
+using NextGenSoftware.OASIS.STAR.WebAPI.GrpcServices;
+using NextGenSoftware.OASIS.STAR.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.STAR.WebAPI.GraphQL.Types;
 
 //const string VERSION = "WEB 5 STAR API v1.3.0";
 
@@ -23,6 +26,12 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
 //}
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
 
 // Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -48,6 +57,28 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new IHolonJsonConverter());
     });
 builder.Services.AddHttpClient();
+builder.Services.AddGrpc();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<CelestialBodyType>()
+    .AddType<CelestialSpaceObjectType>()
+    .AddType<NftType>()
+    .AddType<HolonObjectType>()
+    .AddType<QuestObjectType>()
+    .AddType<MissionObjectType>()
+    .AddType<ChapterObjectType>()
+    .AddType<GeoHotSpotObjectType>()
+    .AddType<GeoNFTObjectType>()
+    .AddType<InventoryItemObjectType>()
+    .AddType<OAPPObjectType>()
+    .AddType<GameObjectType>()
+    .AddType<PluginObjectType>()
+    .AddType<LibraryObjectType>()
+    .AddType<RuntimeObjectType>()
+    .AddType<OAPPTemplateObjectType>()
+    .AddType<ZomeObjectType>();
 builder.Services.AddSingleton<NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.ISubscriptionService,
     NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.SubscriptionService>();
 builder.Services.AddEndpointsApiExplorer();
@@ -166,7 +197,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
     foreach (var xml in xmlFiles)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, xml);
+        var path = System.IO.Path.Combine(AppContext.BaseDirectory, xml);
         if (File.Exists(path))
             c.IncludeXmlComments(path, includeControllerXmlComments: true);
     }
@@ -338,7 +369,7 @@ app.Use(async (context, next) =>
                         if (!OASISBootLoader.IsOASISBooted)
                         {
                             var dnaPath = OASISBootLoader.OASISDNAPath ?? 
-                                         Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+                                         System.IO.Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
                             var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
                             if (bootResult.IsError)
                                 OASISErrorHandling.HandleError($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
@@ -368,7 +399,16 @@ app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.OASISMiddlew
 app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.SubscriptionMiddleware>();
 
+app.MapGraphQL();
 app.MapControllers();
+app.MapGrpcService<AvatarGrpcService>();
+app.MapGrpcService<CelestialGrpcService>();
+app.MapGrpcService<HolonsGrpcService>();
+app.MapGrpcService<NftsGrpcService>();
+app.MapGrpcService<GamesGrpcService>();
+app.MapGrpcService<OappsGrpcService>();
+app.MapGrpcService<SocialGrpcService>();
+app.MapGrpcService<StarGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

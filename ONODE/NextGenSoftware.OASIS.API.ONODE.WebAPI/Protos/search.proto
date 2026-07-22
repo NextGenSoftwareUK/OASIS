@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service SearchService {
+  rpc Search (SearchRequest) returns (JsonResponse);
+}
+
+message SearchRequest {
+  string avatar_id = 1;
+  bool search_only_for_current_avatar = 2;
+}
+
+

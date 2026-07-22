@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
     public class A2AController : Web6ControllerBase
     {
         // In-memory task store (replace with Holonic Memory for production persistence)
-        private static readonly ConcurrentDictionary<string, A2ATask> _tasks = new ConcurrentDictionary<string, A2ATask>();
+        internal static readonly ConcurrentDictionary<string, A2ATask> _tasks = new ConcurrentDictionary<string, A2ATask>();
 
         /// <summary>
         /// Submit a task to the OASIS FAHRN agent.

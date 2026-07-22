@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service SocialService {
+  rpc GetSocialFeed (GetSocialFeedRequest) returns (JsonResponse);
+  rpc GetRegisteredSocialProviders (GetRegisteredSocialProvidersRequest) returns (JsonResponse);
+  rpc RegisterSocialProvider (RegisterSocialProviderRequest) returns (OASISGrpcResponse);
+  rpc ShareHolon (ShareHolonRequest) returns (OASISGrpcResponse);
+}
+
+message GetSocialFeedRequest { string avatar_id = 1; }
+message GetRegisteredSocialProvidersRequest { string avatar_id = 1; }
+message RegisterSocialProviderRequest {
+  string avatar_id = 1;
+  string provider_name = 2;
+  string access_token = 3;
+}
+message ShareHolonRequest {
+  string avatar_id = 1;
+  string holon_id = 2;
+  string message = 3;
+}

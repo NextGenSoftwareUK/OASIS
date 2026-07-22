@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+service NftsService {
+  // NFTs
+  rpc GetAllNfts (NftEmptyMsg) returns (NftListResponse);
+  rpc GetNft (NftIdMsg) returns (NftResponse);
+  rpc CreateNft (NftMessage) returns (NftResponse);
+  rpc UpdateNft (NftMessage) returns (NftResponse);
+  rpc DeleteNft (NftIdMsg) returns (NftBoolMsg);
+  rpc MintNft (NftMintMsg) returns (NftResponse);
+  rpc TransferNft (NftTransferMsg) returns (NftBoolMsg);
+  rpc GetNftsByAvatar (NftEmptyMsg) returns (NftListResponse);
+  // GeoNFTs
+  rpc GetAllGeoNfts (NftEmptyMsg) returns (GeoNftListResponse);
+  rpc GetGeoNft (NftIdMsg) returns (GeoNftResponse);
+  rpc CreateGeoNft (GeoNftMessage) returns (GeoNftResponse);
+  rpc DeleteGeoNft (NftIdMsg) returns (NftBoolMsg);
+  // GeoHotSpots
+  rpc GetAllGeoHotSpots (NftEmptyMsg) returns (GeoHotSpotListResponse);
+  rpc GetGeoHotSpot (NftIdMsg) returns (GeoHotSpotResponse);
+  rpc CreateGeoHotSpot (GeoHotSpotMessage) returns (GeoHotSpotResponse);
+  rpc DeleteGeoHotSpot (NftIdMsg) returns (NftBoolMsg);
+}
+
+message NftEmptyMsg {}
+message NftIdMsg { string id = 1; }
+
+message NftMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string token_uri = 4;
+  string owner_avatar_id = 5;
+  string provider_type = 6;
+}
+
+message NftMintMsg {
+  string avatar_id = 1;
+  string name = 2;
+  string description = 3;
+  string token_uri = 4;
+  string provider_type = 5;
+}
+
+message NftTransferMsg {
+  string nft_id = 1;
+  string to_avatar_id = 2;
+  string provider_type = 3;
+}
+
+message NftResponse {
+  bool is_error = 1;
+  string message = 2;
+  NftMessage result = 3;
+}
+
+message NftListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated NftMessage items = 3;
+}
+
+message NftBoolMsg {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message GeoNftMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double latitude = 4;
+  double longitude = 5;
+  string token_uri = 6;
+}
+
+message GeoNftResponse {
+  bool is_error = 1;
+  string message = 2;
+  GeoNftMessage result = 3;
+}
+
+message GeoNftListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated GeoNftMessage items = 3;
+}
+
+message GeoHotSpotMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double latitude = 4;
+  double longitude = 5;
+  double radius = 6;
+}
+
+message GeoHotSpotResponse {
+  bool is_error = 1;
+  string message = 2;
+  GeoHotSpotMessage result = 3;
+}
+
+message GeoHotSpotListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated GeoHotSpotMessage items = 3;
+}

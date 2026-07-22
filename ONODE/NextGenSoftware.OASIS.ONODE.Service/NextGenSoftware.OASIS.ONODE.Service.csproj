@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>NextGenSoftware.OASIS.ONODE.Service</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.ONODE.Service</AssemblyName>
+    <UserSecretsId>onode-service-secrets</UserSecretsId>
+    <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Description>ONODE Supervisor Service — manages Web4-Web10 OASIS API processes, exposes loopback REST API, and bridges state to OASIS Holons for remote OPORTAL access.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.6" />
+  </ItemGroup>
+
+</Project>

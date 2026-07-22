@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OASIS STAR API - star_sync_* implementation in C# (alternative to star_sync.c).
  * Export names match star_sync.h so games can link against the client DLL when OASIS_STAR_SYNC_IN_CLIENT is defined.
  */
@@ -9,31 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client;
-
-internal enum PumpActionKind { Auth, Inventory, SendItem, UseItem, AddItemLog, OperationCallback }
-
-[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-internal delegate void StarSyncDoneCallback(IntPtr userData);
-
-[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-internal delegate void StarSyncAddItemLogCallback(IntPtr itemName, int success, IntPtr errorMessage, IntPtr userData);
-
-internal sealed class PumpAction
-{
-    public PumpActionKind Kind;
-    public IntPtr DoneCallback;
-    public IntPtr DoneUserData;
-    public IntPtr AddItemLogCallback;
-    public IntPtr AddItemLogUserData;
-    public string? ItemName;
-    public int Success;
-    public string? ErrorMessage;
-    public IntPtr LocalItemsPtr;
-    public int LocalCount;
-    public int[]? SyncedOut;
-    public int OpResultCode;
-    public int OpType;
-}
 
 public static unsafe class StarSyncExports
 {

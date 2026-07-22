@@ -38,6 +38,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         DateTime? LastBeamedIn { get; set; }
         DateTime? LastBeamedOut { get; set; }
         bool IsBeamedIn { get; set; }
+        /// <summary>W3C Decentralized Identifier — auto-derived as did:oasis:&lt;Id&gt; when not explicitly set.</summary>
+        string DID { get; set; }
+        /// <summary>Hex-encoded secp256k1 compressed public key used to verify DID-based challenge authentication.</summary>
+        string DIDPublicKey { get; set; }
         //string Image2D { get; set; }
         //int Karma { get; set; }
         //int Level { get; }

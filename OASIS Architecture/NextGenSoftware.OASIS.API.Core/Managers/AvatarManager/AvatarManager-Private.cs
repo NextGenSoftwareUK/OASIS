@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -522,9 +522,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, bool callerIsWizard = false)
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, bool callerIsWizard = false, bool suppressVerificationEmail = false)
         {
-            if (OASISDNA.OASIS.Email.SendVerificationEmail)
+            if (OASISDNA.OASIS.Email.SendVerificationEmail && !suppressVerificationEmail)
                 SendVerificationEmail(result.Result);
 
             string verificationToken = callerIsWizard ? result.Result.VerificationToken : null;
@@ -1298,9 +1298,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
             var jwtMinutes = OASISDNA.OASIS.Security.JwtTokenExpirationMinutes;
             if (jwtMinutes <= 0) jwtMinutes = 15;
+            var claims = new System.Collections.Generic.List<Claim>
+            {
+                new Claim("id", account.Id.ToString())
+            };
+
+            if (OASISDNA.OASIS?.Security?.DIDEnabled == true)
+                claims.Add(new Claim("did", account.DID));
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
                 Issuer = "OASIS",
                 Audience = "OASIS",
@@ -1380,7 +1388,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (result.Result.Password != null)
                 {
-                    if (!BC.Verify(password, result.Result.Password))
+                    var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                    if (!PasswordEncryptionHelper.VerifyPassword(password, result.Result.Password, pwdSettings))
                     {
                         result.IsError = true;
                         result.Message = "Email or password is incorrect";
@@ -1388,7 +1397,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    result.Result.Password = BC.HashPassword("changemenow!");
+                    var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                    result.Result.Password = PasswordEncryptionHelper.HashPassword("changemenow!", pwdSettings);
                     OASISResult<IAvatar> saveResult = SaveAvatar(result.Result);
                     result.IsError = true;
 
@@ -1439,10 +1449,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarDetailOriginal.Landline = avatarDetailToUpdate.Landline;
 
             if (avatarDetailOriginal.Email != avatarDetailToUpdate.Email && !string.IsNullOrEmpty(avatarDetailToUpdate.Email))
-                avatarDetailOriginal.Email = avatarDetailToUpdate.Email;
+            {
+                var emailCheck = CheckIfEmailIsAlreadyInUse(avatarDetailToUpdate.Email, false);
+                if (emailCheck.Result)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Email '" + avatarDetailToUpdate.Email + "' is already registered to another account. Email not updated.");
+                    return result;
+                }
+                else
+                    avatarDetailOriginal.Email = avatarDetailToUpdate.Email;
+            }
 
             if (avatarDetailOriginal.Username != avatarDetailToUpdate.Username && !string.IsNullOrEmpty(avatarDetailToUpdate.Username))
-                avatarDetailOriginal.Username = avatarDetailToUpdate.Username;
+            {
+                var usernameCheck = CheckIfUsernameIsAlreadyInUse(avatarDetailToUpdate.Username);
+                if (usernameCheck.Result)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Username '" + avatarDetailToUpdate.Username + "' is already taken. Username not updated.");
+                    return result;
+                }
+                else
+                    avatarDetailOriginal.Username = avatarDetailToUpdate.Username;
+            }
 
             if (avatarDetailOriginal.DOB != avatarDetailToUpdate.DOB && avatarDetailToUpdate.DOB != DateTime.MinValue)
                 avatarDetailOriginal.DOB = avatarDetailToUpdate.DOB;

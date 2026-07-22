@@ -1,0 +1,23 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service SubscriptionService {
+  rpc GetPlans(SubEmptyRequest) returns (JsonResponse);
+  rpc GetMySubscriptions(SubByUserRequest) returns (JsonResponse);
+  rpc GetMyOrders(SubByUserRequest) returns (JsonResponse);
+  rpc GetUsage(SubByUserRequest) returns (JsonResponse);
+  rpc GetHyperDriveUsage(SubByUserRequest) returns (JsonResponse);
+  rpc CheckHyperDriveQuota(CheckQuotaRequest) returns (JsonResponse);
+  rpc CreateCheckoutSession(CreateCheckoutRequest) returns (JsonResponse);
+  rpc TogglePayAsYouGo(TogglePayAsYouGoGrpcRequest) returns (OASISGrpcResponse);
+  rpc UpdateSubscriptionHyperDriveConfig(UpdateSubHyperDriveRequest) returns (OASISGrpcResponse);
+}
+
+message SubEmptyRequest {}
+message SubByUserRequest { string user_id = 1; }
+message CheckQuotaRequest { string user_id = 1; string operation_type = 2; }
+message CreateCheckoutRequest { string plan_id = 1; string success_url = 2; string cancel_url = 3; string customer_email = 4; string avatar_id = 5; }
+message TogglePayAsYouGoGrpcRequest { string user_id = 1; bool enabled = 2; }
+message UpdateSubHyperDriveRequest { string plan_type = 1; bool pay_as_you_go_enabled = 2; }

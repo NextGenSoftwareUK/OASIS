@@ -2341,6 +2341,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request, ProviderType providerType = ProviderType.SolanaOASIS)
+        {
+            OASISResult<IWeb3NFTTransactionResponse> result = new OASISResult<IWeb3NFTTransactionResponse>();
+
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid ICreateCollectionNFTRequest.";
+                return result;
+            }
+
+            OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(providerType);
+
+            if (nftProviderResult == null || nftProviderResult.IsError || nftProviderResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in CreateCollectionNFTAsync in NFTManager. Error occured calling GetNFTProvider. Reason: {nftProviderResult?.Message}");
+                return result;
+            }
+
+            return await nftProviderResult.Result.CreateCollectionNFTAsync(request);
+        }
+
+        public async Task<OASISResult<string>> SetCollectionSizeAsync(string collectionMintAddress, ulong size, ProviderType providerType = ProviderType.SolanaOASIS)
+        {
+            OASISResult<string> result = new OASISResult<string>();
+
+            if (string.IsNullOrWhiteSpace(collectionMintAddress))
+            {
+                result.IsError = true;
+                result.Message = "collectionMintAddress is required.";
+                return result;
+            }
+
+            OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(providerType);
+
+            if (nftProviderResult == null || nftProviderResult.IsError || nftProviderResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SetCollectionSizeAsync in NFTManager. Error occured calling GetNFTProvider. Reason: {nftProviderResult?.Message}");
+                return result;
+            }
+
+            return await nftProviderResult.Result.SetCollectionSizeAsync(collectionMintAddress, size);
+        }
+
         public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();

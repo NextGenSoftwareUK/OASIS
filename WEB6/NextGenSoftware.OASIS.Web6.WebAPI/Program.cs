@@ -8,8 +8,18 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
+using NextGenSoftware.OASIS.Web6.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web6.WebAPI.GraphQL.Types;
+using NextGenSoftware.OASIS.Web6.WebAPI.GrpcServices;
+using Path = System.IO.Path;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
 
 // Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -28,7 +38,14 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+builder.Services.AddGrpc();
 builder.Services.AddHttpClient();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<AiModelType>()
+    .AddType<AgentType>();
 builder.Services.AddEndpointsApiExplorer();
 
 // Priority 1: HTTP MCP transport — makes the entire OASIS tool surface reachable by any MCP client (Claude.ai, OpenAI, etc.)
@@ -52,8 +69,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v2", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB6 OASIS AI API" },
-        Description = "WEB6 v2.0 — the unified AI abstraction and aggregation layer, built on top of WEB4 (OASIS API/ONODE - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). One API, every AI provider, with the FAHRN (Fractal Adaptive Holonic Reasoning Network) controller agent, Holonic BRAID shared reasoning-graph memory, SkillOpt self-evolving agent skills, ML.NET in-process AutoML, DID/Verifiable Credentials, ACP/ANP/gRPC/GraphQL multi-protocol orchestration, karma-gated AI access, and full OpenTelemetry observability.",
-        Title = "WEB6 OASIS AI API v2",
+        Description = $"WEB6 v{OASISBootLoader.WEB6APIVersion} — the unified AI abstraction and aggregation layer, built on top of WEB4 (OASIS API/ONODE - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). One API, every AI provider, with the FAHRN (Fractal Adaptive Holonic Reasoning Network) controller agent, Holonic BRAID shared reasoning-graph memory, SkillOpt self-evolving agent skills, ML.NET in-process AutoML, DID/Verifiable Credentials, ACP/ANP/gRPC/GraphQL multi-protocol orchestration, karma-gated AI access, and full OpenTelemetry observability." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB6/NextGenSoftware.OASIS.Web6.WebAPI/WEB6%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB6 OASIS AI API v", OASISBootLoader.WEB6APIVersion),
         Version = "v2"
     });
 
@@ -94,7 +112,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v2/swagger.json", "WEB6 OASIS AI API v2");
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", string.Concat("WEB6 OASIS AI API v", OASISBootLoader.WEB6APIVersion));
 });
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
@@ -144,6 +162,13 @@ app.UseAuthorization();
 app.UseWebSockets();
 
 app.MapControllers();
+app.MapGrpcService<AiGrpcService>();
+app.MapGrpcService<AgentsGrpcService>();
+app.MapGrpcService<MemoryGrpcService>();
+app.MapGrpcService<NetworkGrpcService>();
+app.MapGrpcService<IdentityGrpcService>();
+app.MapGrpcService<TelemetryGrpcService>();
+app.MapGraphQL(); // Maps the Hot Chocolate GraphQL endpoint to /graphql
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // Priority 1: mount /mcp HTTP endpoint
