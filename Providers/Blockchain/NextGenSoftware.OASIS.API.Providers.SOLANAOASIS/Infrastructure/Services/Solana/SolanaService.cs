@@ -150,6 +150,20 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 if (verifyWarning != null)
                     OASISErrorHandling.HandleWarning(ref result, verifyWarning);
 
+                if (mintNftRequest.RevokeTokenAuthorities == true)
+                {
+                    try
+                    {
+                        await RevokeTokenAuthoritiesAsync(mintAccount.PublicKey.Key);
+                    }
+                    catch (Exception revokeEx)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result,
+                            $"NFT minted successfully but token authority revocation failed (non-fatal): {revokeEx.Message}. " +
+                            $"Run revoke-token-authorities.mjs manually for mint: {mintAccount.PublicKey.Key}");
+                    }
+                }
+
                 return result;
             }
             finally
@@ -260,6 +274,49 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             throw new Exception($"SetAndVerifyCollection failed: {sendResult.Reason}");
 
         return sendResult.Result;
+    }
+
+    // Revokes Mint Authority and Freeze Authority on the SPL token for the given NFT mint.
+    // This removes the two RugCheck DANGER flags. ONE-WAY — cannot be undone.
+    private async Task RevokeTokenAuthoritiesAsync(string nftMintAddress)
+    {
+        PublicKey tokenProgram = new("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+        PublicKey mintPubkey = new(nftMintAddress);
+
+        List<AccountMeta> accounts =
+        [
+            AccountMeta.Writable(mintPubkey, false),              // mint account
+            AccountMeta.ReadOnly(oasisAccount.PublicKey, true),   // current authority (signer)
+        ];
+
+        // SPL Token SetAuthority instruction: [6=SetAuthority, authorityType, 0=None(revoke)]
+        TransactionInstruction revokeMintAuthority = new()
+        {
+            ProgramId = tokenProgram.KeyBytes,
+            Keys = accounts,
+            Data = [6, 0, 0]  // 0 = MintTokens
+        };
+
+        TransactionInstruction revokeFreezeAuthority = new()
+        {
+            ProgramId = tokenProgram.KeyBytes,
+            Keys = accounts,
+            Data = [6, 1, 0]  // 1 = FreezeAccount
+        };
+
+        var blockHash = await rpcClient.GetLatestBlockHashAsync();
+
+        byte[] txBytes = new TransactionBuilder()
+            .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+            .SetFeePayer(oasisAccount)
+            .AddInstruction(revokeMintAuthority)
+            .AddInstruction(revokeFreezeAuthority)
+            .Build(oasisAccount);
+
+        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
+
+        if (!sendResult.WasSuccessful)
+            throw new Exception($"RevokeTokenAuthorities failed for mint {nftMintAddress}: {sendResult.Reason}");
     }
 
     // PDA derivation — seeds: ["metadata", programId, mintPubkey]
