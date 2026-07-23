@@ -30,5 +30,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public bool? WaitTillNFTSent { get; set; } = true;
         public int? WaitForNFTToSendInSeconds { get; set; } = 180;
         public int? AttemptToSendEveryXSeconds { get; set; } = 1;
+
+        // When true, revokes Mint Authority and Freeze Authority on the SPL token after minting.
+        // This removes the two RugCheck "DANGER" flags — non-fatal if revocation fails.
+        public bool? RevokeTokenAuthorities { get; set; }
     }
 }
