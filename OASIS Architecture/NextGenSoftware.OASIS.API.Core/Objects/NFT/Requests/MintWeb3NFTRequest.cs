@@ -34,5 +34,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         // When true, revokes Mint Authority and Freeze Authority on the SPL token after minting.
         // This removes the two RugCheck "DANGER" flags — non-fatal if revocation fails.
         public bool? RevokeTokenAuthorities { get; set; }
+
+        // When true, sets isMutable=false on the Token Metadata account after minting,
+        // making the NFT metadata permanently immutable — non-fatal if it fails.
+        public bool? FreezeMetadata { get; set; }
     }
 }
