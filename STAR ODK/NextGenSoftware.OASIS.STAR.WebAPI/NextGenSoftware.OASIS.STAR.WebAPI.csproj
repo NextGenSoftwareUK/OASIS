@@ -52,6 +52,7 @@
     <Protobuf Include="Protos\oapps.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\social.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\star.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\metadata.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
