@@ -402,7 +402,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 WaitTillNFTSent = request.WaitTillNFTSent,
                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
-                RevokeTokenAuthorities = request.RevokeTokenAuthorities,
+                // DISABLED: see SolanaService.cs — RevokeTokenAuthorities is a no-op on Metaplex NFTs.
+                // RevokeTokenAuthorities = request.RevokeTokenAuthorities,
                 FreezeMetadata = request.FreezeMetadata
             };
 
