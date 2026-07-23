@@ -409,6 +409,9 @@ app.MapGrpcService<GamesGrpcService>();
 app.MapGrpcService<OappsGrpcService>();
 app.MapGrpcService<SocialGrpcService>();
 app.MapGrpcService<StarGrpcService>();
+app.MapGrpcService<CelestialBodyMetaDataGrpcService>();
+app.MapGrpcService<HolonMetaDataGrpcService>();
+app.MapGrpcService<ZomeMetaDataGrpcService>();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

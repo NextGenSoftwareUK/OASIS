@@ -150,6 +150,32 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 if (verifyWarning != null)
                     OASISErrorHandling.HandleWarning(ref result, verifyWarning);
 
+                // RevokeTokenAuthorities is intentionally disabled.
+                // For standard Metaplex NFTs, CreateMasterEditionV3 (called internally by CreateNFT) transfers
+                // the SPL token Mint Authority and Freeze Authority to the Master Edition PDA before we get here.
+                // The PDA has no private key, so SetAuthority with our wallet as signer always fails with 0x4
+                // OwnerMismatch. RugCheck flagging these as DANGER is a false positive — the Master Edition
+                // enforces supply=1 permanently and nobody can mint more. Nothing we can do about this score.
+                // if (mintNftRequest.RevokeTokenAuthorities == true)
+                // {
+                //     try { await RevokeTokenAuthoritiesAsync(mintAccount.PublicKey.Key); }
+                //     catch (Exception revokeEx) { OASISErrorHandling.HandleWarning(ref result, $"RevokeTokenAuthorities failed (non-fatal): {revokeEx.Message}"); }
+                // }
+
+                if (mintNftRequest.FreezeMetadata == true)
+                {
+                    try
+                    {
+                        await FreezeMetadataAsync(mintAccount.PublicKey.Key);
+                    }
+                    catch (Exception freezeEx)
+                    {
+                        OASISErrorHandling.HandleWarning(ref result,
+                            $"NFT minted successfully but metadata freeze failed (non-fatal): {freezeEx.Message}. " +
+                            $"Run freeze-metadata.mjs manually for mint: {mintAccount.PublicKey.Key}");
+                    }
+                }
+
                 return result;
             }
             finally
@@ -242,6 +268,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             .AddInstruction(verifyInstruction)
             .Build(oasisAccount);
 
+        Console.WriteLine($"[DEBUG] SetAndVerify instructionData bytes: [{string.Join(",", instructionData)}] accountCount: {accounts.Count}");
+
         // Simulate first so we can surface the actual program error logs if it fails
         var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
         if (simResult?.Result?.Value?.Error != null)
@@ -258,6 +286,48 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             throw new Exception($"SetAndVerifyCollection failed: {sendResult.Reason}");
 
         return sendResult.Result;
+    }
+
+    // DISABLED — see comment at call site in MintNftAsync for explanation.
+    // private async Task RevokeTokenAuthoritiesAsync(string nftMintAddress) { ... }
+
+    // Sets isMutable=false on the Token Metadata account, making the NFT metadata permanently immutable.
+    // Uses UpdateMetadataAccountV2 (ix 15). ONE-WAY — cannot be undone.
+    private async Task FreezeMetadataAsync(string nftMintAddress)
+    {
+        PublicKey metadataProgram = new("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+        PublicKey mintPubkey = new(nftMintAddress);
+        PublicKey metadataPda = DeriveMetadataPda(mintPubkey, metadataProgram);
+
+        List<AccountMeta> accounts =
+        [
+            AccountMeta.Writable(metadataPda, false),             // metadata account
+            AccountMeta.ReadOnly(oasisAccount.PublicKey, true),   // update authority (signer)
+        ];
+
+        // UpdateMetadataAccountV2 (ix 15), all fields None except isMutable=Some(false)
+        // Borsh layout: [ix, None(data), None(update_authority), None(primary_sale_happened), Some, false]
+        byte[] instructionData = [15, 0, 0, 0, 1, 0];
+
+        TransactionInstruction freezeInstruction = new()
+        {
+            ProgramId = metadataProgram.KeyBytes,
+            Keys = accounts,
+            Data = instructionData
+        };
+
+        var blockHash = await rpcClient.GetLatestBlockHashAsync();
+
+        byte[] txBytes = new TransactionBuilder()
+            .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+            .SetFeePayer(oasisAccount)
+            .AddInstruction(freezeInstruction)
+            .Build(oasisAccount);
+
+        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
+
+        if (!sendResult.WasSuccessful)
+            throw new Exception($"FreezeMetadata failed for mint {nftMintAddress}: {sendResult.Reason}");
     }
 
     // PDA derivation — seeds: ["metadata", programId, mintPubkey]

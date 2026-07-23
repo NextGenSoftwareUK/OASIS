@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+// ── CelestialBodyMetaData ─────────────────────────────────────────────────────
+service CelestialBodyMetaDataService {
+  rpc GetAll      (MetaEmptyMsg)   returns (MetaListResponse);
+  rpc Get         (MetaIdMsg)      returns (MetaResponse);
+  rpc Create      (MetaDataMsg)    returns (MetaResponse);
+  rpc Update      (MetaDataMsg)    returns (MetaResponse);
+  rpc Delete      (MetaIdMsg)      returns (MetaBoolMsg);
+  rpc Clone       (MetaCloneMsg)   returns (MetaResponse);
+  rpc Publish     (MetaPublishMsg) returns (MetaResponse);
+  rpc Search      (MetaSearchMsg)  returns (MetaListResponse);
+  rpc GetVersions (MetaIdMsg)      returns (MetaListResponse);
+}
+
+// ── HolonMetaData ─────────────────────────────────────────────────────────────
+service HolonMetaDataService {
+  rpc GetAll      (MetaEmptyMsg)   returns (MetaListResponse);
+  rpc Get         (MetaIdMsg)      returns (MetaResponse);
+  rpc Create      (MetaDataMsg)    returns (MetaResponse);
+  rpc Update      (MetaDataMsg)    returns (MetaResponse);
+  rpc Delete      (MetaIdMsg)      returns (MetaBoolMsg);
+  rpc Clone       (MetaCloneMsg)   returns (MetaResponse);
+  rpc Publish     (MetaPublishMsg) returns (MetaResponse);
+  rpc Search      (MetaSearchMsg)  returns (MetaListResponse);
+  rpc GetVersions (MetaIdMsg)      returns (MetaListResponse);
+}
+
+// ── ZomeMetaData ──────────────────────────────────────────────────────────────
+service ZomeMetaDataService {
+  rpc GetAll      (MetaEmptyMsg)   returns (MetaListResponse);
+  rpc Get         (MetaIdMsg)      returns (MetaResponse);
+  rpc Create      (MetaDataMsg)    returns (MetaResponse);
+  rpc Update      (MetaDataMsg)    returns (MetaResponse);
+  rpc Delete      (MetaIdMsg)      returns (MetaBoolMsg);
+  rpc Clone       (MetaCloneMsg)   returns (MetaResponse);
+  rpc Publish     (MetaPublishMsg) returns (MetaResponse);
+  rpc Search      (MetaSearchMsg)  returns (MetaListResponse);
+  rpc GetVersions (MetaIdMsg)      returns (MetaListResponse);
+}
+
+// ── Shared messages ───────────────────────────────────────────────────────────
+message MetaEmptyMsg {}
+message MetaIdMsg      { string id = 1; }
+message MetaBoolMsg    { bool   value = 1; bool is_error = 2; string message = 3; }
+message MetaSearchMsg  { string search_term = 1; bool show_all_versions = 2; int32 version = 3; }
+message MetaCloneMsg   { string id = 1; string new_name = 2; }
+message MetaPublishMsg { string id = 1; string publish_path = 2; bool register_on_starnet = 3; }
+
+message MetaDataMsg {
+  string id   = 1;
+  string name = 2;
+  string description = 3;
+  string json = 4;
+}
+
+message MetaResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  MetaDataMsg result = 3;
+}
+
+message MetaListResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  repeated MetaDataMsg items = 3;
+}
