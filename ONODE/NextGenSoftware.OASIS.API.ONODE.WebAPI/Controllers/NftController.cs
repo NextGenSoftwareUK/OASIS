@@ -401,7 +401,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 AttemptToVerifyEveryXSeconds = request.AttemptToVerifyEveryXSeconds,
                 WaitTillNFTSent = request.WaitTillNFTSent,
                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
-                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                RevokeTokenAuthorities = request.RevokeTokenAuthorities,
+                FreezeMetadata = request.FreezeMetadata
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);

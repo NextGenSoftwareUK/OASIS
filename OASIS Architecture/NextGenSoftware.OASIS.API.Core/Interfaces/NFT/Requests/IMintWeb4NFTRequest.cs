@@ -23,5 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         public bool WaitTillNFTSent { get; set; }
         public int WaitForNFTToSendInSeconds { get; set; }
         public int AttemptToSendEveryXSeconds { get; set; }
+        public bool? RevokeTokenAuthorities { get; set; }
+        public bool? FreezeMetadata { get; set; }
     }
 }

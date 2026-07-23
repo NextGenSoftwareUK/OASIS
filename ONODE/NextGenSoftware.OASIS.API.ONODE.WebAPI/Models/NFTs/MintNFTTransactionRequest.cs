@@ -39,5 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public bool WaitTillNFTSent { get; set; } = true;
         public int WaitForNFTToSendInSeconds { get; set; } = 180;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
+        public bool? RevokeTokenAuthorities { get; set; }
+        public bool? FreezeMetadata { get; set; }
     }
 }
