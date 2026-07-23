@@ -540,5 +540,80 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             var result = await mgr.GetMoonsForGalaxyAsync(galaxyId);
             return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
         }
+
+        // ── CelestialBodyMetaData ─────────────────────────────────────────────
+        public async Task<string> GetAllCelestialBodiesMetaDataAsync()
+        {
+            var result = await _starAPI.CelestialBodiesMetaDataDNA.LoadAllAsync(Guid.Empty, null);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> GetCelestialBodyMetaDataAsync(Guid id)
+        {
+            var result = await _starAPI.CelestialBodiesMetaDataDNA.LoadAsync(Guid.Empty, id, 0);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> GetCelestialBodyMetaDataVersionsAsync(Guid id)
+        {
+            var result = await _starAPI.CelestialBodiesMetaDataDNA.LoadVersionsAsync(id);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> SearchCelestialBodiesMetaDataAsync(string searchTerm, bool showAllVersions = false, int version = 0)
+        {
+            var result = await _starAPI.CelestialBodiesMetaDataDNA.SearchAsync<NextGenSoftware.OASIS.API.ONODE.Core.Holons.CelestialBodyMetaDataDNA>(Guid.Empty, searchTerm, default, null, NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, true, showAllVersions, version);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        // ── HolonMetaData ─────────────────────────────────────────────────────
+        public async Task<string> GetAllHolonsMetaDataAsync()
+        {
+            var result = await _starAPI.HolonsMetaDataDNA.LoadAllAsync(Guid.Empty, null);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> GetHolonMetaDataAsync(Guid id)
+        {
+            var result = await _starAPI.HolonsMetaDataDNA.LoadAsync(Guid.Empty, id, 0);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> GetHolonMetaDataVersionsAsync(Guid id)
+        {
+            var result = await _starAPI.HolonsMetaDataDNA.LoadVersionsAsync(id);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> SearchHolonsMetaDataAsync(string searchTerm, bool showAllVersions = false, int version = 0)
+        {
+            var result = await _starAPI.HolonsMetaDataDNA.SearchAsync<NextGenSoftware.OASIS.API.ONODE.Core.Holons.HolonMetaDataDNA>(Guid.Empty, searchTerm, default, null, NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, true, showAllVersions, version);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        // ── ZomeMetaData ──────────────────────────────────────────────────────
+        public async Task<string> GetAllZomesMetaDataAsync()
+        {
+            var result = await _starAPI.ZomesMetaDataDNA.LoadAllAsync(Guid.Empty, null);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> GetZomeMetaDataAsync(Guid id)
+        {
+            var result = await _starAPI.ZomesMetaDataDNA.LoadAsync(Guid.Empty, id, 0);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> GetZomeMetaDataVersionsAsync(Guid id)
+        {
+            var result = await _starAPI.ZomesMetaDataDNA.LoadVersionsAsync(id);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
+
+        public async Task<string> SearchZomesMetaDataAsync(string searchTerm, bool showAllVersions = false, int version = 0)
+        {
+            var result = await _starAPI.ZomesMetaDataDNA.SearchAsync<NextGenSoftware.OASIS.API.ONODE.Core.Holons.ZomeMetaDataDNA>(Guid.Empty, searchTerm, default, null, NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, true, showAllVersions, version);
+            return result.IsError ? null : System.Text.Json.JsonSerializer.Serialize(result.Result);
+        }
     }
 }

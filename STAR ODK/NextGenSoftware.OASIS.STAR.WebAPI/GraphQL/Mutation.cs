@@ -973,5 +973,116 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
             var result = await CreateCosmicManager(avId).UpdateGravitationalWaveAsync(obj);
             return !result.IsError;
         }
+
+        // ── CelestialBodyMetaData ─────────────────────────────────────────────
+        public async Task<string> CreateCelestialBodyMetaDataAsync(string name, string description, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.CelestialBodiesMetaDataDNA.CreateAsync(avId, name, description, default, string.Empty, null);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> UpdateCelestialBodyMetaDataAsync(Guid id, string name, string description, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var item = new NextGenSoftware.OASIS.API.ONODE.Core.Holons.CelestialBodyMetaDataDNA { Id = id, Name = name, Description = description };
+            var r = await _starAPI.CelestialBodiesMetaDataDNA.UpdateAsync(avId, item);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<bool> DeleteCelestialBodyMetaDataAsync(Guid id, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.CelestialBodiesMetaDataDNA.DeleteAsync(avId, id, 0);
+            return !r.IsError;
+        }
+
+        public async Task<string> CloneCelestialBodyMetaDataAsync(Guid id, string newName, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.CelestialBodiesMetaDataDNA.CloneAsync(avId, id, newName);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> PublishCelestialBodyMetaDataAsync(Guid id, string publishPath, bool registerOnStarnet, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.CelestialBodiesMetaDataDNA.PublishAsync(avId, publishPath, string.Empty, string.Empty, false, registerOnStarnet);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // ── HolonMetaData ─────────────────────────────────────────────────────
+        public async Task<string> CreateHolonMetaDataAsync(string name, string description, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.HolonsMetaDataDNA.CreateAsync(avId, name, description, default, string.Empty, null);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> UpdateHolonMetaDataAsync(Guid id, string name, string description, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var item = new NextGenSoftware.OASIS.API.ONODE.Core.Holons.HolonMetaDataDNA { Id = id, Name = name, Description = description };
+            var r = await _starAPI.HolonsMetaDataDNA.UpdateAsync(avId, item);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<bool> DeleteHolonMetaDataAsync(Guid id, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.HolonsMetaDataDNA.DeleteAsync(avId, id, 0);
+            return !r.IsError;
+        }
+
+        public async Task<string> CloneHolonMetaDataAsync(Guid id, string newName, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.HolonsMetaDataDNA.CloneAsync(avId, id, newName);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> PublishHolonMetaDataAsync(Guid id, string publishPath, bool registerOnStarnet, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.HolonsMetaDataDNA.PublishAsync(avId, publishPath, string.Empty, string.Empty, false, registerOnStarnet);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        // ── ZomeMetaData ──────────────────────────────────────────────────────
+        public async Task<string> CreateZomeMetaDataAsync(string name, string description, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.ZomesMetaDataDNA.CreateAsync(avId, name, description, default, string.Empty, null);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> UpdateZomeMetaDataAsync(Guid id, string name, string description, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var item = new NextGenSoftware.OASIS.API.ONODE.Core.Holons.ZomeMetaDataDNA { Id = id, Name = name, Description = description };
+            var r = await _starAPI.ZomesMetaDataDNA.UpdateAsync(avId, item);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<bool> DeleteZomeMetaDataAsync(Guid id, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.ZomesMetaDataDNA.DeleteAsync(avId, id, 0);
+            return !r.IsError;
+        }
+
+        public async Task<string> CloneZomeMetaDataAsync(Guid id, string newName, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.ZomesMetaDataDNA.CloneAsync(avId, id, newName);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
+
+        public async Task<string> PublishZomeMetaDataAsync(Guid id, string publishPath, bool registerOnStarnet, string avatarId)
+        {
+            Guid.TryParse(avatarId, out var avId);
+            var r = await _starAPI.ZomesMetaDataDNA.PublishAsync(avId, publishPath, string.Empty, string.Empty, false, registerOnStarnet);
+            return r.IsError ? null : System.Text.Json.JsonSerializer.Serialize(r.Result);
+        }
     }
 }
