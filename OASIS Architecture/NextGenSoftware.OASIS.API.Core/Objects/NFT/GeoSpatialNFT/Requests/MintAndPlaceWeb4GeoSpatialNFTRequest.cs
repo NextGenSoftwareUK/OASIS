@@ -52,5 +52,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public int WaitForNFTToSendInSeconds { get; set; } = 180;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
         public List<string> Tags { get; set; } = new List<string>();
+        // DISABLED: see MintWeb3NFTRequest / SolanaService.cs — SPL Token SetAuthority 0x4 OwnerMismatch.
+        // public bool? RevokeTokenAuthorities { get; set; }
+        public bool? FreezeMetadata { get; set; }
     }
 }

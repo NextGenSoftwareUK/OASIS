@@ -30,5 +30,17 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public bool? WaitTillNFTSent { get; set; } = true;
         public int? WaitForNFTToSendInSeconds { get; set; } = 180;
         public int? AttemptToSendEveryXSeconds { get; set; } = 1;
+
+        // DISABLED: Metaplex transfers Mint/Freeze Authority to the Master Edition PDA during CreateNFT,
+        // before our code runs. The PDA has no private key, so SPL Token SetAuthority (opcode 6) always
+        // fails with 0x4 OwnerMismatch when we try to sign with our wallet. RugCheck flags this as DANGER
+        // but it is a false positive on every standard Metaplex NFT (DeGods, Mad Lads, etc.) — the Master
+        // Edition enforces supply=1 permanently and nobody can mint more. Nothing we can do about this score.
+        // Re-enable if Metaplex ever provides an official mechanism to clear these authorities.
+        // public bool? RevokeTokenAuthorities { get; set; }
+
+        // When true, sets isMutable=false on the Token Metadata account after minting,
+        // making the NFT metadata permanently immutable — non-fatal if it fails.
+        public bool? FreezeMetadata { get; set; }
     }
 }
