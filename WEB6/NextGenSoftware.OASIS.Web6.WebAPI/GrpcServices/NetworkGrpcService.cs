@@ -100,5 +100,30 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GrpcServices
         {
             return Task.FromResult(new BaseReply { IsError = true, Message = "Use WebSocket endpoint for streaming." });
         }
+
+        public override Task<DiscoveryReply> GetMcpDiscovery(EmptyRequest request, ServerCallContext context)
+        {
+            var doc = new
+            {
+                protocol = "mcp",
+                version = "2024-11-05",
+                name = "OASIS Web6 AI/ML API",
+                description = "OASIS Web6 MCP-compatible AI/ML and agent orchestration endpoint"
+            };
+            return Task.FromResult(new DiscoveryReply { Json = JsonSerializer.Serialize(doc) });
+        }
+
+        public override Task<DiscoveryReply> GetA2AAgentCard(EmptyRequest request, ServerCallContext context)
+        {
+            var card = new
+            {
+                name = "OASIS Web6 Agent",
+                description = "OASIS Web6 AI orchestration agent supporting A2A protocol",
+                version = "1.0.0",
+                capabilities = new[] { "completion", "embedding", "a2a", "orchestration", "reasoning" },
+                a2aEndpoint = "/api/a2a"
+            };
+            return Task.FromResult(new DiscoveryReply { Json = JsonSerializer.Serialize(card) });
+        }
     }
 }
