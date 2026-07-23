@@ -3285,7 +3285,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 WaitTillNFTMinted = request.WaitTillNFTMinted,
                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
                 WaitTillNFTSent = request.WaitTillNFTSent,
-                RevokeTokenAuthorities = request.RevokeTokenAuthorities,
+                // DISABLED: see SolanaService.cs — RevokeTokenAuthorities is a no-op on Metaplex NFTs.
+                // RevokeTokenAuthorities = request.RevokeTokenAuthorities,
                 FreezeMetadata = request.FreezeMetadata,
                 Web3NFTs = request.Web3NFTs != null ? request.Web3NFTs : new List<IMintWeb3NFTRequest>()
             };
@@ -3497,7 +3498,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     web3Request.WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds;
                     web3Request.WaitTillNFTMinted = request.WaitTillNFTMinted;
                     web3Request.WaitTillNFTSent = request.WaitTillNFTSent;
-                    web3Request.RevokeTokenAuthorities = request.RevokeTokenAuthorities;
+                    // DISABLED: see SolanaService.cs — RevokeTokenAuthorities is a no-op on Metaplex NFTs.
+                    // web3Request.RevokeTokenAuthorities = request.RevokeTokenAuthorities;
                     web3Request.FreezeMetadata = request.FreezeMetadata;
 
                     result = await MintNFTInternalAsync(result, originalWeb4Request, web3Request, request, NFTMetaDataProviderType, nftProviderResult, existingWeb4NFT, isGeoNFT, responseFormatType, isLastWeb3NFT);
