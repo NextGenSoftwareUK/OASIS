@@ -10,6 +10,8 @@ service NetworkService {
   rpc FahrnBudgetEstimate (BudgetEstimateRequest) returns (BudgetEstimateReply);
   rpc GetProviderStatus (ProviderStatusRequest) returns (ProviderStatusReply);
   rpc WebSocketSession (EmptyRequest) returns (BaseReply);
+  rpc GetMcpDiscovery (EmptyRequest) returns (DiscoveryReply);
+  rpc GetA2AAgentCard (EmptyRequest) returns (DiscoveryReply);
 }
 
 message FahrnSolveGrpcRequest {
@@ -61,4 +63,10 @@ message ProviderStatusReply {
   bool is_error = 1;
   string message = 2;
   string status_json = 3;
+}
+
+message DiscoveryReply {
+  bool is_error = 1;
+  string message = 2;
+  string json = 3;
 }
