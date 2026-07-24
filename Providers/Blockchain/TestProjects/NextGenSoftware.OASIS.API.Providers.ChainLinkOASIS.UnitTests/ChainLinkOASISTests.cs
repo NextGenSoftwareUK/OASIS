@@ -104,8 +104,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.UnitTests
             // Assert
             Assert.False(result.IsError);
             Assert.NotNull(result.Result);
-            Assert.Equal(tokenAddress, result.Result.TokenId);
-            Assert.Contains("ChainLink NFT", result.Result.Name);
+            Assert.Equal(tokenAddress, result.Result.NFTTokenAddress);
+            Assert.Contains("ChainLink NFT", result.Result.Title);
             Assert.Contains("ChainLink oracle", result.Result.Description);
         }
     }

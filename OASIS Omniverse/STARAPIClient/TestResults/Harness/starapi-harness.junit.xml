@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="STARAPIClient.TestHarness" tests="26" failures="14">
+    <testcase classname="STARAPIClient.TestHarness" name="Init" />
+    <testcase classname="STARAPIClient.TestHarness" name="AuthenticateAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="SetWeb5StarApiBaseUrl" />
+    <testcase classname="STARAPIClient.TestHarness" name="SetWeb4OasisApiBaseUrl" />
+    <testcase classname="STARAPIClient.TestHarness" name="GetCurrentAvatarAsync">
+      <failure message="Unauthorized. Try Logging In First With api/avatar/authenticate REST API Route." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="AddItemAsync">
+      <failure message="HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="QueueAddItemAsync">
+      <failure message="HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="QueueAddItemsAsync">
+      <failure message="One or more queued item jobs failed: HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="FlushAddItemJobsAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="HasItemAsync">
+      <failure message="HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="GetInventoryAsync">
+      <failure message="HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="UseItemAsync">
+      <failure message="HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="QueueUseItemAsync">
+      <failure message="HTTP 405 (MethodNotAllowed) calling http://localhost:5055/api/avatar/inventory." />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="FlushUseItemJobsAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="CreateCrossGameQuestAsync">
+      <failure message="HTTP 400 (BadRequest) calling http://localhost:5055/api/quests/create. Body: {&quot;resultsCount&quot;:0,&quot;errorCount&quot;:0,&quot;warningCount&quot;:0,&quot;savedCount&quot;:0,&quot;loadedCount&quot;:0,&quot;deletedCount&quot;:0,&quot;hasAnyHolonsChanged&quot;:false,&quot;errorCode&quot;:null,&quot;isError&quot;:true,&quot;isWarning&quot;:false,&quot;isSaved&quot;:false,&quot;isLoaded&quot;:false,&quot;isDeleted&quot;:false,&quot;message&quot;:&quot;Invalid args were passed to creating quest. Exception of type 'NextGenSoftware.OASIS.API.Core.Exceptions.OASISException' was thrown.&quot;,&quot;detailedMessage&quot;:null,&quot;result&quot;:null}" />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="GetActiveQuestsAsync">
+      <failure message="HTTP 400 (BadRequest) calling http://localhost:5055/api/quests/by-status/InProgress. Body: {&quot;resultsCount&quot;:0,&quot;errorCount&quot;:0,&quot;warningCount&quot;:0,&quot;savedCount&quot;:0,&quot;loadedCount&quot;:0,&quot;deletedCount&quot;:0,&quot;hasAnyHolonsChanged&quot;:false,&quot;errorCode&quot;:null,&quot;isError&quot;:true,&quot;isWarning&quot;:false,&quot;isSaved&quot;:false,&quot;isLoaded&quot;:false,&quot;isDeleted&quot;:false,&quot;message&quot;:&quot;Error retrieving quests by status: Exception of type 'NextGenSoftware.OASIS.API.Core.Exceptions.OASISException' was thrown.&quot;,&quot;detailedMessage&quot;:null,&quot;result&quot;:null}" />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="StartQuestAsync">
+      <failure message="HTTP 400 (BadRequest) calling http://localhost:5055/api/quests/d91b7675-bc01-4477-8697-45cde143f15f/start. Body: {&quot;resultsCount&quot;:0,&quot;errorCount&quot;:1,&quot;warningCount&quot;:0,&quot;savedCount&quot;:0,&quot;loadedCount&quot;:0,&quot;deletedCount&quot;:0,&quot;hasAnyHolonsChanged&quot;:false,&quot;errorCode&quot;:null,&quot;isError&quot;:true,&quot;isWarning&quot;:false,&quot;isSaved&quot;:false,&quot;isLoaded&quot;:false,&quot;isDeleted&quot;:false,&quot;message&quot;:&quot;Error occurred in QuestManager.StartQuestAsync. Reason: Quest not found or could not be loaded. Reason: No Holon Found&quot;,&quot;detailedMessage&quot;:null,&quot;result&quot;:false}" />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="CompleteQuestObjectiveAsync">
+      <failure message="HTTP 400 (BadRequest) calling http://localhost:5055/api/quests/d91b7675-bc01-4477-8697-45cde143f15f/objectives/b7e3656a-59ce-4489-b430-0776a27f73ec/complete. Body: {&quot;resultsCount&quot;:0,&quot;errorCount&quot;:1,&quot;warningCount&quot;:0,&quot;savedCount&quot;:0,&quot;loadedCount&quot;:0,&quot;deletedCount&quot;:0,&quot;hasAnyHolonsChanged&quot;:false,&quot;errorCode&quot;:null,&quot;isError&quot;:true,&quot;isWarning&quot;:false,&quot;isSaved&quot;:false,&quot;isLoaded&quot;:false,&quot;isDeleted&quot;:false,&quot;message&quot;:&quot;Error occurred in QuestManager.CompleteQuestObjectiveAsync. Reason: Quest not found or could not be loaded. Reason: No Holon Found&quot;,&quot;detailedMessage&quot;:null,&quot;result&quot;:false}" />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="QueueCompleteQuestObjectiveAsync">
+      <failure message="HTTP 400 (BadRequest) calling http://localhost:5055/api/quests/d91b7675-bc01-4477-8697-45cde143f15f/objectives/b7e3656a-59ce-4489-b430-0776a27f73ec/complete. Body: {&quot;resultsCount&quot;:0,&quot;errorCount&quot;:1,&quot;warningCount&quot;:0,&quot;savedCount&quot;:0,&quot;loadedCount&quot;:0,&quot;deletedCount&quot;:0,&quot;hasAnyHolonsChanged&quot;:false,&quot;errorCode&quot;:null,&quot;isError&quot;:true,&quot;isWarning&quot;:false,&quot;isSaved&quot;:false,&quot;isLoaded&quot;:false,&quot;isDeleted&quot;:false,&quot;message&quot;:&quot;Error occurred in QuestManager.CompleteQuestObjectiveAsync. Reason: Quest not found or could not be loaded. Reason: No Holon Found&quot;,&quot;detailedMessage&quot;:null,&quot;result&quot;:false}" />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="FlushQuestObjectiveJobsAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="CompleteQuestAsync">
+      <failure message="HTTP 400 (BadRequest) calling http://localhost:5055/api/quests/d91b7675-bc01-4477-8697-45cde143f15f/complete. Body: {&quot;resultsCount&quot;:0,&quot;errorCount&quot;:1,&quot;warningCount&quot;:0,&quot;savedCount&quot;:0,&quot;loadedCount&quot;:0,&quot;deletedCount&quot;:0,&quot;hasAnyHolonsChanged&quot;:false,&quot;errorCode&quot;:null,&quot;isError&quot;:true,&quot;isWarning&quot;:false,&quot;isSaved&quot;:false,&quot;isLoaded&quot;:false,&quot;isDeleted&quot;:false,&quot;message&quot;:&quot;Error occurred in QuestManager.CompleteQuestAsync. Reason: Quest not found or could not be loaded. Reason: No Holon Found&quot;,&quot;detailedMessage&quot;:null,&quot;result&quot;:false}" />
+    </testcase>
+    <testcase classname="STARAPIClient.TestHarness" name="CreateBossNftAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="DeployBossNftAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="GetNftCollectionAsync" />
+    <testcase classname="STARAPIClient.TestHarness" name="GetLastError" />
+    <testcase classname="STARAPIClient.TestHarness" name="Cleanup" />
+  </testsuite>
+</testsuites>

@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.Common;
@@ -112,10 +113,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                // TODO: Implement actual leaderboard logic
-                // This would typically query completed missions and rank by completion time, score, etc.
-                var leaderboard = new List<MissionLeaderboard>();
-                
+                var holonsResult = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.Mission);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to load missions. Reason: {holonsResult.Message}");
+                    return result;
+                }
+
+                var completedMissions = (holonsResult.Result ?? Enumerable.Empty<IHolon>())
+                    .OfType<Mission>()
+                    .Where(m => m.ParentHolonId == missionId && m.Status == QuestStatus.Completed)
+                    .OrderByDescending(m => m.RewardXP + m.RewardKarma)
+                    .Take(limit)
+                    .ToList();
+
+                var leaderboard = completedMissions.Select((m, i) => new MissionLeaderboard
+                {
+                    AvatarId = m.CreatedByAvatarId,
+                    AvatarName = m.Name,
+                    Score = (int)(m.RewardXP + m.RewardKarma),
+                    CompletedAt = m.CompletedOn,
+                    Rank = i + 1
+                }).ToList();
+
                 result.Result = leaderboard;
                 result.Message = "Mission leaderboard retrieved successfully";
             }
@@ -147,10 +167,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                // TODO: Implement actual rewards logic
-                // This would typically extract rewards from mission metadata or configuration
                 var rewards = new List<MissionReward>();
-                
+                var mission = missionResult.Result as Mission;
+                if (mission != null)
+                {
+                    if (mission.RewardKarma > 0)
+                        rewards.Add(new MissionReward { Type = "Karma", Amount = (int)mission.RewardKarma, Description = $"Earn {mission.RewardKarma} karma on mission completion." });
+                    if (mission.RewardXP > 0)
+                        rewards.Add(new MissionReward { Type = "XP", Amount = (int)mission.RewardXP, Description = $"Earn {mission.RewardXP} XP on mission completion." });
+                }
+
                 result.Result = rewards;
                 result.Message = "Mission rewards retrieved successfully";
             }

@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+service OappsService {
+  // OAPPs
+  rpc GetAllOapps (OappEmptyMsg) returns (OappListResponse);
+  rpc GetOapp (OappIdMsg) returns (OappResponse);
+  rpc CreateOapp (OappMessage) returns (OappResponse);
+  rpc UpdateOapp (OappMessage) returns (OappResponse);
+  rpc DeleteOapp (OappIdMsg) returns (OappBoolMsg);
+  rpc PublishOapp (OappPublishMsg) returns (OappResponse);
+  rpc DownloadOapp (OappDownloadMsg) returns (OappResponse);
+  rpc ActivateOapp (OappVersionedIdMsg) returns (OappResponse);
+  rpc DeactivateOapp (OappVersionedIdMsg) returns (OappResponse);
+  rpc SearchOapps (OappSearchMsg) returns (OappListResponse);
+  rpc LoadAllOappsForAvatar (OappEmptyMsg) returns (OappListResponse);
+  // Plugins
+  rpc GetAllPlugins (OappEmptyMsg) returns (PluginListResponse);
+  rpc GetPlugin (OappIdMsg) returns (PluginResponse);
+  rpc CreatePlugin (PluginMessage) returns (PluginResponse);
+  rpc DeletePlugin (OappIdMsg) returns (OappBoolMsg);
+  // Runtimes
+  rpc GetAllRuntimes (OappEmptyMsg) returns (RuntimeListResponse);
+  rpc GetRuntime (OappIdMsg) returns (RuntimeResponse);
+  rpc CreateRuntime (RuntimeMessage) returns (RuntimeResponse);
+  rpc DeleteRuntime (OappIdMsg) returns (OappBoolMsg);
+  // Templates
+  rpc GetAllTemplates (OappEmptyMsg) returns (TemplateListResponse);
+  rpc GetTemplate (OappIdMsg) returns (TemplateResponse);
+  rpc CreateTemplate (TemplateMessage) returns (TemplateResponse);
+  rpc DeleteTemplate (OappIdMsg) returns (OappBoolMsg);
+  // Libraries
+  rpc GetAllLibraries (OappEmptyMsg) returns (LibraryListResponse);
+  rpc GetLibrary (OappIdMsg) returns (LibraryResponse);
+  rpc CreateLibrary (LibraryMessage) returns (LibraryResponse);
+  rpc DeleteLibrary (OappIdMsg) returns (OappBoolMsg);
+}
+
+message OappEmptyMsg {}
+message OappIdMsg { string id = 1; }
+message OappVersionedIdMsg { string id = 1; int32 version = 2; }
+message OappSearchMsg { string search_term = 1; bool show_all_versions = 2; }
+
+message OappPublishMsg {
+  string id = 1;
+  string source_path = 2;
+  string launch_target = 3;
+  string publish_path = 4;
+  bool register_on_starnet = 5;
+}
+
+message OappDownloadMsg {
+  string id = 1;
+  string destination_path = 2;
+  bool overwrite = 3;
+}
+
+message OappMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string oapp_type = 4;
+}
+
+message OappResponse {
+  bool is_error = 1;
+  string message = 2;
+  OappMessage result = 3;
+}
+
+message OappListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated OappMessage items = 3;
+}
+
+message OappBoolMsg {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message PluginMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string version = 4;
+}
+
+message PluginResponse {
+  bool is_error = 1;
+  string message = 2;
+  PluginMessage result = 3;
+}
+
+message PluginListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated PluginMessage items = 3;
+}
+
+message RuntimeMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string runtime_type = 4;
+}
+
+message RuntimeResponse {
+  bool is_error = 1;
+  string message = 2;
+  RuntimeMessage result = 3;
+}
+
+message RuntimeListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated RuntimeMessage items = 3;
+}
+
+message TemplateMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string template_type = 4;
+}
+
+message TemplateResponse {
+  bool is_error = 1;
+  string message = 2;
+  TemplateMessage result = 3;
+}
+
+message TemplateListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated TemplateMessage items = 3;
+}
+
+message LibraryMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string version = 4;
+}
+
+message LibraryResponse {
+  bool is_error = 1;
+  string message = 2;
+  LibraryMessage result = 3;
+}
+
+message LibraryListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated LibraryMessage items = 3;
+}

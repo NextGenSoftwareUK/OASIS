@@ -1,36 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	  <PropertyGroup>
-		  <TargetFramework>net8.0</TargetFramework>
+		  <TargetFramework>net10.0</TargetFramework>
 		  <PackageId>NextGenSoftware.OASIS.API.Providers.EOSIOOASIS</PackageId>
 		  <Company>NextGen Software Ltd</Company>
 		  <Product>WEB4 OASIS API EOSIO OASIS Provider</Product>
 		  <Title>WEB4 OASIS API EOSIO OASIS Provider</Title>
-		  <Summary>WEB4 OASIS API EOSIO OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-		  <Description>WEB4 OASIS API EOSIO OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
-		  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-		  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+		  <Summary>EOSIO OASIS Provider -- delegated PoS, feeless transactions, 4,000+ TPS, WASM smart contracts for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+		  <Description>Connects the OASIS to EOSIO -- the delegated proof-of-stake blockchain with feeless transactions (resource model), 4,000+ TPS, and WASM smart contracts. Stores OASIS holons, avatars, and tokens on EOS mainnet or sidechains. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+		  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+		  <PackageIcon>OASIS.jpg</PackageIcon>
 		  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 		  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
-		  <PackageReleaseNotes>Initial Release.</PackageReleaseNotes>
+		  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 		  <RepositoryType>git</RepositoryType>
-		  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-		  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+		  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+		  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 		  <PackageReadmeFile>README.md</PackageReadmeFile>
 		  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 		  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 		  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		  <Version>1.0.0</Version>
+		  <Version>2.0.1</Version>
 		  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 		  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
 	  </PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
-			<Pack>True</Pack>
-			<PackagePath>\</PackagePath>
-		</None>
+		<None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -43,7 +50,7 @@
   <ItemGroup>
     <PackageReference Include="eos-sharp" Version="2.2.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.6" />
+    <!--<PackageReference Include="Microsoft.Extensions.Http" Version="3.1.6" />-->
     <PackageReference Include="Nethereum.Signer" Version="4.18.0" />
     <!--<PackageReference Include="NLog" Version="4.7.3" />
     <PackageReference Include="NLog.Config" Version="4.7.3" />-->

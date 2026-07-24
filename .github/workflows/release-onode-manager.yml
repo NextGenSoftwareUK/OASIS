@@ -1,0 +1,214 @@
+name: Release — ONODE Manager
+
+on:
+  push:
+    tags:
+      - 'onode-manager-v*'   # e.g. onode-manager-v1.0.0
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+permissions:
+  contents: write   # needed to create GitHub Releases and upload assets
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT: ONODE/NextGenSoftware.OASIS.ONODE.Manager/NextGenSoftware.OASIS.ONODE.Manager.csproj
+
+jobs:
+  # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk
+
+      - name: Restore & Publish (win-x64)
+        run: >
+          dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r win-x64 --self-contained
+          -o publish/win-x64
+          /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Pack with Velopack
+        run: >
+          vpk pack
+          --packId "ONODEManager"
+          --packVersion "${{ inputs.version || github.ref_name }}"
+          --packDir  publish/win-x64
+          --mainExe  NextGenSoftware.OASIS.ONODE.Manager.exe
+          --outputDir release/win-x64
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: release/win-x64/
+
+  # ── macOS (DMG via Velopack) ───────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk
+
+      - name: Restore & Publish (osx-x64)
+        run: >
+          dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r osx-x64 --self-contained
+          -o publish/osx-x64
+          /p:PublishSingleFile=true
+
+      - name: Pack with Velopack (DMG)
+        run: >
+          vpk pack
+          --packId "ONODEManager"
+          --packVersion "${{ inputs.version || github.ref_name }}"
+          --packDir  publish/osx-x64
+          --mainExe  NextGenSoftware.OASIS.ONODE.Manager
+          --outputDir release/osx-x64
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: release/osx-x64/
+
+  # ── Linux (AppImage via Velopack) ─────────────────────────────────────────
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk
+
+      - name: Restore & Publish (linux-x64)
+        run: >
+          dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r linux-x64 --self-contained
+          -o publish/linux-x64
+          /p:PublishSingleFile=true
+
+      - name: Pack with Velopack (AppImage)
+        run: >
+          vpk pack
+          --packId "ONODEManager"
+          --packVersion "${{ inputs.version || github.ref_name }}"
+          --packDir  publish/linux-x64
+          --mainExe  NextGenSoftware.OASIS.ONODE.Manager
+          --outputDir release/linux-x64
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: release/linux-x64/
+
+  # ── Create GitHub Release ─────────────────────────────────────────────────
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version || github.ref_name }}
+          name: "ONODE Manager ${{ inputs.version || github.ref_name }}"
+          body: |
+            ## ONODE Manager Release
+
+            Cross-platform desktop tray app for managing OASIS Web4–Web10 node services.
+
+            ### Downloads
+            | Platform | File |
+            |---|---|
+            | Windows | `ONODEManagerSetup.exe` (Velopack installer) |
+            | macOS | `ONODEManager.dmg` |
+            | Linux | `ONODEManager.AppImage` |
+
+            ### Install
+            - **Windows**: run `ONODEManagerSetup.exe`
+            - **macOS**: open `ONODEManager.dmg` and drag to Applications
+            - **Linux**: `chmod +x ONODEManager.AppImage && ./ONODEManager.AppImage`
+
+            ### Requirements
+            ONODEService must be running (`onode service install && onode service start`).
+          files: |
+            artifacts/release-windows/**
+            artifacts/release-macos/**
+            artifacts/release-linux/**
+          draft: false
+          prerelease: false

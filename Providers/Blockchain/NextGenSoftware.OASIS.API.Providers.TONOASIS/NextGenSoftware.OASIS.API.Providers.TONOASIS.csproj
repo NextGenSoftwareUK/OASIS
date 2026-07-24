@@ -4,31 +4,47 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+  
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <PackageId>NextGenSoftware.OASIS.API.Providers.TONOASIS</PackageId>
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API TON OASIS Provider</Product>
     <Title>WEB4 OASIS API TON OASIS Provider</Title>
-    <Summary>TON provider backed by the TON EVM runtime.</Summary>
-    <Description>TON provider backed by the TON EVM runtime.</Description>
-    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-    <PackageIcon>OASISLogo128.jpg</PackageIcon>
+    <Summary>TON OASIS Provider -- The Open Network (950M+ Telegram users), async smart contracts, Jetton/NFT tokens for OASIS data. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to TON (The Open Network) -- the blockchain maintained by the TON Foundation with 950M+ potential Telegram users and asynchronous smart contracts. Stores OASIS holons, avatars, and Jetton/NFT tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
     <PackageTags>OASIS API; TON; Provider; WEB3</PackageTags>
-    <PackageReleaseNotes>Initial TON provider packaging.</PackageReleaseNotes>
+    <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>1.0.0</Version>
+    <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 </Project>
 
 

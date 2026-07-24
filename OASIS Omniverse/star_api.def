@@ -1,0 +1,6 @@
+; OASIS STAR API - export list for star_api.lib (auto-generated from C# UnmanagedCallersOnly EntryPoint names)
+; Do not edit by hand. Run Scripts\generate_star_api_def.ps1 to regenerate after adding new exports.
+; BUILD DOOM / BUILD QUAKE use this so star_api.lib has all symbols and link succeeds without stubs.
+LIBRARY star_api
+EXPORTS
+

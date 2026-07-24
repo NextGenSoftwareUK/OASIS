@@ -1,15 +1,22 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -28,23 +35,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private P2PNetworkType _networkType = P2PNetworkType.Internal;
         private HoloOASIS? _holoOASIS;
 
-        private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
+        private readonly ConcurrentDictionary<string, ONETNode> _connectedNodes = new ConcurrentDictionary<string, ONETNode>();
         private bool _isNetworkRunning = false;
+        private DateTime _networkStartTime = DateTime.MinValue;
+
+        private readonly IOASISStorageProvider _storageProvider;
+        // Shorter timeout for bootstrap registration — 15s per attempt × 3 retries = up to 45s stall on a dead server.
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
+        // Path where the peer list is persisted so the node gets a warm start after a restart.
+        private string PeerCachePath =>
+            Path.Combine(
+                _oasisdna?.OASIS?.DataDirectory ?? AppContext.BaseDirectory,
+                "onet-peers.json");
+
+        /// <summary>Constructor for test subclasses that override virtual methods without needing the full network init chain.</summary>
+        protected ONETManager(OASISDNA? oasisdna) : base(null!, Guid.Empty, oasisdna ?? new OASISDNA()) { }
 
         public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
-            _networkType = networkType;
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _storageProvider = storageProvider;
+
+            // Resolve network type: DNA takes priority over the constructor parameter default.
+            if (oasisdna?.OASIS?.ONET != null && !string.IsNullOrWhiteSpace(oasisdna.OASIS.ONET.NetworkType))
+            {
+                _networkType = oasisdna.OASIS.ONET.NetworkType.Equals("HoloNET", StringComparison.OrdinalIgnoreCase)
+                    ? P2PNetworkType.HoloNET
+                    : P2PNetworkType.Internal;
+            }
+            else
+            {
+                _networkType = networkType;
+            }
+
+            if (!string.IsNullOrWhiteSpace(oasisdna?.OASIS?.DataDirectory))
+                OASISHyperDrive.DataDirectory = oasisdna.OASIS.DataDirectory;
+
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
+            if (oasisdna?.OASIS?.ONET?.TcpPort > 0)
+                _onetProtocol.ListenPort = oasisdna.OASIS.ONET.TcpPort;
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
             _security = new ONETSecurity(storageProvider, oasisdna);
             _discovery = new ONETDiscovery(storageProvider, oasisdna);
             _apiGateway = new ONETAPIGateway(storageProvider, oasisdna);
-            
-            // Initialize P2P network provider based on type
+
+            // Initialize P2P network provider based on type. Done synchronously in the constructor
+            // (rather than via an async InitAsync the caller must remember to call) because every public
+            // method on this class assumes _p2pNetworkProvider is already set - so it must exist before
+            // the constructor returns.
             InitializeP2PNetworkProvider();
-            
-            InitializeAsync().Wait();
         }
 
         private void InitializeP2PNetworkProvider()
@@ -55,42 +95,142 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     _p2pNetworkProvider = new InternalP2PNetworkProvider(
                         _onetProtocol, _consensus, _routing, _security, _discovery, _apiGateway);
                     break;
-                    
+
                 case P2PNetworkType.HoloNET:
+                    // The HoloNET P2P provider needs a real IHoloNETClientBase. The natural source of one is
+                    // the HoloOASIS storage provider itself (HoloOASIS.HoloNETClientAppAgent implements
+                    // IHoloNETClientBase) - previously this branch always passed null/null into
+                    // HoloNETP2PProvider's constructor, which throws ArgumentNullException immediately,
+                    // making P2PNetworkType.HoloNET permanently unusable regardless of what was passed in.
+                    _holoOASIS = _storageProvider as HoloOASIS;
                     if (_holoOASIS == null)
                     {
-                        throw new InvalidOperationException("HoloOASIS provider is required for HoloNET P2P network type");
+                        throw new InvalidOperationException(
+                            "P2PNetworkType.HoloNET requires the storageProvider passed to ONETManager's " +
+                            "constructor to be a HoloOASIS instance (so its HoloNETClientAppAgent can be used " +
+                            "as the underlying HoloNET client). Pass a HoloOASIS storage provider, or use " +
+                            "P2PNetworkType.Internal instead.");
                     }
-                    _p2pNetworkProvider = new HoloNETP2PProvider(null, null, OASISDNA);
+                    _p2pNetworkProvider = new HoloNETP2PProvider(_holoOASIS.HoloNETClientAppAgent, _storageProvider, OASISDNA);
                     break;
-                    
+
                 default:
                     throw new ArgumentException($"Unsupported P2P network type: {_networkType}");
             }
         }
 
-        private async Task InitializeAsync()
+        /// <summary>
+        /// Loads the live OASISDNA configuration into this manager. Must be called (and awaited) once after
+        /// construction before relying on GetOASISDNAAsync()/UpdateOASISDNAAsync() to reflect the persisted
+        /// configuration - constructors cannot be async, so this can no longer run via a blocking
+        /// InitializeAsync().Wait() call inside the constructor (that was a sync-over-async deadlock risk).
+        /// GetOASISDNAAsync() also lazily loads on first call if this was never invoked.
+        /// </summary>
+        public async Task<OASISResult<OASISDNA>> InitializeAsync()
         {
+            var result = new OASISResult<OASISDNA>();
+
             try
             {
-                // Load OASISDNA configuration
                 var oasisdnaResult = await LoadOASISDNAAsync();
                 if (!oasisdnaResult.IsError && oasisdnaResult.Result != null)
-                {
                     _oasisdna = oasisdnaResult.Result;
+
+                // Generate a stable ECDSA-P256 NodeId/keypair on first run and persist it back to DNA.
+                if (_oasisdna?.OASIS?.ONET != null)
+                {
+                    bool keypairDirty = false;
+
+                    if (string.IsNullOrWhiteSpace(_oasisdna.OASIS.ONET.NodePrivateKey) ||
+                        string.IsNullOrWhiteSpace(_oasisdna.OASIS.ONET.NodePublicKey))
+                    {
+                        using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+                        _oasisdna.OASIS.ONET.NodePrivateKey = Convert.ToBase64String(ecdsa.ExportECPrivateKey());
+                        _oasisdna.OASIS.ONET.NodePublicKey  = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+                        keypairDirty = true;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(_oasisdna.OASIS.ONET.NodeId) || keypairDirty)
+                    {
+                        var pubBytes = Convert.FromBase64String(_oasisdna.OASIS.ONET.NodePublicKey);
+                        _oasisdna.OASIS.ONET.NodeId = Convert.ToHexString(SHA256.HashData(pubBytes)).ToLowerInvariant();
+                        keypairDirty = true;
+                    }
+
+                    if (keypairDirty)
+                        await SaveOASISDNAAsync(_oasisdna);
+
+                    // Register our public key with this node's own protocol so inbound ECDSA checks work.
+                    _onetProtocol.RegisterNodePublicKey(_oasisdna.OASIS.ONET.NodeId, _oasisdna.OASIS.ONET.NodePublicKey);
+
+                    // Push registration to each bootstrap server so they can verify future signed requests.
+                    if (_oasisdna.OASIS.ONET.AutoRegisterOnBootstrap &&
+                        _oasisdna.OASIS.ONET.BootstrapServers?.Count > 0)
+                    {
+                        await RegisterWithBootstrapServersAsync(
+                            _oasisdna.OASIS.ONET.NodeId,
+                            _oasisdna.OASIS.ONET.NodePublicKey,
+                            _oasisdna.OASIS.ONET.BootstrapServers);
+                    }
                 }
+
+                result.Result = _oasisdna;
+                result.IsError = oasisdnaResult.IsError;
+                result.Message = oasisdnaResult.Message;
             }
             catch (Exception ex)
             {
-                var errorResult = new OASISResult<OASISDNA>();
-                OASISErrorHandling.HandleError(ref errorResult, $"Error initializing ONET manager: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error initializing ONET manager: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Register this node's public key with every bootstrap server so they can verify our
+        /// future ECDSA-signed requests (X-ONET-NodeId / X-ONET-Signature headers).
+        /// Failures are logged but never throw — network may not be available yet at startup.
+        /// </summary>
+        private async Task RegisterWithBootstrapServersAsync(string nodeId, string publicKey, List<string> bootstrapServers)
+        {
+            var payload = JsonSerializer.Serialize(new { nodeId, publicKey });
+
+            foreach (var server in bootstrapServers)
+            {
+                var url = $"{server.TrimEnd('/')}/api/v1/onet/nodes/register";
+                const int maxAttempts = 3;
+                int delayMs = 2000;
+
+                for (int attempt = 1; attempt <= maxAttempts; attempt++)
+                {
+                    try
+                    {
+                        var response = await _httpClient.PostAsync(url, new StringContent(payload, Encoding.UTF8, "application/json"));
+                        if (response.IsSuccessStatusCode)
+                            break;
+
+                        var warn = new OASISResult<bool>();
+                        OASISErrorHandling.HandleWarning(ref warn, $"Bootstrap registration at {url} attempt {attempt}/{maxAttempts} returned {(int)response.StatusCode}");
+                        if (attempt < maxAttempts)
+                            await Task.Delay(delayMs);
+                        delayMs *= 2;
+                    }
+                    catch (Exception ex)
+                    {
+                        var warn = new OASISResult<bool>();
+                        OASISErrorHandling.HandleWarning(ref warn, $"Bootstrap registration at {url} attempt {attempt}/{maxAttempts} failed: {ex.Message}", ex);
+                        if (attempt < maxAttempts)
+                            await Task.Delay(delayMs);
+                        delayMs *= 2;
+                    }
+                }
             }
         }
 
         /// <summary>
         /// Get OASISDNA configuration
         /// </summary>
-        public async Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
+        public virtual async Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
         {
             var result = new OASISResult<OASISDNA>();
             
@@ -187,6 +327,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
+        /// <summary>
+        /// Verify that a remote node's signature over <paramref name="message"/> is valid.
+        /// Used by HTTP endpoints to authenticate peer requests via X-ONET-NodeId / X-ONET-Signature headers.
+        /// </summary>
+        public Task<bool> VerifyRequestSignatureAsync(string nodeId, string message, string base64Signature)
+            => _onetProtocol.VerifyRequestSignatureAsync(nodeId, message, base64Signature);
+
+        /// <summary>
+        /// Register a peer's base-64 ECDSA-P256 public key so subsequent VerifyRequestSignatureAsync
+        /// calls from that node will succeed. Called by the /onet/nodes/register REST endpoint and
+        /// automatically during peer-exchange (OnPeerKeyDiscovered).
+        /// </summary>
+        public virtual void RegisterNodePublicKey(string nodeId, string base64PublicKey)
+            => _onetProtocol.RegisterNodePublicKey(nodeId, base64PublicKey);
+
+        private void PersistPeers()
+        {
+            try
+            {
+                var peers = _connectedNodes.Values.ToList();
+                var json = JsonSerializer.Serialize(peers, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(PeerCachePath, json);
+            }
+            catch { /* non-fatal — worst case the node cold-starts */ }
+        }
+
+        private void LoadPersistedPeers()
+        {
+            try
+            {
+                if (!File.Exists(PeerCachePath)) return;
+                var json = File.ReadAllText(PeerCachePath);
+                var peers = JsonSerializer.Deserialize<List<ONETNode>>(json);
+                if (peers == null) return;
+                foreach (var peer in peers)
+                    _connectedNodes.TryAdd(peer.Id, peer);
+            }
+            catch { /* non-fatal — bad cache file is just ignored */ }
+        }
+
         /// Get connected nodes
         /// </summary>
         public async Task<OASISResult<List<ONETNode>>> GetConnectedNodesAsync()
@@ -266,14 +446,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var node = _connectedNodes.FirstOrDefault(n => n.Id == nodeId);
-                if (node == null)
+                if (!_connectedNodes.TryRemove(nodeId, out _))
                 {
                     OASISErrorHandling.HandleError(ref result, "Node is not connected");
                     return result;
                 }
-
-                _connectedNodes.Remove(node);
 
                 result.Result = true;
                 result.IsError = false;
@@ -298,9 +475,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 var stats = new Dictionary<string, object>
                 {
-                    ["totalNodes"] = _connectedNodes.Count,
+                    ["totalNodes"] = _connectedNodes.Count,  // ConcurrentDictionary.Count is thread-safe
                     ["networkRunning"] = _isNetworkRunning,
-                    ["uptime"] = DateTime.UtcNow - (_connectedNodes.FirstOrDefault()?.ConnectedAt ?? DateTime.UtcNow),
+                    ["networkType"] = _networkType.ToString(),
+                    ["nodeId"] = _oasisdna?.OASIS?.ONET?.NodeId ?? "",
+                    ["uptime"] = _isNetworkRunning ? (object)(DateTime.UtcNow - _networkStartTime) : TimeSpan.Zero,
                     ["lastActivity"] = DateTime.UtcNow
                 };
 
@@ -334,6 +513,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 _isNetworkRunning = true;
+                _networkStartTime = DateTime.UtcNow;
+                LoadPersistedPeers();
                 result.Result = true;
                 result.IsError = false;
                 result.Message = $"ONET P2P network started successfully using {_networkType} - Web2 and Web3 unified!";
@@ -364,6 +545,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 _isNetworkRunning = false;
+                PersistPeers();
                 result.Result = true;
                 result.IsError = false;
                 result.Message = $"ONET P2P network stopped successfully using {_networkType}";
@@ -379,15 +561,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Get network topology
         /// </summary>
-        public async Task<OASISResult<NetworkTopology>> GetNetworkTopologyAsync()
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology>> GetNetworkTopologyAsync()
         {
-            var result = new OASISResult<NetworkTopology>();
-            
+            var result = new OASISResult<NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology>();
+
             try
             {
-                var topology = new NetworkTopology
+                var topology = new NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology
                 {
-                    Nodes = _connectedNodes,
+                    Nodes = _connectedNodes.Values.ToList(),
                     Connections = new List<NetworkConnection>(),
                     LastUpdated = DateTime.UtcNow
                 };

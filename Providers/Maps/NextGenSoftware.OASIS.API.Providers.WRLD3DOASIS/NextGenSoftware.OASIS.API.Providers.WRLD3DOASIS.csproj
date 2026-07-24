@@ -1,35 +1,45 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API WRLD3D OASIS Provider</Product>
 	  <Title>WEB4 OASIS API WRLD3D OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API WRLD3D OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API WRLD3D OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Summary>WRLD3D OASIS Provider -- photorealistic 3D geo-spatial world simulation for OASIS avatars and holons. Supports Unity, Unreal, and web. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to WRLD3D -- a 3D geo-spatial mapping engine for visualising OASIS avatars, holons, and Our World/One World data in photorealistic 3D city models, indoor maps, and open-world environments. Supports Unity, Unreal, and web targets. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; WRLD3D; Unity; Our World </PackageTags>
-	  <PackageReleaseNotes>Updated Tags.</PackageReleaseNotes>
+	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>1.0.2</Version>
+	  <Version>2.0.1</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
     </None>

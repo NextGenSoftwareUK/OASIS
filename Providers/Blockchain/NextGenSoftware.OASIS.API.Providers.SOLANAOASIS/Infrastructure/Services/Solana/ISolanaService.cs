@@ -12,6 +12,8 @@ public interface ISolanaService
     Task<OASISResult<decimal>> GetAccountBalanceAsync(IGetWeb3WalletBalanceRequest request);
     Task<OASISResult<SendTransactionResult>> SendNftAsync(SendWeb3NFTRequest mintNftRequest);
     Task<OASISResult<GetNftResult>> LoadNftAsync(string address);
+    Task<OASISResult<CreateCollectionNftResult>> CreateCollectionNftAsync(string name, string symbol, string metadataUri, ulong initialSize = 0);
+    Task<string> SetCollectionSizeAsync(string collectionMintAddress, ulong size);
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByUsernameAsync(string username);
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByIdAsync(Guid id);
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByEmailAsync(string email);

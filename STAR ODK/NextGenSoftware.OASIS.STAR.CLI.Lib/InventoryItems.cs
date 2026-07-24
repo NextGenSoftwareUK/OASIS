@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -28,12 +28,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultInventoryItemsInstalledPath, "DefaultInventoryItemsInstalledPath")
         { }
 
-        public override async Task<OASISResult<InventoryItem>> CreateAsync(ISTARNETCreateOptions<InventoryItem, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<InventoryItem>> CreateAsync(ISTARNETCreateOptions<InventoryItem, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<InventoryItem> result = new OASISResult<InventoryItem>();
 
             if (createOptions == null)
                 createOptions = new STARNETCreateOptions<InventoryItem, STARNETDNA>() { STARNETHolon = new InventoryItem()};
+
+            if (createOptions.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
+                && scriptedFlag is bool sb && sb)
+            {
+                OASISResult<ImageObjectResult> emptyImg = new OASISResult<ImageObjectResult> { Result = new ImageObjectResult() };
+                createOptions.STARNETHolon ??= new InventoryItem();
+                createOptions.STARNETHolon.Image2D = emptyImg.Result.Image2D;
+                createOptions.STARNETHolon.Image2DURI = emptyImg.Result.Image2DURI;
+                createOptions.STARNETHolon.Object3D = emptyImg.Result.Object3D;
+                createOptions.STARNETHolon.Object3DURI = emptyImg.Result.Object3DURI;
+                return await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies, providerType);
+            }
 
             OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("InventoryItem");
 
@@ -51,16 +64,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType: providerType);
 
-            if (result != null)
-            {
-                if (result.Result != null && result.Result != null && !result.IsError)
-                {
-                    //CLIEngine.ShowMessage("Add any dependencies to the InventoryItem below. If for example you want items to be rewarded when it is triggered then add a InventoryItem dependency, if you want it to unlock a new quest then add a Quest dependency and so on. If however this GeoHotSpot belongs to another Quest then you will need to add it as a dependency to that Quest (or use the quest create/edit sub-command).", ConsoleColor.Yellow);
-                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
-                }
-            }
+            //if (result != null)
+            //{
+            //    if (result.Result != null && result.Result != null && !result.IsError)
+            //    {
+            //        //CLIEngine.ShowMessage("Add any dependencies to the InventoryItem below. If for example you want items to be rewarded when it is triggered then add a InventoryItem dependency, if you want it to unlock a new quest then add a Quest dependency and so on. If however this GeoHotSpot belongs to another Quest then you will need to add it as a dependency to that Quest (or use the quest create/edit sub-command).", ConsoleColor.Yellow);
+            //        await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+            //    }
+            //}
 
             return result;
         }

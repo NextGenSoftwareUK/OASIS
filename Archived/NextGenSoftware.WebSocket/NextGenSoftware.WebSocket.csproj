@@ -1,14 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <PackageId>NextGenSoftware.WebSocket</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>NextGen Software WebSocket</Product>
 	  <Title>NextGen Software WebSocket</Title>
-	  <Summary>WebSocket library used for other NextGen Software libraries such as HoloNET.</Summary>
-	  <Description>WebSocket library used for other NextGen Software libraries such as HoloNET.</Description>
+	  <Summary>Lightweight, event-driven WebSocket client powering HoloNET and the OASIS ecosystem. Async/await, rich lifecycle events, .NET 8/9/10. https://oasisomniverse.one</Summary>
+	  <Description>A lightweight, high-performance WebSocket client library with a clean event-driven API (OnConnected, OnDisconnected, OnDataReceived, OnError, and more). Used internally by HoloNET (Holochain .NET client) and the OASIS ecosystem. Supports .NET 8, .NET 9, and .NET 10. Easy to embed in any .NET app needing reliable, long-lived WebSocket connections. Part of the OASIS Omniverse ecosystem at https://oasisomniverse.one -- Source: https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/holochain-client-csharp</PackageProjectUrl>
 	  <PackageIcon>STARJPG.JPG</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -29,13 +29,13 @@
 		  - Other misc changes.
 	  </PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/holochain-client-csharp</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022 - 2024</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>2.0.0</Version>
+	  <Version>2.0.1</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
   </PropertyGroup>
 
@@ -47,8 +47,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj" />
-	  <ProjectReference Include="..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
+	  <ProjectReference Include="..\..\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj" />
+	  <ProjectReference Include="..\..\NextGenSoftware-Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

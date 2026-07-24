@@ -27,12 +27,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)
-                await AttachAccountToContext(context, token);
+            {
+                bool authorized = await AttachAccountToContext(context, token);
+                if (!authorized)
+                    return;
+            }
             await _next(context);
         }
 
-        private async Task AttachAccountToContext(HttpContext context, string token)
+        private async Task<bool> AttachAccountToContext(HttpContext context, string token)
         {
+            // Step 1: validate the token signature — a real invalid token returns 401.
+            SecurityToken validatedToken;
+            Guid id;
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -41,27 +48,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ValidateIssuer = true,
+                    ValidIssuer = "OASIS",
+                    ValidateAudience = true,
+                    ValidAudience = "OASIS",
                     ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
+                }, out validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    context.Items["Avatar"] = avatarResult.Result;
-                }
+                id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
             }
             catch (Exception ex)
             {
                 var exceptionResponse = new OASISResult<string>()
                 {
-                    Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
+                    Message = "Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
                 };
 
                 OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
@@ -69,16 +70,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 context.Response.ContentType = "application/json";
 
                 byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                
-                try
+                try { await context.Response.Body.WriteAsync(body); } catch { }
+                return false;
+            }
+
+            // Step 2: load the avatar — infrastructure failures here should NOT block the request
+            // with a 401; the controller can still serve unauthenticated-friendly responses.
+            try
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
+
+                if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    await context.Response.Body.WriteAsync(body);
+                    context.Items["Avatar"] = avatarResult.Result;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatarResult.Result;
                 }
-                catch
+                else
                 {
-                    // If we can't write to the response body, just continue
+                    // Token was valid — store the ID even if the full avatar didn't load.
+                    context.Items["AvatarId"] = id;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
                 }
             }
+            catch
+            {
+                // Token was valid — store the ID so AvatarId property still works in controllers.
+                context.Items["AvatarId"] = id;
+                NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
+            }
+
+            return true;
         }
     }
 }

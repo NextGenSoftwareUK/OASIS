@@ -6,11 +6,23 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 
 ## 🏗️ **Architecture Overview**
 
+### **Omniverse games (OQuake, ODOOM) + STAR**
+- **[STAR Quest System — Developer Guide](../../OASIS%20Omniverse/Docs/STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, STARAPIClient, `star_api_*`, extending games
+- **[STAR Games — User Guide](../../OASIS%20Omniverse/Docs/STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
+- **[ODOOM quest list + STAR](../../OASIS%20Omniverse/Docs/ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
+
 ### **System Architecture**
-- **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
+- **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture (WEB4–WEB10)
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
-- **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration
+- **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 + WEB6 integration
 - **[Current Implementation Status](../CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
+
+### **WEB6 OASIS AI API — The Intelligence Layer** *(Live July 2026)*
+- **[WEB6 REST API Reference](../../WEB6/Docs/WEB6_REST_API_REFERENCE.md)** - All 56 endpoints across 14 controllers
+- **[WEB6 MCP Tool Reference](../../WEB6/Docs/WEB6_MCP_TOOL_REFERENCE.md)** - All 30 WEB6 MCP tools (111 total across all layers)
+- **[WEB6 User Guide](../../WEB6/Docs/WEB6_USER_GUIDE.md)** - FAHRN, SkillOpt, Holonic Memory, DID/VC, Karma-Gated AI
+- **[npm: @oasisomniverse/web6-api](https://www.npmjs.com/package/@oasisomniverse/web6-api)** - v2.0.0 JS/TS client (14 modules, 40 operations)
+- **Swagger UI**: `https://api.web6.oasisomniverse.one/swagger` — live interactive API explorer
 
 ### **Core Managers & Systems**
 - **[OASIS Managers Complete Guide](./OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)
@@ -39,6 +51,12 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
   - Legacy (v1): Auto-Replication, Auto-Failover
   - OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Intelligent Selection (latency-first), Predictive Failover, Enhanced Replication Rules (provider/data-type/schedule/cost/permissions), Advanced Analytics, Subscription-aware quotas & alerts, Mode switch with v2→v1 fallback
   - Docs: [README HyperDrive section](../../README.md), [HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)
+  - **HyperDrive Client** (desktop tray app): [Architecture & Reference Manual](./OASIS-HyperDrive-Client.md)
+- **ONODE Manager**: Cross-platform desktop tray app for managing OASIS Web4–Web10 node services *(Alpha)*
+  - Avalonia UI 11.3 / .NET 10, real-time LiveCharts2 metrics, Velopack auto-update, SQLite 24h history
+  - Remote control via OPORTAL using the CommandHolon bridge pattern (~6s round-trip)
+  - Docs: [Architecture & Operations Manual](./API%20Documentation/ONODE-Manager-Architecture.md)
+  - Download (Alpha): [GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0)
 - **ONET (OASIS Network)**: Revolutionary decentralized networking layer with intelligent discovery, routing, consensus, and security
   - Multi-Protocol Discovery: DHT (Kademlia), mDNS, blockchain, and bootstrap discovery
   - Intelligent Routing: Dijkstra, A*, BFS algorithms with adaptive load balancing
@@ -66,6 +84,8 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)** - Complete HyperDrive documentation
 - **Features**: 100% uptime, auto-failover, auto-load balancing, auto-replication
 - **Benefits**: Impossible to shutdown, intelligent routing, geographic optimization
+- **[OASIS HyperDrive Client — Design Spec](./OASIS-HyperDrive-Client-Design-Spec.md)** - Cross-platform system-tray desktop client design specification (Avalonia UI, .NET 10)
+- **[OASIS HyperDrive Client — Implementation Reference](./OASIS-HyperDrive-Client-Implementation.md)** - Full implementation reference: solution layout, services, key decisions, build & test
 
 ### **OASIS COSMIC ORM**
 - **[OASIS COSMIC ORM Documentation](../OASIS_COSMIC_ORM_DOCUMENTATION.md)** - Complete COSMIC ORM guide
@@ -90,8 +110,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - Solana Superteam UK: AR World Phygital game with geo-cached Solana NFTs
 
 ### **STAR CLI - Revolutionary Interoperable Low/No Code Generator**
-- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI guide
+- **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - **Hub doc**: users & devs, Light/templating, `IOASISSuperStar` / NativeCodeGenesis, STARNET store, non-interactive & AI/MCP scripting (links out to detail docs)
+- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI command tables and reference
 - **[STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md)** - Quick start tutorial
+- **[STAR CLI: Non-interactive & JSON](./STAR_CLI_NonInteractive.md)** - `--non-interactive`, `--json`, scripted create, exit codes, contributor patterns
+- **[STAR CLI: AI session handoff](./STAR_CLI_SessionHandoff.md)** - File map and build command when context is lost
 - **Features**: Interoperable Low/No Code Generator, OASIS Omniverse unification, asset/app store backend
 - **Benefits**: Create entire metaverses with minimal coding, unify all platforms, power Our World game
 
@@ -145,6 +168,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[STAR OAPP Builder](./API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
 
 ### **STAR CLI & DNA System**
+- **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - Architecture hub (Light, templates, providers, automation)
 - **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference
 - **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
 - **[Dependency Management Guide](./DEPENDENCY_MANAGEMENT_GUIDE.md)** - Advanced dependency management
@@ -163,6 +187,10 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Version Control](./STARNET_VERSION_CONTROL_GUIDE.md)** - Versioning system
 
 ## 🚀 **Getting Started Guides**
+
+### **By platform (installer + manual setup)**
+- **STAR CLI:** [Windows](./STAR_CLI_GettingStarted_Windows.md) · [Linux](./STAR_CLI_GettingStarted_Linux.md) · [macOS](./STAR_CLI_GettingStarted_Mac.md) — Install via installer or git clone; run and verify STAR CLI.
+- **OASIS development:** [Windows](./OASIS_Development_GettingStarted_Windows.md) · [Linux](./OASIS_Development_GettingStarted_Linux.md) · [macOS](./OASIS_Development_GettingStarted_Mac.md) — Clone, build solution, run tests, project structure.
 
 ### **Quick Start**
 - **[OASIS Quick Start Guide](./OASIS_Quick_Start_Guide.md)** - Get started with OASIS
@@ -330,5 +358,3 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **Social**: [Social & Community](#social--community)
 
 ---
-
-*This documentation index is regularly updated. For the latest version, visit [docs.oasisplatform.world](https://docs.oasisplatform.world)*

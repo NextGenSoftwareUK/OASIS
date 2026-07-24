@@ -2,6 +2,7 @@ using System;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -29,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public string ProposedHolonDescription { get; set; }
 
         [CustomOASISProperty]
-        public Guid ParentUniverseId { get; set; } // Parent universe ID (top level for proposals)
+        public new Guid ParentUniverseId { get; set; } // Parent universe ID (top level for proposals)
 
         /// <summary>
         /// The actual holon being proposed (loaded separately if needed)

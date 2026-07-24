@@ -1,10 +1,36 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.STAR</PackageId>
+    <Version>2.0.1</Version>
+    <Title>OASIS STAR ODK</Title>
+    <Product>OASIS STAR ODK</Product>
+    <Summary>WEB5 STAR ODK/HDK -- the OASIS code-generation engine that generates Rust hApp zome code, C# HoloNET ORM models, and full-stack hApp skeletons from a single STAR definition.</Summary>
+    <Description>STAR (Sentient Transformative Autonomous Reality) is the WEB5 layer of the OASIS -- an ODK (OASIS Development Kit) / HDK (Holochain Development Kit) that generates production-ready Rust hApp zome code, C# HoloNET ORM models, REST API controllers, and full-stack scaffolding from a high-level STAR definition. Write your data model once; STAR generates the entire stack. Combines HoloNET, OASIS, and Holochain to make hApp development radically faster. Part of the OASIS Omniverse at https://oasisomniverse.one</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Upgraded to .NET 10 — latest runtime with improved performance and language features.
+- Full integration with OASIS API Core v2.0.0, WEB6-WEB10 layers, ONET, FAHRN, HyperDrive v2, and OASIS MCP Server.
+- Security-hardened: CORS, JWT, and NuGet vulnerability remediation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
     <Compile Remove="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
@@ -24,6 +50,8 @@
     <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
     <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\stringDNA.cs" />
     <Compile Remove="DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
+  
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -103,6 +131,25 @@
     <Compile Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
     <EmbeddedResource Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
     <None Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
+  </ItemGroup>
+
+  <!-- Copy full DNATemplates tree to build/publish output (Rust, hApp, C# snippets, etc.) -->
+  <ItemGroup>
+    <Content Include="DNATemplates\**\*"
+             Exclude="DNATemplates\CSharpDNATemplates\**\*.cs;DNATemplates\MetaDataDNATemplates\**\*.cs"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest"
+             Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="DNATemplates\CSharpDNATemplates\**\*.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="DNATemplates\MetaDataDNATemplates\**\*.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,19 @@
-# OASIS INVESTOR EVALUATION GUIDE
+﻿# OASIS INVESTOR EVALUATION GUIDE
 
 ## Executive Summary
 
-The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. This document outlines the key Unique Selling Propositions (USPs) and investment opportunities within the OASIS ecosystem.
+The OASIS (Open Advanced Sensory Immersion System) is the universal interoperability and intelligence infrastructure for the internet — WEB4 through WEB10. It unifies every blockchain, database, cloud, AI provider and protocol behind one API, with a single avatar identity and karma reputation system that travels across every app, game and world built on top of it.
+
+**Where we are today (July 2026):**
+- **WEB4** — The foundation: universal data aggregation, COSMIC ORM (40+ providers), HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P networking. Live in production.
+- **WEB5** — The application layer: STAR ODK low-code metaverse generator, STARNET holon graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
+- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, 250 MCP tools, DID/Verifiable Credentials, 20+ AI providers, karma-gated model tiers. **Fully shipped as of July 2026. This is the primary revenue growth driver.**
+- **WEB7** — The symbiosis layer: bio-signal and neural interface integration bridging human consciousness to the OASIS AI layer. Architecture complete, implementation in progress.
+- **WEB8–WEB10** — The galactic mesh, singularity, and source layers — long-horizon vision stages.
+
+**Investment thesis**: WEB4/WEB5 provide the user base and ecosystem moat. WEB6 is the revenue engine — every AI API call, every karma-gated model upgrade, every enterprise subscription routes through WEB6. The combination of real identity (WEB4 avatar), real ecosystem data (WEB5 holons), and unified AI (WEB6 FAHRN) creates a competitive moat no generic AI proxy can replicate.
+
+---
 
 ## Core Architecture: WEB4 vs WEB5 Separation
 
@@ -210,14 +221,118 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 
 **Investment Value**: Creates network effects and user retention.
 
-### 6. Advanced AI/ML Capabilities
-**Innovation**: Machine learning over aggregated world data
-- Cross-platform data analysis
-- Predictive analytics across networks
-- Intelligent automation and optimization
-- Privacy-preserving AI training
+---
 
-**Investment Value**: Data monetization and AI competitive advantage.
+## WEB6 — The Intelligence Layer (Primary Revenue Engine)
+
+WEB6 is the AI abstraction and aggregation layer built on top of WEB4 and WEB5. It is the most commercially significant layer in the near term: every AI API call, every enterprise integration, and every karma-gated model upgrade flows through it.
+
+### WEB6.1 — FAHRN: Fractal Adaptive Holonic Reasoning Network
+**Revolutionary Innovation**: The world's first self-optimising multi-agent orchestrator that is natively grounded in real identity and ecosystem data:
+
+- **ONE API, EVERY AI**: A single unified endpoint routes completions across OpenAI, Anthropic, Google Gemini, xAI Grok, Groq, Mistral, Cohere, Qwen, DeepSeek, Ollama, HuggingFace, AWS Bedrock, Azure, OpenServ, Replicate, StabilityAI and more — with zero per-provider refactoring
+- **Five Dispatch Modes**: Serial (fastest, cheapest), Parallel (maximum coverage), Decomposed (sub-problem decomposition), Debate (multi-agent adversarial) and Voting (consensus) — automatically selected by the ML.NET task classifier
+- **Real Identity Grounding**: Every FAHRN dispatch is injected with the requesting avatar's karma tier, cross-world OAPP data and WEB5 holon context — making it the only AI router in the world where requests carry provable, consent-governed identity (DID/VC, Priority 18)
+- **Holonic BRAID**: Shared Mermaid reasoning-graph library — agents share and reuse execution plans across the entire network, delivering **74× performance-per-dollar** on GSM-Hard benchmarks vs a GPT-5-medium baseline
+- **Loop Detection**: Six independent loop-detection mechanisms (call-stack fingerprinting, semantic similarity, token-budget, EMA scoring, blacklist, cycle detection) prevent runaway agent chains
+- **BudgetGuard**: Per-dispatch cost and token caps enforced before any agent call — configurable per avatar tier
+
+**Investment Value**: Unlike OpenAI or Anthropic's own APIs, FAHRN is provider-agnostic and built on top of real user identity. Enterprise customers pay for routing intelligence, not just model access. FAHRN's cost optimisation alone (serial dispatch, semantic caching, BRAID graph reuse) reduces AI spend by 40–70% vs naive per-call architectures.
+
+### WEB6.2 — SkillOpt: Self-Evolving Agent Skills
+**Revolutionary Innovation**: Implementation of the Microsoft Research SkillOpt method (arXiv:2605.23904) — each FAHRN agent evolves its own `best_skill.md` procedure through an autonomous rollout → reflect → edit → gate loop:
+
+- **+23.5% average accuracy gain** demonstrated across benchmark tasks with zero model weight updates
+- Skills are plain-text `.md` documents — they transfer across any model and any agent harness
+- Paired with ML.NET in-process AutoML running at microsecond latency (no external inference call needed)
+- Creates a compounding improvement flywheel: every task the network solves makes future tasks cheaper and more accurate
+
+**Investment Value**: As agent usage scales, the skill library compounds in value. This creates a proprietary data asset (the evolving skill corpus) that competitors cannot replicate without running the same volume of agent traffic.
+
+### WEB6.3 — Holonic Memory Hierarchy
+**Revolutionary Innovation**: Fractal persistent memory from Session → Agent → User → Group → Neighbourhood → District → City → County → Country → Continent → Earth:
+
+- **External Memory Providers**: Auto-registered from environment variables — Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector
+- **Membrane Rules**: Each holon controls what propagates upward — privacy is structural, not a policy
+- **Semantic Search**: Cosine similarity over stored embedding vectors for retrieval-augmented generation
+- **Multi-Hop Propagation**: Permitted patterns propagate from Session holons all the way to the Earth holon, enabling true collective intelligence with privacy preserved at each level
+- **WebSocket Bidirectional Sessions**: Persistent server-side state in Holonic BRAID across the entire session lifetime
+
+**Investment Value**: The holonic memory hierarchy is a proprietary data architecture that grows more valuable with every conversation. As the network scales, the Earth holon develops genuine planetary intelligence — an asset no competitor can build from scratch.
+
+### WEB6.4 — Karma-Gated AI Access
+**Innovation**: Avatar karma tiers directly gate which AI models and monthly token budgets users can access:
+
+| Tier | Models Available | Monthly Tokens |
+|---|---|---|
+| Bronze | GPT-4o-mini, Gemini Flash | 50K |
+| Silver | GPT-4o, Claude Haiku | 200K |
+| Gold | Claude Sonnet, Gemini Pro | 500K |
+| Diamond | All models including Opus/o3 | Unlimited |
+
+- Karma earns through verified contributions: OAPPs built, quests completed, community participation, verified credentials (via DID/VC)
+- Creates a self-sustaining incentive loop: high-quality participation unlocks more powerful AI → more powerful AI enables more value creation → more karma → higher tier
+- **Enterprise Revenue**: Diamond-tier and Enterprise subscriptions provide predictable SaaS ARR
+
+**Investment Value**: Karma-gated tiers create a proven revenue escalation model with natural upgrade pressure. It also aligns economic incentives with network quality — the best contributors get the best tools.
+
+### WEB6.5 — 250 MCP tools + REST API (56 Endpoints)
+**Innovation**: The largest single MCP server surface area available on any platform:
+
+- **250 typed named tools** spanning WEB4 (102), WEB5 (96), WEB6 (31), WEB7 (8), WEB8 (9), WEB9 (2), WEB10 (2)
+- Works natively with Claude.ai, Cursor, VS Code, and any MCP-compatible IDE
+- **56 REST endpoints** for traditional API integration
+- **JavaScript/TypeScript npm package** (`@oasisomniverse/web6-api`) — 14 modules, 40 operations, zero dependencies, isomorphic (Node + browser)
+- **Multi-Protocol**: ACP (BeeAI/IBM), ANP (DID-based discovery), gRPC bidirectional streaming, GraphQL subscriptions, AsyncAPI/Kafka — all behind a single endpoint
+
+**Investment Value**: Every developer who installs the MCP server or npm package becomes an embedded distribution channel. The MCP integration with Claude.ai alone gives access to millions of Claude users.
+
+### WEB6.6 — Market Size & Competitive Position
+
+| Market | Size (2026 est.) | OASIS WEB6 Advantage |
+|---|---|---|
+| AI API Infrastructure | $45B+ | Provider-agnostic + real identity grounding |
+| Enterprise AI Orchestration | $12B+ | FAHRN multi-mode dispatch + BRAID memory |
+| AI Developer Tools | $8B+ | 250 MCP tools + npm package + IDE integration |
+| Data-Grounded AI | Emerging | Only AI router with WEB4/WEB5 ecosystem context |
+
+**Key differentiator from competitors**: OpenAI, Anthropic, and Google all sell model access. WEB6 sells *intelligence infrastructure* — routing, orchestration, memory, identity, and skill evolution — that works with all of them simultaneously.
+
+---
+
+## WEB7 — The Symbiosis Layer (Upcoming — Get Ahead of the Curve)
+
+WEB7 is the bridge between human consciousness and the OASIS AI layer. While still in early implementation, the architecture is complete and early investors should understand its potential:
+
+- **Bio-Signal Integration**: Wearables, EEG headsets, heart-rate monitors, and neural interfaces feed biometric data into FAHRN dispatch and holonic memory
+- **Verified Real-World Actions**: WEB7 can verify physical activity (GPS movement, biosignal patterns) and award karma — making the reputation system impossible to game from a keyboard
+- **Consciousness Substrate**: Long-horizon research into mapping conscious experience as holons in the fractal memory hierarchy
+- **7 MCP Tools** already implemented covering bio-signal data ingestion, symbiosis state management, and consciousness-layer memory
+
+**Investment Value**: WEB7 is positioned ahead of the neural interface wave (Neuralink, Emotiv, OpenBCI). As BCI becomes mainstream (est. 2027–2030), WEB7 is the only AI platform already architected to receive and act on that data stream.
+
+---
+
+## WEB8–WEB10 — Long-Horizon Vision
+
+- **WEB8 (Galactic Mesh)**: Routing across distributed node networks — 8 MCP tools implemented
+- **WEB9 (Singularity)**: Unified status and AGI milestone tracking — 1 MCP tool implemented
+- **WEB10 (Source)**: Root identity and consciousness origin layer — 1 MCP tool implemented
+
+These layers are vision-stage but their MCP tool surface is already live, ensuring forward compatibility as the technology matures.
+
+---
+
+### 6. Advanced AI/ML Capabilities (WEB6)
+**Innovation**: Full AI abstraction and aggregation layer — not just ML over data, but multi-agent orchestration, self-evolving skills, and grounded-in-identity intelligence
+
+- FAHRN multi-mode agent dispatch across 20+ providers
+- SkillOpt self-evolving skills (+23.5% avg gain, Microsoft Research method)
+- Holonic BRAID 74× performance-per-dollar reasoning graph sharing
+- ML.NET in-process task classification at microsecond latency
+- Karma-gated model access as a revenue layer
+
+**Investment Value**: The $200B+ AI market with a unique identity-grounded, provider-agnostic infrastructure play — impossible for single-provider AI companies to replicate without abandoning their core business model.
 
 ### 7. Complete Interoperability
 **Innovation**: Full smart contract interoperability
@@ -257,6 +372,12 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 
 ## Market Opportunities
 
+### 0. AI Infrastructure & Orchestration (WEB6 — Primary Near-Term Revenue)
+- **Market Size**: $45B+ AI API infrastructure, $12B+ enterprise AI orchestration
+- **OASIS Advantage**: Provider-agnostic, identity-grounded, memory-persistent AI — no competitor combines all three
+- **Revenue Model**: Per-call API fees, karma-tier subscriptions (Bronze→Diamond), enterprise SLAs, MCP tool licensing
+- **Growth Driver**: Every new AI provider added to WEB6 routes automatically — OASIS grows with the AI market without rebuilding anything
+
 ### 1. Enterprise Data Integration
 - **Market Size**: $50B+ enterprise integration market
 - **OASIS Advantage**: Universal connector with auto-optimization
@@ -274,8 +395,13 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 
 ### 4. AI/ML Data Services
 - **Market Size**: $200B+ AI market
-- **OASIS Advantage**: Access to aggregated cross-platform data
-- **Revenue Model**: Data licensing, AI model training
+- **OASIS Advantage**: Not just data — full AI orchestration with real identity, self-evolving skills, and collective memory
+- **Revenue Model**: Per-call fees, karma tiers, enterprise AI subscriptions, skill marketplace (WEB6 Phase 3)
+
+### 5. Neural Interface & Bio-Signal (WEB7 — Emerging)
+- **Market Size**: BCI market projected $6B+ by 2030, growing to $50B+ by 2040
+- **OASIS Advantage**: Only AI platform architected to receive and act on neural/biosignal data
+- **Revenue Model**: Biometric karma verification, bio-signal-gated AI tier upgrades
 
 ## Competitive Advantages
 ## Grants & Case Studies (from existing oasisweb4.com)

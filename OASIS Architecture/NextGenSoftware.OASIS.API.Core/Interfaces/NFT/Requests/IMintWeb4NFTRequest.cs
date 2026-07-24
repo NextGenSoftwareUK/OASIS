@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
     public interface IMintWeb4NFTRequest : IMintNFTRequestBase
     {
+        public string? CollectionPublicKey { get; set; }
         IList<IMintWeb3NFTRequest> Web3NFTs { get; set; }
         public int NumberToMint { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }
@@ -22,5 +23,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         public bool WaitTillNFTSent { get; set; }
         public int WaitForNFTToSendInSeconds { get; set; }
         public int AttemptToSendEveryXSeconds { get; set; }
+        // DISABLED: see MintWeb3NFTRequest / SolanaService.cs — SPL Token SetAuthority 0x4 OwnerMismatch.
+        // public bool? RevokeTokenAuthorities { get; set; }
+        public bool? FreezeMetadata { get; set; }
     }
 }

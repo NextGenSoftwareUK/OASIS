@@ -1,11 +1,86 @@
 using NextGenSoftware.OASIS.STAR.DNA;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.STAR.WebAPI.JsonConverters;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.OASISBootLoader;
+using Microsoft.AspNetCore.Mvc.Filters;
+using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
+using NextGenSoftware.OASIS.STAR.WebAPI.GrpcServices;
+using NextGenSoftware.OASIS.STAR.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.STAR.WebAPI.GraphQL.Types;
+
+//const string VERSION = "WEB 5 STAR API v1.3.0";
+
+//private string VERSION
+//{
+//    get
+//    {
+//        return $"WEB 5 STAR API v{OASISBootLoader.OASISBootLoader.STARAPIVersion}";
+//    }
+//}
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
+
+// Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
+Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+
+// Configuration for exception handling mode
+// Set environment variable ENABLE_GENERIC_EXCEPTION_HANDLING=false to disable generic catch-all in dev/test
+var enableGenericExceptionHandling = builder.Configuration.GetValue<bool>("EnableGenericExceptionHandling", 
+    bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
+
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Add exception filter to catch model binding and other exceptions
+    options.Filters.Add<ExceptionFilter>();
+})
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        // Quest/holon graphs (starnetdna, original, nested metaData) exceed 128; serializer aborts mid-stream → truncated JSON and client JsonReaderException at EOF.
+        options.JsonSerializerOptions.MaxDepth = 1024;
+        options.JsonSerializerOptions.WriteIndented = false;
+        options.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new IHolonJsonConverter());
+    });
+builder.Services.AddHttpClient();
+builder.Services.AddGrpc();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<CelestialBodyType>()
+    .AddType<CelestialSpaceObjectType>()
+    .AddType<NftType>()
+    .AddType<HolonObjectType>()
+    .AddType<QuestObjectType>()
+    .AddType<MissionObjectType>()
+    .AddType<ChapterObjectType>()
+    .AddType<GeoHotSpotObjectType>()
+    .AddType<GeoNFTObjectType>()
+    .AddType<InventoryItemObjectType>()
+    .AddType<OAPPObjectType>()
+    .AddType<GameObjectType>()
+    .AddType<PluginObjectType>()
+    .AddType<LibraryObjectType>()
+    .AddType<RuntimeObjectType>()
+    .AddType<OAPPTemplateObjectType>()
+    .AddType<ZomeObjectType>();
+builder.Services.AddSingleton<NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.ISubscriptionService,
+    NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.SubscriptionService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -107,7 +182,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 <a href='https://t.me/ourworldthegamechat'>https://t.me/ourworldthegamechat</a> (Telegram General Chat)<br><a href='https://t.me/ourworldthegame'>https://t.me/ourworldthegame</a> (Telegram Our World Announcements)<br><a href='https://t.me/ourworldtechupdates'>https://t.me/ourworldtechupdates</a> (Telegram Our World Tech Updates)<br><a href='https://t.me/oasisapihackalong'>https://t.me/oasisapihackalong</a> OASIS API Weekly Hackalongs
 
 <a href='https://discord.gg/q9gMKU6'>https://discord.gg/q9gMKU6</a>",
-        Title = "WEB 5 STAR API v1.0.0",
+        Title = string.Concat("WEB5 STAR API v", OASISBootLoader.STARAPIVersion),
         Version = "v1",
     });
 
@@ -122,7 +197,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
     foreach (var xml in xmlFiles)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, xml);
+        var path = System.IO.Path.Combine(AppContext.BaseDirectory, xml);
         if (File.Exists(path))
             c.IncludeXmlComments(path, includeControllerXmlComments: true);
     }
@@ -145,7 +220,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB 5 STAR API v1.0.0");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB5 STAR API v", OASISBootLoader.STARAPIVersion));
     c.ConfigObject.AdditionalItems["syntaxHighlight"] = new Dictionary<string, object>
     {
         ["activated"] = false
@@ -154,7 +229,306 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+
+// Global exception handler - catch all exceptions, log them, and return real error details
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (System.Text.Json.JsonException ex)
+    {
+        // Model binding/JSON deserialization errors - these are validation errors (400)
+        OASISErrorHandling.HandleError($"JSON deserialization error: {ex.Message}", ex, includeStackTrace: true);
+        
+        var errorResult = new OASISResult<object>
+        {
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (enableGenericExceptionHandling)
+        {
+            errorResult.Message = $"Invalid args were passed. Invalid JSON in request body: {ex.Message}";
+        }
+        else
+        {
+            errorResult.Message = $"Invalid JSON in request body: {ex.Message}";
+            errorResult.DetailedMessage = ex.ToString();
+        }
+        
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
+    }
+    catch (OASISException ex)
+    {
+        // OASIS-specific exceptions - these are validation errors (400)
+        OASISErrorHandling.HandleError(ex.Message, ex, includeStackTrace: true);
+        
+        var errorResult = new OASISResult<object>
+        {
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (enableGenericExceptionHandling)
+        {
+            errorResult.Message = $"Invalid args were passed. {ex.Message}";
+        }
+        else
+        {
+            errorResult.Message = ex.Message;
+            errorResult.DetailedMessage = ex.ToString();
+        }
+        
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
+    }
+    catch (Exception ex)
+    {
+        // Always log the error
+        OASISErrorHandling.HandleError($"Unexpected error in middleware: {ex.Message}", ex, includeStackTrace: true);
+        
+        // Check if this is a validation error or real exception
+        bool isValidationError = ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+        
+        var errorResult = new OASISResult<object>
+        {
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (isValidationError)
+        {
+            // Validation error - return 400
+            if (enableGenericExceptionHandling)
+            {
+                errorResult.Message = $"Invalid args were passed. {ex.Message}";
+            }
+            else
+            {
+                errorResult.Message = ex.Message;
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Response.StatusCode = 400;
+        }
+        else
+        {
+            // Real exception - return 500
+            if (enableGenericExceptionHandling)
+            {
+                //errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                errorResult.Message = $"Unexpected error: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            else
+            {
+                errorResult.Message = $"Unexpected error: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Response.StatusCode = 500;
+        }
+        
+        if (!context.Response.HasStarted)
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
+    }
+});
+
+// Request-scoped avatar context (AsyncLocal) - set per request, cleared in finally so multiple clients are safe
+app.Use(async (context, next) =>
+{
+    try
+    {
+        if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+        {
+            var authHeader = authHeaderValue.ToString();
+            if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = authHeader["Bearer ".Length..].Trim();
+                var avatarId = ParseAvatarIdFromJwt(token);
+                if (avatarId != Guid.Empty)
+                {
+                    try
+                    {
+                        if (!OASISBootLoader.IsOASISBooted)
+                        {
+                            var dnaPath = OASISBootLoader.OASISDNAPath ?? 
+                                         System.IO.Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+                            var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
+                            if (bootResult.IsError)
+                                OASISErrorHandling.HandleError($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
+                        }
+                        // Avatar context is set by JwtMiddleware after signature validation — only set the ID hint here
+                        context.Items["AvatarId"] = avatarId;
+                        OASISRequestContext.CurrentAvatarId = avatarId;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Warning: Failed to parse avatar ID in middleware: {ex.Message}");
+                    }
+                }
+            }
+        }
+        await next();
+    }
+    finally
+    {
+        OASISRequestContext.CurrentAvatar = null;
+        OASISRequestContext.CurrentAvatarId = null;
+    }
+});
 app.UseAuthorization();
+
+app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.OASISMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.SubscriptionMiddleware>();
+
+app.MapGraphQL();
 app.MapControllers();
+app.MapGrpcService<AvatarGrpcService>();
+app.MapGrpcService<CelestialGrpcService>();
+app.MapGrpcService<HolonsGrpcService>();
+app.MapGrpcService<NftsGrpcService>();
+app.MapGrpcService<GamesGrpcService>();
+app.MapGrpcService<OappsGrpcService>();
+app.MapGrpcService<SocialGrpcService>();
+app.MapGrpcService<StarGrpcService>();
+app.MapGrpcService<CelestialBodyMetaDataGrpcService>();
+app.MapGrpcService<HolonMetaDataGrpcService>();
+app.MapGrpcService<ZomeMetaDataGrpcService>();
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
+
+static Guid ParseAvatarIdFromJwt(string? token)
+{
+    if (string.IsNullOrWhiteSpace(token))
+        return Guid.Empty;
+
+    var parts = token.Split('.');
+    if (parts.Length < 2)
+        return Guid.Empty;
+
+    try
+    {
+        var payload = parts[1].Replace('-', '+').Replace('_', '/');
+        switch (payload.Length % 4)
+        {
+            case 2: payload += "=="; break;
+            case 3: payload += "="; break;
+        }
+
+        var bytes = Convert.FromBase64String(payload);
+        using var doc = JsonDocument.Parse(bytes);
+        if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            return Guid.Empty;
+
+        foreach (var property in doc.RootElement.EnumerateObject())
+        {
+            if ((string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(property.Name, "avatarId", StringComparison.OrdinalIgnoreCase)) &&
+                property.Value.ValueKind == JsonValueKind.String &&
+                Guid.TryParse(property.Value.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+        }
+    }
+    catch
+    {
+    }
+
+    return Guid.Empty;
+}
+
+// Exception filter - catch all exceptions, log them, and return real error details
+// Can be disabled in dev/test mode via ENABLE_GENERIC_EXCEPTION_HANDLING=false
+public class ExceptionFilter : IExceptionFilter
+{
+    private readonly bool _enableGenericExceptionHandling;
+
+    public ExceptionFilter(IConfiguration configuration)
+    {
+        _enableGenericExceptionHandling = configuration.GetValue<bool>("EnableGenericExceptionHandling", 
+            bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
+    }
+
+    public void OnException(ExceptionContext context)
+    {
+        var ex = context.Exception;
+        
+        // Always log the error first
+        OASISErrorHandling.HandleError($"Error in {context.ActionDescriptor.DisplayName}: {ex.Message}", ex, includeStackTrace: true);
+        
+        // Check if this is a validation error (400) or real exception (500)
+        bool isValidationError = ex is System.Text.Json.JsonException ||
+                                 ex is OASISException ||
+                                 ex is ArgumentException ||
+                                 ex is ArgumentNullException ||
+                                 ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("not valid", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("must be one of", StringComparison.OrdinalIgnoreCase);
+        
+        var errorResult = new OASISResult<object>
+        {
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (isValidationError)
+        {
+            // Validation error - return 400
+            if (_enableGenericExceptionHandling)
+            {
+                errorResult.Message = $"Invalid args were passed to {context.ActionDescriptor.DisplayName}. {ex.Message}";
+            }
+            else
+            {
+                errorResult.Message = ex.Message;
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Result = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(errorResult);
+        }
+        else
+        {
+            // Real exception - return 500
+            if (_enableGenericExceptionHandling)
+            {
+                //errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                errorResult.Message = $"Unexpected error in {context.ActionDescriptor.DisplayName}: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            else
+            {
+                errorResult.Message = $"Unexpected error in {context.ActionDescriptor.DisplayName}: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Result = new Microsoft.AspNetCore.Mvc.ObjectResult(errorResult)
+            {
+                StatusCode = 500
+            };
+        }
+        
+        context.ExceptionHandled = true;
+    }
+}

@@ -1,25 +1,37 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        private string VERSION
+        {
+            get
+            {
+                return $"WEB 4 OASIS API v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}";
+            }
+        }
+
         // Helper method to get a unique display name for types, including generic types
         private static string GetTypeDisplayName(Type type)
         {
@@ -30,9 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
             return $"{genericTypeName}Of{genericArgs}";
         }
-        private const string VERSION = "WEB 4 OASIS API v4.1.0";
-        //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -52,9 +62,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddMvc();
 
             // services.AddDbContext<DataContext>();
-            //services.AddCors(); //Needed twice? It is below too...
-            services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            services.AddCors();
+            // Add exception filter with configuration
+            services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                    x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+                });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
@@ -234,6 +250,16 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
+            services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            services.AddAuthentication("OASIS")
+                .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, Middleware.OASISAuthHandler>("OASIS", null);
+            services.AddGrpc();
+
+            services.AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddMutationType<Mutation>()
+                .AddType<GraphQL.Types.AvatarType>()
+                .AddType<GraphQL.Types.HolonType>();
 
             //services.AddCors(options =>
             //{
@@ -257,6 +283,22 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Wire up the DID challenge nonce store based on OASISDNA config
+            var didStoreCfg = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Security?.DIDChallengeStore;
+            if (didStoreCfg?.Provider?.Equals("Redis", StringComparison.OrdinalIgnoreCase) == true
+                && !string.IsNullOrWhiteSpace(didStoreCfg.RedisConnectionString))
+            {
+                DIDChallengeStore.SetProvider(new RedisDIDChallengeStore(
+                    didStoreCfg.RedisConnectionString,
+                    didStoreCfg.RedisKeyPrefix ?? "oasis:did:challenge:",
+                    didStoreCfg.NonceTtlSeconds > 0 ? didStoreCfg.NonceTtlSeconds : DIDChallengeStore.NonceTtlSeconds));
+                LoggingManager.Log("DID challenge store: Redis", LogType.Info);
+            }
+            else
+            {
+                LoggingManager.Log("DID challenge store: InMemory (single-node)", LogType.Info);
+            }
+
             LoggingManager.Log("Starting up The OASIS... (REST API)", LogType.Info);
             LoggingManager.Log("Test Debug", LogType.Debug);
             LoggingManager.Log("Test Info", LogType.Info);
@@ -287,33 +329,111 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             });
 
 
-            app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+                app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // Skip HTTPS redirect in Testing so WebApplicationFactory (HTTP-only test server) does not throw
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+                app.UseHttpsRedirection();
+
+            // WebSocket support — used by OPORTAL in local mode for real-time state push
+            app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
+
+            // WebSocket endpoint: GET /ws/onode/{nodeId}
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/ws/onode", out var remainder)
+                    && context.WebSockets.IsWebSocketRequest)
+                {
+                    var nodeId = remainder.Value?.TrimStart('/') ?? "";
+                    if (string.IsNullOrEmpty(nodeId)) { context.Response.StatusCode = 400; return; }
+
+                    var ws = await context.WebSockets.AcceptWebSocketAsync();
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs.ONODEWebSocketHub.Register(nodeId, ws);
+
+                    // Keep alive — read until client closes
+                    var buffer = new byte[128];
+                    while (ws.State == System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        try
+                        {
+                            var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+                            if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Close)
+                            {
+                                await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,
+                                    "Closed by client", CancellationToken.None);
+                            }
+                        }
+                        catch { break; }
+                    }
+                    return;
+                }
+                await next();
+            });
 
             app.UseRouting();
             //app.UseSession();
 
-            // global cors policy
+            // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
             app.UseCors(x => x
-                .SetIsOriginAllowed(origin => true)
+                .AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials());
+                .AllowAnyHeader());
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
 
-            app.UseAuthorization();
-
+            app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
-            app.UseMiddleware<SubscriptionMiddleware>();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGraphQL();
+                endpoints.MapControllers();
+                endpoints.MapGrpcService<AvatarGrpcService>();
+                endpoints.MapGrpcService<KarmaGrpcService>();
+                endpoints.MapGrpcService<DataGrpcService>();
+                endpoints.MapGrpcService<SocialGrpcService>();
+                endpoints.MapGrpcService<ClanGrpcService>();
+                endpoints.MapGrpcService<ChatGrpcService>();
+                endpoints.MapGrpcService<MessagingGrpcService>();
+                endpoints.MapGrpcService<FilesGrpcService>();
+                endpoints.MapGrpcService<GiftsGrpcService>();
+                endpoints.MapGrpcService<EggsGrpcService>();
+                endpoints.MapGrpcService<VideoGrpcService>();
+                endpoints.MapGrpcService<StatsGrpcService>();
+                endpoints.MapGrpcService<SettingsGrpcService>();
+                endpoints.MapGrpcService<HyperDriveGrpcService>();
+                endpoints.MapGrpcService<BridgeGrpcService>();
+                endpoints.MapGrpcService<WalletGrpcService>();
+                endpoints.MapGrpcService<CompetitionGrpcService>();
+                endpoints.MapGrpcService<SeedsGrpcService>();
+                endpoints.MapGrpcService<SearchGrpcService>();
+                endpoints.MapGrpcService<ONETGrpcService>();
+                endpoints.MapGrpcService<ONODEGrpcService>();
+                endpoints.MapGrpcService<ProviderGrpcService>();
+                endpoints.MapGrpcService<KeysGrpcService>();
+                endpoints.MapGrpcService<EOSIOGrpcService>();
+                endpoints.MapGrpcService<HolochainGrpcService>();
+                endpoints.MapGrpcService<MapGrpcService>();
+                endpoints.MapGrpcService<OLandGrpcService>();
+                endpoints.MapGrpcService<ShareGrpcService>();
+                endpoints.MapGrpcService<SolanaGrpcService>();
+                endpoints.MapGrpcService<NftGrpcService>();
+                endpoints.MapGrpcService<SubscriptionGrpcService>();
+                endpoints.MapGet("/", context =>
+                {
+                    context.Response.Redirect("/swagger");
+                    return Task.CompletedTask;
+                });
+            });
 
             //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 

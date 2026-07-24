@@ -1,7 +1,42 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
+
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.HoloWebOASIS</PackageId>
+    <Version>2.0.1</Version>
+    <Title>OASIS HoloWeb OASIS Provider</Title>
+    <Product>OASIS HoloWeb OASIS Provider</Product>
+    <Summary>HoloWeb OASIS Provider — connects the OASIS API to Holochain via the HoloWeb browser-accessible WebSocket conductor endpoint, enabling web-browser-hosted Holochain apps.</Summary>
+    <Description>HoloWeb OASIS Provider — connects the OASIS API to Holochain via the HoloWeb browser-accessible WebSocket conductor endpoint, enabling web-browser-hosted Holochain apps.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Full implementation of all provider interface methods — no NotImplementedExceptions.
+- Upgraded to .NET 10.
+- Updated to align with OASIS API Core v2.0.0.
+- Security hardening: NuGet vulnerability fixes, improved null safety.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+  
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Enums
+namespace NextGenSoftware.OASIS.API.Core.Enums
 {
     public enum ProviderType
     {
@@ -39,7 +39,11 @@
         ZcashOASIS,
         RadixOASIS,
         TelegramOASIS,
+        XRPLOASIS,
         MonadOASIS,
+        LineaOASIS,
+        ScrollOASIS,
+        ZkSyncOASIS,
         MoralisOASIS, //Web3 API
         IPFSOASIS, //IPFS
         PinataOASIS,

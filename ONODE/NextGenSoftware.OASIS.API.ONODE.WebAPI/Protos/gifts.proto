@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service GiftsService {
+  rpc GetAllGifts (GetAllGiftsRequest) returns (JsonResponse);
+  rpc GetGiftHistory (GetGiftHistoryRequest) returns (JsonResponse);
+  rpc GetGiftStats (GetGiftStatsRequest) returns (JsonResponse);
+  rpc SendGift (SendGiftRequest) returns (JsonResponse);
+  rpc ReceiveGift (ReceiveGiftRequest) returns (OASISGrpcResponse);
+  rpc OpenGift (OpenGiftRequest) returns (OASISGrpcResponse);
+}
+
+message GetAllGiftsRequest { string avatar_id = 1; }
+message GetGiftHistoryRequest { string avatar_id = 1; int32 limit = 2; int32 offset = 3; }
+message GetGiftStatsRequest { string avatar_id = 1; }
+message SendGiftRequest {
+  string from_avatar_id = 1;
+  string to_avatar_id = 2;
+  string gift_type = 3;
+  string message = 4;
+}
+message ReceiveGiftRequest { string avatar_id = 1; string gift_id = 2; }
+message OpenGiftRequest { string avatar_id = 1; string gift_id = 2; }

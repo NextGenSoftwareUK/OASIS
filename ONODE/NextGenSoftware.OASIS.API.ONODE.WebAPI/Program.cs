@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -90,7 +90,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (System.IO.IOException ex) when (ex.Message?.Contains("address already in use", StringComparison.OrdinalIgnoreCase) == true
+                || ex.InnerException?.Message?.Contains("address already in use", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                Console.Error.WriteLine();
+                Console.Error.WriteLine("Port already in use. Either:");
+                Console.Error.WriteLine("  1. Stop the existing process:  lsof -ti:7777 | xargs kill -9");
+                Console.Error.WriteLine("  2. Or use another port:        ASPNETCORE_URLS=http://localhost:7778 dotnet run");
+                Console.Error.WriteLine();
+                throw;
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -98,6 +111,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.ConfigureKestrel(options =>
+                    {
+                        var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+                        // Railway terminates TLS externally and forwards HTTP/2, so Http1AndHttp2 works in production.
+                        // Locally this produces a warning (no TLS for ALPN) but gRPC still works via h2c on loopback.
+                        options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+                    });
                 });
     }
 }

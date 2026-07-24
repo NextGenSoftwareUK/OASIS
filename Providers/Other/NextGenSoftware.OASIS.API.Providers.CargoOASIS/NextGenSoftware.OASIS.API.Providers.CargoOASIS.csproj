@@ -2,16 +2,45 @@
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
     </PropertyGroup>
 
-    <ItemGroup>
+    
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.CargoOASIS</PackageId>
+    <Version>2.0.1</Version>
+    <Title>OASIS Cargo OASIS Provider</Title>
+    <Product>OASIS Cargo OASIS Provider</Product>
+    <Summary>Cargo NFT Platform OASIS Provider — bridges the OASIS API to the Cargo NFT marketplace and minting platform for holonic NFT creation and trading.</Summary>
+    <Description>Cargo NFT Platform OASIS Provider — bridges the OASIS API to the Cargo NFT marketplace and minting platform for holonic NFT creation and trading.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Full implementation of all provider interface methods — no NotImplementedExceptions.
+- Upgraded to .NET 10.
+- Updated to align with OASIS API Core v2.0.0.
+- Security hardening: NuGet vulnerability fixes, improved null safety.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
       <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
       <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
       <PackageReference Include="Nethereum.Web3" Version="4.0.5" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
      <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-    </ItemGroup>
+    
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Core" />

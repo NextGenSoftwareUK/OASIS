@@ -24,5 +24,10 @@ public class RadixOASISConfig
     /// Private key (hex encoded) for the technical account
     /// </summary>
     public string PrivateKey { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// OASIS blueprint/component address for storage operations (optional - if not set, storage operations will delegate to ProviderManager)
+    /// </summary>
+    public string? OasisBlueprintAddress { get; set; }
 }
 

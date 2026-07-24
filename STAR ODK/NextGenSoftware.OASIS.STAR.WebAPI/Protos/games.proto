@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+service GamesService {
+  // Games
+  rpc GetAllGames (GameEmptyMsg) returns (GameListResponse);
+  rpc GetGame (GameIdMsg) returns (GameResponse);
+  rpc CreateGame (GameMessage) returns (GameResponse);
+  rpc UpdateGame (GameMessage) returns (GameResponse);
+  rpc DeleteGame (GameIdMsg) returns (GameBoolMsg);
+  rpc PublishGame (GamePublishMsg) returns (GameResponse);
+  rpc DownloadGame (GameDownloadMsg) returns (GameResponse);
+  rpc ActivateGame (GameVersionedIdMsg) returns (GameResponse);
+  rpc DeactivateGame (GameVersionedIdMsg) returns (GameResponse);
+  // Missions
+  rpc GetAllMissions (GameEmptyMsg) returns (MissionListResponse);
+  rpc GetMission (GameIdMsg) returns (MissionResponse);
+  rpc CreateMission (MissionMessage) returns (MissionResponse);
+  rpc UpdateMission (MissionMessage) returns (MissionResponse);
+  rpc DeleteMission (GameIdMsg) returns (GameBoolMsg);
+  // Quests
+  rpc GetAllQuests (GameEmptyMsg) returns (QuestListResponse);
+  rpc GetQuest (GameIdMsg) returns (QuestResponse);
+  rpc CreateQuest (QuestMessage) returns (QuestResponse);
+  rpc UpdateQuest (QuestMessage) returns (QuestResponse);
+  rpc DeleteQuest (GameIdMsg) returns (GameBoolMsg);
+  // Chapters
+  rpc GetAllChapters (GameEmptyMsg) returns (ChapterListResponse);
+  rpc GetChapter (GameIdMsg) returns (ChapterResponse);
+  rpc CreateChapter (ChapterMessage) returns (ChapterResponse);
+  rpc DeleteChapter (GameIdMsg) returns (GameBoolMsg);
+  // Competitions
+  rpc GetAllCompetitions (GameEmptyMsg) returns (CompetitionListResponse);
+  rpc GetCompetition (GameIdMsg) returns (CompetitionResponse);
+  rpc CreateCompetition (CompetitionMessage) returns (CompetitionResponse);
+  rpc DeleteCompetition (GameIdMsg) returns (GameBoolMsg);
+}
+
+message GameEmptyMsg {}
+message GameIdMsg { string id = 1; }
+message GameVersionedIdMsg { string id = 1; int32 version = 2; }
+
+message GamePublishMsg {
+  string id = 1;
+  string source_path = 2;
+  string launch_target = 3;
+}
+
+message GameDownloadMsg {
+  string id = 1;
+  int32 version = 2;
+  string download_path = 3;
+}
+
+message GameMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string genre = 4;
+}
+
+message GameResponse {
+  bool is_error = 1;
+  string message = 2;
+  GameMessage result = 3;
+}
+
+message GameListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated GameMessage items = 3;
+}
+
+message GameBoolMsg {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message MissionMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string game_id = 4;
+}
+
+message MissionResponse {
+  bool is_error = 1;
+  string message = 2;
+  MissionMessage result = 3;
+}
+
+message MissionListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated MissionMessage items = 3;
+}
+
+message QuestMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string mission_id = 4;
+}
+
+message QuestResponse {
+  bool is_error = 1;
+  string message = 2;
+  QuestMessage result = 3;
+}
+
+message QuestListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated QuestMessage items = 3;
+}
+
+message ChapterMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 chapter_number = 4;
+}
+
+message ChapterResponse {
+  bool is_error = 1;
+  string message = 2;
+  ChapterMessage result = 3;
+}
+
+message ChapterListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated ChapterMessage items = 3;
+}
+
+message CompetitionMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string game_id = 4;
+}
+
+message CompetitionResponse {
+  bool is_error = 1;
+  string message = 2;
+  CompetitionMessage result = 3;
+}
+
+message CompetitionListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated CompetitionMessage items = 3;
+}

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -472,6 +472,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNA);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -485,6 +487,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = await OASISBootLoader.OASISBootLoader.BootOASISAsync(OASISDNA);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -498,6 +502,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNAPath);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -511,6 +517,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = await OASISBootLoader.OASISBootLoader.BootOASISAsync(OASISDNAPath);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -574,6 +582,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             // Set OASIS DNA and boot status
             OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             IsOASISBooted = true;
+
+            NextGenSoftware.OASIS.API.ONODE.Core.Managers.QuestStatsStatsManagerIntegration.RegisterWithStatsManager();
 
             // All managers are now lazily initialized when accessed
             // This provides better performance and memory usage
