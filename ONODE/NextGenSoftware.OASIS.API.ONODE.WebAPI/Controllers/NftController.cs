@@ -285,6 +285,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("send-nft")]
         public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Models.NFT.NFTWalletTransactionRequest request)
         {
+            if (Avatar?.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<ISendWeb4NFTResponse>() { IsError = true, Message = "NFT sending requires an active subscription. Please upgrade to a paid plan to use this feature." };
+
             ProviderType fromProviderType = ProviderType.None;
             ProviderType toProviderType = ProviderType.None;
             Object fromProviderTypeObject = null;
@@ -323,6 +326,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("mint-nft")]
         public async Task<OASISResult<IWeb4NFT>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
         {
+            if (Avatar?.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "NFT minting requires an active subscription. Please upgrade to a paid plan to use this feature." };
+
             ProviderType onChainProvider = ProviderType.None;
             ProviderType offChainProvider = ProviderType.None;
             NFTOffChainMetaType NFTOffChainMetaType = NFTOffChainMetaType.OASIS;
