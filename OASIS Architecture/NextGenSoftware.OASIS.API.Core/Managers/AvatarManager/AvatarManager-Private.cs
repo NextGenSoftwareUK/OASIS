@@ -378,15 +378,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            result.Result = new Avatar() 
-            { 
-                Id = Guid.NewGuid(), 
-                IsNewHolon = true, FirstName = firstName, 
-                LastName = lastName, Password = password, 
-                Title = avatarTitle, Email = email, 
-                AvatarType = new EnumValue<AvatarType>(avatarType), 
+            result.Result = new Avatar()
+            {
+                Id = Guid.NewGuid(),
+                IsNewHolon = true, FirstName = firstName,
+                LastName = lastName, Password = password,
+                Title = avatarTitle, Email = email,
+                AvatarType = new EnumValue<AvatarType>(avatarType),
                 CreatedOASISType = new EnumValue<OASISType>(createdOASISType),
-                CreatedDate = DateTime.Now
+                // CreatedDate = DateTime.Now  — commented out: PrepareHolonForSaving sets this for new holons;
+                //                               pre-setting it here was the original driver for the
+                //                               '|| holon.CreatedDate == DateTime.MinValue' workaround in MongoDBOASIS.
             };
             //result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
@@ -437,14 +439,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IAvatarDetail> PrepareToRegisterAvatarDetail(Guid avatarId, string username, string email, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            IAvatarDetail avatarDetail = new AvatarDetail() 
-            { 
-                Id = avatarId, IsNewHolon = true, 
-                Email = email, Username = username, 
-                CreatedOASISType = new EnumValue<OASISType>(createdOASISType), 
-                STARCLIColour = cliColour, 
+            IAvatarDetail avatarDetail = new AvatarDetail()
+            {
+                Id = avatarId, IsNewHolon = true,
+                Email = email, Username = username,
+                CreatedOASISType = new EnumValue<OASISType>(createdOASISType),
+                STARCLIColour = cliColour,
                 FavouriteColour = favColour,
-                CreatedDate = DateTime.Now,
+                // CreatedDate = DateTime.Now,  — commented out: PrepareHolonForSaving sets this for new holons.
                 CreatedByAvatarId = avatarId
             };
 
