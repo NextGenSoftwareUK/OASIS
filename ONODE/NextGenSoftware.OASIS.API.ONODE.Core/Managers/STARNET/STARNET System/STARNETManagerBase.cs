@@ -165,11 +165,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 }
                 else
                 {
+                    // IsNewHolon MUST be set when pre-assigning an Id — required by all providers.
                     holon = new T1()
                     {
                         Id = Guid.NewGuid(),
                         Name = name,
-                        Description = description
+                        Description = description,
+                        IsNewHolon = true
                     };
                 }
 
@@ -338,11 +340,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 }
                 else
                 {
+                    // IsNewHolon MUST be set when pre-assigning an Id — required by all providers.
                     holon = new T1()
                     {
                         Id = Guid.NewGuid(),
                         Name = name,
-                        Description = description
+                        Description = description,
+                        IsNewHolon = true
                     };
                 }
 
