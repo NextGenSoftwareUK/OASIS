@@ -1170,7 +1170,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (genesisType != GenesisType.ZomesAndHolonsOnly)
             {
                 newBody.Id = Guid.NewGuid();
-                newBody.IsNewHolon = true;
+                newBody.IsNewHolon = true; //This was commented out, not sure why?
                 newBody.Name = OAPPName;
                 newBody.Description = OAPPDescription;
                 newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
