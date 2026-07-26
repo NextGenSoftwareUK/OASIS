@@ -441,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (omniverse.Id == Guid.Empty)
                 {
                     omniverse.Id = Guid.NewGuid();
-                    // omniverse.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // omniverse.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 var saveResult = await omniverse.SaveAsync();
@@ -491,7 +491,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (multiverse.Id == Guid.Empty)
                 {
                     multiverse.Id = Guid.NewGuid();
-                    // multiverse.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // multiverse.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 multiverse.ParentOmniverse = parentOmniverse;
@@ -555,7 +555,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (universe.Id == Guid.Empty)
                 {
                     universe.Id = Guid.NewGuid();
-                    // universe.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // universe.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 universe.ParentMultiverse = parentMultiverse;
@@ -624,7 +624,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (galaxyCluster.Id == Guid.Empty)
                 {
                     galaxyCluster.Id = Guid.NewGuid();
-                    // galaxyCluster.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // galaxyCluster.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 var parentMultiverse = parentUniverse.ParentMultiverse;
@@ -698,7 +698,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (galaxy.Id == Guid.Empty)
                 {
                     galaxy.Id = Guid.NewGuid();
-                    // galaxy.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // galaxy.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 var parentMultiverse = parentGalaxyCluster.ParentMultiverse;
@@ -770,7 +770,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (solarSystem.Id == Guid.Empty)
                 {
                     solarSystem.Id = Guid.NewGuid();
-                    // solarSystem.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // solarSystem.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 // We expect the caller to have created and wired the central Star, but if they have
@@ -862,7 +862,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (star.Id == Guid.Empty)
                 {
                     star.Id = Guid.NewGuid();
-                    // star.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // star.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 if (parentGalaxy.SuperStar != null &&
@@ -931,7 +931,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (planet.Id == Guid.Empty)
                 {
                     planet.Id = Guid.NewGuid();
-                    // planet.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // planet.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 if (parentSolarSystem.Star != null &&
@@ -1000,7 +1000,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (moon.Id == Guid.Empty)
                 {
                     moon.Id = Guid.NewGuid();
-                    // moon.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // moon.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 var parentSolarSystem = parentPlanet.ParentSolarSystem;
@@ -1057,7 +1057,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (asteroid.Id == Guid.Empty)
                 {
                     asteroid.Id = Guid.NewGuid();
-                    // asteroid.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // asteroid.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 if (parentGalaxy.SuperStar != null &&
@@ -1109,7 +1109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (comet.Id == Guid.Empty)
                 {
                     comet.Id = Guid.NewGuid();
-                    // comet.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // comet.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 if (parentGalaxy.SuperStar != null &&
@@ -1161,7 +1161,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (meteroid.Id == Guid.Empty)
                 {
                     meteroid.Id = Guid.NewGuid();
-                    // meteroid.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // meteroid.IsNewHolon = true;  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 }
 
                 if (parentGalaxy.SuperStar != null &&
@@ -3838,7 +3838,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedUniverse = universeResult.Result;
 
-            // 2â€“3. Auto-create child GalaxyCluster / Galaxy if requested.
+            // 2Ã¢â‚¬â€œ3. Auto-create child GalaxyCluster / Galaxy if requested.
             // Concrete STAR types (GalaxyCluster, Galaxy, etc.) live in the STAR SDK which cannot
             // be referenced from ONODE.Core without a circular dependency.  Callers that need
             // default children should construct those objects themselves and pass them to
@@ -4288,7 +4288,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     HolonType = HolonType.Multiverse,
                     CreatedByAvatarId = AvatarId,
                     ModifiedByAvatarId = AvatarId,
-                    // IsNewHolon = true,  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // IsNewHolon = true,  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                     ParentOmniverseId = parentOmniverse.Id,
                     ParentOmniverse = parentOmniverse,
                     ParentHolonId = parentOmniverse.Id,
@@ -4375,7 +4375,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     ParentUniverseId = parentUniverseId,
                     ProposalCategory = $"Universe.{parentUniverseId}",
                     ParentHolonId = parentUniverseId,
-                    // IsNewHolon = true  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                    // IsNewHolon = true  â€” now redundant: MatchedCount fallback in HolonRepository handles first insert.
                 };
 
                 // Save the proposal holon using generic overload
