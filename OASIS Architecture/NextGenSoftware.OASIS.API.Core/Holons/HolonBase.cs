@@ -85,7 +85,27 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-        public bool IsNewHolon { get; set; } //TODO: Want to remove this ASAP!
+        /// <summary>
+        /// Signals whether this holon should be INSERTED (true) or UPDATED (false) by the storage provider.
+        ///
+        /// CONTRACT — callers MUST follow these rules:
+        ///   1. If you let the system generate the Id (Id == Guid.Empty), do NOT set this.
+        ///      PrepareHolonForSaving assigns a new GUID and sets IsNewHolon = true automatically.
+        ///
+        ///   2. If you PRE-ASSIGN an Id (Id = Guid.NewGuid() / a well-known GUID) for a brand-new
+        ///      holon that has never been persisted, you MUST also set IsNewHolon = true.
+        ///      Without it, providers that do not have an upsert fallback will try to UPDATE a
+        ///      record that does not exist yet and silently do nothing.
+        ///
+        ///   3. If you are UPDATING an existing holon, leave this false (the default). The Id will
+        ///      be non-empty and PrepareHolonForSaving will leave it false, routing the provider to
+        ///      its update path.
+        ///
+        /// NOTE: This property is decorated with [BsonIgnore] in the MongoDB entity so it is never
+        /// persisted. Loaded holons always arrive with the C# default (false). Do not rely on a
+        /// persisted value — it is a runtime-only flag set fresh before every save.
+        /// </summary>
+        public bool IsNewHolon { get; set; }
         public bool IsSaving { get; set; }
 
         public Guid PreviousVersionId { get; set; }

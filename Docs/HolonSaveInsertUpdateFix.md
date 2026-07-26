@@ -206,7 +206,23 @@ The Vercel serverless handler was the original symptom surface. The load-before-
 
 ## Key Invariants (for future reference)
 
-- `IsNewHolon` is a **runtime flag** set by `PrepareHolonForSaving`. It must never be read from or written to MongoDB. `[BsonIgnore]` enforces this.
-- `PrepareHolonForSaving` is the **single source of truth** for `IsNewHolon`. Callers may set `IsNewHolon = true` on holons with pre-assigned IDs, and `PrepareHolonForSaving` will now respect that.
-- `HolonRepository.UpdateAsync` always uses `ReplaceOneAsync` (filter by `HolonId`). If no document is matched, it falls back to `AddAsync`. This makes `UpdateAsync` safe to call for holons with pre-assigned IDs that may not yet exist in MongoDB.
+- `IsNewHolon` is a **runtime flag** set by `PrepareHolonForSaving`. It must never be read from or written to any database. `[BsonIgnore]` enforces this for MongoDB.
+- `PrepareHolonForSaving` is the **single source of truth** for `IsNewHolon`. All storage providers receive it already set correctly before they are invoked.
+- `HolonRepository.UpdateAsync`/`AvatarRepository.UpdateAsync` use `ReplaceOneAsync` (filter by `HolonId`) with a `MatchedCount == 0` fallback to `AddAsync`. This is a MongoDB-specific **safety net** only — other providers rely purely on `IsNewHolon`.
 - The `MongoDBOASIS` provider branches on `IsNewHolon` only. It no longer looks at `CreatedDate`, `ProviderUniqueStorageKey`, or any other field to decide insert vs update.
+
+---
+
+## IsNewHolon Caller Contract (ENFORCED)
+
+**This applies to every caller in the entire OASIS codebase, across all providers.**
+
+| Scenario | What to do |
+|---|---|
+| New holon, system generates the Id | Do nothing — `PrepareHolonForSaving` assigns the GUID and sets `IsNewHolon = true` |
+| New holon, **caller pre-assigns an Id** | **YOU MUST also set `IsNewHolon = true`** |
+| Updating an existing holon | Leave `IsNewHolon` at its default `false` |
+
+**Why this is a hard rule:** `IsNewHolon` is the only signal that all storage providers use to decide insert vs update. The MongoDB provider has a `MatchedCount == 0` upsert fallback as a safety net, but providers such as Holochain, IPFS, SQLite, Neo4j, and others do not. Missing `IsNewHolon = true` on a pre-assigned Id will silently fail to insert on those providers.
+
+**All known callers have been audited and fixed.** If you add new code that pre-assigns an `Id`, you must follow this rule or the holon will not be persisted on non-MongoDB providers.
