@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (galaxy.Id == Guid.Empty)
             {
                 galaxy.Id = Guid.NewGuid();
-                // galaxy.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                galaxy.IsNewHolon = true;
             }
 
             if (galaxy.SuperStar == null)
@@ -312,7 +312,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (galaxy.SuperStar.Id == Guid.Empty)
             {
                 galaxy.SuperStar.Id = Guid.NewGuid();
-                // galaxy.SuperStar.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                galaxy.SuperStar.IsNewHolon = true;
             }
 
             Mapper<IHolon, SuperStar>.MapParentCelestialBodyProperties(galaxyCluster, (SuperStar)galaxy.SuperStar);
