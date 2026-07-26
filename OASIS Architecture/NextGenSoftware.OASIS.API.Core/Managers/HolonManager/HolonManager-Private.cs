@@ -87,8 +87,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 holon.Id = Guid.NewGuid();
                 holon.IsNewHolon = true;
             }
-            else
-                holon.IsNewHolon = false;
+            else if (!holon.IsNewHolon)
+            {
+                // IsNewHolon is false (normal loaded holon or caller did not set it) — leave it false.
+                // Do NOT unconditionally reset to false here: callers that pre-assign an Id and explicitly
+                // set IsNewHolon = true (e.g. well-known holons, STAR celestial bodies) must be respected.
+                // This is safe only because [BsonIgnore] on IsNewHolon means loaded holons always
+                // deserialize with the C# default (false) and can never arrive here with a stale true.
+            }
 
             //if (holon.Id != Guid.Empty)
             if (!holon.IsNewHolon)
