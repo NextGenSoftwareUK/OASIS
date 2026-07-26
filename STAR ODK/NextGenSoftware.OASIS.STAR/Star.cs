@@ -1170,8 +1170,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (genesisType != GenesisType.ZomesAndHolonsOnly)
             {
                 newBody.Id = Guid.NewGuid();
-                // newBody.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
-                //                              (Was previously commented out and re-added; the MatchedCount fix is the proper solution.)
+                newBody.IsNewHolon = true;
                 newBody.Name = OAPPName;
                 newBody.Description = OAPPDescription;
                 newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
@@ -1228,7 +1227,7 @@ namespace NextGenSoftware.OASIS.STAR
                             currentZome = new Zome()
                             {
                                 Id = Guid.NewGuid(),
-                                // IsNewHolon = true,  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                                IsNewHolon = true,
                                 Name = zomeName,
                                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                                 HolonType = HolonType.Zome,
@@ -1355,7 +1354,7 @@ namespace NextGenSoftware.OASIS.STAR
                             currentHolon = new Holon()
                             {
                                 Id = Guid.NewGuid(),
-                                // IsNewHolon = true,  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                                IsNewHolon = true,
                                 Name = holonName,
                                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                                 HolonType = HolonType.Holon,
@@ -2979,7 +2978,7 @@ namespace NextGenSoftware.OASIS.STAR
                         solarSystem.Name = "Our Solar System (Default Solar System)";
                         solarSystem.Description = "Our Solar System, which is the default Solar System.";
                         solarSystem.Id = Guid.NewGuid();
-                        // solarSystem.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                        solarSystem.IsNewHolon = true;
 
                         Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, (Star)solarSystem.Star);
                         solarSystem.Star.Name = "Our Sun (Sol) (Default Star)";
@@ -3222,7 +3221,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 solarSystem.Name = "Our Solar System";
                                 solarSystem.Description = "Our Solar System, which is the default Solar System.";
                                 solarSystem.Id = Guid.NewGuid();
-                                // solarSystem.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                                solarSystem.IsNewHolon = true;
 
                                 Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, (Star)solarSystem.Star);
                                 solarSystem.Star.Name = "Our Sun (Sol)";
