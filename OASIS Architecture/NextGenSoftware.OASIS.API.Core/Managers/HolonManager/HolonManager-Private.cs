@@ -63,38 +63,32 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
 
-            // ── IsNewHolon CONTRACT ──────────────────────────────────────────────────────────────────
-            // IsNewHolon is the single signal ALL storage providers use to decide insert vs update.
-            // It is set here and must never be read from or written to the database ([BsonIgnore]).
+            // CHANGED: Previously IsNewHolon was set to true if EITHER Id == Guid.Empty OR
+            // CreatedDate == DateTime.MinValue. The CreatedDate check was problematic for
+            // stateless REST/JS clients (e.g. Vercel functions) that construct a holon
+            // object from scratch and never set CreatedDate — causing every save to be
+            // treated as an insert, creating a new MongoDB document every time instead of
+            // updating the existing one. Id == Guid.Empty is the correct and sufficient
+            // signal that a holon has not been persisted yet. CreatedDate is set below for
+            // new holons; for existing ones the caller simply won't know it, and that is fine.
             //
-            // RULE: If you pre-assign an Id for a brand-new holon you MUST also set IsNewHolon = true.
-            //       Without it, providers that lack an upsert fallback will silently try to update a
-            //       record that does not yet exist. The MongoDB provider has a MatchedCount == 0
-            //       safety net, but other providers (Holochain, IPFS, SQLite, Neo4j, …) do not.
-            //
-            // CASE 1 — Id == Guid.Empty  →  system assigns a new GUID and sets IsNewHolon = true.
-            // CASE 2 — Id pre-assigned + IsNewHolon = true (caller sets both)  →  respected as insert.
-            // CASE 3 — Id present + IsNewHolon = false  →  treated as update (existing holon or REST).
-            //
-            // Old code removed: the '|| holon.CreatedDate == DateTime.MinValue' fallback that was
-            // previously used to handle callers that pre-assigned Ids without setting IsNewHolon.
-            // It caused stateless REST clients (which also have CreatedDate == MinValue) to always
-            // insert. The correct fix is for callers to set IsNewHolon = true explicitly (Case 2).
-            // ─────────────────────────────────────────────────────────────────────────────────────────
+            // Old code (kept for reference):
+            // if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
+            // {
+            //     if (holon.Id == Guid.Empty)
+            //         holon.Id = Guid.NewGuid();
+            //     holon.IsNewHolon = true;
+            // }
+            // else if (holon.CreatedDate != DateTime.MinValue)
+            //     holon.IsNewHolon = false;
 
             if (holon.Id == Guid.Empty)
             {
                 holon.Id = Guid.NewGuid();
                 holon.IsNewHolon = true;
             }
-            else if (!holon.IsNewHolon)
-            {
-                // Case 3: treat as update. IsNewHolon stays false — no-op.
-                // Do NOT reset unconditionally: callers that pre-assign an Id and set IsNewHolon = true
-                // (Case 2) must reach the provider with IsNewHolon still true.
-                // [BsonIgnore] on IsNewHolon guarantees loaded holons always arrive with false (C# default)
-                // so a stale persisted true can never incorrectly trigger an insert.
-            }
+            else
+                holon.IsNewHolon = false;
 
             //if (holon.Id != Guid.Empty)
             if (!holon.IsNewHolon)
