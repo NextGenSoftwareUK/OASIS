@@ -218,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             //    <p style='color:#ffffff;'>
             //        If you don't know your password please visit the 
-            //        <a href='{OASISWebSiteURL}/avatar/forgot-password' style='color:#aaaaaa;'>
+            //        <a href='{OASISWebSiteURL}/avatar/forgot-password' style='color:#ffffff;'>
             //            forgot password
             //        </a> 
             //        page.
@@ -237,7 +237,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             //    <p style='color:#ffffff;'>
             //        If you don't know your password please visit the 
-            //        <a href='{OASISWebSiteURL}/avatar/forgot-password' style='color:#aaaaaa;'>
+            //        <a href='{OASISWebSiteURL}/avatar/forgot-password' style='color:#ffffff;'>
             //            forgot password
             //        </a> 
             //        page.
