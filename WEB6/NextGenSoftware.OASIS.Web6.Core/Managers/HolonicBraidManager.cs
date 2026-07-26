@@ -47,12 +47,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 return result;
             }
 
-            // IsNewHolon MUST be set when pre-assigning an Id — required by all providers.
             Holon holon = new Holon(LibraryHolonId)
             {
                 Name = "HolonicBraidLibrary",
-                Description = "The shared Holonic BRAID reasoning-graph library. Children are individual graph holons, one per task type.",
-                IsNewHolon = true
+                Description = "The shared Holonic BRAID reasoning-graph library. Children are individual graph holons, one per task type."
             };
             holon.HolonType = HolonType.HolonicBraidLibrary;
 
