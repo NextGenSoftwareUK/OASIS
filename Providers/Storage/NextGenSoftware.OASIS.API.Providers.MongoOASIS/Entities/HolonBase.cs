@@ -96,6 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public IAvatar CreatedByAvatar { get; set; }
         public IAvatar DeletedByAvatar { get; set; }
         public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
+        [BsonIgnore] // Runtime flag only — must never be persisted; loaded holons must always start with false (C# default).
         public bool IsNewHolon { get; set; }
         public bool IsSaving { get; set; }
         public IAvatar ModifiedByAvatar { get; set; }
