@@ -1,20 +1,34 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API DNA</Product>
 	  <Title>WEB4 OASIS API DNA</Title>
-	  <Summary>This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONODE are kept such as settings for each OASIS Provider configured for that ONODE, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.</Summary>
-	  <Description>This module is responsible for loading and managing the OASISDNA.json config file. This is where all of the settings for the ONODE are kept such as settings for each OASIS Provider configured for that ONODE, which ones to use for auto-replication, auto-loadbalance, auto-failover, email, authentication, security, error handling, encryption, logging settings etc.</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Summary>OASIS DNA -- the central configuration object driving provider selection, failover, replication, encryption, FAHRN routing, and all OASIS runtime behaviour.</Summary>
+	  <Description>Defines the OASISDNA class and all associated configuration objects that control every aspect of OASIS runtime behaviour: active provider list, Auto-FailOver and Auto-LoadBalancing rules, Auto-Replication and Auto-Sync settings, encryption levels, FAHRN routing, HolonicBraid mesh config, API keys, and more. OASIS_DNA.json is loaded at startup and can be hot-swapped at runtime. Part of the OASIS Omniverse at https://oasisomniverse.one</Description>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB3; WEB4; WEB5; Blockchain; NFT; Tokens; Crypto; Future-Prove; Metaverse; Aggregation; HOT-Swappable-Architecture; P2P; Decentralised; Distributed; Interoprability; Abstraction-Layer; Multi-Network; Multi-Chain; Bridging; Network-Of-Networks; SSO; Avatar-API; Karma-API; Data-API; Providers-API; SEEDS-API; "Keys/Wallets-API", Auto-FailOver; Auto-LoadBalancing; Auto-Replication; Auto-Sync; Offline-Support; Write-Once-Deploy-Everywhere; Triple-Level-Quantum-Resistant-Encryption; Quantum; Encryption; Smart-Contracts; Intelligent-Key-Management; Zero-Lag; Zero-Downtime; Agent-Centric; Smart-City-Ready; WEB/2D/3D/AR/VR/IR/Map/Meta-Visusalization; Bio-feedback-Ready; IR-(Infinite-Reality)-Ready; Infinite-Players-Online-At-Same-Time; LAN/Bluetooth-Support; AI/Machine-Learning-Over-All-Of-World's-Aggregated-Data; HTTP-REST/gRPC/GraphQL/CLI/Native-Endpoints; Best-Of-All-Worlds; GOD-Protocol/API; Our-World-Geo-Location/AR/IR/Map-UI-(Game-of-Games-Engine); One-World-Open-World-MMO-(VR)-UI-(Game-of-Games-Engine); ActivityPub; AzureCosmosDB; BlockStack; Chainlink; COSMOS; Elrond; EOSIO; Ethereum; Hashgraph; Holochain; IPFS; MapBox; MongoDB; Neo4j; OrionProtocol; PLAN; Scuttlebutt; SEEDS; SOLANA; SOLID; SqlLiteDB; Telos; ThreeFold; TRON; WRLD3D; More-Coming...</PackageTags>
-	  <PackageReleaseNotes>Updated Tags.</PackageReleaseNotes>
+	  <PackageReleaseNotes>## v1.0.6 — OASIS Omniverse Reboot (2026)
+
+The OASIS DNA package is the central configuration backbone of the entire OASIS Omniverse — now fully relaunched at https://oasisomniverse.one
+
+### What's New
+- Upgraded to .NET 10 for maximum performance and longevity
+- Copyright updated: NextGen Software Ltd 2019 - 2026
+- Fully aligned with the new OASIS Omniverse ecosystem relaunch
+- Repository and project URLs updated across all packages
+- Expanded tag set reflecting the full OASIS Omniverse provider ecosystem (SEEDS, Holochain, Ethereum, Solana, IPFS, MongoDB, Neo4j, and 30+ more)
+- Part of the OASIS Omniverse ecosystem at https://oasisomniverse.one
+- OASISDNA class now drives WEB4 through WEB10 API tier configuration
+- HolonicBraid mesh config, FAHRN routing, and Auto-Replication settings all configurable via OASIS_DNA.json
+- Hot-swap runtime provider changes without restart
+- Multiple bug fixes and configuration validation improvements</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2023</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -25,21 +39,54 @@
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
-  <ItemGroup>
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.API.DNA</PackageId>
+    <Version>2.0.1</Version>
+    <Title>WEB4 OASIS API DNA</Title>
+    <Product>WEB4 OASIS API DNA</Product>
+    <Summary>OASIS DNA -- the central configuration object driving provider selection, failover, replication, encryption, FAHRN routing, and all OASIS runtime behaviour.</Summary>
+    <Description>Defines the OASISDNA class and all associated configuration objects that control every aspect of OASIS runtime behaviour: active provider list, Auto-FailOver and Auto-LoadBalancing rules, Auto-Replication and Auto-Sync settings, encryption levels, FAHRN routing, HolonicBraid mesh config, API keys, and more. OASIS_DNA.json is loaded at startup and can be hot-swapped at runtime. Part of the OASIS Omniverse at https://oasisomniverse.one</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Upgraded to .NET 10 — latest runtime with improved performance and language features.
+- Full integration with OASIS API Core v2.0.0, WEB6-WEB10 layers, ONET, FAHRN, HyperDrive v2, and OASIS MCP Server.
+- Security-hardened: CORS, JWT, and NuGet vulnerability remediation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
     <None Remove="OASIS_DNA.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="OASIS_DNA.json">
+    <Content Include="Default\OASIS_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="OASIS_DNA.Development.json" Condition="Exists('OASIS_DNA.Development.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="OASIS_DNA.json" Condition="Exists('OASIS_DNA.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
-			<Pack>True</Pack>
-			<PackagePath>\</PackagePath>
-		</None>
+		<None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -48,6 +95,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+	  <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

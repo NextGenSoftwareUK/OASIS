@@ -2,6 +2,8 @@
 {
     public enum InventoryItemType
     {
+        NFT,
+        GeoNFT,
         Potion,
         Weapon,
         RareWeapon,

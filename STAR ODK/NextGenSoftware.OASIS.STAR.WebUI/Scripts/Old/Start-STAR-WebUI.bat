@@ -18,7 +18,11 @@ echo [2/3] Building Frontend...
 call npm run build
 if %errorlevel% neq 0 (
     echo ERROR: Failed to build frontend
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 

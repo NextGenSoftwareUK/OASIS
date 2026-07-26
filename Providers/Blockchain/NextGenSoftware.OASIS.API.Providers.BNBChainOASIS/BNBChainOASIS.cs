@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
@@ -36,7 +37,9 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
+using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 {
@@ -46,10 +49,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public string MemoText { get; set; }
     }
     /// <summary>
-    /// BNB Chain Provider for OASIS
-    /// Implements BNB Smart Chain (BSC) blockchain integration for EVM-compatible smart contracts
+    /// Legacy BNB Chain provider implementation using a chain-specific contract and custom Nethereum logic.
+    /// This class is kept only for reference and backward compatibility and is no longer used by OASIS at runtime.
+    /// The new BNBChainOASIS provider below delegates all logic to the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
     /// </summary>
-    public class BNBChainOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public class BNBChainOASIS_Legacy : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -79,15 +83,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         /// <param name="rpcEndpoint">BNB Chain RPC endpoint URL</param>
         /// <param name="chainId">BNB Chain ID (56 for mainnet, 97 for testnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public BNBChainOASIS(string rpcEndpoint = "https://bsc-dataseed.binance.org", string chainId = "56", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
+        public BNBChainOASIS_Legacy(string rpcEndpoint = "https://bsc-dataseed.binance.org", string chainId = "56", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
         {
             this.ProviderName = "BNBChainOASIS";
             this.ProviderDescription = "BNB Chain Provider - Binance Smart Chain EVM-compatible blockchain";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            //this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
@@ -324,14 +329,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         {
             try
             {
-                // Deserialize the complete Player collection to preserve all properties
-                var players = JsonSerializer.Deserialize<IEnumerable<Player>>(bnbChainJson, new JsonSerializerOptions
+                // Deserialize the complete Avatar collection to preserve all properties
+                var players = JsonSerializer.Deserialize<IEnumerable<Avatar>>(bnbChainJson, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 });
 
-                return players;
+                return players.Cast<IPlayer>();
             }
             catch (Exception)
             {
@@ -366,6 +371,36 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         #endregion
 
         #region IOASISBlockchainStorageProvider
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+                var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+                var publicKey = ecKey.GetPublicAddress();
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = privateKey;
+                    keyPair.PublicKey = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey;
+                }
+                result.Result = keyPair;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
 
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
@@ -549,7 +584,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
             var result = new OASISResult<IAvatar>();
-            
+
             try
             {
                 if (!_isActivated)
@@ -607,7 +642,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     result.Result = avatar;
                     result.IsError = false;
                     result.Message = $"Avatar saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
                     // Store transaction hash in avatar metadata
                     avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
                     avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -1792,7 +1827,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     result.Result = avatar;
                     result.IsError = false;
                     result.Message = $"Avatar saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
                     // Store transaction hash in avatar metadata
                     avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
                     avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -2119,7 +2154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     result.Result = holon;
                     result.IsError = false;
                     result.Message = $"Holon saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
                     // Store transaction hash in holon metadata
                     holon.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
                     holon.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -2494,7 +2529,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                             NumberOfResults = holons.Count(),
                             NumberOfDuplicates = 0
                         };
-                        
+
                         result.Result = searchResults;
                         result.IsError = false;
                         result.Message = $"Search completed successfully. Found {holons.Count()} results";
@@ -2507,7 +2542,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                             NumberOfResults = 0,
                             NumberOfDuplicates = 0
                         };
-                        
+
                         result.Result = emptyResults;
                         result.IsError = false;
                         result.Message = "No results found";
@@ -2758,7 +2793,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     result.Result = avatarDetail;
                     result.IsError = false;
                     result.Message = $"Avatar detail saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
                     // Store transaction hash in avatar detail metadata
                     avatarDetail.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
                     avatarDetail.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -3067,9 +3102,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         TransactionResult = transactionReceipt.TransactionHash,
                         SendNFTTransactionResult = transactionReceipt.TransactionHash,
-                        IsSuccessful = true
+                        // IsSuccessful removed - not in Web3NFTTransactionResponse
                     };
-                    
+
                     result.Result = nftResponse;
                     result.IsError = false;
                     result.Message = $"NFT sent successfully. Transaction hash: {transactionReceipt.TransactionHash}";
@@ -3122,12 +3157,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     memoText = request.MemoText,
                     numberToMint = request.NumberToMint,
                     storeNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                    metadata = JsonSerializer.Serialize(request.MetaData ?? new Dictionary<string, object>()),
+                    metadata = JsonSerializer.Serialize(request.MetaData ?? new Dictionary<string, string>()),
                     tags = JsonSerializer.Serialize(request.Tags ?? new List<string>()),
-                    offChainProvider = request.OffChainProvider?.Value.ToString() ?? "None",
-                    onChainProvider = request.OnChainProvider?.Value.ToString() ?? "None",
-                    nftStandardType = request.NFTStandardType?.Value.ToString() ?? "ERC721",
-                    nftOffChainMetaType = request.NFTOffChainMetaType?.Value.ToString() ?? "JSON",
+                    offChainProvider = request.OffChainProvider?.ToString() ?? "None",
+                    onChainProvider = request.OnChainProvider?.ToString() ?? "None",
+                    nftStandardType = request.NFTStandardType?.ToString() ?? "ERC721",
+                    nftOffChainMetaType = request.NFTOffChainMetaType?.ToString() ?? "JSON",
                     symbol = request.Symbol,
                     jsonMetaDataURL = request.JSONMetaDataURL,
                     jsonMetaData = request.JSONMetaData,
@@ -3219,7 +3254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                         TransactionResult = transactionReceipt.TransactionHash,
                         MemoText = $"NFT minted successfully: {nftData.title}"
                     };
-                    
+
                     result.Result = (IWeb3NFTTransactionResponse)nftResponse;
                     result.IsError = false;
                     result.Message = $"NFT minted successfully. Transaction hash: {transactionReceipt.TransactionHash}";
@@ -3260,6 +3295,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                 }
 
                 // Real BNB Chain implementation: Load NFT data using smart contract
+                // Use token address as hash for now (in production, use proper token ID hash)
+                var tokenIdHash = nftTokenAddress.Replace("0x", "").PadLeft(64, '0').Substring(0, 64);
                 var loadRequest = new
                 {
                     jsonrpc = "2.0",
@@ -3270,7 +3307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                         new
                         {
                             to = _contractAddress,
-                            data = "0x" + GetFunctionSelector("getNFTData") + EncodeParameter(hash)
+                            data = "0x" + GetFunctionSelector("getNFTData") + EncodeParameter(tokenIdHash)
                         },
                         "latest"
                     }
@@ -3292,13 +3329,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                         var web3NFT = new Web3NFT
                         {
                             NFTTokenAddress = nftTokenAddress,
-                            Name = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",
-                            Symbol = nftData.TryGetProperty("symbol", out var symbol) ? symbol.GetString() : "BNB",
-                            TokenUri = nftData.TryGetProperty("tokenURI", out var tokenURI) ? tokenURI.GetString() : null
-                                ["Provider"] = "BNBChainOASIS"
-                            }
+                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",
+                            Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : null,
+                            Symbol = nftData.TryGetProperty("symbol", out var symbol) ? symbol.GetString() : "BNB"
                         };
-                        
+
                         result.Result = web3NFT;
                         result.IsError = false;
                         result.Message = $"NFT data loaded from BNB Chain successfully";
@@ -3307,7 +3342,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         OASISErrorHandling.HandleError(ref result, "NFT not found on BNB Chain");
                     }
-                }
+                    }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to load NFT data from BNB Chain: {httpResponse.StatusCode}");
@@ -3363,6 +3398,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+        {
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
+                    return result;
+                }
+
+                // BurnNFTAsync requires BNB Chain API integration
+                OASISErrorHandling.HandleError(ref result, "BurnNFTAsync requires BNB Chain API integration for NFT burning");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning NFT on BNB Chain: {ex.Message}", ex);
             }
             return result;
         }
@@ -3643,7 +3710,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             try
             {
                 var avatars = new List<IAvatar>();
-                
+
                 // Parse real BNB Chain smart contract data for multiple avatars
                 // This would typically parse an array of avatar data from the blockchain
                 // For now, return a single avatar as an example
@@ -3730,7 +3797,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             try
             {
                 var avatarDetails = new List<IAvatarDetail>();
-                
+
                 // Parse real BNB Chain smart contract data for multiple avatar details
                 // This would typically parse an array of avatar detail data from the blockchain
                 // For now, return a single avatar detail as an example
@@ -4054,7 +4121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.FromTokenAddress);
                     var transfer = contract.GetFunction("transfer");
                     var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                    var receipt = await transfer.SendTransactionAndWaitForReceiptAsync(_account.Address, request.ToWalletAddress, amountInWei);
+                    var receipt = await transfer.SendTransactionAndWaitForReceiptAsync(_account.Address, new HexBigInteger(60000), null, CancellationToken.None, request.ToWalletAddress, amountInWei);
                     result.Result.TransactionResult = receipt.TransactionHash;
                     result.IsError = false;
                     result.Message = "Token sent successfully on BNB Chain";
@@ -4083,16 +4150,30 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+                // IMintWeb3TokenRequest has TokenAddress and MintToWalletAddress in MetaData
+                var tokenAddress = request.MetaData?.ContainsKey("TokenAddress") == true 
+                    ? request.MetaData["TokenAddress"]?.ToString() 
+                    : "";
+                var mintToWalletAddress = request.MetaData?.ContainsKey("MintToWalletAddress") == true 
+                    ? request.MetaData["MintToWalletAddress"]?.ToString() 
+                    : "";
+
+                if (request == null || string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(mintToWalletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");
                     return result;
                 }
 
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), tokenAddress);
                 var mint = contract.GetFunction("mint");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var receipt = await mint.SendTransactionAndWaitForReceiptAsync(_account.Address, request.MintToWalletAddress, amountInWei);
+                var amountInWei = new HexBigInteger((BigInteger)(1 * 1000000000000000000)); // IMintWeb3TokenRequest has no Amount; using 1 token
+                var receipt = await mint.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    new HexBigInteger(60000),
+                    null,
+                    CancellationToken.None,
+                    mintToWalletAddress,
+                    amountInWei);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token minted successfully on BNB Chain";
@@ -4120,16 +4201,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.BurnFromWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and BurnFromWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress is required");
                     return result;
                 }
 
                 var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
                 var burn = contract.GetFunction("burn");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var receipt = await burn.SendTransactionAndWaitForReceiptAsync(_account.Address, amountInWei);
+                var amountInWei = new HexBigInteger(0); // IBurnWeb3TokenRequest has no Amount; burn typically uses balance
+                var receipt = await burn.SendTransactionAndWaitForReceiptAsync(_account.Address, CancellationToken.None, amountInWei);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token burned successfully on BNB Chain";
@@ -4157,16 +4238,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.LockWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.FromWalletAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and LockWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and FromWalletAddress are required");
                     return result;
                 }
 
                 var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
                 var lockFn = contract.GetFunction("lock");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var receipt = await lockFn.SendTransactionAndWaitForReceiptAsync(_account.Address, request.LockWalletAddress, amountInWei);
+                var amountInWei = new HexBigInteger(0); // ILockWeb3TokenRequest has no Amount
+                var receipt = await lockFn.SendTransactionAndWaitForReceiptAsync(_account.Address, new HexBigInteger(60000), null, CancellationToken.None, request.FromWalletAddress, amountInWei);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token locked successfully on BNB Chain";
@@ -4194,16 +4275,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.UnlockWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and UnlockWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress is required");
+                    return result;
+                }
+
+                var unlockToAddress = string.Empty;
+                if (request.UnlockedByAvatarId != Guid.Empty)
+                {
+                    var walletResult = await NextGenSoftware.OASIS.API.Core.Helpers.WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, ProviderType.Value, request.UnlockedByAvatarId);
+                    if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
+                        unlockToAddress = walletResult.Result;
+                }
+                if (string.IsNullOrWhiteSpace(unlockToAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "UnlockWalletAddress could not be determined from UnlockedByAvatarId");
                     return result;
                 }
 
                 var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
                 var unlockFn = contract.GetFunction("unlock");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var receipt = await unlockFn.SendTransactionAndWaitForReceiptAsync(_account.Address, request.UnlockWalletAddress, amountInWei);
+                var amountInWei = new HexBigInteger(0);
+                var receipt = await unlockFn.SendTransactionAndWaitForReceiptAsync(_account.Address, new HexBigInteger(60000), null, CancellationToken.None, unlockToAddress, amountInWei);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token unlocked successfully on BNB Chain";
@@ -4237,22 +4331,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                if (string.IsNullOrWhiteSpace(request.TokenAddress))
-                {
-                    var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-                    result.Result = (double)(balance.Value / (BigInteger)1000000000000000000);
-                    result.IsError = false;
-                    result.Message = "BNB balance retrieved successfully";
-                }
-                else
-                {
-                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                    var balanceFn = contract.GetFunction("balanceOf");
-                    var balance = await balanceFn.CallAsync<BigInteger>(request.WalletAddress);
-                    result.Result = (double)(balance / (BigInteger)1000000000000000000);
-                    result.IsError = false;
-                    result.Message = "Token balance retrieved successfully on BNB Chain";
-                }
+                var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+                result.Result = (double)(balance.Value / (BigInteger)1000000000000000000);
+                result.IsError = false;
+                result.Message = "BNB balance retrieved successfully";
             }
             catch (Exception ex)
             {
@@ -4285,7 +4367,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
                 var transactions = new List<IWalletTransaction>();
                 var blockNumber = await _web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-                var limit = request.Limit > 0 ? request.Limit : 10;
+                var limit = 10;
 
                 for (var i = 0; i < limit && blockNumber.Value > 0; i++)
                 {
@@ -4342,15 +4424,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                var account = Nethereum.Web3.Accounts.Account.GenerateAccount();
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = account.PrivateKey;
-                    keyPair.PublicKey = account.PublicKey;
-                    keyPair.WalletAddressLegacy = account.Address;
-                }
-
                 result.Result = keyPair;
                 result.IsError = false;
                 result.Message = "BNB Chain key pair generated successfully using Nethereum";
@@ -4368,6 +4442,35 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// BNBChainOASIS provider using the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+    /// All Avatar, AvatarDetail, and Holon operations are handled by the base provider.
+    /// </summary>
+    public sealed class BNBChainOASIS : Web3CoreOASISBaseProvider,
+        IOASISDBStorageProvider,
+        IOASISNETProvider,
+        IOASISSuperStar,
+        IOASISBlockchainStorageProvider,
+        IOASISNFTProvider
+    {
+        public BNBChainOASIS(
+            string hostUri = "https://bsc-dataseed.binance.org",
+            string chainPrivateKey = "",
+            string contractAddress = "")
+            : base(hostUri, chainPrivateKey, contractAddress)
+        {
+            ProviderName = "BNBChainOASIS";
+            ProviderDescription = "BNB Chain Provider - Binance Smart Chain EVM-compatible blockchain using Web3Core";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        }
     }
 }
 

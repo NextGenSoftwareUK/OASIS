@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -6,7 +6,11 @@
   </PropertyGroup>
     
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <UseRidGraph>true</UseRidGraph>
+  </PropertyGroup>
+    
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>
@@ -23,9 +27,37 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <ItemGroup>
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.API.ONODE.WebAPI</PackageId>
+    <Version>2.0.1</Version>
+    <Title>OASIS ONODE WebAPI</Title>
+    <Product>OASIS ONODE WebAPI</Product>
+    <Summary>The OASIS ONODE REST API -- ASP.NET Core 10 WebAPI exposing Avatar, Karma, Holon, Provider, NFT, Keys/Wallets, WEB4-WEB10 endpoints. Live at https://api.web4.oasisomniverse.one</Summary>
+    <Description>The OASIS ONODE (Our World Node) REST WebAPI -- the live decentralised API gateway for the OASIS Omniverse. Built on ASP.NET Core 10, exposing HTTP/REST, gRPC, and GraphQL endpoints for Avatar registration/auth/management, Karma award/query, Holon CRUD with provider routing, NFT minting/transfer, Keys/Wallets, Provider hot-swap, Search, and WEB4-WEB10 routing via FAHRN. Live: https://api.web4.oasisomniverse.one -- Source: https://github.com/NextGenSoftwareUK/OASIS</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Upgraded to .NET 10 — latest runtime with improved performance and language features.
+- Full integration with OASIS API Core v2.0.0, WEB6-WEB10 layers, ONET, FAHRN, HyperDrive v2, and OASIS MCP Server.
+- Security-hardened: CORS, JWT, and NuGet vulnerability remediation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
+  
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,16 +72,23 @@
   <ItemGroup>
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
     <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
-	  <PackageReference Include="AutoMapper" Version="12.0.0" />
-	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
-	  <PackageReference Include="MailKit" Version="3.4.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
+	  <PackageReference Include="AutoMapper" Version="16.2.0" />
+	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+	  <PackageReference Include="MailKit" Version="4.17.0" />
+    <!-- Force resolution of .Logging.Abstractions to 10.0.0 across the whole graph.
+         AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0.
+         Declaring it here converts all provider-level NU1107 errors to NU1608 warnings. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageReference Include="Stripe.net" Version="45.0.0" />
 	  <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
   </ItemGroup>
@@ -64,9 +103,38 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="OASIS_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Protobuf Include="Protos\common.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\avatar.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\karma.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\data.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\social.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\clan.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\chat.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\messaging.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\files.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\gifts.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\eggs.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\video.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\stats.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\settings.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\hyperdrive.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\bridge.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\wallet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\competition.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\seeds.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\search.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\onet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\onode.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\provider.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\keys.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\eosio.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\holochain.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\map.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\oland.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\share.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\solana.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\nft.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\subscription.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

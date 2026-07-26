@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         Guid Id { get; set; }
         byte[] Image { get; set; }
         string ImageUrl { get; set; }
-        Dictionary<string, object> MetaData { get; set; }
+        Dictionary<string, string> MetaData { get; set; }
         Guid ModifiedBy { get; set; }
         List<string> Tags { get; set; }
         byte[] Thumbnail { get; set; }

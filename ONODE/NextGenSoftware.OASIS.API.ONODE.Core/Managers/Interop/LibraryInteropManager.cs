@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
 using NextGenSoftware.OASIS.Common;
@@ -234,7 +235,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                     _performanceCache.CacheResult(cacheKey, invokeResult.Result);
                 }
 
-                OASISResultHelper.CopyResult(invokeResult, result);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(invokeResult, result);
+                if (!invokeResult.IsError)
+                {
+                    result.Result = invokeResult.Result;
+                }
             }
             catch (Exception ex)
             {
@@ -300,7 +305,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                     _performanceCache.CacheResult(cacheKey, invokeResult.Result);
                 }
 
-                OASISResultHelper.CopyResult(invokeResult, result);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(invokeResult, result);
+                if (!invokeResult.IsError)
+                {
+                    result.Result = invokeResult.Result;
+                }
             }
             catch (Exception ex)
             {
@@ -380,7 +389,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                 }
 
                 var functionsResult = await provider.GetAvailableFunctionsAsync(libraryId);
-                OASISResultHelper.CopyResult(functionsResult, result);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(functionsResult, result);
+                if (!functionsResult.IsError)
+                {
+                    result.Result = functionsResult.Result;
+                }
             }
             catch (Exception ex)
             {
@@ -531,7 +544,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                 }
 
                 var signaturesResult = await provider.GetFunctionSignaturesAsync(libraryId);
-                OASISResultHelper.CopyResult(signaturesResult, result);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(signaturesResult, result);
+                if (!signaturesResult.IsError)
+                {
+                    result.Result = signaturesResult.Result;
+                }
             }
             catch (Exception ex)
             {
@@ -608,22 +625,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
 
             try
             {
+                ILoadedLibrary library;
+                InteropProviderType providerType;
+                
                 lock (_lockObject)
                 {
-                    if (!_loadedLibraries.TryGetValue(libraryId, out var library))
+                    if (!_loadedLibraries.TryGetValue(libraryId, out library))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not found.");
-                        return Task.FromResult(result);
+                        return result;
                     }
 
-                    if (!_libraryProviderMap.TryGetValue(libraryId, out var providerType))
+                    if (!_libraryProviderMap.TryGetValue(libraryId, out providerType))
                     {
                         OASISErrorHandling.HandleError(ref result, "Provider type not found for library.");
-                        return Task.FromResult(result);
+                        return result;
                     }
-
-                    return ReloadLibraryInternalAsync(libraryId, library.LibraryPath, providerType);
                 }
+
+                return await ReloadLibraryInternalAsync(libraryId, library.LibraryPath, providerType);
             }
             catch (Exception ex)
             {

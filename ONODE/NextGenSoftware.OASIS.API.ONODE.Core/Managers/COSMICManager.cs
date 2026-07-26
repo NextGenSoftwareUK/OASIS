@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -49,10 +51,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Try to search for existing omniverse
-                var searchResult = await SearchHolonsForParentAsync<IOmiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "",
                     default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
                     HolonType.Omniverse,
                     ProviderType.Default
@@ -61,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
                 {
                     // Return the first omniverse found (should only be one)
-                    result.Result = searchResult.Result.FirstOrDefault();
+                    result.Result = searchResult.Result.FirstOrDefault() as IOmiverse;
                     return result;
                 }
 
@@ -119,7 +123,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (holon == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{typeof(T).Name} cannot be null.");
+                    result.IsError = true;
+                    result.Message = $"The {typeof(T).Name} field is required. Please provide a valid object in the request body.";
                     return result;
                 }
 
@@ -151,7 +156,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (holon == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{typeof(T).Name} cannot be null.");
+                    result.IsError = true;
+                    result.Message = $"The {typeof(T).Name} field is required. Please provide a valid object in the request body.";
                     return result;
                 }
 
@@ -337,6 +343,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string searchTerm,
             Guid avatarId,
             Guid parentId = default,
+            Dictionary<string, string> filterByMetaData = null, 
+            MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All,
             bool searchOnlyForCurrentAvatar = true,
             HolonType holonType = HolonType.All,
             ProviderType providerType = ProviderType.Default,
@@ -353,6 +361,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 searchTerm,
                 avatarId,
                 parentId,
+                filterByMetaData,
+                metaKeyValuePairMatchMode,
                 searchOnlyForCurrentAvatar,
                 providerType,
                 "COSMICManager.SearchHolonsForParentAsync",
@@ -373,6 +383,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string searchTerm,
             Guid avatarId,
             Guid parentId = default,
+            Dictionary<string, string> filterByMetaData = null,
+            MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All,
             bool searchOnlyForCurrentAvatar = true,
             HolonType holonType = HolonType.All,
             ProviderType providerType = ProviderType.Default,
@@ -389,6 +401,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 searchTerm,
                 avatarId,
                 parentId,
+                filterByMetaData,
+                metaKeyValuePairMatchMode,
                 searchOnlyForCurrentAvatar,
                 providerType,
                 "COSMICManager.SearchHolonsForParent",
@@ -419,7 +433,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (omniverse == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Omniverse cannot be null.");
+                    result.IsError = true;
+                    result.Message = "The Omniverse field is required. Please provide a valid Omniverse object in the request body.";
                     return result;
                 }
 
@@ -430,6 +445,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 var saveResult = await omniverse.SaveAsync();
+                if (saveResult == null)
+                {
+                    result.IsError = true;
+                    result.Message = "An error occurred while saving the Omniverse. Please try again.";
+                    return result;
+                }
                 OASISResultHelper.CopyResult(saveResult, result);
                 result.Result = (IOmiverse)saveResult.Result;
             }
@@ -3817,23 +3838,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedUniverse = universeResult.Result;
 
-            // 2. Create GalaxyCluster if requested
+            // 2–3. Auto-create child GalaxyCluster / Galaxy if requested.
+            // Concrete STAR types (GalaxyCluster, Galaxy, etc.) live in the STAR SDK which cannot
+            // be referenced from ONODE.Core without a circular dependency.  Callers that need
+            // default children should construct those objects themselves and pass them to
+            // AddGalaxyClusterAsync / AddGalaxyAsync after this call.
             if (createGalaxyCluster)
-            {
-                // This would need to create a GalaxyCluster - for now, placeholder
-                // TODO: Implement using STAR.LightAsync or create GalaxyCluster instance
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "GalaxyCluster auto-creation skipped: pass an IGalaxyCluster instance to AddGalaxyClusterAsync.";
 
-            // 3. Create Galaxy if requested
             if (createGalaxy)
-            {
-                // This would need to create a Galaxy - for now, placeholder
-                // TODO: Implement using STAR.LightAsync or create Galaxy instance
-            }
-
-            // Continue with full hierarchy...
-            // Note: Full implementation would require creating concrete instances of each type
-            // and calling the appropriate Add*Async methods
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "Galaxy auto-creation skipped: pass an IGalaxy instance to AddGalaxyAsync.";
 
             result.Result = persistedUniverse;
             return result;
@@ -3866,12 +3882,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedMultiverse = multiverseResult.Result;
 
-            // 2. Create Universe with children if requested
+            // Auto-create child Universe if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct an IUniverse
+            // and pass it to CreateUniverseWithChildrenAsync / AddUniverseAsync after this call.
             if (createUniverse)
-            {
-                // This would recursively call CreateUniverseWithChildrenAsync
-                // TODO: Implement using STAR.LightAsync or create Universe instance
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "Universe auto-creation skipped: pass an IUniverse instance to AddUniverseAsync or CreateUniverseWithChildrenAsync.";
 
             result.Result = persistedMultiverse;
             return result;
@@ -3901,12 +3917,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedGalaxy = galaxyResult.Result;
 
-            // 2. Create SolarSystem with children if requested
+            // Auto-create child SolarSystem if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct an ISolarSystem
+            // and pass it to CreateSolarSystemWithChildrenAsync / AddSolarSystemAsync after this call.
             if (createSolarSystem)
-            {
-                // This would call CreateSolarSystemWithChildrenAsync
-                // TODO: Implement using STAR.LightAsync or create SolarSystem instance
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "SolarSystem auto-creation skipped: pass an ISolarSystem instance to AddSolarSystemAsync or CreateSolarSystemWithChildrenAsync.";
 
             result.Result = persistedGalaxy;
             return result;
@@ -3938,12 +3954,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedSolarSystem = solarSystemResult.Result;
 
-            // 2. Create Planet with Moon if requested
+            // Auto-create child Planet / Moon if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct an IPlanet/IMoon
+            // and pass them to AddPlanetAsync / AddMoonAsync after this call.
             if (createPlanet)
-            {
-                // This would create a Planet and optionally a Moon
-                // TODO: Implement using STAR.LightAsync or create Planet/Moon instances
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "Planet auto-creation skipped: pass an IPlanet instance to AddPlanetAsync.";
 
             result.Result = persistedSolarSystem;
             return result;
@@ -3971,15 +3987,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedPlanet = planetResult.Result;
 
-            // 2. Create Moons if requested
+            // Auto-create child Moons if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct IMoon instances
+            // and pass them to AddMoonAsync after this call.
             if (createMoon && numberOfMoons > 0)
-            {
-                for (int i = 0; i < numberOfMoons; i++)
-                {
-                    // This would create Moon instances
-                    // TODO: Implement using STAR.LightAsync or create Moon instance
-                }
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    $"Moon auto-creation skipped ({numberOfMoons} requested): pass IMoon instances to AddMoonAsync.";
 
             result.Result = persistedPlanet;
             return result;
@@ -4010,15 +4023,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 return result;
             }
 
-            // 2. Create Planets with Moons if requested
+            // Auto-create child Planets / Moons if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct IPlanet/IMoon
+            // instances and pass them to AddPlanetAsync / AddMoonAsync after this call.
             if (createPlanet && numberOfPlanets > 0)
-            {
-                for (int i = 0; i < numberOfPlanets; i++)
-                {
-                    // This would create Planet instances and optionally Moons
-                    // TODO: Implement using STAR.LightAsync or create Planet/Moon instances
-                }
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    $"Planet auto-creation skipped ({numberOfPlanets} requested): pass IPlanet instances to AddPlanetAsync.";
 
             result.Result = star;
             return result;
@@ -4038,10 +4048,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // First, try to find existing user multiverse
-                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "",
                     AvatarId,
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     true, // showOnlyForCurrentAvatar
                     HolonType.Multiverse,
                     ProviderType.Default
@@ -4050,7 +4062,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
                 {
                     // Find multiverse created by this avatar
-                    var userMultiverse = searchResult.Result.FirstOrDefault(m => m.CreatedByAvatarId == AvatarId);
+                    var userMultiverse = searchResult.Result.FirstOrDefault(m => m.CreatedByAvatarId == AvatarId) as IMultiverse;
                     if (userMultiverse != null)
                     {
                         result.Result = userMultiverse;
@@ -4176,10 +4188,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "MagicVerse",
                     default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
                     HolonType.Multiverse,
                     ProviderType.Default
@@ -4191,7 +4205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         m.Name.Equals("MagicVerse", StringComparison.OrdinalIgnoreCase));
                     if (magicVerse != null)
                     {
-                        result.Result = magicVerse;
+                        result.Result = magicVerse as IMultiverse;
                         return result;
                     }
                 }
@@ -4215,10 +4229,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "The Grand Simulation",
                     default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
                     HolonType.Multiverse,
                     ProviderType.Default
@@ -4230,7 +4246,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         m.Name.Equals("The Grand Simulation", StringComparison.OrdinalIgnoreCase));
                     if (grandSim != null)
                     {
-                        result.Result = grandSim;
+                        result.Result = grandSim as IMultiverse;
                         return result;
                     }
                 }
@@ -4282,8 +4298,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 };
 
                 // Save the multiverse
-                var saveResult = await SaveHolonAsync<IMultiverse>(multiverseHolon, AvatarId);
-                OASISResultHelper.CopyResult(saveResult, result);
+                var saveResult = await SaveHolonAsync<Holon>(multiverseHolon, AvatarId);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+                if (!saveResult.IsError && saveResult.Result != null)
+                {
+                    result.Result = saveResult.Result as IMultiverse;
+                }
             }
             catch (Exception ex)
             {
@@ -4386,10 +4406,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load all Proposal holons with ProposalType = "Simulation"
-                var searchResult = await SearchHolonsForParentAsync<ISimulationProposal>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "Simulation",
                     onlyMine ? AvatarId : default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     onlyMine,
                     HolonType.Proposal,
                     ProviderType.Default
@@ -4436,7 +4458,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load the proposal holon using generic overload
-                var loadResult = await Data.LoadHolonAsync<ISimulationProposal>(proposalId);
+                var loadResult = await Data.LoadHolonAsync<Holon>(proposalId, childHolonType: HolonType.Proposal);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
@@ -4444,7 +4466,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var proposal = loadResult.Result;
+                var proposalHolon = loadResult.Result;
+                var proposal = proposalHolon as ISimulationProposal;
+                
+                if (proposal == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Proposal is not a valid ISimulationProposal.");
+                    return result;
+                }
 
                 // Check if user already voted
                 if (proposal.HasUserVoted(AvatarId))
@@ -4461,7 +4490,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 // Save updated proposal
-                var saveResult = await SaveHolonAsync<ISimulationProposal>(proposal);
+                var saveResult = await SaveHolonAsync<Holon>(proposalHolon, AvatarId);
                 if (saveResult.IsError)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -4488,14 +4517,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load the proposal holon using generic overload
-                var loadResult = await Data.LoadHolonAsync<IProposal>(proposalId);
+                var loadResult = await Data.LoadHolonAsync<Holon>(proposalId, childHolonType: HolonType.Proposal);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
                     return result;
                 }
 
-                var proposal = loadResult.Result;
+                var proposalHolon = loadResult.Result;
+                var proposal = proposalHolon as ISimulationProposal;
+                
+                if (proposal == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Proposal is not a valid ISimulationProposal.");
+                    return result;
+                }
 
                 // Get user's vote
                 result.Result = proposal.GetUserVote(AvatarId);

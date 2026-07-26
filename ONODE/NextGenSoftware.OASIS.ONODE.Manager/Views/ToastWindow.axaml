@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="NextGenSoftware.OASIS.ONODE.Manager.Views.ToastWindow"
+        Title="Toast"
+        Width="300" Height="72"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        ShowInTaskbar="False"
+        CanResize="False"
+        Topmost="True">
+
+    <Border Background="#1A2040" BorderBrush="#00BFFF" BorderThickness="1"
+            CornerRadius="6" Padding="14,10">
+        <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center">
+                <TextBlock x:Name="TitleText" FontSize="12" FontWeight="Bold" Foreground="White" />
+                <TextBlock x:Name="MessageText" FontSize="11" Foreground="#AAAACC" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="✕" Background="Transparent" Foreground="#555566"
+                    BorderThickness="0" Padding="6,0" VerticalAlignment="Top"
+                    Click="OnClose" />
+        </Grid>
+    </Border>
+</Window>

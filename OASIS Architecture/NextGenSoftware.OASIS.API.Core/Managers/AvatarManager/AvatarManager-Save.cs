@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -6,6 +6,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -13,6 +16,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            Console.WriteLine($"CurrentDirectory: {Environment.CurrentDirectory}");
+            Console.WriteLine($"BaseDirectory: {AppContext.BaseDirectory}");
+            Console.WriteLine($"DNA Path being used: {OASISDNAManager.OASISDNAPath}");
+            Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
+
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             // HyperDrive v2 routing with safe fallback to legacy
             try
             {
@@ -33,7 +43,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return hdResult;
                 }
             }
-            catch { /* fallback to legacy */ }
+            catch (Exception hyperDriveEx)
+            {
+                LoggingManager.Log($"HyperDrive v2 routing failed for SaveAvatar(id={avatar.Id}), falling back to legacy provider path. Reason: {hyperDriveEx.Message}", LogType.Warning);
+            }
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
@@ -56,6 +69,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
+
+                // Apply the configured encryption stack (BCrypt → Rijndael-256 → AES-256-GCM) if not already done.
+                var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
+                    avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettings);
 
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;
@@ -98,13 +116,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
                     if ((autoReplicationMode == AutoReplicationMode.UseGlobalDefaultInOASISDNA && ProviderManager.Instance.IsAutoReplicationEnabled) || autoReplicationMode == AutoReplicationMode.True)
                         result = await AutoReplicateAvatarAsync(avatar, result, previousProviderType, waitForAutoReplicationResult);
+
+                    // Sync username/email changes back to AvatarDetail so both stay in sync.
+                    var detailResult = await LoadAvatarDetailAsync(avatar.Id);
+                    if (!detailResult.IsError && detailResult.Result != null)
+                    {
+                        bool detailChanged = false;
+                        if (!string.IsNullOrEmpty(avatar.Username) && detailResult.Result.Username != avatar.Username)
+                        { detailResult.Result.Username = avatar.Username; detailChanged = true; }
+                        if (!string.IsNullOrEmpty(avatar.Email) && detailResult.Result.Email != avatar.Email)
+                        { detailResult.Result.Email = avatar.Email; detailChanged = true; }
+                        if (detailChanged)
+                            await SaveAvatarDetailAsync(detailResult.Result);
+                    }
                 }
 
                 await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.Instance.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured: ", ex.ToString(), " saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.Instance.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = null;
             }
 
@@ -113,6 +144,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
@@ -135,6 +168,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
+
+                var pwdSettingsSync = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
+                    avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettingsSync);
 
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;
@@ -210,6 +247,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatarDetail> { IsError = true, Message = "The avatar detail is required. Please provide a valid IAvatarDetail object." };
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
@@ -268,6 +307,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatarDetail> { IsError = true, Message = "The avatar detail is required. Please provide a valid IAvatarDetail object." };
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;

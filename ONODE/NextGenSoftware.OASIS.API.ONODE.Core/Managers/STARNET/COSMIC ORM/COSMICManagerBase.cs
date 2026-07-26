@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         holon.ModifiedDate = DateTime.Now;
                     }
 
-                    //TODO: Eventually when all methods in HolonManager and Holon have been updated to take avatarId then the code above will not be needed anymore.
+                    // Use generic SaveAsync<T> so HolonManager.SaveHolonAsync<T> runs PrepareHolonForSaving (metadata mapping). T must be concrete (e.g. Quest) due to new() constraint.
                     result = await holon.SaveAsync<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 }
                 else
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         holon.ModifiedDate = DateTime.Now;
                     }
 
-                    //TODO: Eventually when all methods in HolonManager and Holon have been updated to take avatarId then the code above will not be needed anymore.
+                    // Use generic Save<T> so HolonManager path runs PrepareHolonForSaving (metadata mapping). T must be concrete (e.g. Quest) due to new() constraint.
                     result = holon.Save<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 }
                 else
@@ -159,14 +159,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        protected async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, Guid avatarId, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.LoadAllHolonsAsync", HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0) where T : IHolon, new()
+        protected async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, Guid avatarId, Guid parentId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.LoadAllHolonsAsync", HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0) where T : IHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             string errorMessage = $"Error occured in {methodName}. Reason:";
 
             try
             {
-                result = await Data.SearchHolonsAsync<T>(searchTerm, avatarId, parentId, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
+                result = await Data.SearchHolonsAsync<T>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
             }
             catch (Exception ex)
             {
@@ -176,14 +176,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        protected OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, Guid avatarId, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.LoadAllHolonsAsync", HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0) where T : IHolon, new()
+        protected OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, Guid avatarId, Guid parentId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default, string methodName = "COSMICManager.LoadAllHolonsAsync", HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0) where T : IHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             string errorMessage = $"Error occured in {methodName}. Reason:";
 
             try
             {
-                result = Data.SearchHolons<T>(searchTerm, avatarId, parentId, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
+                result = Data.SearchHolons<T>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
             }
             catch (Exception ex)
             {

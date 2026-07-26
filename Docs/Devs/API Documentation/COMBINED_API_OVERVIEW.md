@@ -1,14 +1,25 @@
-# OASIS WEB4 & WEB5 APIs - Combined Overview
+﻿# OASIS WEB4, WEB5 & WEB6 APIs - Combined Overview
 
 ## 📋 **Executive Summary**
 
-The OASIS platform provides a revolutionary two-tier API architecture that unifies Web2 and Web3 technologies into a single, intelligent, auto-failover system. This document provides a comprehensive overview of how the WEB4 OASIS API and WEB5 STAR API work together to create the most advanced metaverse and blockchain infrastructure available.
+The OASIS platform provides a revolutionary three-tier API architecture (as of July 2026) that unifies Web2 and Web3 technologies with production-grade AI intelligence into a single, intelligent, auto-failover system. This document provides a comprehensive overview of how the WEB4 OASIS API, WEB5 STAR API, and WEB6 OASIS AI API work together to create the most advanced metaverse, blockchain, and AI infrastructure available.
 
 ## 🏗️ **Architecture Overview**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        OASIS ECOSYSTEM                         │
+├─────────────────────────────────────────────────────────────────┤
+│  WEB6 OASIS AI API — The Intelligence Layer  [✅ LIVE Jul 2026] │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │ • FAHRN Multi-Agent Orchestrator (74× PPD benchmark gain)  │ │
+│  │ • SkillOpt Self-Evolving Skills (+23.5% accuracy)          │ │
+│  │ • Holonic Memory (fractal Session→Earth hierarchy)         │ │
+│  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
+│  │ • 20+ AI Providers Unified (OpenAI, Anthropic, Gemini…)   │ │
+│  │ • DID/Verifiable Credentials (W3C standard)               │ │
+│  │ • 250 MCP tools · 56 REST Endpoints · v2.0                │ │
+│  └─────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  WEB5 STAR API (Gamification & Business Layer)                 │
 │  ┌─────────────────────────────────────────────────────────────┐ │
@@ -37,7 +48,8 @@ The OASIS platform provides a revolutionary two-tier API architecture that unifi
 ### **1. Layered Architecture**
 - **WEB4 OASIS API**: Provides the foundational data layer, identity management, and provider abstraction
 - **WEB5 STAR API**: Builds on top of WEB4 to provide gamification, metaverse features, and business applications
-- **Seamless Integration**: WEB5 automatically inherits all WEB4 capabilities while adding specialized features
+- **WEB6 OASIS AI API**: The Intelligence Layer — sits above WEB4/WEB5 and infuses every application with multi-agent reasoning, persistent holonic memory, self-evolving skills, and karma-gated AI access
+- **Seamless Integration**: WEB6 inherits all WEB4 identity and karma data; WEB5 OAPPs can call WEB6 FAHRN for AI-guided quests and adaptive NPCs
 
 ### **2. Data Flow**
 ```
@@ -78,7 +90,7 @@ User Request → WEB5 STAR API → WEB4 OASIS API → Provider Selection → Dat
 // Initialize the foundational OASIS API
 const oasisAPI = new OASISClient({
   apiKey: 'your-oasis-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.web4.oasisomniverse.one'
 });
 
 // Boot OASIS and authenticate
@@ -94,7 +106,7 @@ const avatar = await oasisAPI.avatar.create({
 // Initialize STAR API with OASIS integration
 const starAPI = new STARClient({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world',
+  baseUrl: 'https://api.starnet.oasisomniverse.one',
   oasisAPI: oasisAPI  // Pass the initialized OASIS API
 });
 
@@ -255,8 +267,8 @@ const client = new OASISClient({
   oasisApiKey: 'your-oasis-key',
   starApiKey: 'your-star-key',
   baseUrls: {
-    oasis: 'https://api.oasisplatform.world',
-    star: 'https://star-api.oasisplatform.world'
+    oasis: 'https://api.web4.oasisomniverse.one',
+    star: 'https://api.starnet.oasisomniverse.one'
   }
 });
 

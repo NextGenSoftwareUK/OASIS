@@ -58,9 +58,9 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         BeingSuperStrong,
         BeingGrateful,
         SpeakingYourTruth,
-        NutritionBecomeVegan, //can include vegan, vegetarian, pesteritan, etc.
-        NutritionBecomeVegeterain, //can include vegan, vegetarian, pesteritan, etc.
-        NutritionBecomePesetarian, //can include vegan, vegetarian, pesteritan, etc.
+        //NutritionBecomeVegan, //can include vegan, vegetarian, pesteritan, etc.
+        //NutritionBecomeVegeterain, //can include vegan, vegetarian, pesteritan, etc.
+        //NutritionBecomePesetarian, //can include vegan, vegetarian, pesteritan, etc.
         NutritionEatDrinkHealthy,
         SelfHelpImprovement,
         HelpingTheEnvironment,
@@ -91,6 +91,19 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         ContributingToTheOASISWithFunding,
         ContributingToTheOASISWithSales,
         ContributingToTheOASIS,
+        CreateAvatar,
+        CompleteProfile,
+        CreateBenevolentOApp,
+        DeployBenevolentOApp,
+        CreateBenevolentQuest,
+        CompleteBenevolentQuest,
+        //CreateHolon, // TODO: Define what a BenevolentHolon is before rewarding this
+        GiftSeeds,
+        DonateSeeds,
+        PlaceBenevolentGeoNFT,
+        CollectBenevolentGeoNFT,
+        MintBenevolentNFT,
+        MintBenevolentGeoNFT,
         Other
     }
 
@@ -114,6 +127,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         NutritionEatMeat,
         NutritionEatDiary,
         NutritionEatDrinkUnhealthy,
+        SpamAbuse,
         Other
     }
 }

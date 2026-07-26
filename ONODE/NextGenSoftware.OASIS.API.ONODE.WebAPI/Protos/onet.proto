@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service ONETService {
+  rpc GetOASISDNA (ONETEmptyRequest) returns (JsonResponse);
+  rpc GetNetworkStatus (ONETEmptyRequest) returns (JsonResponse);
+  rpc GetNetworkNodes (ONETEmptyRequest) returns (JsonResponse);
+  rpc GetNetworkStats (ONETEmptyRequest) returns (JsonResponse);
+  rpc UpdateOASISDNA (UpdateOASISDNARequest) returns (OASISGrpcResponse);
+  rpc ConnectToNode (ConnectToNodeRequest) returns (OASISGrpcResponse);
+  rpc DisconnectFromNode (DisconnectFromNodeRequest) returns (OASISGrpcResponse);
+  rpc StartNetwork (ONETEmptyRequest) returns (OASISGrpcResponse);
+  rpc StopNetwork (ONETEmptyRequest) returns (OASISGrpcResponse);
+  rpc BroadcastNetworkMessage (BroadcastNetworkMessageRequest) returns (OASISGrpcResponse);
+}
+
+message ONETEmptyRequest {}
+message UpdateOASISDNARequest { string oasisdna_json = 1; }
+message ConnectToNodeRequest { string node_id = 1; string node_address = 2; }
+message DisconnectFromNodeRequest { string node_id = 1; }
+message BroadcastNetworkMessageRequest {
+  string message = 1;
+  string message_type = 2;
+}
+
+

@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
@@ -11,6 +12,8 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using System.Linq;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -23,6 +26,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class ParksController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all parks in the system.
@@ -37,23 +42,32 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading
-                await Task.Delay(1); // Placeholder async operation
-                return Ok(new OASISResult<IEnumerable<IPark>>
+                var holonsResult = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.Park);
+                OASISResult<IEnumerable<IPark>> result = new OASISResult<IEnumerable<IPark>>
                 {
-                    IsError = false,
-                    Message = "Parks loaded successfully",
-                    Result = new List<IPark>()
-                });
+                    IsError = holonsResult.IsError,
+                    Message = holonsResult.IsError ? holonsResult.Message : "Parks loaded successfully",
+                    Result = holonsResult.IsError ? new List<IPark>() : holonsResult.Result?.OfType<IPark>().ToList() ?? new List<IPark>()
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testParks = TestDataHelper.GetTestParks(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IPark>>(testParks, "Parks retrieved successfully (using test data)"));
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IPark>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading parks: {ex.Message}",
-                    Exception = ex
-                });
+                    var testParks = TestDataHelper.GetTestParks(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IPark>>(testParks, "Parks retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<IPark>>(ex, "GetAllParks");
             }
         }
 
@@ -71,23 +85,32 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading by ID
-                await Task.Delay(1); // Placeholder async operation
-                return Ok(new OASISResult<IPark>
+                var holonResult = await HolonManager.Instance.LoadHolonAsync(id);
+                OASISResult<IPark> result = new OASISResult<IPark>
                 {
-                    IsError = false,
-                    Message = "Park loaded successfully",
-                    Result = null
-                });
+                    IsError = holonResult.IsError,
+                    Message = holonResult.IsError ? holonResult.Message : "Park loaded successfully",
+                    Result = holonResult.IsError ? null : holonResult.Result as IPark
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testParks = TestDataHelper.GetTestParks(1);
+                    return Ok(TestDataHelper.CreateSuccessResult<IPark>(testParks.FirstOrDefault(), "Park retrieved successfully (using test data)"));
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading park: {ex.Message}",
-                    Exception = ex
-                });
+                    var testParks = TestDataHelper.GetTestParks(1);
+                    return Ok(TestDataHelper.CreateSuccessResult<IPark>(testParks.FirstOrDefault(), "Park retrieved successfully (using test data)"));
+                }
+                return HandleException<IPark>(ex, "GetPark");
             }
         }
 
@@ -105,23 +128,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park saving
-                await Task.Delay(1); // Placeholder async operation
+                if (park == null)
+                {
+                    return BadRequest(new OASISResult<IPark>
+                    {
+                        IsError = true,
+                        Message = "Park cannot be null. Please provide a valid Park object in the request body."
+                    });
+                }
+
+                var saveResult = await HolonManager.Instance.SaveHolonAsync((IHolon)park, AvatarId);
                 return Ok(new OASISResult<IPark>
                 {
-                    IsError = false,
-                    Message = "Park saved successfully",
-                    Result = null
+                    IsError = saveResult.IsError,
+                    Message = saveResult.IsError ? saveResult.Message : "Park saved successfully",
+                    Result = saveResult.IsError ? null : saveResult.Result as IPark
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error creating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "creating park");
             }
         }
 
@@ -130,23 +156,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park saving
-                await Task.Delay(1); // Placeholder async operation
+                if (park == null)
+                {
+                    return BadRequest(new OASISResult<IPark>
+                    {
+                        IsError = true,
+                        Message = "Park cannot be null. Please provide a valid Park object in the request body."
+                    });
+                }
+
+                ((IHolon)park).Id = id;
+                var saveResult = await HolonManager.Instance.SaveHolonAsync((IHolon)park, AvatarId);
                 return Ok(new OASISResult<IPark>
                 {
-                    IsError = false,
-                    Message = "Park saved successfully",
-                    Result = null
+                    IsError = saveResult.IsError,
+                    Message = saveResult.IsError ? saveResult.Message : "Park updated successfully",
+                    Result = saveResult.IsError ? null : saveResult.Result as IPark
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error updating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "updating park");
             }
         }
 
@@ -155,23 +185,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park deletion
-                await Task.Delay(1); // Placeholder async operation
+                var deleteResult = await HolonManager.Instance.DeleteHolonAsync(id, AvatarId);
                 return Ok(new OASISResult<bool>
                 {
-                    IsError = false,
-                    Message = "Park deleted successfully",
-                    Result = true
+                    IsError = deleteResult.IsError,
+                    Message = deleteResult.IsError ? deleteResult.Message : "Park deleted successfully",
+                    Result = !deleteResult.IsError
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting park");
             }
         }
 
@@ -180,13 +204,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading by location
-                await Task.Delay(1); // Placeholder async operation
+                var holonsResult = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.Park);
+                if (holonsResult.IsError)
+                    return Ok(new OASISResult<IEnumerable<IPark>> { IsError = true, Message = holonsResult.Message, Result = new List<IPark>() });
+
+                var nearby = (holonsResult.Result ?? Enumerable.Empty<IHolon>())
+                    .OfType<IPark>()
+                    .Where(p => HaversineDistanceKm(latitude, longitude, p.Latitude, p.Longitude) <= radiusKm)
+                    .ToList();
+
                 return Ok(new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = false,
                     Message = "Nearby parks loaded successfully",
-                    Result = new List<IPark>()
+                    Result = nearby
                 });
             }
             catch (Exception ex)
@@ -205,13 +236,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading by type
-                await Task.Delay(1); // Placeholder async operation
+                var holonsResult = await HolonManager.Instance.LoadHolonsByMetaDataAsync("parkType", type, HolonType.Park);
                 return Ok(new OASISResult<IEnumerable<IPark>>
                 {
-                    IsError = false,
-                    Message = "Parks by type loaded successfully",
-                    Result = new List<IPark>()
+                    IsError = holonsResult.IsError,
+                    Message = holonsResult.IsError ? holonsResult.Message : "Parks by type loaded successfully",
+                    Result = holonsResult.IsError ? new List<IPark>() : holonsResult.Result?.OfType<IPark>().ToList() ?? new List<IPark>()
                 });
             }
             catch (Exception ex)
@@ -248,12 +278,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error creating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "creating park");
             }
         }
 
@@ -282,12 +307,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park");
             }
         }
 
@@ -315,12 +335,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park from path");
             }
         }
 
@@ -347,12 +362,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park from published file");
             }
         }
 
@@ -413,12 +423,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error publishing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "publishing park");
             }
         }
 
@@ -448,12 +453,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedPark>
-                {
-                    IsError = true,
-                    Message = $"Error downloading park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedPark>(ex, "downloading park");
             }
         }
 
@@ -513,12 +513,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park version");
             }
         }
 
@@ -546,12 +541,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error editing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "editing park");
             }
         }
 
@@ -579,12 +569,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "unpublishing park");
             }
         }
 
@@ -612,12 +597,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error republishing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "republishing park");
             }
         }
 
@@ -645,12 +625,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error activating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "activating park");
             }
         }
 
@@ -678,12 +653,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "deactivating park");
             }
         }
 
@@ -697,26 +667,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("search")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IPark>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IPark>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> SearchParks([FromBody] SearchRequest request)
+        public Task<IActionResult> SearchParks([FromBody] SearchRequest request)
         {
             try
             {
-                return Ok(new OASISResult<IEnumerable<IPark>>
+                return Task.FromResult<IActionResult>(Ok(new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = false,
                     Message = "Parks feature not implemented yet",
                     Result = new List<IPark>()
-                });
+                }));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IPark>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = true,
                     Message = $"Error searching parks: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
+        }
+
+        private static double HaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371.0;
+            var dLat = (lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (lon2 - lon1) * Math.PI / 180.0;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                  + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
+                  * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
     }
 

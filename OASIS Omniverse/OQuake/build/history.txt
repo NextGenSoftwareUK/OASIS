@@ -1,0 +1,10 @@
+star beamin dellams test!
+star
+star beamin dellams test!
+star debug on
+star
+star config
+star debug on
+star beamin dellams test!
+star debug off
+star beamin dellams test!

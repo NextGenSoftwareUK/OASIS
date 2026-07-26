@@ -103,7 +103,12 @@ private const string Starknet = "STARKNET";
         CancellationToken token = default)
     {
         var result = new OASISResult<CreateBridgeOrderResponse>();
-        
+        if (request == null)
+        {
+            result.IsError = true;
+            result.Message = "The request is required. Please provide a valid CreateBridgeOrderRequest.";
+            return result;
+        }
         try
         {
             // Validate request
@@ -151,11 +156,13 @@ private const string Starknet = "STARKNET";
                                   (fromToken == Eth && toToken == Sol) ||
                                   (fromToken == Zec && toToken == Sol) ||
                                   (fromToken == Sol && toToken == Zec);
-            
+
+            isSupportedPair = true; //TODO: Not sure why we need to check if its a supported pair?!
+
             if (isSupportedPair)
             {
                 // Get source account address (this would come from user's virtual account in a real implementation)
-                string sourceAccountAddress = request.UserId.ToString(); // Placeholder
+                string sourceAccountAddress = request.FromAddress;
                 string sourcePrivateKey = string.Empty; // This would be securely retrieved
 
                 // Check balance
@@ -173,7 +180,8 @@ private const string Starknet = "STARKNET";
                         Guid.NewGuid(),
                         "Insufficient funds for bridge operation"
                     );
-                    result.IsError = false;
+                    result.IsError = true;
+                    result.Message = result.Result.Message;
                     return result;
                 }
 
@@ -742,6 +750,12 @@ private const string Starknet = "STARKNET";
     public async Task<OASISResult<bool>> RecordViewingKeyAsync(ViewingKeyAuditEntry entry, CancellationToken token = default)
     {
         var result = new OASISResult<bool>();
+        if (entry == null)
+        {
+            result.IsError = true;
+            result.Message = "The viewing key audit entry is required. Please provide a valid ViewingKeyAuditEntry.";
+            return result;
+        }
         try
         {
             await _viewingKeyAuditService.RecordViewingKeyAsync(entry, token);

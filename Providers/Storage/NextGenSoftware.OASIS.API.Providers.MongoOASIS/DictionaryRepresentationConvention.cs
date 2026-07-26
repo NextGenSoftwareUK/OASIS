@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+using System;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
@@ -15,20 +14,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         }
         public void Apply(BsonMemberMap memberMap)
         {
-            memberMap.SetSerializer(ConfigureSerializer(memberMap.GetSerializer()));
-        }
-        private IBsonSerializer ConfigureSerializer(IBsonSerializer serializer)
-        {
-            var dictionaryRepresentationConfigurable = serializer as IDictionaryRepresentationConfigurable;
-            if (dictionaryRepresentationConfigurable != null)
+            var serializer = memberMap.GetSerializer();
+            if (serializer is IDictionaryRepresentationConfigurable dictionaryRepresentationConfigurable)
             {
-                serializer = dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_dictionaryRepresentation);
+                memberMap.SetSerializer(dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_dictionaryRepresentation));
             }
-
-            var childSerializerConfigurable = serializer as IChildSerializerConfigurable;
-            return childSerializerConfigurable == null
-                ? serializer
-                : childSerializerConfigurable.WithChildSerializer(ConfigureSerializer(childSerializerConfigurable.ChildSerializer));
         }
     }
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -82,18 +84,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var config = _configManager.GetConfiguration();
-                return Ok(new OASISResult<OASISHyperDriveConfig>
+                var result = new OASISResult<OASISHyperDriveConfig>
                 {
                     Result = config,
                     Message = "HyperDrive configuration retrieved successfully."
-                });
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                // Note: HyperDriveController doesn't inherit from OASISControllerBase, so we need to check config directly
+                var configService = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+                bool useTestData = configService?.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
+                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false")) ?? false;
+
+                if (useTestData && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<OASISHyperDriveConfig>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "HyperDrive configuration retrieved successfully (using test data)."
+                    });
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                var configService = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+                bool useTestData = configService?.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
+                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false")) ?? false;
+
+                if (useTestData)
+                {
+                    return Ok(new OASISResult<OASISHyperDriveConfig>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "HyperDrive configuration retrieved successfully (using test data)."
+                    });
+                }
                 return BadRequest(new OASISResult<OASISHyperDriveConfig>
                 {
                     IsError = true,
-                    Message = $"Error retrieving HyperDrive configuration: {ex.Message}"
+                    Message = $"Error retrieving HyperDrive configuration: {ex.Message}",
+                    Exception = ex
                 });
             }
         }
@@ -119,6 +154,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("mode")]
         public async Task<ActionResult<OASISResult<bool>>> SetHyperDriveMode([FromBody] string mode)
         {
+            if (mode == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide the HyperDrive mode value." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -141,6 +178,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("config")]
         public ActionResult<OASISResult<bool>> UpdateConfiguration([FromBody] OASISHyperDriveConfig config)
         {
+            if (config == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid HyperDrive configuration object." });
             try
             {
                 var result = _configManager.UpdateConfiguration(config);
@@ -341,6 +380,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("record-request")]
         public ActionResult<OASISResult<bool>> RecordRequest([FromBody] RecordRequestModel request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid record request (ProviderType, Success, ResponseTimeMs, Cost)." });
             try
             {
                 _performanceMonitor.RecordRequest(
@@ -373,6 +414,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("record-connection")]
         public ActionResult<OASISResult<bool>> RecordConnection([FromBody] RecordConnectionModel request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid record connection (ProviderType, IsConnecting)." });
             try
             {
                 _performanceMonitor.RecordConnection(request.ProviderType, request.IsConnecting);
@@ -400,6 +443,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("geographic/{providerType}")]
         public ActionResult<OASISResult<bool>> UpdateGeographicInfo(ProviderType providerType, [FromBody] GeographicInfo geoInfo)
         {
+            if (geoInfo == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid GeographicInfo object." });
             try
             {
                 _performanceMonitor.UpdateGeographicInfo(providerType, geoInfo);
@@ -427,6 +472,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("cost/{providerType}")]
         public ActionResult<OASISResult<bool>> UpdateCostAnalysis(ProviderType providerType, [FromBody] CostAnalysis costAnalysis)
         {
+            if (costAnalysis == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid CostAnalysis object." });
             try
             {
                 _performanceMonitor.UpdateCostAnalysis(providerType, costAnalysis);
@@ -678,6 +725,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("analytics/record")]
         public ActionResult<OASISResult<bool>> RecordAnalyticsData([FromBody] AnalyticsDataPoint dataPoint)
         {
+            if (dataPoint == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid AnalyticsDataPoint (ProviderType and data)." });
             try
             {
                 _analyticsEngine.RecordAnalyticsData(dataPoint.ProviderType, dataPoint);
@@ -704,6 +753,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("ai/record-performance")]
         public ActionResult<OASISResult<bool>> RecordPerformanceData([FromBody] PerformanceDataPoint dataPoint)
         {
+            if (dataPoint == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid PerformanceDataPoint (ProviderType and data)." });
             try
             {
                 _aiEngine.RecordPerformanceData(dataPoint.ProviderType, dataPoint);
@@ -730,6 +781,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("failover/record-failure")]
         public ActionResult<OASISResult<bool>> RecordFailureEvent([FromBody] FailureEvent failureEvent)
         {
+            if (failureEvent == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid FailureEvent (ProviderType and event details)." });
             try
             {
                 _failoverEngine.RecordFailureEvent(failureEvent.ProviderType, failureEvent);
@@ -808,6 +861,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("failover/preventive")]
         public ActionResult<OASISResult<bool>> InitiatePreventiveFailover([FromBody] List<ProviderType> highRiskProviders)
         {
+            if (highRiskProviders == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of ProviderType (high-risk providers)." });
             try
             {
                 var result = _failoverEngine.InitiatePreventiveFailoverAsync(highRiskProviders).Result;
@@ -834,6 +889,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [HttpPost("replication/triggers")]
         public ActionResult<OASISResult<ReplicationTriggerConfig>> CreateReplicationTrigger([FromBody] ReplicationTriggerConfig trigger)
         {
+            if (trigger == null)
+                return BadRequest(new OASISResult<ReplicationTriggerConfig> { IsError = true, Message = "The request body is required. Please provide a valid ReplicationTriggerConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -862,6 +919,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("replication/triggers/{id}")]
         public ActionResult<OASISResult<ReplicationTriggerConfig>> UpdateReplicationTrigger(string id, [FromBody] ReplicationTriggerConfig trigger)
         {
+            if (trigger == null)
+                return BadRequest(new OASISResult<ReplicationTriggerConfig> { IsError = true, Message = "The request body is required. Please provide a valid ReplicationTriggerConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -939,6 +998,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("replication/provider-rules")]
         public ActionResult<OASISResult<ProviderReplicationRuleConfig>> UpdateProviderReplicationRule([FromBody] ProviderReplicationRuleConfig rule)
         {
+            if (rule == null)
+                return BadRequest(new OASISResult<ProviderReplicationRuleConfig> { IsError = true, Message = "The request body is required. Please provide a valid ProviderReplicationRuleConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -971,6 +1032,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("replication/data-type-rules")]
         public ActionResult<OASISResult<DataTypeReplicationRuleConfig>> UpdateDataTypeReplicationRule([FromBody] DataTypeReplicationRuleConfig rule)
         {
+            if (rule == null)
+                return BadRequest(new OASISResult<DataTypeReplicationRuleConfig> { IsError = true, Message = "The request body is required. Please provide a valid DataTypeReplicationRuleConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1003,6 +1066,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("replication/schedule-rules")]
         public ActionResult<OASISResult<ScheduleRuleConfig>> UpdateScheduleRule([FromBody] ScheduleRuleConfig rule)
         {
+            if (rule == null)
+                return BadRequest(new OASISResult<ScheduleRuleConfig> { IsError = true, Message = "The request body is required. Please provide a valid ScheduleRuleConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1036,6 +1101,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("replication/cost-optimization")]
         public ActionResult<OASISResult<CostOptimizationRuleConfig>> UpdateCostOptimizationRule([FromBody] CostOptimizationRuleConfig rule)
         {
+            if (rule == null)
+                return BadRequest(new OASISResult<CostOptimizationRuleConfig> { IsError = true, Message = "The request body is required. Please provide a valid CostOptimizationRuleConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1055,6 +1122,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("failover/triggers")]
         public ActionResult<OASISResult<FailoverTriggerConfig>> CreateFailoverTrigger([FromBody] FailoverTriggerConfig trigger)
         {
+            if (trigger == null)
+                return BadRequest(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = "The request body is required. Please provide a valid FailoverTriggerConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1072,6 +1141,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("failover/triggers/{id}")]
         public ActionResult<OASISResult<FailoverTriggerConfig>> UpdateFailoverTrigger(string id, [FromBody] FailoverTriggerConfig trigger)
         {
+            if (trigger == null)
+                return BadRequest(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = "The request body is required. Please provide a valid FailoverTriggerConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1125,6 +1196,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("failover/provider-rules")]
         public ActionResult<OASISResult<ProviderFailoverRuleConfig>> UpdateProviderFailoverRule([FromBody] ProviderFailoverRuleConfig rule)
         {
+            if (rule == null)
+                return BadRequest(new OASISResult<ProviderFailoverRuleConfig> { IsError = true, Message = "The request body is required. Please provide a valid ProviderFailoverRuleConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1157,6 +1230,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("failover/escalation-rules")]
         public ActionResult<OASISResult<EscalationRuleConfig>> UpdateEscalationRule([FromBody] EscalationRuleConfig rule)
         {
+            if (rule == null)
+                return BadRequest(new OASISResult<EscalationRuleConfig> { IsError = true, Message = "The request body is required. Please provide a valid EscalationRuleConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1193,6 +1268,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("subscription/usage-alerts")]
         public ActionResult<OASISResult<UsageAlertConfig>> CreateUsageAlert([FromBody] UsageAlertConfig alert)
         {
+            if (alert == null)
+                return BadRequest(new OASISResult<UsageAlertConfig> { IsError = true, Message = "The request body is required. Please provide a valid UsageAlertConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1210,6 +1287,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("subscription/usage-alerts/{id}")]
         public ActionResult<OASISResult<UsageAlertConfig>> UpdateUsageAlert(string id, [FromBody] UsageAlertConfig alert)
         {
+            if (alert == null)
+                return BadRequest(new OASISResult<UsageAlertConfig> { IsError = true, Message = "The request body is required. Please provide a valid UsageAlertConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1260,6 +1339,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("subscription/quota-notifications")]
         public ActionResult<OASISResult<QuotaNotificationConfig>> CreateQuotaNotification([FromBody] QuotaNotificationConfig notification)
         {
+            if (notification == null)
+                return BadRequest(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = "The request body is required. Please provide a valid QuotaNotificationConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1277,6 +1358,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("subscription/quota-notifications/{id}")]
         public ActionResult<OASISResult<QuotaNotificationConfig>> UpdateQuotaNotification(string id, [FromBody] QuotaNotificationConfig notification)
         {
+            if (notification == null)
+                return BadRequest(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = "The request body is required. Please provide a valid QuotaNotificationConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1358,6 +1441,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("costs/limits")]
         public ActionResult<OASISResult<bool>> SetCostLimits([FromBody] Dictionary<string, decimal> limits)
         {
+            if (limits == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with cost limits." });
             try
             {
                 AdvancedAnalyticsEngine.Instance.SetCostLimits(limits);
@@ -1439,6 +1524,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("replication/rules")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateReplicationRules([FromBody] ReplicationRulesConfig rules)
         {
+            if (rules == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid ReplicationRulesConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1501,6 +1588,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("failover/rules")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateFailoverRules([FromBody] FailoverRulesConfig rules)
         {
+            if (rules == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid FailoverRulesConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1563,6 +1652,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("subscription/config")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateSubscriptionConfig([FromBody] SubscriptionConfig config)
         {
+            if (config == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid SubscriptionConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1625,6 +1716,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("data-permissions")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateDataPermissions([FromBody] DataPermissionsConfig permissions)
         {
+            if (permissions == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid DataPermissionsConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -1687,6 +1780,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("intelligent-mode")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateIntelligentMode([FromBody] IntelligentModeConfig mode)
         {
+            if (mode == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid IntelligentModeConfig." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;

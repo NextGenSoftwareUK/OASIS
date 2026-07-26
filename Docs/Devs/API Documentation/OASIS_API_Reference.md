@@ -1,9 +1,9 @@
-# OASIS API Reference for Alpha Testers
+﻿# OASIS API Reference for Alpha Testers
 
 ## Base URLs
 - **Development**: `https://localhost:5002`
-- **Staging**: `https://staging-api.oasisplatform.world`
-- **Production**: `https://api.oasisplatform.world`
+- **Staging**: `https://staging-api.web4.oasisomniverse.one`
+- **Production**: `https://api.web4.oasisomniverse.one`
 
 ## Authentication
 
@@ -513,5 +513,5 @@ Import the OASIS API Postman collection:
 For API support and questions:
 - **Email**: ourworld@nextgensoftware.co.uk
 - **GitHub Issues**: [Create an issue](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/issues)
-- **Telegram**: [OASIS API Chat](https://t.me/ourworldthegamechat)
+- **Telegram**: [OASIS API Chat](https://t.me/oasisweb4chat)
 - **Discord**: [OASIS Discord](https://discord.gg/q9gMKU6)

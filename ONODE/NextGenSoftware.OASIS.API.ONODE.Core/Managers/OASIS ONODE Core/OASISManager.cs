@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -14,10 +14,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public HolonManager Data { get; set; }
         public OASISDNA OASISDNA { get; set; }
         public Guid AvatarId { get; set; }
+        public IOASISStorageProvider OASISStorageProvider { get; set; }
 
         public OASISManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null)
         {
             AvatarId = avatarId;
+            this.OASISStorageProvider = OASISStorageProvider;
             Data = new HolonManager(OASISStorageProvider, OASISDNA);
             Task.Run(async () => await HandleDNAAsync(OASISDNA)).Wait();
         }

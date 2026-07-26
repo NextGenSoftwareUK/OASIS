@@ -1,0 +1,3 @@
+# Un-ignore the bin/ launcher shim (root .gitignore blocks [Bb]in/ globally)
+!bin/
+!bin/**

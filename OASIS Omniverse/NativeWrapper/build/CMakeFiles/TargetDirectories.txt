@@ -1,0 +1,5 @@
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/star_api.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/star_api_static.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/INSTALL.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/ALL_BUILD.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/ZERO_CHECK.dir

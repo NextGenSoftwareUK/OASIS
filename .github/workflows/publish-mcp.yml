@@ -1,0 +1,220 @@
+name: Publish MCP Server (NuGet + npm)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 2.0.0)'
+        required: true
+        default: '2.0.0'
+
+jobs:
+  # ── Build native binaries for all platforms ──────────────────────────────
+  build-binaries:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            artifact: oasis-mcp-win-x64.exe
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact: oasis-mcp-linux-x64
+          - os: ubuntu-latest
+            rid: linux-arm64
+            artifact: oasis-mcp-linux-arm64
+          - os: macos-latest
+            rid: osx-x64
+            artifact: oasis-mcp-osx-x64
+          - os: macos-latest
+            rid: osx-arm64
+            artifact: oasis-mcp-osx-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Publish single-file binary
+        working-directory: OASIS
+        run: >
+          dotnet publish
+          WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          -p:PublishSingleFile=true
+          -p:SelfContained=true
+          -p:PublishTrimmed=false
+          -o publish/${{ matrix.rid }}
+
+      - name: Rename binary
+        shell: bash
+        working-directory: OASIS
+        run: |
+          src="publish/${{ matrix.rid }}/NextGenSoftware.OASIS.MCP.Server"
+          [ -f "${src}.exe" ] && src="${src}.exe"
+          cp "$src" "../${{ matrix.artifact }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  # ── Create GitHub release and attach binaries ────────────────────────────
+  release:
+    needs: build-binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: binaries
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mcp-v${{ inputs.version }}
+          name: OASIS MCP Server v${{ inputs.version }}
+          body: |
+            ## OASIS MCP Server v${{ inputs.version }}
+
+            ### Install
+
+            **npm (no .NET SDK required):**
+            ```bash
+            npm install -g @oasisomniverse/mcp-server
+            ```
+
+            **NuGet dotnet tool (.NET 8+ SDK required):**
+            ```bash
+            dotnet tool install -g NextGenSoftware.OASIS.MCP.Server
+            ```
+
+            **Build from source:**
+            ```bash
+            git clone https://github.com/NextGenSoftwareUK/OASIS.git
+            cd OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server
+            dotnet build -c Release
+            ```
+
+            ### IDE Configuration (after install)
+            ```json
+            {
+              "mcpServers": {
+                "oasis": {
+                  "command": "oasis-mcp",
+                  "env": {
+                    "OASIS_API_URL": "https://api.oasisplatform.world",
+                    "OASIS_MCP_LICENSE_KEY": "your-license-key"
+                  }
+                }
+              }
+            }
+            ```
+          files: binaries/*
+          draft: false
+          prerelease: false
+
+  # ── Publish NuGet tool package ────────────────────────────────────────────
+  publish-nuget:
+    needs: build-binaries
+    runs-on: windows-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Pack MCP Server
+        working-directory: OASIS
+        run: >
+          dotnet pack
+          WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          -c Release
+          -p:Version=${{ inputs.version }}
+          -o nupkgs
+
+      - name: Get NuGet token via Trusted Publishing
+        id: get-token
+        shell: pwsh
+        run: |
+          $response = Invoke-RestMethod `
+            -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=api.nuget.org" `
+            -Headers @{ Authorization = "Bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN" }
+          echo "NUGET_TOKEN=$($response.value)" >> $env:GITHUB_OUTPUT
+
+      - name: Push to NuGet.org
+        shell: pwsh
+        working-directory: OASIS
+        run: |
+          dotnet nuget push nupkgs\*.nupkg `
+            --source https://api.nuget.org/v3/index.json `
+            --api-key ${{ steps.get-token.outputs.NUGET_TOKEN }} `
+            --skip-duplicate
+
+  # ── Publish npm package ───────────────────────────────────────────────────
+  publish-npm:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Set version
+        run: npm version ${{ inputs.version }} --no-git-tag-version
+        working-directory: OASIS/WEB6/npm
+
+      - name: Publish to npm
+        run: npm publish --access public
+        working-directory: OASIS/WEB6/npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

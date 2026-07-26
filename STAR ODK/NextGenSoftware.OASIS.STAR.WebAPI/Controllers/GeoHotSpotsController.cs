@@ -11,18 +11,24 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     /// <summary>
     /// Geo-HotSpots management endpoints for creating, updating, and managing STAR geo-hotspots.
     /// Geo-hotspots represent geographical locations of interest, events, or activities within the OASIS Omniverse/Our World and can optionally contain AR content.
+    /// Hotspot <see cref="GeoHotSpotType"/> includes Map, AR, VR, IR, and media types: <see cref="GeoHotSpotType.Audio"/>, <see cref="GeoHotSpotType.Video"/>, <see cref="GeoHotSpotType.Text"/>, <see cref="GeoHotSpotType.WebsiteLink"/>.
+    /// For Audio/Video, the holon may carry embedded <see cref="GeoHotSpot.AudioData"/> / <see cref="GeoHotSpot.VideoData"/> (JSON base64) or <see cref="GeoHotSpot.AudioUrl"/> / <see cref="GeoHotSpot.VideoUrl"/>; Text/Website use <see cref="GeoHotSpot.TextContent"/> / <see cref="GeoHotSpot.WebsiteUrl"/>. Subtype is stored in STARNET DNA category.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class GeoHotSpotsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all geo hot spots in the system.
@@ -38,16 +44,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.GeoHotSpots.LoadAllAsync(AvatarId, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testHotSpots = new List<GeoHotSpot>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<GeoHotSpot>>(testHotSpots, "Geo hot spots retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<GeoHotSpot>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading geo hot spots: {ex.Message}",
-                    Exception = ex
-                });
+                    var testHotSpots = new List<GeoHotSpot>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<GeoHotSpot>>(testHotSpots, "Geo hot spots retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<GeoHotSpot>>(ex, "GetAllGeoHotSpots");
             }
         }
 
@@ -66,16 +81,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.GeoHotSpots.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<GeoHotSpot>(null, "Geo hot spot retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<GeoHotSpot>(null, "Geo hot spot retrieved successfully (using test data)"));
+                }
+                return HandleException<GeoHotSpot>(ex, "GetGeoHotSpot");
             }
         }
 
@@ -91,6 +113,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateGeoHotSpot([FromBody] GeoHotSpot hotSpot)
         {
+            if (hotSpot == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid Geo Hot Spot object." });
             try
             {
                 var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, hotSpot);
@@ -98,12 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error creating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "creating geo hot spot");
             }
         }
 
@@ -120,6 +139,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateGeoHotSpot(Guid id, [FromBody] GeoHotSpot hotSpot)
         {
+            if (hotSpot == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid Geo Hot Spot object." });
             try
             {
                 hotSpot.Id = id;
@@ -128,12 +149,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error updating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "updating geo hot spot");
             }
         }
 
@@ -156,12 +172,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting geo hot spot");
             }
         }
 
@@ -181,7 +192,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllNearAsync method not yet implemented");
+                var result = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.GeoHotSpot);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<GeoHotSpot>> { IsError = true, Message = result.Message });
+
+                // Filter by haversine distance from (latitude, longitude) within radiusKm.
+                var nearby = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .OfType<GeoHotSpot>()
+                    .Where(h => HaversineDistanceKm(latitude, longitude, h.Lat, h.Long) <= radiusKm)
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<GeoHotSpot>> { Result = nearby, IsError = false });
             }
             catch (Exception ex)
             {
@@ -192,6 +212,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Exception = ex
                 });
             }
+        }
+
+        private static double HaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371.0;
+            var dLat = (lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (lon2 - lon1) * Math.PI / 180.0;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                  + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
+                  * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
 
         /// <summary>
@@ -206,19 +237,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateGeoHotSpotWithOptions([FromBody] CreateGeoHotSpotRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<GeoHotSpot>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.GeoHotSpots.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error creating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "creating geo hot spot");
             }
         }
 
@@ -238,18 +273,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<GeoHotSpot>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.GeoHotSpots.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot");
             }
         }
 
@@ -268,18 +300,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<GeoHotSpot>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.GeoHotSpots.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot from path");
             }
         }
 
@@ -302,12 +331,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot from published file");
             }
         }
 
@@ -353,6 +377,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishGeoHotSpot(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.GeoHotSpots.PublishAsync(
@@ -369,12 +395,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error publishing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "publishing geo hot spot");
             }
         }
 
@@ -400,12 +421,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedGeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error downloading geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedGeoHotSpot>(ex, "downloading geo hot spot");
             }
         }
 
@@ -457,12 +473,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot version");
             }
         }
 
@@ -479,6 +490,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditGeoHotSpot(Guid id, [FromBody] EditGeoHotSpotRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.GeoHotSpots.EditAsync(id, request.NewDNA, AvatarId);
@@ -486,12 +499,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error editing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "editing geo hot spot");
             }
         }
 
@@ -515,12 +523,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "unpublishing geo hot spot");
             }
         }
 
@@ -544,12 +547,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error republishing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "republishing geo hot spot");
             }
         }
 
@@ -573,12 +571,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error activating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "activating geo hot spot");
             }
         }
 
@@ -602,12 +595,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "deactivating geo hot spot");
             }
         }
     }

@@ -1,8 +1,8 @@
-# OASIS ARCHITECTURE OVERVIEW
+﻿# OASIS ARCHITECTURE OVERVIEW
 
 ## Executive Summary
 
-The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. This document provides a comprehensive overview of the OASIS architecture, including the separation between WEB4 and WEB5 APIs, core components, and innovative features.
+The OASIS (Open Advanced Secure Interoperable System) is a revolutionary WEB4–WEB10 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. As of July 2026, WEB4 (data/identity), WEB5 (gamification/metaverse), and WEB6 (AI intelligence layer) are fully live. WEB7 (bio-signal/neural interface) is in early implementation with 7 MCP tools active; WEB8–WEB10 are on the roadmap. This document provides a comprehensive overview of the OASIS architecture, including all three live API layers, core components, and innovative features.
 
 ## Architecture Overview
 
@@ -11,6 +11,17 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        OASIS ECOSYSTEM                         │
+├─────────────────────────────────────────────────────────────────┤
+│  WEB6 OASIS AI API — The Intelligence Layer  [✅ LIVE Jul 2026] │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │ • FAHRN Multi-Agent Orchestrator (74× PPD benchmark gain)  │ │
+│  │ • SkillOpt Self-Evolving Skills (+23.5% accuracy)          │ │
+│  │ • Holonic Memory (fractal Session→Earth hierarchy)         │ │
+│  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
+│  │ • 20+ AI Providers Unified (OpenAI, Anthropic, Gemini…)   │ │
+│  │ • DID/Verifiable Credentials (W3C standard)               │ │
+│  │ • 250 MCP tools · 56 REST Endpoints · v2.0                │ │
+│  └─────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  WEB5 STAR Web API (Gamification & Business Layer)             │
 │  ┌─────────────────────────────────────────────────────────────┐ │
@@ -36,6 +47,9 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 │  │ • Storage Systems (IPFS, Filecoin, etc.)                   │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
+
+WEB7 Symbiosis (Bio-signal/Neural Interface) — In Development
+WEB8 Galactic Mesh · WEB9 Singularity · WEB10 Source — Roadmap
 ```
 
 ## WEB4 OASIS API - Data Aggregation & Identity Layer
@@ -171,6 +185,89 @@ The WEB5 STAR Web API provides the gamification, metaverse, and business use cas
 - **Libraries**: `/api/libraries` - Library management
 - **Runtimes**: `/api/runtimes` - Runtime management
 - **Plugins**: `/api/plugins` - Plugin management
+
+## WEB6 OASIS AI API — The Intelligence Layer *(Live July 2026)*
+
+### Core Purpose
+The WEB6 OASIS AI API is the unified AI orchestration and intelligence layer. It runs on top of WEB4 and WEB5, giving every OASIS application production-grade multi-agent reasoning, persistent holonic memory, self-evolving skills, and enterprise-grade AI compliance.
+
+### Key Components
+
+#### 1. FAHRN — Fractal Adaptive Holonic Reasoning Network
+**Innovation**: Identity-grounded multi-agent orchestrator with ML.NET-powered mode selection.
+
+**Features**:
+- **Five Orchestration Modes**: Serial, Parallel, Debate, Voting, Decomposed — auto-selected per task type
+- **Holonic BRAID**: Shared Mermaid reasoning graphs stored as holons; accessible across agents and sessions
+- **Benchmark**: 74× PPD improvement on GSM-Hard; 98% task-type classification accuracy
+- **BudgetGuard**: Per-dispatch cost and token caps enforced before any API call
+
+#### 2. SkillOpt — Self-Evolving Agent Skills
+**Innovation**: Agents learn from every interaction and grow a proprietary skill corpus.
+
+**Features**:
+- **Rollout → Reflect → Edit → Gate loop** (Microsoft Research arXiv:2605.23904)
+- **+23.5% average accuracy gain** measured across diverse task types
+- **Skill Corpus Asset**: accumulates proprietary know-how that compounds over time
+
+#### 3. Holonic Memory
+**Innovation**: Fractal persistent intelligence that remembers across every scope.
+
+**Features**:
+- **Hierarchy**: Session → Agent → User → Group → Organisation → … → Earth
+- **Membrane Rules**: Fine-grained read/write permission per boundary
+- **Semantic Search**: Cosine similarity over all stored memories
+- **Multi-Hop Propagation**: Knowledge flows up and down the holon tree
+- **TTL Support**: Auto-expiry for time-sensitive memories
+- **External Providers**: Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector
+
+#### 4. Karma-Gated AI
+**Innovation**: Model access and token budgets tied to the OASIS karma system.
+
+**Features**:
+- **Tiers**: Bronze, Silver, Gold, Diamond — each tier unlocks more powerful models and higher budgets
+- **Revenue Model**: Karma tier upgrades become a recurring SaaS revenue stream
+- **Aligned Incentives**: Users earn karma through positive actions, unlocking better AI capabilities
+
+#### 5. AI Provider Unification (20+ Providers)
+OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure OpenAI, OpenServ, Replicate, StabilityAI, and more — all behind a single unified API.
+
+#### 6. DID / Verifiable Credentials
+**Standards**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade identity and compliance built into the AI layer.
+
+#### 7. MCP Server & REST API
+- **111 typed named MCP tools**: WEB4(102) + WEB5(96) + WEB6(31) + WEB7(8) + WEB8(9) + WEB9(2) + WEB10(2)
+- **56 REST endpoints** across 14 controllers (v2.0)
+- **Swagger**: `https://api.web6.oasisomniverse.one/swagger`
+- **npm**: `@oasisomniverse/web6-api` v2.0.0 — 14 modules, 40 operations
+
+### API Endpoints (WEB6 — key examples)
+
+#### AI Completion
+- `POST /v1/completion` - Chat completion (any provider)
+- `POST /v1/completion/embed` - Generate embeddings
+
+#### FAHRN Orchestrator
+- `POST /v1/fahrn/solve` - Multi-agent solve with auto-selected mode
+- `POST /v1/fahrn/budget-estimate` - Pre-flight cost estimate
+
+#### Holonic Memory
+- `POST /v1/holonic-memory/holons` - Store a memory holon
+- `GET /v1/holonic-memory/holons/{scope}` - Retrieve by scope
+- `POST /v1/holonic-memory/holons/{id}/propagate-up` - Propagate up the tree
+- `POST /v1/holonic-memory/search` - Semantic search across all memories
+
+#### DID / Verifiable Credentials
+- `POST /v1/did/create` - Create a new DID
+- `POST /v1/did/issue-vc` - Issue a Verifiable Credential
+- `POST /v1/did/verify-vc` - Verify a Verifiable Credential
+
+#### Reasoning Network
+- `POST /v1/reasoning-network/serial` - Serial chain-of-thought
+- `POST /v1/reasoning-network/parallel` - Parallel fan-out
+- `POST /v1/reasoning-network/debate` - Agent debate
+
+[Full WEB6 API Reference →](../../WEB6/Docs/WEB6_REST_API_REFERENCE.md)
 
 ## Core Architecture Components
 

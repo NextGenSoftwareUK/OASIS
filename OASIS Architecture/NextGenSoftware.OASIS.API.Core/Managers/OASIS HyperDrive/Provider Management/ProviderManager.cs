@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,6 +40,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private List<EnumValue<ProviderType>> _providerAutoFailOverListForAvatarLogin { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfEmailAlreadyInUse { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfUsernameAlreadyInUse { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoFailOverLocalList { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
         private bool _setProviderGlobally = false;
@@ -51,6 +52,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public bool IsAutoReplicationEnabled { get; set; } = true;
         public bool IsAutoLoadBalanceEnabled { get; set; } = true;
         public bool IsAutoFailOverEnabled { get; set; } = true;
+        /// <summary>When true with a non-empty <see cref="GetProviderAutoFailOverLocalList"/>, native/offline-first hosts may walk local storage providers in order (OASISDNA AutoFailOverLocalProviders).</summary>
+        public bool IsAutoFailOverLocalProvidersEnabled { get; set; }
         //public bool IsAutoFailOverEnabledForAvatarLogin { get; set; } = true;
         //public bool IsAutoFailOverEnabledForCheckIfEmailAlreadyInUse { get; set; } = true;
         //public bool IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse { get; set; } = true;
@@ -70,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public IOASISStorageProvider CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
         public bool OverrideProviderType { get; set; } = false;
-        public bool SupressConsoleLoggingWhenSwitchingProviders { get; set; } = false;
+       // public bool SupressLoggingWhenSwitchingProviders { get; set; } = false;
 
 
         //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
@@ -216,10 +219,57 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISBlockchainStorageProvider> blockchainProviders = new List<IOASISBlockchainStorageProvider>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
-                blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                foreach (ProviderCategory category in provider.ProviderCategories.Select(x => x.Value).ToList())
+                {
+                    if (category == ProviderCategory.Blockchain)
+                        blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+                }
+            }
+
+            //foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
+            //    blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
 
             return blockchainProviders;
+        }
+
+        public List<IOASISBlockchainStorageProvider> GetAllEVMBlockchainProviders()
+        {
+            List<IOASISBlockchainStorageProvider> blockchainProviders = new List<IOASISBlockchainStorageProvider>();
+
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                foreach (ProviderCategory category in provider.ProviderCategories.Select(x => x.Value).ToList())
+                {
+                    if (category == ProviderCategory.EVMBlockchain)
+                        blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+                }
+            }
+
+            return blockchainProviders;
+        }
+
+        public bool IsProviderEVMBlockchain(ProviderType providerType)
+        {
+            foreach (IOASISBlockchainStorageProvider provider in GetAllEVMBlockchainProviders())
+            {
+                if (provider.ProviderType.Value == providerType)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsProviderBlockchain(ProviderType providerType)
+        {
+            foreach (IOASISBlockchainStorageProvider provider in GetAllBlockchainProviders())
+            {
+                if (provider.ProviderType.Value == providerType)
+                    return true;
+            }
+
+            return false;
         }
 
         public List<ProviderType> GetNetworkProviderTypes()
@@ -428,7 +478,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if ((deactivateProviderResult != null && (deactivateProviderResult.IsError || !deactivateProviderResult.Result)) || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling DeActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
 
-                        else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                        else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                             LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider DeActivated Successfully.", Logging.LogType.Info);
                     }
 
@@ -441,7 +491,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if ((activateProviderResult != null && (activateProviderResult.IsError || !activateProviderResult.Result)) || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling ActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
                     
-                    else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider Activated Successfully.", Logging.LogType.Info);
 
                     if (setGlobally)
@@ -485,7 +535,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if ((deactivateProviderResult != null && (deactivateProviderResult.IsError || !deactivateProviderResult.Result)) || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling DeActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
 
-                        else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                        else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                             LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider DeActivated Successfully (Async).", Logging.LogType.Info);
                     }
 
@@ -498,7 +548,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if ((activateProviderResult != null && (activateProviderResult.IsError || !activateProviderResult.Result)) || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling ActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
 
-                    else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider Activated Successfully (Async).", Logging.LogType.Info);
 
                     if (setGlobally)
@@ -524,7 +574,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
 
                     var task = provider.ActivateProviderAsync();
@@ -559,7 +609,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
 
                     result = Task.Run(() => provider.ActivateProvider()).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ActivateProviderTimeOutSeconds)).Result;
@@ -593,7 +643,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Deactivate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
                     
                     result = Task.Run(() => provider.DeActivateProvider()).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.DectivateProviderTimeOutSeconds)).Result;
@@ -627,7 +677,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Deactivate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
 
                     var task = provider.DeActivateProviderAsync();
@@ -716,6 +766,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public bool SetAutoFailOverForProvidersForCheckIfOASISSystemAccountExists(bool addToFailOverList, IEnumerable<ProviderType> providers)
         {
             return SetProviderList(addToFailOverList, providers, _providerAutoFailOverListForCheckIfOASISSystemAccountExists);
+        }
+
+        public bool SetAutoFailOverLocalForProviders(bool addToFailOverList, IEnumerable<ProviderType> providers)
+        {
+            return SetProviderList(addToFailOverList, providers, _providerAutoFailOverLocalList);
         }
 
         public OASISResult<bool> SetAutoFailOverForProviders(bool addToFailOverList, string providerList)
@@ -816,6 +871,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SetAndReplaceAutoFailOverListForProvidersForCheckIfUsernameAlreadyInUse(IEnumerable<EnumValue<ProviderType>> providerList)
         {
             _providerAutoFailOverListForCheckIfUsernameAlreadyInUse = providerList.ToList();
+            return new OASISResult<bool>(true);
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverLocalListForProviders(string providerList)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IEnumerable<ProviderType>> listResult = GetProvidersFromList("AutoFailOverLocal", providerList);
+
+            result.InnerMessages.AddRange(listResult.InnerMessages);
+            result.IsWarning = listResult.IsWarning;
+            result.WarningCount += listResult.WarningCount;
+
+            _providerAutoFailOverLocalList.Clear();
+            foreach (ProviderType providerType in listResult.Result)
+                _providerAutoFailOverLocalList.Add(new EnumValue<ProviderType>(providerType));
+
+            return result;
+        }
+
+        public OASISResult<bool> SetAndReplaceAutoFailOverLocalListForProviders(IEnumerable<EnumValue<ProviderType>> providerList)
+        {
+            _providerAutoFailOverLocalList = providerList.ToList();
             return new OASISResult<bool>(true);
         }
 
@@ -973,6 +1050,54 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             return _providerAutoFailOverListForCheckIfOASISSystemAccountExists;
         }
+
+        public List<EnumValue<ProviderType>> GetProviderAutoFailOverLocalList()
+        {
+            return _providerAutoFailOverLocalList;
+        }
+
+        /// <summary>Try each entry in <see cref="GetProviderAutoFailOverLocalList"/> after the current storage provider until one activates successfully. Used when connectivity to remote providers is lost and the host should stay on local-capable storage only.</summary>
+        public OASISResult<IOASISStorageProvider> ActivateNextLocalAutoFailOverStorageProvider()
+        {
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
+            string errorMessage = "Error Occured In ProviderManager.ActivateNextLocalAutoFailOverStorageProvider. Reason: ";
+
+            if (!IsAutoFailOverLocalProvidersEnabled)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}IsAutoFailOverLocalProvidersEnabled is false.");
+                return result;
+            }
+
+            if (_providerAutoFailOverLocalList == null || _providerAutoFailOverLocalList.Count == 0)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}AutoFailOverLocalProviders list is empty.");
+                return result;
+            }
+
+            ProviderType current = CurrentStorageProviderType.Value;
+            int startIndex = 0;
+            for (int i = 0; i < _providerAutoFailOverLocalList.Count; i++)
+            {
+                if (_providerAutoFailOverLocalList[i].Value == current)
+                {
+                    startIndex = i + 1;
+                    break;
+                }
+            }
+
+            for (int step = 0; step < _providerAutoFailOverLocalList.Count; step++)
+            {
+                int idx = (startIndex + step) % _providerAutoFailOverLocalList.Count;
+                ProviderType nextType = _providerAutoFailOverLocalList[idx].Value;
+                OASISResult<IOASISStorageProvider> activateResult = SetAndActivateCurrentStorageProvider(nextType);
+                if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
+                    return activateResult;
+            }
+
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}No provider in AutoFailOverLocalProviders could be activated.");
+            return result;
+        }
+
         public string GetProviderAutoFailOverListAsString()
         {
             return GetProviderListAsString(GetProviderAutoFailOverList());
@@ -1001,6 +1126,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public string GetProviderAutoLoadBalanceListAsString()
         {
             return GetProviderListAsString(GetProviderAutoLoadBalanceList());
+        }
+
+        public string GetProviderAutoFailOverLocalListAsString()
+        {
+            return GetProviderListAsString(GetProviderAutoFailOverLocalList());
         }
 
         public string GetProviderListAsString(List<ProviderType> providerList)

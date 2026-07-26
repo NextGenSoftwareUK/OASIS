@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
     {
         public EnumValue<ProviderType> ProviderType { get; set; }
         public bool WaitTillNFTUnlocked { get; set; } = true;
-        public int WaitForNFTToUnlockInSeconds { get; set; } = 60;
+        public int WaitForNFTToUnlockInSeconds { get; set; } = 180;
         public int AttemptToUnlockEveryXSeconds { get; set; } = 5;
     }
 }

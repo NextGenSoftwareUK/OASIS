@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>NextGenSoftware.OASIS.Web7.Core</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB7 OASIS Symbiotic Layer Core</Product>
+    <Title>WEB7 OASIS Symbiotic Layer Core</Title>
+    <Description>The Core (Business Logic Layer) for WEB7 - the non-invasive human/AI symbiosis layer of the OASIS Omniverse. Hosts the BioSignalProcessingManager (EEG, HRV, GSR), IntentionEngine, SymbiosisSessionManager (Borg-Free pledge enforced) and CollectiveConsciousnessManager for multi-participant shared intention fields.</Description>
+    <Summary>The Core (Business Logic Layer) for WEB7 - the non-invasive human/AI symbiosis layer. Hosts the BioSignalProcessingManager (real DSP: FFT band-power for EEG, time-domain HRV metrics, GSR normalisation), the IntentionEngine (maps processed signal features to focus/arousal/valence/cognitive-load state), the SymbiosisSessionManager (consent-gated sessions enforcing the Borg-Free pledge - no implanted/invasive signal types accepted, ever) and the CollectiveConsciousnessManager (multi-participant shared intention fields).</Summary>
+    <Version>2.0.1</Version>
+    <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
+- Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
+- Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.
+- Built on .NET 10 from the ground up for maximum performance and longevity.
+- Miscellaneous bug fixes and improvements during initial stabilisation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+  </ItemGroup>
+
+</Project>

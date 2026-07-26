@@ -1,0 +1,110 @@
+version: '3.8'
+
+# Local development only. Assumes the following repos are cloned as siblings of OASIS:
+#   ../OPORTAL              https://github.com/NextGenSoftwareUK/OPORTAL
+#   ../OASIS-React-UI-Component-Library  https://github.com/NextGenSoftwareUK/OASIS-React-UI-Component-Library
+#   ../STARNET              https://github.com/NextGenSoftwareUK/STARNET
+#
+# Run from C:/Source/OASIS/:
+#   docker compose -f Docker/docker-compose.yml up
+
+services:
+
+  # ── Backend APIs ──────────────────────────────────────────────────────────────
+
+  # WEB4 OASIS API  →  http://localhost:5000/swagger
+  oasis-api:
+    build:
+      context: ..
+      dockerfile: OASIS2/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - OASIS_DNA_JSON=${OASIS_DNA_JSON}
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # WEB5 STAR API  →  http://localhost:5001/swagger
+  star-api:
+    build:
+      context: ..
+      dockerfile: "OASIS2/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Dockerfile"
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - OASIS_DNA_JSON=${OASIS_DNA_JSON}
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ── Front-ends ────────────────────────────────────────────────────────────────
+
+  # OPORTAL (Pure JS)  →  http://localhost:3000
+  # Repo: https://github.com/NextGenSoftwareUK/OPORTAL
+  oportal:
+    build:
+      context: ../OPORTAL
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # React OPORTAL  →  http://localhost:3001
+  # Repo: https://github.com/NextGenSoftwareUK/OASIS-React-UI-Component-Library
+  oasis-react-ui:
+    build:
+      context: ../OASIS-React-UI-Component-Library
+      dockerfile: Dockerfile
+    ports:
+      - "3001:80"
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # STARNET Web UI  →  http://localhost:3002
+  # Repo: https://github.com/NextGenSoftwareUK/STARNET
+  starnet-ui:
+    build:
+      context: ../STARNET
+      dockerfile: Dockerfile
+    ports:
+      - "3002:80"
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  oasis-network:
+    driver: bridge

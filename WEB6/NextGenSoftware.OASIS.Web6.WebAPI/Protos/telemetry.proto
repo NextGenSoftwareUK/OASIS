@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+import "google/protobuf/timestamp.proto";
+import "Protos/common.proto";
+
+service TelemetryService {
+  rpc GetTelemetryHistory (HistoryRequest) returns (TelemetryHistoryReply);
+  rpc GetUsage (EmptyRequest) returns (UsageReply);
+}
+
+message HistoryRequest {
+  int32 limit = 1;
+}
+
+message TelemetryEventProto {
+  string request_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string provider = 3;
+  string model = 4;
+  int64 latency_ms = 5;
+  int32 prompt_tokens = 6;
+  int32 completion_tokens = 7;
+  double estimated_cost_usd = 8;
+  string fahrn_mode = 9;
+  bool braid_graph_reused = 10;
+  string braid_graph_id = 11;
+  int32 agents_scored = 12;
+  string winning_agent = 13;
+  bool avatar_context_injected = 14;
+  bool cache_hit = 15;
+  bool loop_detected = 16;
+  string avatar_id = 17;
+}
+
+message TelemetryHistoryReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated TelemetryEventProto events = 3;
+}
+
+message UsageReply {
+  bool is_error = 1;
+  string message = 2;
+  string avatar_id = 3;
+  double total_cost_usd = 4;
+  int32 total_tokens_today = 5;
+  int32 daily_token_limit = 6;
+  double monthly_budget_usd = 7;
+}

@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Threading.Tasks;
 using System;
 
@@ -11,12 +12,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests
     [TestClass]
     public class SOLANAOASISIntegrationTests
     {
-        private SOLANAOASIS _provider;
+        private SolanaOASIS _provider;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new SOLANAOASIS();
+            _provider = new SolanaOASIS("https://api.mainnet-beta.solana.com", "", "");
         }
 
         [TestMethod]

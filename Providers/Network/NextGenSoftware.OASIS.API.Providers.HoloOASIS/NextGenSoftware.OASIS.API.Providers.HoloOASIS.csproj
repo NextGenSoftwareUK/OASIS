@@ -1,26 +1,36 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.HoloOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Holochain OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Holochain OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API Holochain OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API Holochain OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Summary>Holochain OASIS Provider -- agent-centric P2P DHT storage for OASIS holons and avatars. The original OASIS decentralised backend. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Holochain -- a post-blockchain, agent-centric distributed computing framework enabling truly P2P applications without global consensus. Each agent runs their own chain; data is shared on a DHT. HoloOASIS is the original OASIS decentralised backend, storing holons and avatars directly on the Holochain DHT via HoloNET. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
-	  <PackageReleaseNotes>Initial Release.</PackageReleaseNotes>
+	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>1.0.0</Version>
+	  <Version>2.0.1</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -43,13 +53,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
     </None>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
     <ProjectReference Include="..\..\..\..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj" />
     <ProjectReference Include="..\..\..\..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />

@@ -43,17 +43,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //    }
         //}
 
-        //Needed to work around bug in WebAPI where base class properties are not returned/serialized (it cannot be the same property name or it breaks Mongo for some unknown reason!)
         public Guid AvatarId
         {
-            get
-            {
-                return base.Id;
-            }
-            set
-            {
-                base.Id = value;
-            }
+            get { return base.Id; }
+            set { base.Id = value; }
         }
 
         public new string Name
@@ -101,6 +94,17 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public DateTime? LastBeamedIn { get; set; }
         public DateTime? LastBeamedOut { get; set; }
         public bool IsBeamedIn { get; set; }
+
+        private string _did;
+        /// <summary>W3C Decentralized Identifier. Auto-derived as did:oasis:&lt;Id&gt; when not explicitly set.</summary>
+        public string DID
+        {
+            get => string.IsNullOrEmpty(_did) ? $"did:oasis:{Id}" : _did;
+            set => _did = value;
+        }
+
+        /// <summary>Hex-encoded secp256k1 compressed public key used to verify DID challenge signatures.</summary>
+        public string DIDPublicKey { get; set; }
 
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
        // public string Image2D { get; set; }

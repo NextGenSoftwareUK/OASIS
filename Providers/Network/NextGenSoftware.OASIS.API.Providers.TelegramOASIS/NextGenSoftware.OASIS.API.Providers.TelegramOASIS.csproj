@@ -1,25 +1,40 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.TelegramOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Telegram OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Telegram OASIS Provider</Title>
 	  <Summary>WEB4 OASIS API Telegram OASIS Provider integrates Telegram messaging platform with OASIS for social accountability and achievement tracking.</Summary>
 	  <Description>WEB4 OASIS API Telegram OASIS Provider enables Telegram bots to interact with OASIS avatars, track achievements, and manage accountability groups.</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Telegram; WEB4; Provider; Social; Achievement</PackageTags>
-	  <PackageReleaseNotes>Initial Release.</PackageReleaseNotes>
+	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>1.0.0</Version>
+	  <Version>2.0.1</Version>
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Telegram.Bot" Version="20.0.1" />
@@ -28,8 +43,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
   </ItemGroup>
 
 </Project>

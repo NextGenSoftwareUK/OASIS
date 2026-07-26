@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.STAR.WebAPI.Grpc";
+package oasis.web5;
+
+service SocialService {
+  // Messaging
+  rpc GetMessages (SocialEmptyMsg) returns (MessageListResponse);
+  rpc SendMessage (SendMessageMsg) returns (SocialBoolMsg);
+  rpc GetMessageById (SocialIdMsg) returns (MessageResponse);
+  rpc DeleteMessage (SocialIdMsg) returns (SocialBoolMsg);
+  // InventoryItems (STAR-layer items, not avatar inventory)
+  rpc GetAllInventoryItems (SocialEmptyMsg) returns (InventoryItemListResponse);
+  rpc GetInventoryItemById (SocialIdMsg) returns (InventoryItemRsp);
+  rpc CreateInventoryItem (InventoryItemMsg) returns (InventoryItemRsp);
+  rpc UpdateInventoryItem (InventoryItemMsg) returns (InventoryItemRsp);
+  rpc DeleteInventoryItem (SocialIdMsg) returns (SocialBoolMsg);
+  // Eggs
+  rpc GetAllEggs (SocialEmptyMsg) returns (EggListResponse);
+  rpc GetEgg (SocialIdMsg) returns (EggResponse);
+  rpc CreateEgg (EggMessage) returns (EggResponse);
+  rpc DeleteEgg (SocialIdMsg) returns (SocialBoolMsg);
+  // Parks
+  rpc GetAllParks (SocialEmptyMsg) returns (ParkListResponse);
+  rpc GetPark (SocialIdMsg) returns (ParkResponse);
+  rpc CreatePark (ParkMessage) returns (ParkResponse);
+  rpc DeletePark (SocialIdMsg) returns (SocialBoolMsg);
+}
+
+message SocialEmptyMsg {}
+message SocialIdMsg { string id = 1; }
+
+message SendMessageMsg {
+  string recipient_avatar_id = 1;
+  string subject = 2;
+  string body = 3;
+}
+
+message MessageMsg {
+  string id = 1;
+  string sender_avatar_id = 2;
+  string recipient_avatar_id = 3;
+  string subject = 4;
+  string body = 5;
+}
+
+message MessageResponse {
+  bool is_error = 1;
+  string message = 2;
+  MessageMsg result = 3;
+}
+
+message MessageListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated MessageMsg items = 3;
+}
+
+message SocialBoolMsg {
+  bool is_error = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message InventoryItemMsg {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 quantity = 4;
+  string item_type = 5;
+}
+
+message InventoryItemRsp {
+  bool is_error = 1;
+  string message = 2;
+  InventoryItemMsg result = 3;
+}
+
+message InventoryItemListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated InventoryItemMsg items = 3;
+}
+
+message EggMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string egg_type = 4;
+}
+
+message EggResponse {
+  bool is_error = 1;
+  string message = 2;
+  EggMessage result = 3;
+}
+
+message EggListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated EggMessage items = 3;
+}
+
+message ParkMessage {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double latitude = 4;
+  double longitude = 5;
+}
+
+message ParkResponse {
+  bool is_error = 1;
+  string message = 2;
+  ParkMessage result = 3;
+}
+
+message ParkListResponse {
+  bool is_error = 1;
+  string message = 2;
+  repeated ParkMessage items = 3;
+}

@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public RubyInteropProvider()
         {
-            _loadedScripts = new Dictionary<string, string>();
+            _loadedScripts = new Dictionary<string, RubyLibraryInfo>();
         }
 
         public Task<OASISResult<bool>> InitializeAsync()
@@ -337,13 +337,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseRubySignatures(scriptContent);
+                    var signatures = ParseRubySignatures(scriptInfo.ScriptContent);
                     var functionNames = signatures.Select(s => s.FunctionName).ToList();
 
                     result.Result = functionNames;
@@ -409,13 +409,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseRubySignatures(scriptContent);
+                    var signatures = ParseRubySignatures(scriptInfo.ScriptContent);
 
                     result.Result = signatures;
                     result.Message = signatures.Count > 0

@@ -1,26 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class GeoNFTsControllerTests
     {
-        private readonly Mock<ILogger<GeoNFTsController>> _mockLogger;
         private readonly GeoNFTsController _controller;
 
         public GeoNFTsControllerTests()
         {
-            _mockLogger = new Mock<ILogger<GeoNFTsController>>();
             _controller = new GeoNFTsController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -31,7 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -45,23 +38,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
         public async Task CreateGeoNFT_WithValidGeoNFT_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockGeoNFT = new Mock<ISTARGeoNFT>();
-            mockGeoNFT.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockGeoNFT.Setup(x => x.Name).Returns("Test GeoNFT");
+            var geoNFT = new STARGeoNFT { Id = Guid.NewGuid(), Name = "Test GeoNFT" };
 
             // Act
-            var result = await _controller.CreateGeoNFT(mockGeoNFT.Object);
+            var result = await _controller.CreateGeoNFT(geoNFT);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -69,16 +60,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockGeoNFT = new Mock<ISTARGeoNFT>();
-            mockGeoNFT.Setup(x => x.Id).Returns(id);
-            mockGeoNFT.Setup(x => x.Name).Returns("Updated GeoNFT");
+            var geoNFT = new STARGeoNFT { Id = id, Name = "Updated GeoNFT" };
 
             // Act
-            var result = await _controller.UpdateGeoNFT(id, mockGeoNFT.Object);
+            var result = await _controller.UpdateGeoNFT(id, geoNFT);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -92,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

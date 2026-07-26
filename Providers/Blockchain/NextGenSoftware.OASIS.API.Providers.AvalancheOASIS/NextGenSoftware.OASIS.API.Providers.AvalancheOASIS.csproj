@@ -1,44 +1,60 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<PackageId>NextGenSoftware.OASIS.API.Providers.AvalancheOASIS</PackageId>
 		<Company>NextGen Software Ltd</Company>
 		<Product>WEB4 OASIS API Avalanche OASIS Provider</Product>
 		<Title>WEB4 OASIS API Avalanche OASIS Provider</Title>
-		<Summary>WEB4 OASIS API Avalanche OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.</Summary>
-		<Description>WEB4 OASIS API Avalanche OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.</Description>
-		<PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-		<PackageIcon>OASISLogo128.jpg</PackageIcon>
+		<Summary>Avalanche OASIS Provider -- sub-second finality, EVM-compatible, custom subnet support for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+		<Description>Connects the OASIS to Avalanche -- high-performance blockchain delivering sub-second finality, EVM compatibility on the C-Chain, and unlimited scalability via custom subnets. Stores OASIS holons, avatars, and tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+		<PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+		<PackageIcon>OASIS.jpg</PackageIcon>
 		<Authors>David Ellams (NextGen Software Ltd)</Authors>
 		<PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Avalanche</PackageTags>
-		<PackageReleaseNotes>Initial Release.</PackageReleaseNotes>
+		<PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-		<Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+		<RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+		<Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		<Version>1.0.0</Version>
+		<Version>2.0.1</Version>
 
 		<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Include="..\Images\Logos\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+	  <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
 	    <PackagePath>\</PackagePath>
 	    <Pack>True</Pack>
 	  </None>
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nethereum.RPC" Version="4.21.4" />
-    <PackageReference Include="Nethereum.Web3" Version="4.21.4" />
+    <PackageReference Include="Nethereum.RPC" Version="4.25.0" />
+    <PackageReference Include="Nethereum.Signer" Version="4.25.0" />
+    <PackageReference Include="Nethereum.Web3" Version="4.25.0" />
+    <PackageReference Include="Nethereum.HdWallet" Version="4.25.0" />
+  
+    <!-- Override: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0 -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>

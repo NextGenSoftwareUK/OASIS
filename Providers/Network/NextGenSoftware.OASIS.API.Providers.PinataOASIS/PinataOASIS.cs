@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -248,8 +248,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 SetAuthenticationHeaders();
@@ -291,8 +295,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 SetAuthenticationHeaders();
@@ -344,8 +352,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var url = $"{_gatewayUrl}/ipfs/{ipfsHash}";
@@ -460,8 +472,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar by email in Pinata using metadata search
@@ -523,8 +539,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar by username in Pinata using metadata search
@@ -586,8 +606,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get all avatar pins from Pinata
@@ -646,8 +670,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar detail by ID in Pinata
@@ -697,9 +725,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "SaveAvatar not implemented for PinataOASIS - use SaveAvatarAsync");
-            return result;
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -733,9 +759,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "SaveAvatarDetail not implemented for PinataOASIS - use SaveAvatarDetailAsync");
-            return result;
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
@@ -769,9 +793,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "SaveHolon not implemented for PinataOASIS - use SaveHolonAsync");
-            return result;
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -805,9 +827,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "SaveHolons not implemented for PinataOASIS - use SaveHolonsAsync");
-            return result;
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -905,37 +925,104 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon not implemented for PinataOASIS - Pinata does not support deletion");
-            return result;
+            return DeleteHolonAsync(id).Result;
         }
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolonAsync not implemented for PinataOASIS - Pinata does not support deletion");
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                var lookup = await FindPinnedHolonByIdAsync(id);
+                if (lookup.IsError)
+                {
+                    result.IsError = lookup.IsError;
+                    result.Message = lookup.Message;
+                    result.Exception = lookup.Exception;
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(lookup.Result.PinHash) || lookup.Result.Holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Holon with ID {id} not found in Pinata.");
+                    return result;
+                }
+
+                var unpinOk = await _pinataService.UnpinFileAsync(lookup.Result.PinHash);
+                if (!unpinOk)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to unpin holon {id} from Pinata.");
+                    return result;
+                }
+
+                result.Result = lookup.Result.Holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.IsError = false;
+                result.Message = "Holon unpinned (deleted) from Pinata successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon not implemented for PinataOASIS - Pinata does not support deletion");
-            return result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolonAsync not implemented for PinataOASIS - Pinata does not support deletion");
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                if (string.IsNullOrWhiteSpace(providerKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Provider key (IPFS hash) is required.");
+                    return result;
+                }
+
+                // Capture current content before unpinning (best-effort)
+                IHolon holon = null;
+                try
+                {
+                    var content = await _pinataService.GetFileContentAsync(providerKey);
+                    if (!string.IsNullOrWhiteSpace(content))
+                        holon = JsonConvert.DeserializeObject<Holon>(content);
+                }
+                catch { /* best effort */ }
+
+                var unpinOk = await _pinataService.UnpinFileAsync(providerKey);
+                if (!unpinOk)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to unpin holon {providerKey} from Pinata.");
+                    return result;
+                }
+
+                result.Result = holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.IsError = false;
+                result.Message = "Holon unpinned (deleted) from Pinata successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "Import not implemented for PinataOASIS - use ImportAsync");
-            return result;
+            return ImportAsync(holons).Result;
         }
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
@@ -965,43 +1052,98 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarById not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByIdAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                var holonsResult = await LoadAllHolonsAsync();
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}");
+                    return result;
+                }
+
+                var filtered = holonsResult.Result.Where(h => HolonMatchesAvatarId(h, avatarId)).ToList();
+                result.Result = filtered;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = $"Exported {filtered.Count} holons for avatar {avatarId} from Pinata.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByUsername not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByUsernameAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(avatarUsername))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar username is required.");
+                    return result;
+                }
+
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar with username {avatarUsername} not found in Pinata: {avatarResult.Message}");
+                    return result;
+                }
+
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar username from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByEmail not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByEmailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(avatarEmailAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar email is required.");
+                    return result;
+                }
+
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar with email {avatarEmailAddress} not found in Pinata: {avatarResult.Message}");
+                    return result;
+                }
+
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar email from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -1013,8 +1155,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Pinata provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1060,8 +1206,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Pinata provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1231,8 +1381,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Download and deserialize the holon
-                // TODO: Implement proper Pinata service integration
-                var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(holonFile.IpfsHash);
+                var content = await _pinataService.GetFileContentAsync(holonFile.IpfsPinHash);
+                if (string.IsNullOrEmpty(content))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to retrieve holon content from Pinata");
+                    return result;
+                }
                 var holon = JsonConvert.DeserializeObject<Holon>(content);
                 
                 if (holon == null)
@@ -1271,8 +1425,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Use providerKey as IPFS hash to directly fetch the file
-                // TODO: Implement proper Pinata service integration
-                var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(providerKey);
+                var content = await _pinataService.GetFileContentAsync(providerKey);
+                if (string.IsNullOrEmpty(content))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to retrieve holon content from Pinata using provider key");
+                    return result;
+                }
                 var holon = JsonConvert.DeserializeObject<Holon>(content);
                 
                 if (holon == null)
@@ -1356,170 +1514,593 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(providerKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Provider key is required.");
+                    return result;
+                }
+
+                var parentHolonResult = await LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (parentHolonResult.IsError || parentHolonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Parent holon not found in Pinata: {parentHolonResult.Message}");
+                    return result;
+                }
+
+                return await LoadHolonsForParentAsync(parentHolonResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaDataAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(metaKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Meta key is required.");
+                    return result;
+                }
+
+                var holonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}");
+                    return result;
+                }
+
+                var filtered = holonsResult.Result.Where(h => HolonMetaMatches(h, metaKey, metaValue)).ToList();
+                result.Result = filtered;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = $"Found {filtered.Count} holons matching metadata '{metaKey}'='{metaValue}'.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaDataAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Meta key/value pairs are required.");
+                    return result;
+                }
+
+                var holonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}");
+                    return result;
+                }
+
+                bool Matches(IHolon h)
+                {
+                    if (h?.MetaData == null) return false;
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
+                        return metaKeyValuePairs.All(kvp => HolonMetaMatches(h, kvp.Key, kvp.Value));
+                    return metaKeyValuePairs.Any(kvp => HolonMetaMatches(h, kvp.Key, kvp.Value));
+                }
+
+                var filtered = holonsResult.Result.Where(Matches).ToList();
+                result.Result = filtered;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = $"Found {filtered.Count} holons matching metadata pairs.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllHolons not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllHolonsAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                var pins = await _pinataService.GetFilesAsync();
+                var holons = new List<IHolon>();
+
+                foreach (var pin in pins)
+                {
+                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
+                    try
+                    {
+                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
+                        if (string.IsNullOrWhiteSpace(content)) continue;
+
+                        var holon = JsonConvert.DeserializeObject<Holon>(content);
+                        if (holon == null) continue;
+
+                        if (type != HolonType.All && holon.HolonType != type) continue;
+                        if (version > 0 && holon.Version != version) continue;
+
+                        holons.Add(holon);
+                    }
+                    catch
+                    {
+                        // ignore non-holon pins
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = $"Loaded {holons.Count} holons from Pinata.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarDetails not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarDetailsAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                var pins = await _pinataService.GetFilesAsync();
+                var avatarDetails = new List<IAvatarDetail>();
+
+                foreach (var pin in pins)
+                {
+                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
+                    try
+                    {
+                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
+                        if (string.IsNullOrWhiteSpace(content)) continue;
+
+                        var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(content);
+                        if (avatarDetail == null) continue;
+                        if (version > 0 && avatarDetail.Version != version) continue;
+
+                        avatarDetails.Add(avatarDetail);
+                    }
+                    catch
+                    {
+                        // ignore non-avatar-detail pins
+                    }
+                }
+
+                result.Result = avatarDetails;
+                result.IsLoaded = true;
+                result.IsError = false;
+                result.Message = $"Loaded {avatarDetails.Count} avatar details from Pinata.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByEmail not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByEmailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(avatarEmail))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar email is required.");
+                    return result;
+                }
+
+                var allResult = await LoadAllAvatarDetailsAsync(version);
+                if (allResult.IsError || allResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from Pinata: {allResult.Message}");
+                    return result;
+                }
+
+                var match = allResult.Result.FirstOrDefault(a => string.Equals(a.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
+                if (match == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No avatar detail found with email: {avatarEmail}");
+                    return result;
+                }
+
+                result.Result = match;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = "Avatar detail loaded successfully by email from Pinata.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByUsername not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByUsernameAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(avatarUsername))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar username is required.");
+                    return result;
+                }
+
+                var allResult = await LoadAllAvatarDetailsAsync(version);
+                if (allResult.IsError || allResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from Pinata: {allResult.Message}");
+                    return result;
+                }
+
+                var match = allResult.Result.FirstOrDefault(a => string.Equals(a.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
+                if (match == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No avatar detail found with username: {avatarUsername}");
+                    return result;
+                }
+
+                result.Result = match;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = "Avatar detail loaded successfully by username from Pinata.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Pinata: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private static bool HolonMetaMatches(IHolon holon, string metaKey, string metaValue)
+        {
+            if (holon?.MetaData == null || string.IsNullOrWhiteSpace(metaKey)) return false;
+            if (!holon.MetaData.TryGetValue(metaKey, out var val)) return false;
+            if (metaValue == null) return val != null;
+            return string.Equals(val?.ToString(), metaValue, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool HolonMatchesAvatarId(IHolon holon, Guid avatarId)
+        {
+            if (holon == null) return false;
+
+            // Prefer strongly-typed property if present
+            try
+            {
+                var prop = holon.GetType().GetProperty("CreatedByAvatarId");
+                if (prop != null && prop.PropertyType == typeof(Guid))
+                {
+                    var value = (Guid)prop.GetValue(holon);
+                    return value == avatarId;
+                }
+            }
+            catch { }
+
+            // Fallback: metadata
+            if (holon.MetaData != null &&
+                holon.MetaData.TryGetValue("CreatedByAvatarId", out var val) &&
+                Guid.TryParse(val?.ToString(), out var parsed))
+            {
+                return parsed == avatarId;
+            }
+
+            return false;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<bool>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                // Find avatar pin by scanning pinned avatar JSONs (reliable across Pinata query syntax changes)
+                var pins = await _pinataService.GetFilesAsync();
+                foreach (var pin in pins)
+                {
+                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
+
+                    try
+                    {
+                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
+                        if (string.IsNullOrWhiteSpace(content)) continue;
+
+                        var avatar = JsonConvert.DeserializeObject<Avatar>(content);
+                        if (avatar != null && avatar.Id == id)
+                        {
+                            var unpinOk = await _pinataService.UnpinFileAsync(pin.IpfsPinHash);
+                            if (!unpinOk)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Failed to unpin avatar {id} from Pinata.");
+                                return result;
+                            }
+
+                            result.Result = true;
+                            result.IsDeleted = true;
+                            result.DeletedCount = 1;
+                            result.IsError = false;
+                            result.Message = "Avatar unpinned (deleted) from Pinata successfully.";
+                            return result;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore non-avatar pins
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref result, $"Avatar with ID {id} not found in Pinata.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Pinata: {ex.Message}", ex);
+            }
+
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<bool>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                if (string.IsNullOrWhiteSpace(providerKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Provider key (IPFS hash) is required.");
+                    return result;
+                }
+
+                var unpinOk = await _pinataService.UnpinFileAsync(providerKey);
+                if (!unpinOk)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to unpin avatar {providerKey} from Pinata.");
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.IsError = false;
+                result.Message = "Avatar unpinned (deleted) from Pinata successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmail not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar with email {avatarEmail} not found in Pinata.");
+                    return result;
+                }
+
+                if (avatarResult.Result.ProviderUniqueStorageKey != null &&
+                    avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.PinataOASIS, out var providerKey) &&
+                    !string.IsNullOrWhiteSpace(providerKey))
+                {
+                    return await DeleteAvatarAsync(providerKey, softDelete);
+                }
+
+                // Fall back to scanning pins by content if provider key missing
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsername not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsernameAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar with username {avatarUsername} not found in Pinata.");
+                    return result;
+                }
+
+                if (avatarResult.Result.ProviderUniqueStorageKey != null &&
+                    avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.PinataOASIS, out var providerKey) &&
+                    !string.IsNullOrWhiteSpace(providerKey))
+                {
+                    return await DeleteAvatarAsync(providerKey, softDelete);
+                }
+
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Pinata: {ex.Message}", ex);
+            }
             return result;
         }
 
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAll not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return ExportAllAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                // Export = enumerate pins and return all holons we can deserialize.
+                var pins = await _pinataService.GetFilesAsync();
+                var holons = new List<IHolon>();
+
+                foreach (var pin in pins)
+                {
+                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
+                    try
+                    {
+                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
+                        if (string.IsNullOrWhiteSpace(content)) continue;
+
+                        var holon = JsonConvert.DeserializeObject<Holon>(content);
+                        if (holon != null)
+                            holons.Add(holon);
+                    }
+                    catch
+                    {
+                        // ignore non-holon pins
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Message = $"Exported {holons.Count} holons from Pinata.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting holons from Pinata: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        private async Task EnsureActivatedForPinataAsync<T>(OASISResult<T> result)
+        {
+            if (!IsProviderActivated)
+            {
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
+            }
+        }
+
+        private async Task<OASISResult<(string PinHash, IHolon Holon)>> FindPinnedHolonByIdAsync(Guid id)
+        {
+            var result = new OASISResult<(string PinHash, IHolon Holon)>();
+            try
+            {
+                await EnsureActivatedForPinataAsync(result);
+                if (result.IsError) return result;
+
+                var pins = await _pinataService.GetFilesAsync();
+                foreach (var pin in pins)
+                {
+                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
+
+                    try
+                    {
+                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
+                        if (string.IsNullOrWhiteSpace(content)) continue;
+
+                        var holon = JsonConvert.DeserializeObject<Holon>(content);
+                        if (holon != null && holon.Id == id)
+                        {
+                            result.Result = (pin.IpfsPinHash, holon);
+                            result.IsError = false;
+                            return result;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore non-holon pins
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref result, $"Holon with ID {id} not found in Pinata.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching holon pins in Pinata: {ex.Message}", ex);
+            }
             return result;
         }
     }

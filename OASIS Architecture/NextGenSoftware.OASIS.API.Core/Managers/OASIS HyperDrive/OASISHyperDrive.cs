@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
 {
@@ -21,6 +23,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
     /// </summary>
     public class OASISHyperDrive
     {
+        /// <summary>
+        /// Real in-process usage counters for quota enforcement, keyed by "{operationType}:{yyyy-MM}" so usage
+        /// rolls over monthly (matching SubscriptionConfig.BillingCycle = "Monthly"). Shared across all
+        /// OASISHyperDrive instances (the class is constructed fresh per request by callers like AvatarManager/
+        /// HolonManager) via this static field, so quota actually accumulates instead of always reading 0.
+        /// Loaded from disk on first use and persisted after every increment so monthly caps survive restarts.
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, int> _usageCounters = new ConcurrentDictionary<string, int>();
+        private static bool _usageCountersLoaded = false;
+        private static readonly object _usageLoadLock = new object();
+
+        /// <summary>
+        /// Directory used for persisting runtime state (quota counters).
+        /// Defaults to "oasis-data"; can be overridden before the first OASISHyperDrive instance is created.
+        /// </summary>
+        public static string DataDirectory { get; set; } = "oasis-data";
+        private const string QuotaFileName = "hyperdrive-quota.json";
+
         private readonly ProviderManager _providerManager;
         private readonly PerformanceMonitor _performanceMonitor;
         private readonly OASISHyperDriveConfigManager _configManager;
@@ -115,6 +135,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// </summary>
         public async Task<OASISResult<T>> FailoverRequestAsync<T>(IRequest request)
         {
+            if (request == null)
+                return new OASISResult<T> { IsError = true, Message = "The request is required. Please provide a valid IRequest." };
             try
             {
                 var failoverProviders = _providerManager.GetProviderAutoFailOverList();
@@ -150,6 +172,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// </summary>
         public async Task<OASISResult<List<T>>> ReplicateRequestAsync<T>(IRequest request)
         {
+            if (request == null)
+                return new OASISResult<List<T>> { IsError = true, Message = "The request is required. Please provide a valid IRequest." };
             try
             {
                 var replicationProviders = _providerManager.GetProvidersThatAreAutoReplicating();
@@ -216,7 +240,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             }
             catch (Exception ex)
             {
-                // Fallback to current provider
+                LoggingManager.Log($"OASISHyperDrive.SelectOptimalProviderAsync failed, falling back to the current storage provider. Reason: {ex.Message}", LogType.Warning);
                 return _providerManager.CurrentStorageProviderType;
             }
         }
@@ -274,18 +298,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             {
                 // Get AI recommendations
                 var recommendations = await _aiEngine.GetProviderRecommendationsAsync(request, providers.Select(p => p.Value).ToList());
-                
-                // Apply subscription constraints
-                var filteredRecommendations = recommendations
-                    .Where(r => IsProviderAllowedForSubscriptionAsync(new EnumValue<ProviderType>(r.ProviderType), subscriptionConfig).Result)
-                    .OrderByDescending(r => r.Score)
-                    .ToList();
-                
+
+                // Apply subscription constraints (awaited properly - no sync-over-async .Result, which risked
+                // deadlocking callers running on a captured synchronization context).
+                var filteredRecommendations = new List<ProviderRecommendation>();
+                foreach (var recommendation in recommendations)
+                {
+                    if (await IsProviderAllowedForSubscriptionAsync(new EnumValue<ProviderType>(recommendation.ProviderType), subscriptionConfig))
+                        filteredRecommendations.Add(recommendation);
+                }
+                filteredRecommendations = filteredRecommendations.OrderByDescending(r => r.Score).ToList();
+
                 return new EnumValue<ProviderType>(filteredRecommendations.FirstOrDefault()?.ProviderType ?? providers.First().Value);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Fallback to ProviderManager's performance-based selection
+                LoggingManager.Log($"OASISHyperDrive.SelectIntelligentProviderAsync AI recommendation failed, falling back to performance-based selection. Reason: {ex.Message}", LogType.Warning);
                 return _providerManager.SelectOptimalProviderForLoadBalancing(LoadBalancingStrategy.Performance);
             }
         }
@@ -328,7 +356,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                 {
                     if (subscriptionConfig.PayAsYouGoEnabled)
                     {
-                        // Allow with pay-as-you-go
+                        // Allow with pay-as-you-go - still record the usage below so cost/overage is tracked.
+                        IncrementUsage(operationType);
                         return new OASISResult<bool> { Result = true };
                     }
                     else
@@ -340,7 +369,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                         };
                     }
                 }
-                
+
+                // Operation is within quota - record it now so the next check sees accurate usage.
+                IncrementUsage(operationType);
                 return new OASISResult<bool> { Result = true };
             }
             catch (Exception ex)
@@ -393,37 +424,80 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             };
         }
 
-                private async Task<int> GetCurrentUsageAsync(string operationType)
-                {
-                    // This would typically come from a usage tracking service
-                    // For now, return a placeholder based on operation type
-                    return operationType switch
-                    {
-                        "Replications" => await Task.FromResult(0), // Would track replication count
-                        "Requests" => await Task.FromResult(0), // Would track request count
-                        _ => await Task.FromResult(0)
-                    };
-                }
+        /// <summary>Builds the rolling-monthly usage counter key for an operation type.</summary>
+        private static string GetUsageCounterKey(string operationType)
+        {
+            return $"{operationType}:{DateTime.UtcNow:yyyy-MM}";
+        }
+
+        private static void EnsureUsageCountersLoaded()
+        {
+            if (_usageCountersLoaded) return;
+            lock (_usageLoadLock)
+            {
+                if (_usageCountersLoaded) return;
+                // Synchronous load on first access (only runs once per process).
+                var loaded = OASISPersistence.LoadAsync<Dictionary<string, int>>(DataDirectory, QuotaFileName)
+                    .GetAwaiter().GetResult();
+                if (loaded != null)
+                    foreach (var kv in loaded)
+                        _usageCounters[kv.Key] = kv.Value;
+                _usageCountersLoaded = true;
+            }
+        }
+
+        /// <summary>Records one unit of usage against the current monthly window for the given operation type.</summary>
+        private static void IncrementUsage(string operationType)
+        {
+            EnsureUsageCountersLoaded();
+            _usageCounters.AddOrUpdate(GetUsageCounterKey(operationType), 1, (_, count) => count + 1);
+            // Fire-and-forget best-effort persist so monthly caps survive restarts.
+            _ = OASISPersistence.SaveAsync(DataDirectory, QuotaFileName, new Dictionary<string, int>(_usageCounters));
+        }
+
+        private Task<int> GetCurrentUsageAsync(string operationType)
+        {
+            EnsureUsageCountersLoaded();
+            return Task.FromResult(_usageCounters.TryGetValue(GetUsageCounterKey(operationType), out var count) ? count : 0);
+        }
 
         private int GetQuotaLimit(string operationType, SubscriptionConfig config)
         {
             return operationType switch
             {
-                        "Replications" => 100, // config.MaxReplications not available
-                        _ => 1000 // config.MaxRequests not available
+                "Replications" => config.MaxReplicationsPerMonth,
+                "Failovers" => config.MaxFailoversPerMonth,
+                // Requests now reads a real, DNA-configurable SubscriptionConfig.MaxRequestsPerMonth field
+                // instead of a hardcoded 1000 - operators can now actually tune this per subscription plan.
+                _ => config.MaxRequestsPerMonth
             };
         }
 
                 // Route requests to specific providers
                 private async Task<OASISResult<T>> RouteToProviderAsync<T>(IRequest request, EnumValue<ProviderType> providerType)
                 {
+                    // Apply any preventive failover override recorded by the background prediction loop.
+                    // This is the safe alternative to PredictiveFailoverEngine calling
+                    // SetAndActivateCurrentStorageProviderAsync globally (which would race with concurrent requests).
+                    var override_ = PredictiveFailoverEngine.Instance.GetFailoverOverride(providerType.Value);
+                    if (override_ != ProviderType.Default)
+                    {
+                        LoggingManager.Log(
+                            $"HyperDrive: applying predictive failover override {providerType.Value} -> {override_}",
+                            Logging.LogType.Info);
+                        providerType = new EnumValue<ProviderType>(override_);
+                    }
+
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                    OASISResult<T> routeResult;
+
                     try
                     {
                         // Switch to the target provider
                         await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType.Value);
-                        
+
                         // Route based on request type
-                        return request switch
+                        routeResult = request switch
                         {
                             SaveHolonRequest saveHolon => await RouteSaveHolonAsync<T>(saveHolon),
                             LoadHolonRequest loadHolon => await RouteLoadHolonAsync<T>(loadHolon),
@@ -438,13 +512,44 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                     }
                     catch (Exception ex)
                     {
-                        return new OASISResult<T>
+                        routeResult = new OASISResult<T>
                         {
                             IsError = true,
                             Message = $"Provider routing failed: {ex.Message}",
                             Exception = ex
                         };
                     }
+
+                    stopwatch.Stop();
+
+                    // If this provider succeeded after a failover override was active, clear it so traffic
+                    // gradually returns to the primary once it has recovered.
+                    if (!routeResult.IsError)
+                        PredictiveFailoverEngine.Instance.ClearFailoverOverride(providerType.Value);
+
+                    // Feed the AI optimization engine real outcomes from every routed request, instead of it
+                    // always degrading to a neutral 0.5 score because nothing in the live path ever called this.
+                    await _aiEngine.RecordPerformanceDataAsync(
+                        providerType.Value,
+                        request,
+                        new OASISResult<object> { IsError = routeResult.IsError, Message = routeResult.Message },
+                        stopwatch.ElapsedMilliseconds);
+
+                    // Feed AdvancedAnalyticsEngine real outcomes too - RecordAnalyticsData was never called
+                    // from anywhere in the live path, so its cost/performance optimization recommendations
+                    // and predictive analytics always operated on zero recorded data points regardless of
+                    // real traffic.
+                    _analyticsEngine.RecordAnalyticsData(providerType.Value, new AnalyticsDataPoint
+                    {
+                        Timestamp = DateTime.UtcNow,
+                        ProviderType = providerType.Value,
+                        Success = !routeResult.IsError,
+                        ResponseTimeMs = stopwatch.ElapsedMilliseconds,
+                        Cost = (double)PerformanceMonitor.Instance.GetProviderCosts(providerType.Value),
+                        Operation = request.GetType().Name
+                    });
+
+                    return routeResult;
                 }
 
                 private async Task<OASISResult<T>> HandleFailoverAsync<T>(IRequest request, EnumValue<ProviderType> originalProvider)
@@ -549,12 +654,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             try
             {
                 // Get current provider status and network topology
-                var activeProviders = _providerManager.GetAllRegisteredProviders();
+                var allProviders = _providerManager.GetAllRegisteredProviders();
+                var activeProviderCount = allProviders.Count(p => p.IsProviderActivated);
+
                 var topology = new NetworkTopology
                 {
-                    TotalProviders = activeProviders.Count,
-                    ActiveProviders = activeProviders.Where(p => p.IsProviderActivated).Count(),
-                    NetworkHealth = 0.85, // Default health value since GetOverallHealth doesn't exist
+                    TotalProviders = allProviders.Count,
+                    ActiveProviders = activeProviderCount,
+                    // Real health = fraction of registered providers currently activated, not a hardcoded constant.
+                    NetworkHealth = allProviders.Count == 0 ? 0.0 : Math.Round((double)activeProviderCount / allProviders.Count, 4),
                     LastUpdated = DateTime.UtcNow
                 };
                 

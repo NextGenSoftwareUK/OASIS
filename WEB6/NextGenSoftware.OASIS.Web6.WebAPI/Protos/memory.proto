@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package oasis.web6;
+option csharp_namespace = "NextGenSoftware.OASIS.Web6.WebAPI.Grpc";
+
+import "Protos/common.proto";
+
+service MemoryService {
+  rpc GetEarthHolon (EmptyRequest) returns (HolonReply);
+  rpc GetOrCreateHolon (GetOrCreateHolonRequest) returns (HolonReply);
+  rpc SetMembraneRule (SetMembraneRuleRequest) returns (BaseReply);
+  rpc RecordMemory (RecordMemoryRequest) returns (BaseReply);
+  rpc PropagateUp (PropagateRequest) returns (BaseReply);
+  rpc Propagate (HolonIdRequest) returns (BaseReply);
+  rpc SearchMemory (SearchMemoryRequest) returns (SearchMemoryReply);
+  rpc ListExternalProviders (EmptyRequest) returns (StringListReply);
+  rpc SearchExternalMemory (ExternalSearchRequest) returns (ExternalSearchReply);
+  rpc AddExternalMemory (AddExternalMemoryRequest) returns (BaseReply);
+  rpc DeleteExternalMemory (DeleteExternalMemoryRequest) returns (BaseReply);
+  rpc GetAvatarContext (AvatarIdRequest) returns (AvatarContextReply);
+}
+
+message HolonReply {
+  bool is_error = 1;
+  string message = 2;
+  string holon_id = 3;
+  string name = 4;
+  string level = 5;
+  string parent_holon_id = 6;
+}
+
+message GetOrCreateHolonRequest {
+  string level = 1;
+  string name = 2;
+  string parent_holon_id = 3;
+  string avatar_id = 4;
+}
+
+message SetMembraneRuleRequest {
+  string holon_id = 1;
+  string rule_type = 2;
+  double threshold = 3;
+}
+
+message HolonicMemoryItemProto {
+  string content = 1;
+  string category = 2;
+  double importance = 3;
+}
+
+message RecordMemoryRequest {
+  string holon_id = 1;
+  HolonicMemoryItemProto item = 2;
+}
+
+message PropagateRequest {
+  string child_holon_id = 1;
+  int32 levels = 2;
+}
+
+message HolonIdRequest {
+  string holon_id = 1;
+}
+
+message SearchMemoryRequest {
+  string holon_id = 1;
+  string query = 2;
+  int32 top_k = 3;
+  string provider = 4;
+}
+
+message MemorySearchResultProto {
+  string content = 1;
+  double score = 2;
+  string category = 3;
+}
+
+message SearchMemoryReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated MemorySearchResultProto results = 3;
+}
+
+message ExternalSearchRequest {
+  string query = 1;
+  string avatar_id = 2;
+  repeated string providers = 3;
+  int32 top_k = 4;
+}
+
+message ExternalMemoryResultProto {
+  string provider = 1;
+  string content = 2;
+  double score = 3;
+}
+
+message ExternalSearchReply {
+  bool is_error = 1;
+  string message = 2;
+  repeated ExternalMemoryResultProto results = 3;
+}
+
+message AddExternalMemoryRequest {
+  string provider = 1;
+  string content = 2;
+  string avatar_id = 3;
+}
+
+message DeleteExternalMemoryRequest {
+  string provider = 1;
+  string id = 2;
+}
+
+message AvatarIdRequest {
+  string avatar_id = 1;
+  string bearer_token = 2;
+}
+
+message AvatarContextReply {
+  bool is_error = 1;
+  string message = 2;
+  string context_block = 3;
+  int32 karma = 4;
+}

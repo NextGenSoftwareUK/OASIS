@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Application,
         Renderer,
         Blockchain,
+        EVMBlockchain,
         Cloud
     }
 }

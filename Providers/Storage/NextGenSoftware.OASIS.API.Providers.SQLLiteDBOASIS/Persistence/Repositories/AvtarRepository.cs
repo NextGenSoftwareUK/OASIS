@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -422,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             
             try
             {
-                var avatar = _dbContext.Avatars.FirstOrDefault(p => p.ProviderKey == providerKey);
+                var avatar = _dbContext.Avatars.FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
                 if (avatar != null)
                 {
                     if (softDelete)
@@ -669,7 +670,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             
             try
             {
-                var avatar = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.ProviderKey == providerKey);
+                var avatar = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
                 if (avatar != null)
                 {
                     if (softDelete)
@@ -1113,7 +1114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.ProviderKey == providerKey && p.Version == version);
+                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && p.Version == version);
                 
                 if (avatarEntity != null)
                 {
@@ -1152,7 +1153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => p.ProviderKey == providerKey && p.Version == version);
+                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && p.Version == version);
                 
                 if (avatarEntity != null)
                 {

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -19,7 +20,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private readonly AIOptimizationEngine _aiEngine;
         private readonly Dictionary<ProviderType, FailurePredictionModel> _failureModels;
         private readonly Dictionary<ProviderType, List<FailureEvent>> _failureHistory;
+        private readonly List<PreventiveAction> _preventiveActions = new List<PreventiveAction>();
         private readonly object _lockObject = new object();
+
+        /// <summary>
+        /// Per-provider override recommendations written by the background prediction loop and read by
+        /// RouteToProviderAsync on each incoming request. Keyed by the at-risk provider; value is the
+        /// recommended replacement to use instead. This replaces the previous implementation which called
+        /// ProviderManager.SetAndActivateCurrentStorageProviderAsync globally from the background loop,
+        /// racing with concurrent in-flight storage operations.
+        /// </summary>
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<ProviderType, ProviderType>
+            _pendingFailoverOverrides = new();
+
+        /// <summary>
+        /// Returns the override provider for <paramref name="provider"/> if the background loop has flagged
+        /// it as high-risk, or <see cref="ProviderType.Default"/> when no override is active.
+        /// Called by OASISHyperDrive.RouteToProviderAsync on the hot path.
+        /// </summary>
+        public ProviderType GetFailoverOverride(ProviderType provider)
+            => _pendingFailoverOverrides.TryGetValue(provider, out var alt) ? alt : ProviderType.Default;
 
         public static PredictiveFailoverEngine Instance
         {
@@ -54,7 +74,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             var highRiskProviders = new List<ProviderType>();
 
-            foreach (var provider in _failureModels.Keys)
+            // Predict for every actually-registered provider, not just ones that already have a failure
+            // model. _failureModels is only ever populated by RecordFailureEvent/UpdateFailureModel, so a
+            // provider that's silently degrading (high latency/errors) but has never had a single recorded
+            // FailureEvent would otherwise never be checked at all - the riskiest case (an undetected,
+            // ongoing degradation) was exactly the one this method could never catch.
+            var providersToCheck = ProviderManager.Instance.GetAllRegisteredProviders()
+                .Select(p => p.ProviderType?.Value ?? ProviderType.Default)
+                .Where(p => p != ProviderType.Default)
+                .Union(_failureModels.Keys)
+                .Distinct();
+
+            foreach (var provider in providersToCheck)
             {
                 var failurePrediction = await PredictProviderFailureAsync(provider);
                 prediction.Predictions.Add(failurePrediction);
@@ -175,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error initiating preventive failover for {provider}: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error initiating preventive failover for {provider}: {ex.Message}", ex);
                     success = false;
                 }
             }
@@ -424,23 +455,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Executes preventive failover
+        /// Records a per-provider failover override that OASISHyperDrive.RouteToProviderAsync will apply
+        /// on the next incoming request for <paramref name="fromProvider"/>.  Does NOT call
+        /// ProviderManager.SetAndActivateCurrentStorageProviderAsync — that mutates global state from this
+        /// background loop, racing with concurrent in-flight storage operations on every other goroutine.
         /// </summary>
-        private async Task ExecutePreventiveFailoverAsync(ProviderType fromProvider, ProviderType toProvider)
+        private Task ExecutePreventiveFailoverAsync(ProviderType fromProvider, ProviderType toProvider)
         {
-            // This would integrate with the existing failover system
-            // For now, we'll just log the action
-            Console.WriteLine($"Preventive failover: {fromProvider} -> {toProvider}");
-            
-            // In a real implementation, this would:
-            // 1. Update provider configurations
-            // 2. Redirect traffic to the new provider
-            // 3. Update load balancing settings
-            // 4. Notify monitoring systems
+            _pendingFailoverOverrides[fromProvider] = toProvider;
+            LoggingManager.Log(
+                $"Preventive failover queued: next request for {fromProvider} will be redirected to {toProvider}",
+                Logging.LogType.Info);
+            return Task.CompletedTask;
         }
 
         /// <summary>
-        /// Records preventive action
+        /// Clear the failover override for a provider once it has recovered (called by
+        /// OASISHyperDrive.RouteToProviderAsync after a successful real operation through that provider).
+        /// </summary>
+        public void ClearFailoverOverride(ProviderType provider)
+            => _pendingFailoverOverrides.TryRemove(provider, out _);
+
+        /// <summary>
+        /// Records a preventive action in a real, queryable list (see GetPreventiveActions) instead of just
+        /// Console.WriteLine-ing it with no way to retrieve it afterward.
         /// </summary>
         private void RecordPreventiveAction(ProviderType fromProvider, ProviderType toProvider)
         {
@@ -453,8 +491,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 Success = true
             };
 
-            // Record the action for analytics
-            Console.WriteLine($"Recorded preventive action: {action}");
+            lock (_lockObject)
+            {
+                _preventiveActions.Add(action);
+                if (_preventiveActions.Count > 1000)
+                    _preventiveActions.RemoveRange(0, _preventiveActions.Count - 1000);
+            }
+
+            LoggingManager.Log($"Recorded preventive action: {fromProvider} -> {toProvider} at {action.Timestamp:O}", Logging.LogType.Info);
+        }
+
+        /// <summary>Gets the real history of preventive failover actions taken.</summary>
+        public List<PreventiveAction> GetPreventiveActions()
+        {
+            lock (_lockObject)
+            {
+                return new List<PreventiveAction>(_preventiveActions);
+            }
         }
 
         /// <summary>

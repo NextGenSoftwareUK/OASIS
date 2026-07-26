@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -56,11 +56,32 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// <returns></returns>
         public OASISResult<T> SendHolon<T>(Guid id, ProviderType sourceProviderType, ProviderType destinationProviderType, bool autoReplicate = false) where T : IHolon, new()
         {
-            // TODO: Finish Implementing ASAP...
-            // Needs to load the holon from the source provider and then save to the destination provider.
+            OASISResult<T> result = new OASISResult<T>();
+            try
+            {
+                OASISResult<T> loadResult = LoadHolon<T>(id, providerType: sourceProviderType);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"SendHolon failed to load holon {id} from {sourceProviderType}: {loadResult.Message}");
+                    return result;
+                }
 
+                OASISResult<IHolon> saveResult = SaveHolon(loadResult.Result, loadResult.Result.CreatedByAvatarId, providerType: destinationProviderType);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"SendHolon failed to save holon {id} to {destinationProviderType}: {saveResult.Message}");
+                    return result;
+                }
 
-            return new OASISResult<T>();
+                result.Result = loadResult.Result;
+                result.IsSaved = true;
+                result.Message = $"Holon {id} sent from {sourceProviderType} to {destinationProviderType} successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unexpected error in SendHolon: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentHolon, IHolon holon, List<IHolon> holons, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
@@ -379,6 +400,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveSettingsAsync(Guid avatarId, string category, Dictionary<string, object> settings)
         {
             var result = new OASISResult<bool>();
+            if (settings == null)
+            {
+                result.IsError = true;
+                result.Message = "The settings dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             try
             {
                 // Get or create the settings holon for this category
