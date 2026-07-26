@@ -67,7 +67,7 @@
             "SmtpPass": "",
             "DisableAllEmails": true,
             "SendVerificationEmail": true,
-            "OASISWebSiteURL": "https://oasisweb4.one/#"
+            "OASISWebSiteURL": "https://oportal.oasisomniverse.one"
         },
         "StorageProviders": {
             "LogSwitchingProviders": true,
@@ -474,7 +474,7 @@
             "AutoRegisterOnBootstrap": false
         },
         "OASISSystemAccountId": "",
-        "OASISAPIURL": "https://api.oasisweb4.one",
+        "OASISAPIURL": "https://api.web4.oasisomniverse.one",
         "NetworkId": "onet01",
         "SettingsLookupHolonId": "00000000-0000-0000-0000-000000000000",
         "StatsCacheEnabled": false,
