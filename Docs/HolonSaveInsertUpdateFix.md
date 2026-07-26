@@ -1,4 +1,4 @@
-# Holon Save: Insert vs Update Fix
+﻿# Holon Save: Insert vs Update Fix
 
 **Status:** All 4 phases complete.  
 **Last updated:** 2026-07-26  
@@ -125,10 +125,10 @@ The following files contain holons constructed with a pre-assigned GUID. Before 
 
 ### WEB6
 
-| File | Line | Pattern |
-|------|------|---------|
-| `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/HolonicBraidManager.cs` | 50 | `new Holon(LibraryHolonId)` â€” well-known GUID |
-| `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/HolonicMemoryManager.cs` | 65 | `new Holon(EarthHolonId)` â€” well-known GUID |
+| File | Line | Pattern | Fixed |
+|------|------|---------|-------|
+| `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/HolonicBraidManager.cs` | 50 | `new Holon(LibraryHolonId)` — well-known GUID | ✅ `IsNewHolon = true` added |
+| `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/HolonicMemoryManager.cs` | 65 | `new Holon(EarthHolonId)` — well-known GUID | ✅ `IsNewHolon = true` added |
 
 ### STAR ODK â€” CelestialSpace
 
@@ -152,7 +152,7 @@ The following files contain holons constructed with a pre-assigned GUID. Before 
 
 | File | Lines | Pattern |
 |------|-------|---------|
-| `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/STARNETManagerBase.cs` | 168â€“173, 341â€“345 | Pre-assigned GUID |
+| `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/STARNETManagerBase.cs` | 168-173, 341-345 | Pre-assigned GUID — **was missing `IsNewHolon = true`** | ✅ `IsNewHolon = true` added |
 | `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/COSMICManager.cs` | 12+ locations | Pre-assigned GUID + **ineffective** `IsNewHolon = true` |
 
 ### Core Managers
@@ -170,8 +170,8 @@ The following files contain holons constructed with a pre-assigned GUID. Before 
 |-------|-------------|--------|
 | **1** | Add `[BsonIgnore]` to `IsNewHolon` in MongoDB `HolonBase.cs` | âœ… Complete |
 | **2** | Fix `PrepareHolonForSaving` to not unconditionally override caller-set `IsNewHolon = true` | âœ… Complete |
-| **3** | Fix avatar registration: add `MatchedCount` fallback to `AvatarRepository`; fix `AvatarManager-Private.cs` to not set `CreatedDate = DateTime.Now` before save | â³ Pending |
-| **4** | Cleanup: remove now-effective but redundant `IsNewHolon = true` settings from `COSMICManager.cs`, `Star.cs`, `GrandSuperStarCore.cs`, `GreatGrandSuperStarCore.cs`, `KarmaManager.cs` | â³ Pending |
+| **3** | Fix avatar registration: add `MatchedCount` fallback to `AvatarRepository`; fix `AvatarManager-Private.cs` to not set `CreatedDate = DateTime.Now` before save | ✅ Complete |
+| **4** | Cleanup: remove now-effective but redundant `IsNewHolon = true` settings from `COSMICManager.cs`, `Star.cs`, `GrandSuperStarCore.cs`, `GreatGrandSuperStarCore.cs`, `KarmaManager.cs` | ✅ Complete |
 
 ### Phase 3 Detail
 
@@ -188,7 +188,7 @@ This pre-sets `CreatedDate`, which was the original motivation for the `|| holon
 
 ### Phase 4 Detail
 
-All `IsNewHolon = true` settings in `Star.cs`, `COSMICManager.cs`, `GrandSuperStarCore.cs`, `GreatGrandSuperStarCore.cs`, and `KarmaManager.cs` were previously wiped by `PrepareHolonForSaving`. After Phases 1â€“2 they are now **effective**: the holons will be treated as new inserts. These callers use pre-assigned well-known GUIDs, so the `MatchedCount == 0` fallback in `HolonRepository` ensures they are inserted only if they don't already exist. Phase 4 is cosmetic cleanup â€” the `IsNewHolon = true` lines are no longer harmful, just redundant since the `else if (!holon.IsNewHolon)` branch in `PrepareHolonForSaving` already handles pre-assigned IDs via the `MatchedCount` fallback.
+All `IsNewHolon = true` settings in `Star.cs`, `COSMICManager.cs`, `GrandSuperStarCore.cs`, `GreatGrandSuperStarCore.cs`, and `KarmaManager.cs` were previously wiped by `PrepareHolonForSaving`. After Phases 1-2 they are now **effective** and **must be kept** — they are the signal that tells all non-MongoDB providers to insert. The MongoDB `MatchedCount == 0` fallback is a safety net only; other providers (Holochain, IPFS, SQLite, Neo4j, etc.) rely on `IsNewHolon = true` exclusively. These lines are **not** redundant and must not be removed.
 
 ---
 
