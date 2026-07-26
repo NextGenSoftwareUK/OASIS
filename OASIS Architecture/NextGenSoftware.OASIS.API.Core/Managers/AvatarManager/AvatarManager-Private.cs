@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='color:#cccccc; font-size:15px; padding-bottom:28px; line-height:1.6;'>
+                                        <td style='color:#ffffff; font-size:15px; padding-bottom:28px; line-height:1.6;'>
                                             We received a request to reset your password. Click the button below to choose a new one. 
                                             This link will be valid for <strong style='color:#ffffff;'>1 day</strong>.
                                         </td>
@@ -77,18 +77,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='color:#666666; font-size:13px; padding-bottom:20px; line-height:1.6;'>
+                                        <td style='color:#ffffff; font-size:13px; padding-bottom:20px; line-height:1.6;'>
                                             Or copy and paste this link into your browser:<br/>
                                             <a href='{resetUrl}' style='color:#4a9eff;'>{resetUrl}</a>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='color:#666666; font-size:13px; padding-bottom:20px; line-height:1.6;'>
+                                        <td style='color:#ffffff; font-size:13px; padding-bottom:20px; line-height:1.6;'>
                                             If you didn't request a password reset you can safely ignore this email — your password will not be changed.
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#666666; font-size:13px;'>
+                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#ffffff; font-size:13px;'>
                                             OASIS · Our World
                                         </td>
                                     </tr>
@@ -180,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='color:#cccccc; font-size:15px; padding-bottom:28px; line-height:1.6;'>
+                                        <td style='color:#ffffff; font-size:15px; padding-bottom:28px; line-height:1.6;'>
                                             Sorry, the email <a href='mailto:{email}' style='color:#4a9eff;'>{email}</a> 
                                             is already in use, please use another one.
                                         </td>
@@ -195,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#666666; font-size:13px;'>
+                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#ffffff; font-size:13px;'>
                                             OASIS · Our World
                                         </td>
                                     </tr>
@@ -280,7 +280,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='color:#cccccc; font-size:15px; padding-bottom:28px; line-height:1.6;'>
+                                        <td style='color:#ffffff; font-size:15px; padding-bottom:28px; line-height:1.6;'>
                                             Thanks for signing up! Please click the button below to verify your email address and activate your account.
                                         </td>
                                     </tr>
@@ -294,13 +294,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='color:#666666; font-size:13px; padding-bottom:20px; line-height:1.6;'>
+                                        <td style='color:#ffffff; font-size:13px; padding-bottom:20px; line-height:1.6;'>
                                             Or copy and paste this link into your browser:<br/>
                                             <a href='{verifyUrl}' style='color:#4a9eff;'>{verifyUrl}</a>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#666666; font-size:13px;'>
+                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#ffffff; font-size:13px;'>
                                             OASIS · Our World
                                         </td>
                                     </tr>
