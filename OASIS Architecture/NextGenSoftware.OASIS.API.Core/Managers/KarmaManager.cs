@@ -807,7 +807,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ProposedWeighting = proposedWeighting,
                         IsPositiveKarma = isPositiveKarma,
                         ProposalCategory = proposalCategory,
-                        // IsNewHolon = true  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                        IsNewHolon = true
                     };
                 }
 
