@@ -729,7 +729,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //     //}
                 // }
 
-                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                var replaceResult = await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                if (replaceResult.MatchedCount == 0)
+                    return await AddAsync(holon); // Safety fallback: document not in DB yet — insert instead.
                 result.Result = holon;
             }
             catch (Exception ex)
@@ -772,7 +774,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     }
                 }
 
-                _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                var replaceResult = _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                if (replaceResult.MatchedCount == 0)
+                    return Add(holon); // Safety fallback: document not in DB yet — insert instead.
                 result.Result = holon;
             }
 

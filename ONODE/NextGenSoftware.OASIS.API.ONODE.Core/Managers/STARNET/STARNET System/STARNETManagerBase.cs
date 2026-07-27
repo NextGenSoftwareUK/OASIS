@@ -168,6 +168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     holon = new T1()
                     {
                         Id = Guid.NewGuid(),
+                        IsNewHolon = true, // Pre-assigned Id — required by IsNewHolon contract to signal insert.
                         Name = name,
                         Description = description
                     };
@@ -341,6 +342,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     holon = new T1()
                     {
                         Id = Guid.NewGuid(),
+                        IsNewHolon = true, // Pre-assigned Id — required by IsNewHolon contract to signal insert.
                         Name = name,
                         Description = description
                     };

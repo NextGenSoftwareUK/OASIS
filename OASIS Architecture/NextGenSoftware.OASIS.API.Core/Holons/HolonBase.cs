@@ -85,7 +85,15 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-        public bool IsNewHolon { get; set; } //TODO: Want to remove this ASAP!
+        /// <summary>
+        /// Runtime flag: set by PrepareHolonForSaving to signal insert (true) vs update (false).
+        /// NEVER persisted to any storage provider. Callers must follow this contract:
+        ///   (1) Let system generate Id — don't set Id or IsNewHolon; PrepareHolonForSaving handles both.
+        ///   (2) Pre-assign Id for a NEW holon — MUST also set IsNewHolon = true.
+        ///       Failing to do so makes PrepareHolonForSaving treat it as an update and the record is lost.
+        ///   (3) Updating an existing holon — leave IsNewHolon false (the default after loading).
+        /// </summary>
+        public bool IsNewHolon { get; set; }
         public bool IsSaving { get; set; }
 
         public Guid PreviousVersionId { get; set; }
