@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (multiverse.GrandSuperStar.Id == Guid.Empty)
             {
                 multiverse.GrandSuperStar.Id = Guid.NewGuid();
-                // multiverse.GrandSuperStar.IsNewHolon = true;  — now redundant: MatchedCount fallback in HolonRepository handles first insert.
+                multiverse.GrandSuperStar.IsNewHolon = true;
             }
 
             multiverse.ParentGrandSuperStar = multiverse.GrandSuperStar;
