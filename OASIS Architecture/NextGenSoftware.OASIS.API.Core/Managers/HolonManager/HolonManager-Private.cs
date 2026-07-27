@@ -82,13 +82,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // else if (holon.CreatedDate != DateTime.MinValue)
             //     holon.IsNewHolon = false;
 
+            // IsNewHolon contract (three cases):
+            // Case 1: No Id pre-assigned — generate one and mark as new insert.
+            // Case 2: Caller pre-assigned an Id AND set IsNewHolon = true — honour it; treat as insert.
+            //         REQUIRED for stateless clients that construct holons from known well-known GUIDs.
+            // Case 3: Id present and IsNewHolon = false (default after loading) — treat as update; no-op here.
             if (holon.Id == Guid.Empty)
             {
                 holon.Id = Guid.NewGuid();
                 holon.IsNewHolon = true;
             }
-            else
-                holon.IsNewHolon = false;
+            else if (!holon.IsNewHolon)
+            {
+                // Case 3: treat as update. IsNewHolon stays false — no-op.
+            }
 
             //if (holon.Id != Guid.Empty)
             if (!holon.IsNewHolon)

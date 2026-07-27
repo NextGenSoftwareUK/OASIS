@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             Holon holon = new Holon(LibraryHolonId)
             {
+                IsNewHolon = true, // Pre-assigned Id — required by IsNewHolon contract to signal insert.
                 Name = "HolonicBraidLibrary",
                 Description = "The shared Holonic BRAID reasoning-graph library. Children are individual graph holons, one per task type."
             };

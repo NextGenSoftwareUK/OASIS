@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 return result;
             }
 
-            Holon holon = new Holon(EarthHolonId) { Name = "Earth", Description = "The planetary Holonic BRAID collective intelligence holon." };
+            Holon holon = new Holon(EarthHolonId) { IsNewHolon = true, Name = "Earth", Description = "The planetary Holonic BRAID collective intelligence holon." }; // Pre-assigned Id — required by IsNewHolon contract to signal insert.
             holon.HolonType = HolonType.HolonicMemoryEarthHolon;
             WriteDtoToMetaData(holon, new HolonicMemoryHolonDto { Id = EarthHolonId, Level = HolonicMemoryLevel.Earth, Name = "Earth" });
 
