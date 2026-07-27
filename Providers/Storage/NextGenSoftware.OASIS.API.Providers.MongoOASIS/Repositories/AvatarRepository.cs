@@ -320,11 +320,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                var replaceResult = await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                // Fall back to AddAsync when the document does not yet exist (pre-assigned OASIS GUID,
-                // same pattern as HolonRepository.UpdateAsync).
-                if (replaceResult.MatchedCount == 0)
-                    return await AddAsync(avatar);
+                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -344,9 +340,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 var replaceResult = await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar).ConfigureAwait(false);
                 if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
                 {
-                    // Previously returned an error here; now fall back to AddAsync so callers that
-                    // pre-assign an OASIS GUID get a proper first insert (same pattern as HolonRepository).
-                    return await AddAsync(avatar);
+                    OASISErrorHandling.HandleError(ref result, $"AvatarDetail update matched no document (HolonId={avatar.HolonId}). Active quest / XP were not persisted.");
+                    return result;
                 }
 
                 result.Result = avatar;
@@ -503,10 +498,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                var replaceResult = _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                // Fall back to Add when the document does not yet exist (pre-assigned OASIS GUID).
-                if (replaceResult.MatchedCount == 0)
-                    return Add(avatar);
+                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -526,9 +518,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 var replaceResult = _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
                 {
-                    // Previously returned an error here; now fall back to Add so callers that
-                    // pre-assign an OASIS GUID get a proper first insert (same pattern as HolonRepository).
-                    return Add(avatar);
+                    OASISErrorHandling.HandleError(ref result, $"AvatarDetail update matched no document (HolonId={avatar.HolonId}). Active quest / XP were not persisted.");
+                    return result;
                 }
 
                 result.Result = avatar;
