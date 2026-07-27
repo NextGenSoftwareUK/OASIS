@@ -62,8 +62,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 return result;
             }
 
-            // IsNewHolon MUST be set when pre-assigning an Id — required by all providers.
-            Holon holon = new Holon(EarthHolonId) { Name = "Earth", Description = "The planetary Holonic BRAID collective intelligence holon.", IsNewHolon = true };
+            Holon holon = new Holon(EarthHolonId) { Name = "Earth", Description = "The planetary Holonic BRAID collective intelligence holon." };
             holon.HolonType = HolonType.HolonicMemoryEarthHolon;
             WriteDtoToMetaData(holon, new HolonicMemoryHolonDto { Id = EarthHolonId, Level = HolonicMemoryLevel.Earth, Name = "Earth" });
 
