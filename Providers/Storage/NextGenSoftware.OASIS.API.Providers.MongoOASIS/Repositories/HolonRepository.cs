@@ -705,16 +705,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         holon.Id = originalHolon.Id;
                 }
 
-                var replaceResult = await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                // Old code (kept for reference — was previously commented out and never ran):
+                // if (holon.Id == null)
+                // {
+                //     //Holon originalHolon = await GetHolonAsync(holon.HolonId);
+                //     //if (originalHolon != null)
+                //     //{
+                //     //    holon.Id = originalHolon.Id;
+                //     //    holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
+                //     //    holon.CreatedDate = originalHolon.CreatedDate;
+                //     //    holon.HolonType = originalHolon.HolonType;
+                //     //    holon.ParentZome = originalHolon.ParentZome;
+                //     //    holon.ParentZomeId = originalHolon.ParentZomeId;
+                //     //    holon.ParentMoon = originalHolon.ParentMoon;
+                //     //    holon.ParentPlanet = originalHolon.ParentPlanet;
+                //     //    holon.ParentMoonId = originalHolon.ParentMoonId;
+                //     //    holon.ParentPlanetId = originalHolon.ParentPlanetId;
+                //     //    holon.Children = originalHolon.Children;
+                //     //    holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
+                //     //    holon.DeletedDate = originalHolon.DeletedDate;
+                //     //    holon.MetaData = originalHolon.MetaData;
+                //     //    //TODO: Needs more thought!
+                //     //}
+                // }
 
-                // If no document was matched, the holon does not yet exist in MongoDB — it was
-                // created with a pre-assigned OASIS GUID (e.g. to link holons without a reload).
-                // Fall back to AddAsync so the document is properly inserted and the MongoDB _id
-                // is stored in ProviderUniqueStorageKey. AddAsync calls UpdateAsync once more after
-                // insert; by then MatchedCount > 0 so there is no infinite loop.
-                if (replaceResult.MatchedCount == 0)
-                    return await AddAsync(holon);
-
+                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
                 result.Result = holon;
             }
             catch (Exception ex)
@@ -732,21 +747,35 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                if (string.IsNullOrEmpty(holon.Id))
+                //TODO: Cant remember why I was doing this?! lol
+                if (holon.Id == null)
                 {
                     Holon originalHolon = GetHolon(holon.HolonId);
+
                     if (originalHolon != null)
+                    {
                         holon.Id = originalHolon.Id;
+                        holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
+                        holon.CreatedDate = originalHolon.CreatedDate;
+                        holon.HolonType = originalHolon.HolonType;
+                        holon.ParentZome = originalHolon.ParentZome;
+                        holon.ParentZomeId = originalHolon.ParentZomeId;
+                        holon.ParentMoon = originalHolon.ParentMoon;
+                        holon.ParentPlanet = originalHolon.ParentPlanet;
+                        holon.ParentMoonId = originalHolon.ParentMoonId;
+                        holon.ParentPlanetId = originalHolon.ParentPlanetId;
+                        holon.Children = originalHolon.Children;
+                        holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
+                        holon.DeletedDate = originalHolon.DeletedDate;
+
+                        //TODO: SOMEONE PLEASE FINISH THIS ASAP!!!
+                    }
                 }
 
-                var replaceResult = _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
-
-                // Fall back to Add when the document does not yet exist (pre-assigned OASIS GUID).
-                if (replaceResult.MatchedCount == 0)
-                    return Add(holon);
-
+                _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
                 result.Result = holon;
             }
+
             catch (Exception ex)
             {
                 result.IsError = true;
