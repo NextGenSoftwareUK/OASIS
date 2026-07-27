@@ -1,49 +1,52 @@
-# Holon Save Fix for REST/JS Clients — 2026-07-04
+# Holon Duplicate-Insert Fix — 2026-07-04
 
 ## Problem
 
-Stateless REST/JS clients (e.g. Vercel serverless functions) construct holon objects from
-scratch using only the OASIS GUID (`Id`). They have no access to internal provider state
-such as the MongoDB ObjectId (`_id`) or the `CreatedDate` of a previously saved holon.
+Every save of a trust holon from the SovereignTrust Vercel frontend was creating a NEW
+MongoDB document instead of updating the existing one. The dashboard accumulated duplicate
+entries on each save.
 
-This caused three separate failures when a JS client tried to **update** an existing holon:
+### Root cause: three-layer bug
 
-1. Every save was treated as an **insert** — a new MongoDB document was created each time
-   instead of updating the existing one.
-2. When the async save path was forced to call `UpdateAsync`, MongoDB rejected it with
-   **error code 66** ("immutable field `_id` was altered to null") because the replacement
-   document had `_id: null`.
+1. **`IsNewHolon` was persisted to MongoDB** — `[BsonIgnore]` was missing in the MongoDB
+   entity. Loaded holons always deserialised `IsNewHolon = true` from the stored value.
 
-These bugs did not affect C# callers that keep a holon in memory — loaded holons already
-carry `CreatedDate`, `ProviderUniqueStorageKey`, and the MongoDB `_id`, so they passed all
-three checks silently.
+2. **`PrepareHolonForSaving` unconditionally wiped `IsNewHolon`** — after correctly setting
+   it to `true` for `Id == Guid.Empty` (new holon) or leaving it for other cases, the
+   `else` branch blindly set `holon.IsNewHolon = false`. This destroyed the `IsNewHolon = true`
+   that callers like WEB6 and STARNET legitimately set when they pre-assigned a known GUID.
+
+3. **`MongoDBOASIS.SaveHolonAsync` used `|| holon.CreatedDate == DateTime.MinValue`** —
+   Stateless REST/JS clients never set `CreatedDate`, so the fallback always triggered an
+   `AddAsync` (insert) regardless of whether the holon already existed.
+
+These bugs did not affect C# server-side callers that load a holon and then save it back,
+because those holons already have `CreatedDate` populated and `IsNewHolon` loaded from DB.
 
 ---
 
-## Changes Made
+## Changes
 
-### 1. `HolonManager-Private.cs` — `PrepareHolonForSaving`
+### Fix 1 — `[BsonIgnore]` on `IsNewHolon` (MongoDB entity)
 
-**File:**
-`OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.cs`
+**File:** `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Entities/HolonBase.cs`
 
-**What changed:**
-Removed `CreatedDate == DateTime.MinValue` from the "is this a new holon?" check.
-`IsNewHolon` is now set based solely on `Id == Guid.Empty`.
-
-**Before:**
 ```csharp
-if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
-{
-    if (holon.Id == Guid.Empty)
-        holon.Id = Guid.NewGuid();
-    holon.IsNewHolon = true;
-}
-else if (holon.CreatedDate != DateTime.MinValue)
-    holon.IsNewHolon = false;
+[BsonIgnore] // Runtime flag only — must never be persisted; loaded holons must always start with false (C# default).
+public bool IsNewHolon { get; set; }
 ```
 
-**After:**
+**Why:** Without this, every loaded holon came back from MongoDB with `IsNewHolon = true`,
+causing every subsequent save to insert a new document. The flag is a runtime-only signal;
+it has no meaning in stored data.
+
+---
+
+### Fix 2 — `PrepareHolonForSaving` honours caller-set `IsNewHolon`
+
+**File:** `OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.cs`
+
+**Before:**
 ```csharp
 if (holon.Id == Guid.Empty)
 {
@@ -51,33 +54,38 @@ if (holon.Id == Guid.Empty)
     holon.IsNewHolon = true;
 }
 else
-    holon.IsNewHolon = false;
+    holon.IsNewHolon = false;  // ← wiped caller-set IsNewHolon = true
 ```
 
-**Why:** REST/JS clients never set `CreatedDate`, so it is always `DateTime.MinValue`.
-The old check treated every REST save as a new insert regardless of whether a real `Id`
-was supplied. C# callers are unaffected — their in-memory holons already have
-`CreatedDate` populated, but it is no longer used for this decision.
+**After:**
+```csharp
+// Case 1: No Id — generate one and insert.
+// Case 2: Caller pre-assigned Id AND set IsNewHolon = true — honour it; insert.
+// Case 3: Id present and IsNewHolon = false (default after loading) — update; no-op.
+if (holon.Id == Guid.Empty)
+{
+    holon.Id = Guid.NewGuid();
+    holon.IsNewHolon = true;
+}
+else if (!holon.IsNewHolon)
+{
+    // Case 3: treat as update. IsNewHolon stays false — no-op.
+}
+```
 
-**Risk:** Low. `Id == Guid.Empty` has always been the primary signal. The only scenario
-that would change behaviour is a C# caller that manually constructs a holon with a real
-`Id` but deliberately leaves `CreatedDate` at `MinValue` expecting an insert — that
-pattern was already incorrect.
+**Why:** Some callers (WEB6, STARNET, COSMICManager) pre-assign a well-known GUID for a
+holon that is being created for the first time. They must set `IsNewHolon = true` alongside
+the pre-assigned Id. The old `else holon.IsNewHolon = false` silently destroyed that signal.
 
 ---
 
-### 2. `MongoDBOASIS.cs` — `SaveHolonAsync`
+### Fix 3 — `MongoDBOASIS.SaveHolonAsync` and `SaveHolon` route purely on `IsNewHolon`
 
-**File:**
-`Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.cs`
-
-**What changed:**
-The async `SaveHolonAsync` now uses `IsNewHolon` to decide insert vs update, matching
-the sync `SaveHolon` which already used `IsNewHolon`.
+**File:** `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.cs`
 
 **Before:**
 ```csharp
-OASISResult<IHolon> result = !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS)
+OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
     ? AddAsync(...)
     : UpdateAsync(...);
 ```
@@ -89,59 +97,97 @@ OASISResult<IHolon> result = holon.IsNewHolon
     : UpdateAsync(...);
 ```
 
-**Why:** `ProviderUniqueStorageKey` is the internal MongoDB ObjectId — an implementation
-detail that external callers cannot know. Any caller without this key always hit
-`AddAsync`, creating a new document on every save. C# callers that load then save carry
-the key in the in-memory holon, so they were unaffected. Now both the sync and async
-paths use the same `IsNewHolon` logic.
+Applied to both `SaveHolonAsync` (async) and `SaveHolon` (sync).
 
-**Risk:** Low. The only caller that could be affected is one that has `ProviderUniqueStorageKey`
-set but `Id == Guid.Empty` — an unusual combination that would indicate a bug in the
-caller anyway.
+**Why:** Stateless REST/JS clients never set `CreatedDate`, so `CreatedDate == DateTime.MinValue`
+was always true — every REST save called `AddAsync` and created a new document.
+`PrepareHolonForSaving` (Fix 2) is now the single authoritative place that sets `IsNewHolon`
+based on `Id == Guid.Empty`. The `CreatedDate` fallback is redundant and dangerous.
+
+**Avatar save paths** (`SaveAvatarAsync`, `SaveAvatarDetailAsync`, `SaveAvatar`) are
+deliberately left unchanged — they still use `|| avatar.CreatedDate == DateTime.MinValue`
+because `PrepareAvatarForSaving` has not yet been updated to match. Changing the avatar path
+without first fixing `PrepareAvatarForSaving` broke login in a previous attempt.
 
 ---
 
-### 3. `HolonRepository.cs` — `UpdateAsync`
+### Fix 4 — `HolonRepository.UpdateAsync` / `Update` — `MatchedCount == 0` fallback
 
-**File:**
-`Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.cs`
+**File:** `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.cs`
 
-**What changed:**
-Before calling `ReplaceOneAsync`, if the holon's MongoDB `_id` (`Id` field on the entity)
-is null or empty, the existing document is fetched by `HolonId` and its `_id` is copied
-across.
-
-**Added logic:**
 ```csharp
-if (string.IsNullOrEmpty(holon.Id))
-{
-    Holon originalHolon = await GetHolonAsync(holon.HolonId);
-    if (originalHolon != null)
-        holon.Id = originalHolon.Id;
-}
+var replaceResult = await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+if (replaceResult.MatchedCount == 0)
+    return await AddAsync(holon); // Safety fallback: document not in DB yet — insert instead.
 ```
 
-**Why:** `ReplaceOneAsync` requires the replacement document's `_id` to equal the existing
-document's `_id`. REST/JS clients only know the OASIS GUID (`HolonId`); they have no way
-to supply the MongoDB ObjectId. Without this fix, `ReplaceOneAsync` received `_id: null`
-and MongoDB rejected it with error code 66. C# callers that hold a loaded holon always
-have `_id` populated, so the lookup is skipped for them.
+Same for the sync `Update` / `ReplaceOne` path.
 
-**Risk:** Very low. The extra `GetHolonAsync` call only runs when `_id` is missing — C#
-in-memory holons always have it. The worst case is one additional MongoDB read per update
-for REST clients.
+**Why:** If `PrepareHolonForSaving` routes to `UpdateAsync` but the document does not yet
+exist (e.g. a race condition or a first-ever save with a pre-assigned Id that somehow missed
+`IsNewHolon = true`), `ReplaceOneAsync` will silently match nothing. The fallback ensures
+the document is still created rather than lost. This is a MongoDB-only safety net; other
+providers rely on `IsNewHolon` and have no equivalent.
 
 ---
 
-## Caller Contract (after fix)
+### Fix 5 — Caller contract enforcement (`IsNewHolon = true` where Id is pre-assigned)
 
-Callers do **not** need to set `IsNewHolon` — it is derived automatically by
-`PrepareHolonForSaving` and should never be set by a caller.
+Any caller that pre-assigns an `Id` for a NEW holon MUST also set `IsNewHolon = true`.
+Failing to do so causes `PrepareHolonForSaving` (Fix 2) to treat it as an update and the
+record will be silently not created.
 
-| Scenario | What to set | Result |
+Updated callers:
+
+| File | Location | Change |
 |---|---|---|
-| Creating a new holon | `Id = Guid.Empty` (or omit `Id`) | OASIS assigns a new GUID, MongoDB inserts |
-| Updating an existing holon | `Id = <the existing GUID>` | MongoDB updates the existing document |
+| `WEB6/HolonicBraidManager.cs` | `new Holon(LibraryHolonId)` | Added `IsNewHolon = true` |
+| `WEB6/HolonicMemoryManager.cs` | `new Holon(EarthHolonId)` | Added `IsNewHolon = true` |
+| `STARNET/STARNETManagerBase.cs` | Both `new T1() { Id = Guid.NewGuid() }` blocks | Added `IsNewHolon = true` |
 
-The MongoDB ObjectId (`_id`) and `ProviderUniqueStorageKey` are internal details —
-callers never need to supply them.
+COSMICManager, Star, GrandSuperStarCore, GreatGrandSuperStarCore, and KarmaManager already
+had `IsNewHolon = true` set explicitly after their `new T()` calls — these were left unchanged.
+
+---
+
+### Fix 6 — `HolonBase.cs` (OASIS core) — XML doc on `IsNewHolon`
+
+**File:** `OASIS Architecture/NextGenSoftware.OASIS.API.Core/Holons/HolonBase.cs`
+
+Replaced the old `//TODO: Want to remove this ASAP!` comment with a full XML doc block
+spelling out the three-case IsNewHolon contract for all callers.
+
+---
+
+## IsNewHolon Caller Contract (enforced)
+
+| Case | What to do | Result |
+|---|---|---|
+| 1 — Creating a holon, no specific Id needed | Set nothing — leave `Id` as `Guid.Empty` | System assigns a new GUID; insert |
+| 2 — Creating a holon with a pre-assigned Id | Set `Id = <known GUID>` AND `IsNewHolon = true` | Insert with that specific Id |
+| 3 — Updating an existing holon | Load the holon, modify, save — `IsNewHolon` stays false | Update |
+
+**Never set `IsNewHolon = false` explicitly.** It defaults to false after loading from DB
+(because `[BsonIgnore]` means it is never persisted). Only set it to `true`.
+
+---
+
+## What was NOT changed (avatar paths)
+
+Avatar save paths in `MongoDBOASIS.cs` (`SaveAvatarAsync`, `SaveAvatarDetailAsync`,
+`SaveAvatar`) still use `|| avatar.CreatedDate == DateTime.MinValue`. This is because
+`PrepareAvatarForSaving` in `AvatarManager-Private.cs` has the SAME OLD pattern as the
+holon path before these fixes, and relies on `CreatedDate == DateTime.MinValue` to detect
+new avatars. Fixing the avatar path requires the same three-layer treatment but is a
+separate task — it is tracked but not yet applied.
+
+A previous attempt to prematurely remove `CreatedDate = DateTime.Now` from avatar
+registration helpers (without first fixing `PrepareAvatarForSaving`) broke login and
+avatar verification. All avatar-path changes were reverted. Only the holon path was fixed.
+
+---
+
+## Branch
+
+All changes in this doc are on the `Fixing-Stateless-Holon-Update` feature branch.
+They have NOT been merged to `master` or `Development` yet — testing required first.
