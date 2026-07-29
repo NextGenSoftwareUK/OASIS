@@ -50,8 +50,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result = LoadChildHolonsRecursiveForAllHolons(result, childHolonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, 0, providerType);
             }
 
+            // Auto-expire the previous cache entry before potentially pinning a new one
+            if (_allHolonsCache != null && DateTime.UtcNow > _allHolonsCacheExpiry)
+                ClearCache();
+
             if (cache)
+            {
                 _allHolonsCache = result;
+                _allHolonsCacheExpiry = DateTime.UtcNow.Add(AllHolonsCacheTtl);
+            }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             return result;
