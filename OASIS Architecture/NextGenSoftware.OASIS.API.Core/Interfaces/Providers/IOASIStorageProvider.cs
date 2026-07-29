@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -32,6 +33,69 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //OASISResult<IAvatar> LoadAvatarByJwtToken(string avatarUsername, int version = 0);
         Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
         OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
+
+        // Token-based and public-key lookups — default implementations fall back to LoadAllAvatars
+        // until each provider overrides with an efficient indexed query.
+        Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).ContinueWith(t =>
+            {
+                if (t.Result.IsError || t.Result.Result == null)
+                    return new OASISResult<IAvatar> { IsError = true, Message = t.Result.Message, DetailedMessage = t.Result.DetailedMessage };
+                return new OASISResult<IAvatar> { Result = t.Result.Result.FirstOrDefault(a => a.VerificationToken == verificationToken) };
+            });
+        }
+        OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+            => LoadAvatarByVerificationTokenAsync(verificationToken, version).GetAwaiter().GetResult();
+
+        Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).ContinueWith(t =>
+            {
+                if (t.Result.IsError || t.Result.Result == null)
+                    return new OASISResult<IAvatar> { IsError = true, Message = t.Result.Message, DetailedMessage = t.Result.DetailedMessage };
+                return new OASISResult<IAvatar> { Result = t.Result.Result.FirstOrDefault(a => a.ResetToken == resetToken) };
+            });
+        }
+        OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+            => LoadAvatarByResetTokenAsync(resetToken, version).GetAwaiter().GetResult();
+
+        Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).ContinueWith(t =>
+            {
+                if (t.Result.IsError || t.Result.Result == null)
+                    return new OASISResult<IAvatar> { IsError = true, Message = t.Result.Message, DetailedMessage = t.Result.DetailedMessage };
+                return new OASISResult<IAvatar> { Result = t.Result.Result.FirstOrDefault(a => a.RefreshTokens != null && a.RefreshTokens.Any(r => r.Token == refreshToken)) };
+            });
+        }
+        OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+            => LoadAvatarByRefreshTokenAsync(refreshToken, version).GetAwaiter().GetResult();
+
+        Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey, int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).ContinueWith(t =>
+            {
+                if (t.Result.IsError || t.Result.Result == null)
+                    return new OASISResult<IAvatar> { IsError = true, Message = t.Result.Message, DetailedMessage = t.Result.DetailedMessage };
+                return new OASISResult<IAvatar> { Result = t.Result.Result.FirstOrDefault(a => a.ProviderWallets != null && a.ProviderWallets.Values.Any(wallets => wallets != null && wallets.Any(w => w.PublicKey == publicKey))) };
+            });
+        }
+        OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey, int version = 0)
+            => LoadAvatarByPublicKeyAsync(publicKey, version).GetAwaiter().GetResult();
+
+        Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey, int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).ContinueWith(t =>
+            {
+                if (t.Result.IsError || t.Result.Result == null)
+                    return new OASISResult<IAvatar> { IsError = true, Message = t.Result.Message, DetailedMessage = t.Result.DetailedMessage };
+                return new OASISResult<IAvatar> { Result = t.Result.Result.FirstOrDefault(a => a.ProviderWallets != null && a.ProviderWallets.Values.Any(wallets => wallets != null && wallets.Any(w => w.PrivateKey == privateKey))) };
+            });
+        }
+        OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey, int version = 0)
+            => LoadAvatarByPrivateKeyAsync(privateKey, version).GetAwaiter().GetResult();
+
         Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0);
         OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
         Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0);
