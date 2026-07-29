@@ -450,30 +450,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //    result.Result = query.ToList();
                 //}
 
-                List<Holon> holons = new List<Holon>();
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
-
+                // Push the MetaData field predicate to MongoDB instead of loading the full collection
+                var metaFilter = Builders<Holon>.Filter.Eq($"MetaData.{metaKey}", metaValue);
+                FilterDefinition<Holon> filter;
                 if (holonType == HolonType.All)
-                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+                    filter = Builders<Holon>.Filter.And(
+                        Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue),
+                        metaFilter);
+                else
+                    filter = Builders<Holon>.Filter.And(
+                        Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue),
+                        metaFilter);
 
-                holons = _dbContext.Holon.Find(filter).ToList();
-
-                List<Holon> matchedHolons = new List<Holon>();
-
-                foreach (Holon holon in holons)
-                {
-                    if (holon.MetaData == null)
-                        continue;
-                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
-                        matchedHolons.Add(holon);
-                }
-
-                result.Result = matchedHolons;
-
-                //if (holonType != HolonType.All)
-                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
-                //else
-                //    result.Result = matchedHolons;
+                result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -515,28 +504,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //    result.Result = query.ToList();
                 //}
 
-                List<Holon> holons = new List<Holon>();
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
-
+                var metaFilter = Builders<Holon>.Filter.Eq($"MetaData.{metaKey}", metaValue);
+                FilterDefinition<Holon> filter;
                 if (holonType == HolonType.All)
-                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+                    filter = Builders<Holon>.Filter.And(
+                        Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue),
+                        metaFilter);
+                else
+                    filter = Builders<Holon>.Filter.And(
+                        Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue),
+                        metaFilter);
 
-                holons = _dbContext.Holon.Find(filter).ToList();
-
-                List<Holon> matchedHolons = new List<Holon>();
-
-                foreach (Holon holon in holons)
-                {
-                    if (holon.MetaData != null && holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
-                        matchedHolons.Add(holon);
-                }
-                
-                result.Result = matchedHolons;
-
-                //if (holonType != HolonType.All)
-                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
-                //else
-                //    result.Result = matchedHolons;
+                result.Result = _dbContext.Holon.Find(filter).ToList();
             }
             catch (Exception ex)
             {
@@ -582,37 +561,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //TODO: Need to write a query to load by meta data so is more efficent! :)
                 //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
 
-                List<Holon> holons = new List<Holon>();
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
+                var metaFilters = metaKeyValuePairs
+                    .Select(kv => Builders<Holon>.Filter.Eq($"MetaData.{kv.Key}", kv.Value))
+                    .ToList();
 
+                FilterDefinition<Holon> metaFilter = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
+                    ? Builders<Holon>.Filter.And(metaFilters)
+                    : Builders<Holon>.Filter.Or(metaFilters);
+
+                FilterDefinition<Holon> filter;
                 if (holonType == HolonType.All)
-                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+                    filter = Builders<Holon>.Filter.And(
+                        Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue),
+                        metaFilter);
+                else
+                    filter = Builders<Holon>.Filter.And(
+                        Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue),
+                        metaFilter);
 
-                holons = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
-                List<Holon> matchedHolons = new List<Holon>();
-                int matchedKeys = 0;
-
-                foreach (Holon holon in holons)
-                {
-                    if (holon.MetaData == null)
-                        continue;
-                    matchedKeys = 0;
-                    foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
-                    {
-                        if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
-                        {
-                            if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
-                                matchedHolons.Add(holon);
-                            else
-                                matchedKeys++;
-                        }
-                    }
-
-                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == metaKeyValuePairs.Count)
-                        matchedHolons.Add(holon);
-                }
-
-                result.Result = matchedHolons;
+                result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
 
                 //if (holonType != HolonType.All)
                 //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
