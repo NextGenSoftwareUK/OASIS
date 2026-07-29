@@ -1,4 +1,6 @@
 using System.Reflection;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -107,6 +109,35 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var cfg = OASISBootLoader.OASISDNA?.OASIS?.Security?.RateLimiting;
+        if (cfg == null || !cfg.Enabled)
+            return RateLimitPartition.GetNoLimiter("no-limit");
+
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetSlidingWindowLimiter(clientIp,
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit          = cfg.RequestsPerWindow,
+                Window               = TimeSpan.FromSeconds(cfg.WindowSeconds),
+                SegmentsPerWindow    = cfg.WindowSegments,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = cfg.QueueLimit
+            });
+    });
+
+    options.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.StatusCode = 429;
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsync(
+            "{\"IsError\":true,\"Message\":\"Too many requests. Please slow down and try again later.\"}", token);
+    };
+});
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -119,12 +150,14 @@ if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.
     app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+app.UseRateLimiter();
 
 // JwtMiddleware MUST be registered here. It was missing in the original Web6 Program.cs
 // (unlike Web4/Web5 which had it), causing every JWT to be silently ignored and all
 // authenticated requests to fail with 401. It must come AFTER UseCors and BEFORE
 // UseAuthorization/MapControllers so the avatar context is populated before AuthorizeAttribute runs.
 app.UseMiddleware<NextGenSoftware.OASIS.Web6.WebAPI.Middleware.JwtMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.Web6.WebAPI.Middleware.ApiKeyMiddleware>();
 
 // Global exception handler - logs and returns a real OASISResult-shaped error body.
 app.Use(async (context, next) =>
