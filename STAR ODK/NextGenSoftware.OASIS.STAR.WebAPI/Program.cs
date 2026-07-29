@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using NextGenSoftware.OASIS.STAR.DNA;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -214,6 +216,35 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var cfg = OASISBootLoader.OASISDNA?.OASIS?.Security?.RateLimiting;
+        if (cfg == null || !cfg.Enabled)
+            return RateLimitPartition.GetNoLimiter("no-limit");
+
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetSlidingWindowLimiter(clientIp,
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit          = cfg.RequestsPerWindow,
+                Window               = TimeSpan.FromSeconds(cfg.WindowSeconds),
+                SegmentsPerWindow    = cfg.WindowSegments,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = cfg.QueueLimit
+            });
+    });
+
+    options.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.StatusCode = 429;
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsync(
+            "{\"IsError\":true,\"Message\":\"Too many requests. Please slow down and try again later.\"}", token);
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -229,6 +260,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseRateLimiter();
 
 // Global exception handler - catch all exceptions, log them, and return real error details
 app.Use(async (context, next) =>
@@ -397,6 +429,7 @@ app.UseAuthorization();
 
 app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.OASISMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.ApiKeyMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapGraphQL();
