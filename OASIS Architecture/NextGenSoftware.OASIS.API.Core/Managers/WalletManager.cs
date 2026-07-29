@@ -3430,20 +3430,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> GetWalletThatPublicKeyBelongsTo(string providerKey, bool showPrivateKey = false, bool showSecretWords = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.Instance.LoadAllAvatars();
+            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatarByPublicKeyForProvider(providerKey, providerType);
 
-            if (!avatarsResult.IsError && avatarsResult.Result != null)
-            {
-                foreach (IAvatar avatar in avatarsResult.Result)
-                {
-                    result = GetWalletThatPublicKeyBelongsTo(providerKey, providerType, avatar, showPrivateKey, showSecretWords);
-
-                    if (result.Result != null)
-                        break;
-                }
-            }
+            if (!avatarResult.IsError && avatarResult.Result != null)
+                result = GetWalletThatPublicKeyBelongsTo(providerKey, providerType, avatarResult.Result, showPrivateKey, showSecretWords);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in GetWalletThatPublicKeyBelongsTo whilst loading avatars. Reason:{avatarsResult.Message}", avatarsResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetWalletThatPublicKeyBelongsTo whilst loading avatar by public key. Reason:{avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -3451,20 +3443,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> GetWalletThatPublicKeyBelongsTo(string providerKey, bool showPrivateKey = false, bool showSecretWords = false)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.Instance.LoadAllAvatars();
+            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatarByPublicKeyForProvider(providerKey);
 
-            if (!avatarsResult.IsError && avatarsResult.Result != null)
-            {
-                foreach (IAvatar avatar in avatarsResult.Result)
-                {
-                    result = GetWalletThatPublicKeyBelongsTo(providerKey, avatar);
-
-                    if (result.Result != null)
-                        break;
-                }
-            }
+            if (!avatarResult.IsError && avatarResult.Result != null)
+                result = GetWalletThatPublicKeyBelongsTo(providerKey, avatarResult.Result);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in GetWalletThatPublicKeyBelongsTo whilst loading avatars. Reason:{avatarsResult.Message}", avatarsResult.DetailedMessage);
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetWalletThatPublicKeyBelongsTo whilst loading avatar by public key. Reason:{avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
