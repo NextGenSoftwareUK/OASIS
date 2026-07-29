@@ -7,9 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -251,6 +254,39 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+
+            // Per-IP rate limiting — config driven via OASISDNA.OASIS.Security.RateLimiting
+            // Config is read per-request so hot-changes to OASISDNA take effect without restart
+            services.AddRateLimiter(options =>
+            {
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                {
+                    var cfg = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.RateLimiting;
+
+                    // OASISDNA not yet loaded (first request) or feature disabled — pass through
+                    if (cfg == null || !cfg.Enabled)
+                        return RateLimitPartition.GetNoLimiter("no-limit");
+
+                    var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetSlidingWindowLimiter(clientIp,
+                        _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit      = cfg.RequestsPerWindow,
+                            Window           = TimeSpan.FromSeconds(cfg.WindowSeconds),
+                            SegmentsPerWindow = cfg.WindowSegments,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit       = cfg.QueueLimit
+                        });
+                });
+
+                options.OnRejected = async (ctx, token) =>
+                {
+                    ctx.HttpContext.Response.StatusCode = 429;
+                    ctx.HttpContext.Response.ContentType = "application/json";
+                    await ctx.HttpContext.Response.WriteAsync(
+                        "{\"IsError\":true,\"Message\":\"Too many requests. Please slow down and try again later.\"}", token);
+                };
+            });
             services.AddAuthentication("OASIS")
                 .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, Middleware.OASISAuthHandler>("OASIS", null);
             services.AddGrpc();
@@ -385,9 +421,15 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
 
+            // Rate limiting: per-IP sliding window, config via OASISDNA.OASIS.Security.RateLimiting
+            app.UseRateLimiter();
+
             app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
+            // API key gate: disabled by default (OASISDNA.OASIS.Security.RequireApiKey = false)
+            // Set RequireApiKey = true and ApiKey (or OASIS_API_KEY env var) to lock down to known clients
+            app.UseMiddleware<ApiKeyMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();

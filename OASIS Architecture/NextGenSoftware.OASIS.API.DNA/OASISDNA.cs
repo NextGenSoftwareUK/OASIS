@@ -261,6 +261,34 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool DIDEnabled { get; set; }
         /// <summary>DID challenge nonce store configuration.</summary>
         public DIDChallengeStoreSettings DIDChallengeStore { get; set; } = new();
+        /// <summary>
+        /// When true, all non-exempt requests must include the X-OASIS-API-Key header.
+        /// Toggle on when you want to lock down the API to known clients only.
+        /// Defaults to false so existing deployments are unaffected.
+        /// </summary>
+        public bool RequireApiKey { get; set; } = false;
+        /// <summary>
+        /// The expected value of the X-OASIS-API-Key header when RequireApiKey is true.
+        /// OASIS_API_KEY environment variable takes priority over this at runtime (use for Railway secrets).
+        /// Leave empty to disable the key check even when RequireApiKey is true.
+        /// </summary>
+        public string ApiKey { get; set; } = "";
+        /// <summary>Per-IP rate limiting. Configurable per deployment; defaults provide sensible protection out of the box.</summary>
+        public RateLimitingSettings RateLimiting { get; set; } = new RateLimitingSettings();
+    }
+
+    public class RateLimitingSettings
+    {
+        /// <summary>When false, rate limiting is completely disabled regardless of other settings.</summary>
+        public bool Enabled { get; set; } = true;
+        /// <summary>Maximum requests allowed per IP within the sliding window.</summary>
+        public int RequestsPerWindow { get; set; } = 100;
+        /// <summary>Sliding window size in seconds.</summary>
+        public int WindowSeconds { get; set; } = 60;
+        /// <summary>Number of segments the window is divided into (higher = smoother limiting).</summary>
+        public int WindowSegments { get; set; } = 6;
+        /// <summary>Requests that exceed the limit are queued up to this depth; 0 = reject immediately with 429.</summary>
+        public int QueueLimit { get; set; } = 0;
     }
 
     public class DIDChallengeStoreSettings
