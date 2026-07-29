@@ -778,6 +778,150 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        private OASISResult<IAvatar> LoadAvatarByVerificationTokenForProvider(string token, ProviderType providerType = ProviderType.Default)
+            => LoadAvatarByVerificationTokenForProviderAsync(token, providerType).Result;
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenForProviderAsync(string token, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = $"Error in LoadAvatarByVerificationTokenForProviderAsync for provider {providerType}. Reason: ";
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByVerificationTokenAsync(token);
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                        return task.Result;
+                    return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, "timeout occured.") };
+                }
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, providerResult.Message) };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, ex.Message), Exception = ex };
+            }
+        }
+
+        private OASISResult<IAvatar> LoadAvatarByResetTokenForProvider(string token, ProviderType providerType = ProviderType.Default)
+            => LoadAvatarByResetTokenForProviderAsync(token, providerType).Result;
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenForProviderAsync(string token, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = $"Error in LoadAvatarByResetTokenForProviderAsync for provider {providerType}. Reason: ";
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByResetTokenAsync(token);
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                        return task.Result;
+                    return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, "timeout occured.") };
+                }
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, providerResult.Message) };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, ex.Message), Exception = ex };
+            }
+        }
+
+        private OASISResult<IAvatar> LoadAvatarByRefreshTokenForProvider(string token, ProviderType providerType = ProviderType.Default)
+            => LoadAvatarByRefreshTokenForProviderAsync(token, providerType).Result;
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenForProviderAsync(string token, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = $"Error in LoadAvatarByRefreshTokenForProviderAsync for provider {providerType}. Reason: ";
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByRefreshTokenAsync(token);
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                        return task.Result;
+                    return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, "timeout occured.") };
+                }
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, providerResult.Message) };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, ex.Message), Exception = ex };
+            }
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByPublicKeyForProvider(string publicKey, ProviderType providerType = ProviderType.Default)
+            => LoadAvatarByPublicKeyForProviderAsync(publicKey, providerType).Result;
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyForProviderAsync(string publicKey, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = $"Error in LoadAvatarByPublicKeyForProviderAsync for provider {providerType}. Reason: ";
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByPublicKeyAsync(publicKey);
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                        return task.Result;
+                    return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, "timeout occured.") };
+                }
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, providerResult.Message) };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, ex.Message), Exception = ex };
+            }
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByProviderKeyForProvider(string providerKey, ProviderType providerType = ProviderType.Default)
+            => LoadAvatarByProviderKeyForProviderAsync(providerKey, providerType).Result;
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyForProviderAsync(string providerKey, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = $"Error in LoadAvatarByProviderKeyForProviderAsync for provider {providerType}. Reason: ";
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByProviderKeyAsync(providerKey);
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                        return task.Result;
+                    return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, "timeout occured.") };
+                }
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, providerResult.Message) };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, ex.Message), Exception = ex };
+            }
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByPrivateKeyForProvider(string privateKey, ProviderType providerType = ProviderType.Default)
+            => LoadAvatarByPrivateKeyForProviderAsync(privateKey, providerType).Result;
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyForProviderAsync(string privateKey, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = $"Error in LoadAvatarByPrivateKeyForProviderAsync for provider {providerType}. Reason: ";
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = providerResult.Result.LoadAvatarByPrivateKeyAsync(privateKey);
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                        return task.Result;
+                    return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, "timeout occured.") };
+                }
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, providerResult.Message) };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsError = true, Message = string.Concat(errorMessage, ex.Message), Exception = ex };
+            }
+        }
+
         /*
        private OASISResult<IAvatar> LoadAvatarByJwtTokenForProvider(string jwtToken, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
        {

@@ -117,14 +117,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (result.Result == null)
                     {
                         //Finally by Public Key...
-                        //TODO: Make this more efficient so we do not need to load all avatars!
-                        OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars();
-
-                        if (!avatarsResult.IsError && avatarsResult.Result != null)
-                        {
-                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.Instance.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.Instance.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
-                        }
+                        OASISResult<IAvatar> publicKeyResult = LoadAvatarByPublicKeyForProvider(username);
+                        if (!publicKeyResult.IsError && publicKeyResult.Result != null)
+                            result.Result = publicKeyResult.Result;
                     }
                 }
 
@@ -211,13 +206,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (result.Result == null)
                     {
                         //Finally by Public Key...
-                        OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false);
-
-                        if (!avatarsResult.IsError && avatarsResult.Result != null)
-                        {
-                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.Instance.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.Instance.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
-                        }
+                        OASISResult<IAvatar> publicKeyResult = await LoadAvatarByPublicKeyForProviderAsync(username);
+                        if (!publicKeyResult.IsError && publicKeyResult.Result != null)
+                            result.Result = publicKeyResult.Result;
                     }
                 }
 
@@ -570,34 +561,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false);
+                OASISResult<IAvatar> avatarResult = LoadAvatarByVerificationTokenForProvider(token);
 
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                if (avatarResult.IsError)
+                    OASISErrorHandling.HandleError(ref result, $"Error in VerifyEmail loading avatar by verification token. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                else if (avatarResult.Result == null)
                 {
-                    IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.VerificationToken == token);
-
-                    if (avatar == null)
-                    {
-                        result.Result = false;
-                        result.IsError = true;
-                        result.Message = "Verification Failed";
-                    }
-                    else
-                    {
-                        result.Result = true;
-                        avatar.Verified = DateTime.UtcNow;
-                        avatar.VerificationToken = null;
-                        avatar.IsActive = true;
-                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
-
-                        result.IsError = saveAvatarResult.IsError;
-                        result.IsSaved = saveAvatarResult.IsSaved;
-                        result.Message = saveAvatarResult.Message;
-                    }
+                    result.Result = false;
+                    result.IsError = true;
+                    result.Message = "Verification Failed";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error in VerifyEmail loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+                {
+                    IAvatar avatar = avatarResult.Result;
+                    result.Result = true;
+                    avatar.Verified = DateTime.UtcNow;
+                    avatar.VerificationToken = null;
+                    avatar.IsActive = true;
+                    OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
+
+                    result.IsError = saveAvatarResult.IsError;
+                    result.IsSaved = saveAvatarResult.IsSaved;
+                    result.Message = saveAvatarResult.Message;
+                }
 
                 if (!result.IsError && result.IsSaved)
                 {
@@ -705,51 +691,49 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, false, false, providerType);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarByResetTokenForProviderAsync(token, providerType);
 
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                if (avatarResult.IsError)
                 {
-                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
-                        x.ResetToken == token &&
-                        x.ResetTokenExpires > DateTime.UtcNow);
-
-                    if (avatar == null)
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
-                        return response;
-                    }
-
-                    // oldPassword is optional when authenticating via a reset token
-                    var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
-                    if (!string.IsNullOrEmpty(oldPassword) && !PasswordEncryptionHelper.VerifyPassword(oldPassword, avatar.Password, pwdSettings))
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
-                        return response;
-                    }
-
-                    // update password and remove reset token
-                    avatar.Password = PasswordEncryptionHelper.HashPassword(newPassword, pwdSettings);
-                    avatar.PasswordReset = DateTime.UtcNow;
-                    avatar.ResetToken = null;
-                    avatar.ResetTokenExpires = null;
-
-                    var saveAvatarResult = await SaveAvatarAsync(avatar, providerType: providerType);
-
-                    if (saveAvatarResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
-                        return response;
-                    }
-
-                    if (_loggedInAvatar.Id == avatar.Id)
-                        _loggedInAvatar = avatar;
-
-                    response.Message = "Password reset successful, you can now login";
-                    response.Result = response.Message;
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading avatar by reset token. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    return response;
                 }
-                else
-                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+
+                var avatar = avatarResult.Result?.ResetTokenExpires > DateTime.UtcNow ? avatarResult.Result : null;
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
+                    return response;
+                }
+
+                // oldPassword is optional when authenticating via a reset token
+                var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(oldPassword) && !PasswordEncryptionHelper.VerifyPassword(oldPassword, avatar.Password, pwdSettings))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                    return response;
+                }
+
+                // update password and remove reset token
+                avatar.Password = PasswordEncryptionHelper.HashPassword(newPassword, pwdSettings);
+                avatar.PasswordReset = DateTime.UtcNow;
+                avatar.ResetToken = null;
+                avatar.ResetTokenExpires = null;
+
+                var saveAvatarResult = await SaveAvatarAsync(avatar, providerType: providerType);
+
+                if (saveAvatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                    return response;
+                }
+
+                if (_loggedInAvatar.Id == avatar.Id)
+                    _loggedInAvatar = avatar;
+
+                response.Message = "Password reset successful, you can now login";
+                response.Result = response.Message;
             }
             catch (Exception e)
             {
@@ -769,48 +753,46 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false, false, providerType);
+                OASISResult<IAvatar> avatarResult = LoadAvatarByResetTokenForProvider(token, providerType);
 
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                if (avatarResult.IsError)
                 {
-                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
-                        x.ResetToken == token &&
-                        x.ResetTokenExpires > DateTime.UtcNow);
-
-                    if (avatar == null)
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
-                        return response;
-                    }
-
-                    // oldPassword is optional when authenticating via a reset token
-                    var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
-                    if (!string.IsNullOrEmpty(oldPassword) && !PasswordEncryptionHelper.VerifyPassword(oldPassword, avatar.Password, pwdSettings))
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
-                        return response;
-                    }
-
-                    // update password and remove reset token
-                    avatar.Password = PasswordEncryptionHelper.HashPassword(newPassword, pwdSettings);
-                    avatar.PasswordReset = DateTime.UtcNow;
-                    avatar.ResetToken = null;
-                    avatar.ResetTokenExpires = null;
-
-                    var saveAvatarResult = SaveAvatar(avatar, providerType: providerType);
-
-                    if (saveAvatarResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
-                        return response;
-                    }
-
-                    response.Message = "Password reset successful, you can now login";
-                    response.Result = response.Message;
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading avatar by reset token. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    return response;
                 }
-                else
-                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+
+                var avatar = avatarResult.Result?.ResetTokenExpires > DateTime.UtcNow ? avatarResult.Result : null;
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
+                    return response;
+                }
+
+                // oldPassword is optional when authenticating via a reset token
+                var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(oldPassword) && !PasswordEncryptionHelper.VerifyPassword(oldPassword, avatar.Password, pwdSettings))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                    return response;
+                }
+
+                // update password and remove reset token
+                avatar.Password = PasswordEncryptionHelper.HashPassword(newPassword, pwdSettings);
+                avatar.PasswordReset = DateTime.UtcNow;
+                avatar.ResetToken = null;
+                avatar.ResetTokenExpires = null;
+
+                var saveAvatarResult = SaveAvatar(avatar, providerType: providerType);
+
+                if (saveAvatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                    return response;
+                }
+
+                response.Message = "Password reset successful, you can now login";
+                response.Result = response.Message;
             }
             catch (Exception e)
             {
@@ -1829,23 +1811,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false);
+                OASISResult<IAvatar> avatarResult = LoadAvatarByResetTokenForProvider(token);
 
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                if (avatarResult.IsError)
+                    OASISErrorHandling.HandleError(ref response, $"Error in ValidateResetToken loading avatar by reset token. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                else if (avatarResult.Result == null || avatarResult.Result.ResetTokenExpires <= DateTime.UtcNow)
                 {
-                    var avatar = avatarsResult.Result.SingleOrDefault(x =>
-                        x.ResetToken == token && x.ResetTokenExpires > DateTime.UtcNow);
-
-                    if (avatar == null)
-                    {
-                        response.IsError = true;
-                        response.Result = "Invalid token";
-                    }
-                    else
-                        response.Result = "Valid token";
+                    response.IsError = true;
+                    response.Result = "Invalid token";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref response, $"Error in ValidateResetToken loading avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+                    response.Result = "Valid token";
             }
             catch (Exception ex)
             {
@@ -1864,22 +1840,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private RefreshToken GetRefreshTokenFromAvatar(string token, out IAvatar avatar)
         {
             avatar = null;
-            var avatarsResult = LoadAllAvatars(false, false);
+            var avatarResult = LoadAvatarByRefreshTokenForProvider(token);
 
-            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            if (!avatarResult.IsError && avatarResult.Result != null)
             {
-                foreach (var av in avatarsResult.Result)
-                {
-                    if (av.RefreshTokens != null)
-                    {
-                        var refreshToken = av.RefreshTokens.SingleOrDefault(x => x.Token == token);
-                        if (refreshToken != null)
-                        {
-                            avatar = av;
-                            return refreshToken;
-                        }
-                    }
-                }
+                avatar = avatarResult.Result;
+                return avatar.RefreshTokens?.SingleOrDefault(x => x.Token == token);
             }
 
             return null;
