@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public event Action<Guid, string> SettingsSaved;
         private static HolonManager _instance = null;
         private OASISResult<IEnumerable<IHolon>> _allHolonsCache = null;
+        private DateTime _allHolonsCacheExpiry = DateTime.MinValue;
+        private static readonly TimeSpan AllHolonsCacheTtl = TimeSpan.FromHours(1);
 
         //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
@@ -39,8 +41,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public void ClearCache()
         {
-            _allHolonsCache.Result = null;
+            if (_allHolonsCache != null)
+                _allHolonsCache.Result = null;
             _allHolonsCache = null;
+            _allHolonsCacheExpiry = DateTime.MinValue;
         }
 
         /// <summary>

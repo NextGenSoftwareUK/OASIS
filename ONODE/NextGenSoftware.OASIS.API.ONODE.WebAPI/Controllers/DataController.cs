@@ -297,7 +297,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OASISResult<IEnumerable<IHolon>> result = null;
                 try
                 {
-                    result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                    // Cap recursive depth to prevent full-tree loads from exhausting process memory
+                int safeMaxChildDepth = request.MaxChildDepth > 0 ? Math.Min(request.MaxChildDepth, 5) : 0;
+                result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
 
                     ResetOASISSettings(request, configResult);
 
