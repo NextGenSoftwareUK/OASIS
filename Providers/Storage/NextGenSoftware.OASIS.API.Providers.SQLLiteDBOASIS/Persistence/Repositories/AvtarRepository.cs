@@ -1187,6 +1187,102 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
+        public async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        {
+            try
+            {
+                var avatarEntity = await _dbContext.Avatars
+                    .FirstOrDefaultAsync(p => p.VerificationToken == verificationToken);
+                if (avatarEntity != null)
+                    return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Message = ex.ToString() };
+            }
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+        {
+            try
+            {
+                var avatarEntity = _dbContext.Avatars
+                    .FirstOrDefault(p => p.VerificationToken == verificationToken);
+                if (avatarEntity != null)
+                    return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Message = ex.ToString() };
+            }
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        {
+            try
+            {
+                var avatarEntity = await _dbContext.Avatars
+                    .FirstOrDefaultAsync(p => p.ResetToken == resetToken);
+                if (avatarEntity != null)
+                    return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Message = ex.ToString() };
+            }
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+        {
+            try
+            {
+                var avatarEntity = _dbContext.Avatars
+                    .FirstOrDefault(p => p.ResetToken == resetToken);
+                if (avatarEntity != null)
+                    return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Message = ex.ToString() };
+            }
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        {
+            try
+            {
+                var avatarEntity = await _dbContext.Avatars
+                    .FirstOrDefaultAsync(p => p.RefreshToken == refreshToken);
+                if (avatarEntity != null)
+                    return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Message = ex.ToString() };
+            }
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+        {
+            try
+            {
+                var avatarEntity = _dbContext.Avatars
+                    .FirstOrDefault(p => p.RefreshToken == refreshToken);
+                if (avatarEntity != null)
+                    return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Message = ex.ToString() };
+            }
+        }
+
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
             try
