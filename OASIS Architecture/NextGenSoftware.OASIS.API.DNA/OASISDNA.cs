@@ -52,6 +52,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         // Stats caching controls
         public bool StatsCacheEnabled { get; set; } = false;
         public int StatsCacheTtlSeconds { get; set; } = 45;
+        /// <summary>
+        /// When true (default), NFT minting and sending are gated behind a paid subscription — only Wizards (admins) can use them.
+        /// Set to false to allow any authenticated user to mint/send NFTs on devnet/testnet during development.
+        /// </summary>
+        public bool IsProduction { get; set; } = true;
     }
 
     /// <summary>
