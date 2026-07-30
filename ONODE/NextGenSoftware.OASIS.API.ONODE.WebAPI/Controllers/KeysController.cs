@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("clear_cache")]
+        [HttpPost("clear-cache")]
         public OASISResult<bool> ClearCache()
         {
             return KeyManager.ClearCache();
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_public_key_to_avatar_by_id")]
+        [HttpPost("link-provider-public-key-to-avatar-by-id")]
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_public_key_to_avatar_by_username")]
+        [HttpPost("link-provider-public-key-to-avatar-by-username")]
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_public_key_to_avatar_by_email")]
+        [HttpPost("link-provider-public-key-to-avatar-by-email")]
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderPrivateKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_private_key_to_avatar_by_id")]
+        [HttpPost("link-provider-private-key-to-avatar-by-id")]
         public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             bool isValid;
@@ -147,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderPrivateKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_private_key_to_avatar_by_username")]
+        [HttpPost("link-provider-private-key-to-avatar-by-username")]
         public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             bool isValid;
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderPrivateKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_private_key_to_avatar_by_email")]
+        [HttpPost("link-provider-private-key-to-avatar-by-email")]
         public OASISResult<bool> LinkProviderPrivateKeyToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             bool isValid;
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="generateKeyPairAndLinkProviderKeysToAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_and_link_provider_keys_to_avatar_by_id")]
+        [HttpPost("generate-keypair-and-link-provider-keys-to-avatar-by-id")]
         public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
@@ -218,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="generateKeyPairAndLinkProviderKeysToAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_and_link_provider_keys_to_avatar_by_username")]
+        [HttpPost("generate-keypair-and-link-provider-keys-to-avatar-by-username")]
         public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarUsername(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
@@ -240,7 +240,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="generateKeyPairAndLinkProviderKeysToAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_and_link_provider_keys_to_avatar_by_email")]
+        [HttpPost("generate-keypair-and-link-provider-keys-to-avatar-by-email")]
         public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarEmail(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
@@ -262,7 +262,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_unique_storage_key_for_avatar_by_id")]
+        [HttpGet("get-provider-unique-storage-key-for-avatar-by-id")]
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarById(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -284,7 +284,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_unique_storage_key_for_avatar_by_username")]
+        [HttpGet("get-provider-unique-storage-key-for-avatar-by-username")]
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -306,7 +306,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_unique_storage_key_for_avatar_by_email")]
+        [HttpGet("get-provider-unique-storage-key-for-avatar-by-email")]
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -328,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_private_key_for_avatar_by_id")]
+        [HttpGet("get-provider-private-key-for-avatar-by-id")]
         public OASISResult<List<string>> GetProviderPrivateKeyForAvatarById(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -350,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_private_key_for_avatar_by_username")]
+        [HttpGet("get-provider-private-key-for-avatar-by-username")]
         public OASISResult<List<string>> GetProviderPrivateKeyForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -372,7 +372,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <param name="providerKeyForAvatarParams"></param>
         ///// <returns></returns>
         //[Authorize]
-        //[HttpGet("get_provider_private_key_for_avatar_by_email")]
+        //[HttpGet("get-provider-private-key-for-avatar-by-email")]
         //public OASISResult<string> GetProviderPrivateKeyForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         //{
         //    return KeyManager.GetProviderPrivateKeyForAvatarByEmail(providerKeyForAvatarParams.AvatarUsername);
@@ -384,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_public_keys_for_avatar_by_id")]
+        [HttpGet("get-provider-public-keys-for-avatar-by-id")]
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarById(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -406,7 +406,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_public_keys_for_avatar_by_username")]
+        [HttpGet("get-provider-public-keys-for-avatar-by-username")]
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -428,7 +428,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKeyForAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_provider_public_keys_for_avatar_by_email")]
+        [HttpGet("get-provider-public-keys-for-avatar-by-email")]
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             bool isValid;
@@ -450,7 +450,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_public_keys_for_avatar_by_id/{id}")]
+        [HttpGet("get-all-provider-public-keys-for-avatar-by-id/{id}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatarById(Guid id)
         {
             return KeyManager.GetAllProviderPublicKeysForAvatarById(id);
@@ -462,7 +462,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="username">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_public_keys_for_avatar_by_username/{username}")]
+        [HttpGet("get-all-provider-public-keys-for-avatar-by-username/{username}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatarByUsername(string username)
         {
             return KeyManager.GetAllProviderPublicKeysForAvatarByUsername(username);
@@ -474,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="email">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_public_keys_for_avatar_by_email/{email}")]
+        [HttpGet("get-all-provider-public-keys-for-avatar-by-email/{email}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatarByEmail(string email)
         {
             return KeyManager.GetAllProviderPublicKeysForAvatarByEmail(email);
@@ -486,7 +486,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_private_keys_for_avatar_by_id/{id}")]
+        [HttpGet("get-all-provider-private-keys-for-avatar-by-id/{id}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPrivateKeysForAvatarById(Guid id)
         {
             return KeyManager.GetAllProviderPrivateKeysForAvatarById(id);
@@ -498,7 +498,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="username">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_private_keys_for_avatar_by_username/{username}")]
+        [HttpGet("get-all-provider-private-keys-for-avatar-by-username/{username}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPrivateKeysForAvatarByUsername(string username)
         {
             return KeyManager.GetAllProviderPrivateKeysForAvatarByUsername(username);
@@ -510,7 +510,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <param name="email">The Avatar's username.</param>
         ///// <returns></returns>
         //[Authorize]
-        //[HttpGet("get_all_provider_private_keys_for_avatar_by_email/{email}")]
+        //[HttpGet("get-all-provider-private-keys-for-avatar-by-email/{email}")]
         //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatarByEmail(string email)
         //{
         //    return KeyManager.GetAllProviderPrivateKeysForAvatarByEmail(email);
@@ -522,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_unique_storage_keys_for_avatar_by_id/{id}")]
+        [HttpGet("get-all-provider-unique-storage-keys-for-avatar-by-id/{id}")]
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarById(Guid id)
         {
             return KeyManager.GetAllProviderUniqueStorageKeysForAvatarById(id);
@@ -534,7 +534,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="username">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_unique_storage_keys_for_avatar_by_username/{username}")]
+        [HttpGet("get-all-provider-unique-storage-keys-for-avatar-by-username/{username}")]
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarByUsername(string username)
         {
             return KeyManager.GetAllProviderUniqueStorageKeysForAvatarByUsername(username);
@@ -546,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="email">The Avatar's username.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_all_provider_unique_storage_keys_for_avatar_by_email/{email}")]
+        [HttpGet("get-all-provider-unique-storage-keys-for-avatar-by-email/{email}")]
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarByEmail(string email)
         {
             return KeyManager.GetAllProviderUniqueStorageKeysForAvatarByEmail(email);
@@ -562,7 +562,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_id_for_provider_unique_storage_key/{providerKey}")]
+        [HttpGet("get-avatar-id-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<Guid> GetAvatarIdForProviderUniqueStorageKey(string providerKey)
         {
             return KeyManager.GetAvatarIdForProviderUniqueStorageKey(providerKey);
@@ -574,7 +574,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_username_for_provider_unique_storage_key/{providerKey}")]
+        [HttpGet("get-avatar-username-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<string> GetAvatarUsernameForProviderUniqueStorageKey(string providerKey)
         {
             return KeyManager.GetAvatarUsernameForProviderUniqueStorageKey(providerKey);
@@ -586,7 +586,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_email_for_provider_unique_storage_key/{providerKey}")]
+        [HttpGet("get-avatar-email-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<string> GetAvatarEmailForProviderUniqueStorageKey(string providerKey)
         {
             return KeyManager.GetAvatarEmailForProviderUniqueStorageKey(providerKey);
@@ -598,7 +598,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_for_provider_unique_storage_key/{providerKey}")]
+        [HttpGet("get-avatar-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<IAvatar> GetAvatarForProviderUniqueStorageKey(string providerKey)
         {
             return KeyManager.GetAvatarForProviderUniqueStorageKey(providerKey);
@@ -610,7 +610,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_id_for_provider_public_key/{providerKey}")]
+        [HttpGet("get-avatar-id-for-provider-public-key/{providerKey}")]
         public OASISResult<Guid> GetAvatarIdForProviderPublicKey(string providerKey)
         {
             return KeyManager.GetAvatarIdForProviderPublicKey(providerKey);
@@ -622,7 +622,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_username_for_provider_public_key/{providerKey}")]
+        [HttpGet("get-avatar-username-for-provider-public-key/{providerKey}")]
         public OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey)
         {
             return KeyManager.GetAvatarUsernameForProviderPublicKey(providerKey);
@@ -634,7 +634,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_email_for_provider_public_key/{providerKey}")]
+        [HttpGet("get-avatar-email-for-provider-public-key/{providerKey}")]
         public OASISResult<string> GetAvatarEmailForProviderPublicKey(string providerKey)
         {
             return KeyManager.GetAvatarEmailForProviderPublicKey(providerKey);
@@ -646,7 +646,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_for_provider_public_key/{providerKey}")]
+        [HttpGet("get-avatar-for-provider-public-key/{providerKey}")]
         public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey)
         {
             return KeyManager.GetAvatarForProviderPublicKey(providerKey);
@@ -659,7 +659,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_id_for_provider_private_key/{providerKey}")]
+        [HttpGet("get-avatar-id-for-provider-private-key/{providerKey}")]
         public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey)
         {
             return KeyManager.GetAvatarIdForProviderPrivateKey(providerKey);
@@ -671,7 +671,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_username_for_provider_private_key/{providerKey}")]
+        [HttpGet("get-avatar-username-for-provider-private-key/{providerKey}")]
         public OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey)
         {
             return KeyManager.GetAvatarUsernameForProviderPrivateKey(providerKey);
@@ -683,7 +683,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <param name="providerKey"></param>
         ///// <returns></returns>
         //[Authorize]
-        //[HttpGet("get_avatar_email_for_provider_private_key/{providerKey}")]
+        //[HttpGet("get-avatar-email-for-provider-private-key/{providerKey}")]
         //public OASISResult<string> GetAvatarEmailForProviderPrivateKey(string providerKey)
         //{
         //    return KeyManager.GetAvatarEmailForProviderPrivateKey(providerKey);
@@ -695,7 +695,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerKey"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("get_avatar_for_provider_private_key/{providerKey}")]
+        [HttpGet("get-avatar-for-provider-private-key/{providerKey}")]
         public OASISResult<IAvatar> GetAvatarForProviderPrivateKey(string providerKey)
         {
             return KeyManager.GetAvatarForProviderPrivateKey(providerKey);
@@ -708,7 +708,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType">TEST</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_for_provider/{providerType}")]
+        [HttpPost("generate-keypair-for-provider/{providerType}")]
         public OASISResult<IKeyPairAndWallet> GenerateKeyPairForProvider(ProviderType providerType)
         {
             return KeyManager.GenerateKeyPairWithWalletAddress(providerType);
@@ -720,7 +720,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///// <param name="keyPrefix"></param>
         ///// <returns></returns>
         //[Authorize]
-        //[HttpPost("generate_keypair/{keyPrefix}")]
+        //[HttpPost("generate-keypair/{keyPrefix}")]
         //public OASISResult<IKeyPairAndWallet> GenerateKeyPair(string keyPrefix)
         //{
         //    return KeyManager.GenerateKeyPairWithWalletAddress(keyPrefix);
@@ -732,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="source"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("get_private_wifi/{source}")]
+        [HttpPost("get-private-wifi/{source}")]
         public OASISResult<string> GetPrivateWif(byte[] source)
         {
             //TODO: May need to change source to a string if byte array does not work...
@@ -755,7 +755,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="wifParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("get_public_wifi")]
+        [HttpPost("get-public-wifi")]
         public OASISResult<string> GetPublicWif(WifParams wifParams)
         {
             return KeyManager.GetPublicWif(wifParams.PublicKey, wifParams.Prefix);
@@ -767,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="data"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("decode_private_wif/{data}")]
+        [HttpPost("decode-private-wif/{data}")]
         public OASISResult<byte[]> DecodePrivateWif(string data)
         {
             return KeyManager.DecodePrivateWif(data);
@@ -779,7 +779,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="data"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("base58_check_decode/{data}")]
+        [HttpPost("base58-check-decode/{data}")]
         public OASISResult<byte[]> Base58CheckDecode(string data)
         {
             return KeyManager.Base58CheckDecode(data);
@@ -791,7 +791,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="source"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("encode_signature/{source}")]
+        [HttpPost("encode-signature/{source}")]
         public OASISResult<string> EncodeSignature(byte[] source)
         {
             return KeyManager.EncodeSignature(source);
@@ -1062,7 +1062,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderWalletAddressToAvatarParams">The params include WalletId, AvatarId, ProviderType &amp; WalletAddress</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_wallet_address_to_avatar_by_id")]
+        [HttpPost("link-provider-wallet-address-to-avatar-by-id")]
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarById(LinkProviderKeyToAvatarParams linkProviderWalletAddressToAvatarParams)
         {
             bool isValid;
@@ -1084,7 +1084,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderWalletAddressToAvatarParams">The params include WalletId, AvatarUsername, ProviderType &amp; WalletAddress</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_wallet_address_to_avatar_by_username")]
+        [HttpPost("link-provider-wallet-address-to-avatar-by-username")]
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderWalletAddressToAvatarParams)
         {
             bool isValid;
@@ -1106,7 +1106,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderWalletAddressToAvatarParams">The params include WalletId, AvatarEmail, ProviderType &amp; WalletAddress</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("link_provider_wallet_address_to_avatar_by_email")]
+        [HttpPost("link-provider-wallet-address-to-avatar-by-email")]
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderWalletAddressToAvatarParams)
         {
             bool isValid;
@@ -1128,7 +1128,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_id")]
+        [HttpPost("generate-keypair-with-wallet-address-and-link-provider-keys-to-avatar-by-id")]
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(LinkProviderKeyToAvatarParams generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
@@ -1150,7 +1150,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_username")]
+        [HttpPost("generate-keypair-with-wallet-address-and-link-provider-keys-to-avatar-by-username")]
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(LinkProviderKeyToAvatarParams generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
@@ -1172,7 +1172,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_email")]
+        [HttpPost("generate-keypair-with-wallet-address-and-link-provider-keys-to-avatar-by-email")]
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(LinkProviderKeyToAvatarParams generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
@@ -1194,7 +1194,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType">The provider type to generate keys for.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("generate_keypair_with_wallet_address_for_provider/{providerType}")]
+        [HttpPost("generate-keypair-with-wallet-address-for-provider/{providerType}")]
         public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWalletAddressForProvider(ProviderType providerType)
         {
             return KeyManager.GenerateKeyPairWithWalletAddress(providerType);
