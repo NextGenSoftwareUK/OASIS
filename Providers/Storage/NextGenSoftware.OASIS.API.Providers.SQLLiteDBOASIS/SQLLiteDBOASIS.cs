@@ -454,22 +454,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        public OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
             => _avatarRepository.LoadAvatarByVerificationToken(verificationToken, version);
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
             => _avatarRepository.LoadAvatarByVerificationTokenAsync(verificationToken, version);
 
-        public OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
             => _avatarRepository.LoadAvatarByResetToken(resetToken, version);
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
             => _avatarRepository.LoadAvatarByResetTokenAsync(resetToken, version);
 
-        public OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
             => _avatarRepository.LoadAvatarByRefreshToken(refreshToken, version);
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
             => _avatarRepository.LoadAvatarByRefreshTokenAsync(refreshToken, version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

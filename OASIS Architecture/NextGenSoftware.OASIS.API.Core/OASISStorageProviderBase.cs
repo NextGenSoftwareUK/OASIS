@@ -60,6 +60,22 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0);
+
+        public virtual OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+            => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+            => Task.FromResult(LoadAvatarByVerificationToken(verificationToken, version));
+
+        public virtual OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+            => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+            => Task.FromResult(LoadAvatarByResetToken(resetToken, version));
+
+        public virtual OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+            => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+            => Task.FromResult(LoadAvatarByRefreshToken(refreshToken, version));
+
         //public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
         //public abstract OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
         public abstract Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0);

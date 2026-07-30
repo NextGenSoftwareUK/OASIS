@@ -644,6 +644,174 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+        {
+            return LoadAvatarByVerificationTokenAsync(verificationToken, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (Directory.Exists(_avatarFolderPath))
+                {
+                    foreach (var file in Directory.GetFiles(_avatarFolderPath, "*.json"))
+                    {
+                        try
+                        {
+                            var jsonContent = await File.ReadAllTextAsync(file);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            if (avatar != null && avatar.VerificationToken != null &&
+                                avatar.VerificationToken.Equals(verificationToken, StringComparison.Ordinal))
+                            {
+                                result.Result = avatar;
+                                result.IsError = false;
+                                result.IsLoaded = true;
+                                result.Message = "Avatar loaded successfully by verification token";
+                                return result;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log($"Error reading avatar file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
+                        }
+                    }
+                }
+
+                result.IsError = false;
+                result.IsLoaded = false;
+                result.Message = "Avatar not found by verification token";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by verification token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+        {
+            return LoadAvatarByResetTokenAsync(resetToken, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (Directory.Exists(_avatarFolderPath))
+                {
+                    foreach (var file in Directory.GetFiles(_avatarFolderPath, "*.json"))
+                    {
+                        try
+                        {
+                            var jsonContent = await File.ReadAllTextAsync(file);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            if (avatar != null && avatar.ResetToken != null &&
+                                avatar.ResetToken.Equals(resetToken, StringComparison.Ordinal))
+                            {
+                                result.Result = avatar;
+                                result.IsError = false;
+                                result.IsLoaded = true;
+                                result.Message = "Avatar loaded successfully by reset token";
+                                return result;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log($"Error reading avatar file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
+                        }
+                    }
+                }
+
+                result.IsError = false;
+                result.IsLoaded = false;
+                result.Message = "Avatar not found by reset token";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by reset token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+        {
+            return LoadAvatarByRefreshTokenAsync(refreshToken, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (Directory.Exists(_avatarFolderPath))
+                {
+                    foreach (var file in Directory.GetFiles(_avatarFolderPath, "*.json"))
+                    {
+                        try
+                        {
+                            var jsonContent = await File.ReadAllTextAsync(file);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            if (avatar != null && avatar.RefreshTokens != null &&
+                                avatar.RefreshTokens.Any(r => r.Token == refreshToken))
+                            {
+                                result.Result = avatar;
+                                result.IsError = false;
+                                result.IsLoaded = true;
+                                result.Message = "Avatar loaded successfully by refresh token";
+                                return result;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log($"Error reading avatar file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
+                        }
+                    }
+                }
+
+                result.IsError = false;
+                result.IsLoaded = false;
+                result.Message = "Avatar not found by refresh token";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by refresh token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatar>>();

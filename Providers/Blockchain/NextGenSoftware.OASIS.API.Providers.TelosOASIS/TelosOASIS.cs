@@ -565,6 +565,198 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+        {
+            return LoadAvatarByVerificationTokenAsync(verificationToken, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0", id = 1, method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos", scope = "oasis.telos", table = "avatars",
+                        index_position = 5, key_type = "name",
+                        lower_bound = verificationToken, upper_bound = verificationToken,
+                        limit = 1, reverse = false, show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        result.Result = ParseTelosToAvatar(rows[0]);
+                        result.IsError = false;
+                        result.Message = "Avatar loaded by verification token from Telos blockchain successfully";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar by verification token from Telos blockchain: {httpResponse.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by verification token from Telos: {ex.Message}");
+            }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+        {
+            return LoadAvatarByResetTokenAsync(resetToken, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0", id = 1, method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos", scope = "oasis.telos", table = "avatars",
+                        index_position = 6, key_type = "name",
+                        lower_bound = resetToken, upper_bound = resetToken,
+                        limit = 1, reverse = false, show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        result.Result = ParseTelosToAvatar(rows[0]);
+                        result.IsError = false;
+                        result.Message = "Avatar loaded by reset token from Telos blockchain successfully";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar by reset token from Telos blockchain: {httpResponse.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by reset token from Telos: {ex.Message}");
+            }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+        {
+            return LoadAvatarByRefreshTokenAsync(refreshToken, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0", id = 1, method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos", scope = "oasis.telos", table = "avatars",
+                        index_position = 7, key_type = "name",
+                        lower_bound = refreshToken, upper_bound = refreshToken,
+                        limit = 1, reverse = false, show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        result.Result = ParseTelosToAvatar(rows[0]);
+                        result.IsError = false;
+                        result.Message = "Avatar loaded by refresh token from Telos blockchain successfully";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar by refresh token from Telos blockchain: {httpResponse.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by refresh token from Telos: {ex.Message}");
+            }
+            return result;
+        }
+
         //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         //{
         //    throw new NotImplementedException();
