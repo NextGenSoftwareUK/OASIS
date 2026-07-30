@@ -179,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("load-all-nfts-for_avatar/{avatarId}")]
+        [Route("load-all-nfts-for-avatar/{avatarId}")]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId)
         {
             return await NFTManager.LoadAllWeb4NFTsForAvatarAsync(avatarId);
@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("load-all-nfts-for_avatar/{avatarId}/{providerType}/{setGlobally}")]
+        [Route("load-all-nfts-for-avatar/{avatarId}/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
