@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="400">Error sending token</response>
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
-        [HttpPost("send_token")]
+        [HttpPost("send-token")]
         [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
