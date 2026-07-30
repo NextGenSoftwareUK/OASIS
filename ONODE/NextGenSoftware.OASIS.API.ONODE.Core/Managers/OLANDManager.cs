@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Serialization.HybridRow;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -82,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             var response = new OASISResult<IEnumerable<IOLand>>();
             try
             {
-                var loadResult = await Data.LoadAllHolonsAsync();
+                var loadResult = await Data.LoadAllHolonsAsync(HolonType.OLand);
                 if (loadResult.IsError)
                 {
                     response.IsError = true;
