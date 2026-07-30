@@ -434,6 +434,24 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return LoadAvatarByEmailAsync(avatarEmail, version).Result;
     }
 
+    public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+        => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+
+    public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        => Task.FromResult(LoadAvatarByVerificationToken(verificationToken, version));
+
+    public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+        => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+
+    public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        => Task.FromResult(LoadAvatarByResetToken(resetToken, version));
+
+    public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+        => new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+
+    public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        => Task.FromResult(LoadAvatarByRefreshToken(refreshToken, version));
+
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
     {
         return LoadAvatarDetailAsync(id, version).Result;

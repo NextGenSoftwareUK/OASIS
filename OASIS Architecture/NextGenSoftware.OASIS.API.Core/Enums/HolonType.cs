@@ -148,6 +148,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         GalacticNode,
         MeshMessageLog,
         Trust,
+        OLand,
         None
         //Custom,
         //DataObject

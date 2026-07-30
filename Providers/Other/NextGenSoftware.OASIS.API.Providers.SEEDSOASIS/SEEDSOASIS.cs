@@ -836,6 +836,126 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return result;
         }
 
+        public OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+        {
+            return LoadAvatarByVerificationTokenAsync(verificationToken, version).Result;
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", verificationToken, verificationToken, 1);
+
+                if (rows != null && rows.rows != null && rows.rows.Count > 0)
+                {
+                    var avatarJson = JsonConvert.SerializeObject(rows.rows[0]);
+                    result.Result = ParseSEEDSToAvatar(System.Text.Json.JsonSerializer.Deserialize<JsonElement>(avatarJson));
+                    result.IsError = false;
+                    result.Message = "Avatar loaded by verification token from SEEDS blockchain successfully";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found on SEEDS blockchain");
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by verification token from SEEDS: {ex.Message}");
+            }
+            return result;
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+        {
+            return LoadAvatarByResetTokenAsync(resetToken, version).Result;
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", resetToken, resetToken, 1);
+
+                if (rows != null && rows.rows != null && rows.rows.Count > 0)
+                {
+                    var avatarJson = JsonConvert.SerializeObject(rows.rows[0]);
+                    result.Result = ParseSEEDSToAvatar(System.Text.Json.JsonSerializer.Deserialize<JsonElement>(avatarJson));
+                    result.IsError = false;
+                    result.Message = "Avatar loaded by reset token from SEEDS blockchain successfully";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found on SEEDS blockchain");
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by reset token from SEEDS: {ex.Message}");
+            }
+            return result;
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+        {
+            return LoadAvatarByRefreshTokenAsync(refreshToken, version).Result;
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", refreshToken, refreshToken, 1);
+
+                if (rows != null && rows.rows != null && rows.rows.Count > 0)
+                {
+                    var avatarJson = JsonConvert.SerializeObject(rows.rows[0]);
+                    result.Result = ParseSEEDSToAvatar(System.Text.Json.JsonSerializer.Deserialize<JsonElement>(avatarJson));
+                    result.IsError = false;
+                    result.Message = "Avatar loaded by refresh token from SEEDS blockchain successfully";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found on SEEDS blockchain");
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by refresh token from SEEDS: {ex.Message}");
+            }
+            return result;
+        }
+
         public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
             return LoadAllAvatarsAsync(version).Result;
