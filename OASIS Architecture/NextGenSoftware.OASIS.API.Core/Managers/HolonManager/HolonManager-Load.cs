@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Store the original holon for change tracking in STAR/COSMIC.
                 result.Result.Original = result.Result;
 
+                DecryptHolonMetaData(result.Result);
+
                 if (result.Result.MetaData != null)
                     result.Result = (T)MapMetaData<T>(result.Result);
 
@@ -103,6 +105,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 // Store the original holon for change tracking in STAR/COSMIC.
                 result.Result.Original = result.Result;
+
+                DecryptHolonMetaData(result.Result);
 
                 if (loadChildren && !loadChildrenFromProvider)
                 {

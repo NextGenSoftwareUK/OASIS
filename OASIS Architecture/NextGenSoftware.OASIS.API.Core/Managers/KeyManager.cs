@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Cryptography.ECDSA;
 using NBitcoin;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Utilities;
@@ -377,7 +378,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             CreatedDate = DateTime.Now,
                             WalletAddress = walletAddress,
                             ProviderType = providerTypeToLinkTo,
-                            SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)
+                            SecretRecoveryPhrase = PasswordEncryptionHelper.WrapQuantumLayer(Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256), OASISDNA.OASIS.Security.OASISProviderPrivateKeys)
                             //SecretRecoveryPhrase = string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words)
                         };
 
@@ -536,7 +537,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             WalletAddress = !string.IsNullOrEmpty(walletAddress) ? walletAddress : WalletAddressHelper.PublicKeyToAddress(providerKey),
                             WalletAddressSegwitP2SH = walletAddressSegwitP2SH,
                             ProviderType = providerTypeToLinkTo,
-                            SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)
+                            SecretRecoveryPhrase = PasswordEncryptionHelper.WrapQuantumLayer(Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256), OASISDNA.OASIS.Security.OASISProviderPrivateKeys)
                         };
 
                         result.Result = newWallet;
@@ -586,7 +587,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             if (showSecretRecoveryWords)
-                                result.Result.SecretRecoveryPhrase = Rijndael.Decrypt(secret, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                                result.Result.SecretRecoveryPhrase = Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(secret, OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                         }
                         catch (Exception e)
                         {
@@ -966,7 +967,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     foreach (IProviderWallet proWallet in avatar.ProviderWallets[proType])
                     {
                         if (proWallet != null && !string.IsNullOrEmpty(proWallet.PrivateKey))
-                            proWallet.PrivateKey = Rijndael.Decrypt(proWallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            proWallet.PrivateKey = Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(proWallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                     }
                 }
 
@@ -977,7 +978,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     foreach (IProviderWallet proWallet in avatar.ProviderWallets[proType])
                     {
                         if (proWallet != null && !string.IsNullOrEmpty(proWallet.PrivateKey))
-                            proWallet.PrivateKey = Rijndael.Encrypt(proWallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            proWallet.PrivateKey = PasswordEncryptionHelper.WrapQuantumLayer(Rijndael.Encrypt(proWallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256), OASISDNA.OASIS.Security.OASISProviderPrivateKeys);
                     }
                 }
 
@@ -993,10 +994,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             CreatedDate = DateTime.Now,
                             WalletAddress = WalletAddressHelper.PrivateKeyToAddress(providerPrivateKey), //TODO: Need to calucalte the walletAddress from the PublicKey!
                             ProviderType = providerTypeToLinkTo,
-                            SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256),
-                            PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)
+                            SecretRecoveryPhrase = PasswordEncryptionHelper.WrapQuantumLayer(Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256), OASISDNA.OASIS.Security.OASISProviderPrivateKeys),
+                            PrivateKey = PasswordEncryptionHelper.WrapQuantumLayer(Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256), OASISDNA.OASIS.Security.OASISProviderPrivateKeys)
                         };
-        
+
                         result.Result = newWallet;
 
                         // If any default wallet exist in avatar provider wallet? if not, make current/first one wallet as default
@@ -1012,7 +1013,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (wallet != null)
                         {
-                            wallet.PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            wallet.PrivateKey = PasswordEncryptionHelper.WrapQuantumLayer(Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256), OASISDNA.OASIS.Security.OASISProviderPrivateKeys);
                             wallet.ModifiedByAvatarId = avatar.Id;
                             wallet.ModifiedDate = DateTime.Now;
                             result.Result = wallet;
@@ -1056,7 +1057,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             if (showPrivateKey)
-                                result.Result.PrivateKey = Rijndael.Decrypt(privateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                                result.Result.PrivateKey = Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(privateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                         }
                         catch (Exception e)
                         {
@@ -1066,7 +1067,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             if (showSecretRecoveryWords)
-                                result.Result.SecretRecoveryPhrase = Rijndael.Decrypt(secret, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                                result.Result.SecretRecoveryPhrase = Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(secret, OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                         }
                         catch (Exception e)
                         {
@@ -1248,7 +1249,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
                         for (int i = 0; i < _avatarIdToProviderPrivateKeyLookup[key].Count; i++)
-                            _avatarIdToProviderPrivateKeyLookup[key][i] = Rijndael.Decrypt(_avatarIdToProviderPrivateKeyLookup[key][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            _avatarIdToProviderPrivateKeyLookup[key][i] = Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(_avatarIdToProviderPrivateKeyLookup[key][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
@@ -1280,7 +1281,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         
                         // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
                         for (int i = 0; i < _avatarIdToProviderPrivateKeyLookup[key].Count; i++)
-                            _avatarIdToProviderPrivateKeyLookup[key][i] = Rijndael.Decrypt(_avatarIdToProviderPrivateKeyLookup[key][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            _avatarIdToProviderPrivateKeyLookup[key][i] = Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(_avatarIdToProviderPrivateKeyLookup[key][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, string.Concat("Error occured in GetProviderPrivateKeysForAvatarByUsername. The avatar with username ", avatarUsername, " was not found."));
@@ -1315,7 +1316,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     for (int i = 0; i < result.Result.Count; i++)
                     {
                         if (result.Result[i] != null)
-                            result.Result[i] = Rijndael256.Rijndael.Decrypt(result.Result[i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            result.Result[i] = Rijndael256.Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(result.Result[i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                     }
                 }
                 else
@@ -1347,7 +1348,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     for (int i = 0; i < result.Result.Count; i++)
                     {
                         if (result.Result[i] != null)
-                            result.Result[i] = Rijndael256.Rijndael.Decrypt(result.Result[i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            result.Result[i] = Rijndael256.Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(result.Result[i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                     }
                 }
                 else
@@ -1871,7 +1872,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.Result[provider].Add(new KeyPair()
                             {
-                                PrivateKey = wallet.PrivateKey != null ? Rijndael256.Rijndael.Decrypt(wallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256) : null,
+                                PrivateKey = wallet.PrivateKey != null ? Rijndael256.Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(wallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256) : null,
                                 PublicKey = wallet.PublicKey
                             });
                         }
@@ -2131,7 +2132,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         for (int i = 0; i < result.Result[provider].Count; i++)
                         {
                             if (result.Result[provider][i] != null)
-                                result.Result[provider][i] = Rijndael256.Rijndael.Decrypt(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                                result.Result[provider][i] = Rijndael256.Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                         }
                     }
                 }
@@ -2182,7 +2183,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         for (int i = 0; i < result.Result[provider].Count; i++)
                         {
                             if (result.Result[provider][i] != null)
-                                result.Result[provider][i] = Rijndael256.Rijndael.Decrypt(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                                result.Result[provider][i] = Rijndael256.Rijndael.Decrypt(PasswordEncryptionHelper.UnwrapQuantumLayer(result.Result[provider][i], OASISDNA.OASIS.Security.OASISProviderPrivateKeys), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                         }
                     }
                 }

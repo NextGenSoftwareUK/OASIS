@@ -57,6 +57,13 @@
                 "Rijndael256Key": "",
                 "QuantumEncryptionEnabled": false,
                 "QuantumEncryptionKey": ""
+            },
+            "HolonDataEncryption": {
+                "BCryptEncryptionEnabled": false,
+                "Rijndael256EncryptionEnabled": false,
+                "Rijndael256Key": "",
+                "QuantumEncryptionEnabled": false,
+                "QuantumEncryptionKey": ""
             }
         },
         "Email": {

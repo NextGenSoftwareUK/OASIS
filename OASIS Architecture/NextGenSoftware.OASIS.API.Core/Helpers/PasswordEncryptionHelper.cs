@@ -86,6 +86,92 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         }
 
         // ──────────────────────────────────────────────────────────────
+        // Reversible value encryption (no BCrypt) — for holon data.
+        //   Layer 1: AES-256-CBC with r256: prefix (Rijndael-256 equivalent)
+        //   Layer 2: AES-256-GCM with qpq: prefix (quantum-resistant)
+        // ──────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Reversible 2-layer encryption for holon data (AES-256-CBC → AES-256-GCM).
+        /// BCrypt is omitted because holon data must be decryptable.
+        /// </summary>
+        public static string EncryptValue(string plaintext, EncryptionSettings settings)
+        {
+            if (string.IsNullOrEmpty(plaintext)) return plaintext;
+
+            string value = plaintext;
+
+            if (settings?.Rijndael256EncryptionEnabled == true && !string.IsNullOrEmpty(settings.Rijndael256Key))
+                value = R256Prefix + AesCbcEncrypt(value, DeriveKey(settings.Rijndael256Key));
+
+            if (settings?.QuantumEncryptionEnabled == true && !string.IsNullOrEmpty(settings.QuantumEncryptionKey))
+                value = QpqPrefix + AesGcmEncrypt(value, DeriveKey(settings.QuantumEncryptionKey));
+
+            return value;
+        }
+
+        /// <summary>Peels the layers applied by EncryptValue in reverse order.</summary>
+        public static string DecryptValue(string ciphertext, EncryptionSettings settings)
+        {
+            if (string.IsNullOrEmpty(ciphertext)) return ciphertext;
+
+            try
+            {
+                string inner = ciphertext;
+
+                if (inner.StartsWith(QpqPrefix) && settings?.QuantumEncryptionEnabled == true && !string.IsNullOrEmpty(settings.QuantumEncryptionKey))
+                    inner = AesGcmDecrypt(inner[QpqPrefix.Length..], DeriveKey(settings.QuantumEncryptionKey));
+
+                if (inner.StartsWith(R256Prefix) && settings?.Rijndael256EncryptionEnabled == true && !string.IsNullOrEmpty(settings.Rijndael256Key))
+                    inner = AesCbcDecrypt(inner[R256Prefix.Length..], DeriveKey(settings.Rijndael256Key));
+
+                return inner;
+            }
+            catch
+            {
+                return ciphertext;
+            }
+        }
+
+        /// <summary>Returns true if the value was produced by EncryptValue (has r256: or qpq: prefix).</summary>
+        public static bool IsAlreadyEncrypted(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            return value.StartsWith(QpqPrefix) || value.StartsWith(R256Prefix);
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Quantum-layer helpers for wallet/key encryption.
+        // Call these around the existing Rijndael256 library Encrypt/Decrypt.
+        //   WrapQuantumLayer:   call AFTER Rijndael256.Rijndael.Encrypt
+        //   UnwrapQuantumLayer: call BEFORE Rijndael256.Rijndael.Decrypt
+        // ──────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Wraps an already-Rijndael-encrypted value with AES-256-GCM when quantum encryption is configured.
+        /// Returns the value unchanged if the key is absent or empty.
+        /// </summary>
+        public static string WrapQuantumLayer(string value, EncryptionSettings settings)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            if (settings?.QuantumEncryptionEnabled != true || string.IsNullOrEmpty(settings.QuantumEncryptionKey))
+                return value;
+            return QpqPrefix + AesGcmEncrypt(value, DeriveKey(settings.QuantumEncryptionKey));
+        }
+
+        /// <summary>
+        /// Strips the AES-256-GCM quantum layer (if present) before passing to Rijndael256.Rijndael.Decrypt.
+        /// Safe to call even when the value was not quantum-wrapped — returns value unchanged.
+        /// </summary>
+        public static string UnwrapQuantumLayer(string value, EncryptionSettings settings)
+        {
+            if (string.IsNullOrEmpty(value) || !value.StartsWith(QpqPrefix)) return value;
+            if (string.IsNullOrEmpty(settings?.QuantumEncryptionKey)) return value;
+            try { return AesGcmDecrypt(value[QpqPrefix.Length..], DeriveKey(settings.QuantumEncryptionKey)); }
+            catch { return value; }
+        }
+
+        // ──────────────────────────────────────────────────────────────
         // AES-256-CBC (Rijndael-256 Layer)
         //   Output: Base64(IV[16] | ciphertext)
         // ──────────────────────────────────────────────────────────────
