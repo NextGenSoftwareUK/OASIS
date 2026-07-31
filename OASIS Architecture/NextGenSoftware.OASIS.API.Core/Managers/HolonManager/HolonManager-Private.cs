@@ -167,14 +167,38 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holon;
         }
 
-        // Keys that must always remain plain text in MetaData so provider queries work.
-        // CreatedByAvatarId / Active: set by PrepareHolonForSaving; used in LoadHolonsByMetaData queries.
-        // HolonType: queried internally by MongoDB provider for geo/radius searches.
-        // _versionStamp: used by SettingsManager for optimistic concurrency.
-        // data: used by SaveFile/LoadFile (binary blob stored as MetaData entry).
+        // Keys that must always remain plain text in MetaData so provider queries and internal
+        // framework lookups continue to work when HolonDataEncryption is enabled.
+        //
+        // Sources:
+        //   PrepareHolonForSaving sets: CreatedByAvatarId, Active
+        //   MongoDB provider queries: HolonType (geo/radius searches)
+        //   SettingsManager: _versionStamp (optimistic concurrency)
+        //   SaveFile/LoadFile: data (binary blob)
+        //   Provider avatar lookups (Zcash, Aztec, LocalFile, etc.): Username, Email, Name,
+        //     Description, ParentId, ParentProviderKey, SearchQuery, parkType, env
+        //   Provider NFT lookups: web3TokenId, NFT.MintedByAvatarId, NFT.MintWalletAddress,
+        //     NFT.ParentWeb4NFTId, GEONFT.PlacedByAvatarId, GEONFT.MintedByAvatarId,
+        //     GEONFT.OriginalOASISNFT.MintWalletAddress, GEONFT.LatLong
+        //   [CustomOASISProperty] keys commonly queried via LoadHolonsByMetaData:
+        //     Status (QuestBase), ActiveQuestId, ActiveObjectiveId (AvatarDetail)
+        //
+        // Add any app-specific queryable keys to HolonDataEncryption.AdditionalQueryableKeys
+        // in OASIS_DNA.json rather than hardcoding them here.
         private static readonly HashSet<string> _systemMetaKeys = new()
         {
-            "CreatedByAvatarId", "Active", "HolonType", "_versionStamp", "data"
+            // Framework-set
+            "CreatedByAvatarId", "Active", "HolonType", "_versionStamp", "data",
+            // Provider avatar/search lookups
+            "Username", "Email", "Name", "Description",
+            "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+            // Provider NFT lookups
+            "web3TokenId",
+            "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId",
+            "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId",
+            "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
+            // [CustomOASISProperty] keys queried by the quest/avatar system
+            "Status", "ActiveQuestId", "ActiveObjectiveId",
         };
         private const string EncMetaKey = "__oasis_enc__";
 
