@@ -257,6 +257,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int RefreshTokenExpirationDays { get; set; } = 7;
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+        /// <summary>Encryption settings applied to holon MetaData at rest. All layers are reversible (no BCrypt). Overridable per SaveHolon call via Holon.DataEncryptionOverride.</summary>
+        public EncryptionSettings HolonDataEncryption { get; set; }
         /// <summary>When true each avatar is assigned a W3C DID (did:oasis:&lt;avatarId&gt;) and the DID is included in issued JWT tokens.</summary>
         public bool DIDEnabled { get; set; }
         /// <summary>DID challenge nonce store configuration.</summary>
