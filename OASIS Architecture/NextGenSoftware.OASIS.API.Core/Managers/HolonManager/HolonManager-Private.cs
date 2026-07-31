@@ -167,7 +167,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holon;
         }
 
-        private static readonly HashSet<string> _systemMetaKeys = new() { "CreatedByAvatarId", "Active" };
+        // Keys that must always remain plain text in MetaData so provider queries work.
+        // CreatedByAvatarId / Active: set by PrepareHolonForSaving; used in LoadHolonsByMetaData queries.
+        // HolonType: queried internally by MongoDB provider for geo/radius searches.
+        // _versionStamp: used by SettingsManager for optimistic concurrency.
+        // data: used by SaveFile/LoadFile (binary blob stored as MetaData entry).
+        private static readonly HashSet<string> _systemMetaKeys = new()
+        {
+            "CreatedByAvatarId", "Active", "HolonType", "_versionStamp", "data"
+        };
         private const string EncMetaKey = "__oasis_enc__";
 
         private void EncryptHolonMetaData(IHolon holon)
@@ -179,7 +187,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (encSettings.Rijndael256EncryptionEnabled != true && encSettings.QuantumEncryptionEnabled != true) return;
             if (holon.MetaData.ContainsKey(EncMetaKey)) return; // already encrypted
 
-            var userKeys = holon.MetaData.Keys.Where(k => !_systemMetaKeys.Contains(k)).ToList();
+            // Build the effective exempt set: built-in system keys + any deployment-configured queryable keys.
+            var exemptKeys = encSettings.AdditionalQueryableKeys?.Count > 0
+                ? new HashSet<string>(_systemMetaKeys.Concat(encSettings.AdditionalQueryableKeys))
+                : _systemMetaKeys;
+
+            var userKeys = holon.MetaData.Keys.Where(k => !exemptKeys.Contains(k)).ToList();
             if (userKeys.Count == 0) return;
 
             var toEncrypt = userKeys.ToDictionary(k => k, k => holon.MetaData[k]);

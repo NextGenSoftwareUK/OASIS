@@ -480,6 +480,14 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool QuantumEncryptionEnabled { get; set; }
         /// <summary>Passphrase used to derive the AES-256-GCM key for the quantum encryption layer. Generate a long random string.</summary>
         public string QuantumEncryptionKey { get; set; }
+        /// <summary>
+        /// Extra MetaData keys that must remain in plain text so they can be used in
+        /// LoadHolonsByMetaData queries. Add any [CustomOASISProperty] key names or
+        /// application-level MetaData keys your app queries on. The built-in system
+        /// keys (CreatedByAvatarId, Active, HolonType, _versionStamp, data) are always
+        /// exempt and do not need to be listed here.
+        /// </summary>
+        public List<string> AdditionalQueryableKeys { get; set; } = new List<string>();
     }
 
     public class StorageProviderSettings
