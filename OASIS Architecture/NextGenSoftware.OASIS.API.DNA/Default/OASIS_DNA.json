@@ -63,7 +63,8 @@
                 "Rijndael256EncryptionEnabled": false,
                 "Rijndael256Key": "",
                 "QuantumEncryptionEnabled": false,
-                "QuantumEncryptionKey": ""
+                "QuantumEncryptionKey": "",
+                "AdditionalQueryableKeys": []
             }
         },
         "Email": {
