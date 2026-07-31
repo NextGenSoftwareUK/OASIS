@@ -15,6 +15,7 @@ using System.Collections.Immutable;
 using System.Drawing;
 using System.Reflection.Metadata;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -161,7 +162,57 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             SetParentIdsForHolon(avatarId, extractMetaData, holon);
             RemoveCelesialBodies(holon);
 
+            EncryptHolonMetaData(holon);
+
             return holon;
+        }
+
+        private static readonly HashSet<string> _systemMetaKeys = new() { "CreatedByAvatarId", "Active" };
+        private const string EncMetaKey = "__oasis_enc__";
+
+        private void EncryptHolonMetaData(IHolon holon)
+        {
+            var encSettings = (holon as Holon)?.DataEncryptionOverride
+                              ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.HolonDataEncryption;
+
+            if (encSettings == null || holon.MetaData == null || holon.MetaData.Count == 0) return;
+            if (encSettings.Rijndael256EncryptionEnabled != true && encSettings.QuantumEncryptionEnabled != true) return;
+            if (holon.MetaData.ContainsKey(EncMetaKey)) return; // already encrypted
+
+            var userKeys = holon.MetaData.Keys.Where(k => !_systemMetaKeys.Contains(k)).ToList();
+            if (userKeys.Count == 0) return;
+
+            var toEncrypt = userKeys.ToDictionary(k => k, k => holon.MetaData[k]);
+            var json = JsonSerializer.Serialize(toEncrypt);
+            var encrypted = PasswordEncryptionHelper.EncryptValue(json, encSettings);
+
+            foreach (var key in userKeys)
+                holon.MetaData.Remove(key);
+
+            holon.MetaData[EncMetaKey] = encrypted;
+        }
+
+        internal void DecryptHolonMetaData(IHolon holon)
+        {
+            if (holon?.MetaData == null || !holon.MetaData.ContainsKey(EncMetaKey)) return;
+
+            var encSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.HolonDataEncryption;
+            if (encSettings == null) return;
+
+            try
+            {
+                var encrypted = holon.MetaData[EncMetaKey]?.ToString();
+                if (string.IsNullOrEmpty(encrypted)) return;
+
+                var json = PasswordEncryptionHelper.DecryptValue(encrypted, encSettings);
+                var restored = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+                holon.MetaData.Remove(EncMetaKey);
+                if (restored != null)
+                    foreach (var kv in restored)
+                        holon.MetaData[kv.Key] = kv.Value;
+            }
+            catch { }
         }
 
         /// <summary>

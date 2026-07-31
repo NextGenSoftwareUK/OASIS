@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -45,6 +46,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         }
 
         public GlobalHolonData GlobalHolonData { get; set; } = new GlobalHolonData();
+
+        /// <summary>
+        /// Optional per-call override for holon MetaData encryption. Not persisted.
+        /// Set this before calling SaveHolon to override the global HolonDataEncryption setting in OASISDNA.
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public EncryptionSettings DataEncryptionOverride { get; set; }
 
         public event EventDelegates.Initialized OnInitialized;
         public event EventDelegates.HolonError OnError;
