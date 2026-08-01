@@ -231,7 +231,7 @@ All of the **logic** for these features lives in **OASIS**, in `OQuake/oquake_st
 | **Beamed In: &lt;username&gt;** text | `OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx)` | In the same 2D HUD path, call `OQuake_STAR_DrawBeamedInStatus(cbx)` (e.g. once per frame when in game). |
 | **Anorak face** when beamed in | `OQuake_STAR_ShouldUseAnorakFace()` and cvar `oasis_star_anorak_face` | In **sbar.c**, where the status bar face is drawn, if `OQuake_STAR_ShouldUseAnorakFace()` is true, draw the **face_anorak** pic instead of the normal health face. |
 
-So: **the code is not missing from OASIS** — it is all in `oquake_star_integration.c`. What can be “missing” is the **engine hooks** in **vkQuake’s** `sbar.c` and the 2D drawing file (e.g. **gl_screen.c**). If you re-cloned vkQuake or reverted it, those edits live only in **C:\\Source\\vkQuake** (or wherever your vkQuake source is), not in the OASIS repo.
+So: **the code is not missing from OASIS** — it is all in `oquake_star_integration.c`. What can be “missing” is the **engine hooks** in **vkQuake’s** `sbar.c` and the 2D drawing file (e.g. **gl_screen.c**). If you re-cloned vkQuake or reverted it, those edits live only in **C:\\Source\\OQUAKE** (or wherever your OQUAKE/vkQuake source is), not in the OASIS repo.
 
 ### 9a. sbar.c – anorak face when beamed in
 

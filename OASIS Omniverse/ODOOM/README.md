@@ -1,6 +1,6 @@
 ﻿# ODOOM – Doom + OASIS STAR API
 
-**ODOOM** is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **OQuake** can open doors in ODOOM and vice versa.
+**ODOOM** is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **OQuake**, **ODOOM3** (Doom 3 classic), **ODOOM3-BFG** (Doom 3 BFG), **ODuke3D** (Duke Nukem 3D, EDuke32 fork), or **ODuke3D-RT** (Duke Nukem 3D ray-traced) can open doors in ODOOM and vice versa (cross-game keys across all six OASIS Omniverse games).
 
 **Engine checkout (`UZDOOM_SRC`):** use **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** (patched UZDoom fork). Vanilla UZDoom is possible but the Omniverse build copies integration from this repo; the fork reduces drift. See [Docs/DEVELOPER_ONBOARDING.md](../Docs/DEVELOPER_ONBOARDING.md).
 
@@ -10,7 +10,7 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 
 ### Windows
 
-1. **Prerequisites:** Visual Studio 2019+, CMake, Python 3, UZDoom clone (e.g. `C:\Source\UZDoom`). See [WINDOWS_INTEGRATION.md](WINDOWS_INTEGRATION.md).
+1. **Prerequisites:** Visual Studio 2019+, CMake, Python 3, ODOOM/UZDoom clone (e.g. `C:\Source\ODOOM`). See [WINDOWS_INTEGRATION.md](WINDOWS_INTEGRATION.md).
 
 2. **Build:** From this folder run:
    ```batch
@@ -24,7 +24,7 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 
 ### Linux (and macOS)
 
-1. **Prerequisites:** pkg-config, SDL2, UZDoom clone (e.g. `$HOME/Source/UZDoom`). See **ODOOM Linux INSTALl.txt** for package install commands.
+1. **Prerequisites:** pkg-config, SDL2, ODOOM/UZDoom clone (e.g. `$HOME/Source/ODOOM`). See **ODOOM Linux INSTALl.txt** for package install commands.
 
 2. **Build:** From the ODOOM folder run:
    ```bash
