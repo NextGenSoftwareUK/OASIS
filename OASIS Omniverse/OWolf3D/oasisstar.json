@@ -1,0 +1,49 @@
+{
+  "star_api_url":        "https://api.oasisplatform.world/api/",
+  "oasis_api_url":       "https://api.oasisplatform.world/api/",
+  "mint_keys":           0,
+  "mint_monsters":       1,
+  "star_debug":          1,
+  "consume_key_on_door": 1,
+  "beamedin_avatar":     "",
+  "jwt_token":           "",
+
+  "owolf3d": {
+    "monsters": [
+      { "engine_name": "guard",              "display_name": "Brown Guard",        "xp":  100, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "greenguard",         "display_name": "Green Guard",        "xp":  100, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "dog",                "display_name": "Dog",                "xp":   50, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "doberman",           "display_name": "Doberman",           "xp":   50, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "officer",            "display_name": "Officer",            "xp":  400, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "lostofficer",        "display_name": "Lost Officer",       "xp":  400, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "mutant",             "display_name": "Mutant",             "xp":  700, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "gunbat",             "display_name": "Gun Bat",            "xp":  700, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "wolfensteinss",      "display_name": "SS Guard",           "xp":  500, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "schutzstafell",      "display_name": "Schutzstafell",      "xp":  500, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "spectre",            "display_name": "Spectre",            "xp":  200, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "ghoulishghost",      "display_name": "Ghoulish Ghost",     "xp":  200, "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "hans",               "display_name": "Hans Grosse",        "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "schabbs",            "display_name": "Dr. Schabbs",        "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "gift",               "display_name": "Gen. Fettgesicht",   "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "fatface",            "display_name": "Fat Face",           "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "fakehitler",         "display_name": "Fake Hitler",        "xp": 2000, "is_boss": 1, "do_mint": 0 },
+      { "engine_name": "mechahitler",        "display_name": "Mecha-Hitler",       "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "hitler",             "display_name": "Hitler",             "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "gretel",             "display_name": "Gretel Grosse",      "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "trans",              "display_name": "Trans Grosse",       "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "submarinewilly",     "display_name": "Submarine Willy",    "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "ubermutant",         "display_name": "Uber-Mutant",        "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "theaxe",             "display_name": "The Axe",            "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "wilhelm",            "display_name": "Barnacle Wilhelm",   "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "professorquarkblitz","display_name": "Prof. Quarkblitz",   "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "deathknight",        "display_name": "Death Knight",       "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "robot",              "display_name": "Robot",              "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "angeofdeath",        "display_name": "Angel of Death",     "xp": 5000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "devilincarnate",     "display_name": "Devil Incarnate",    "xp": 5000, "is_boss": 1, "do_mint": 1 }
+    ],
+    "keys": [
+      { "keynum": 1, "classname": "GoldKey",   "star_type": "Key", "cross_game": "gold_key"   },
+      { "keynum": 2, "classname": "SilverKey", "star_type": "Key", "cross_game": "silver_key" }
+    ]
+  }
+}

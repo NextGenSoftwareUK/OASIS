@@ -235,5 +235,5 @@ const char* face_mat = D3Doom3_STAR_ShouldUseAvatarFace()
 
 ---
 
-**Cross-game partners:** ODOOM, OQuake, ODOOM3-BFG, ODuke3D, ODuke3D-RT — six OASIS Omniverse games total.
+**Cross-game partners:** ODOOM, OQuake, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D — seven OASIS Omniverse games total.
 Press **I** in-game for the OASIS Inventory popup, **Q** for Quests.
