@@ -1,6 +1,6 @@
 ﻿# ODOOM – Doom + OASIS STAR API
 
-**ODOOM** is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **OQuake**, **ODOOM3** (Doom 3 classic), **ODOOM3-BFG** (Doom 3 BFG), **ODuke3D** (Duke Nukem 3D, EDuke32 fork), or **ODuke3D-RT** (Duke Nukem 3D ray-traced) can open doors in ODOOM and vice versa (cross-game keys across all six OASIS Omniverse games).
+**ODOOM** is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **OQuake**, **ODOOM3** (Doom 3 classic), **ODOOM3-BFG** (Doom 3 BFG), **ODuke3D** (Duke Nukem 3D, EDuke32 fork), **ODuke3D-RT** (Duke Nukem 3D ray-traced), or **OWolf3D** (Wolfenstein 3D, ECWolf fork) can open doors in ODOOM and vice versa (cross-game keys across all seven OASIS Omniverse games).
 
 **Engine checkout (`UZDOOM_SRC`):** use **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** (patched UZDoom fork). Vanilla UZDoom is possible but the Omniverse build copies integration from this repo; the fork reduces drift. See [Docs/DEVELOPER_ONBOARDING.md](../Docs/DEVELOPER_ONBOARDING.md).
 

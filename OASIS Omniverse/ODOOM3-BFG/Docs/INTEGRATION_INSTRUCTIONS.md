@@ -4,9 +4,9 @@
 
 ODOOM3-BFG integrates **RBDOOM-3-BFG** (RBDOOM Edition of Doom 3 BFG) with the
 **OASIS STAR API** (Web5 WEB4 layer), enabling cross-game inventory, quests, NFT minting,
-and avatar XP across the OASIS Omniverse.  Keys and items are shared across all six
+and avatar XP across the OASIS Omniverse.  Keys and items are shared across all seven
 OASIS Omniverse games: **ODOOM**, **OQuake**, **ODOOM3** (Doom 3 classic), **ODOOM3-BFG**,
-**ODuke3D** (Duke Nukem 3D, EDuke32 fork), and **ODuke3D-RT** (Duke Nukem 3D ray-traced).
+**ODuke3D** (Duke Nukem 3D, EDuke32 fork), **ODuke3D-RT** (Duke Nukem 3D ray-traced), and **OWolf3D** (Wolfenstein 3D, ECWolf fork).
 
 Engine: [RBDOOM-3-BFG](https://github.com/RobertBeckebans/RBDOOM-3-BFG)
 Source port of Doom 3 BFG Edition (id Tech 4/5 C++, CMake, x64, VS2019+)
