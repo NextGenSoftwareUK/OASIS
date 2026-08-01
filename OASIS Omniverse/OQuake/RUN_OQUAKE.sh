@@ -24,13 +24,13 @@ if [[ -f "$OMNIVERSE/run_oasis_header.sh" ]]; then
   bash "$OMNIVERSE/run_oasis_header.sh" RUN_OQUAKE || true
 fi
 
-# Default vkQuake tree: sibling of OASIS repo when launched from this OQuake folder; else $HOME/Source/vkQuake.
+# Default OQUAKE tree (fork of vkQuake): sibling of OASIS repo when launched from this OQuake folder; else $HOME/Source/OQUAKE.
 if [[ -z "${VKQUAKE_SRC:-}" ]]; then
-  _vk_sibling="$(cd "$HERE/../.." && pwd)/../vkQuake"
+  _vk_sibling="$(cd "$HERE/../.." && pwd)/../OQUAKE"
   if [[ -d "$_vk_sibling" ]]; then
     VKQUAKE_SRC="$(cd "$_vk_sibling" && pwd)"
   else
-    VKQUAKE_SRC="$HOME/Source/vkQuake"
+    VKQUAKE_SRC="$HOME/Source/OQUAKE"
   fi
 fi
 VKQUAKE_BIN="${VKQUAKE_BIN:-}"

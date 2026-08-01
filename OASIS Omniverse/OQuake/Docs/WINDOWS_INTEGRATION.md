@@ -1,6 +1,6 @@
 # Windows Integration Guide for OQuake (Quake + STAR API)
 
-This guide is for integrating the OASIS STAR API into your Quake fork so that **OQuake** can share keys with **ODOOM**: keys collected in Doom open doors in Quake and vice versa.
+This guide is for integrating the OASIS STAR API into your Quake fork so that **OQuake** can share keys with **ODOOM**, **ODOOM3** (Doom 3 classic, dhewm3 fork), **ODOOM3-BFG** (Doom 3 BFG, RBDOOM-3-BFG fork), **ODuke3D** (Duke Nukem 3D, EDuke32 fork), and **ODuke3D-RT** (Duke Nukem 3D ray-traced, Duke-RT fork): keys collected in any of the six OASIS Omniverse games open doors in the others.
 
 ## Credits and license
 
@@ -97,15 +97,28 @@ Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the engine project. Lin
 
 ## Cross-Game Key Mapping
 
+All four OASIS Omniverse games share keys via the STAR API. Equivalences are configured in `oasisstar.json` on the server side; representative defaults:
+
 | OQuake door | Keys that open it (local + cross-game) |
 |-------------|----------------------------------------|
-| Silver key  | OQuake silver_key, ODOOM red_keycard, skull_key |
-| Gold key    | OQuake gold_key, ODOOM blue_keycard, yellow_keycard |
+| Silver key  | OQuake silver_key, ODOOM red_keycard / skull_key, ODOOM3 red_key, ODOOM3-BFG red_key |
+| Gold key    | OQuake gold_key, ODOOM blue_keycard / yellow_keycard, ODOOM3 blue_key / yellow_key, ODOOM3-BFG blue_key / yellow_key |
 
 | ODOOM door  | Keys that open it (local + cross-game) |
 |-------------|----------------------------------------|
-| Red         | ODOOM red_keycard, OQuake silver_key |
-| Blue / Yellow | ODOOM blue/yellow keycard, OQuake gold_key |
+| Red         | ODOOM red_keycard, OQuake silver_key, ODOOM3 red_key, ODOOM3-BFG red_key |
+| Blue / Yellow | ODOOM blue/yellow keycard, OQuake gold_key, ODOOM3 blue_key / yellow_key, ODOOM3-BFG blue_key / yellow_key |
+
+| ODOOM3 door | Keys that open it (local + cross-game) |
+|-------------|----------------------------------------|
+| Red key     | ODOOM3 red_key, OQuake silver_key, ODOOM red_keycard / skull_key, ODOOM3-BFG red_key, ODuke3D/RT red_key |
+| Blue / Yellow key | ODOOM3 blue_key / yellow_key, OQuake gold_key, ODOOM blue/yellow keycard, ODOOM3-BFG blue_key / yellow_key, ODuke3D/RT blue_key / yellow_key |
+
+| ODuke3D / ODuke3D-RT door | Keys that open it (local + cross-game) |
+|---------------------------|----------------------------------------|
+| Blue key card  | ODuke3D blue_key, OQuake gold_key, ODOOM blue/yellow keycard, ODOOM3/ODOOM3-BFG blue_key/yellow_key, ODuke3D-RT blue_key |
+| Red key card   | ODuke3D red_key, OQuake silver_key, ODOOM red_keycard, ODOOM3/ODOOM3-BFG red_key, ODuke3D-RT red_key |
+| Yellow key card| ODuke3D yellow_key, OQuake gold_key, ODOOM yellow keycard, ODOOM3/ODOOM3-BFG yellow_key, ODuke3D-RT yellow_key |
 
 ## Testing
 

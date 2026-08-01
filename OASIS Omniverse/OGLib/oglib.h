@@ -38,6 +38,7 @@
 #include "oglib_str.h"
 #include "oglib_json.h"
 #include "oglib_crossgame.h"
+#include "oglib_monster.h"
 #include "oglib_session.h"
 #include "oglib_config.h"
 #include "oglib_beamin.h"

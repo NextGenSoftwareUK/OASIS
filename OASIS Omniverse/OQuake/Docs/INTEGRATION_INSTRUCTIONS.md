@@ -1,6 +1,6 @@
 # OQuake integration instructions
 
-High-level steps to integrate the OASIS STAR API into a Quake engine so it becomes **OQuake** (cross-game keys with ODOOM).
+High-level steps to integrate the OASIS STAR API into a Quake engine so it becomes **OQuake** (cross-game keys with ODOOM, ODOOM3, ODOOM3-BFG, ODuke3D, and ODuke3D-RT — all six OASIS Omniverse games).
 
 ## 1. Get the integration files
 

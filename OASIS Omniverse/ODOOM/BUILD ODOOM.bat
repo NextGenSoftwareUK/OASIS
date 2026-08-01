@@ -28,7 +28,8 @@ exit /b %ODOOM_BUILD_EXIT%
 
 :main
 
-set "UZDOOM_SRC=C:\Source\UZDoom"
+REM ODOOM source (fork of UZDoom). Default path after folder rename: C:\Source\ODOOM.
+set "UZDOOM_SRC=C:\Source\ODOOM"
 set "HERE=%~dp0"
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "ODOOM_INTEGRATION=%HERE%"
@@ -75,13 +76,13 @@ if "%DO_SPRITE_REGEN%"=="0" (
     if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" set "DO_SPRITE_REGEN=1"
     if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" set "DO_SPRITE_REGEN=1"
     if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A0.png" set "DO_SPRITE_REGEN=1"
-    if "%DO_SPRITE_REGEN%"=="1" echo [ODOOM][NOTE] Required OQ runtime sprites missing in UZDoom; enabling sprite/icon regeneration automatically.
+    if "%DO_SPRITE_REGEN%"=="1" echo [ODOOM][NOTE] Required OQ runtime sprites missing in ODOOM source; enabling sprite/icon regeneration automatically.
 )
 
 REM --- Prerequisites ---
 if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
-    echo UZDoom source not found: %UZDOOM_SRC%
-    echo Edit UZDOOM_SRC at top of script.
+    echo ODOOM source (UZDoom fork) not found: %UZDOOM_SRC%
+    echo Edit UZDOOM_SRC at top of script (default: C:\Source\ODOOM).
     pause
     exit /b 1
 )

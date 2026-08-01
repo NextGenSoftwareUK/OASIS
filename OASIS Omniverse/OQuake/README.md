@@ -1,6 +1,6 @@
 ﻿# OQuake – Quake + OASIS STAR API
 
-OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **ODOOM** can open doors in Quake and vice versa (cross-game keys).
+OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **ODOOM**, **ODOOM3** (Doom 3 classic), or **ODOOM3-BFG** (Doom 3 BFG) can open doors in Quake and vice versa — and vice versa (cross-game keys across all four OASIS Omniverse games).
 
 **OQuake is based on vkQuake.** Full credit to [vkQuake](https://github.com/Novum/vkQuake) (Novum). vkQuake is GPL-2.0. See **[Docs/CREDITS_AND_LICENSE.md](Docs/CREDITS_AND_LICENSE.md)** for credits and license obligations.
 
@@ -25,7 +25,7 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 1. **Prerequisites:** Install **meson**, **ninja**, Vulkan, and **glslang-tools** (for `glslangValidator`), and clone vkQuake:
    ```bash
    sudo apt install -y meson ninja-build libvulkan-dev vulkan-tools glslang-tools powershell
-   export VKQUAKE_SRC=~/Source/vkQuake   # or your vkQuake clone path
+   export VKQUAKE_SRC=~/Source/OQUAKE   # or your OQUAKE clone path (fork of vkQuake)
    export OQUAKE_BASEDIR="$HOME/.steam/steam/steamapps/common/Quake"   # Quake game data (Steam); also used to copy face_anorak.png into id1/gfx/
    ```
 

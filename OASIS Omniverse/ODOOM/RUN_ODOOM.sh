@@ -25,7 +25,7 @@ if [[ -f "$OMNIVERSE/run_oasis_header.sh" ]]; then
   bash "$OMNIVERSE/run_oasis_header.sh" RUN_ODOOM || true
 fi
 
-UZDOOM_SRC="${UZDOOM_SRC:-$HOME/Source/UZDoom}"
+UZDOOM_SRC="${UZDOOM_SRC:-$HOME/Source/ODOOM}"  # ODOOM is a fork of UZDoom; default path after folder rename
 ODOOM_EXE=""
 
 if [[ -x "$HERE/build/ODOOM" ]]; then
