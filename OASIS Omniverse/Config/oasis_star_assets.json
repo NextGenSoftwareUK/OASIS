@@ -92,5 +92,71 @@
       { "id": "fish", "name": "Fish", "quakeClassname": "monster_fish", "category": "monster" },
       { "id": "spawn", "name": "Spawn", "quakeClassname": "monster_spawn", "category": "monster" }
     ]
+  },
+  "odoom3": {
+    "description": "dhewm3 (classic Doom 3 GPL port) cross-game asset catalog — base game only",
+    "keycards": [
+      { "id": "blue_key",    "name": "Blue Key",    "d3classname": "item_key_blue",        "category": "key", "doomEquivalent": "blue_keycard",   "quakeEquivalent": "gold_key"   },
+      { "id": "red_key",     "name": "Red Key",     "d3classname": "item_key_red",         "category": "key", "doomEquivalent": "red_keycard",    "quakeEquivalent": "silver_key" },
+      { "id": "yellow_key",  "name": "Yellow Key",  "d3classname": "item_key_yellow",      "category": "key", "doomEquivalent": "yellow_keycard"                                  },
+      { "id": "keycard",     "name": "Keycard",     "d3classname": "item_keycard_generic", "category": "key"  }
+    ],
+    "monsters": [
+      { "id": "zombie",          "name": "Zombie",            "d3classname": "monster_zombie",               "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "imp",             "name": "Imp",               "d3classname": "monster_demon_imp",            "category": "monster", "xp": 25,   "isBoss": false },
+      { "id": "imp_crawler",     "name": "Imp Crawler",       "d3classname": "monster_demon_imp_crawler",    "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "trite",           "name": "Trite",             "d3classname": "monster_demon_trite",          "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "tick",            "name": "Tick",              "d3classname": "monster_demon_tick",           "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "cherub",          "name": "Cherub",            "d3classname": "monster_demon_cherub",         "category": "monster", "xp": 15,   "isBoss": false },
+      { "id": "pinky",           "name": "Pinky",             "d3classname": "monster_demon_pinky",          "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "pinky_pipes",     "name": "Pinky (Pipes)",     "d3classname": "monster_demon_pinky_pipes",    "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "maggot",          "name": "Maggot",            "d3classname": "monster_demon_maggot",         "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "wraith",          "name": "Wraith",            "d3classname": "monster_demon_wraith",         "category": "monster", "xp": 50,   "isBoss": false },
+      { "id": "vulgar",          "name": "Vulgar",            "d3classname": "monster_demon_vulgar",         "category": "monster", "xp": 45,   "isBoss": false },
+      { "id": "sentry",          "name": "Sentry",            "d3classname": "monster_demon_sentry",         "category": "monster", "xp": 30,   "isBoss": false },
+      { "id": "hellknight",      "name": "Hell Knight",       "d3classname": "monster_demon_hellknight",     "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "revenant",        "name": "Revenant",          "d3classname": "monster_demon_revenant",       "category": "monster", "xp": 60,   "isBoss": false },
+      { "id": "mancubus",        "name": "Mancubus",          "d3classname": "monster_demon_mancubus",       "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "archvile",        "name": "Archvile",          "d3classname": "monster_demon_archvile",       "category": "monster", "xp": 150,  "isBoss": false },
+      { "id": "vagary",          "name": "Vagary",            "d3classname": "monster_boss_vagary",          "category": "monster", "xp": 400,  "isBoss": true  },
+      { "id": "guardian",        "name": "Guardian",          "d3classname": "monster_boss_guardian",        "category": "monster", "xp": 600,  "isBoss": true  },
+      { "id": "guardian2",       "name": "Guardian (Final)",  "d3classname": "monster_boss_guardian2",       "category": "monster", "xp": 800,  "isBoss": true  },
+      { "id": "sabaoth",         "name": "Sabaoth",           "d3classname": "monster_boss_sabaoth",         "category": "monster", "xp": 500,  "isBoss": true  },
+      { "id": "cyberdemon",      "name": "Cyberdemon",        "d3classname": "monster_boss_cyberdemon",      "category": "monster", "xp": 1000, "isBoss": true  }
+    ]
+  },
+  "odoom3bfg": {
+    "description": "RBDOOM-3-BFG (Doom 3 BFG Edition) cross-game asset catalog",
+    "keycards": [
+      { "id": "blue_key",    "name": "Blue Key",    "d3classname": "item_key_blue",        "category": "key", "doomEquivalent": "blue_keycard",   "quakeEquivalent": "gold_key"   },
+      { "id": "red_key",     "name": "Red Key",     "d3classname": "item_key_red",         "category": "key", "doomEquivalent": "red_keycard",    "quakeEquivalent": "silver_key" },
+      { "id": "yellow_key",  "name": "Yellow Key",  "d3classname": "item_key_yellow",      "category": "key", "doomEquivalent": "yellow_keycard"                                  },
+      { "id": "keycard",     "name": "Keycard",     "d3classname": "item_keycard_generic", "category": "key"  },
+      { "id": "aco_keycard", "name": "ACO Keycard", "d3classname": "item_keycard_aco",    "category": "key"  }
+    ],
+    "monsters": [
+      { "id": "zombie",          "name": "Zombie",            "d3classname": "monster_zombie",               "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "imp",             "name": "Imp",               "d3classname": "monster_demon_imp",            "category": "monster", "xp": 25,   "isBoss": false },
+      { "id": "imp_crawler",     "name": "Imp Crawler",       "d3classname": "monster_demon_imp_crawler",    "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "trite",           "name": "Trite",             "d3classname": "monster_demon_trite",          "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "tick",            "name": "Tick",              "d3classname": "monster_demon_tick",           "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "cherub",          "name": "Cherub",            "d3classname": "monster_demon_cherub",         "category": "monster", "xp": 15,   "isBoss": false },
+      { "id": "pinky",           "name": "Pinky",             "d3classname": "monster_demon_pinky",          "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "pinky_pipes",     "name": "Pinky (Pipes)",     "d3classname": "monster_demon_pinky_pipes",    "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "maggot",          "name": "Maggot",            "d3classname": "monster_demon_maggot",         "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "wraith",          "name": "Wraith",            "d3classname": "monster_demon_wraith",         "category": "monster", "xp": 50,   "isBoss": false },
+      { "id": "vulgar",          "name": "Vulgar",            "d3classname": "monster_demon_vulgar",         "category": "monster", "xp": 45,   "isBoss": false },
+      { "id": "sentry",          "name": "Sentry",            "d3classname": "monster_demon_sentry",         "category": "monster", "xp": 30,   "isBoss": false },
+      { "id": "hellknight",      "name": "Hell Knight",       "d3classname": "monster_demon_hellknight",     "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "revenant",        "name": "Revenant",          "d3classname": "monster_demon_revenant",       "category": "monster", "xp": 60,   "isBoss": false },
+      { "id": "mancubus",        "name": "Mancubus",          "d3classname": "monster_demon_mancubus",       "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "archvile",        "name": "Archvile",          "d3classname": "monster_demon_archvile",       "category": "monster", "xp": 150,  "isBoss": false },
+      { "id": "vagary",          "name": "Vagary",            "d3classname": "monster_boss_vagary",          "category": "monster", "xp": 400,  "isBoss": true  },
+      { "id": "guardian",        "name": "Guardian",          "d3classname": "monster_boss_guardian",        "category": "monster", "xp": 600,  "isBoss": true  },
+      { "id": "guardian2",       "name": "Guardian (Final)",  "d3classname": "monster_boss_guardian2",       "category": "monster", "xp": 800,  "isBoss": true  },
+      { "id": "sabaoth",         "name": "Sabaoth",           "d3classname": "monster_boss_sabaoth",         "category": "monster", "xp": 500,  "isBoss": true  },
+      { "id": "cyberdemon",      "name": "Cyberdemon",        "d3classname": "monster_boss_cyberdemon",      "category": "monster", "xp": 1000, "isBoss": true  },
+      { "id": "maledict",        "name": "Maledict",          "d3classname": "monster_boss_d3xp_maledict",   "category": "monster", "xp": 1200, "isBoss": true  }
+    ]
   }
 }

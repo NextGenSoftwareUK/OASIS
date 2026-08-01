@@ -5,13 +5,13 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Run from OQuake: default vkQuake tree is sibling of OASIS repo (…/Source/OASIS/…/OQuake → …/Source/vkQuake).
+# Run from OQuake: default OQUAKE tree (vkQuake fork) is sibling of OASIS repo (…/Source/OASIS/…/OQuake → …/Source/OQUAKE).
 if [[ -z "${VKQUAKE_SRC:-}" ]]; then
-  _vk_sibling="$(cd "$HERE/../.." && pwd)/../vkQuake"
+  _vk_sibling="$(cd "$HERE/../.." && pwd)/../OQUAKE"
   if [[ -d "$_vk_sibling" ]]; then
     VKQUAKE_SRC="$(cd "$_vk_sibling" && pwd)"
   else
-    VKQUAKE_SRC="$HOME/Source/vkQuake"
+    VKQUAKE_SRC="$HOME/Source/OQUAKE"
   fi
 fi
 

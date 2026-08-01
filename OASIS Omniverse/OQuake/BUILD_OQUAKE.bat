@@ -7,7 +7,8 @@ REM   run    = incremental build then launch (no prompts)
 REM   batch  = incremental build, no prompts, do not launch (for BUILD EVERYTHING.bat)
 
 set "QUAKE_SRC=C:\Source\quake-rerelease-qc"
-set "VKQUAKE_SRC=C:\Source\vkQuake"
+REM OQuake source (fork of vkQuake). Default path after folder rename: C:\Source\OQUAKE.
+set "VKQUAKE_SRC=C:\Source\OQUAKE"
 set "QUAKE_ENGINE_EXE="
 set "HERE=%~dp0"
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
@@ -89,7 +90,7 @@ if exist "%STARAPICLIENT%\star_sync.h" (
 )
 
 REM --- Require at least vkQuake to build the exe. quake-rerelease-qc (QUAKE_SRC) is optional if you only run BUILD QUAKE. ---
-if not defined VKQUAKE_SRC (echo VKQUAKE_SRC not set. Set it at top of script ^(e.g. C:\Source\vkQuake^) to build the engine. & echo Optional: set QUAKE_SRC to also copy integration into a QuakeC tree. & goto :done)
+if not defined VKQUAKE_SRC (echo VKQUAKE_SRC not set. Set it at top of script ^(e.g. C:\Source\OQUAKE^) to build the engine. & echo Optional: set QUAKE_SRC to also copy integration into a QuakeC tree. & goto :done)
 if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" (echo vkQuake source not found or incomplete: %VKQUAKE_SRC% & goto :done)
 
 echo.
@@ -240,7 +241,7 @@ if defined QUAKE_ENGINE_EXE (
     echo OQuake ready. Use "BUILD_OQUAKE.bat run" to launch.
     echo Game data: id1 with pak0.pak, pak1.pak, gfx.wad in exe folder or -basedir.
 ) else if not "%~1"=="clean" (
-    echo To build engine: set VKQUAKE_SRC at top ^(e.g. C:\Source\vkQuake^) and run again.
+    echo To build engine: set VKQUAKE_SRC at top ^(e.g. C:\Source\OQUAKE^) and run again.
 )
 echo Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or STAR_API_KEY / STAR_AVATAR_ID
 echo ---

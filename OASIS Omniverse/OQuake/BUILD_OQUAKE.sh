@@ -35,7 +35,7 @@ else
   OQUAKE_BASEDIR_DEFAULT="$HOME/.steam/steam/steamapps/common/Quake"
 fi
 QUAKE_SRC="${QUAKE_SRC:-$HOME/Source/quake-rerelease-qc}"
-VKQUAKE_SRC="${VKQUAKE_SRC:-$HOME/Source/vkQuake}"
+VKQUAKE_SRC="${VKQUAKE_SRC:-$HOME/Source/OQUAKE}"  # OQuake is a fork of vkQuake; default path after folder rename
 OQUAKE_BASEDIR="${OQUAKE_BASEDIR:-$OQUAKE_BASEDIR_DEFAULT}"
 
 DO_FULL_CLEAN=0
@@ -125,7 +125,7 @@ fi
 
 # Require vkQuake to build the exe. QUAKE_SRC (quake-rerelease-qc) is optional if you only run BUILD QUAKE.
 if [[ -z "$VKQUAKE_SRC" || ! -d "$VKQUAKE_SRC" || ! -f "$VKQUAKE_SRC/Quake/pr_ext.c" ]]; then
-  echo "ERROR: vkQuake source required. Set VKQUAKE_SRC (e.g. \$HOME/Source/vkQuake) to build the engine."
+  echo "ERROR: OQUAKE source (vkQuake fork) required. Set VKQUAKE_SRC (e.g. \$HOME/Source/OQUAKE) to build the engine."
   echo "  Optional: set QUAKE_SRC to also copy integration into a QuakeC tree."
   exit 1
 fi
@@ -254,7 +254,7 @@ if [[ -n "$QUAKE_ENGINE_EXE" ]]; then
   echo "OQuake ready. Use ./RUN_OQUAKE.sh or BUILD_OQUAKE.sh run to launch."
   echo "Game data: id1 with pak0.pak, pak1.pak in -basedir (e.g. $OQUAKE_BASEDIR)."
 else
-  echo "To build engine: set VKQUAKE_SRC (e.g. \$HOME/Source/vkQuake) and ensure meson/ninja are installed."
+  echo "To build engine: set VKQUAKE_SRC (e.g. \$HOME/Source/OQUAKE) and ensure meson/ninja are installed."
 fi
 echo "Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or STAR_API_KEY / STAR_AVATAR_ID"
 echo "---"

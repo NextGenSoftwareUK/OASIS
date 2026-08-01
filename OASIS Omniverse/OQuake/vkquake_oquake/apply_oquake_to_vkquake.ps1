@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
   Copies OQuake + STAR files into vkQuake and patches host.c, pr_ext.c, sbar.c, gl_screen.c, pr_edict.c/pr_cx.c (monster kill hook), and the build (like ODOOM: full automation).
-  Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\vkQuake"
+  Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\OQUAKE"
   Use -RevertMonsterHook to remove the ED_Free monster hook (no XP/NFT on kill; use if you get host/program errors).
 #>
 param(

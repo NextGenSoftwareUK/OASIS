@@ -46,7 +46,7 @@ ODOOM_INTEGRATION="$HERE"
 DOOM_FOLDER="$ODOOM_INTEGRATION"
 
 # Default source path (Linux / macOS)
-UZDOOM_SRC="${UZDOOM_SRC:-$HOME/Source/UZDoom}"
+UZDOOM_SRC="${UZDOOM_SRC:-$HOME/Source/ODOOM}"  # ODOOM is a fork of UZDoom; default path after folder rename
 DO_FULL_CLEAN=0
 DO_SPRITE_REGEN=1
 RUN_AFTER_BUILD=0
@@ -148,8 +148,8 @@ if ! pkg-config --exists sdl2 2>/dev/null; then
   exit 1
 fi
 if [[ ! -f "$UZDOOM_SRC/src/d_main.cpp" ]]; then
-  echo "ERROR: UZDoom source not found: $UZDOOM_SRC"
-  echo "  Set UZDOOM_SRC or clone UZDoom to \$HOME/Source/UZDoom"
+  echo "ERROR: ODOOM source (UZDoom fork) not found: $UZDOOM_SRC"
+  echo "  Set UZDOOM_SRC or clone ODOOM (fork of UZDoom) to \$HOME/Source/ODOOM"
   exit 1
 fi
 

@@ -1,0 +1,35 @@
+{
+  "star_api_url": "https://star-api.oasisplatform.world/api",
+  "oasis_api_url": "https://api.oasisplatform.world",
+  "nft_provider": "SolanaOASIS",
+  "mint_keys": 0,
+  "mint_monsters": 1,
+  "star_debug": 1,
+  "consume_key_on_door": 1,
+
+  "oduke3drt": {
+    "monsters": [
+      { "engine_name": "pigcop",      "picnum": 2000, "display_name": "Pig Cop",             "xp": 20,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "liztroop",    "picnum": 1680, "display_name": "Pig Cop (patrol)",     "xp": 20,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "octabrain",   "picnum": 1820, "display_name": "Octabrain",            "xp": 30,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "commander",   "picnum": 1960, "display_name": "Commander",            "xp": 40,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "drone",       "picnum": 1880, "display_name": "Drone",                "xp": 15,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "sentry",      "picnum": 1920, "display_name": "Enforcer",             "xp": 25,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "newbeast",    "picnum": 2120, "display_name": "Assault Commander",    "xp": 60,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "greenslime",  "picnum": 2060, "display_name": "Protozoid Slimer",     "xp": 10,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "recon",       "picnum": 1732, "display_name": "Recon Patrol Vehicle", "xp": 50,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "lizman",      "picnum": 1500, "display_name": "Lizman",               "xp": 20,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "rotategun",   "picnum": 1916, "display_name": "Sentry Turret",        "xp": 10,   "is_boss": 0, "do_mint": 0 },
+      { "engine_name": "boss1",       "picnum": 2630, "display_name": "Battlelord",           "xp": 600,  "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "boss2",       "picnum": 2710, "display_name": "Overlord",             "xp": 700,  "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "boss3",       "picnum": 2790, "display_name": "Protozoid Slimer (boss)", "xp": 500, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "boss4",       "picnum": 2870, "display_name": "Alien Queen",          "xp": 1000, "is_boss": 1, "do_mint": 1 },
+      { "engine_name": "boss5",       "picnum": 3000, "display_name": "Cycloid Emperor",      "xp": 1200, "is_boss": 1, "do_mint": 1 }
+    ],
+    "keys": [
+      { "inv_name": "Blue key card",   "star_type": "Key", "cross_game": "blue_keycard"   },
+      { "inv_name": "Red key card",    "star_type": "Key", "cross_game": "red_keycard"    },
+      { "inv_name": "Yellow key card", "star_type": "Key", "cross_game": "yellow_keycard" }
+    ]
+  }
+}

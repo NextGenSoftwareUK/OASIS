@@ -1,0 +1,94 @@
+# ODOOM3 — OASIS STAR Integration Instructions
+
+**Port:** dhewm3 (classic Doom 3 GPL source port)  
+**Game source ID:** `ODOOM3`  
+**Game DLL target:** `base.dll` (compiled separately from the engine executable)
+
+**Cross-game partners:** ODOOM, OQuake, ODOOM3-BFG, **ODuke3D** (Duke Nukem 3D, EDuke32 fork), and **ODuke3D-RT** (Duke Nukem 3D ray-traced).  Keys, inventory, XP, and quests are shared across all six OASIS Omniverse games.
+
+---
+
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Visual Studio | 2019 or later (C++ Desktop workload) |
+| CMake | 3.15+ |
+| SDL2 | 2.x (for Windows build) |
+| Git | any |
+
+- dhewm3 source cloned at `C:\Source\ODOOM3`
+- STARAPIClient built; `star_api.dll` / `star_api.lib` in `OASIS Omniverse\STARAPIClient\`
+
+---
+
+## Build (one command)
+
+```bat
+BUILD_ODOOM3.bat
+```
+
+Or for CI/batch mode (no prompts):
+
+```bat
+BUILD_ODOOM3.bat batch
+```
+
+The script:
+1. Copies `d3doom3_star_integration.h/.cpp` → `C:\Source\ODOOM3\neo\game\`
+2. Copies `OGLib\` headers → `C:\Source\ODOOM3\neo\game\OGLib\`
+3. Copies `star_api.h`, `star_sync.h`, `star_api.lib`, `star_api.dll` → `neo\game\`
+4. CMake-configures and builds the `base` target (→ `base.dll`)
+5. Deploys `star_api.dll` and `oasisstar.json` next to the output
+
+---
+
+## Engine hook locations (applied once to dhewm3 source)
+
+| File | Location | Hook |
+|------|----------|------|
+| `neo/game/Game_local.cpp` | `idGameLocal::Init()` end | `D3Doom3_STAR_Init()` |
+| `neo/game/Game_local.cpp` | `idGameLocal::Shutdown()` after common guard | `D3Doom3_STAR_Cleanup()` |
+| `neo/game/Game_local.cpp` | `idGameLocal::RunFrame()` after `GetLocalPlayer()` | `D3Doom3_STAR_Tick()` |
+| `neo/game/Game_local.cpp` | `idGameLocal::RequirementMet()` `else` branch | `D3Doom3_STAR_CheckDoorAccess()` |
+| `neo/game/Player.cpp` | `idPlayer::GiveInventoryItem()` after `inventory.items.Append` | `D3Doom3_STAR_OnItemPickup()` |
+| `neo/game/ai/AI.cpp` | `idAI::Killed()` after `AI_DEAD` guard | `D3Doom3_STAR_OnMonsterKilled()` |
+
+See `Docs/WINDOWS_INTEGRATION.md` for the exact diff snippets.
+
+---
+
+## dhewm3 vs RBDOOM-3-BFG differences
+
+| Aspect | ODOOM3 (dhewm3) | ODOOM3-BFG (RBDOOM) |
+|--------|-----------------|----------------------|
+| Build output | `base.dll` (separate DLL) | monolithic exe |
+| GAME_DLL | defined | not defined |
+| Engine globals | extern pointers in DLL | PCH / global framework |
+| Precompiled headers | none | `precompiled.h` + `#pragma hdrstop` |
+| GiveInventoryItem | no `giveFlags` param | has `giveFlags` param |
+| Monster roster | base game only (21 monsters) | base + d3xp (22 monsters, incl. Maledict) |
+| game_source | `"ODOOM3"` | `"ODOOM3BFG"` |
+| CVar prefix | `d3doom3_*` | `d3doom_*` |
+
+---
+
+## In-game console commands
+
+| Command | Description |
+|---------|-------------|
+| `star` | Show command list |
+| `star version` | Show STAR integration version |
+| `star status` | Show init/auth status |
+| `star beamin <user> <pass>` | Authenticate with OASIS |
+| `star beamout` | Log out |
+| `star inventory` | List STAR cross-game inventory |
+| `star add <name>` | Add item (testing) |
+| `star debug on\|off` | Toggle debug logging |
+
+---
+
+## Configuration (oasisstar.json)
+
+Placed next to `dhewm3.exe`. Generated automatically on first run.
+Edit the `"odoom3"` section to adjust XP values or enable boss NFT minting.
