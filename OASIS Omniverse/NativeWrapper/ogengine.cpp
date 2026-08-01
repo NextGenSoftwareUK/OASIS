@@ -1,11 +1,11 @@
-/**
+﻿/**
  * OASIS STAR API - C/C++ Wrapper Implementation
  * 
  * This implementation provides a bridge between C/C++ game code and the
  * STAR API REST service. It uses HTTP requests to communicate with the API.
  */
 
-#include "star_api.h"
+#include "ogengine.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -27,10 +27,10 @@
 // Internal state
 static struct {
     bool initialized = false;
-    star_api_config_t config;
+    ogengine_config_t config;
     std::string last_error;
     std::mutex mutex;
-    star_api_callback_t callback = nullptr;
+    ogengine_callback_t callback = nullptr;
     void* callback_user_data = nullptr;
 } g_state;
 
@@ -207,10 +207,10 @@ static HttpResponse http_request(const std::string& method, const std::string& u
 #endif
 
 // Public API implementation
-star_api_result_t star_api_init(const star_api_config_t* config) {
+ogengine_result_t ogengine_init(const ogengine_config_t* config) {
     if (!config || !config->base_url) {
         set_error("Invalid configuration");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -222,13 +222,13 @@ star_api_result_t star_api_init(const star_api_config_t* config) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
 #endif
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-star_api_result_t star_api_authenticate(const char* username, const char* password) {
+ogengine_result_t ogengine_authenticate(const char* username, const char* password) {
     if (!g_state.initialized || !username || !password) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string oasis_url = std::string(g_state.config.base_url);
@@ -247,7 +247,7 @@ star_api_result_t star_api_authenticate(const char* username, const char* passwo
     HttpResponse response = http_request("POST", url, json);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
     // Parse JWT token from response
@@ -275,10 +275,10 @@ star_api_result_t star_api_authenticate(const char* username, const char* passwo
         }
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-void star_api_cleanup(void) {
+void ogengine_cleanup(void) {
     std::lock_guard<std::mutex> lock(g_state.mutex);
     g_state.initialized = false;
     
@@ -287,7 +287,7 @@ void star_api_cleanup(void) {
 #endif
 }
 
-bool star_api_has_item(const char* item_name) {
+bool ogengine_has_item(const char* item_name) {
     if (!g_state.initialized || !item_name) {
         set_error("Not initialized or invalid parameter");
         return false;
@@ -335,37 +335,37 @@ static void extract_json_string(const std::string& json, const std::string& key,
 }
 
 // Parse inventory JSON: Result array of objects with Name, Description, MetaData.GameSource, MetaData.ItemType (or top-level)
-star_api_result_t star_api_get_inventory(star_item_list_t** item_list) {
+ogengine_result_t ogengine_get_inventory(ogengine_item_list_t** item_list) {
     if (!g_state.initialized || !item_list) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     if (!g_state.config.avatar_id || !g_state.config.avatar_id[0]) {
         set_error("Avatar ID not set; beam in first");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string url = std::string(g_state.config.base_url) + "/api/inventoryitems/by-avatar/" + g_state.config.avatar_id;
     HttpResponse response = http_request("GET", url);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
-    *item_list = (star_item_list_t*)malloc(sizeof(star_item_list_t));
+    *item_list = (ogengine_item_list_t*)malloc(sizeof(ogengine_item_list_t));
     if (!*item_list) {
         set_error("Memory allocation failed");
-        return STAR_API_ERROR_INIT_FAILED;
+        return OGENGINE_ERROR_INIT_FAILED;
     }
     
     (*item_list)->count = 0;
     (*item_list)->capacity = 32;
-    (*item_list)->items = (star_item_t*)malloc(sizeof(star_item_t) * (*item_list)->capacity);
+    (*item_list)->items = (ogengine_item_t*)malloc(sizeof(ogengine_item_t) * (*item_list)->capacity);
     if (!(*item_list)->items) {
         free(*item_list);
         *item_list = nullptr;
         set_error("Memory allocation failed");
-        return STAR_API_ERROR_INIT_FAILED;
+        return OGENGINE_ERROR_INIT_FAILED;
     }
     
     const std::string& data = response.data;
@@ -394,13 +394,13 @@ star_api_result_t star_api_get_inventory(star_item_list_t** item_list) {
         if (obj.find("\"Name\"") != std::string::npos || obj.find("\"name\"") != std::string::npos) {
             if (idx >= (*item_list)->capacity) {
                 size_t new_cap = (*item_list)->capacity * 2;
-                star_item_t* new_items = (star_item_t*)realloc((*item_list)->items, sizeof(star_item_t) * new_cap);
+                ogengine_item_t* new_items = (ogengine_item_t*)realloc((*item_list)->items, sizeof(ogengine_item_t) * new_cap);
                 if (!new_items) break;
                 (*item_list)->items = new_items;
                 (*item_list)->capacity = new_cap;
             }
-            star_item_t* it = &(*item_list)->items[idx];
-            memset(it, 0, sizeof(star_item_t));
+            ogengine_item_t* it = &(*item_list)->items[idx];
+            memset(it, 0, sizeof(ogengine_item_t));
             extract_json_string(obj, "Id", it->id, sizeof(it->id));
             extract_json_string(obj, "Name", it->name, sizeof(it->name));
             if (it->name[0] == '\0') extract_json_string(obj, "name", it->name, sizeof(it->name));
@@ -426,10 +426,10 @@ star_api_result_t star_api_get_inventory(star_item_list_t** item_list) {
         pos = obj_end + 1;
     }
     (*item_list)->count = idx;
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-void star_api_free_item_list(star_item_list_t* item_list) {
+void ogengine_free_item_list(ogengine_item_list_t* item_list) {
     if (item_list) {
         if (item_list->items) {
             free(item_list->items);
@@ -438,7 +438,7 @@ void star_api_free_item_list(star_item_list_t* item_list) {
     }
 }
 
-star_api_result_t star_api_add_item(
+ogengine_result_t ogengine_add_item(
     const char* item_name,
     const char* description,
     const char* game_source,
@@ -446,7 +446,7 @@ star_api_result_t star_api_add_item(
 ) {
     if (!g_state.initialized || !item_name || !description || !game_source) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     // Build JSON request
@@ -465,20 +465,20 @@ star_api_result_t star_api_add_item(
     HttpResponse response = http_request("POST", url, json);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-bool star_api_use_item(const char* item_name, const char* context) {
+bool ogengine_use_item(const char* item_name, const char* context) {
     if (!g_state.initialized || !item_name) {
         set_error("Not initialized or invalid parameter");
         return false;
     }
     
     // First check if item exists
-    if (!star_api_has_item(item_name)) {
+    if (!ogengine_has_item(item_name)) {
         return false;
     }
     
@@ -494,26 +494,26 @@ bool star_api_use_item(const char* item_name, const char* context) {
     return true;
 }
 
-star_api_result_t star_api_start_quest(const char* quest_id) {
+ogengine_result_t ogengine_start_quest(const char* quest_id) {
     if (!g_state.initialized || !quest_id) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string url = std::string(g_state.config.base_url) + "/api/quests/" + std::string(quest_id) + "/start";
     HttpResponse response = http_request("POST", url);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source) {
+ogengine_result_t ogengine_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source) {
     if (!g_state.initialized || !quest_id || !objective_id) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string json = "{";
@@ -526,29 +526,29 @@ star_api_result_t star_api_complete_quest_objective(const char* quest_id, const 
     HttpResponse response = http_request("PUT", url, json);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-star_api_result_t star_api_complete_quest(const char* quest_id) {
+ogengine_result_t ogengine_complete_quest(const char* quest_id) {
     if (!g_state.initialized || !quest_id) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string url = std::string(g_state.config.base_url) + "/api/quests/" + std::string(quest_id) + "/complete";
     HttpResponse response = http_request("POST", url);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-star_api_result_t star_api_create_monster_nft(
+ogengine_result_t ogengine_create_monster_nft(
     const char* monster_name,
     const char* description,
     const char* game_source,
@@ -558,7 +558,7 @@ star_api_result_t star_api_create_monster_nft(
 ) {
     if (!g_state.initialized || !monster_name || !nft_id_out) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string json = "{";
@@ -577,7 +577,7 @@ star_api_result_t star_api_create_monster_nft(
     HttpResponse response = http_request("POST", url, json);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
     // Parse NFT ID from response
@@ -592,13 +592,13 @@ star_api_result_t star_api_create_monster_nft(
         }
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location) {
+ogengine_result_t ogengine_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location) {
     if (!g_state.initialized || !nft_id || !target_game) {
         set_error("Not initialized or invalid parameter");
-        return STAR_API_ERROR_INVALID_PARAM;
+        return OGENGINE_ERROR_INVALID_PARAM;
     }
     
     std::string json = "{";
@@ -611,18 +611,18 @@ star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* targe
     HttpResponse response = http_request("POST", url, json);
     
     if (!response.success) {
-        return STAR_API_ERROR_API_ERROR;
+        return OGENGINE_ERROR_API_ERROR;
     }
     
-    return STAR_API_SUCCESS;
+    return OGENGINE_SUCCESS;
 }
 
-const char* star_api_get_last_error(void) {
+const char* ogengine_get_last_error(void) {
     std::lock_guard<std::mutex> lock(g_state.mutex);
     return g_state.last_error.c_str();
 }
 
-void star_api_set_callback(star_api_callback_t callback, void* user_data) {
+void ogengine_set_callback(ogengine_callback_t callback, void* user_data) {
     std::lock_guard<std::mutex> lock(g_state.mutex);
     g_state.callback = callback;
     g_state.callback_user_data = user_data;

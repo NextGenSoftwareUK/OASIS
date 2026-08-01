@@ -1,6 +1,6 @@
-# Getting Started — Windows
+﻿# Getting Started — Windows
 
-This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **Windows**. ODOOM and OQuake also support [Linux](GettingStarted_Linux.md) and [macOS](GettingStarted_Mac.md).
+This guide walks you through building and running **ODOOM**, **OQuake**, and **OGEngineClient** on **Windows**. ODOOM and OQuake also support [Linux](GettingStarted_Linux.md) and [macOS](GettingStarted_Mac.md).
 
 ---
 
@@ -11,7 +11,7 @@ Install the following (if not already installed):
 | Tool | Purpose | Where to get it |
 |------|----------|------------------|
 | **Visual Studio 2022** | Build UZDoom, vkQuake; C++ workload | [Visual Studio](https://visualstudio.microsoft.com/) — include "Desktop development with C++" |
-| **.NET 8 SDK** | Build STARAPIClient (NativeAOT) | [.NET Downloads](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **.NET 8 SDK** | Build OGEngineClient (NativeAOT) | [.NET Downloads](https://dotnet.microsoft.com/download/dotnet/8.0) |
 | **CMake** | Configure UZDoom | [cmake.org](https://cmake.org/download/) or via Visual Studio |
 | **PowerShell** | Run patch and deploy scripts | Built-in (Windows PowerShell 5.1 or PowerShell Core 7+) |
 | **Python 3** | ODOOM face pk3, optional sprite scripts | [python.org](https://www.python.org/downloads/) |
@@ -44,9 +44,9 @@ Replace `<OASIS-repo-url>` and `<quake-rerelease-qc-repo-url>` with your actual 
 
 ---
 
-## 3. Build STARAPIClient (shared library for ODOOM & OQuake)
+## 3. Build OGEngineClient (shared library for ODOOM & OQuake)
 
-STARAPIClient is built and deployed automatically when you build ODOOM or OQuake. To build or deploy it alone:
+OGEngineClient is built and deployed automatically when you build ODOOM or OQuake. To build or deploy it alone:
 
 1. Open **Command Prompt** or **PowerShell**.
 2. Go to the OASIS Omniverse folder:
@@ -61,12 +61,12 @@ STARAPIClient is built and deployed automatically when you build ODOOM or OQuake
    BUILD_AND_DEPLOY_STAR_CLIENT.bat
    ```
 
-   This publishes the STAR API for **win-x64** and copies `star_api.dll`, `star_api.lib`, and `star_api.h` into the ODOOM and OQuake folders.
+   This publishes the STAR API for **win-x64** and copies `ogengine.dll`, `ogengine.lib`, and `ogengine.h` into the ODOOM and OQuake folders.
 
    To force a full rebuild:
 
    ```cmd
-   powershell -ExecutionPolicy Bypass -File "STARAPIClient\Scripts\publish_and_deploy_star_api.ps1" -ForceBuild
+   powershell -ExecutionPolicy Bypass -File "OGEngineClient\Scripts\publish_and_deploy_star_api.ps1" -ForceBuild
    ```
 
 ---
@@ -154,7 +154,7 @@ The batch file uses the default Quake path; edit the script if your Quake instal
 For OASIS auth (cross-game login):
 
 - **STAR_USERNAME** and **STAR_PASSWORD**, or  
-- **STAR_API_KEY** and **STAR_AVATAR_ID**
+- **OGENGINE_KEY** and **STAR_AVATAR_ID**
 
 Set them in the environment or in your config (e.g. `oasisstar.json`).
 
@@ -177,7 +177,7 @@ From `OASIS Omniverse`:
 BUILD EVERYTHING.bat
 ```
 
-This builds and deploys STARAPIClient, then builds ODOOM and OQuake with no prompts and does not launch. Use `RUN ODOOM.bat` and `RUN OQUAKE.bat` to run the games.
+This builds and deploys OGEngineClient, then builds ODOOM and OQuake with no prompts and does not launch. Use `RUN ODOOM.bat` and `RUN OQUAKE.bat` to run the games.
 
 ---
 
@@ -186,10 +186,10 @@ This builds and deploys STARAPIClient, then builds ODOOM and OQuake with no prom
 | Issue | What to do |
 |-------|------------|
 | **"UZDoom source not found"** | Set `UZDOOM_SRC` in `BUILD ODOOM.bat` to your UZDoom clone path. |
-| **"star_api.dll not found"** | Run `BUILD_AND_DEPLOY_STAR_CLIENT.bat` from `OASIS Omniverse` first. |
+| **"ogengine.dll not found"** | Run `BUILD_AND_DEPLOY_STAR_CLIENT.bat` from `OASIS Omniverse` first. |
 | **"Vulkan SDK not found"** | Install Vulkan SDK and restart the command prompt. |
 | **CMake or MSBuild errors** | Use **Developer Command Prompt for VS 2022** (or x64 Native Tools). |
 | **Missing doom2.wad** | Copy `doom2.wad` into `ODOOM\build\`. |
 | **OQuake can't find game data** | Edit `RUN OQUAKE.bat` / `BUILD_OQUAKE.bat` and set the Quake install path. |
 
-For more detail, see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/WINDOWS_INTEGRATION.md](../ODOOM/WINDOWS_INTEGRATION.md), and [STARAPIClient/README.md](../STARAPIClient/README.md).
+For more detail, see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/WINDOWS_INTEGRATION.md](../ODOOM/WINDOWS_INTEGRATION.md), and [OGEngineClient/README.md](../OGEngineClient/README.md).

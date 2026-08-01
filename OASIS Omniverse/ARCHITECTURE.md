@@ -12,11 +12,11 @@ This document describes the full architecture of the OASIS Omniverse game integr
 │  (ODOOM / OQuake / your game)                              │
 │                                                            │
 │  Engine hooks only:                                        │
-│  • Pickup callbacks  → star_api_queue_add_item()           │
-│  • Door checks       → star_api_has_item()                 │
-│  • Kill callbacks    → star_api_queue_monster_kill()        │
-│  • HUD overlay       → star_api_get_inventory()            │
-│  • Quest popup       → star_api_get_quests_string()        │
+│  • Pickup callbacks  → ogengine_queue_add_item()           │
+│  • Door checks       → ogengine_has_item()                 │
+│  • Kill callbacks    → ogengine_queue_monster_kill()        │
+│  • HUD overlay       → ogengine_get_inventory()            │
+│  • Quest popup       → ogengine_get_quests_string()        │
 └───────────────────┬────────────────────────────────────────┘
                     │  includes oglib.h
                     ▼
@@ -31,11 +31,11 @@ This document describes the full architecture of the OASIS Omniverse game integr
 │  • Cross-game asset mapping  (oglib_crossgame.h)        │
 │  • JSON & string utilities   (oglib_json.h / str.h)     │
 └───────────────────┬────────────────────────────────────────┘
-                    │  star_api.h / star_sync.h
+                    │  ogengine.h / ogengine_sync.h
                     ▼
 ┌────────────────────────────────────────────────────────────┐
-│           STARAPIClient  (C# NativeAOT)                     │
-│  OASIS Omniverse/STARAPIClient/                            │
+│           OGEngineClient  (C# NativeAOT)                     │
+│  OASIS Omniverse/OGEngineClient/                            │
 │                                                            │
 │  Thin managed wrapper over WEB4 / WEB5 APIs:              │
 │  • HTTP transport (HttpClient, retry, backoff)             │
@@ -44,7 +44,7 @@ This document describes the full architecture of the OASIS Omniverse game integr
 │  • Quest progress, caching, serialisation                  │
 │  • NFT minting via WEB4 OASIS API                          │
 │  • Background job workers (add-item, use-item, kill, …)    │
-│  • Native exports [UnmanagedCallersOnly] → star_api.dll    │
+│  • Native exports [UnmanagedCallersOnly] → ogengine.dll    │
 │  • star_sync (async threading layer) → StarSyncExports.cs  │
 └───────────────────┬────────────────────────────────────────┘
                     │  HTTPS
@@ -61,9 +61,9 @@ This document describes the full architecture of the OASIS Omniverse game integr
 
 ### Game Engine Layer
 
-Each game contains **one integration file** (`uzdoom_star_integration.cpp` for ODOOM, `oquake_star_integration.c` for OQuake). It contains **only** what is specific to that game engine:
+Each game contains **one integration file** (`uzdoom_ogengine_integration.cpp` for ODOOM, `oquake_ogengine_integration.c` for OQuake). It contains **only** what is specific to that game engine:
 
-- Engine-specific pickup/kill callbacks that call `star_api_queue_*`
+- Engine-specific pickup/kill callbacks that call `ogengine_queue_*`
 - HUD / overlay rendering using the engine's own draw API
 - Console command parsing (`star beamin`, `star inventory`, …)
 - QuakeC builtins / ZScript hooks
@@ -91,13 +91,13 @@ The integration file is **not** the place for config loading, session management
 
 ---
 
-### STARAPIClient Layer
+### OGEngineClient Layer
 
-`OASIS Omniverse/STARAPIClient/` is the **only** place where HTTP calls to WEB4/WEB5 APIs happen. It is a C# NativeAOT project that publishes to `star_api.dll` (Windows) / `libstar_api.so` (Linux/macOS).
+`OASIS Omniverse/OGEngineClient/` is the **only** place where HTTP calls to WEB4/WEB5 APIs happen. It is a C# NativeAOT project that publishes to `ogengine.dll` (Windows) / `libstar_api.so` (Linux/macOS).
 
-It exposes the C ABI via `[UnmanagedCallersOnly]` exports in `StarApiExports.cs`. Games call these through the `star_api.h` header.
+It exposes the C ABI via `[UnmanagedCallersOnly]` exports in `StarApiExports.cs`. Games call these through the `ogengine.h` header.
 
-**STARAPIClient must remain game-agnostic.** It knows about avatars, quests, inventory, and NFTs — it does not know about Doom keycards, Quake ammo types, or any game engine.
+**OGEngineClient must remain game-agnostic.** It knows about avatars, quests, inventory, and NFTs — it does not know about Doom keycards, Quake ammo types, or any game engine.
 
 Key files after the recent refactor:
 
@@ -117,13 +117,13 @@ Key files after the recent refactor:
 
 ### star_sync Layer
 
-`star_sync.c` / `star_sync.h` is the **async threading bridge** between the game main thread and the `star_api_*` functions. It runs auth, inventory, send-item, and use-item operations on background threads and delivers results back via a pump function called from the game loop.
+`ogengine_sync.c` / `ogengine_sync.h` is the **async threading bridge** between the game main thread and the `ogengine_*` functions. It runs auth, inventory, send-item, and use-item operations on background threads and delivers results back via a pump function called from the game loop.
 
-**Canonical source:** `STARAPIClient/star_sync.c` and `STARAPIClient/star_sync.h`.
+**Canonical source:** `OGEngineClient/ogengine_sync.c` and `OGEngineClient/ogengine_sync.h`.
 
-By default (`OASIS_STAR_SYNC_IN_CLIENT=1`) the equivalent logic is compiled directly into `star_api.dll` as `StarSyncExports.cs`. Games that need the C implementation can compile `star_sync.c` into their own build instead.
+By default (`OASIS_STAR_SYNC_IN_CLIENT=1`) the equivalent logic is compiled directly into `ogengine.dll` as `StarSyncExports.cs`. Games that need the C implementation can compile `ogengine_sync.c` into their own build instead.
 
-**Do not modify `star_sync.c` in ODOOM or OQuake.** Edit the canonical copy in `STARAPIClient/` and let the build scripts copy it to game directories.
+**Do not modify `ogengine_sync.c` in ODOOM or OQuake.** Edit the canonical copy in `OGEngineClient/` and let the build scripts copy it to game directories.
 
 ---
 
@@ -131,11 +131,11 @@ By default (`OASIS_STAR_SYNC_IN_CLIENT=1`) the equivalent logic is compiled dire
 
 | File | Canonical location | Deployed to |
 |------|--------------------|-------------|
-| `star_api.h` | `STARAPIClient/star_api.h` | ODOOM/, OQuake/Code/, OQuake/build/ |
-| `star_sync.h` | `STARAPIClient/star_sync.h` | ODOOM/, OQuake/Code/ |
-| `star_sync.c` | `STARAPIClient/star_sync.c` | ODOOM/, OQuake/Code/ |
+| `ogengine.h` | `OGEngineClient/ogengine.h` | ODOOM/, OQuake/Code/, OQuake/build/ |
+| `ogengine_sync.h` | `OGEngineClient/ogengine_sync.h` | ODOOM/, OQuake/Code/ |
+| `ogengine_sync.c` | `OGEngineClient/ogengine_sync.c` | ODOOM/, OQuake/Code/ |
 
-The build scripts (`BUILD ODOOM.bat`, `BUILD_OQUAKE.bat`) copy these files from STARAPIClient before compiling. **Never edit the deployed copies** — changes will be overwritten on the next build.
+The build scripts (`BUILD ODOOM.bat`, `BUILD_OQUAKE.bat`) copy these files from OGEngineClient before compiling. **Never edit the deployed copies** — changes will be overwritten on the next build.
 
 ---
 
@@ -147,7 +147,7 @@ Shared config file read by both ODOOM and OQuake (and any future game). All shar
 
 ```jsonc
 {
-    "star_api_url": "https://api.oasisomniverse.one",
+    "ogengine_url": "https://api.oasisomniverse.one",
     "oasis_api_url": "https://api.oasisomniverse.one",
     "star_transport": "remote",
     "jwt_token": "",           // persisted after beamin
@@ -206,20 +206,20 @@ Shared config file read by both ODOOM and OQuake (and any future game). All shar
    #define OGLIB_CONFIG_IMPL
    #define OGLIB_BEAMIN_IMPL
    #include "oglib.h"
-   #include "star_api.h"
-   #include "star_sync.h"
+   #include "ogengine.h"
+   #include "ogengine_sync.h"
    ```
-3. **Copy shared files** from STARAPIClient: `star_api.h`, `star_sync.h`, `star_sync.c`.
-4. **Link** `star_api.lib` (Win) / `libstar_api.so` (Linux).
-5. **Add `star_sync.c`** to your build (or set `OASIS_STAR_SYNC_IN_CLIENT=1`).
+3. **Copy shared files** from OGEngineClient: `ogengine.h`, `ogengine_sync.h`, `ogengine_sync.c`.
+4. **Link** `ogengine.lib` (Win) / `libstar_api.so` (Linux).
+5. **Add `ogengine_sync.c`** to your build (or set `OASIS_STAR_SYNC_IN_CLIENT=1`).
 6. **Call `star_sync_pump()`** every frame.
 7. **Implement engine hooks:**
-   - Init/cleanup: `star_api_init` / `star_api_cleanup`
-   - Pickup: `star_api_queue_add_item` / `star_api_queue_pickup_with_mint`
-   - Door check: `star_api_has_item`
-   - Kill: `star_api_queue_monster_kill`
-   - Inventory display: `star_api_get_inventory`
-   - Quest display: `star_api_get_quests_string`
+   - Init/cleanup: `ogengine_init` / `ogengine_cleanup`
+   - Pickup: `ogengine_queue_add_item` / `ogengine_queue_pickup_with_mint`
+   - Door check: `ogengine_has_item`
+   - Kill: `ogengine_queue_monster_kill`
+   - Inventory display: `ogengine_get_inventory`
+   - Quest display: `ogengine_get_quests_string`
 8. **Add `oasisstar.json`** to your game directory.
 9. **Document** in your game's `README.md` following the pattern in ODOOM/OQuake.
 
@@ -227,7 +227,7 @@ Shared config file read by both ODOOM and OQuake (and any future game). All shar
 
 ## Design Decisions
 
-### Why is STARAPIClient C# and not C?
+### Why is OGEngineClient C# and not C?
 
 The OASIS WEB4/WEB5 APIs are built on ASP.NET Core with JWT auth, retry logic, and JSON deserialization. Implementing that correctly in C would require substantial third-party C libraries (libcurl, cJSON, mbedTLS…). C# gives us a single managed binary with all of that built in, compiled via NativeAOT to a native DLL with a clean C ABI.
 
@@ -239,9 +239,9 @@ ODOOM and OQuake had ~350 lines of identical forwarder code, ~200 lines of near-
 
 C games have wildly different build systems (CMake, VS projects, Makefiles, Meson). A header-only library with a single-TU implementation pattern requires no changes to the build system — you add one `#define` and the library is compiled where you need it.
 
-### Why not put OGLib code into STARAPIClient?
+### Why not put OGLib code into OGEngineClient?
 
-STARAPIClient is a managed C# library with a C ABI. Adding C game-integration logic there would pollute a clean, reusable API wrapper with game-specific concerns (file I/O, threading patterns specific to game loops, engine-adjacent types). The separation keeps STARAPIClient usable by non-game consumers (web apps, CLI tools, Unity, etc.).
+OGEngineClient is a managed C# library with a C ABI. Adding C game-integration logic there would pollute a clean, reusable API wrapper with game-specific concerns (file I/O, threading patterns specific to game loops, engine-adjacent types). The separation keeps OGEngineClient usable by non-game consumers (web apps, CLI tools, Unity, etc.).
 
 ---
 
@@ -250,16 +250,16 @@ STARAPIClient is a managed C# library with a C ABI. Adding C game-integration lo
 ```
 OASIS Omniverse/
 ├── ARCHITECTURE.md              ← this file
-├── STARAPIClient/               ← C# NativeAOT; star_api.dll
+├── OGEngineClient/               ← C# NativeAOT; ogengine.dll
 │   ├── StarApiClient.cs         ← core HTTP client (7,178 lines)
 │   ├── StarApiExports.cs        ← [UnmanagedCallersOnly] C exports
 │   ├── StarSyncExports.cs       ← star_sync C# implementation
 │   ├── StarApi*.cs              ← model types, enums, delegates
 │   ├── Jobs/Pending*.cs         ← internal async job types
 │   ├── Interop/NativeStructs.cs ← C-layout interop structs
-│   ├── star_api.h               ← C header (canonical)
-│   ├── star_sync.h              ← C header (canonical)
-│   └── star_sync.c              ← C implementation (canonical)
+│   ├── ogengine.h               ← C header (canonical)
+│   ├── ogengine_sync.h              ← C header (canonical)
+│   └── ogengine_sync.c              ← C implementation (canonical)
 ├── OGLib/                    ← C game integration library
 │   ├── oglib.h               ← master include
 │   ├── oglib_config.h        ← oasisstar.json + star_config_t
@@ -270,13 +270,13 @@ OASIS Omniverse/
 │   ├── oglib_str.h           ← string utilities
 │   └── README.md
 ├── ODOOM/                       ← UZDoom + OASIS integration
-│   ├── uzdoom_star_integration.cpp
-│   ├── star_api.h               ← deployed copy (from STARAPIClient)
-│   ├── star_sync.c              ← deployed copy (from STARAPIClient)
-│   └── star_sync.h              ← deployed copy (from STARAPIClient)
+│   ├── uzdoom_ogengine_integration.cpp
+│   ├── ogengine.h               ← deployed copy (from OGEngineClient)
+│   ├── ogengine_sync.c              ← deployed copy (from OGEngineClient)
+│   └── ogengine_sync.h              ← deployed copy (from OGEngineClient)
 └── OQuake/                      ← vkQuake + OASIS integration
-    ├── Code/oquake_star_integration.c
-    ├── Code/star_api.h          ← deployed copy (from STARAPIClient)
-    ├── Code/star_sync.c         ← deployed copy (from STARAPIClient)
-    └── Code/star_sync.h         ← deployed copy (from STARAPIClient)
+    ├── Code/oquake_ogengine_integration.c
+    ├── Code/ogengine.h          ← deployed copy (from OGEngineClient)
+    ├── Code/ogengine_sync.c         ← deployed copy (from OGEngineClient)
+    └── Code/ogengine_sync.h         ← deployed copy (from OGEngineClient)
 ```

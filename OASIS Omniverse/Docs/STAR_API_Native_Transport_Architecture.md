@@ -1,18 +1,18 @@
-# STAR API: remote vs native transport — architecture notes
+﻿# STAR API: remote vs native transport — architecture notes
 
 **Purpose:** Capture the decision space for **in-process OASIS** (`star_transport: native`) versus the shipped **HTTP client** (`remote`), so future work does not re-derive size, AOT, and split-build trade-offs from chat history.
 
 **Status (repo):**
 
-- **Remote:** Default. `OASIS Omniverse/STARAPIClient` (NativeAOT `star_api`) talks to WEB5/WEB4 over HTTP.
-- **Native flag:** Games and `star_api_config_t` expose `transport` / `oasis_dna_path`; the **default** `star_api` build returns **`InitFailed`** with an explicit message for `native` (no silent fallback) — see policy in `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md`.
+- **Remote:** Default. `OASIS Omniverse/OGEngineClient` (NativeAOT `star_api`) talks to WEB5/WEB4 over HTTP.
+- **Native flag:** Games and `ogengine_config_t` expose `transport` / `oasis_dna_path`; the **default** `star_api` build returns **`InitFailed`** with an explicit message for `native` (no silent fallback) — see policy in `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md`.
 - **DNA / HyperDrive plumbing:** `AutoFailOverLocalProviders` + `AutoFailOverLocalProvidersEnabled` on `StorageProviderSettings`; `ProviderManager` local list + `ActivateNextLocalAutoFailOverStorageProvider()`; `OASISBootLoader` loads from DNA. Native host code should call the activation helper when offline/local failover is required; **automatic offline detection + background resync** is **not** wired in the slim client.
 
 ---
 
 ## What the “current” client is
 
-| Aspect | Shipped `STARAPIClient` (`star_api`) |
+| Aspect | Shipped `OGEngineClient` (`star_api`) |
 |--------|--------------------------------------|
 | TFM | `net9.0` |
 | Publish | **NativeAOT** (`PublishAot`), `IlcTrimMode` **copy** (stability over minimal size) |
@@ -52,7 +52,7 @@ Bringing that **into the same NativeAOT binary** as today’s `star_api` means:
 
 2. **Base + optional native artifact (recommended direction)**  
    - Keep **current `star_api`** as the **default / slim** line for games.  
-   - Add **`star_api_native`** (second native library) **or** a small **host process** that exposes the **same C ABI** (`star_api_init`, etc.) but links **OASIS runtime** (possibly **subset** of providers aligned with `AutoFailOverLocalProviders`).  
+   - Add **`ogengine_native`** (second native library) **or** a small **host process** that exposes the **same C ABI** (`ogengine_init`, etc.) but links **OASIS runtime** (possibly **subset** of providers aligned with `AutoFailOverLocalProviders`).  
    - Games choose DLL at deploy time or via launcher, **or** `dlopen` the native build when `star_transport` is native.
 
 3. **Shared library (no duplicated quest/inventory logic)**  
@@ -75,9 +75,9 @@ Bringing that **into the same NativeAOT binary** as today’s `star_api` means:
 
 | Area | Location |
 |------|-----------|
-| Slim client | `OASIS Omniverse/STARAPIClient/` |
-| C ABI / config | `star_api.h`, `star_api_config_t.transport`, `oasis_dna_path` |
-| Games | `oquake_star_integration.c`, `uzdoom_star_integration.cpp`, `oasisstar.json` (`star_transport`, `oasis_dna_path`) |
+| Slim client | `OASIS Omniverse/OGEngineClient/` |
+| C ABI / config | `ogengine.h`, `ogengine_config_t.transport`, `oasis_dna_path` |
+| Games | `oquake_ogengine_integration.c`, `uzdoom_ogengine_integration.cpp`, `oasisstar.json` (`star_transport`, `oasis_dna_path`) |
 | DNA | `NextGenSoftware.OASIS.API.DNA` — `AutoFailOverLocalProviders*`, default `OASIS_DNA.json` samples |
 | Provider lists + failover | `ProviderManager` — `GetProviderAutoFailOverLocalList`, `ActivateNextLocalAutoFailOverStorageProvider` |
 | Boot load | `OASISBootLoader.LoadProviderLists` |

@@ -1,4 +1,4 @@
-# Building ODOOM and OQuake on Linux and macOS
+﻿# Building ODOOM and OQuake on Linux and macOS
 
 Unix (Linux and macOS) equivalents of the Windows batch files **BUILD ODOOM.bat** and **BUILD_OQUAKE.bat**. For a full step-by-step guide, see **[GettingStarted_Linux.md](GettingStarted_Linux.md)** or **[GettingStarted_Mac.md](GettingStarted_Mac.md)**.
 
@@ -24,7 +24,7 @@ cd "OASIS Omniverse/OQuake"
 
 ### All
 
-- **.NET 8 SDK** – for building STARAPIClient (NativeAOT).
+- **.NET 8 SDK** – for building OGEngineClient (NativeAOT).
 - **PowerShell Core (pwsh)** – optional but recommended; used to patch UZDoom and vkQuake. Install: `sudo apt install powershell` or from [PowerShell GitHub](https://github.com/PowerShell/PowerShell).
 - **CMake, build-essential** – for UZDoom and vkQuake.
 
@@ -49,16 +49,16 @@ cd "OASIS Omniverse/OQuake"
 
 ## STAR API (shared library)
 
-The **STARAPIClient** is built and deployed automatically when you run either game’s build script. To build and deploy it alone (e.g. for development):
+The **OGEngineClient** is built and deployed automatically when you run either game’s build script. To build and deploy it alone (e.g. for development):
 
 ```bash
 cd "OASIS Omniverse"
 # Linux and macOS (auto-detects OS and architecture):
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh
 # Optional: force rebuild
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild
 # macOS: override runtime (e.g. osx-arm64 or osx-x64)
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -Runtime osx-arm64
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -Runtime osx-arm64
 ```
 
 On **Linux** the client produces **libstar_api.so** (or **star_api.so**). On **macOS** it produces **libstar_api.dylib** (or **star_api.dylib**). These are copied into the ODOOM and OQuake folders and into their `build` output.
@@ -71,7 +71,7 @@ On **Linux** the client produces **libstar_api.so** (or **star_api.so**). On **m
 | `QUAKE_SRC`        | `$HOME/Source/quake-rerelease-qc` | QuakeC source               |
 | `VKQUAKE_SRC`      | `$HOME/Source/vkQuake`        | vkQuake source tree            |
 | `OQUAKE_BASEDIR`   | Steam Quake path              | Quake game data (id1, pak files) |
-| `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID` | – | OASIS auth (cross-game) |
+| `STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID` | – | OASIS auth (cross-game) |
 
 ## Scripts summary
 
@@ -81,8 +81,8 @@ On **Linux** the client produces **libstar_api.so** (or **star_api.so**). On **m
 | `ODOOM/RUN_ODOOM.sh`   | Run ODOOM (builds if missing). |
 | `OQuake/BUILD_OQUAKE.sh` | Build OQuake (Linux/macOS). Options: `run`, `batch`. |
 | `OQuake/RUN_OQUAKE.sh`   | Run OQuake (builds if missing). |
-| `STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` | Build and deploy STAR API for Linux or macOS (auto-detects). Options: `-ForceBuild`, `-Runtime`. |
-| `STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh` | Wrapper that calls the unix script (Linux). |
+| `OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh` | Build and deploy STAR API for Linux or macOS (auto-detects). Options: `-ForceBuild`, `-Runtime`. |
+| `OGEngineClient/Scripts/build-and-deploy-star-api-linux.sh` | Wrapper that calls the unix script (Linux). |
 
 ## Sprites (ODOOM)
 

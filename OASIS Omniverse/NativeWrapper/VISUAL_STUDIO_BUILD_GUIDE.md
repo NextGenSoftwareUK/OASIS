@@ -1,6 +1,6 @@
-# Building in Visual Studio - Step by Step Guide — **DEPRECATED**
+﻿# Building in Visual Studio - Step by Step Guide — **DEPRECATED**
 
-**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. Build from `OASIS Omniverse/STARAPIClient` (see that folder's README). This guide is for reference only.
+**Do not use NativeWrapper.** ODOOM and OQuake use **OGEngineClient** only. Build from `OASIS Omniverse/OGEngineClient` (see that folder's README). This guide is for reference only.
 
 ## Method 1: Using the Visual Studio Project File (Easiest)
 
@@ -8,7 +8,7 @@
 1. **Open Visual Studio** (2019 or 2022)
 2. **File** → **Open** → **Project/Solution...**
 3. Navigate to: `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\`
-4. Select: **star_api.vcxproj**
+4. Select: **ogengine.vcxproj**
 5. Click **Open**
 
 ### Step 2: Configure Build
@@ -18,7 +18,7 @@
 4. Select: **x64**
 
 ### Step 3: Build
-1. **Right-click** on the `star_api` project in Solution Explorer
+1. **Right-click** on the `ogengine` project in Solution Explorer
 2. Select: **Build**
    - Or press **Ctrl+Shift+B**
    - Or go to **Build** → **Build Solution**
@@ -27,8 +27,8 @@
 1. Check the **Output** window (View → Output)
 2. Should see: "Build succeeded"
 3. Check that the file exists:
-   - `build\Release\star_api.dll`
-   - `build\Release\star_api.lib`
+   - `build\Release\ogengine.dll`
+   - `build\Release\ogengine.lib`
 
 ## Method 2: Using CMake (If CMake is installed)
 
@@ -47,7 +47,7 @@ cmake --build . --config Release
 
 ### Step 3: Open Generated Solution
 1. In Visual Studio: **File** → **Open** → **Project/Solution**
-2. Open: `build\star_api.sln`
+2. Open: `build\ogengine.sln`
 3. Build as in Method 1
 
 ## Method 3: Create New Project from Existing Code
@@ -55,13 +55,13 @@ cmake --build . --config Release
 ### Step 1: Create New Project
 1. **File** → **New** → **Project**
 2. Select: **Visual C++** → **Windows Desktop** → **Dynamic Link Library (.dll)**
-3. Name: `star_api`
+3. Name: `ogengine`
 4. Location: `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\`
 
 ### Step 2: Add Source Files
 1. **Right-click** project → **Add** → **Existing Item**
-2. Add: `star_api.cpp`
-3. Add: `star_api.h` (as header)
+2. Add: `ogengine.cpp`
+3. Add: `ogengine.h` (as header)
 
 ### Step 3: Configure Project
 1. **Right-click** project → **Properties**
@@ -91,20 +91,20 @@ cmake --build . --config Release
 - Visual Studio Installer → Modify → Individual Components → MSVC v142 or v143
 
 ### Build Succeeds but DLL Not Found
-- **Check**: `build\Release\star_api.dll` or `build\Debug\star_api.dll`
+- **Check**: `build\Release\ogengine.dll` or `build\Debug\ogengine.dll`
 - The output location depends on your project configuration
 
 ## Quick Reference
 
-**Project File**: `star_api.vcxproj`  
-**Output DLL**: `build\Release\star_api.dll`  
-**Output LIB**: `build\Release\star_api.lib`  
+**Project File**: `ogengine.vcxproj`  
+**Output DLL**: `build\Release\ogengine.dll`  
+**Output LIB**: `build\Release\ogengine.lib`  
 **Configuration**: Release, x64
 
 ## After Building
 
 Once built, the library will be at:
-- `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\Release\star_api.dll`
+- `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\Release\ogengine.dll`
 
 You can then:
 1. Build DOOM (it will link to this library)

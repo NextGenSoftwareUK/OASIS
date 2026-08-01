@@ -107,12 +107,12 @@
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;CMAKE_INTDIR="Debug";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;CMAKE_INTDIR="Debug";ogengine_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\";ogengine_EXPORTS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -131,7 +131,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
-      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/star_api.lib</ImportLibrary>
+      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/ogengine.lib</ImportLibrary>
       <LinkErrorReporting></LinkErrorReporting>
       <ProgramDataBaseFile>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/star_api.pdb</ProgramDataBaseFile>
       <RandomizedBaseAddress></RandomizedBaseAddress>
@@ -162,14 +162,14 @@
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="Release";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="Release";ogengine_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\";ogengine_EXPORTS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -188,7 +188,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
-      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/star_api.lib</ImportLibrary>
+      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/ogengine.lib</ImportLibrary>
       <LinkErrorReporting></LinkErrorReporting>
       <ProgramDataBaseFile>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/star_api.pdb</ProgramDataBaseFile>
       <RandomizedBaseAddress></RandomizedBaseAddress>
@@ -219,14 +219,14 @@
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="MinSizeRel";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="MinSizeRel";ogengine_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"MinSizeRel\";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"MinSizeRel\";ogengine_EXPORTS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -245,7 +245,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
-      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/star_api.lib</ImportLibrary>
+      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/ogengine.lib</ImportLibrary>
       <LinkErrorReporting></LinkErrorReporting>
       <ProgramDataBaseFile>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/star_api.pdb</ProgramDataBaseFile>
       <RandomizedBaseAddress></RandomizedBaseAddress>
@@ -277,12 +277,12 @@
       <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="RelWithDebInfo";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="RelWithDebInfo";ogengine_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"RelWithDebInfo\";star_api_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"RelWithDebInfo\";ogengine_EXPORTS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -301,7 +301,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
-      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/star_api.lib</ImportLibrary>
+      <ImportLibrary>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/ogengine.lib</ImportLibrary>
       <LinkErrorReporting></LinkErrorReporting>
       <ProgramDataBaseFile>C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/star_api.pdb</ProgramDataBaseFile>
       <RandomizedBaseAddress></RandomizedBaseAddress>
@@ -370,7 +370,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\star_api.cpp" />
-    <ClInclude Include="C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\star_api.h" />
+    <ClInclude Include="C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\ogengine.h" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
