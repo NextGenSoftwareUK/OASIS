@@ -2,7 +2,7 @@
 
 **ODuke3D-RT** is a fork of [Duke-RT](https://github.com/fgsfdsfgs/duke-rt) — a Vulkan ray-tracing modification of EDuke32 — with the **OASIS STAR API** integrated. It offers the same cross-game OASIS features as **ODuke3D** but with modern ray-traced lighting and reflections for Duke Nukem 3D.
 
-Cross-game keys work across all six OASIS Omniverse games: **ODOOM**, **OQuake**, **ODOOM3**, **ODOOM3-BFG**, **ODuke3D**, and ODuke3D-RT.
+Cross-game keys work across all seven OASIS Omniverse games: **ODOOM**, **OQuake**, **ODOOM3**, **ODOOM3-BFG**, **ODuke3D**, **ODuke3D-RT**, and **OWolf3D**.
 
 **For classic (non-RT) Duke Nukem 3D see [ODuke3D](../ODuke3D/README.md).**
 

@@ -4,7 +4,7 @@
 **Game source ID:** `ODOOM3`  
 **Game DLL target:** `base.dll` (compiled separately from the engine executable)
 
-**Cross-game partners:** ODOOM, OQuake, ODOOM3-BFG, **ODuke3D** (Duke Nukem 3D, EDuke32 fork), and **ODuke3D-RT** (Duke Nukem 3D ray-traced).  Keys, inventory, XP, and quests are shared across all six OASIS Omniverse games.
+**Cross-game partners:** ODOOM, OQuake, ODOOM3-BFG, **ODuke3D** (Duke Nukem 3D, EDuke32 fork), **ODuke3D-RT** (Duke Nukem 3D ray-traced), and **OWolf3D** (Wolfenstein 3D, ECWolf fork).  Keys, inventory, XP, and quests are shared across all seven OASIS Omniverse games.
 
 ---
 

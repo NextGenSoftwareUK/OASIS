@@ -6,7 +6,7 @@ so the integration headers are already in `neo\d3xp\`.
 
 All file paths are relative to `C:\Source\ODOOM3-BFG\neo\d3xp\`.
 
-**Cross-game partners:** ODOOM, OQuake, ODOOM3, **ODuke3D** (Duke Nukem 3D, EDuke32 fork), and **ODuke3D-RT** (Duke Nukem 3D ray-traced) — six OASIS Omniverse games total.
+**Cross-game partners:** ODOOM, OQuake, ODOOM3, **ODuke3D** (Duke Nukem 3D, EDuke32 fork), **ODuke3D-RT** (Duke Nukem 3D ray-traced), and **OWolf3D** (Wolfenstein 3D, ECWolf fork) — seven OASIS Omniverse games total.
 
 ---
 
