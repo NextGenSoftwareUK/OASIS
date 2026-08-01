@@ -1,8 +1,8 @@
-# Install script for directory: C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper
+﻿# Install script for directory: C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/star_api_wrapper")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/ogengine_wrapper")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -34,30 +34,30 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/star_api.lib")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/ogengine.lib")
   elseif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/star_api.lib")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/ogengine.lib")
   elseif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Mm][Ii][Nn][Ss][Ii][Zz][Ee][Rr][Ee][Ll])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/star_api.lib")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/ogengine.lib")
   elseif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ww][Ii][Tt][Hh][Dd][Ee][Bb][Ii][Nn][Ff][Oo])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/star_api.lib")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/ogengine.lib")
   endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/star_api.dll")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Debug/ogengine.dll")
   elseif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/star_api.dll")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/Release/ogengine.dll")
   elseif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Mm][Ii][Nn][Ss][Ii][Zz][Ee][Rr][Ee][Ll])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/star_api.dll")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/MinSizeRel/ogengine.dll")
   elseif(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ww][Ii][Tt][Hh][Dd][Ee][Bb][Ii][Nn][Ff][Oo])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/star_api.dll")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/RelWithDebInfo/ogengine.dll")
   endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/star_api" TYPE FILE FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/star_api.h")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/ogengine" TYPE FILE FILES "C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/ogengine.h")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT

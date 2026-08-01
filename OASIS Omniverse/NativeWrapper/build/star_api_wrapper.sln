@@ -23,7 +23,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "star_api", "star_api.vcxpro
 		{8121B7D2-7185-3D1E-8DC8-FC4A8D681861} = {8121B7D2-7185-3D1E-8DC8-FC4A8D681861}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "star_api_static", "star_api_static.vcxproj", "{111B29C8-EC0A-3504-9FB5-27947CFF977E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ogengine_static", "ogengine_static.vcxproj", "{111B29C8-EC0A-3504-9FB5-27947CFF977E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8121B7D2-7185-3D1E-8DC8-FC4A8D681861} = {8121B7D2-7185-3D1E-8DC8-FC4A8D681861}
 	EndProjectSection

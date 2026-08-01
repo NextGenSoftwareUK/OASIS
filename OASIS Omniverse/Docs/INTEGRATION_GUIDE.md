@@ -1,10 +1,10 @@
-# OASIS STAR API – Game Integration Guide
+﻿# OASIS STAR API – Game Integration Guide
 
 ## Overview
 
 This guide describes how **ODOOM** and **OQuake** (and other games) integrate with the OASIS STAR API for cross-game item sharing, quests, and avatar/SSO. For setup (repos, tools, build, config), use **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)**.
 
-**Architecture principle:** The **C# STARAPIClient does all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers) so integration is **generic** and **minimal**. Games only call a small C API (`star_api_*` and optionally `star_sync_*`); they do not implement API threads, sync logic, or inventory merging. This makes it quicker and easier to port other games. See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design, layer diagram, and porting checklist.
+**Architecture principle:** The **C# OGEngineClient does all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers) so integration is **generic** and **minimal**. Games only call a small C API (`ogengine_*` and optionally `star_sync_*`); they do not implement API threads, sync logic, or inventory merging. This makes it quicker and easier to port other games. See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design, layer diagram, and porting checklist.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ This guide describes how **ODOOM** and **OQuake** (and other games) integrate wi
 
 ## Architecture Overview
 
-Games call the C API; the **C# STARAPIClient** implements it and performs all HTTP, caching, and background work (add_item queue, pickup-with-mint, use_item, etc.). See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full client-centric design and minimal-hooks porting guide.
+Games call the C API; the **C# OGEngineClient** implements it and performs all HTTP, caching, and background work (add_item queue, pickup-with-mint, use_item, etc.). See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full client-centric design and minimal-hooks porting guide.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -33,7 +33,7 @@ Games call the C API; the **C# STARAPIClient** implements it and performs all HT
         └─────────────┴─────────────┴─────────────┘
                       │
         ┌─────────────▼─────────────┐
-        │   STARAPIClient (C#)      │
+        │   OGEngineClient (C#)      │
         │   Cache, queues, workers │
         │   Mint + add_item in C#   │
         └─────────────┬─────────────┘
@@ -72,7 +72,7 @@ Quake_STAR_OnKeyPickup("silver_key");  // Adds to STAR API
 
 #### 2. Cross-Game Item Usage
 
-When a player tries to use an item (e.g., open a door), the game checks both local and cross-game inventory. The **local inventory cache** lives in the **STAR API client** (STARAPIClient): `star_api_get_inventory`, `star_api_has_item`, and `star_api_use_item` use the client’s cache first and only hit the API when the cache is null or the item is not found. Games (ODOOM, OQuake, etc.) can call these APIs directly; no need to keep a separate game-side inventory list for door/has/use. See STARAPIClient README for “STARAPIClient vs star_sync” and “Local inventory cache”.
+When a player tries to use an item (e.g., open a door), the game checks both local and cross-game inventory. The **local inventory cache** lives in the **STAR API client** (OGEngineClient): `ogengine_get_inventory`, `ogengine_has_item`, and `ogengine_use_item` use the client’s cache first and only hit the API when the cache is null or the item is not found. Games (ODOOM, OQuake, etc.) can call these APIs directly; no need to keep a separate game-side inventory list for door/has/use. See OGEngineClient README for “OGEngineClient vs star_sync” and “Local inventory cache”.
 
 ```c
 // In Quake: Check if player can open door
@@ -110,7 +110,7 @@ Items from different games can be mapped to each other for compatibility:
 2. **Player in Quake:**
    - Approaches door requiring silver key
    - Quake checks local inventory (not found)
-   - Quake checks STAR API: `star_api_has_item("red_keycard")` → true
+   - Quake checks STAR API: `ogengine_has_item("red_keycard")` → true
    - Door opens using Doom's red keycard!
 
 ## Phase 2: Multi-Game Quests
@@ -151,7 +151,7 @@ Create quests that span multiple games, requiring players to complete objectives
 
 ```c
 // Check quest progress
-bool objective1_complete = star_api_is_quest_objective_complete(
+bool objective1_complete = ogengine_is_quest_objective_complete(
     "cross_dimensional_keycard_hunt",
     "doom_red_keycard"
 );
@@ -159,7 +159,7 @@ bool objective1_complete = star_api_is_quest_objective_complete(
 // When objective completed
 if (objective1_complete && objective2_complete) {
     // Quest complete! Give reward
-    star_api_add_item("master_keycard", "Master Keycard", "Quest Reward", "SpecialItem");
+    ogengine_add_item("master_keycard", "Master Keycard", "Quest Reward", "SpecialItem");
 }
 ```
 
@@ -189,7 +189,7 @@ When enabled in **oasisstar.json** (ODOOM and OQuake), collecting items can **mi
 - **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint when collecting that category; `0` to disable.
 - **nft_provider** – Provider name (e.g. `SolanaOASIS`).
 
-The **game** calls `star_api_queue_pickup_with_mint` when mint is on for the item type; the **C# client** performs the mint (WEB4 OASIS API) and add_item in the background (no blocking in the game). In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately. See [ARCHITECTURE.md](ARCHITECTURE.md) for the client-centric design.
+The **game** calls `ogengine_queue_pickup_with_mint` when mint is on for the item type; the **C# client** performs the mint (WEB4 OASIS API) and add_item in the background (no blocking in the game). In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately. See [ARCHITECTURE.md](ARCHITECTURE.md) for the client-centric design.
 
 ## Future: NFT Boss Collection
 
@@ -202,7 +202,7 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
 1. **Monster/Boss Collection:**
    ```c
    // Player defeats monster/boss in Doom
-   star_api_create_monster_nft(
+   ogengine_create_monster_nft(
        "cyberdemon",
        "Cyberdemon from Doom",
        monster_stats,
@@ -213,7 +213,7 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
 2. **Boss Deployment:**
    ```c
    // Player deploys boss in Quake
-   bool deployed = star_api_deploy_boss_nft(
+   bool deployed = ogengine_deploy_boss_nft(
        "cyberdemon_nft_id",
        "quake_level_1"
    );
@@ -257,26 +257,26 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
    - On Linux/Mac: libcurl development libraries
    - On Windows: Windows SDK (for WinHTTP)
 
-### Step 1: Build STAR API client (STARAPIClient)
+### Step 1: Build STAR API client (OGEngineClient)
 
-ODOOM and OQuake use **STARAPIClient** only. Build from OASIS repo root:
+ODOOM and OQuake use **OGEngineClient** only. Build from OASIS repo root:
 
 ```powershell
-dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
+dotnet publish "OASIS Omniverse/OGEngineClient/OGEngineClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
 
-Or use the game build scripts (`BUILD ODOOM.bat` / `BUILD_OQUAKE.bat`), which use or build STARAPIClient. Do not use NativeWrapper.
+Or use the game build scripts (`BUILD ODOOM.bat` / `BUILD_OQUAKE.bat`), which use or build OGEngineClient. Do not use NativeWrapper.
 
 ### Step 2: Configure API Credentials
 
 Set environment variables:
 
 ```bash
-export STAR_API_KEY="your_api_key_here"
+export OGENGINE_KEY="your_api_key_here"
 export STAR_AVATAR_ID="your_avatar_id_here"
 ```
 
-Or edit `Config/star_api_config.json`:
+Or edit `Config/ogengine_config.json`:
 
 ```json
 {
@@ -307,26 +307,26 @@ Follow game-specific integration guides:
 #### Initialization
 
 ```c
-star_api_config_t config = {
+ogengine_config_t config = {
     .base_url = "https://star-api.oasisplatform.world/api",
     .api_key = "your_api_key",
     .avatar_id = "your_avatar_id",
     .timeout_seconds = 10
 };
 
-star_api_result_t result = star_api_init(&config);
+ogengine_result_t result = ogengine_init(&config);
 ```
 
 #### Check for Item
 
 ```c
-bool has_item = star_api_has_item("red_keycard");
+bool has_item = ogengine_has_item("red_keycard");
 ```
 
 #### Add Item
 
 ```c
-star_api_result_t result = star_api_add_item(
+ogengine_result_t result = ogengine_add_item(
     "red_keycard",
     "Red Keycard - Opens red doors",
     "Doom",
@@ -337,26 +337,26 @@ star_api_result_t result = star_api_add_item(
 #### Use Item
 
 ```c
-bool used = star_api_use_item("red_keycard", "door_123");
+bool used = ogengine_use_item("red_keycard", "door_123");
 ```
 
 #### Get Inventory
 
 ```c
 star_item_list_t* inventory = NULL;
-star_api_result_t result = star_api_get_inventory(&inventory);
+ogengine_result_t result = ogengine_get_inventory(&inventory);
 
-if (result == STAR_API_SUCCESS) {
+if (result == OGENGINE_SUCCESS) {
     for (size_t i = 0; i < inventory->count; i++) {
         printf("Item: %s\n", inventory->items[i].name);
     }
-    star_api_free_item_list(inventory);
+    ogengine_free_item_list(inventory);
 }
 ```
 
 ### C# API
 
-See `STARAPIClient/GameIntegrationClient.cs` for full C# API documentation.
+See `OGEngineClient/GameIntegrationClient.cs` for full C# API documentation.
 
 ## Troubleshooting
 
@@ -364,10 +364,10 @@ See `STARAPIClient/GameIntegrationClient.cs` for full C# API documentation.
 
 #### 1. STAR API Not Initializing
 
-**Symptoms:** `star_api_init()` returns error
+**Symptoms:** `ogengine_init()` returns error
 
 **Solutions:**
-- Verify `STAR_API_KEY` and `STAR_AVATAR_ID` are set
+- Verify `OGENGINE_KEY` and `STAR_AVATAR_ID` are set
 - Check network connectivity to STAR API
 - Verify API key is valid
 - Check firewall settings
@@ -387,7 +387,7 @@ See `STARAPIClient/GameIntegrationClient.cs` for full C# API documentation.
 **Symptoms:** Has keycard but door won't open
 
 **Solutions:**
-- Verify `star_api_has_item()` returns true
+- Verify `ogengine_has_item()` returns true
 - Check door access logic is properly integrated
 - Verify keycard name matches
 - Check item mapping configuration
@@ -408,10 +408,10 @@ Enable debug logging:
 
 ```c
 // Set log level
-star_api_set_log_level(STAR_API_LOG_DEBUG);
+ogengine_set_log_level(OGENGINE_LOG_DEBUG);
 
 // Check last error
-const char* error = star_api_get_last_error();
+const char* error = ogengine_get_last_error();
 printf("Last error: %s\n", error);
 ```
 
@@ -446,8 +446,8 @@ printf("Last error: %s\n", error);
 
 ## Support
 
-- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](../ODOOM/README.md), [OQuake/README.md](../OQuake/README.md), [STARAPIClient/README.md](../STARAPIClient/README.md)
-- **Troubleshooting:** Game-specific WINDOWS_INTEGRATION.md files; STAR API logs (e.g. `star_api.log` in game exe folder)
+- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](../ODOOM/README.md), [OQuake/README.md](../OQuake/README.md), [OGEngineClient/README.md](../OGEngineClient/README.md)
+- **Troubleshooting:** Game-specific WINDOWS_INTEGRATION.md files; STAR API logs (e.g. `ogengine.log` in game exe folder)
 
 ## License
 

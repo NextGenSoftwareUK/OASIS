@@ -1,10 +1,10 @@
-@echo off
-REM Build STARAPIClient and deploy star_api.dll, star_api.lib, star_api.h to game folders.
-REM Build is skipped if star_api.dll is up to date (no C#/csproj changes). Use -ForceBuild to always rebuild.
+﻿@echo off
+REM Build OGEngineClient and deploy ogengine.dll, ogengine.lib, ogengine.h to game folders.
+REM Build is skipped if ogengine.dll is up to date (no C#/csproj changes). Use -ForceBuild to always rebuild.
 REM Optional: -RunSmokeTest to compile and run the C smoke test after deploy.
 REM
 REM Deploy targets: ODOOM, OQuake, and (if present) UZDoom\src, vkQuake\Quake.
-REM Load VS environment so dumpbin/lib are in PATH and star_api.lib can be generated from the DLL.
+REM Load VS environment so dumpbin/lib are in PATH and ogengine.lib can be generated from the DLL.
 
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
@@ -21,7 +21,7 @@ echo OASIS STAR API - Build and Deploy
 echo ========================================
 echo.
 
-powershell -ExecutionPolicy Bypass -File "STARAPIClient\Scripts\publish_and_deploy_star_api.ps1" %*
+powershell -ExecutionPolicy Bypass -File "OGEngineClient\Scripts\publish_and_deploy_star_api.ps1" %*
 set "EXIT_CODE=%ERRORLEVEL%"
 
 endlocal

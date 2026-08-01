@@ -1,6 +1,6 @@
-# Getting Started — macOS
+﻿# Getting Started — macOS
 
-This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **macOS** (Intel and Apple Silicon). ODOOM and OQuake also support [Windows](GettingStarted_Windows.md) and [Linux](GettingStarted_Linux.md).
+This guide walks you through building and running **ODOOM**, **OQuake**, and **OGEngineClient** on **macOS** (Intel and Apple Silicon). ODOOM and OQuake also support [Windows](GettingStarted_Windows.md) and [Linux](GettingStarted_Linux.md).
 
 ---
 
@@ -8,7 +8,7 @@ This guide walks you through building and running **ODOOM**, **OQuake**, and **S
 
 Install the following (using [Homebrew](https://brew.sh/) if not already installed).
 
-**One-time install (ODOOM + OQuake + STARAPIClient NativeAOT, all deps):**
+**One-time install (ODOOM + OQuake + OGEngineClient NativeAOT, all deps):**
 
 ```bash
 # Install Homebrew (if needed): /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -16,7 +16,7 @@ Install the following (using [Homebrew](https://brew.sh/) if not already install
 brew install pkg-config cmake dotnet@8 sdl2 glib gtk+3 libvpx meson ninja vulkan-headers molten-vk python3 powershell
 ```
 
-Xcode Command Line Tools (or full Xcode) provide `clang` for NativeAOT; install with `xcode-select --install` if needed. If the STARAPIClient NativeAOT build fails to find the linker, set (e.g. in `~/.zshrc` or `~/.bash_profile`):
+Xcode Command Line Tools (or full Xcode) provide `clang` for NativeAOT; install with `xcode-select --install` if needed. If the OGEngineClient NativeAOT build fails to find the linker, set (e.g. in `~/.zshrc` or `~/.bash_profile`):
 
 ```bash
 export DOTNET_CLANG_PATH=$(which clang)
@@ -44,7 +44,7 @@ brew install python3
 
 | Tool | Purpose |
 |------|----------|
-| **.NET 8 SDK** | Build STARAPIClient (NativeAOT) for osx-x64 or osx-arm64 |
+| **.NET 8 SDK** | Build OGEngineClient (NativeAOT) for osx-x64 or osx-arm64 |
 | **pkg-config** | Required by UZDoom CMake (SDL2, etc.) |
 | **sdl2, glib, gtk+3, libvpx** | UZDoom/ODOOM (SDL2, ZMusic/fluidsynth, VPX) |
 | **CMake** | Configure and build UZDoom |
@@ -76,29 +76,29 @@ Replace the clone URLs with your actual OASIS and quake-rerelease-qc repos.
 
 ---
 
-## 3. Build STARAPIClient (shared library for ODOOM & OQuake)
+## 3. Build OGEngineClient (shared library for ODOOM & OQuake)
 
-STARAPIClient is built and deployed automatically when you run the ODOOM or OQuake build scripts. To build or deploy it alone:
+OGEngineClient is built and deployed automatically when you run the ODOOM or OQuake build scripts. To build or deploy it alone:
 
 ```bash
 cd "/path/to/OASIS-master/OASIS Omniverse"
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh
 ```
 
-The script detects macOS and builds for **osx-arm64** (Apple Silicon) or **osx-x64** (Intel). It copies `libstar_api.dylib` (or `star_api.dylib`) and `star_api.h` into the ODOOM and OQuake folders.
+The script detects macOS and builds for **osx-arm64** (Apple Silicon) or **osx-x64** (Intel). It copies `libstar_api.dylib` (or `star_api.dylib`) and `ogengine.h` into the ODOOM and OQuake folders.
 
 Force a full rebuild:
 
 ```bash
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild
 ```
 
 Override runtime explicitly:
 
 ```bash
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -Runtime osx-arm64
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -Runtime osx-arm64
 # or
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -Runtime osx-x64
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -Runtime osx-x64
 ```
 
 ---
@@ -193,7 +193,7 @@ Or build and run:
 | **QUAKE_SRC** | `$HOME/Source/quake-rerelease-qc` | QuakeC source tree |
 | **VKQUAKE_SRC** | `$HOME/Source/vkQuake` | vkQuake source tree |
 | **OQUAKE_BASEDIR** | `$HOME/Library/Application Support/Steam/steamapps/common/Quake` | Quake game data (id1, paks) |
-| **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID** | — | OASIS auth (optional) |
+| **STAR_USERNAME** / **STAR_PASSWORD** or **OGENGINE_KEY** / **STAR_AVATAR_ID** | — | OASIS auth (optional) |
 
 ---
 
@@ -205,7 +205,7 @@ Or build and run:
 | `ODOOM/RUN_ODOOM.sh` | Run ODOOM (builds if missing). |
 | `OQuake/BUILD_OQUAKE.sh` | Build OQuake (Linux/macOS). Options: `run`, `batch`. |
 | `OQuake/RUN_OQUAKE.sh` | Run OQuake (builds if missing). |
-| `STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` | Build and deploy STAR API for current OS (Linux or macOS). Options: `-ForceBuild`, `-Runtime osx-arm64|osx-x64|linux-x64`. |
+| `OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh` | Build and deploy STAR API for current OS (Linux or macOS). Options: `-ForceBuild`, `-Runtime osx-arm64|osx-x64|linux-x64`. |
 
 ---
 
@@ -214,10 +214,10 @@ Or build and run:
 | Issue | What to do |
 |-------|------------|
 | **"UZDoom source not found"** | Set `UZDOOM_SRC` or clone UZDoom to `~/Source/UZDoom`. |
-| **"libstar_api.dylib missing"** | Run `./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` from OASIS Omniverse. |
+| **"libstar_api.dylib missing"** | Run `./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh` from OASIS Omniverse. |
 | **"pwsh not found"** | Install PowerShell Core (`brew install powershell`) or patch UZDoom/vkQuake manually. |
 | **UZDoom/vkQuake build fails** | Ensure CMake, Meson, Ninja, and Vulkan/MoltenVK are installed. On Apple Silicon, use the arm64 SDKs. |
 | **OQuake can't find game data** | Set `OQUAKE_BASEDIR` to your Quake install (e.g. Steam path above). |
 | **NativeAOT or .NET errors on M1/M2** | Use the latest .NET 8 SDK; the script should select **osx-arm64** automatically. |
 
-For more detail, see [STARAPIClient/README.md](../STARAPIClient/README.md) and the main [README.md](../README.md).
+For more detail, see [OGEngineClient/README.md](../OGEngineClient/README.md) and the main [README.md](../README.md).

@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-# Build STARAPIClient, ODOOM, OQuake, ODOOM3-BFG, ODOOM3, ODuke3D, ODuke3D-RT, and OWolf3D with no prompts.
+﻿#!/usr/bin/env bash
+# Build OGEngineClient, ODOOM, OQuake, ODOOM3-BFG, ODOOM3, ODuke3D, ODuke3D-RT, and OWolf3D with no prompts.
 # Linux/macOS equivalent of BUILD EVERYTHING.bat.
 # Use RUN_ODOOM.sh, RUN_OQUAKE.sh, RUN_ODOOM3BFG.sh, RUN_ODOOM3.sh, RUN_ODUKE3D.sh,
 # RUN_ODUKE3DRT.sh, or RUN_OWOLF3D.sh to launch after a successful build.
@@ -27,7 +27,7 @@ if [[ -f "$ROOT/run_oasis_header.sh" ]]; then
   bash "$ROOT/run_oasis_header.sh" BUILD
 fi
 
-echo "[1/8] Building and deploying STARAPIClient..."
+echo "[1/8] Building and deploying OGEngineClient..."
 bash "$ROOT/BUILD_AND_DEPLOY_STAR_CLIENT.sh"
 echo ""
 

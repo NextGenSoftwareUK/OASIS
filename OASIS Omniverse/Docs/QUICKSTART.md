@@ -1,4 +1,4 @@
-# Quick Start – ODOOM & OQuake STAR API
+﻿# Quick Start – ODOOM & OQuake STAR API
 
 Short path to building and running ODOOM and OQuake with the STAR API. For full setup (repos, tools, config), use **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)**.
 
@@ -8,7 +8,7 @@ Short path to building and running ODOOM and OQuake with the STAR API. For full 
 - **Engine for ODOOM** at e.g. `C:\Source\UZDoom` — **recommended:** clone **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** (not only vanilla UZDoom)
 - **Engine for OQuake** at e.g. `C:\Source\vkQuake` — **recommended:** clone **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** (not only vanilla vkQuake)
 - **quake-rerelease-qc** at e.g. `C:\Source\quake-rerelease-qc` (for OQuake)
-- Visual Studio with C++ tools, CMake, Python 3, Vulkan SDK (OQuake), .NET SDK (APIs/STARAPIClient)
+- Visual Studio with C++ tools, CMake, Python 3, Vulkan SDK (OQuake), .NET SDK (APIs/OGEngineClient)
 
 See [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) for install details.
 
@@ -24,7 +24,7 @@ $env:STAR_PASSWORD = "your_password"
 Or API key:
 
 ```powershell
-$env:STAR_API_KEY = "your_api_key"
+$env:OGENGINE_KEY = "your_api_key"
 $env:STAR_AVATAR_ID = "your_avatar_id"
 ```
 
@@ -67,7 +67,7 @@ Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). R
 
 - [ ] Repos cloned (OASIS-master, UZDoom, vkQuake, quake-rerelease-qc)
 - [ ] Tools installed (VS C++, CMake, Python 3, Vulkan SDK, .NET SDK)
-- [ ] Credentials set (`STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`)
+- [ ] Credentials set (`STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID`)
 - [ ] ODOOM built and run
 - [ ] OQuake built and run
 - [ ] `oasisstar.json` in each game’s `build\` folder (local or live URLs)

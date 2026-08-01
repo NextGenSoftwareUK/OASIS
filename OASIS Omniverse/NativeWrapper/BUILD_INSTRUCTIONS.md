@@ -1,6 +1,6 @@
-# Building the STAR API Native Wrapper — **DEPRECATED**
+﻿# Building the STAR API Native Wrapper — **DEPRECATED**
 
-**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. Build the STAR API client from `OASIS Omniverse/STARAPIClient` (see `OASIS Omniverse/STARAPIClient/README.md`). This file is kept for reference only.
+**Do not use NativeWrapper.** ODOOM and OQuake use **OGEngineClient** only. Build the STAR API client from `OASIS Omniverse/OGEngineClient` (see `OASIS Omniverse/OGEngineClient/README.md`). This file is kept for reference only.
 
 ## Windows Build Options
 
@@ -27,7 +27,7 @@
 
 5. **Or build manually**:
    ```cmd
-   cl /EHsc /LD /O2 /I. /D_WIN32 /D_WINHTTP /link winhttp.lib /OUT:star_api.dll star_api.cpp
+   cl /EHsc /LD /O2 /I. /D_WIN32 /D_WINHTTP /link winhttp.lib /OUT:ogengine.dll ogengine.cpp
    ```
 
 ### Option 2: MinGW
@@ -39,7 +39,7 @@
    cd C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper
    mkdir build
    cd build
-   g++ -shared -fPIC -O2 -I.. -o star_api.dll ..\star_api.cpp -lwinhttp
+   g++ -shared -fPIC -O2 -I.. -o ogengine.dll ..\ogengine.cpp -lwinhttp
    ```
 
 ### Option 3: Use the Build Script
@@ -53,8 +53,8 @@ build_windows.bat
 ## Output
 
 The build will create:
-- `build/star_api.dll` - Dynamic library
-- `build/star_api.lib` - Import library (for static linking)
+- `build/ogengine.dll` - Dynamic library
+- `build/ogengine.lib` - Import library (for static linking)
 
 ## Troubleshooting
 
@@ -73,7 +73,7 @@ The build will create:
 ## Next Steps
 
 After building:
-1. The library will be at: `build/star_api.dll`
+1. The library will be at: `build/ogengine.dll`
 2. Copy to DOOM/Quake build directories if needed
 3. Or update Makefile/library paths to point to this location
 
