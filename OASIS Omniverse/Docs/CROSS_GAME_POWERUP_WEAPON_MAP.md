@@ -1,10 +1,10 @@
-# Cross-game powerup & weapon map (ODOOM ↔ OQuake)
+﻿# Cross-game powerup & weapon map (ODOOM ↔ OQuake)
 
 This document defines how **powerups** (first) and later **weapons** should align across **ODOOM** and **OQuake** for STAR inventory, beam-in, and “use in other game” behaviour.
 
 ## Why this exists
 
-- Today each game sends **`star_api_queue_add_item(name, …, itemType, …)`** with **game-specific display names** (see ODOOM `ToStarItemName()` in `uzdoom_star_integration.cpp` and OQuake names in `oquake_star_integration.c`, e.g. `"Megahealth"`, `"Soul Sphere"`).
+- Today each game sends **`ogengine_queue_add_item(name, …, itemType, …)`** with **game-specific display names** (see ODOOM `ToStarItemName()` in `uzdoom_ogengine_integration.cpp` and OQuake names in `oquake_ogengine_integration.c`, e.g. `"Megahealth"`, `"Soul Sphere"`).
 - Cross-game features (shared inventory row, unlock in the other title, consistent UI tabs) need a **single canonical identity** per logical powerup, plus rules for **how** each engine applies that powerup when consumed or spawned.
 
 **Recommended approach**
@@ -84,14 +84,14 @@ Defaults match the current product intent: **Nails ↔ Bullets** (chaingun ↔ n
 3. **OQuake** — Replace or alias `"Megahealth"` → `OASIS.MegaHealth` (etc.) in `OQ_AddInventoryEvent` / stats paths.
 4. **Apply path** — When inventory is **used** or **beam-in** grants an item, resolve canonical ID → **native effect** in the **receiving** game (new functions parallel to existing key/door unlock logic).
 5. **UI** — Inventory overlay can show **friendly label** (Doom vs Quake) while sorting/filtering on canonical id if we add a display map.
-6. **Tests** — STARAPIClient harness: add_item with `OASIS.QuadDamage`, fetch inventory, second game consumes → **one** row stable across both.
+6. **Tests** — OGEngineClient harness: add_item with `OASIS.QuadDamage`, fetch inventory, second game consumes → **one** row stable across both.
 
 ---
 
 ## References
 
-- OQuake pickup names: `OQuake/Code/oquake_star_integration.c` (`IT_SUPERHEALTH`, `IT_QUAD`, …).
-- ODOOM name mapping: `ODOOM/uzdoom_star_integration.cpp` (`ToStarItemName`, `GetHealthOrArmorAmount`).
+- OQuake pickup names: `OQuake/Code/oquake_ogengine_integration.c` (`IT_SUPERHEALTH`, `IT_QUAD`, …).
+- ODOOM name mapping: `ODOOM/uzdoom_ogengine_integration.cpp` (`ToStarItemName`, `GetHealthOrArmorAmount`).
 - Inventory architecture: [ARCHITECTURE.md](ARCHITECTURE.md), [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md), OQuake [INVENTORY_FLOW.md](../OQuake/Docs/INVENTORY_FLOW.md).
 
 ---

@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Example: Cross-Game Keycard Integration
  * 
  * This example demonstrates how to implement cross-game keycard sharing
  * between Doom and Quake using the STAR API.
  */
 
-#include "../NativeWrapper/star_api.h"
+#include "../NativeWrapper/ogengine.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,7 +33,7 @@ void Doom_Example_KeycardPickup(int keycard_type) {
     };
     
     // Add keycard to STAR API inventory
-    star_api_result_t result = star_api_add_item(
+    ogengine_result_t result = ogengine_add_item(
         keycard_name,
         descriptions[keycard_type],
         "Doom",
@@ -41,10 +41,10 @@ void Doom_Example_KeycardPickup(int keycard_type) {
         NULL, 1, 1
     );
     
-    if (result == STAR_API_SUCCESS) {
+    if (result == OGENGINE_SUCCESS) {
         printf("Doom: Added %s to cross-game inventory!\n", keycard_name);
     } else {
-        printf("Doom: Failed to add keycard: %s\n", star_api_get_last_error());
+        printf("Doom: Failed to add keycard: %s\n", ogengine_get_last_error());
     }
 }
 
@@ -59,26 +59,26 @@ bool Quake_Example_CheckDoor(const char* door_name, const char* required_key) {
     }
     
     // Check cross-game inventory via STAR API
-    if (star_api_has_item(required_key)) {
+    if (ogengine_has_item(required_key)) {
         printf("Quake: Door '%s' opened using cross-game key: %s\n", door_name, required_key);
         
         // Use the item
-        star_api_use_item(required_key, door_name);
+        ogengine_use_item(required_key, door_name);
         return true;
     }
     
     // Also check for Doom keycard equivalents
     // Map Quake keys to Doom keycards
     if (strcmp(required_key, "silver_key") == 0) {
-        if (star_api_has_item("red_keycard")) {
+        if (ogengine_has_item("red_keycard")) {
             printf("Quake: Using Doom red keycard to open door!\n");
-            star_api_use_item("red_keycard", door_name);
+            ogengine_use_item("red_keycard", door_name);
             return true;
         }
     } else if (strcmp(required_key, "gold_key") == 0) {
-        if (star_api_has_item("blue_keycard")) {
+        if (ogengine_has_item("blue_keycard")) {
             printf("Quake: Using Doom blue keycard to open door!\n");
-            star_api_use_item("blue_keycard", door_name);
+            ogengine_use_item("blue_keycard", door_name);
             return true;
         }
     }
@@ -89,21 +89,21 @@ bool Quake_Example_CheckDoor(const char* door_name, const char* required_key) {
 // Example: Initialize and use STAR API
 int main(void) {
     // Initialize STAR API
-    star_api_config_t config = {
+    ogengine_config_t config = {
         .base_url = "https://star-api.oasisplatform.world/api",
-        .api_key = getenv("STAR_API_KEY"),
+        .api_key = getenv("OGENGINE_KEY"),
         .avatar_id = getenv("STAR_AVATAR_ID"),
         .timeout_seconds = 10
     };
     
     if (!config.api_key || !config.avatar_id) {
-        printf("Error: STAR_API_KEY and STAR_AVATAR_ID must be set\n");
+        printf("Error: OGENGINE_KEY and STAR_AVATAR_ID must be set\n");
         return 1;
     }
     
-    star_api_result_t result = star_api_init(&config);
-    if (result != STAR_API_SUCCESS) {
-        printf("Failed to initialize STAR API: %s\n", star_api_get_last_error());
+    ogengine_result_t result = ogengine_init(&config);
+    if (result != OGENGINE_SUCCESS) {
+        printf("Failed to initialize STAR API: %s\n", ogengine_get_last_error());
         return 1;
     }
     
@@ -124,17 +124,17 @@ int main(void) {
     // Check if player has any keycards
     printf("\n=== Checking inventory ===\n");
     star_item_list_t* inventory = NULL;
-    result = star_api_get_inventory(&inventory);
-    if (result == STAR_API_SUCCESS && inventory) {
+    result = ogengine_get_inventory(&inventory);
+    if (result == OGENGINE_SUCCESS && inventory) {
         printf("Player has %zu items in inventory:\n", inventory->count);
         for (size_t i = 0; i < inventory->count; i++) {
             printf("  - %s: %s\n", inventory->items[i].name, inventory->items[i].description);
         }
-        star_api_free_item_list(inventory);
+        ogengine_free_item_list(inventory);
     }
     
     // Cleanup
-    star_api_cleanup();
+    ogengine_cleanup();
     printf("\nSTAR API cleaned up.\n");
     
     return 0;

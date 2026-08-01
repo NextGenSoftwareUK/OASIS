@@ -1,4 +1,4 @@
-# OASIS STAR in OQuake & ODOOM — user guide
+﻿# OASIS STAR in OQuake & ODOOM — user guide
 
 This guide is for **players and testers** using **OQuake** (Quake + vkQuake) and **ODOOM** (Doom + UZDoom) with **OASIS STAR** (inventory, quests, NFT hooks, beam-in). Developers: see **`STAR_Quest_System_Developer_Guide.md`** for APIs and integration.
 
@@ -33,8 +33,8 @@ This guide is for **players and testers** using **OQuake** (Quake + vkQuake) and
 
 ### Tips
 
-- If login fails, check **`star_api_url`** and **`oasis_api_url`** (WEB4 is required for SSO and token refresh).
-- **`star debug on`** — Extra logging (and `star_api.log` where enabled) for support.
+- If login fails, check **`ogengine_url`** and **`oasis_api_url`** (WEB4 is required for SSO and token refresh).
+- **`star debug on`** — Extra logging (and `ogengine.log` where enabled) for support.
 
 ---
 
@@ -101,7 +101,7 @@ Exact labels may vary slightly by build; if in doubt, open **`star`** with no ar
 ## 5. Face / XP / HUD
 
 - **Beam-in face** (anorak): toggled with **`star face on|off|status`** and related CVars; OQuake uses `face_anorak.png` staged into game **`id1/gfx/`** (see OQuake README / `RUN_OQUAKE.sh`).
-- **XP** may show on the HUD after profile load; **`star_api_refresh_avatar_profile`** runs as part of beam-in flow.
+- **XP** may show on the HUD after profile load; **`ogengine_refresh_avatar_profile`** runs as part of beam-in flow.
 
 ---
 
@@ -140,7 +140,7 @@ Both games read this JSON from their **build** folder when present (paths: `OASI
 
 | Key | Games | Meaning |
 |-----|--------|---------|
-| **`star_api_url`** | Both | WEB5 STAR API base URL (quests, STAR inventory, progress). |
+| **`ogengine_url`** | Both | WEB5 STAR API base URL (quests, STAR inventory, progress). |
 | **`oasis_api_url`** | Both | WEB4 OASIS API base URL (login, avatar, token refresh). |
 | **`star_transport`** | Both | How the native client talks to STAR (e.g. `remote`). |
 | **`oasis_dna_path`** | Both | Optional path hint for OASIS DNA / local tooling (see developer transport docs if you use it). |

@@ -1,13 +1,13 @@
-# Quick Visual Studio Build Guide (legacy)
+﻿# Quick Visual Studio Build Guide (legacy)
 
-**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. This guide is for reference only.
+**Do not use NativeWrapper.** ODOOM and OQuake use **OGEngineClient** only. This guide is for reference only.
 
 ## 🚀 Fastest Method (3 Steps)
 
 ### 1. Open Project
 - **Visual Studio** → **File** → **Open** → **Project**
-- Navigate to: `C:\Source\OASIS-master\OASIS Omniverse\STARAPIClient\` (use STARAPIClient; NativeWrapper is deprecated)
-- Open: **star_api.vcxproj**
+- Navigate to: `C:\Source\OASIS-master\OASIS Omniverse\OGEngineClient\` (use OGEngineClient; NativeWrapper is deprecated)
+- Open: **ogengine.vcxproj**
 
 ### 2. Set Configuration
 - **Toolbar**: Select **Release** and **x64**
@@ -17,7 +17,7 @@
 
 ## ✅ Done!
 
-Check `build\Release\star_api.dll` exists.
+Check `build\Release\ogengine.dll` exists.
 
 ## 🎯 That's It!
 

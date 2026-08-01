@@ -1,13 +1,13 @@
-# ODOOM quest list + STAR (how it is meant to work)
+﻿# ODOOM quest list + STAR (how it is meant to work)
 
-This describes the **current, working** integration between the STAR native client (`star_api_get_top_level_quests_string`), C++ (`ODOOM_RefreshQuestCVars`), and ZScript (`odoom_inventory_popup.zs`). **Changing any of the invariants below without updating the rest of the pipeline is how scrolling and selection break.**
+This describes the **current, working** integration between the STAR native client (`ogengine_get_top_level_quests_string`), C++ (`ODOOM_RefreshQuestCVars`), and ZScript (`odoom_inventory_popup.zs`). **Changing any of the invariants below without updating the rest of the pipeline is how scrolling and selection break.**
 
 ## Files
 
 | Layer | File |
 |--------|------|
-| Serialized quest payload (top-level only) | `OASIS Omniverse/STARAPIClient/StarApiClient.cs` — `TryGetTopLevelQuestsCache` / `star_api_get_top_level_quests_string` |
-| Push payload into engine CVars + tracker scan | `OASIS Omniverse/ODOOM/uzdoom_star_integration.cpp` — `ODOOM_RefreshQuestCVars` |
+| Serialized quest payload (top-level only) | `OASIS Omniverse/OGEngineClient/StarApiClient.cs` — `TryGetTopLevelQuestsCache` / `ogengine_get_top_level_quests_string` |
+| Push payload into engine CVars + tracker scan | `OASIS Omniverse/ODOOM/uzdoom_ogengine_integration.cpp` — `ODOOM_RefreshQuestCVars` |
 | UI, input, drawing | `OASIS Omniverse/ODOOM/odoom_inventory_popup.zs` |
 | CVar declarations | `OASIS Omniverse/ODOOM/odoom_cvarinfo.txt` |
 
@@ -16,12 +16,12 @@ This describes the **current, working** integration between the STAR native clie
 - One line per record, newline-terminated.
 - **Main list rows** (what the left column shows) are lines starting with **`Q\t`**. Fields include id, name, description, status, percent (ZScript expects at least 5–6 tab-separated fields; see popup code).
 - Embedded objectives use **`O\t`** lines with **exactly six tab-separated fields after `O`:** `id`, `Title`, `Description`, `ProgressSummary`, `done` (`0` / `1`). Blocks may be separated with **`---`**. (STAR `SerializeQuestsForGame` is the reference.)
-- The game uses **`star_api_get_top_level_quests_string`** so the **left list is parent quests only**; sub-quests are loaded for the detail panel via other `star_api_get_quest_*` calls from C++ (`ODOOM_RefreshQuestDetailCVars`).
+- The game uses **`ogengine_get_top_level_quests_string`** so the **left list is parent quests only**; sub-quests are loaded for the detail panel via other `ogengine_get_quest_*` calls from C++ (`ODOOM_RefreshQuestDetailCVars`).
 
 ## C++: `ODOOM_RefreshQuestCVars` (critical behavior)
 
 1. **Native buffer**  
-   Calls `star_api_get_top_level_quests_string` into a static buffer capped by **`ODOOM_QUEST_LIST_MAX_BYTES`** (currently 16 384). The API copies at most `buf_size - 1` bytes.
+   Calls `ogengine_get_top_level_quests_string` into a static buffer capped by **`ODOOM_QUEST_LIST_MAX_BYTES`** (currently 16 384). The API copies at most `buf_size - 1` bytes.
 
 2. **`odoom_quest_list` (string CVar)**  
    Engine string CVars have a **small fixed limit**. The code assigns only a prefix capped by **`ODOOM_QUEST_CVAR_MAX_BYTES`** (currently 4 096).  
@@ -33,7 +33,7 @@ This describes the **current, working** integration between the STAR native clie
    That keeps “how many quests are in the list string” consistent with “what we actually pushed to the CVar” for any code or debugging that compares them.
 
 4. **Tracker**  
-   Title / first incomplete objective for the tracked quest id are derived by scanning the **full** `questBuf` up to `n` (not just the CVar-truncated prefix), then other tracker lines may use `star_api_get_quest_tracker_objectives_string` / `star_api_get_quest_tracker_active_objective_index`.
+   Title / first incomplete objective for the tracked quest id are derived by scanning the **full** `questBuf` up to `n` (not just the CVar-truncated prefix), then other tracker lines may use `ogengine_get_quest_tracker_objectives_string` / `ogengine_get_quest_tracker_active_objective_index`.
 
 ## ZScript: main quest popup
 
@@ -45,7 +45,7 @@ This describes the **current, working** integration between the STAR native clie
 
 ## When C++ refreshes quest CVars
 
-Roughly: when the quest popup opens (immediate push + optional background refresh), every **60 frames** while the popup stays open, when a pending quest refresh flag is set, after **K** handling starts a quest, and in other tracker/profile hooks in `uzdoom_star_integration.cpp`. **Do not move refresh to a random tick phase** without checking both inventory capture order and ZScript expectations.
+Roughly: when the quest popup opens (immediate push + optional background refresh), every **60 frames** while the popup stays open, when a pending quest refresh flag is set, after **K** handling starts a quest, and in other tracker/profile hooks in `uzdoom_ogengine_integration.cpp`. **Do not move refresh to a random tick phase** without checking both inventory capture order and ZScript expectations.
 
 ## Invariants — do not break these
 

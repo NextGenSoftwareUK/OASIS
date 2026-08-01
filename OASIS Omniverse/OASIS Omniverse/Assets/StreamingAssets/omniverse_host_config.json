@@ -8,6 +8,58 @@
   "apiKey": "",
   "games": [
     {
+      "gameId": "odoom3-bfg",
+      "displayName": "ODOOM3-BFG",
+      "executableRelativePath": "../../ODOOM3-BFG/build/ODOOM3-BFG.exe",
+      "workingDirectoryRelativePath": "../../ODOOM3-BFG/build",
+      "defaultLevelArgument": "+map game/mars_city1",
+      "baseArguments": "+set r_fullscreen 0",
+      "portalX": -20.0,
+      "portalZ": 12.0,
+      "portalColorR": 1.0,
+      "portalColorG": 0.05,
+      "portalColorB": 0.05
+    },
+    {
+      "gameId": "odoom3",
+      "displayName": "ODOOM3",
+      "executableRelativePath": "../../ODOOM3/build/ODOOM3.exe",
+      "workingDirectoryRelativePath": "../../ODOOM3/build",
+      "defaultLevelArgument": "+map game/mars_city1",
+      "baseArguments": "+set vid_fullscreen 0",
+      "portalX": -16.0,
+      "portalZ": 12.0,
+      "portalColorR": 1.0,
+      "portalColorG": 0.2,
+      "portalColorB": 0.0
+    },
+    {
+      "gameId": "oduke3d",
+      "displayName": "ODUKE3D",
+      "executableRelativePath": "../../ODuke3D/build/ODuke3D.exe",
+      "workingDirectoryRelativePath": "../../ODuke3D/build",
+      "defaultLevelArgument": "+map e1l1",
+      "baseArguments": "-windowed",
+      "portalX": -12.0,
+      "portalZ": 12.0,
+      "portalColorR": 1.0,
+      "portalColorG": 0.85,
+      "portalColorB": 0.0
+    },
+    {
+      "gameId": "oduke3d-rt",
+      "displayName": "ODUKE3D-RT",
+      "executableRelativePath": "../../ODuke3D-RT/build/ODuke3D-RT.exe",
+      "workingDirectoryRelativePath": "../../ODuke3D-RT/build",
+      "defaultLevelArgument": "+map e1l1",
+      "baseArguments": "-windowed",
+      "portalX": -8.0,
+      "portalZ": 12.0,
+      "portalColorR": 1.0,
+      "portalColorG": 0.7,
+      "portalColorB": 0.0
+    },
+    {
       "gameId": "odoom",
       "displayName": "ODOOM",
       "executableRelativePath": "../../ODOOM/build/ODOOM.exe",
@@ -32,6 +84,58 @@
       "portalColorR": 1.0,
       "portalColorG": 0.5,
       "portalColorB": 0.2
+    },
+    {
+      "gameId": "owolf3d",
+      "displayName": "OWOLF3D",
+      "executableRelativePath": "../../OWolf3D/build/OWolf3D.exe",
+      "workingDirectoryRelativePath": "../../OWolf3D/build",
+      "defaultLevelArgument": "+map e1l1",
+      "baseArguments": "-window",
+      "portalX": 8.0,
+      "portalZ": 12.0,
+      "portalColorR": 0.9,
+      "portalColorG": 0.65,
+      "portalColorB": 0.2
+    },
+    {
+      "gameId": "oquake2",
+      "displayName": "OQUAKE2",
+      "executableRelativePath": "../../OQuake2/build/OQuake2.exe",
+      "workingDirectoryRelativePath": "../../OQuake2/build",
+      "defaultLevelArgument": "+map base1",
+      "baseArguments": "-window",
+      "portalX": 12.0,
+      "portalZ": 12.0,
+      "portalColorR": 0.5,
+      "portalColorG": 0.1,
+      "portalColorB": 1.0
+    },
+    {
+      "gameId": "oquake2-rtx",
+      "displayName": "OQUAKE2-RTX",
+      "executableRelativePath": "../../OQuake2-RTX/build/OQuake2-RTX.exe",
+      "workingDirectoryRelativePath": "../../OQuake2-RTX/build",
+      "defaultLevelArgument": "+map base1",
+      "baseArguments": "-window",
+      "portalX": 16.0,
+      "portalZ": 12.0,
+      "portalColorR": 0.7,
+      "portalColorG": 0.2,
+      "portalColorB": 1.0
+    },
+    {
+      "gameId": "oquake3",
+      "displayName": "OQUAKE3",
+      "executableRelativePath": "../../OQuake3/build/OQuake3.exe",
+      "workingDirectoryRelativePath": "../../OQuake3/build",
+      "defaultLevelArgument": "+map q3dm1",
+      "baseArguments": "+set r_fullscreen 0",
+      "portalX": 20.0,
+      "portalZ": 12.0,
+      "portalColorR": 0.0,
+      "portalColorG": 0.9,
+      "portalColorB": 0.9
     }
   ]
 }

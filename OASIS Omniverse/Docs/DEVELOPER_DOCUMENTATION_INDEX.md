@@ -1,4 +1,4 @@
-# OASIS & STARNET Developer Documentation Index
+﻿# OASIS & STARNET Developer Documentation Index
 
 ## 📋 **Complete Developer Documentation Guide**
 
@@ -7,8 +7,8 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ## 🏗️ **Architecture Overview**
 
 ### **Omniverse games (OQuake, ODOOM) + STAR**
-- **[OGEngine overview (WEB4 + WEB5 + STARAPIClient)](./OGEngine_Overview.md)** — Omniverse Game Engine: APIs, diagrams, GeoHotSpots, cross-app quest handoff roadmap
-- **[STAR Quest System — Developer Guide](./STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, STARAPIClient, `star_api_*`, extending games
+- **[OGEngine overview (WEB4 + WEB5 + OGEngineClient)](./OGEngine_Overview.md)** — Omniverse Game Engine: APIs, diagrams, GeoHotSpots, cross-app quest handoff roadmap
+- **[STAR Quest System — Developer Guide](./STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, OGEngineClient, `ogengine_*`, extending games
 - **[STAR Games — User Guide](./STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
 - **[ODOOM quest list + STAR](./ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
 
@@ -145,8 +145,8 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS API Reference](../../../Docs/Devs/OASIS_API_Reference.md)** - Core API documentation
 
 ### **WEB5 STAR API**
-- **[WEB5 STAR API Documentation](../../../Docs/Devs/API%20Documentation/WEB5_STAR_API_Documentation.md)** - Complete STAR API reference
-- **[STAR API Complete Endpoints](../../../Docs/Devs/API%20Documentation/STAR_API_Complete_Endpoints_Reference.md)** - All STAR endpoints
+- **[WEB5 STAR API Documentation](../../../Docs/Devs/API%20Documentation/WEB5_OGENGINE_Documentation.md)** - Complete STAR API reference
+- **[STAR API Complete Endpoints](../../../Docs/Devs/API%20Documentation/OGENGINE_Complete_Endpoints_Reference.md)** - All STAR endpoints
 - **[STAR Metadata System](../../../Docs/Devs/API%20Documentation/STAR_Metadata_System_Documentation.md)** - Metadata management
 - **[STAR OAPP Builder](../../../Docs/Devs/API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
 

@@ -178,9 +178,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{5F3E735B-4A99-340E-BC87-E731423AA272}</Project>
       <Name>star_api</Name>
     </ProjectReference>
-    <ProjectReference Include="C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\star_api_static.vcxproj">
+    <ProjectReference Include="C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\ogengine_static.vcxproj">
       <Project>{111B29C8-EC0A-3504-9FB5-27947CFF977E}</Project>
-      <Name>star_api_static</Name>
+      <Name>ogengine_static</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

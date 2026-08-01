@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Trimmer descriptor: preserve ogengine assembly so every UnmanagedCallersOnly export stays in the DLL. -->
+<!-- Not currently used: OQuake uses C++ runtime forwarders (OQUAKE_OGENGINE_SESSION_IMPL) for session/JWT APIs. -->
+<!-- To try this approach again: in OGEngineClient.csproj uncomment IlcTrimMode=copy and the TrimmerRootDescriptor/TrimmerRootAssembly ItemGroup. -->
+<linker>
+  <assembly fullname="ogengine" preserve="all">
+    <!-- Explicitly preserve the type that holds all native entry points so trimmer cannot remove any export. -->
+    <type fullname="NextGenSoftware.OASIS.STARAPI.Client.OGEngineExports" preserve="all" />
+    <type fullname="NextGenSoftware.OASIS.STARAPI.Client.StarSyncExports" preserve="all" />
+  </assembly>
+</linker>

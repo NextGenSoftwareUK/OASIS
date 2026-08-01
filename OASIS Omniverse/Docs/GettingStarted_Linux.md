@@ -1,6 +1,6 @@
-# Getting Started — Linux
+﻿# Getting Started — Linux
 
-This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **Linux**. ODOOM and OQuake also support [Windows](GettingStarted_Windows.md) and [macOS](GettingStarted_Mac.md).
+This guide walks you through building and running **ODOOM**, **OQuake**, and **OGEngineClient** on **Linux**. ODOOM and OQuake also support [Windows](GettingStarted_Windows.md) and [macOS](GettingStarted_Mac.md).
 
 ---
 
@@ -8,7 +8,7 @@ This guide walks you through building and running **ODOOM**, **OQuake**, and **S
 
 Install the following (Debian/Ubuntu example; adjust for your distro).
 
-**One-time install (ODOOM + OQuake + STARAPIClient NativeAOT, all deps):**
+**One-time install (ODOOM + OQuake + OGEngineClient NativeAOT, all deps):**
 
 ```bash
 sudo apt update
@@ -17,7 +17,7 @@ sudo apt install -y build-essential binutils clang lld pkg-config cmake git dotn
   meson ninja-build libvulkan-dev vulkan-tools python3 powershell
 ```
 
-If the STARAPIClient NativeAOT build fails to find the linker, set these before building (e.g. in `~/.bashrc`):
+If the OGEngineClient NativeAOT build fails to find the linker, set these before building (e.g. in `~/.bashrc`):
 
 ```bash
 export DOTNET_CLANG_PATH=$(which clang)
@@ -27,7 +27,7 @@ export DOTNET_LINKER_PATH=$(which ld.lld)
 **Or install in groups:**
 
 ```bash
-# Base: C/C++ toolchain, linker, and .NET (required for STARAPIClient NativeAOT and UZDoom)
+# Base: C/C++ toolchain, linker, and .NET (required for OGEngineClient NativeAOT and UZDoom)
 sudo apt update
 sudo apt install -y build-essential binutils clang lld pkg-config cmake git dotnet-sdk-8.0
 
@@ -46,7 +46,7 @@ sudo apt install -y python3
 
 | Tool | Purpose |
 |------|----------|
-| **.NET 8 SDK** | Build STARAPIClient (NativeAOT) |
+| **.NET 8 SDK** | Build OGEngineClient (NativeAOT) |
 | **build-essential** | gcc, g++, make; base C/C++ build |
 | **binutils** | ld, as; required for NativeAOT linking |
 | **clang, lld** | NativeAOT compiler/linker (use if gcc/ld fails); `ld.lld` from lld |
@@ -84,22 +84,22 @@ Replace the clone URLs with your actual OASIS and quake-rerelease-qc repos.
 
 ---
 
-## 3. Build STARAPIClient (shared library for ODOOM & OQuake)
+## 3. Build OGEngineClient (shared library for ODOOM & OQuake)
 
-STARAPIClient is built and deployed automatically when you run the ODOOM or OQuake build scripts. To build or deploy it alone:
+OGEngineClient is built and deployed automatically when you run the ODOOM or OQuake build scripts. To build or deploy it alone:
 
 ```bash
 cd "/path/to/OASIS-master/OASIS Omniverse"
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh
 ```
 
 Or the Linux-specific wrapper:
 
 ```bash
-./STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh
+./OGEngineClient/Scripts/build-and-deploy-star-api-linux.sh
 ```
 
-This publishes for **linux-x64** and copies `libstar_api.so` (or `star_api.so`) and `star_api.h` into the ODOOM and OQuake folders.
+This publishes for **linux-x64** and copies `libstar_api.so` (or `star_api.so`) and `ogengine.h` into the ODOOM and OQuake folders.
 
 If the build fails with "Platform linker ('clang' or 'gcc') not found" or linker errors, install `build-essential`, `binutils`, `clang`, and `lld`, then set:
 
@@ -113,7 +113,7 @@ and run the build again (or add the exports to `~/.bashrc`).
 Force a full rebuild:
 
 ```bash
-./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild
+./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild
 ```
 
 ---
@@ -214,7 +214,7 @@ Or build and run:
 ./BUILD_OQUAKE.sh run
 ```
 
-**Cross-game keys (optional):** set `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID` for OASIS auth.
+**Cross-game keys (optional):** set `STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID` for OASIS auth.
 
 ---
 
@@ -226,7 +226,7 @@ Or build and run:
 | **QUAKE_SRC** | `$HOME/Source/quake-rerelease-qc` | QuakeC source tree |
 | **VKQUAKE_SRC** | `$HOME/Source/vkQuake` | vkQuake source tree |
 | **OQUAKE_BASEDIR** | `$HOME/.steam/steam/steamapps/common/Quake` | Quake game data (id1, paks) |
-| **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID** | — | OASIS auth (optional) |
+| **STAR_USERNAME** / **STAR_PASSWORD** or **OGENGINE_KEY** / **STAR_AVATAR_ID** | — | OASIS auth (optional) |
 
 ---
 
@@ -238,7 +238,7 @@ Or build and run:
 | `ODOOM/RUN_ODOOM.sh` | Run ODOOM (builds if missing). |
 | `OQuake/BUILD_OQUAKE.sh` | Build OQuake. Options: `run`, `batch`. |
 | `OQuake/RUN_OQUAKE.sh` | Run OQuake (builds if missing). |
-| `STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` | Build and deploy STAR API for Linux (and macOS). Option: `-ForceBuild`. |
+| `OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh` | Build and deploy STAR API for Linux (and macOS). Option: `-ForceBuild`. |
 
 ---
 
@@ -247,7 +247,7 @@ Or build and run:
 | Issue | What to do |
 |-------|------------|
 | **"UZDoom source not found"** | Set `UZDOOM_SRC` or clone UZDoom to `~/Source/UZDoom`. |
-| **"libstar_api.so missing"** | Run `./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` from OASIS Omniverse. |
+| **"libstar_api.so missing"** | Run `./OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh` from OASIS Omniverse. |
 | **"pwsh not found"** | Install PowerShell Core (`sudo apt install powershell`) or patch UZDoom/vkQuake manually. |
 | **Missing OQ sprites** | Build once on Windows with sprite regen, or copy sprites into UZDoom `wadsrc/static/sprites/`; see ODOOM Windows build. |
 | **face_anorak / OASFACE.png failed** (pwsh "Windows.Win32.PInvoke" on Linux) | Normal on Linux; the build uses a Python fallback. Install Pillow: `sudo apt install python3-pil` (Debian/Ubuntu). If you see "externally-managed-environment", use a venv: `python3 -m venv .venv && .venv/bin/pip install Pillow`, or use `python3-pil`. Then re-run `./BUILD_ODOOM.sh`. If no Pillow, the build continues and uses existing `textures/OASFACE.png` if present. |
@@ -259,4 +259,4 @@ Or build and run:
 | **OQuake can't find game data** | Set `OQUAKE_BASEDIR` to the directory that contains the `id1` folder and pak files. |
 | **"face_anorak.png ... Cannot find drive 'C'"** | Set `OQUAKE_BASEDIR` to your Linux Quake game path (e.g. `$HOME/.steam/steam/steamapps/common/Quake`) so the apply script can copy the anorak face into `id1/gfx/`. |
 
-For more detail, see [LINUX_BUILD.md](LINUX_BUILD.md) and [STARAPIClient/README.md](../STARAPIClient/README.md).
+For more detail, see [LINUX_BUILD.md](LINUX_BUILD.md) and [OGEngineClient/README.md](../OGEngineClient/README.md).

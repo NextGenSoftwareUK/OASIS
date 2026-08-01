@@ -1,4 +1,4 @@
-# OGEngine — Omniverse Game Engine (users & developers)
+﻿# OGEngine — Omniverse Game Engine (users & developers)
 
 This document describes the **OGEngine**: the combined stack that powers cross-game quests, geo experiences, and STAR integrations. It is aimed at **end users** (what you can do) and **developers** (how the pieces connect and what to implement next).
 
@@ -11,8 +11,8 @@ This document describes the **OGEngine**: the combined stack that powers cross-g
 | Layer | Role |
 |--------|------|
 | **WEB4 — OASIS API** | Identity, avatar profile, persistence helpers (e.g. `ActiveQuestId` / `ActiveObjectiveId`), subscriptions, keys, data aggregation. Base URL: `oasis_api_url` in client config. |
-| **WEB5 — STAR API** | Quest definitions, objectives, progress, GeoHotSpots, missions, STARNET holons. Source of truth for gameplay state the games sync to. Base URL: `star_api_url` / `Web5StarApiBaseUrl`. |
-| **STARAPIClient** | Native (or managed) client that talks to WEB5, exposes **`star_api_*`** to games (OQuake, ODOOM, Our World, etc.), and merges quest progress locally. |
+| **WEB5 — STAR API** | Quest definitions, objectives, progress, GeoHotSpots, missions, STARNET holons. Source of truth for gameplay state the games sync to. Base URL: `ogengine_url` / `Web5StarApiBaseUrl`. |
+| **OGEngineClient** | Native (or managed) client that talks to WEB5, exposes **`ogengine_*`** to games (OQuake, ODOOM, Our World, etc.), and merges quest progress locally. |
 
 Together, these three let **quests span games, apps, and the real world** while one avatar profile and one quest graph stay coherent.
 
@@ -27,9 +27,9 @@ flowchart TB
         G[GeoHotSpots]
         M[Missions / STARNET holons]
     end
-    subgraph client [STARAPIClient]
+    subgraph client [OGEngineClient]
         C[HTTP + cache]
-        ABI[star_api_* exports]
+        ABI[ogengine_* exports]
     end
     subgraph surfaces [Clients & surfaces]
         CLI[STAR CLI]
@@ -71,11 +71,11 @@ flowchart TB
 - **GeoHotSpots**: `GET/POST/PUT/DELETE .../api/geohotspots` (see `GeoHotSpotsController`).
 - Holon subtype for GeoHotSpots is stored as **`GeoHotSpotType`** in STARNET DNA (same enum as `NextGenSoftware.OASIS.API.Core.Enums.GeoHotSpotType`).
 
-### 3.3 STARAPIClient
+### 3.3 OGEngineClient
 
-- Implements `star_api_*` for native games; **no HTTP from the game DLL** — only the client.
+- Implements `ogengine_*` for native games; **no HTTP from the game DLL** — only the client.
 - Quest list cache, progress merge, optional full refresh after POST.
-- See `OASIS Omniverse/STARAPIClient/README.md` and `STAR_Quest_System_Developer_Guide.md`.
+- See `OASIS Omniverse/OGEngineClient/README.md` and `STAR_Quest_System_Developer_Guide.md`.
 
 ---
 
@@ -147,10 +147,10 @@ The OGEngine will connect:
 ```mermaid
 sequenceDiagram
     participant Game as Game (ODOOM / etc.)
-    participant Client as STARAPIClient
+    participant Client as OGEngineClient
     participant API as WEB5 STAR API
     participant Geo as GeoHotSpot holon
-    Game->>Client: star_api_* progress / UI
+    Game->>Client: ogengine_* progress / UI
     Client->>API: GET /api/quests/all-for-avatar/game
     API-->>Client: GameQuestSummaryLite + objectives
     Note over Client,Geo: Objective has linkedGeoHotSpotId

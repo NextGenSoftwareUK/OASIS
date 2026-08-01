@@ -1,4 +1,4 @@
-# ODOOM vs UZDoom — why the timer, toggles, and quests “go in circles”
+﻿# ODOOM vs UZDoom — why the timer, toggles, and quests “go in circles”
 
 ## The core issue: two trees, one is canonical
 
@@ -10,47 +10,47 @@ Those are **not the same folder**. The build script **copies** from ODOOM into U
 | Canonical (edit here) | Copied to (what CMake compiles) |
 |------------------------|----------------------------------|
 | `ODOOM/odoom_inventory_popup.zs` | `$UZDOOM_SRC/wadsrc/static/zscript/ui/statusbar/odoom_inventory_popup.zs` |
-| `ODOOM/uzdoom_star_integration.cpp` | `$UZDOOM_SRC/src/uzdoom_star_integration.cpp` |
+| `ODOOM/uzdoom_ogengine_integration.cpp` | `$UZDOOM_SRC/src/uzdoom_ogengine_integration.cpp` |
 | (+ other files listed in `BUILD_ODOOM.sh` / `BUILD ODOOM.bat`) | |
 
 If you change the ODOOM repo but **do not** run the copy step (full `BUILD_ODOOM.sh` / batch file, or at least the `cp` lines), the game you launch still uses **old** ZScript and **old** C++ from the UZDoom tree.
 
 **Symptom:** “I removed the right timer in the repo but it’s still on screen” → the running build never picked up your `.zs`.
 
-**Symptom:** “B/X/Z toggles don’t work” → the running binary is still linked with an old `uzdoom_star_integration.cpp` (or input path not rebuilt).
+**Symptom:** “B/X/Z toggles don’t work” → the running binary is still linked with an old `uzdoom_ogengine_integration.cpp` (or input path not rebuilt).
 
-## STAR native library must match `star_api.h` (no stale `star_api.so` / `star_api.dll`)
+## STAR native library must match `ogengine.h` (no stale `star_api.so` / `ogengine.dll`)
 
-The ODOOM binary is **dynamically linked** against functions declared in `OASIS Omniverse/STARAPIClient/star_api.h`. At launch, the loader resolves those symbols from **`star_api.so`** (Linux), **`star_api.dylib`** (macOS), or **`star_api.dll`** (Windows) on the library search path (typically **the same directory as the executable** in `ODOOM/build/`).
+The ODOOM binary is **dynamically linked** against functions declared in `OASIS Omniverse/OGEngineClient/ogengine.h`. At launch, the loader resolves those symbols from **`star_api.so`** (Linux), **`star_api.dylib`** (macOS), or **`ogengine.dll`** (Windows) on the library search path (typically **the same directory as the executable** in `ODOOM/build/`).
 
-**There is no optional code path for missing exports.** If `uzdoom_star_integration.cpp` calls `star_api_start_quest_then_set_active_objective` (or any newer export) but the `.so` next to the game was built from an **older** STARAPIClient, you get an immediate runtime error such as:
+**There is no optional code path for missing exports.** If `uzdoom_ogengine_integration.cpp` calls `ogengine_start_quest_then_set_active_objective` (or any newer export) but the `.so` next to the game was built from an **older** OGEngineClient, you get an immediate runtime error such as:
 
-`symbol lookup error: undefined symbol: star_api_start_quest_then_set_active_objective`
+`symbol lookup error: undefined symbol: ogengine_start_quest_then_set_active_objective`
 
 That is not a bug in ODOOM logic — it means the **packaged native library is stale** relative to the header and C++ integration.
 
 ### Why copies go stale
 
-- **Two artifacts:** the repo’s `STARAPIClient/star_api.h` and `uzdoom_star_integration.cpp` update in git, but **`ODOOM/build/star_api.so`** (or `ODOOM/star_api.so`) is only refreshed when you **publish STARAPIClient** and run **`BUILD_ODOOM.sh`** (or equivalent copy steps).
+- **Two artifacts:** the repo’s `OGEngineClient/ogengine.h` and `uzdoom_ogengine_integration.cpp` update in git, but **`ODOOM/build/star_api.so`** (or `ODOOM/star_api.so`) is only refreshed when you **publish OGEngineClient** and run **`BUILD_ODOOM.sh`** (or equivalent copy steps).
 - **Hand-running the binary** from `ODOOM/build/` without a full script pass can pair a **new** `ODOOM` with an **old** `star_api.so` copied earlier.
-- **Deleting only `ODOOM/build/`** does not rebuild the C# native library; redeploy STARAPIClient when exports change.
+- **Deleting only `ODOOM/build/`** does not rebuild the C# native library; redeploy OGEngineClient when exports change.
 
 ### Required workflow when a new native export is added
 
-1. Add **`[UnmanagedCallersOnly]`** in `StarApiClient.cs`, declare it in **`star_api.h`**, and list it in **`star_api.def`** (Windows).
+1. Add **`[UnmanagedCallersOnly]`** in `StarApiClient.cs`, declare it in **`ogengine.h`**, and list it in **`ogengine.def`** (Windows).
 2. **Rebuild and deploy** the native library:
-   - Linux/macOS: `bash OASIS Omniverse/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild`
+   - Linux/macOS: `bash OASIS Omniverse/OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh -ForceBuild`
    - Or: `BUILD_STAR_CLIENT=1 ./BUILD_ODOOM.sh` from `OASIS Omniverse/ODOOM`
 3. Run **`BUILD_ODOOM.sh`** through packaging so **`ODOOM/build/`** contains the **same** `.so` the linker used.
 
-**Verification (automated):** `STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` maintains a **`REQUIRED_STAR_EXPORTS`** list. Before trusting “native library is up to date”, the script checks the **existing** `star_api.so` with `nm` / `objdump` / `readelf`. If any required symbol is missing, it **forces `dotnet publish`** even when file mtimes say “unchanged” (mtimes lie after `git pull`, checkout, or skew). **`BUILD_ODOOM.sh`** also refuses to continue without `nm`, `objdump`, or `readelf` so the check cannot be skipped silently.
+**Verification (automated):** `OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh` maintains a **`REQUIRED_STAR_EXPORTS`** list. Before trusting “native library is up to date”, the script checks the **existing** `star_api.so` with `nm` / `objdump` / `readelf`. If any required symbol is missing, it **forces `dotnet publish`** even when file mtimes say “unchanged” (mtimes lie after `git pull`, checkout, or skew). **`BUILD_ODOOM.sh`** also refuses to continue without `nm`, `objdump`, or `readelf` so the check cannot be skipped silently.
 
 **When you add a new game-used native export:** add the symbol name to **`REQUIRED_STAR_EXPORTS`** in `build-and-deploy-star-api-unix.sh` and to the **`dumpbin /exports`** check list in `Scripts/publish_and_deploy_star_api.ps1` (Windows), or the skip logic can still ship a stale DLL.
 
 ### Policy for agents and contributors
 
-- **Do not** add runtime optional resolution or “best effort” fallbacks for missing `star_api_*` symbols in ODOOM C++.
-- **Do** treat “undefined symbol” at launch as **deploy/build drift**; rebuild STARAPIClient, redeploy, repackage ODOOM.
+- **Do not** add runtime optional resolution or “best effort” fallbacks for missing `ogengine_*` symbols in ODOOM C++.
+- **Do** treat “undefined symbol” at launch as **deploy/build drift**; rebuild OGEngineClient, redeploy, repackage ODOOM.
 - General agent policy (no hacks / fallbacks for any subsystem): **`Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md`** and the top of **`AGENTS.md`**.
 
 ## Where the “right timer” ZScript actually lives (why `cmake --build` sometimes changes nothing)
@@ -94,7 +94,7 @@ If you **delete `ODOOM/build` without** running the full packaging step (or you 
 
 ## What to do (minimal checklist)
 
-1. Edit files in **`OASIS Omniverse/ODOOM/`** (and STARAPIClient if needed).
+1. Edit files in **`OASIS Omniverse/ODOOM/`** (and OGEngineClient if needed).
 2. Run **`BUILD_ODOOM.sh`** (Linux/macOS) or **`BUILD ODOOM.bat`** (Windows) so the **install integration files** step runs — or manually run the same `cp` commands toward `$UZDOOM_SRC`.
 3. Build UZDoom (the script does this; or your usual CMake step **after** the copy).
 4. If ZScript still looks wrong, do a **clean** UZDoom build so `zscript` / `gzdoom.pk3` / ipk3 outputs are regenerated (incremental builds can occasionally leave you with odd states; a clean is heavier but deterministic).
@@ -106,7 +106,7 @@ If you **delete `ODOOM/build` without** running the full packaging step (or you 
 
 ## B / X / Z toggles
 
-Toggles are implemented in **`uzdoom_star_integration.cpp`** (raw key edge detection + `odoom_hud_show_*` CVars). They only behave as intended in the binary built from the **copied** `uzdoom_star_integration.cpp`. Stale config binding `B`/`X`/`Z` to old CCMDs can also cause double-toggles — use empty defaults from a fresh `defaultbind` pass or clear those binds in `gzdoom.ini`.
+Toggles are implemented in **`uzdoom_ogengine_integration.cpp`** (raw key edge detection + `odoom_hud_show_*` CVars). They only behave as intended in the binary built from the **copied** `uzdoom_ogengine_integration.cpp`. Stale config binding `B`/`X`/`Z` to old CCMDs can also cause double-toggles — use empty defaults from a fresh `defaultbind` pass or clear those binds in `gzdoom.ini`.
 
 ## See also
 
