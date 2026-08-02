@@ -55,3 +55,18 @@ Set **STAR_USERNAME** / **STAR_PASSWORD** or **OGENGINE_KEY** / **STAR_AVATAR_ID
 **Health at 100% – two hooks:** Detection when standing on health at max uses two possible code paths. (1) **SV_Impact** in **sv_phys.c**: the apply script patches the server physics so that before each touch is run, `OQuake_STAR_InterceptTouchPickupAtMax(e1, e2)` is called; if the player is at max health/armor the item is added to STAR and the entity is freed. (2) **Touch builtin** in **pr_cmds.c**: fallback patch before `PR_ExecuteProgram(e->v.touch)` so that if the Touch builtin is invoked with (item, player), we intercept and free the item. If health-at-max is still not detected: (a) Ensure **apply_oquake_to_vkquake.ps1** was run against your **vkQuake** source (the script looks for `Quake/sv_phys.c` under `VkQuakeSrc`). (b) Confirm both **sv_phys.c** and **pr_cmds.c** were patched (script output says "Patched sv_phys.c" and "Patched pr_cmds.c"). (c) If your engine is a different fork (e.g. QuakeSpasm, other vkQuake fork), the touch code may live elsewhere—search the engine source for `PR_ExecuteProgram` and `->v.touch` or `touch` to find where the item’s touch function is invoked, and add the same intercept there or adjust the patch patterns in the script. The console shows `[OQuake STAR] InterceptTouch HEALTH touch:` when the intercept is called.
 
 For a full Windows walkthrough, see **Docs/WINDOWS_INTEGRATION.md**.
+
+## Cross-Game Teleportation
+
+Call `OQuake_STAR_CheckIncomingTeleport()` at the start of every map load to detect incoming teleports from other OGames:
+
+```c
+// In your map load / level start hook:
+OQuake_STAR_CheckIncomingTeleport();
+```
+
+This reads `%TEMP%\oasis_teleport_arrive_{avatarId}.json`, warps the player to the requested position (game-specific — see the TODO comment in the integration file), then calls `ogengine_confirm_teleport_arrival()`.
+
+To place an outbound portal in a map, use the OGEngine Editor's `OASISPortalPanel` (UDB) or add an `oasis_portal` entity using the companion editor and `oasis_entities.fgd`.
+
+**Spawn-event polling** is also active in the tick function — the integration now polls `ogengine_poll_spawn_event()` each frame and logs any incoming cross-game entity spawn requests via `oglib_log`.

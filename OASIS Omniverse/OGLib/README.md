@@ -34,6 +34,7 @@ See [`OASIS Omniverse/ARCHITECTURE.md`](../ARCHITECTURE.md) for the full system 
 | `oglib_beamin.h` | Beamin/beamout workflow (auth, restore session, persist JWT) |
 | `oglib_session.h` | Runtime DLL forwarders (`GetProcAddress` / `dlsym` shims) |
 | `oglib_crossgame.h` | Cross-game ammo/weapon mapping defaults |
+| `oglib_log.h` | Lightweight `printf`-style logger with configurable level and sink |
 
 All implementation headers follow the **single-header library** pattern (a la `stb`): declarations are always compiled; implementations are compiled only in the one translation unit that defines the matching `OGLIB_*_IMPL` macro.
 
@@ -177,6 +178,41 @@ if (oglib_str_contains_nocase(item_name, "key")) { ... }
 char url[512];
 oglib_json_extract(json_text, "ogengine_url", url, sizeof(url));
 ```
+
+---
+
+## oglib_log.h — Lightweight logger
+
+Provides `oglib_log(level, fmt, ...)` — a `printf`-style logger that game integrations use for OASIS-specific output.
+
+### Log levels
+
+| Constant | Value | Use |
+|----------|-------|-----|
+| `OGLIB_LOG_DEBUG` | 0 | Verbose tracing (off by default) |
+| `OGLIB_LOG_INFO`  | 1 | Normal operation (default minimum level) |
+| `OGLIB_LOG_WARN`  | 2 | Unexpected but non-fatal conditions |
+| `OGLIB_LOG_ERROR` | 3 | Errors that should be investigated |
+
+### Usage
+
+```c
+oglib_log(OGLIB_LOG_INFO,  "OASIS teleport → %s:%s", target_game, target_map);
+oglib_log(OGLIB_LOG_WARN,  "Spawn event ignored: unknown entity_id %s", id);
+oglib_log(OGLIB_LOG_ERROR, "ogengine_poll_spawn_event failed");
+```
+
+### Customisation
+
+Define **before** `#include "oglib.h"` to override:
+
+```c
+#define OGLIB_LOG_MIN_LEVEL OGLIB_LOG_WARN          // silence DEBUG + INFO
+#define OGLIB_LOG_SINK(level, msg) MyEngine_Log(msg) // route to engine logger
+#include "oglib.h"
+```
+
+Output defaults to `stderr` when `OGLIB_LOG_SINK` is not defined.
 
 ---
 
