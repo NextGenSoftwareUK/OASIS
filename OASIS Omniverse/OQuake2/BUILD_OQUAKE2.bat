@@ -6,7 +6,7 @@ REM   (none) = prompt clean/incremental, then copy, patch, build
 REM   run    = incremental build then launch (no prompts)
 REM   batch  = incremental build, no prompts, do not launch (for BUILD EVERYTHING.bat)
 
-set "YQUAKE2_SRC=C:\Source\yquake2"
+set "YQUAKE2_SRC=C:\Source\OQuake2"
 set "QUAKE2_ENGINE_EXE="
 set "HERE=%~dp0"
 set "OGENGINECLIENT=%HERE%..\OGEngineClient"
@@ -70,8 +70,8 @@ if not exist "%YQUAKE2_SRC%\src\client\cl_main.c" (echo Yamagi Q2 source not fou
 echo.
 echo [OQuake2] Copying integration files into Yamagi Q2 source...
 if not exist "%YQUAKE2_SRC%\src\game" mkdir "%YQUAKE2_SRC%\src\game"
-copy /Y "%OQUAKE2_CODE%oquake2_ogengine_integration.c" "%YQUAKE2_SRC%\src\game\" >nul
-copy /Y "%OQUAKE2_CODE%oquake2_ogengine_integration.h" "%YQUAKE2_SRC%\src\game\" >nul
+copy /Y "%OQUAKE2_INTEGRATION%oquake2_ogengine_integration.c" "%YQUAKE2_SRC%\src\game\" >nul
+copy /Y "%OQUAKE2_INTEGRATION%oquake2_ogengine_integration.h" "%YQUAKE2_SRC%\src\game\" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%YQUAKE2_SRC%\src\game\" >nul
 if exist "%OQUAKE2_CODE%ogengine_sync.h" copy /Y "%OQUAKE2_CODE%ogengine_sync.h" "%YQUAKE2_SRC%\src\game\" >nul
 copy /Y "%STAR_DLL%" "%YQUAKE2_SRC%\ogengine.dll" >nul
