@@ -5,7 +5,7 @@ REM Base: Q2 RTX (https://github.com/NVIDIA/Q2RTX) — Yamagi Q2 + Vulkan RTX re
 REM OASIS thing type range: 6000-6899 (same as OQuake2 — shared game content).
 REM Usage: BUILD_OQUAKE2RTX.bat [ run | batch ]
 
-set "Q2RTX_SRC=C:\Source\Q2RTX"
+set "Q2RTX_SRC=C:\Source\OQuake2-RTX"
 set "Q2RTX_ENGINE_EXE="
 set "HERE=%~dp0"
 set "OGENGINECLIENT=%HERE%..\OGEngineClient"
@@ -66,8 +66,8 @@ if not exist "%Q2RTX_SRC%\src\client\cl_main.c" (echo Q2 RTX source not found: %
 echo.
 echo [OQuake2-RTX] Copying integration files into Q2 RTX source...
 if not exist "%Q2RTX_SRC%\src\game" mkdir "%Q2RTX_SRC%\src\game"
-copy /Y "%OQUAKE2RTX_CODE%oquake2rtx_ogengine_integration.c" "%Q2RTX_SRC%\src\game\" >nul
-copy /Y "%OQUAKE2RTX_CODE%oquake2rtx_ogengine_integration.h" "%Q2RTX_SRC%\src\game\" >nul
+copy /Y "%OQUAKE2RTX_INTEGRATION%oquake2rtx_ogengine_integration.c" "%Q2RTX_SRC%\src\game\" >nul
+copy /Y "%OQUAKE2RTX_INTEGRATION%oquake2rtx_ogengine_integration.h" "%Q2RTX_SRC%\src\game\" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%Q2RTX_SRC%\src\game\" >nul
 if exist "%OQUAKE2RTX_CODE%ogengine_sync.h" copy /Y "%OQUAKE2RTX_CODE%ogengine_sync.h" "%Q2RTX_SRC%\src\game\" >nul
 copy /Y "%STAR_DLL%" "%Q2RTX_SRC%\ogengine.dll" >nul
