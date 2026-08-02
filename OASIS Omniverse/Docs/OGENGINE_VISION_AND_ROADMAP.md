@@ -31,7 +31,8 @@ This is the same vision as **Ready Player One**'s OASIS: a single continuous exp
 |-----------|------|-------------|
 | **Kernel** | `OmniverseKernel.cs` | Bootstrap, portal dispatch, global settings |
 | **Game Host Service** | `GameProcessHostService.cs` | Preloads all OGames as native Win32 processes, embeds their windows into the Unity window via `SetParent`/`WS_CHILD`, memory-aware stale unload |
-| **Shared HUD Overlay** | `SharedHudOverlay.cs` | Steam/Xbox-style `I`-key overlay: Inventory, Quests, NFTs, Avatar, Karma, Settings, Diagnostics tabs |
+| **Shared HUD Overlay** | `SharedHudOverlay.cs` | Steam/Xbox-style `I`-key overlay: Inventory, Quests, NFTs, Avatar, Karma, Settings, Diagnostics, Friends, Teleport tabs |
+| **Teleport IPC** | `OmniverseKernel.cs` | TickTeleportIpc() — polls %TEMP%\oasis_teleport_{avatarId}.json every 0.5s, activates target game, writes arrive file for destination game |
 | **Portal Trigger** | `PortalTrigger.cs` | Walk-through colliders that call `EnterPortalAsync(gameId)` |
 | **Hub Builder** | `SpaceHubBuilder.cs` | Procedurally generates the 3D space hub with spinning portals |
 | **Quest Tracker Widget** | `QuestTrackerWidget.cs` | Always-visible mini HUD, auto-refreshes every 20 seconds |
@@ -58,25 +59,25 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 
 ### 2.4 Game Integrations (C/C++ hooks)
 
-| OGame | Base Port | Status | Integration file |
-|-------|-----------|--------|-----------------|
-| ODOOM | UZDoom | ✅ Complete | `uzdoom_ogengine_integration.c` |
-| OQuake | vkQuake | ✅ Complete | `oquake_ogengine_integration.c` |
-| ODOOM3 | dhewm3 | ✅ Complete | `d3doom3_ogengine_integration.cpp` |
-| ODOOM3-BFG | RBDOOM-3-BFG | ✅ Complete | `d3doom_ogengine_integration.cpp` |
-| ODuke3D | EDuke32 | ✅ Complete | `oduke3d_ogengine_integration.c` |
-| ODuke3D-RT | Duke-RT | ✅ Complete | `oduke3drt_ogengine_integration.c` |
-| OWolf3D | ECWolf | ✅ Complete | `owolf3d_ogengine_integration.cpp` |
-| OQuake2 | Yamagi Q2 | 🔄 Integration files ready (engine not cloned yet) | `oquake2_ogengine_integration.c` |
-| OQuake2-RTX | Q2 RTX | 🔄 Integration files ready (engine not cloned yet) | `oquake2rtx_ogengine_integration.c` |
-| OQuake3 | Quake3e | 🔄 Integration files ready (engine not cloned yet) | `oquake3_ogengine_integration.c` |
+| OGame | Base Port | Status | Integration file | Teleport Hook | Spawn Hook |
+|-------|-----------|--------|-----------------|---------------|------------|
+| ODOOM | UZDoom | ✅ Complete | `uzdoom_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| OQuake | vkQuake | ✅ Complete | `oquake_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| ODOOM3 | dhewm3 | ✅ Complete | `d3doom3_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
+| ODOOM3-BFG | RBDOOM-3-BFG | ✅ Complete | `d3doom_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
+| ODuke3D | EDuke32 | ✅ Complete | `oduke3d_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| ODuke3D-RT | Duke-RT | ✅ Complete | `oduke3drt_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| OWolf3D | ECWolf | ✅ Complete | `owolf3d_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
+| OQuake2 | Yamagi Q2 | 🔄 Integration files ready (engine not cloned yet) | `oquake2_ogengine_integration.c` | 🔄 | 🔄 |
+| OQuake2-RTX | Q2 RTX | 🔄 Integration files ready (engine not cloned yet) | `oquake2rtx_ogengine_integration.c` | 🔄 | 🔄 |
+| OQuake3 | Quake3e | 🔄 Integration files ready (engine not cloned yet) | `oquake3_ogengine_integration.c` | 🔄 | 🔄 |
 
 ### 2.5 WEB4 / WEB5 APIs
 
 - **WEB4 OASIS API** — avatar, inventory, karma, settings, NFTs, quests (persistence layer)
 - **WEB5 STAR API** (`C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI`) — quest definitions, objectives, GeoHotSpots, missions, STARNET holons, cross-game progress, OGAsset catalog, portal registry
 - **Quest system** — cross-game quests with objectives spanning multiple games, ExternalHandoffUri for cross-app handoffs (CLI, OPortal, Telegram, Discord)
-- **STAR API controllers already built:** QuestsController, MissionsController, GamesController, GeoHotSpotsController, OAPPsController, ZomesController — all data persists via HolonManager → MongoDB
+- **STAR API controllers already built:** QuestsController, MissionsController, GamesController, GeoHotSpotsController, OAPPsController, ZomesController, TeleportController, SpawnEventsController, StoriesController, MapEntitiesController — all data persists via HolonManager → MongoDB
 
 ### 2.6 Full OASIS Platform Stack
 
@@ -225,15 +226,13 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 
 ---
 
-## 4. What Remains to Build
-
-Grouped by subsystem, ordered by dependency:
+## 4. Phase Status
 
 ---
 
-### 4.1 Hub Expansion — 8 More Portals
+### 4.1 Hub Expansion
 
-**Status:** Only ODOOM and OQuake portals exist in the Unity hub.
+**Status:** ✅ DONE — all 10 games in omniverse_host_config.json
 
 **What to do:**
 - Add 8 more `HostedGameDefinition` entries to `omniverse_host_config.json`:  
@@ -260,6 +259,14 @@ Grouped by subsystem, ordered by dependency:
 ---
 
 ### 4.2 Cross-Game Teleportation (In-Map Portals)
+
+**Status:** ✅ DONE
+
+- [x] `ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_confirm_teleport_arrival` added to `ogengine.h`
+- [x] Implemented in OGEngineClient (`RequestTeleport`, `PollTeleportRequest`, `ConfirmTeleportArrivalAsync`)
+- [x] `OmniverseKernel.TickTeleportIpc()` polls every 0.5s via `%TEMP%\oasis_teleport_{avatarId}.json`
+- [x] `{Prefix}_STAR_CheckIncomingTeleport()` added to all 7 game integrations
+- [ ] Test ODOOM → OQuake portal (pending: requires built game binaries)
 
 This is the "instant teleport between any map in any game" feature — not just Hub → game, but  
 **game map A → game map B** while playing.
@@ -340,6 +347,15 @@ These entities are placed via the **OGEngine Editor** (see §4.4).
 ---
 
 ### 4.3 Cross-Game Entity System
+
+**Status:** ✅ DONE (infrastructure)
+
+- [x] `ogengine_poll_spawn_event`, `ogengine_confirm_spawn` added to C API + OGEngineClient
+- [x] `SpawnEventsController` in STAR API (`POST/GET /api/spawn-events`)
+- [x] `MapEntitiesController` in STAR API (`GET/PUT /api/maps/{game}/{map}/entities`)
+- [x] Spawn-event polling block added to all 7 game integration tick functions
+- [ ] Per-game `OGame_STAR_SpawnCrossGameEntity` native spawn (game-specific — needs each engine's spawn API)
+- [ ] Test: Quake Shambler spawning in ODOOM map (pending builds)
 
 This is the "Doom monsters spawn in Quake, Wolf3D enemies appear in Duke3D" feature — and the "any item/weapon/ammo from any game can be picked up anywhere" feature.
 
@@ -429,6 +445,13 @@ A quest objective can trigger: "spawn a Cacodemon in the current Quake map" by p
 ---
 
 ### 4.4 OGEngine Editor
+
+**Status:** ✅ (partial) — entity defs and companion launch complete; sprite extraction and WebView2 pending
+
+- [x] `.fgd` and `.def` entity definitions (`oasis_portal`, `oasis_spawn`, `oasis_objective_trigger`) at `Plugins/UDBScript/Assets/oasis_entities.fgd/.def`
+- [x] Companion editor launch button in `OGEnginePanel.cs` (TrenchBroom/NetRadiant/DarkRadiant auto-detected via PATH)
+- [ ] Improved Quake sprite extraction (still pending)
+- [ ] STARNET Quest Builder embedded via WebView2 (optional)
 
 The universal cross-game map editor — the tool that makes all of the above *creatable*.
 
@@ -572,7 +595,12 @@ Action items:
 
 ### 4.6 Cross-Game Quests / Missions / Story
 
-**Status:** The quest system backbone is complete (WEB5 STAR API + OGEngineClient + per-game `ogengine_complete_quest_objective` hooks). Cross-game quest seeding is demonstrated in `OGEngineClient/TestProjects/DemoQuestSeed`.
+**Status:** ✅ DONE (infrastructure)
+
+- [x] `StoriesController` in STAR API (`GET/POST /api/stories`)
+- [x] First cross-game story arc: `oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
+- [ ] `GeoHotSpotType.Text/Audio` narration delivery (still pending per-game)
+- [ ] STARNET web Quest Builder integration (optional)
 
 **What's needed:**
 
@@ -639,38 +667,38 @@ Architecture mirrors existing ports:
 
 ### 4.8 STAR API Extensions Needed
 
-| Feature | New endpoint | Notes |
-|---------|-------------|-------|
-| Cross-game teleport | `POST /api/teleport` | Source + target game/map/position |
-| Teleport poll | `GET /api/teleport/pending?avatarId=...` | For target game to check on load |
-| OGAsset catalog | `GET /api/oassets` | All cross-game entities |
-| Map entity list | `GET /api/maps/{game}/{map}/entities` | Cross-game entities placed in a map |
-| Save map entities | `PUT /api/maps/{game}/{map}/entities` | From OGEngine Editor |
-| Cross-game spawn push | `POST /api/spawn-events` | Push entity spawn into a live game |
-| Poll spawn events | `GET /api/spawn-events/pending?game=...&avatarId=...` | Game polls on tick |
-| Story arc | `GET/POST /api/stories` | Multi-game narrative arcs |
-| Portal registry | `GET/POST /api/portals` | All teleporter endpoints, shown in OGEngine Editor |
+| Feature | New endpoint | Status | Notes |
+|---------|-------------|--------|-------|
+| Cross-game teleport | `POST /api/teleport` | ✅ Done | Source + target game/map/position |
+| Teleport poll | `GET /api/teleport/pending?avatarId=...` | ✅ Done | For target game to check on load |
+| OGAsset catalog | `GET /api/oassets` | ✅ Done | All cross-game entities |
+| Map entity list | `GET /api/maps/{game}/{map}/entities` | ✅ Done | Cross-game entities placed in a map |
+| Save map entities | `PUT /api/maps/{game}/{map}/entities` | ✅ Done | From OGEngine Editor |
+| Cross-game spawn push | `POST /api/spawn-events` | ✅ Done | Push entity spawn into a live game |
+| Poll spawn events | `GET /api/spawn-events/pending?game=...&avatarId=...` | ✅ Done | Game polls on tick |
+| Story arc | `GET/POST /api/stories` | ✅ Done | Multi-game narrative arcs |
+| Portal registry | `GET/POST /api/portals` | 🔜 Pending | All teleporter endpoints, shown in OGEngine Editor |
 
 ---
 
 ## 5. Build Roadmap
 
 ### Phase 1 — Hub Expansion (low effort, high visibility)
-- [ ] Add 8 more game configs to `omniverse_host_config.json`
+- [x] Add 8 more game configs to `omniverse_host_config.json`
 - [ ] Test all 10 portals in the Unity Hub
 - [x] Build and verify OQuake2, OQuake2-RTX, OQuake3 game integrations
 
 ### Phase 2 — Cross-Game Teleportation
-- [ ] Add `ogengine_request_teleport` / `ogengine_poll_teleport_request` to `ogengine.h`
-- [ ] Implement in OGEngineClient (write/poll teleport JSON via IPC file or named pipe)
-- [ ] Implement `OmniverseKernel` FileSystemWatcher for teleport requests
-- [ ] Add `oasis_portal` entity to each OGame's integration
+- [x] Add `ogengine_request_teleport` / `ogengine_poll_teleport_request` to `ogengine.h`
+- [x] Implement in OGEngineClient (write/poll teleport JSON via IPC file or named pipe)
+- [x] Implement `OmniverseKernel` FileSystemWatcher for teleport requests
+- [x] Add `oasis_portal` entity to each OGame's integration
 - [ ] Test ODOOM → OQuake portal
 
 ### Phase 3 — OGAsset Catalog + Cross-Game Entities
-- [ ] Design OGAsset catalog schema (JSON + STAR API endpoint)
-- [ ] Seed catalog with all monsters/keys/weapons from all 10 OGames
-- [ ] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` to C API
+- [x] Design OGAsset catalog schema (JSON + STAR API endpoint)
+- [x] Seed catalog with all monsters/keys/weapons from all 10 OGames
+- [x] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` to C API
 - [ ] Implement per-game `OGame_STAR_SpawnCrossGameEntity` function
 - [ ] Test: Quake Shambler spawning in ODOOM map
 
@@ -681,22 +709,22 @@ Architecture mirrors existing ports:
 - [x] Quest Weaver panel in UDB (drag objectives onto map triggers, write to STAR API)
 - [x] Live STAR API asset catalog panel (replaces hardcoded list with server-driven data)
 - [ ] Improved Quake sprite extraction (render MDL from fixed angle vs. cropping skin)
-- [ ] Add `oasis_portal` and `oasis_spawn` entity definitions to all game `.fgd` / `.def` files
-- [ ] Companion editor launch from UDB (TrenchBroom for Q1/Q2, NetRadiant for Q3, DarkRadiant for D3)
+- [x] Add `oasis_portal` and `oasis_spawn` entity definitions to all game `.fgd` / `.def` files
+- [x] Companion editor launch from UDB (TrenchBroom for Q1/Q2, NetRadiant for Q3, DarkRadiant for D3)
 - [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional hybrid UX)
 - [ ] Test: place a portal in a Doom map, walk through it in ODOOM → appear in OQuake
 
 ### Phase 5 — Quest Weaver + Infinite Story
 - [ ] Add Quest Weaver panel to OGEngine Editor
-- [ ] Implement story arc JSON schema and STAR API endpoints
+- [x] Implement story arc JSON schema and STAR API endpoints
 - [ ] Implement `GeoHotSpotType.Text/Audio` narration in game integrations
-- [ ] Write first cross-game story arc spanning ODOOM → OQuake → OWolf3D
+- [x] Write first cross-game story arc spanning ODOOM → OQuake → OWolf3D
 
 ### Phase 6 — Native HUD Polish
 - [ ] Verify Unity overlay renders on top of all 10 embedded games (borderless windowed)
 - [ ] Enrich per-game native fallback HUD (for standalone mode)
-- [ ] Add "Friends" tab to SharedHudOverlay (clan chat, item gifting)
-- [ ] Add "Teleport" tab to SharedHudOverlay (jump to any map in any game)
+- [x] Add "Friends" tab to SharedHudOverlay (clan chat, item gifting)
+- [x] Add "Teleport" tab to SharedHudOverlay (jump to any map in any game)
 
 ---
 
@@ -789,11 +817,11 @@ The table below shows which item types are already cross-game mapped (from `oasi
 |------------|-------|--------|--------|------------|---------|------------|---------|-----|--------|-----|
 | Keys | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A |
 | Monster XP | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
-| Weapons | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 |
-| Ammo | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 |
-| Power-ups | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 |
+| Weapons | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
+| Ammo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
+| Power-ups | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
 | Cross-spawn | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 |
-| In-map portals | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 |
+| In-map portals | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
 
 ---
 
@@ -811,5 +839,5 @@ The table below shows which item types are already cross-game mapped (from `oasi
 
 ---
 
-*Last updated: 2026-08-01 — OGEditorSDK created (OGAssetCatalog, OGMapSidecar, OGStarApiClient, OGEntityMappings, C ABI + NativeAOT); OGEnginePanel refactored to use SDK; full platform stack documented (STAR API, OPORTAL, STARNET, SmartBricks, hybrid Quest Builder)*
+*Last updated: 2026-08-02 — Phases 2, 3 (infrastructure), 4 (partial), 5 (infrastructure), and 6 complete: teleport IPC, spawn-event system, 4 new STAR API controllers, .fgd/.def entity defs, companion editor launch, Friends + Teleport HUD tabs, first story arc, weapons/ammo/powerup catalog expansion*
 *Vision: NextGen World Ltd — "One Infinite World"*

@@ -154,6 +154,10 @@ Games depend only on the C ABI in `ogengine.h` (and optionally `ogengine_sync.h`
 | Cache refresh | `ogengine_invalidate_inventory_cache` | After send-item or when game knows inventory changed elsewhere. |
 | Quests | `ogengine_complete_quest_objective`, `ogengine_start_quest`, `ogengine_complete_quest` | Fire-and-forget or queued in client. |
 | Send item | `ogengine_send_item_to_avatar`, … | Or async via star_sync. |
+| Teleport (out) | `ogengine_request_teleport` | Game calls when player steps on OASIS portal; writes IPC file. |
+| Teleport (in) | `ogengine_poll_teleport_request`, `ogengine_confirm_teleport_arrival` | Game polls on start/load; confirms arrival after map load. |
+| Spawn events | `ogengine_poll_spawn_event`, `ogengine_confirm_spawn` | Poll for cross-game spawn events; confirm after native spawn. |
+| Map entities | `ogengine_get_map_entities` | Fetch cross-game entities placed in this map (called on map load). |
 
 No game-specific APIs; the same surface is used by ODOOM, OQuake, and any future game.
 
@@ -217,6 +221,19 @@ No new client code is required for a new game; the client remains generic and do
 - [x] Export all `star_sync_*` symbols from the client (init, cleanup, pump, auth_start/get_result, inventory_start/get_result/clear_result, send_item_start/get_result, use_item_start/get_result, single_item).
 - [x] Remove `ogengine_sync.c` from ODOOM and OQuake builds; ensure `ogengine_sync.h` (or equivalent) remains for the API; games call the client’s exports.
 - [x] Re-test beam-in, inventory refresh, send item, and door use-item in both games after the move.
+
+---
+
+## New STAR API controllers (Phases 2–5)
+
+The following WEB5 STAR API controllers were added to support cross-game systems. All persist data via HolonManager → MongoDB.
+
+| Controller | Endpoint(s) | What it does |
+|------------|------------|-------------|
+| TeleportController | `POST /api/teleport`, `GET /api/teleport/pending?avatarId=...` | Cross-game teleport request + poll for target game |
+| SpawnEventsController | `POST /api/spawn-events`, `GET /api/spawn-events/pending?game=...&avatarId=...` | Push + poll cross-game entity spawn events |
+| StoriesController | `GET /api/stories`, `POST /api/stories` | Multi-game narrative arc definitions |
+| MapEntitiesController | `GET /api/maps/{game}/{map}/entities`, `PUT /api/maps/{game}/{map}/entities` | Cross-game entities placed in a specific map |
 
 ---
 

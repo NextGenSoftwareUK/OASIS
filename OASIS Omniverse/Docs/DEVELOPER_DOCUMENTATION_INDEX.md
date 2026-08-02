@@ -11,6 +11,9 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[STAR Quest System — Developer Guide](./STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, OGEngineClient, `ogengine_*`, extending games
 - **[STAR Games — User Guide](./STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
 - **[ODOOM quest list + STAR](./ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
+- **[Cross-game teleportation](./OGENGINE_VISION_AND_ROADMAP.md#42-cross-game-teleportation-in-map-portals)** — Teleport IPC, C API (`ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_confirm_teleport_arrival`), `OmniverseKernel.TickTeleportIpc()`
+- **[Story arcs](./OGENGINE_VISION_AND_ROADMAP.md#46-cross-game-quests--missions--story)** — `StoriesController` (`GET/POST /api/stories`); first arc: `stories/oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
+- **[Entity definitions (.fgd/.def)](./OGENGINE_VISION_AND_ROADMAP.md#44-ogengine-editor)** — `oasis_portal`, `oasis_spawn`, `oasis_objective_trigger` at `Plugins/UDBScript/Assets/oasis_entities.fgd/.def`
 
 ### **System Architecture**
 - **[OASIS Architecture Overview](../../../Docs/Devs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
