@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     // ─────────────────────────────────────────────
-    // Story arc data model (snake_case to match JSON)
+    // Story arc data model (snake_case to match JSON seed files)
     // ─────────────────────────────────────────────
 
     /// <summary>A cross-game spawn triggered as part of a story chapter.</summary>
@@ -29,17 +34,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     // ─────────────────────────────────────────────
 
     /// <summary>
-    /// Manages cross-game story arcs. Story arcs are loaded from *.json files in the
-    /// OASIS Omniverse Config/stories/ directory on startup and kept in memory.
-    /// New arcs POSTed to this endpoint are persisted back to that directory.
+    /// Manages cross-game story arcs as OASIS Holons (WEB4) / SmartBricks (WEB5).
+    ///
+    /// Story arcs are stored via HolonManager so they can be:
+    ///   - Discovered by any OASIS instance via STARNET
+    ///   - Published/downloaded/composed like LEGO bricks
+    ///   - Versioned and stored decentrally (IPFS etc.)
+    ///
+    /// On first request, any *.json files in Config/stories/ are imported as Holons
+    /// (seed/import format — JSON is NOT the canonical store).
     /// </summary>
     [ApiController]
     [Route("api/stories")]
-    public class StoriesController : ControllerBase
+    public class StoriesController : STARControllerBase
     {
-        private static readonly List<StoryArc> _stories = new();
-        private static bool _loaded = false;
-        private static readonly object _lock = new();
+        private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _seedLock = new(1, 1);
+        private static bool _seeded = false;
 
         private static readonly JsonSerializerOptions _jsonOpts = new()
         {
@@ -50,21 +61,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private readonly ILogger<StoriesController> _logger;
         private readonly IWebHostEnvironment _env;
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         public StoriesController(ILogger<StoriesController> logger, IWebHostEnvironment env)
         {
             _logger = logger;
             _env = env;
-            EnsureLoaded();
         }
 
-        // ── Path helpers ────────────────────────────────────────────────────────
+        // ── Path helpers ─────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Resolves the OASIS Omniverse Config/stories/ directory.
-        /// Navigates two levels up from the WebAPI content root to reach the OASIS2 monorepo root,
-        /// then descends into "OASIS Omniverse/Config/stories".
-        /// Falls back gracefully if the directory does not exist.
-        /// </summary>
         private string StoriesDir
         {
             get
@@ -74,26 +80,44 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
-        // ── Startup load ─────────────────────────────────────────────────────────
+        // ── Seed on first request ─────────────────────────────────────────────────
 
-        private void EnsureLoaded()
+        private async Task EnsureSeededAsync()
         {
-            if (_loaded) return;
-            lock (_lock)
+            if (_seeded) return;
+            await _seedLock.WaitAsync();
+            try
             {
-                if (_loaded) return;
-                LoadFromDisk();
-                _loaded = true;
+                if (_seeded) return;
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var existing = await _starAPI.Holons.LoadAllAsync(AvatarId, STARHolonType.StoryArc, loadAllTypes: false);
+                if (existing.IsError || existing.Result == null || !existing.Result.Any())
+                {
+                    _logger.LogInformation("[Stories] No StoryArc Holons found; seeding from Config/stories/.");
+                    await SeedFromJsonAsync();
+                }
+
+                _seeded = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Stories] Seed check failed; continuing without seeding.");
+                _seeded = true;
+            }
+            finally
+            {
+                _seedLock.Release();
             }
         }
 
-        private void LoadFromDisk()
+        private async Task SeedFromJsonAsync()
         {
             var dir = StoriesDir;
             if (!Directory.Exists(dir))
             {
-                _logger.LogInformation("[Stories] Config/stories/ directory not found at {Dir}; starting with empty list.", dir);
-                Directory.CreateDirectory(dir);
+                _logger.LogInformation("[Stories] Config/stories/ not found at {Dir}; skipping seed.", dir);
                 return;
             }
 
@@ -103,120 +127,190 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 {
                     var json = File.ReadAllText(file);
                     var arc = JsonSerializer.Deserialize<StoryArc>(json, _jsonOpts);
-                    if (arc != null)
-                    {
-                        _stories.Add(arc);
-                        _logger.LogInformation("[Stories] Loaded story arc '{StoryId}' from {File}.", arc.story_id, file);
-                    }
+                    if (arc == null) continue;
+
+                    var holon = ArcToHolon(arc);
+                    var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
+                    if (result.IsError)
+                        _logger.LogWarning("[Stories] Seed failed for '{StoryId}': {Msg}", arc.story_id, result.Message);
+                    else
+                        _logger.LogInformation("[Stories] Seeded '{StoryId}' → Holon {Id}.", arc.story_id, result.Result?.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "[Stories] Failed to parse story arc from {File}; skipping.", file);
+                    _logger.LogWarning(ex, "[Stories] Seed parse error for {File}; skipping.", file);
                 }
             }
+        }
 
-            _logger.LogInformation("[Stories] Loaded {Count} story arc(s).", _stories.Count);
+        // ── Model ↔ Holon mapping ────────────────────────────────────────────────
+
+        private static STARHolon ArcToHolon(StoryArc arc, Guid? existingId = null)
+        {
+            return new STARHolon
+            {
+                Id = existingId ?? Guid.NewGuid(),
+                Name = arc.title,
+                Description = $"Cross-game story arc: {arc.story_id}",
+                HolonType = HolonType.STARNETHolon,
+                MetaData = new Dictionary<string, object>
+                {
+                    // "HolonType" is the MetaData key used by STARHolonManager.LoadHolonsByMetaDataAsync
+                    // to filter holons by STARHolonType enum value.
+                    ["HolonType"] = nameof(STARHolonType.StoryArc),
+                    ["StoryId"] = arc.story_id,
+                    ["ChaptersJson"] = JsonSerializer.Serialize(arc.chapters, _jsonOpts)
+                }
+            };
+        }
+
+        private static StoryArc? HolonToArc(STARHolon? holon)
+        {
+            if (holon?.MetaData == null) return null;
+            if (!holon.MetaData.TryGetValue("StoryId", out var storyIdObj)) return null;
+            if (!holon.MetaData.TryGetValue("ChaptersJson", out var chaptersJsonObj)) return null;
+
+            var storyId = storyIdObj?.ToString() ?? "";
+            var chaptersJson = chaptersJsonObj?.ToString() ?? "[]";
+
+            List<StoryChapter> chapters;
+            try { chapters = JsonSerializer.Deserialize<List<StoryChapter>>(chaptersJson, _jsonOpts) ?? new(); }
+            catch { chapters = new(); }
+
+            return new StoryArc(storyId, holon.Name ?? "", chapters);
         }
 
         // ── Endpoints ───────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Returns all loaded story arcs.
-        /// </summary>
-        /// <returns>List of all cross-game story arcs.</returns>
-        /// <response code="200">Story arcs retrieved successfully</response>
+        /// <summary>Returns all story arc Holons.</summary>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<StoryArc>), StatusCodes.Status200OK)]
-        public IActionResult GetAll()
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<StoryArc>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<StoryArc>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                _logger.LogInformation("[Stories] GET all ({Count} arcs).", _stories.Count);
-                return Ok(_stories);
+                await EnsureSeededAsync();
+                var result = await _starAPI.Holons.LoadAllAsync(AvatarId, STARHolonType.StoryArc, loadAllTypes: false);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<StoryArc>> { IsError = true, Message = result.Message });
+
+                var arcs = (result.Result ?? Enumerable.Empty<STARHolon>())
+                    .Select(HolonToArc).Where(a => a != null).ToList();
+
+                return Ok(new OASISResult<IEnumerable<StoryArc>>
+                {
+                    Result = arcs!,
+                    IsError = false,
+                    Message = $"{arcs.Count} story arc(s) retrieved."
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Stories] Error retrieving all story arcs.");
-                return StatusCode(500, new { error = "Internal server error retrieving story arcs." });
+                return HandleException<IEnumerable<StoryArc>>(ex, "GetAll story arcs");
             }
         }
 
-        /// <summary>
-        /// Returns a single story arc by its story_id.
-        /// </summary>
-        /// <param name="id">The story_id of the arc to retrieve (e.g. oasis_arc_001).</param>
-        /// <returns>The matching StoryArc, or 404 if not found.</returns>
-        /// <response code="200">Story arc found</response>
-        /// <response code="404">No story arc with that id</response>
+        /// <summary>Returns a story arc by Holon GUID or story_id slug.</summary>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(StoryArc), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<StoryArc>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetById(string id)
+        public async Task<IActionResult> GetById(string id)
         {
             try
             {
-                var arc = _stories.FirstOrDefault(s =>
-                    string.Equals(s.story_id, id, StringComparison.OrdinalIgnoreCase));
+                await EnsureSeededAsync();
 
-                if (arc == null)
+                if (Guid.TryParse(id, out var holonId))
                 {
-                    _logger.LogInformation("[Stories] Story arc '{Id}' not found.", id);
-                    return NotFound(new { error = $"Story arc '{id}' not found." });
+                    var byGuid = await _starAPI.Holons.LoadAsync(AvatarId, holonId, 0);
+                    if (!byGuid.IsError && byGuid.Result != null)
+                    {
+                        var arc = HolonToArc(byGuid.Result);
+                        if (arc != null)
+                            return Ok(new OASISResult<StoryArc> { Result = arc, IsError = false });
+                    }
                 }
 
-                return Ok(arc);
+                var allResult = await _starAPI.Holons.LoadAllAsync(AvatarId, STARHolonType.StoryArc, loadAllTypes: false);
+                if (!allResult.IsError && allResult.Result != null)
+                {
+                    var match = allResult.Result
+                        .Select(h => new { Holon = h, Arc = HolonToArc(h) })
+                        .FirstOrDefault(x => x.Arc != null &&
+                            string.Equals(x.Arc.story_id, id, StringComparison.OrdinalIgnoreCase));
+
+                    if (match?.Arc != null)
+                        return Ok(new OASISResult<StoryArc> { Result = match.Arc, IsError = false });
+                }
+
+                return NotFound(new OASISResult<StoryArc> { IsError = true, Message = $"Story arc '{id}' not found." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Stories] Error retrieving story arc '{Id}'.", id);
-                return StatusCode(500, new { error = "Internal server error retrieving story arc." });
+                return HandleException<StoryArc>(ex, "GetById story arc");
             }
         }
 
         /// <summary>
-        /// Adds a new story arc to the in-memory list and persists it as a JSON file
-        /// in Config/stories/{story_id}.json.
+        /// Creates a new story arc Holon. The arc is stored via HolonManager and
+        /// can be published to STARNET as a SmartBrick via POST {id}/publish.
         /// </summary>
-        /// <param name="arc">The story arc to add. story_id must be unique.</param>
-        /// <returns>The created story arc.</returns>
-        /// <response code="200">Story arc added successfully</response>
-        /// <response code="400">Body is null, story_id is missing, or a duplicate story_id already exists</response>
         [HttpPost]
-        [ProducesResponseType(typeof(StoryArc), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Add([FromBody] StoryArc arc)
+        [ProducesResponseType(typeof(OASISResult<StoryArc>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<StoryArc>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Create([FromBody] StoryArc arc)
         {
             try
             {
                 if (arc == null)
-                    return BadRequest(new { error = "Request body is required." });
-
+                    return BadRequest(new OASISResult<StoryArc> { IsError = true, Message = "Request body is required." });
                 if (string.IsNullOrWhiteSpace(arc.story_id))
-                    return BadRequest(new { error = "story_id is required." });
+                    return BadRequest(new OASISResult<StoryArc> { IsError = true, Message = "story_id is required." });
 
-                lock (_lock)
-                {
-                    if (_stories.Any(s => string.Equals(s.story_id, arc.story_id, StringComparison.OrdinalIgnoreCase)))
-                        return BadRequest(new { error = $"A story arc with id '{arc.story_id}' already exists." });
+                var avatarCheck = ValidateAvatarId<StoryArc>();
+                if (avatarCheck != null) return avatarCheck;
 
-                    _stories.Add(arc);
-                }
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
 
-                // Persist to disk
-                var dir = StoriesDir;
-                Directory.CreateDirectory(dir);
-                var safeName = string.Concat(arc.story_id.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
-                var filePath = Path.Combine(dir, $"{safeName}.json");
-                var json = JsonSerializer.Serialize(arc, _jsonOpts);
-                File.WriteAllText(filePath, json);
+                var holon = ArcToHolon(arc);
+                var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<StoryArc> { IsError = true, Message = result.Message });
 
-                _logger.LogInformation("[Stories] Added and persisted story arc '{StoryId}' to {FilePath}.", arc.story_id, filePath);
-                return Ok(arc);
+                _logger.LogInformation("[Stories] Created StoryArc Holon '{StoryId}' Id={Id}.", arc.story_id, result.Result?.Id);
+                return Ok(new OASISResult<StoryArc> { Result = arc, IsError = false, Message = "Story arc created as Holon." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Stories] Error adding story arc '{StoryId}'.", arc?.story_id ?? "(null)");
-                return StatusCode(500, new { error = "Internal server error adding story arc." });
+                return HandleException<StoryArc>(ex, "Create story arc");
+            }
+        }
+
+        /// <summary>Deletes a story arc Holon by its GUID.</summary>
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var avatarCheck = ValidateAvatarId<bool>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Holons.DeleteAsync(AvatarId, id, 0);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<bool> { IsError = true, Message = result.Message });
+
+                return Ok(new OASISResult<bool> { Result = true, IsError = false, Message = "Story arc deleted." });
+            }
+            catch (Exception ex)
+            {
+                return HandleException<bool>(ex, "Delete story arc");
             }
         }
     }
