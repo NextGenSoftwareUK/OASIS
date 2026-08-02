@@ -4583,6 +4583,136 @@ public sealed class OGEngineClient : IDisposable
     public Task<OASISResult<bool>> QueueSendItemToClanAsync(string clanNameOrTargetUsername, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => SendItemToClanAsync(clanNameOrTargetUsername, itemName, quantity, itemId, ct), cancellationToken);
 
+    /* ── Cross-game teleportation ─────────────────────────────────────────── */
+
+    /// <summary>Write outgoing teleport request to %TEMP%\oasis_teleport_{avatarId}.json for OmniverseKernel pickup.</summary>
+    public void RequestTeleport(string targetGame, string targetMap, float x, float y, float z)
+    {
+        try
+        {
+            var avatarId = GetCachedAvatarId() ?? "unknown";
+            var path = Path.Combine(Path.GetTempPath(), $"oasis_teleport_{avatarId}.json");
+            var json = $"{{\"targetGame\":{JsonSerializer.Serialize(targetGame)},\"targetMap\":{JsonSerializer.Serialize(targetMap)},\"x\":{x:R},\"y\":{y:R},\"z\":{z:R}}}";
+            File.WriteAllText(path, json);
+            OGEngineExports.StarApiLogFileOnly($"[Teleport] RequestTeleport: wrote {path} targetGame={targetGame} targetMap={targetMap} x={x} y={y} z={z}");
+        }
+        catch (Exception ex)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Teleport] RequestTeleport error: {ex.Message}");
+        }
+    }
+
+    /// <summary>Read and delete %TEMP%\oasis_teleport_arrive_{avatarId}.json. Returns true and fills out params if a pending request exists.</summary>
+    public bool PollTeleportRequest(out string map, out float x, out float y, out float z)
+    {
+        map = string.Empty;
+        x = y = z = 0f;
+        try
+        {
+            var avatarId = GetCachedAvatarId() ?? "unknown";
+            var path = Path.Combine(Path.GetTempPath(), $"oasis_teleport_arrive_{avatarId}.json");
+            if (!File.Exists(path)) return false;
+            var json = File.ReadAllText(path);
+            File.Delete(path);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            map = root.TryGetProperty("targetMap", out var mapProp) ? (mapProp.GetString() ?? string.Empty) : string.Empty;
+            x = root.TryGetProperty("x", out var xProp) ? xProp.GetSingle() : 0f;
+            y = root.TryGetProperty("y", out var yProp) ? yProp.GetSingle() : 0f;
+            z = root.TryGetProperty("z", out var zProp) ? zProp.GetSingle() : 0f;
+            OGEngineExports.StarApiLogFileOnly($"[Teleport] PollTeleportRequest: found arrive map={map} x={x} y={y} z={z}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Teleport] PollTeleportRequest error: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>Notify STAR API that the avatar has arrived at the teleport destination (POST /api/teleport/confirm-arrival).</summary>
+    public async Task<OASISResult<bool>> ConfirmTeleportArrivalAsync(CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_baseApiUrl))
+            return Fail<bool>("STAR API base URL is not set.", StarApiResultCode.NotInitialized);
+        var avatarId = GetCachedAvatarId() ?? string.Empty;
+        var payload = $"{{\"avatarId\":{JsonSerializer.Serialize(avatarId)}}}";
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/teleport/confirm-arrival", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Teleport] ConfirmTeleportArrival error: {response.Message}");
+            return Fail<bool>(response.Message ?? "ConfirmTeleportArrival failed.", StarApiResultCode.ApiError);
+        }
+        OGEngineExports.StarApiLogFileOnly("[Teleport] ConfirmTeleportArrival: OK");
+        return Success(true, StarApiResultCode.Success, "Teleport arrival confirmed.");
+    }
+
+    /* ── Cross-game entity spawning ───────────────────────────────────────── */
+
+    /// <summary>Read and delete %TEMP%\oasis_spawn_{avatarId}.json. Returns true and fills out params if a pending spawn event exists.</summary>
+    public bool PollSpawnEvent(out string entityId, out float x, out float y, out float z)
+    {
+        entityId = string.Empty;
+        x = y = z = 0f;
+        try
+        {
+            var avatarId = GetCachedAvatarId() ?? "unknown";
+            var path = Path.Combine(Path.GetTempPath(), $"oasis_spawn_{avatarId}.json");
+            if (!File.Exists(path)) return false;
+            var json = File.ReadAllText(path);
+            File.Delete(path);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            entityId = root.TryGetProperty("entityId", out var eProp) ? (eProp.GetString() ?? string.Empty) : string.Empty;
+            x = root.TryGetProperty("x", out var xProp) ? xProp.GetSingle() : 0f;
+            y = root.TryGetProperty("y", out var yProp) ? yProp.GetSingle() : 0f;
+            z = root.TryGetProperty("z", out var zProp) ? zProp.GetSingle() : 0f;
+            OGEngineExports.StarApiLogFileOnly($"[Spawn] PollSpawnEvent: found entityId={entityId} x={x} y={y} z={z}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Spawn] PollSpawnEvent error: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>Notify STAR API that the named entity has been spawned (POST /api/spawn-events/confirm).</summary>
+    public async Task<OASISResult<bool>> ConfirmSpawnAsync(string entityId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_baseApiUrl))
+            return Fail<bool>("STAR API base URL is not set.", StarApiResultCode.NotInitialized);
+        var avatarId = GetCachedAvatarId() ?? string.Empty;
+        var payload = $"{{\"entityId\":{JsonSerializer.Serialize(entityId)},\"avatarId\":{JsonSerializer.Serialize(avatarId)}}}";
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/spawn-events/confirm", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Spawn] ConfirmSpawn error: {response.Message}");
+            return Fail<bool>(response.Message ?? "ConfirmSpawn failed.", StarApiResultCode.ApiError);
+        }
+        OGEngineExports.StarApiLogFileOnly($"[Spawn] ConfirmSpawn: OK entityId={entityId}");
+        return Success(true, StarApiResultCode.Success, "Spawn confirmed.");
+    }
+
+    /* ── Map entity list ──────────────────────────────────────────────────── */
+
+    /// <summary>Fetch the cross-game entity list for a map from STAR API (GET /api/maps/{gameId}/{mapName}/entities). Returns raw JSON array.</summary>
+    public async Task<OASISResult<string>> GetMapEntitiesAsync(string gameId, string mapName, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_baseApiUrl))
+            return Fail<string>("STAR API base URL is not set.", StarApiResultCode.NotInitialized);
+        var gId = Uri.EscapeDataString(gameId);
+        var mName = Uri.EscapeDataString(mapName);
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/maps/{gId}/{mName}/entities", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[MapEntities] GetMapEntities error: gameId={gameId} mapName={mapName} {response.Message}");
+            return Fail<string>(response.Message ?? "GetMapEntities failed.", StarApiResultCode.ApiError);
+        }
+        OGEngineExports.StarApiLogFileOnly($"[MapEntities] GetMapEntities: OK gameId={gameId} mapName={mapName}");
+        return Success(response.Result ?? "[]", StarApiResultCode.Success, "Map entities retrieved.");
+    }
+
     public OASISResult<string> GetLastError()
     {
         lock (_stateLock)

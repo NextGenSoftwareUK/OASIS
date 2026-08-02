@@ -1433,6 +1433,12 @@ public static unsafe class OGEngineExports
     public const int StarApiOpSetAvatarId = 27;
     /// <summary>Fired after a successful background quest list fetch updated the in-memory quest cache (progress POST, popup refresh, or cold Ensure). Native should re-read tracker/popup CVars.</summary>
     public const int StarApiOpQuestsCacheRefreshed = 28;
+    public const int StarApiOpRequestTeleport = 29;
+    public const int StarApiOpPollTeleportRequest = 30;
+    public const int StarApiOpConfirmTeleportArrival = 31;
+    public const int StarApiOpPollSpawnEvent = 32;
+    public const int StarApiOpConfirmSpawn = 33;
+    public const int StarApiOpGetMapEntities = 34;
 
     /// <summary>Invoke operation callback on the game-thread pump when available; fallback to direct invoke.</summary>
     internal static void InvokeOperationCallback(StarApiResultCode code, int operationType)
@@ -1807,6 +1813,147 @@ public static unsafe class OGEngineExports
                 return len == s.Length ? s : s.Substring(0, len);
         }
         return string.Empty;
+    }
+
+    /* ── Cross-game teleportation ─────────────────────────────────────────── */
+
+    /// <summary>Request teleport to another game+map. Writes oasis_teleport_{avatarId}.json to %TEMP% for OmniverseKernel pickup.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_request_teleport", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRequestTeleport(sbyte* targetGame, sbyte* targetMap, float x, float y, float z)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return;
+            client.RequestTeleport(
+                PtrToString(targetGame) ?? string.Empty,
+                PtrToString(targetMap) ?? string.Empty,
+                x, y, z);
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Teleport] ogengine_request_teleport exception: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /// <summary>Poll for an incoming teleport request (oasis_teleport_arrive_{avatarId}.json). Returns 1 and fills out_map/out_x/y/z if found; deletes the file. Returns 0 otherwise.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_poll_teleport_request", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiPollTeleportRequest(sbyte* outMap, nuint mapLen, float* outX, float* outY, float* outZ)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return 0;
+            if (!client.PollTeleportRequest(out var map, out var x, out var y, out var z)) return 0;
+            if (outMap != null && mapLen > 0)
+                WriteUtf8ToOutput(map ?? string.Empty, outMap, (int)Math.Min(mapLen, (nuint)int.MaxValue));
+            if (outX != null) *outX = x;
+            if (outY != null) *outY = y;
+            if (outZ != null) *outZ = z;
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Teleport] ogengine_poll_teleport_request exception: {ex.Message}"); } catch { /* ignore */ }
+            return 0;
+        }
+    }
+
+    /// <summary>Notify STAR API that the avatar has arrived at the teleport destination. Fire-and-forget; posts to /api/teleport/confirm-arrival.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_confirm_teleport_arrival", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiConfirmTeleportArrival()
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return;
+            _ = Task.Run(() =>
+            {
+                try { client.ConfirmTeleportArrivalAsync(CancellationToken.None).GetAwaiter().GetResult(); }
+                catch (Exception ex2) { try { StarApiLogFileOnly($"[Teleport] confirm_teleport_arrival background error: {ex2.Message}"); } catch { /* ignore */ } }
+            });
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Teleport] ogengine_confirm_teleport_arrival exception: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /* ── Cross-game entity spawning ───────────────────────────────────────── */
+
+    /// <summary>Poll for a pending spawn event (oasis_spawn_{avatarId}.json). Returns 1 and fills out_entity_id/out_x/y/z if found; deletes the file. Returns 0 otherwise.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_poll_spawn_event", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiPollSpawnEvent(sbyte* outEntityId, nuint idLen, float* outX, float* outY, float* outZ)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return 0;
+            if (!client.PollSpawnEvent(out var entityId, out var x, out var y, out var z)) return 0;
+            if (outEntityId != null && idLen > 0)
+                WriteUtf8ToOutput(entityId ?? string.Empty, outEntityId, (int)Math.Min(idLen, (nuint)int.MaxValue));
+            if (outX != null) *outX = x;
+            if (outY != null) *outY = y;
+            if (outZ != null) *outZ = z;
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Spawn] ogengine_poll_spawn_event exception: {ex.Message}"); } catch { /* ignore */ }
+            return 0;
+        }
+    }
+
+    /// <summary>Notify STAR API that the named cross-game entity has been spawned. Fire-and-forget; posts to /api/spawn-events/confirm.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_confirm_spawn", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiConfirmSpawn(sbyte* entityId)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return;
+            var id = PtrToString(entityId) ?? string.Empty;
+            _ = Task.Run(() =>
+            {
+                try { client.ConfirmSpawnAsync(id, CancellationToken.None).GetAwaiter().GetResult(); }
+                catch (Exception ex2) { try { StarApiLogFileOnly($"[Spawn] confirm_spawn background error: {ex2.Message}"); } catch { /* ignore */ } }
+            });
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Spawn] ogengine_confirm_spawn exception: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /* ── Map entity list ──────────────────────────────────────────────────── */
+
+    /// <summary>Fetch the cross-game entity list for a given map from STAR API. Writes JSON array to out_json buffer.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_get_map_entities", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetMapEntities(sbyte* gameId, sbyte* mapName, sbyte* outJson, nuint bufLen)
+    {
+        try
+        {
+            if (outJson is null || bufLen == 0)
+                return (int)SetErrorAndReturn("outJson and bufLen must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetMapEntities);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetMapEntities);
+            var gId = PtrToString(gameId) ?? string.Empty;
+            var mName = PtrToString(mapName) ?? string.Empty;
+            var result = client.GetMapEntitiesAsync(gId, mName, CancellationToken.None).GetAwaiter().GetResult();
+            if (result.IsError)
+                return (int)SetErrorAndReturn(result.Message ?? "Failed to get map entities.", StarApiResultCode.ApiError, StarApiOpGetMapEntities);
+            var json = result.Result ?? "[]";
+            WriteUtf8ToOutput(json, outJson, (int)Math.Min(bufLen, (nuint)int.MaxValue));
+            SetError(string.Empty);
+            InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetMapEntities);
+            return (int)StarApiResultCode.Success;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[MapEntities] ogengine_get_map_entities exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetMapEntities);
+        }
     }
 }
 
