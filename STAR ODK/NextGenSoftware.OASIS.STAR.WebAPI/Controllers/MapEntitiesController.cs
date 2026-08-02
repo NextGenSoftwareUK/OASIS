@@ -1,5 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -7,18 +13,18 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public record MapEntity(string entityId, float x, float y, float z);
 
     /// <summary>
-    /// Manages per-map entity lists across OASIS games.
-    /// Entity lists are loaded from *.json files in Config/map_entities/ (named {game}_{map}.json)
-    /// on startup and kept in memory. PUT replaces the entity list for a map and persists it to disk.
+    /// Manages per-map OASIS entity placements as Holons (WEB4) / SmartBricks (WEB5).
+    ///
+    /// Each map's entity list is a STARNETHolon keyed by game + map, stored via HolonManager.
+    /// On first request for a map, any Config/map_entities/{game}_{map}.json seed file is imported.
     /// </summary>
     [ApiController]
     [Route("api/maps")]
-    public class MapEntitiesController : ControllerBase
+    public class MapEntitiesController : STARControllerBase
     {
-        // Keyed by "{game}_{map}" (e.g. "ODOOM_E1M3")
-        private static readonly Dictionary<string, List<MapEntity>> _entities = new();
-        private static bool _loaded = false;
-        private static readonly object _lock = new();
+        private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _seedLock = new(1, 1);
+        private static bool _seeded = false;
 
         private static readonly JsonSerializerOptions _jsonOpts = new()
         {
@@ -29,20 +35,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private readonly ILogger<MapEntitiesController> _logger;
         private readonly IWebHostEnvironment _env;
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         public MapEntitiesController(ILogger<MapEntitiesController> logger, IWebHostEnvironment env)
         {
             _logger = logger;
             _env = env;
-            EnsureLoaded();
         }
 
-        // ── Path helpers ────────────────────────────────────────────────────────
+        // ── Path helpers ─────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Resolves the OASIS Omniverse Config/map_entities/ directory.
-        /// Navigates two levels up from the WebAPI content root to reach the OASIS2 monorepo root,
-        /// then descends into "OASIS Omniverse/Config/map_entities".
-        /// </summary>
         private string MapEntitiesDir
         {
             get
@@ -52,28 +54,46 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
-        private static string MapKey(string game, string map) => $"{game}_{map}";
+        private static string MapKey(string game, string map) => $"{game.ToUpperInvariant()}_{map.ToUpperInvariant()}";
 
-        // ── Startup load ─────────────────────────────────────────────────────────
+        // ── Seed on first request ─────────────────────────────────────────────────
 
-        private void EnsureLoaded()
+        private async Task EnsureSeededAsync()
         {
-            if (_loaded) return;
-            lock (_lock)
+            if (_seeded) return;
+            await _seedLock.WaitAsync();
+            try
             {
-                if (_loaded) return;
-                LoadFromDisk();
-                _loaded = true;
+                if (_seeded) return;
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var existing = await _starAPI.Holons.LoadAllAsync(AvatarId, STARHolonType.MapEntityList, loadAllTypes: false);
+                if (existing.IsError || existing.Result == null || !existing.Result.Any())
+                {
+                    _logger.LogInformation("[MapEntities] No MapEntityList Holons found; seeding from Config/map_entities/.");
+                    await SeedFromJsonAsync();
+                }
+
+                _seeded = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[MapEntities] Seed check failed; continuing without seeding.");
+                _seeded = true;
+            }
+            finally
+            {
+                _seedLock.Release();
             }
         }
 
-        private void LoadFromDisk()
+        private async Task SeedFromJsonAsync()
         {
             var dir = MapEntitiesDir;
             if (!Directory.Exists(dir))
             {
-                _logger.LogInformation("[MapEntities] Config/map_entities/ directory not found at {Dir}; starting with empty set.", dir);
-                Directory.CreateDirectory(dir);
+                _logger.LogInformation("[MapEntities] Config/map_entities/ not found at {Dir}; skipping seed.", dir);
                 return;
             }
 
@@ -82,101 +102,146 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 try
                 {
                     var key = Path.GetFileNameWithoutExtension(file); // e.g. "ODOOM_E1M3"
+                    var parts = key.Split('_', 2);
+                    if (parts.Length < 2) continue;
+
+                    var game = parts[0];
+                    var map = parts[1];
                     var json = File.ReadAllText(file);
-                    var list = JsonSerializer.Deserialize<List<MapEntity>>(json, _jsonOpts);
-                    if (list != null)
-                    {
-                        _entities[key] = list;
-                        _logger.LogInformation("[MapEntities] Loaded {Count} entities for map '{Key}' from {File}.", list.Count, key, file);
-                    }
+                    var entities = JsonSerializer.Deserialize<List<MapEntity>>(json, _jsonOpts);
+                    if (entities == null) continue;
+
+                    var holon = EntitiesToHolon(game, map, entities);
+                    var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
+                    if (result.IsError)
+                        _logger.LogWarning("[MapEntities] Seed failed for '{Key}': {Msg}", key, result.Message);
+                    else
+                        _logger.LogInformation("[MapEntities] Seeded '{Key}' ({Count} entities) → Holon {Id}.", key, entities.Count, result.Result?.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "[MapEntities] Failed to parse entity list from {File}; skipping.", file);
+                    _logger.LogWarning(ex, "[MapEntities] Seed parse error for {File}; skipping.", file);
                 }
             }
-
-            _logger.LogInformation("[MapEntities] Loaded entity lists for {Count} map(s).", _entities.Count);
         }
+
+        // ── Model ↔ Holon mapping ────────────────────────────────────────────────
+
+        private static STARHolon EntitiesToHolon(string game, string map, List<MapEntity> entities, Guid? existingId = null)
+        {
+            return new STARHolon
+            {
+                Id = existingId ?? Guid.NewGuid(),
+                Name = $"{game.ToUpperInvariant()}_{map.ToUpperInvariant()} Entities",
+                Description = $"OASIS entity placements for {game}/{map}",
+                HolonType = HolonType.STARNETHolon,
+                MetaData = new Dictionary<string, object>
+                {
+                    // "HolonType" is the MetaData key used by STARHolonManager.LoadHolonsByMetaDataAsync filter
+                    ["HolonType"] = nameof(STARHolonType.MapEntityList),
+                    ["Game"] = game.ToUpperInvariant(),
+                    ["Map"] = map.ToUpperInvariant(),
+                    ["EntitiesJson"] = JsonSerializer.Serialize(entities, _jsonOpts)
+                }
+            };
+        }
+
+        private static List<MapEntity> HolonToEntities(STARHolon? holon)
+        {
+            if (holon?.MetaData == null || !holon.MetaData.TryGetValue("EntitiesJson", out var raw))
+                return new List<MapEntity>();
+            try { return JsonSerializer.Deserialize<List<MapEntity>>(raw?.ToString() ?? "[]", _jsonOpts) ?? new(); }
+            catch { return new(); }
+        }
+
+        private static string? GetMeta(STARHolon h, string key)
+            => h.MetaData?.TryGetValue(key, out var v) == true ? v?.ToString() : null;
 
         // ── Endpoints ───────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Returns the entity list for the specified game map, or an empty array if no entities are defined.
+        /// Returns the entity list for the specified game map.
+        /// Used by ogengine_get_map_entities() at map load time.
         /// </summary>
-        /// <param name="game">The game identifier (e.g. ODOOM, OQUAKE).</param>
-        /// <param name="map">The map identifier (e.g. E1M3, e2m3).</param>
-        /// <returns>List of MapEntity objects placed on that map.</returns>
-        /// <response code="200">Entity list returned (may be empty)</response>
         [HttpGet("{game}/{map}/entities")]
-        [ProducesResponseType(typeof(IEnumerable<MapEntity>), StatusCodes.Status200OK)]
-        public IActionResult GetEntities(string game, string map)
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MapEntity>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetEntities(string game, string map)
         {
             try
             {
-                var key = MapKey(game, map);
-                _logger.LogInformation("[MapEntities] GET entities for {Key}.", key);
+                await EnsureSeededAsync();
 
-                lock (_lock)
+                var allResult = await _starAPI.Holons.LoadAllAsync(AvatarId, STARHolonType.MapEntityList, loadAllTypes: false);
+                if (allResult.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<MapEntity>> { IsError = true, Message = allResult.Message });
+
+                var match = (allResult.Result ?? Enumerable.Empty<STARHolon>()).FirstOrDefault(h =>
+                    string.Equals(GetMeta(h, "Game"), game, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(GetMeta(h, "Map"), map, StringComparison.OrdinalIgnoreCase));
+
+                var entities = match != null ? HolonToEntities(match) : new List<MapEntity>();
+                _logger.LogInformation("[MapEntities] GET {Game}/{Map} → {Count} entities.", game, map, entities.Count);
+
+                return Ok(new OASISResult<IEnumerable<MapEntity>>
                 {
-                    if (_entities.TryGetValue(key, out var list))
-                        return Ok(list);
-                }
-
-                return Ok(Array.Empty<MapEntity>());
+                    Result = entities,
+                    IsError = false,
+                    Message = $"{entities.Count} entities for {game}/{map}."
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[MapEntities] Error retrieving entities for {Game}/{Map}.", game, map);
-                return StatusCode(500, new { error = "Internal server error retrieving map entities." });
+                return HandleException<IEnumerable<MapEntity>>(ex, $"GetEntities {game}/{map}");
             }
         }
 
         /// <summary>
-        /// Replaces the entity list for the specified map and persists it to
-        /// Config/map_entities/{game}_{map}.json.
+        /// Replaces the entity list for the specified map. The new list is stored as a Holon.
+        /// Used by UDB map export / OASIS entity placement tools.
         /// </summary>
-        /// <param name="game">The game identifier.</param>
-        /// <param name="map">The map identifier.</param>
-        /// <param name="entities">The complete replacement entity list for this map.</param>
-        /// <returns>The updated entity list.</returns>
-        /// <response code="200">Entity list updated and persisted</response>
-        /// <response code="400">Request body is null</response>
         [HttpPut("{game}/{map}/entities")]
-        [ProducesResponseType(typeof(IEnumerable<MapEntity>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult PutEntities(string game, string map, [FromBody] List<MapEntity> entities)
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MapEntity>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MapEntity>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PutEntities(string game, string map, [FromBody] List<MapEntity> entities)
         {
             try
             {
                 if (entities == null)
-                    return BadRequest(new { error = "Request body (entity list) is required." });
+                    return BadRequest(new OASISResult<IEnumerable<MapEntity>> { IsError = true, Message = "Request body (entity list) is required." });
 
-                var key = MapKey(game, map);
+                var avatarCheck = ValidateAvatarId<IEnumerable<MapEntity>>();
+                if (avatarCheck != null) return avatarCheck;
 
-                lock (_lock)
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                // Find existing holon for this map so we update rather than create a duplicate
+                var allResult = await _starAPI.Holons.LoadAllAsync(AvatarId, STARHolonType.MapEntityList, loadAllTypes: false);
+                Guid? existingId = null;
+                if (!allResult.IsError && allResult.Result != null)
                 {
-                    _entities[key] = entities;
+                    var existing = allResult.Result.FirstOrDefault(h =>
+                        string.Equals(GetMeta(h, "Game"), game, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(GetMeta(h, "Map"), map, StringComparison.OrdinalIgnoreCase));
+                    existingId = existing?.Id;
                 }
 
-                // Persist to disk
-                var dir = MapEntitiesDir;
-                Directory.CreateDirectory(dir);
-                var safeName = string.Concat(key.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
-                var filePath = Path.Combine(dir, $"{safeName}.json");
-                var json = JsonSerializer.Serialize(entities, _jsonOpts);
-                File.WriteAllText(filePath, json);
+                var holon = EntitiesToHolon(game, map, entities, existingId);
+                var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<MapEntity>> { IsError = true, Message = result.Message });
 
-                _logger.LogInformation(
-                    "[MapEntities] Updated {Count} entities for {Key}, persisted to {FilePath}.",
-                    entities.Count, key, filePath);
-
-                return Ok(entities);
+                _logger.LogInformation("[MapEntities] PUT {Game}/{Map} → {Count} entities, Holon {Id}.", game, map, entities.Count, result.Result?.Id);
+                return Ok(new OASISResult<IEnumerable<MapEntity>>
+                {
+                    Result = entities,
+                    IsError = false,
+                    Message = $"{entities.Count} entities saved for {game}/{map}."
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[MapEntities] Error updating entities for {Game}/{Map}.", game, map);
-                return StatusCode(500, new { error = "Internal server error updating map entities." });
+                return HandleException<IEnumerable<MapEntity>>(ex, $"PutEntities {game}/{map}");
             }
         }
     }
