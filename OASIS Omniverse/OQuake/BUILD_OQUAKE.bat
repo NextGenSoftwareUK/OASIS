@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 REM OQuake - vkQuake + OASIS STAR API. Credit: Novum/vkQuake (GPL-2.0). See CREDITS_AND_LICENSE.md.
 REM Usage: BUILD_OQUAKE.bat [ run | batch ]
@@ -11,11 +11,11 @@ REM OQuake source (fork of vkQuake). Default path after folder rename: C:\Source
 set "VKQUAKE_SRC=C:\Source\OQUAKE"
 set "QUAKE_ENGINE_EXE="
 set "HERE=%~dp0"
-set "STARAPICLIENT=%HERE%..\STARAPIClient"
+set "OGENGINECLIENT=%HERE%..\OGEngineClient"
 set "OQUAKE_INTEGRATION=%HERE%"
-REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
+REM Set to 1 to always build and deploy OGEngineClient before building (script skips build if client unchanged).
 set "BUILD_STAR_CLIENT=0"
-REM Always use star_sync from star_api.dll (C# client exports). Do not compile star_sync.c in engine.
+REM Always use star_sync from ogengine.dll (C# client exports). Do not compile ogengine_sync.c in engine.
 set "OASIS_STAR_SYNC_IN_CLIENT=1"
 
 REM Generate OQuake version from Version/oquake_version.txt -> Code/oquake_version.h, Version/version_display.txt
@@ -29,18 +29,18 @@ if exist "%HERE%..\run_oasis_header.bat" (
     echo [OQuake] run_oasis_header.bat not found in parent folder - skipping. Run from OASIS Omniverse\OQuake for full setup.
 )
 
-REM Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
+REM Always check OGEngineClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
 if exist "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
-    echo [OQuake] Checking STARAPIClient - build if changed, deploy...
+    echo [OQuake] Checking OGEngineClient - build if changed, deploy...
     if "%BUILD_STAR_CLIENT%"=="1" (
         call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
     ) else (
         call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
     )
-    if errorlevel 1 (echo [OQuake] STARAPIClient build/deploy failed. & pause & exit /b 1)
+    if errorlevel 1 (echo [OQuake] OGEngineClient build/deploy failed. & pause & exit /b 1)
 ) else (
-    echo [OQuake] BUILD_AND_DEPLOY_STAR_CLIENT.bat not found in parent folder - using existing star_api.dll/lib if present.
-    echo [OQuake] To build STARAPIClient, run from "OASIS Omniverse\OQuake" or copy star_api.dll and star_api.lib into %HERE%Code\
+    echo [OQuake] BUILD_AND_DEPLOY_STAR_CLIENT.bat not found in parent folder - using existing ogengine.dll/lib if present.
+    echo [OQuake] To build OGEngineClient, run from "OASIS Omniverse\OQuake" or copy ogengine.dll and ogengine.lib into %HERE%Code\
 )
 
 set "DO_FULL_CLEAN=0"
@@ -55,38 +55,38 @@ REM --- STAR API (deploy already ran above; prefer freshly built client so vkQua
 set "STAR_DLL="
 set "STAR_LIB="
 REM Prefer net9.0; check both bin\Release and bin\x64\Release (VS/platform can output to x64)
-if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib" (
-    set "STAR_DLL=%STARAPICLIENT%\bin\Release\net9.0\win-x64\publish\star_api.dll"
-    set "STAR_LIB=%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib"
+if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
+    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll"
+    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
 )
-if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\native\star_api.lib" (
-    set "STAR_DLL=%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll"
-    set "STAR_LIB=%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\native\star_api.lib"
+if not defined STAR_DLL if exist "%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\native\ogengine.lib" (
+    set "STAR_DLL=%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll"
+    set "STAR_LIB=%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\native\ogengine.lib"
 )
-if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib" (
-    set "STAR_DLL=%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll"
-    set "STAR_LIB=%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib"
+if not defined STAR_DLL if exist "%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
+    set "STAR_DLL=%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll"
+    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
 )
-if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net8.0\win-x64\native\star_api.lib" (
-    set "STAR_DLL=%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish\star_api.dll"
-    set "STAR_LIB=%STARAPICLIENT%\bin\Release\net8.0\win-x64\native\star_api.lib"
+if not defined STAR_DLL if exist "%OGENGINECLIENT%\bin\Release\net8.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net8.0\win-x64\native\ogengine.lib" (
+    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net8.0\win-x64\publish\ogengine.dll"
+    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net8.0\win-x64\native\ogengine.lib"
 )
-if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%Code\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%Code\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%Code\star_api.lib"
-if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
+if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%Code\ogengine.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%Code\ogengine.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%Code\ogengine.lib"
+if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\ogengine.lib"
 if not defined STAR_DLL (
-    echo star_api.dll missing after deploy. Check STARAPIClient build.
+    echo ogengine.dll missing after deploy. Check OGEngineClient build.
     pause
     exit /b 1
 )
 
-if not exist "%STARAPICLIENT%\star_api.h" (echo star_api.h not found: %STARAPICLIENT% & pause & exit /b 1)
+if not exist "%OGENGINECLIENT%\ogengine.h" (echo ogengine.h not found: %OGENGINECLIENT% & pause & exit /b 1)
 
-REM --- star_sync declarations only (implementation comes from star_api.dll exports). ---
-set "STARAPICLIENT=%HERE%..\STARAPIClient"
+REM --- star_sync declarations only (implementation comes from ogengine.dll exports). ---
+set "OGENGINECLIENT=%HERE%..\OGEngineClient"
 set "OQUAKE_CODE=%OQUAKE_INTEGRATION%Code\"
-if exist "%STARAPICLIENT%\star_sync.h" (
+if exist "%OGENGINECLIENT%\ogengine_sync.h" (
     if not exist "%OQUAKE_CODE%" mkdir "%OQUAKE_CODE%"
-    copy /Y "%STARAPICLIENT%\star_sync.h" "%OQUAKE_CODE%" >nul
+    copy /Y "%OGENGINECLIENT%\ogengine_sync.h" "%OQUAKE_CODE%" >nul
 )
 
 REM --- Require at least vkQuake to build the exe. quake-rerelease-qc (QUAKE_SRC) is optional if you only run BUILD QUAKE. ---
@@ -96,15 +96,15 @@ if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" (echo vkQuake source not found or in
 echo.
 echo [OQuake] Installing...
 if exist "%QUAKE_SRC%" (
-    copy /Y "%OQUAKE_CODE%oquake_star_integration.c" "%QUAKE_SRC%\" >nul
-    copy /Y "%OQUAKE_CODE%oquake_star_integration.h" "%QUAKE_SRC%\" >nul
+    copy /Y "%OQUAKE_CODE%oquake_ogengine_integration.c" "%QUAKE_SRC%\" >nul
+    copy /Y "%OQUAKE_CODE%oquake_ogengine_integration.h" "%QUAKE_SRC%\" >nul
     copy /Y "%OQUAKE_CODE%oquake_version.h" "%QUAKE_SRC%\" >nul
     copy /Y "%OQUAKE_INTEGRATION%Docs\WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\" >nul
     copy /Y "%OQUAKE_CODE%engine_oquake_hooks.c.example" "%QUAKE_SRC%\" >nul
-    copy /Y "%STARAPICLIENT%\star_api.h" "%QUAKE_SRC%\" >nul
-    if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%QUAKE_SRC%\" >nul
-    copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll" >nul
-    if defined STAR_LIB copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib" >nul
+    copy /Y "%OGENGINECLIENT%\ogengine.h" "%QUAKE_SRC%\" >nul
+    if exist "%OQUAKE_CODE%ogengine_sync.h" copy /Y "%OQUAKE_CODE%ogengine_sync.h" "%QUAKE_SRC%\" >nul
+    copy /Y "%STAR_DLL%" "%QUAKE_SRC%\ogengine.dll" >nul
+    if defined STAR_LIB copy /Y "%STAR_LIB%" "%QUAKE_SRC%\ogengine.lib" >nul
     echo   %QUAKE_SRC%
 ) else (
     echo   QUAKE_SRC not set or missing; skipping copy to QuakeC tree ^(only vkQuake will get integration^).
@@ -119,13 +119,13 @@ echo [OQuake] Patching vkQuake source...
 set "APPLY_PS1=%OQUAKE_INTEGRATION%vkquake_oquake\apply_oquake_to_vkquake.ps1"
 if exist "%APPLY_PS1%" powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%"
 REM Ensure vkQuake always has latest header and integration sources (apply script copies these too; this guarantees after bat run)
-copy /Y "%OQUAKE_CODE%oquake_star_integration.c" "%VKQUAKE_SRC%\Quake\" >nul
-copy /Y "%OQUAKE_CODE%oquake_star_integration.h" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%OQUAKE_CODE%oquake_ogengine_integration.c" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%OQUAKE_CODE%oquake_ogengine_integration.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%OQUAKE_CODE%oquake_version.h" "%VKQUAKE_SRC%\Quake\" >nul
-copy /Y "%STARAPICLIENT%\star_api.h" "%VKQUAKE_SRC%\Quake\" >nul
-if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%VKQUAKE_SRC%\Quake\" >nul
-copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\star_api.dll" >nul
-if defined STAR_LIB copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\star_api.lib" >nul
+copy /Y "%OGENGINECLIENT%\ogengine.h" "%VKQUAKE_SRC%\Quake\" >nul
+if exist "%OQUAKE_CODE%ogengine_sync.h" copy /Y "%OQUAKE_CODE%ogengine_sync.h" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\ogengine.dll" >nul
+if defined STAR_LIB copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\ogengine.lib" >nul
 
 echo.
 if "%DO_FULL_CLEAN%"=="1" if defined VKQUAKE_SRC (
@@ -221,7 +221,7 @@ if errorlevel 1 (
     goto copy_done
 )
 echo   Copied: %OQUAKE_INTEGRATION%\build\OQUAKE.exe
-copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll" >nul
+copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\ogengine.dll" >nul
 for %%D in ("!EXE_DIR!*.dll") do (
     if exist "%%D" copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\" >nul
 )
@@ -243,7 +243,7 @@ if defined QUAKE_ENGINE_EXE (
 ) else if not "%~1"=="clean" (
     echo To build engine: set VKQUAKE_SRC at top ^(e.g. C:\Source\OQUAKE^) and run again.
 )
-echo Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or STAR_API_KEY / STAR_AVATAR_ID
+echo Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or OGENGINE_KEY / STAR_AVATAR_ID
 echo ---
 
 if /i "%~1"=="run" (

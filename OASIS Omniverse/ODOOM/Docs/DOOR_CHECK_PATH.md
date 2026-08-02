@@ -1,4 +1,4 @@
-# Red door / locked door – code path and verification
+﻿# Red door / locked door – code path and verification
 
 This doc describes **exactly** where the engine checks keys for locked doors and how to confirm the ODOOM STAR path is in your build.
 
@@ -43,7 +43,7 @@ After a **full clean build** (patch applied, then build):
 
 3. **If you see neither log**
    - Ensure **BUILD ODOOM.bat** was run so that the **patch** is applied to your **UZDoom** source (the script patches `a_keys.cpp` and `a_doors.cpp` under `UZDOOM_SRC`).
-   - Ensure CMake was run with **OASIS_STAR_API=ON** and **STAR_API_DIR** set so that `OASIS_STAR_API` is **#defined** for the `zdoom` target (otherwise the STAR blocks in `a_keys.cpp` and `a_doors.cpp` are compiled out).
+   - Ensure CMake was run with **OASIS_STAR_API=ON** and **OGENGINE_DIR** set so that `OASIS_STAR_API` is **#defined** for the `zdoom` target (otherwise the STAR blocks in `a_keys.cpp` and `a_doors.cpp` are compiled out).
    - Run **`.\Scripts\verify_a_keys_patch.ps1 -UZDOOM_SRC "C:\Source\UZDoom"`** (or your UZDoom path) to confirm `a_keys.cpp` contains the STAR block.
 
 4. **If you see EV_DoDoor log but not door v2**

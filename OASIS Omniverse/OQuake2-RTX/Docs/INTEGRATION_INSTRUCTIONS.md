@@ -101,10 +101,10 @@ void Touch_Item(edict_t* ent, edict_t* other, cplane_t* plane, csurface_t* surf)
 {
     /* ... existing touch logic ... */
     if (ent->item->flags & IT_KEY) {
-        if (strcmp(ent->item->classname, "key_silver") == 0) {
-            OQuake2RTX_STAR_OnKeyPickup("silver_key");
-        } else if (strcmp(ent->item->classname, "key_gold") == 0) {
-            OQuake2RTX_STAR_OnKeyPickup("gold_key");
+        if (strcmp(ent->item->classname, "item_key_blue_key") == 0) {
+            OQuake2RTX_STAR_OnKeyPickup("blue_key");
+        } else if (strcmp(ent->item->classname, "item_key_red_key") == 0) {
+            OQuake2RTX_STAR_OnKeyPickup("red_key");
         }
     }
 }
@@ -124,7 +124,7 @@ qboolean LockedDoorTouch(edict_t* ent, edict_t* other)
         return qtrue;
 
     /* Check OASIS cross-game inventory */
-    const char* key_name = (ent->item->flags & SILVER_KEY) ? "silver_key" : "gold_key";
+    const char* key_name = (ent->item->flags & BLUE_KEY) ? "blue_key" : "red_key";
     if (OQuake2RTX_STAR_CheckDoorAccess(ent->targetname, key_name)) {
         /* Player had the key in OASIS inventory — door opens */
         return qtrue;
@@ -256,48 +256,51 @@ Link flags: `-lstar_api` (from the library search path set to Q2 RTX source root
 | Thing Type | Name               | Category |
 |------------|--------------------|----------|
 | 5900       | Portal             | Portal   |
-| 6001       | silver_key         | Key      |
-| 6002       | gold_key           | Key      |
-| 6100       | Blaster            | Weapon   |
-| 6101       | Shotgun            | Weapon   |
-| 6102       | Super Shotgun      | Weapon   |
-| 6103       | Machinegun         | Weapon   |
-| 6104       | Chaingun           | Weapon   |
-| 6105       | Grenade Launcher   | Weapon   |
-| 6106       | Rocket Launcher    | Weapon   |
-| 6107       | Hyperblaster       | Weapon   |
-| 6108       | Railgun            | Weapon   |
-| 6109       | BFG10K             | Weapon   |
-| 6200       | Jacket Armor       | Armor    |
-| 6201       | Combat Armor       | Armor    |
-| 6202       | Body Armor         | Armor    |
-| 6300       | Small Health       | Health   |
-| 6301       | Medium Health      | Health   |
-| 6302       | Mega Health        | Health   |
-| 6400       | Shells             | Ammo     |
-| 6401       | Bullets            | Ammo     |
-| 6402       | Grenades           | Ammo     |
-| 6403       | Rockets            | Ammo     |
-| 6404       | Cells              | Ammo     |
-| 6405       | Slugs              | Ammo     |
-| 6500       | Gunner             | Monster  |
-| 6501       | Gladiator          | Monster  |
-| 6502       | Tank               | Monster  |
-| 6503       | Makron (boss)      | Monster  |
-| 6504       | Jorg (boss)        | Monster  |
-| 6505       | Brain              | Monster  |
-| 6506       | Floater            | Monster  |
-| 6507       | Mutant             | Monster  |
-| 6508       | Medic              | Monster  |
-| 6509       | Soldier            | Monster  |
-| 6510–6899  | Reserved           | —        |
+| 6001       | Blue Key           | Key      |
+| 6002       | Red Key            | Key      |
+| 6003       | Commander's Head   | Key      |
+| 6011       | Blaster            | Weapon   |
+| 6012       | Shotgun            | Weapon   |
+| 6013       | Super Shotgun      | Weapon   |
+| 6014       | Machinegun         | Weapon   |
+| 6015       | Chaingun           | Weapon   |
+| 6016       | Grenade Launcher   | Weapon   |
+| 6017       | Rocket Launcher    | Weapon   |
+| 6018       | Hyperblaster       | Weapon   |
+| 6019       | Railgun            | Weapon   |
+| 6020       | BFG10K             | Weapon   |
+| 6021       | Bullets            | Ammo     |
+| 6022       | Shells             | Ammo     |
+| 6023       | Grenades           | Ammo     |
+| 6024       | Rockets            | Ammo     |
+| 6025       | Cells              | Ammo     |
+| 6026       | Slugs              | Ammo     |
+| 6031       | Small Health       | Health   |
+| 6032       | Health             | Health   |
+| 6033       | Mega Health        | Health   |
+| 6041       | Jacket Armor       | Armor    |
+| 6042       | Combat Armor       | Armor    |
+| 6043       | Body Armor         | Armor    |
+| 6101       | Soldier            | Monster  |
+| 6102       | Infantry           | Monster  |
+| 6103       | Gunner             | Monster  |
+| 6104       | Berserker          | Monster  |
+| 6105       | Gladiator          | Monster  |
+| 6106       | Flyer              | Monster  |
+| 6107       | Medic              | Monster  |
+| 6108       | Parasite           | Monster  |
+| 6109       | Brain              | Monster  |
+| 6110       | Supertank          | Monster  |
+| 6111       | Tank               | Monster  |
+| 6112       | Makron (boss)      | Monster  |
+| 6113–6899  | Reserved           | —        |
 
 ---
 
 ## Shared Inventory Note
 
 OQuake2-RTX shares the 6xxx thing type range with OQuake2. Items added to the OASIS inventory from either game are visible in both. This means:
-- A silver key picked up in OQuake2 can open a silver door in OQuake2-RTX (via `CheckDoorAccess`)
+- A blue key picked up in OQuake2 can open a blue key door in OQuake2-RTX (via `CheckDoorAccess`)
 - Monster kills in either game contribute to the same cross-game XP pool
 - The portal (type 5900) connects both Q2 variants to the wider OASIS Omniverse
 

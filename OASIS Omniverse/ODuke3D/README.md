@@ -1,4 +1,4 @@
-# ODuke3D – Duke Nukem 3D + OASIS STAR API
+﻿# ODuke3D – Duke Nukem 3D + OASIS STAR API
 
 **ODuke3D** is a fork of [EDuke32](https://eduke32.com) (the premier Duke Nukem 3D source port) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **ODOOM**, **OQuake**, **ODOOM3** (Doom 3 classic), **ODOOM3-BFG** (Doom 3 BFG), or **ODuke3D-RT** (ray-traced Duke) can open doors in ODuke3D and vice versa.
 
@@ -20,7 +20,7 @@ ODuke3D is a fork of EDuke32 (EDuke32 contributors, Jonathon Fowler, Richard Gob
 
 3. **Run:** Use **RUN_ODUKE3D.bat** to build (if needed) and launch, or run `eduke32.exe -j C:\Duke3D` directly.
 
-4. **STAR API:** Set `STAR_USERNAME`/`STAR_PASSWORD` or `STAR_API_KEY`/`STAR_AVATAR_ID` for cross-game keys.
+4. **STAR API:** Set `STAR_USERNAME`/`STAR_PASSWORD` or `OGENGINE_KEY`/`STAR_AVATAR_ID` for cross-game keys.
 
 ### Linux / macOS
 
@@ -39,11 +39,11 @@ ODuke3D is a fork of EDuke32 (EDuke32 contributors, Jonathon Fowler, Richard Gob
 ## Architecture
 
 ```
-oduke3d_star_integration.c   (ODuke3D engine hooks + HUD/GUI)
+oduke3d_ogengine_integration.c   (ODuke3D engine hooks + HUD/GUI)
          ↓
     OGLib  (shared C library — config, beamin, session shims)
          ↓
-  STARAPIClient  (C# NativeAOT → star_api.dll)
+  OGEngineClient  (C# NativeAOT → ogengine.dll)
          ↓
   WEB4 / WEB5 OASIS APIs
 ```

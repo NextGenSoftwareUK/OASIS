@@ -5,13 +5,13 @@
  * needs. Both ODOOM and OQuake perform the same steps; this centralises them.
  *
  * Beamin sequence:
- *   1. star_sync_auth_start(username, password, ...)  — async auth via star_sync
- *   2. On auth success: star_api_request_inventory_in_background()
+ *   1. ogengine_sync_auth_start(username, password, ...)  — async auth via star_sync
+ *   2. On auth success: ogengine_request_inventory_in_background()
  *   3. Persist JWT + refresh token + username to oasisstar.json via oglib_config
  *   4. Invoke game callback so the game can update its HUD/console
  *
  * Beamout sequence:
- *   1. star_api_cleanup()
+ *   1. ogengine_cleanup()
  *   2. Clear session in config if session was marked expired
  *   3. Invoke game callback
  *
@@ -29,8 +29,8 @@
 #define OGLIB_BEAMIN_H
 
 #include "oglib_config.h"
-#include "star_api.h"
-#include "star_sync.h"
+#include "ogengine.h"
+#include "ogengine_sync.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,8 +87,8 @@ int oglib_beamin_start(oglib_beamin_ctx_t* ctx,
 
 /**
  * Restore a previously saved session (JWT) from config.
- * Calls star_api_set_saved_session, star_api_set_refresh_token, then
- * star_api_restore_session (async). done_cb fires when the REST validation
+ * Calls ogengine_set_saved_session, ogengine_set_refresh_token, then
+ * ogengine_restore_session (async). done_cb fires when the REST validation
  * (GET /avatar/current) completes.
  *
  * @param ctx  Context with config already populated from oglib_config_load.
@@ -112,13 +112,13 @@ void oglib_beamout(star_config_t* cfg, const char* config_path,
 #include <stdio.h>
 
 /* Internal: star_sync auth callback */
-static void oglib_beamin_auth_done(star_api_result_t result,
+static void oglib_beamin_auth_done(ogengine_result_t result,
                                        const char* error_msg, void* user)
 {
     oglib_beamin_ctx_t* ctx = (oglib_beamin_ctx_t*)user;
     if (!ctx) return;
 
-    if (result != STAR_API_SUCCESS) {
+    if (result != OGENGINE_SUCCESS) {
         if (ctx->done_cb)
             ctx->done_cb(OGLIB_BEAMIN_FAILED, NULL, ctx->done_user);
         return;
@@ -126,9 +126,9 @@ static void oglib_beamin_auth_done(star_api_result_t result,
 
     /* Persist JWT + refresh token + username */
     if (ctx->config && ctx->config_path) {
-        star_api_get_current_jwt(ctx->config->jwt_token,
+        ogengine_get_current_jwt(ctx->config->jwt_token,
                                   sizeof(ctx->config->jwt_token));
-        star_api_get_current_refresh_token(ctx->config->refresh_token,
+        ogengine_get_current_refresh_token(ctx->config->refresh_token,
                                             sizeof(ctx->config->refresh_token));
         oglib_str_copy(ctx->config->username, ctx->username,
                            sizeof(ctx->config->username));
@@ -136,7 +136,7 @@ static void oglib_beamin_auth_done(star_api_result_t result,
     }
 
     /* Kick off background inventory fetch */
-    star_api_request_inventory_in_background();
+    ogengine_request_inventory_in_background();
 
     if (ctx->done_cb)
         ctx->done_cb(OGLIB_BEAMIN_OK, ctx->username, ctx->done_user);
@@ -147,18 +147,18 @@ int oglib_beamin_start(oglib_beamin_ctx_t* ctx,
 {
     if (!ctx || !username || !password) return 0;
     oglib_str_copy(ctx->username, username, sizeof(ctx->username));
-    star_sync_auth_start(username, password, oglib_beamin_auth_done, ctx);
+    ogengine_sync_auth_start(username, password, oglib_beamin_auth_done, ctx);
     return 1;
 }
 
 /* Internal: session restore callback via star_sync pump */
-static void oglib_session_restore_done(star_api_result_t result,
+static void oglib_session_restore_done(ogengine_result_t result,
                                            const char* error_msg, void* user)
 {
     oglib_beamin_ctx_t* ctx = (oglib_beamin_ctx_t*)user;
     if (!ctx) return;
 
-    if (result != STAR_API_SUCCESS) {
+    if (result != OGENGINE_SUCCESS) {
         /* Expired / invalid — clear session from config so next launch is clean */
         if (ctx->config && ctx->config_path) {
             ctx->config->jwt_token[0]     = '\0';
@@ -173,10 +173,10 @@ static void oglib_session_restore_done(star_api_result_t result,
 
     /* Refresh username from API (may differ from stored) */
     if (ctx->config)
-        star_api_get_current_username(ctx->config->username,
+        ogengine_get_current_username(ctx->config->username,
                                        sizeof(ctx->config->username));
 
-    star_api_request_inventory_in_background();
+    ogengine_request_inventory_in_background();
 
     if (ctx->done_cb)
         ctx->done_cb(OGLIB_BEAMIN_OK,
@@ -189,14 +189,14 @@ int oglib_beamin_restore_session(oglib_beamin_ctx_t* ctx)
     if (!ctx || !ctx->config) return 0;
     if (!ctx->config->jwt_token[0]) return 0;
 
-    star_api_set_saved_session(ctx->config->jwt_token);
+    ogengine_set_saved_session(ctx->config->jwt_token);
     if (ctx->config->refresh_token[0])
-        star_api_set_refresh_token(ctx->config->refresh_token);
+        ogengine_set_refresh_token(ctx->config->refresh_token);
 
-    /* star_api_restore_session is async; completion fires via operation callback.
-     * We hook it through star_sync_auth_start with an empty password so the
+    /* ogengine_restore_session is async; completion fires via operation callback.
+     * We hook it through ogengine_sync_auth_start with an empty password so the
      * pump delivers the result the same way. */
-    star_api_restore_session();
+    ogengine_restore_session();
 
     /* For now call done immediately with a "pending" indication.
      * The caller should listen for the operation callback. */
@@ -210,8 +210,8 @@ int oglib_beamin_restore_session(oglib_beamin_ctx_t* ctx)
 void oglib_beamout(star_config_t* cfg, const char* config_path,
                        oglib_beamout_done_fn done_cb, void* done_user)
 {
-    int expired = star_api_is_session_expired();
-    star_api_cleanup();
+    int expired = ogengine_is_session_expired();
+    ogengine_cleanup();
 
     if (expired && cfg && config_path) {
         cfg->jwt_token[0]     = '\0';

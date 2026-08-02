@@ -1,4 +1,4 @@
-# Windows Integration Guide for ODuke3D (Duke Nukem 3D + STAR API)
+﻿# Windows Integration Guide for ODuke3D (Duke Nukem 3D + STAR API)
 
 This guide covers integrating the OASIS STAR API into your EDuke32 fork so it becomes **ODuke3D**: cross-game keys and inventory shared across **ODOOM**, **OQuake**, **ODOOM3** (Doom 3 classic), **ODOOM3-BFG** (Doom 3 BFG), and **ODuke3D-RT** (ray-traced Duke).
 
@@ -15,17 +15,17 @@ This guide covers integrating the OASIS STAR API into your EDuke32 fork so it be
 3. **ODuke3D source** (EDuke32 fork) at `C:\Source\ODuke3D`
 4. **STAR API credentials** (username/password or API key)
 
-## Step 1: Build STARAPIClient
+## Step 1: Build OGEngineClient
 
 From the OASIS root run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** or:
 
 ```powershell
 cd C:\Source\OASIS-master
-dotnet publish "OASIS Omniverse\STARAPIClient\STARAPIClient.csproj" `
+dotnet publish "OASIS Omniverse\OGEngineClient\OGEngineClient.csproj" `
     -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
 
-Output: `OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\publish\star_api.dll` and `native\star_api.lib`.
+Output: `OASIS Omniverse\OGEngineClient\bin\Release\net8.0\win-x64\publish\ogengine.dll` and `native\ogengine.lib`.
 
 ## Step 2: Set Environment Variables
 
@@ -33,7 +33,7 @@ Output: `OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\publish\star_a
 set STAR_USERNAME=your_oasis_username
 set STAR_PASSWORD=your_oasis_password
 REM — or — 
-set STAR_API_KEY=your_api_key
+set OGENGINE_KEY=your_api_key
 set STAR_AVATAR_ID=your_avatar_id
 ```
 
@@ -114,7 +114,7 @@ Console should show:
 
 - **`make`: command not found** — Install MinGW-w64 and add `C:\mingw64\bin` to PATH.
 - **SDL2 not found** — EDuke32 requires SDL2 development headers; install via MinGW package manager or copy SDL2 into the source tree.
-- **star_api.lib/dll not found** — Build STARAPIClient first (Step 1).
+- **ogengine.lib/dll not found** — Build OGEngineClient first (Step 1).
 - **No cross-game keys** — Ensure STAR env vars are set and console shows "Authenticated".
 - **duke3d.grp not found** — Use `-j path\to\gamedata` to point to your Duke Nukem 3D data.
 

@@ -1,4 +1,4 @@
-# vkQuake OQuake integration
+﻿# vkQuake OQuake integration
 
 Files here let you build **OQuake**: vkQuake with OASIS STAR API so cross-game keys (OQuake ↔ ODOOM) work.
 
@@ -12,6 +12,6 @@ Files here let you build **OQuake**: vkQuake with OASIS STAR API so cross-game k
 
 1. Run `apply_oquake_to_vkquake.ps1` to copy files into your vkQuake tree.
 2. Follow **VKQUAKE_OQUAKE_INTEGRATION.md** to patch host.c, pr_ext.c, and the build.
-3. Build vkQuake and put `star_api.dll` next to the exe.
+3. Build vkQuake and put `ogengine.dll` next to the exe.
 
-**BUILD_OQUAKE.bat** (in the parent folder) runs the apply script and builds vkQuake. The script does **everything automatically** (like ODOOM): patches **host.c**, **pr_ext.c**, **sbar.c**, **gl_screen.c**, and the Visual Studio project (OQuake sources + star_api.lib). No manual edits are required; see VKQUAKE_OQUAKE_INTEGRATION.md.
+**BUILD_OQUAKE.bat** (in the parent folder) runs the apply script and builds vkQuake. The script does **everything automatically** (like ODOOM): patches **host.c**, **pr_ext.c**, **sbar.c**, **gl_screen.c**, and the Visual Studio project (OQuake sources + ogengine.lib). No manual edits are required; see VKQUAKE_OQUAKE_INTEGRATION.md.

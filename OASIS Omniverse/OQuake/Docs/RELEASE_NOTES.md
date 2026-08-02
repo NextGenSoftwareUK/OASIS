@@ -1,4 +1,4 @@
-# OQuake – Release notes
+﻿# OQuake – Release notes
 
 All notable changes and releases are listed here. Version and build are defined in **Version/oquake_version.txt**.
 
@@ -11,7 +11,7 @@ All notable changes and releases are listed here. Version and build are defined 
 - Quake integrated with the OASIS STAR API for cross-game features in the OASIS Omniverse.
 - Based on **vkQuake** (Vulkan). Keys collected in OQuake can open doors in **ODOOM** and vice versa.
 - Cross-game keys: OQuake **silver_key** ↔ ODOOM red; OQuake **gold_key** ↔ ODOOM blue/yellow.
-- STAR API integration (`oquake_star_integration.c/h`), vkQuake host/pr_ext patches, build and run scripts.
+- STAR API integration (`oquake_ogengine_integration.c/h`), vkQuake host/pr_ext patches, build and run scripts.
 - Documentation: Docs/WINDOWS_INTEGRATION.md, Docs/CREDITS_AND_LICENSE.md, README.md.
 
 By NextGen World Ltd. Full credit to [vkQuake](https://github.com/Novum/vkQuake) (Novum, GPL-2.0).

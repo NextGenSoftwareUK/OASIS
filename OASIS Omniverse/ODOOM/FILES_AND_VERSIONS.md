@@ -1,4 +1,4 @@
-# ODOOM – File list and version docs
+﻿# ODOOM – File list and version docs
 
 ## Why there are multiple “version” files
 
@@ -34,15 +34,15 @@ So: **odoom_version.txt** = source of truth; the rest are outputs. No redundancy
 |------|-------------|
 | **BUILD ODOOM.bat** | Main build: copy integration, run branding, CMake, package to `build\` (ODOOM.exe, Editor folder, etc.). |
 | **RUN ODOOM.bat** | Build if needed, then launch ODOOM.exe. |
-| **patch_uzdoom_engine.ps1** | Patches UZDoom source for ODOOM: version.h, startscreen, status bar, d_main/g_game (inventory capture), sbar_mugshot (OASIS face), p_interaction (boss kill), cvarinfo, about.txt, CMake (star_sync.c), ZScript/MAPINFO/Doom mapinfo (OQuake, inventory), launcher Editor button. Idempotent. See **WINDOWS_INTEGRATION.md** § “What patch_uzdoom_engine.ps1 does” for the full list. |
+| **patch_uzdoom_engine.ps1** | Patches UZDoom source for ODOOM: version.h, startscreen, status bar, d_main/g_game (inventory capture), sbar_mugshot (OASIS face), p_interaction (boss kill), cvarinfo, about.txt, CMake (ogengine_sync.c), ZScript/MAPINFO/Doom mapinfo (OQuake, inventory), launcher Editor button. Idempotent. See **WINDOWS_INTEGRATION.md** § “What patch_uzdoom_engine.ps1 does” for the full list. |
 
 ### STAR integration (source)
 
 | File | Description |
 |------|-------------|
-| **uzdoom_star_integration.cpp** | STAR API init, key pickup, door check, console commands; uses star_sync for async auth. |
-| **uzdoom_star_integration.h** | Declarations for above. |
-| **star_sync.c** / **star_sync.h** | Generic async auth/inventory layer (from STARAPIClient); add star_sync.c to UZDoom build. |
+| **uzdoom_ogengine_integration.cpp** | STAR API init, key pickup, door check, console commands; uses star_sync for async auth. |
+| **uzdoom_ogengine_integration.h** | Declarations for above. |
+| **ogengine_sync.c** / **ogengine_sync.h** | Generic async auth/inventory layer (from OGEngineClient); add ogengine_sync.c to UZDoom build. |
 | **odoom_branding.h** | ODOOM name/version macros for C (used with OASIS_STAR_API). |
 
 ### Launcher Editor (optional UI)
@@ -71,7 +71,7 @@ So: **odoom_version.txt** = source of truth; the rest are outputs. No redundancy
 |------|-------------|
 | **oasis_banner.png** | Optional; copied over launcher banners if present. |
 | **soft_oal.dll** | Optional; copied to build if present. |
-| **star_api.dll** | Often copied from Doom folder for local run; build also gets it from there. |
+| **ogengine.dll** | Often copied from Doom folder for local run; build also gets it from there. |
 | **build/** | Build output (ODOOM.exe, Editor\, DLLs, etc.); can be regenerated. |
 
 ---

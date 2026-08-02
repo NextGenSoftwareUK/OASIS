@@ -40,15 +40,15 @@ OQuake2_STAR_PollItems();
 ### Key pickup
 
 ```c
-// When the player picks up a silver or gold key:
-OQuake2_STAR_OnKeyPickup("silver_key");   // or "gold_key"
+// When the player picks up a blue or red key:
+OQuake2_STAR_OnKeyPickup("blue_key");   // or "red_key"
 ```
 
 ### Key door check
 
 ```c
 // When a key-locked door is triggered and the player does not have the key locally:
-if (OQuake2_STAR_CheckDoorAccess(door->targetname, "silver_key")) {
+if (OQuake2_STAR_CheckDoorAccess(door->targetname, "blue_key")) {
     // Open the door — STAR had the key cross-game
 }
 ```
@@ -115,40 +115,43 @@ Place `oasisstar.json` in the same folder as the game exe (or in the `build/` su
 
 | Name | Thing Type | Item Type |
 |------|-----------|-----------|
-| silver_key | 6001 | KeyItem |
-| gold_key | 6002 | KeyItem |
-| Blaster | 6100 | Weapon |
-| Shotgun | 6101 | Weapon |
-| Super Shotgun | 6102 | Weapon |
-| Machinegun | 6103 | Weapon |
-| Chaingun | 6104 | Weapon |
-| Grenade Launcher | 6105 | Weapon |
-| Rocket Launcher | 6106 | Weapon |
-| Hyperblaster | 6107 | Weapon |
-| Railgun | 6108 | Weapon |
-| BFG10K | 6109 | Weapon |
-| Jacket Armor | 6200 | Armor |
-| Combat Armor | 6201 | Armor |
-| Body Armor | 6202 | Armor |
-| Small Health | 6300 | Health |
-| Medium Health | 6301 | Health |
-| Mega Health | 6302 | Health |
-| Shells | 6400 | Ammo |
-| Bullets | 6401 | Ammo |
-| Grenades | 6402 | Ammo |
-| Rockets | 6403 | Ammo |
-| Cells | 6404 | Ammo |
-| Slugs | 6405 | Ammo |
-| Gunner | 6500 | Monster |
-| Gladiator | 6501 | Monster |
-| Tank | 6502 | Monster |
-| Makron | 6503 | Monster |
-| Jorg | 6504 | Monster |
-| Brain | 6505 | Monster |
-| Floater | 6506 | Monster |
-| Mutant | 6507 | Monster |
-| Medic | 6508 | Monster |
-| Soldier | 6509 | Monster |
+| Blue Key | 6001 | Key |
+| Red Key | 6002 | Key |
+| Commander's Head | 6003 | Key |
+| Blaster | 6011 | Weapon |
+| Shotgun | 6012 | Weapon |
+| Super Shotgun | 6013 | Weapon |
+| Machinegun | 6014 | Weapon |
+| Chaingun | 6015 | Weapon |
+| Grenade Launcher | 6016 | Weapon |
+| Rocket Launcher | 6017 | Weapon |
+| Hyperblaster | 6018 | Weapon |
+| Railgun | 6019 | Weapon |
+| BFG10K | 6020 | Weapon |
+| Bullets | 6021 | Ammo |
+| Shells | 6022 | Ammo |
+| Grenades | 6023 | Ammo |
+| Rockets | 6024 | Ammo |
+| Cells | 6025 | Ammo |
+| Slugs | 6026 | Ammo |
+| Small Health | 6031 | Health |
+| Health | 6032 | Health |
+| Mega Health | 6033 | Health |
+| Jacket Armor | 6041 | Armor |
+| Combat Armor | 6042 | Armor |
+| Body Armor | 6043 | Armor |
+| Soldier | 6101 | Monster |
+| Infantry | 6102 | Monster |
+| Gunner | 6103 | Monster |
+| Berserker | 6104 | Monster |
+| Gladiator | 6105 | Monster |
+| Flyer | 6106 | Monster |
+| Medic | 6107 | Monster |
+| Parasite | 6108 | Monster |
+| Brain | 6109 | Monster |
+| Supertank | 6110 | Monster |
+| Tank | 6111 | Monster |
+| Makron | 6112 | Monster |
 
 **Portal thing type: 5900** (shared cross-game portal — same for all OASIS Omniverse games).
 
@@ -166,7 +169,7 @@ Keys picked up in OQuake2, OQuake, or ODOOM will then open doors in the other ga
 
 ## 7. Cross-game notes
 
-- **Silver key / Gold key** are shared canonical item names across OQuake, OQuake2, and OQuake3.
+- **Blue key / Red key** are Quake II's key classnames. OQuake and OQuake3 use their own key names; the STAR API translates all keys to canonical cross-game tokens.
 - OQuake2 armor caps at 200 (Body Armor), higher than OQuake's 100; set `max_armor: 200` in `oasisstar.json`.
 - Ammo type mapping for cross-game beam-in: Shells↔Shells, Bullets↔Bullets, Rockets↔Rockets, Cells↔Cells, Slugs↔Slugs.
 - Monsters award XP as configured in `oasisstar.json` (`mint_monster_oquake2_*`). Set to 0 to disable minting for individual monsters.

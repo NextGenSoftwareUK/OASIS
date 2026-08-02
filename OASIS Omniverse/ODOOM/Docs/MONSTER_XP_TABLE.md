@@ -1,4 +1,4 @@
-# ODOOM Monster XP Table
+﻿# ODOOM Monster XP Table
 
 When the beamed-in avatar kills a monster, they receive **XP** (experience points) added to their avatar. The amount is proportional to the monster's threat (health, damage, and notoriety in Doom/Quake lore). Boss monsters also mint **[BOSSNFT]** items in the Monsters tab; other mint-enabled monsters mint **[NFT]** items.
 
@@ -43,5 +43,5 @@ When the beamed-in avatar kills a monster, they receive **XP** (experience point
 
 - **XP** is awarded for every kill of a known monster (independent of mint setting). Use `star mint monster <name> 0` only to disable **NFT minting** for that monster; XP is still granted.
 - **Boss NFTs** (BaronOfHell, SpiderMastermind, Cyberdemon, OQMonsterShambler) appear in the Monsters tab with the **[BOSSNFT]** prefix; other minted monsters use **[NFT]**.
-- XP is sent via `star_api_queue_add_xp(amount)` and applied to the beamed-in avatar by the STAR API (enqueued and flushed like add-item jobs).
+- XP is sent via `ogengine_queue_add_xp(amount)` and applied to the beamed-in avatar by the STAR API (enqueued and flushed like add-item jobs).
 - The current avatar XP is shown in the **top-right corner** of the screen when beamed in.

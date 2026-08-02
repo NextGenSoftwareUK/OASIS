@@ -1,10 +1,10 @@
-<#
+﻿<#
 .SYNOPSIS
     Copies ODuke3D-RT integration files into the Duke-RT source tree,
     then runs CMake to build the game executable.
 
 .DESCRIPTION
-    Run this after editing oduke3drt_star_integration.c/.h, OGLib, or star_api.h.
+    Run this after editing oduke3drt_ogengine_integration.c/.h, OGLib, or ogengine.h.
     The script copies deltas into C:\Source\ODuke3D-RT\source\duke3d\src\ and rebuilds.
     ODuke3D-RT is a fork of Duke-RT (https://github.com/fgsfdsfgs/duke-rt),
     a Vulkan ray-tracing modification of EDuke32 (GPL-2.0).
@@ -33,7 +33,7 @@ $ErrorActionPreference = "Stop"
 
 $OmniverseRoot = Split-Path -Parent $PSScriptRoot   # ODuke3D-RT folder
 $OGLibSrc      = Join-Path (Split-Path -Parent $OmniverseRoot) "OGLib"
-$STARSrc       = Join-Path (Split-Path -Parent $OmniverseRoot) "STARAPIClient"
+$STARSrc       = Join-Path (Split-Path -Parent $OmniverseRoot) "OGEngineClient"
 
 if ($DukeRTSrc -eq "") {
     $DukeRTSrc = if ($env:DUKERT_SRC) { $env:DUKERT_SRC } else { "C:\Source\ODuke3D-RT" }
@@ -59,7 +59,7 @@ if (-not (Test-Path $Dest)) {
 # -----------------------------------------------------------------
 Write-Host "`n[1/4] Copying integration source files..."
 
-foreach ($f in @("oduke3drt_star_integration.h", "oduke3drt_star_integration.c")) {
+foreach ($f in @("oduke3drt_ogengine_integration.h", "oduke3drt_ogengine_integration.c")) {
     $src = Join-Path $OmniverseRoot $f
     $dst = Join-Path $Dest $f
     if (Test-Path $src) { Copy-Item $src $dst -Force; Write-Host "  Copied: $f" }
@@ -90,7 +90,7 @@ foreach ($f in $OGLibFiles) {
 # -----------------------------------------------------------------
 Write-Host "`n[3/4] Copying STAR API files..."
 
-foreach ($f in @("star_api.h","star_sync.h","star_sync.c","star_api.lib","star_api.dll")) {
+foreach ($f in @("ogengine.h","star_sync.h","star_sync.c","ogengine.lib","ogengine.dll")) {
     $src = Join-Path $STARSrc $f
     $dst = Join-Path $Dest $f
     if (Test-Path $src) { Copy-Item $src $dst -Force; Write-Host "  Copied: $f" }
@@ -113,12 +113,12 @@ if (-not (Test-Path $BuildDir)) {
 & cmake --build $BuildDir --config $BuildType -- /m
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed." }
 
-# Deploy star_api.dll next to exe
+# Deploy ogengine.dll next to exe
 $ExeDir = Join-Path $BuildDir $BuildType
-$DllSrc = Join-Path $Dest "star_api.dll"
+$DllSrc = Join-Path $Dest "ogengine.dll"
 if ((Test-Path $DllSrc) -and (Test-Path $ExeDir)) {
     Copy-Item $DllSrc $ExeDir -Force
-    Write-Host "  Deployed star_api.dll to $ExeDir"
+    Write-Host "  Deployed ogengine.dll to $ExeDir"
 }
 
 # Deploy oasisstar.json next to exe

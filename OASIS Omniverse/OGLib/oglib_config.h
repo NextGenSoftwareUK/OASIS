@@ -36,7 +36,7 @@ extern "C" {
  */
 typedef struct {
     /* API endpoints */
-    char star_api_url[OGLIB_CONFIG_STR_MAX];    /* WEB5 STAR API base URL */
+    char ogengine_url[OGLIB_CONFIG_STR_MAX];    /* WEB5 STAR API base URL */
     char oasis_api_url[OGLIB_CONFIG_STR_MAX];   /* WEB4 OASIS API base URL */
     char star_transport[64];                        /* "remote" (default) or "native" */
     char oasis_dna_path[OGLIB_CONFIG_PATH_MAX];  /* Optional: path to OASIS_DNA.json */
@@ -153,7 +153,7 @@ int oglib_config_load(const char* path, star_config_t* cfg,
     fclose(f);
 
     /* API endpoints */
-    READ_STR(json, "star_api_url",   cfg->star_api_url);
+    READ_STR(json, "ogengine_url",   cfg->ogengine_url);
     READ_STR(json, "oasis_api_url",  cfg->oasis_api_url);
     READ_STR(json, "star_transport", cfg->star_transport);
     READ_STR(json, "oasis_dna_path", cfg->oasis_dna_path);
@@ -211,7 +211,7 @@ int oglib_config_save(const char* path, const star_config_t* cfg,
     if (!f) return 0;
 
     fprintf(f, "{\n");
-    WRITE_STR_FIELD(f,  "star_api_url",   cfg->star_api_url,   1);
+    WRITE_STR_FIELD(f,  "ogengine_url",   cfg->ogengine_url,   1);
     WRITE_STR_FIELD(f,  "oasis_api_url",  cfg->oasis_api_url,  1);
     WRITE_STR_FIELD(f,  "star_transport", cfg->star_transport,  1);
     WRITE_STR_FIELD(f,  "oasis_dna_path", cfg->oasis_dna_path, 1);

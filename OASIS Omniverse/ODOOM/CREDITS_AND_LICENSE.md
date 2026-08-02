@@ -1,4 +1,4 @@
-# ODOOM – Credits and License
+﻿# ODOOM – Credits and License
 
 ## ODOOM is a fork of UZDoom
 
@@ -16,7 +16,7 @@
 
 The OASIS Omniverse integration adds:
 
-- STAR API integration code (`uzdoom_star_integration.cpp`, `uzdoom_star_integration.h`, `odoom_branding.h`, `patch_uzdoom_engine.ps1`)
+- STAR API integration code (`uzdoom_ogengine_integration.cpp`, `uzdoom_ogengine_integration.h`, `odoom_branding.h`, `patch_uzdoom_engine.ps1`)
 - Build and run scripts (`BUILD ODOOM.bat`, `RUN ODOOM.bat`)
 - Documentation in this folder
 

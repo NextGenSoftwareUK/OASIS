@@ -1,4 +1,4 @@
-# Windows Integration Guide for OQuake (Quake + STAR API)
+﻿# Windows Integration Guide for OQuake (Quake + STAR API)
 
 This guide is for integrating the OASIS STAR API into your Quake fork so that **OQuake** can share keys with **ODOOM**, **ODOOM3** (Doom 3 classic, dhewm3 fork), **ODOOM3-BFG** (Doom 3 BFG, RBDOOM-3-BFG fork), **ODuke3D** (Duke Nukem 3D, EDuke32 fork), **ODuke3D-RT** (Duke Nukem 3D ray-traced, Duke-RT fork), and **OWolf3D** (Wolfenstein 3D, ECWolf fork): keys collected in any of the seven OASIS Omniverse games open doors in the others.
 
@@ -54,22 +54,22 @@ You must own Quake to use the game data; get it from [Steam](https://store.steam
 4. **STAR API credentials** (same as ODOOM: SSO or API key)
 5. **Vulkan SDK** (for vkQuake) – https://vulkan.lunarg.com/sdk/home
 
-**STAR API client:** Use **STARAPIClient** only (see `OASIS Omniverse/STARAPIClient/README.md`). Do not use NativeWrapper.
+**STAR API client:** Use **OGEngineClient** only (see `OASIS Omniverse/OGEngineClient/README.md`). Do not use NativeWrapper.
 
-## Step 1: Build the STAR API client (STARAPIClient)
+## Step 1: Build the STAR API client (OGEngineClient)
 
 From OASIS root run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** or:
 
 ```powershell
 cd C:\Source\OASIS-master
-dotnet publish "OASIS Omniverse\STARAPIClient\STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
+dotnet publish "OASIS Omniverse\OGEngineClient\OGEngineClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
 
-Output: `OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\publish\star_api.dll` and `native\star_api.lib`.
+Output: `OASIS Omniverse\OGEngineClient\bin\Release\net8.0\win-x64\publish\ogengine.dll` and `native\ogengine.lib`.
 
 ## Step 2: Set Environment Variables
 
-Same as ODOOM (see `Doom\WINDOWS_INTEGRATION.md` Step 2). Use `STAR_USERNAME`/`STAR_PASSWORD` or `STAR_API_KEY`/`STAR_AVATAR_ID`.
+Same as ODOOM (see `Doom\WINDOWS_INTEGRATION.md` Step 2). Use `STAR_USERNAME`/`STAR_PASSWORD` or `OGENGINE_KEY`/`STAR_AVATAR_ID`.
 
 ## Step 3: Copy OQuake Integration Files to Your Quake Tree
 
@@ -85,7 +85,7 @@ QuakeC cannot call C functions directly. The **engine** must:
 2. When the player picks up a key: `OQuake_STAR_OnKeyPickup("silver_key")` or `"gold_key"`.
 3. When the player touches a key door and **does not** have the required key locally: `OQuake_STAR_CheckDoorAccess(door_targetname, "silver_key")` or `"gold_key"`. If it returns 1, open the door.
 
-Include in the engine (e.g. `host.c`): `#include "oquake_star_integration.h"`. See **Code/engine_oquake_hooks.c.example** and **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** for vkQuake.
+Include in the engine (e.g. `host.c`): `#include "oquake_ogengine_integration.h"`. See **Code/engine_oquake_hooks.c.example** and **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** for vkQuake.
 
 ## Step 5: QuakeC and engine builtins
 
@@ -93,7 +93,7 @@ The QuakeC in quake-rerelease-qc declares `OQuake_OnKeyPickup` and `OQuake_Check
 
 ## Step 6: Build System
 
-Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the engine project. Link `star_api.lib` and `winhttp.lib` (Windows). Ensure `star_api.dll` is next to the built exe.
+Add `oquake_ogengine_integration.c` and `pr_ext_oquake.c` to the engine project. Link `ogengine.lib` and `winhttp.lib` (Windows). Ensure `ogengine.dll` is next to the built exe.
 
 ## Cross-Game Key Mapping
 
@@ -133,9 +133,9 @@ All four OASIS Omniverse games share keys via the STAR API. Equivalences are con
 
 ## Troubleshooting
 
-- **star_api.lib/dll not found:** Build **STARAPIClient** (run BUILD_AND_DEPLOY_STAR_CLIENT.bat, or answer Y when BUILD_OQUAKE.bat asks to build and deploy STARAPIClient first).
+- **ogengine.lib/dll not found:** Build **OGEngineClient** (run BUILD_AND_DEPLOY_STAR_CLIENT.bat, or answer Y when BUILD_OQUAKE.bat asks to build and deploy OGEngineClient first).
 - **MSBuild not in PATH:** Open **Developer Command Prompt for VS 2022** and run BUILD_OQUAKE.bat from there.
-- **No cross-game keys:** Ensure STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID are set and init succeeds.
+- **No cross-game keys:** Ensure STAR_USERNAME/STAR_PASSWORD or OGENGINE_KEY/STAR_AVATAR_ID are set and init succeeds.
 - **gfx.wad / id1:** Use `-basedir` to point to your Steam Quake install or copy id1 and gfx.wad next to the exe.
 
 **Credits:** OQuake is based on [vkQuake](https://github.com/Novum/vkQuake) (Novum, GPL-2.0). See **Docs/CREDITS_AND_LICENSE.md**.

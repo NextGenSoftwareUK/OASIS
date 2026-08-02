@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 REM BUILD_ODOOM3.bat — Build ODOOM3 (dhewm3 with OASIS STAR integration)
@@ -11,7 +11,7 @@ REM Prerequisites:
 REM   - Visual Studio 2019 (Community or higher) with C++ workload
 REM   - CMake 3.15+ in PATH
 REM   - C:\Source\ODOOM3\ exists (git clone of dhewm3)
-REM   - STARAPIClient built (star_api.dll / star_api.lib in STARAPIClient\)
+REM   - OGEngineClient built (ogengine.dll / ogengine.lib in OGEngineClient\)
 
 set BATCH=%1
 set BUILD_TYPE=Release

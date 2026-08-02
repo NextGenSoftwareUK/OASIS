@@ -1,11 +1,11 @@
-# Contributing to ODOOM
+﻿# Contributing to ODOOM
 
 Thank you for your interest in contributing to ODOOM. ODOOM is a fork of UZDoom with OASIS STAR API integration, by NextGen World Ltd.
 
 ## How to contribute
 
 - **Bug reports and feature requests:** Open an issue in the OASIS repository (or the channel used by the ODOOM/OASIS team). Include steps to reproduce, your environment (Windows version, Visual Studio, UZDoom path), and ODOOM version (from `odoom_version.txt` or in-game).
-- **Code and documentation:** Submit a pull request (or patch) against the OASIS repo. Changes to integration code in `OASIS Omniverse\ODOOM\` (e.g. `uzdoom_star_integration.cpp`, build scripts, docs) are welcome. Changes to the UZDoom engine itself should follow upstream [UZDoom](https://github.com/UZDoom/UZDoom) contribution guidelines where applicable.
+- **Code and documentation:** Submit a pull request (or patch) against the OASIS repo. Changes to integration code in `OASIS Omniverse\ODOOM\` (e.g. `uzdoom_ogengine_integration.cpp`, build scripts, docs) are welcome. Changes to the UZDoom engine itself should follow upstream [UZDoom](https://github.com/UZDoom/UZDoom) contribution guidelines where applicable.
 - **License:** By contributing, you agree that your contributions will be compatible with the project license. ODOOM builds on UZDoom (GPL-3.0). See [CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md) and [LICENSE](LICENSE).
 
 ## Development setup

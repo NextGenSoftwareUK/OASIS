@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Ensure vkQuake Quake/host.c calls OQuake_STAR_PollItems() every client frame.
 
@@ -111,17 +111,17 @@ def main() -> int:
         )
         return 1
 
-    if '#include "oquake_star_integration.h"' not in text:
+    if '#include "oquake_ogengine_integration.h"' not in text:
         if "#include \"oquake_version.h\"" in text:
             text = text.replace(
                 '#include "oquake_version.h"',
-                '#include "oquake_version.h"\n#include "oquake_star_integration.h"',
+                '#include "oquake_version.h"\n#include "oquake_ogengine_integration.h"',
                 1,
             )
         elif '#include "quakedef.h"' in text:
             text = text.replace(
                 '#include "quakedef.h"',
-                '#include "quakedef.h"\n#include "oquake_star_integration.h"',
+                '#include "quakedef.h"\n#include "oquake_ogengine_integration.h"',
                 1,
             )
 

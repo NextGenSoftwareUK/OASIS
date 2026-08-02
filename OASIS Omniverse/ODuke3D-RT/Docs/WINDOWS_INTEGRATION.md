@@ -1,4 +1,4 @@
-# Windows Integration Guide for ODuke3D-RT (Duke-RT + STAR API)
+﻿# Windows Integration Guide for ODuke3D-RT (Duke-RT + STAR API)
 
 This guide covers building ODuke3D-RT on Windows: Duke Nukem 3D with Vulkan ray tracing and full OASIS STAR cross-game integration.
 
@@ -16,11 +16,11 @@ This guide covers building ODuke3D-RT on Windows: Duke Nukem 3D with Vulkan ray 
 
 Ensure your GPU supports **Vulkan ray tracing** (NVIDIA RTX or AMD RDNA 2+).
 
-## Step 1: Build STARAPIClient
+## Step 1: Build OGEngineClient
 
 ```powershell
 cd C:\Source\OASIS-master
-dotnet publish "OASIS Omniverse\STARAPIClient\STARAPIClient.csproj" `
+dotnet publish "OASIS Omniverse\OGEngineClient\OGEngineClient.csproj" `
     -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
 
