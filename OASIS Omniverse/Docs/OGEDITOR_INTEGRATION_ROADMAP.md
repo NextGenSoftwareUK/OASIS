@@ -285,10 +285,14 @@ See `OGEDITOR_PLUGIN_GUIDE.md` for per-editor implementation detail and `OGEDITO
 | Phase | Work | Outcome |
 |-------|------|---------|
 | A | Satellite editors load `ogeditor_api.dll` (Phase 1 above) | All editors share one OASIS intelligence source |
-| B | OASIS menu + cross-launch in all editors (Phase 2) | Designers move freely between editors |
+| B | OASIS menu + "Open Portal Partner In" in all editors (Phase 2) | Designers navigate between both sides of a portal pair without leaving the tool |
 | C | OASISStarPanel + OASISPortalPanel in satellite editors (Phases 3–4) | Full OASIS UI everywhere |
-| D | UDB gains Quake BSP / Q3 BSP / Doom3 .map import-export | UDB opens any OASIS game's maps |
+| D | **OGMapFormat SDK** — `OGMapIR`, `IOGMapFormatAdapter`, built-in adapters for all 10 OGames; community adapter API | Any editor can convert any map to any compatible format via `ogeditor_api.dll`. UDB gains Quake/Q3/Doom3 import-export through the SDK. |
 | E | Ship OGEditor: single installer, all formats, full OASIS integration | OGEditor v1.0 |
+
+Phase D is the key unlock for the unified OGEditor: once UDB can read and write Quake `.map`, Quake3 `.map`, and Doom3 `.map` files via format adapters, a single UDB install opens every OASIS game's maps natively. The satellite editors remain available as specialised tools but are no longer required.
+
+See `OGEDITOR_MAPFORMAT_SDK.md` for the full adapter interface specification, IR schema, and community adapter guide.
 
 ---
 
@@ -296,6 +300,7 @@ See `OGEDITOR_PLUGIN_GUIDE.md` for per-editor implementation detail and `OGEDITO
 
 | Document | Contents |
 |----------|---------|
+| `OGEDITOR_MAPFORMAT_SDK.md` | OGMapIR spec, IOGMapFormatAdapter interface, built-in adapters, community adapter guide, C ABI |
 | `OGEDITOR_PORTAL_SYSTEM.md` | Portal entity spec, runtime flow, OGMapSidecar format, STAR API registration |
 | `OGEDITOR_PLUGIN_GUIDE.md` | Per-editor implementation guide for ogeditor_api.dll integration |
 | `OGEDITOR_ASSET_CATALOG.md` | Asset catalog JSON schema, generation from OGAssetCatalog.cs, consumption |
