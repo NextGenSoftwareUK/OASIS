@@ -51,6 +51,14 @@
       { "id": "arachnotron", "name": "Arachnotron", "doomThingType": 67, "category": "monster" },
       { "id": "spider_mastermind", "name": "Spider Mastermind", "doomThingType": 7, "category": "monster" },
       { "id": "cyberdemon", "name": "Cyberdemon", "doomThingType": 16, "category": "monster" }
+    ],
+    "powerups": [
+      { "id": "invulnerability", "name": "Invulnerability Sphere", "doomThingType": 2022, "category": "powerup" },
+      { "id": "invisible", "name": "Partial Invisibility", "doomThingType": 2024, "category": "powerup" },
+      { "id": "rad_suit", "name": "Radiation Suit", "doomThingType": 2025, "category": "powerup" },
+      { "id": "computer_map", "name": "Computer Map", "doomThingType": 2026, "category": "powerup" },
+      { "id": "berserk", "name": "Berserk", "doomThingType": 2023, "category": "powerup" },
+      { "id": "infrared", "name": "Light Amplification Visor", "doomThingType": 2045, "category": "powerup" }
     ]
   },
   "oquake": {
@@ -91,6 +99,12 @@
       { "id": "enforcer", "name": "Enforcer", "quakeClassname": "monster_enforcer", "category": "monster" },
       { "id": "fish", "name": "Fish", "quakeClassname": "monster_fish", "category": "monster" },
       { "id": "spawn", "name": "Spawn", "quakeClassname": "monster_spawn", "category": "monster" }
+    ],
+    "powerups": [
+      { "id": "quad_damage", "name": "Quad Damage", "quakeClassname": "item_quad", "category": "powerup" },
+      { "id": "pentagram", "name": "Pentagram of Protection", "quakeClassname": "item_invulnerability", "category": "powerup" },
+      { "id": "ring_shadows", "name": "Ring of Shadows", "quakeClassname": "item_invisibility", "category": "powerup" },
+      { "id": "biosuit", "name": "Biosuit", "quakeClassname": "item_envirosuit", "category": "powerup" }
     ]
   },
   "odoom3": {
@@ -123,6 +137,21 @@
       { "id": "guardian2",       "name": "Guardian (Final)",  "d3classname": "monster_boss_guardian2",       "category": "monster", "xp": 800,  "isBoss": true  },
       { "id": "sabaoth",         "name": "Sabaoth",           "d3classname": "monster_boss_sabaoth",         "category": "monster", "xp": 500,  "isBoss": true  },
       { "id": "cyberdemon",      "name": "Cyberdemon",        "d3classname": "monster_boss_cyberdemon",      "category": "monster", "xp": 1000, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "pistol",         "name": "Pistol",         "d3classname": "weapon_pistol",         "category": "weapon" },
+      { "id": "shotgun",        "name": "Shotgun",         "d3classname": "weapon_shotgun",        "category": "weapon" },
+      { "id": "machinegun",     "name": "Machine Gun",     "d3classname": "weapon_machinegun",     "category": "weapon" },
+      { "id": "chaingun",       "name": "Chaingun",        "d3classname": "weapon_chaingun",       "category": "weapon" },
+      { "id": "plasmagun",      "name": "Plasma Gun",      "d3classname": "weapon_plasmagun",      "category": "weapon" },
+      { "id": "rocketlauncher", "name": "Rocket Launcher", "d3classname": "weapon_rocketlauncher", "category": "weapon" },
+      { "id": "bfg",            "name": "BFG",             "d3classname": "weapon_bfg",            "category": "weapon" },
+      { "id": "soulcube",       "name": "Soul Cube",       "d3classname": "weapon_soulcube",       "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "adrenaline",   "name": "Adrenaline",   "d3classname": "item_adrenaline",   "category": "powerup" },
+      { "id": "berserk",      "name": "Berserk Pack", "d3classname": "item_berserk",      "category": "powerup" },
+      { "id": "medkit_large", "name": "Large Medkit", "d3classname": "item_medkit_large", "category": "powerup" }
     ]
   },
   "odoom3bfg": {
@@ -157,6 +186,57 @@
       { "id": "sabaoth",         "name": "Sabaoth",           "d3classname": "monster_boss_sabaoth",         "category": "monster", "xp": 500,  "isBoss": true  },
       { "id": "cyberdemon",      "name": "Cyberdemon",        "d3classname": "monster_boss_cyberdemon",      "category": "monster", "xp": 1000, "isBoss": true  },
       { "id": "maledict",        "name": "Maledict",          "d3classname": "monster_boss_d3xp_maledict",   "category": "monster", "xp": 1200, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "pistol",         "name": "Pistol",         "d3classname": "weapon_pistol",         "category": "weapon" },
+      { "id": "shotgun",        "name": "Shotgun",         "d3classname": "weapon_shotgun",        "category": "weapon" },
+      { "id": "machinegun",     "name": "Machine Gun",     "d3classname": "weapon_machinegun",     "category": "weapon" },
+      { "id": "chaingun",       "name": "Chaingun",        "d3classname": "weapon_chaingun",       "category": "weapon" },
+      { "id": "plasmagun",      "name": "Plasma Gun",      "d3classname": "weapon_plasmagun",      "category": "weapon" },
+      { "id": "rocketlauncher", "name": "Rocket Launcher", "d3classname": "weapon_rocketlauncher", "category": "weapon" },
+      { "id": "bfg",            "name": "BFG",             "d3classname": "weapon_bfg",            "category": "weapon" },
+      { "id": "soulcube",       "name": "Soul Cube",       "d3classname": "weapon_soulcube",       "category": "weapon" },
+      { "id": "grabber",        "name": "Grabber",         "d3classname": "weapon_grabber",        "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "adrenaline",   "name": "Adrenaline",   "d3classname": "item_adrenaline",   "category": "powerup" },
+      { "id": "berserk",      "name": "Berserk Pack", "d3classname": "item_berserk",      "category": "powerup" },
+      { "id": "medkit_large", "name": "Large Medkit", "d3classname": "item_medkit_large", "category": "powerup" }
+    ]
+  },
+  "oduke3d": {
+    "description": "Duke Nukem 3D cross-game asset catalog",
+    "weapons": [
+      { "id": "pistol",      "name": "Pistol",            "duke3dActor": "PISTOLSPRITE",   "category": "weapon" },
+      { "id": "shotgun",     "name": "Shotgun",           "duke3dActor": "SHOTGUN",        "category": "weapon" },
+      { "id": "chaingun",    "name": "Ricochet Chaingun", "duke3dActor": "CHAINGUNSPRITE", "category": "weapon" },
+      { "id": "rpg",         "name": "RPG",               "duke3dActor": "RPGSPRITE",      "category": "weapon" },
+      { "id": "shrinker",    "name": "Shrinker",          "duke3dActor": "SHRINKERSPRITE", "category": "weapon" },
+      { "id": "devastator",  "name": "Devastator",        "duke3dActor": "DEVISTATOR",     "category": "weapon" },
+      { "id": "tripbomb",    "name": "Tripbomb",          "duke3dActor": "TRIPBOMBSPRITE", "category": "weapon" },
+      { "id": "freeze_ray",  "name": "Freeze Ray",        "duke3dActor": "FREEZESPRITE",   "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "jetpack",     "name": "Jetpack",      "duke3dActor": "JETPACK",     "category": "powerup" },
+      { "id": "holoduke",    "name": "Holoduke",     "duke3dActor": "HOLODUKE",    "category": "powerup" },
+      { "id": "steroids",    "name": "Steroids",     "duke3dActor": "STEROIDS",    "category": "powerup" },
+      { "id": "nightvision", "name": "Night Vision", "duke3dActor": "NIGHTVISION", "category": "powerup" },
+      { "id": "scuba_gear",  "name": "Scuba Gear",   "duke3dActor": "SCUBA",       "category": "powerup" }
+    ]
+  },
+  "owolf3d": {
+    "description": "Wolfenstein 3D cross-game asset catalog",
+    "weapons": [
+      { "id": "knife",       "name": "Knife",       "wolf3dClassname": "Knife",      "category": "weapon" },
+      { "id": "pistol",      "name": "Pistol",      "wolf3dClassname": "Pistol",     "category": "weapon" },
+      { "id": "machinegun",  "name": "Machine Gun", "wolf3dClassname": "MachineGun", "category": "weapon" },
+      { "id": "gatling_gun", "name": "Gatling Gun", "wolf3dClassname": "GatlingGun", "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "food",        "name": "Food",          "wolf3dClassname": "Food",      "category": "powerup" },
+      { "id": "first_aid",   "name": "First Aid Kit", "wolf3dClassname": "FirstAid",  "category": "powerup" },
+      { "id": "extra_life",  "name": "Extra Life",    "wolf3dClassname": "ExtraLife", "category": "powerup" },
+      { "id": "crown",       "name": "Crown",         "wolf3dClassname": "Crown",     "category": "powerup" }
     ]
   }
 }
