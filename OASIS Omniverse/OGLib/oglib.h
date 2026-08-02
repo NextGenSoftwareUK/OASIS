@@ -35,6 +35,7 @@
 #ifndef OGLIB_H
 #define OGLIB_H
 
+#include "oglib_log.h"
 #include "oglib_str.h"
 #include "oglib_json.h"
 #include "oglib_crossgame.h"
