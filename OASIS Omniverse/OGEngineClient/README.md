@@ -112,6 +112,35 @@ Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **min
 - Struct layouts match `ogengine.h`.
 - `ogengine.h` is included in this folder for direct use by existing game code.
 
+## Cross-Game Teleportation & Spawn API
+
+New exports added in 2026-08-02 for cross-game teleportation and entity spawning:
+
+### Teleportation
+
+| Export | Description |
+|--------|-------------|
+| `ogengine_request_teleport(target_game, target_map, x, y, z)` | Game calls when player steps on `oasis_portal`. Writes `%TEMP%\oasis_teleport_{avatarId}.json` for OmniverseKernel. |
+| `ogengine_poll_teleport_request(out_map, map_len, out_x, out_y, out_z)` | Game calls on map load. Reads+deletes `%TEMP%\oasis_teleport_arrive_{avatarId}.json`. Returns 1 if incoming teleport pending. |
+| `ogengine_confirm_teleport_arrival()` | Game calls after warping player to requested position. POSTs to `/api/teleport/confirm-arrival`. |
+
+### Entity Spawning
+
+| Export | Description |
+|--------|-------------|
+| `ogengine_poll_spawn_event(out_entity_id, id_len, out_x, out_y, out_z)` | Game calls each frame. Reads+deletes `%TEMP%\oasis_spawn_{avatarId}.json`. Returns 1 if spawn event pending. |
+| `ogengine_confirm_spawn(entity_id)` | Game calls after spawning the entity. POSTs to `/api/spawn-events/confirm`. |
+| `ogengine_get_map_entities(game_id, map_name, out_json, buf_len)` | Returns JSON array of cross-game entities for a map via `GET /api/maps/{game}/{map}/entities`. |
+
+### C# helper methods (OGEngineClient.cs)
+
+- `RequestTeleport(targetGame, targetMap, x, y, z)` — writes outgoing IPC file
+- `PollTeleportRequest(out map, out x, out y, out z)` — reads+deletes incoming arrive file
+- `ConfirmTeleportArrivalAsync()` — POST to STAR API
+- `PollSpawnEvent(out entityId, out x, out y, out z)` — reads+deletes spawn IPC file
+- `ConfirmSpawnAsync(entityId)` — POST to STAR API
+- `GetMapEntitiesAsync(gameId, mapName)` — GET from STAR API, returns raw JSON
+
 ## Performance Strategy
 
 - Uses `UnmanagedCallersOnly` exports (no COM or reverse P/Invoke marshaling glue).
