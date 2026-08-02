@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # BUILD_ODOOM3BFG.sh — Build ODOOM3-BFG on Linux/macOS
 #
 # Usage:
@@ -8,7 +8,7 @@
 # Prerequisites:
 #   - GCC/Clang + CMake 3.15+
 #   - C:\Source\ODOOM3-BFG (or $RBDOOM_SRC) checked out
-#   - STARAPIClient built (star_api.so in STARAPIClient/)
+#   - OGEngineClient built (star_api.so in OGEngineClient/)
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OMNIVERSE_ROOT="$SCRIPT_DIR"
 RBDOOM_SRC="${RBDOOM_SRC:-/opt/ODOOM3-BFG}"
 OGLIB_SRC="$OMNIVERSE_ROOT/../OGLib"
-STAR_SRC="$OMNIVERSE_ROOT/../STARAPIClient"
+STAR_SRC="$OMNIVERSE_ROOT/../OGEngineClient"
 DEST="$RBDOOM_SRC/neo/d3xp"
 BUILD_DIR="$RBDOOM_SRC/build-linux"
 
@@ -32,8 +32,8 @@ echo ""
 # 1. Copy integration files
 # -------------------------------------------------------
 echo "[1/4] Copying integration source..."
-cp -v "$OMNIVERSE_ROOT/d3doom_star_integration.h"   "$DEST/"
-cp -v "$OMNIVERSE_ROOT/d3doom_star_integration.cpp" "$DEST/"
+cp -v "$OMNIVERSE_ROOT/d3doom_ogengine_integration.h"   "$DEST/"
+cp -v "$OMNIVERSE_ROOT/d3doom_ogengine_integration.cpp" "$DEST/"
 
 # -------------------------------------------------------
 # 2. Copy OGLib headers
@@ -51,7 +51,7 @@ done
 # -------------------------------------------------------
 echo ""
 echo "[3/4] Copying STAR API files..."
-for f in star_api.h star_sync.h; do
+for f in ogengine.h ogengine_sync.h; do
     [ -f "$STAR_SRC/$f" ] && cp -v "$STAR_SRC/$f" "$DEST/"
 done
 for f in star_api.so libstar_api.so star_api.a; do

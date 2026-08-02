@@ -1,4 +1,4 @@
-# OQuake integration instructions
+﻿# OQuake integration instructions
 
 High-level steps to integrate the OASIS STAR API into a Quake engine so it becomes **OQuake** (cross-game keys with ODOOM, ODOOM3, ODOOM3-BFG, ODuke3D, and ODuke3D-RT — all seven OASIS Omniverse games).
 
@@ -6,12 +6,12 @@ High-level steps to integrate the OASIS STAR API into a Quake engine so it becom
 
 From **OASIS Omniverse\OQuake** you need:
 
-- `oquake_star_integration.c`
-- `oquake_star_integration.h`
+- `oquake_ogengine_integration.c`
+- `oquake_ogengine_integration.h`
 - `Code/oquake_version.h`
-- `star_sync.c` and `star_sync.h` (generic async layer from **OASIS Omniverse\STARAPIClient**)
-- `star_api.h` (from **STARAPIClient**)
-- `star_api.lib` and `star_api.dll` (from STARAPIClient publish, or Doom folder if already built)
+- `ogengine_sync.c` and `ogengine_sync.h` (generic async layer from **OASIS Omniverse\OGEngineClient**)
+- `ogengine.h` (from **OGEngineClient**)
+- `ogengine.lib` and `ogengine.dll` (from OGEngineClient publish, or Doom folder if already built)
 
 If using **vkQuake**, also use:
 
@@ -20,7 +20,7 @@ If using **vkQuake**, also use:
 
 ## 2. Engine C code
 
-- **Include** `oquake_star_integration.h` in your host or main init.
+- **Include** `oquake_ogengine_integration.h` in your host or main init.
 - **Call** `OQuake_STAR_Init()` at startup (e.g. after `PR_Init()` in `Host_Init()`).
 - **Call** `OQuake_STAR_Cleanup()` at shutdown (e.g. in `Host_Shutdown()`).
 - **On key pickup:** When the player gets silver or gold key, call  
@@ -40,13 +40,13 @@ Add **pr_ext_oquake.c** (or equivalent) to the build and register these two buil
 
 ## 4. Build
 
-- Add `oquake_star_integration.c`, `star_sync.c` (and, for vkQuake, `pr_ext_oquake.c`) to the engine project.
-- Link **star_api.lib** (and on Windows, **winhttp.lib**).
-- Ensure **star_api.dll** is next to the built exe when running.
+- Add `oquake_ogengine_integration.c`, `ogengine_sync.c` (and, for vkQuake, `pr_ext_oquake.c`) to the engine project.
+- Link **ogengine.lib** (and on Windows, **winhttp.lib**).
+- Ensure **ogengine.dll** is next to the built exe when running.
 
 ## 5. Run
 
-Set **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID**, then run the engine with your Quake game data (e.g. `-basedir` to Steam Quake). Keys picked up in OQuake or ODOOM will then open doors in the other game when the STAR API is authenticated.
+Set **STAR_USERNAME** / **STAR_PASSWORD** or **OGENGINE_KEY** / **STAR_AVATAR_ID**, then run the engine with your Quake game data (e.g. `-basedir` to Steam Quake). Keys picked up in OQuake or ODOOM will then open doors in the other game when the STAR API is authenticated.
 
 **oasisstar.json** (in build or game dir) can set **max_health**, **max_armor** (default 100), **always_allow_pickup_if_max** (1 = when at max health/armor still pick up into STAR and remove from floor, like Doom; 0 = original Quake behaviour, item stays on floor when full), and **always_add_items_to_inventory** (1 = always add to STAR even when the engine uses the pickup, so player gets both; 0 = only add when at max, or when at max and always_allow_pickup_if_max=1. When 1, overrides always_allow_pickup_if_max.). Use-from-inventory respects max_health/max_armor and shows a toast when already at max.
 

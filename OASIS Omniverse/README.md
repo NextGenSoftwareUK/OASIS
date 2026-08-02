@@ -1,4 +1,4 @@
-# OASIS Omniverse
+﻿# OASIS Omniverse
 
 OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the shared STAR API client and tooling into one place. It enables cross-game inventory, quests, and avatar/SSO auth across all games.
 
@@ -33,7 +33,7 @@ Choose your platform for a clear, step-by-step setup:
 | [Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md) | Repos to clone, tools, build/run scripts, local vs live APIs, `oasisstar.json`, quick reference table |
 | [Docs/QUICKSTART.md](Docs/QUICKSTART.md) | Minimal path to build and run + checklist |
 | [Docs/LINUX_BUILD.md](Docs/LINUX_BUILD.md) | Linux/macOS script equivalents, env vars, pointers to Getting Started |
-| [Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md) | Windows: prerequisites, clone layout, build ODOOM/OQuake/STARAPIClient |
+| [Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md) | Windows: prerequisites, clone layout, build ODOOM/OQuake/OGEngineClient |
 | [Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md) | Linux: same |
 | [Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md) | macOS: same |
 
@@ -51,7 +51,7 @@ Choose your platform for a clear, step-by-step setup:
 | Document | What it’s for |
 |----------|----------------|
 | [Docs/PHASE2_QUEST_SYSTEM.md](Docs/PHASE2_QUEST_SYSTEM.md) | Quest system overview and design |
-| [Docs/STAR_Quest_System_Developer_Guide.md](Docs/STAR_Quest_System_Developer_Guide.md) | WEB5 quest API, STARAPIClient, `star_api_*`, game hooks (developers) |
+| [Docs/STAR_Quest_System_Developer_Guide.md](Docs/STAR_Quest_System_Developer_Guide.md) | WEB5 quest API, OGEngineClient, `ogengine_*`, game hooks (developers) |
 | [Docs/STAR_Games_User_Guide.md](Docs/STAR_Games_User_Guide.md) | Beam-in, inventory, quest keys for OQuake / ODOOM (players & testers) |
 | [Docs/ODOOM_Quest_List_STAR.md](Docs/ODOOM_Quest_List_STAR.md) | ODOOM quest list CVars, ZScript, scroll/filter invariants |
 
@@ -60,7 +60,7 @@ Choose your platform for a clear, step-by-step setup:
 | Document | What it’s for |
 |----------|----------------|
 | [Docs/ODOOM_UZDoom_Build_Sync.md](Docs/ODOOM_UZDoom_Build_Sync.md) | ODOOM repo vs `UZDOOM_SRC`, copy step, `star_api` / `libstar_api` deploy |
-| [Docs/STAR_API_Native_Transport_Architecture.md](Docs/STAR_API_Native_Transport_Architecture.md) | `star_transport` native vs remote, size/AOT considerations |
+| [Docs/OGENGINE_Native_Transport_Architecture.md](Docs/OGENGINE_Native_Transport_Architecture.md) | `star_transport` native vs remote, size/AOT considerations |
 
 ### Broader OASIS documentation
 
@@ -72,7 +72,7 @@ Choose your platform for a clear, step-by-step setup:
 
 | Location | What it’s for |
 |----------|----------------|
-| [STARAPIClient/README.md](STARAPIClient/README.md) | STAR API client build, exports, tests, quest hooks |
+| [OGEngineClient/README.md](OGEngineClient/README.md) | STAR API client build, exports, tests, quest hooks |
 | [ODOOM/README.md](ODOOM/README.md) | ODOOM build, run, features |
 | [OQuake/README.md](OQuake/README.md) | OQuake build, run, game data |
 | [ODOOM/WINDOWS_INTEGRATION.md](ODOOM/WINDOWS_INTEGRATION.md) | ODOOM Windows details |
@@ -90,7 +90,7 @@ To build ODOOM and OQuake you need the OASIS repo plus the game engines and Quak
 
 | Repository | Purpose |
 |------------|---------|
-| **OASIS** (this repo) | Backend, STARAPIClient, ODOOM/OQuake integration |
+| **OASIS** (this repo) | Backend, OGEngineClient, ODOOM/OQuake integration |
 | **Engine for ODOOM** (`UZDOOM_SRC`) | UZDoom-based tree the ODOOM build compiles |
 | **Engine for OQuake** (`VKQUAKE_SRC`) | vkQuake-based tree the OQuake build compiles |
 | **quake-rerelease-qc** | QuakeC source used by OQuake |
@@ -119,9 +119,9 @@ Build scripts expect these paths by default; you can change them in the build sc
 
 - **ODOOM** – UZDoom-based Doom with STAR API integration (keycards, inventory, quests, SSO).
 - **OQuake** – vkQuake-based Quake with STAR API integration (keys, ammo, weapons, inventory, quests, SSO).
-- **STARAPIClient** – **The STAR API client used by ODOOM and OQuake.** C# client that implements the C ABI (`star_api_*`); builds `star_api.dll` and `star_api.lib`. Use this for all game integrations.
-- **NativeWrapper** – **Deprecated; do not use.** Legacy C++ wrapper kept for reference only. ODOOM and OQuake use **STARAPIClient** only.
-- **star_sync** – C layer (in ODOOM/OQuake folders) for async auth and inventory sync; sits between game code and STARAPIClient.
+- **OGEngineClient** – **The STAR API client used by ODOOM and OQuake.** C# client that implements the C ABI (`ogengine_*`); builds `ogengine.dll` and `ogengine.lib`. Use this for all game integrations.
+- **NativeWrapper** – **Deprecated; do not use.** Legacy C++ wrapper kept for reference only. ODOOM and OQuake use **OGEngineClient** only.
+- **star_sync** – C layer (in ODOOM/OQuake folders) for async auth and inventory sync; sits between game code and OGEngineClient.
 - **OASIS Omniverse (Unity)** – Optional Unity host shell with hub, ODOOM/OQuake portals, and Control Center (inventory, quests, settings). See [`OASIS Omniverse/README.md`](OASIS%20Omniverse/README.md) inside the Unity project folder.
 
 ## Directory structure
@@ -139,12 +139,12 @@ OASIS Omniverse/
 │   ├── LINUX_BUILD.md
 │   ├── PHASE2_QUEST_SYSTEM.md
 │   └── …
-├── BUILD EVERYTHING.bat         # Build STARAPIClient + ODOOM + OQuake (no prompts, no launch)
+├── BUILD EVERYTHING.bat         # Build OGEngineClient + ODOOM + OQuake (no prompts, no launch)
 ├── BUILD_AND_DEPLOY_STAR_CLIENT.bat
-├── STARAPIClient/
+├── OGEngineClient/
 │   ├── README.md
 │   └── ...
-├── NativeWrapper/               # Deprecated; do not use. Use STARAPIClient.
+├── NativeWrapper/               # Deprecated; do not use. Use OGEngineClient.
 │   ├── BUILD_INSTRUCTIONS.md
 │   └── ...
 ├── ODOOM/
@@ -170,8 +170,8 @@ OASIS Omniverse/
 
 - **Build one thing at a time** – Do not run more than one build (or heavy test run) at a time; it can cause issues. Run each build or test suite separately and wait for it to finish before starting the next.
 - **First-time setup** – Follow **[Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md)**.
-- **Build everything (no prompts)** – From `OASIS Omniverse\`: run **BUILD EVERYTHING.bat** to build and deploy STARAPIClient, then build ODOOM and OQuake with no prompts and without launching. Use **RUN ODOOM.bat** / **RUN OQUAKE.bat** to launch afterward.
-- **Build STAR API client** – From `OASIS Omniverse\`: run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** to build and copy `star_api.dll` / `star_api.lib` / `star_api.h` into Doom, Quake, ODOOM, OQuake, and (if present) UZDoom and vkQuake folders. Or at the start of **BUILD ODOOM.bat** or **BUILD_OQUAKE.bat** choose **Y** when asked “Build and deploy STARAPIClient first?”.
+- **Build everything (no prompts)** – From `OASIS Omniverse\`: run **BUILD EVERYTHING.bat** to build and deploy OGEngineClient, then build ODOOM and OQuake with no prompts and without launching. Use **RUN ODOOM.bat** / **RUN OQUAKE.bat** to launch afterward.
+- **Build STAR API client** – From `OASIS Omniverse\`: run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** to build and copy `ogengine.dll` / `ogengine.lib` / `ogengine.h` into Doom, Quake, ODOOM, OQuake, and (if present) UZDoom and vkQuake folders. Or at the start of **BUILD ODOOM.bat** or **BUILD_OQUAKE.bat** choose **Y** when asked “Build and deploy OGEngineClient first?”.
 - **Build ODOOM** – From `OASIS Omniverse\ODOOM\`: run **BUILD ODOOM.bat**.
 - **Build OQuake** – Run **"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"** (use Developer Command Prompt for VS).
 - **Run ODOOM** – **"OASIS Omniverse\ODOOM\RUN ODOOM.bat"** (builds if needed, then launches).

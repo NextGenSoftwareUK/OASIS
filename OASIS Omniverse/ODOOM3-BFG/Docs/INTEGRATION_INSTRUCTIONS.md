@@ -1,4 +1,4 @@
-# ODOOM3-BFG Integration Instructions
+﻿# ODOOM3-BFG Integration Instructions
 
 ## Overview
 
@@ -20,14 +20,14 @@ RBDOOM-3-BFG (C++, d3xp/)
       │
       │  6 hook calls
       ▼
-d3doom_star_integration.cpp   ← delta file (lives in OASIS Omniverse/ODOOM3-BFG/)
+d3doom_ogengine_integration.cpp   ← delta file (lives in OASIS Omniverse/ODOOM3-BFG/)
       │
-      ├── star_api.h           ← C ABI (links against star_api.dll)
-      ├── star_sync.h          ← async auth/inventory helpers
+      ├── ogengine.h           ← C ABI (links against ogengine.dll)
+      ├── ogengine_sync.h          ← async auth/inventory helpers
       └── OGLib/oglib.h        ← header-only utility library
                 │
                 ▼
-          star_api.dll         ← STARAPIClient (C# NativeAOT)
+          ogengine.dll         ← OGEngineClient (C# NativeAOT)
                 │
                 ▼
          OASIS STAR API
@@ -90,7 +90,7 @@ Edit the template at `OASIS Omniverse/ODOOM3-BFG/oasisstar.json` before building
 Key fields:
 | Field | Default | Description |
 |-------|---------|-------------|
-| `star_api_url` | OASIS STAR URL | WEB5 STAR API endpoint |
+| `ogengine_url` | OASIS STAR URL | WEB5 STAR API endpoint |
 | `oasis_api_url` | OASIS API URL | WEB4 OASIS API (for NFT mint) |
 | `mint_keys` | 0 | Mint NFT on keycard pickup |
 | `mint_monsters` | 1 | Mint NFT on boss kill (respects do_mint per monster) |
@@ -103,10 +103,10 @@ Key fields:
 
 ## Build Process
 
-1. Build STARAPIClient first (generates `star_api.dll` / `star_api.lib`).
+1. Build OGEngineClient first (generates `ogengine.dll` / `ogengine.lib`).
 2. Run `BUILD_ODOOM3BFG.bat` (Windows) or `BUILD_ODOOM3BFG.sh` (Linux/macOS).
 3. Script copies integration files into `C:\Source\ODOOM3-BFG\neo\d3xp\` and runs CMake.
-4. Output: `build-vs2019-win64\Release\d3game.dll` + `star_api.dll` + `oasisstar.json`.
+4. Output: `build-vs2019-win64\Release\d3game.dll` + `ogengine.dll` + `oasisstar.json`.
 
 ---
 
@@ -114,8 +114,8 @@ Key fields:
 
 | File | Purpose |
 |------|---------|
-| `d3doom_star_integration.h` | Public API (6 hook function declarations) |
-| `d3doom_star_integration.cpp` | Full integration implementation |
+| `d3doom_ogengine_integration.h` | Public API (6 hook function declarations) |
+| `d3doom_ogengine_integration.cpp` | Full integration implementation |
 | `oasisstar.json` | Config + monster table template |
 | `BUILD_ODOOM3BFG.bat/.sh` | Build entry points |
 | `RUN_ODOOM3BFG.bat/.sh` | Launch entry points |

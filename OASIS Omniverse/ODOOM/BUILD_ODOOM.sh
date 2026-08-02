@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
 # Cross-platform (Linux, macOS) build; equivalent of "BUILD ODOOM.bat" on Windows.
 # Usage: ./BUILD_ODOOM.sh [ run | batch ] [ nosprites ]
@@ -41,7 +41,7 @@ fi
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OMNIVERSE="$(cd "$HERE/.." && pwd)"
-STARAPICLIENT="$OMNIVERSE/STARAPIClient"
+OGENGINECLIENT="$OMNIVERSE/OGEngineClient"
 ODOOM_INTEGRATION="$HERE"
 DOOM_FOLDER="$ODOOM_INTEGRATION"
 
@@ -53,7 +53,7 @@ RUN_AFTER_BUILD=0
 BATCH_MODE=0
 OQ_MONSTER_PAD="${OQ_MONSTER_PAD:-0}"
 OQ_ITEM_PAD="${OQ_ITEM_PAD:-0}"
-# Default: use star_sync from star_api (C#). Set OASIS_STAR_SYNC_IN_CLIENT=0 to compile star_sync.c (C) instead.
+# Default: use star_sync from star_api (C#). Set OASIS_STAR_SYNC_IN_CLIENT=0 to compile ogengine_sync.c (C) instead.
 OASIS_STAR_SYNC_IN_CLIENT="${OASIS_STAR_SYNC_IN_CLIENT:-1}"
 BUILD_STAR_CLIENT=0
 # OASIS sprite source: UDB Build or Assets, or ODOOM build/Editor copy. Override with OASIS_SPRITES_SRC.
@@ -153,19 +153,19 @@ if [[ ! -f "$UZDOOM_SRC/src/d_main.cpp" ]]; then
   exit 1
 fi
 
-# Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
-echo "[ODOOM] Checking STARAPIClient - build if changed, deploy..."
-if [[ -f "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh" ]]; then
+# Always check OGEngineClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
+echo "[ODOOM] Checking OGEngineClient - build if changed, deploy..."
+if [[ -f "$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh" ]]; then
   if [[ "$BUILD_STAR_CLIENT" -eq 1 ]]; then
-    bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh" -ForceBuild
+    bash "$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh" -ForceBuild
   else
-    bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh"
+    bash "$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh"
   fi
 else
   if [[ "$BUILD_STAR_CLIENT" -eq 1 ]]; then
-    bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh" -ForceBuild 2>/dev/null || bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh"
+    bash "$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-linux.sh" -ForceBuild 2>/dev/null || bash "$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-linux.sh"
   else
-    bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh"
+    bash "$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-linux.sh"
   fi
 fi
 # Linux: .so; macOS: .dylib
@@ -173,24 +173,24 @@ if [[ ! -f "$ODOOM_INTEGRATION/libstar_api.so" && ! -f "$ODOOM_INTEGRATION/star_
   echo "ERROR: star_api not found in $ODOOM_INTEGRATION (expected libstar_api.so / .dylib or star_api.so / .dylib after deploy)."
   exit 1
 fi
-if [[ ! -f "$STARAPICLIENT/star_api.h" ]]; then
-  echo "ERROR: star_api.h not found: $STARAPICLIENT"
+if [[ ! -f "$OGENGINECLIENT/ogengine.h" ]]; then
+  echo "ERROR: ogengine.h not found: $OGENGINECLIENT"
   exit 1
 fi
 
 # star_sync
-if [[ -f "$STARAPICLIENT/star_sync.c" ]]; then
-  cp -f "$STARAPICLIENT/star_sync.c" "$ODOOM_INTEGRATION/"
-  cp -f "$STARAPICLIENT/star_sync.h" "$ODOOM_INTEGRATION/"
+if [[ -f "$OGENGINECLIENT/ogengine_sync.c" ]]; then
+  cp -f "$OGENGINECLIENT/ogengine_sync.c" "$ODOOM_INTEGRATION/"
+  cp -f "$OGENGINECLIENT/ogengine_sync.h" "$ODOOM_INTEGRATION/"
 fi
 
 echo ""
 echo "[ODOOM][STEP] Installing integration files..."
-cp -f "$ODOOM_INTEGRATION/uzdoom_star_integration.cpp" "$UZDOOM_SRC/src/"
-cp -f "$ODOOM_INTEGRATION/uzdoom_star_integration.h" "$UZDOOM_SRC/src/"
-cp -f "$STARAPICLIENT/star_api.h" "$UZDOOM_SRC/src/"
-[[ -f "$ODOOM_INTEGRATION/star_sync.c" ]] && cp -f "$ODOOM_INTEGRATION/star_sync.c" "$UZDOOM_SRC/src/"
-[[ -f "$ODOOM_INTEGRATION/star_sync.h" ]] && cp -f "$ODOOM_INTEGRATION/star_sync.h" "$UZDOOM_SRC/src/"
+cp -f "$ODOOM_INTEGRATION/uzdoom_ogengine_integration.cpp" "$UZDOOM_SRC/src/"
+cp -f "$ODOOM_INTEGRATION/uzdoom_ogengine_integration.h" "$UZDOOM_SRC/src/"
+cp -f "$OGENGINECLIENT/ogengine.h" "$UZDOOM_SRC/src/"
+[[ -f "$ODOOM_INTEGRATION/ogengine_sync.c" ]] && cp -f "$ODOOM_INTEGRATION/ogengine_sync.c" "$UZDOOM_SRC/src/"
+[[ -f "$ODOOM_INTEGRATION/ogengine_sync.h" ]] && cp -f "$ODOOM_INTEGRATION/ogengine_sync.h" "$UZDOOM_SRC/src/"
 cp -f "$ODOOM_INTEGRATION/odoom_branding.h" "$UZDOOM_SRC/src/"
 mkdir -p "$UZDOOM_SRC/wadsrc/static/zscript/actors/doom"
 cp -f "$ODOOM_INTEGRATION/odoom_oquake_keys.zs" "$UZDOOM_SRC/wadsrc/static/zscript/actors/doom/"
@@ -341,21 +341,21 @@ echo "[ODOOM][STEP] Configuring CMake and STAR API..."
 mkdir -p "$UZDOOM_SRC/build"
 cd "$UZDOOM_SRC/build"
 
-# On Linux/macOS we pass STAR_API_DIR (header) and STAR_API_LIB_DIR (folder containing libstar_api.so / libstar_api.dylib)
-STAR_API_DIR="$STARAPICLIENT"
-STAR_API_LIB_DIR="$DOOM_FOLDER"
+# On Linux/macOS we pass OGENGINE_DIR (header) and OGENGINE_LIB_DIR (folder containing libstar_api.so / libstar_api.dylib)
+OGENGINE_DIR="$OGENGINECLIENT"
+OGENGINE_LIB_DIR="$DOOM_FOLDER"
 PYTHON3_EXE="${PYTHON3_EXE:-$(command -v python3 || command -v python)}"
 
 # Copy STAR API lib into build/ and build/src/ so the linker finds it (link runs from build/src/; -lstar_api needs libstar_api.so).
 STAR_LIB_SRC=""
 for lib in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
-  if [[ -f "$STAR_API_LIB_DIR/$lib" ]]; then
-    STAR_LIB_SRC="$STAR_API_LIB_DIR/$lib"
+  if [[ -f "$OGENGINE_LIB_DIR/$lib" ]]; then
+    STAR_LIB_SRC="$OGENGINE_LIB_DIR/$lib"
     break
   fi
 done
 if [[ -z "$STAR_LIB_SRC" || ! -f "$STAR_LIB_SRC" ]]; then
-  echo "ERROR: No STAR API library in $STAR_API_LIB_DIR. Run BUILD_ODOOM.sh from ODOOM folder (it deploys STAR API first)."
+  echo "ERROR: No STAR API library in $OGENGINE_LIB_DIR. Run BUILD_ODOOM.sh from ODOOM folder (it deploys STAR API first)."
   exit 1
 fi
 STAR_LIB_NAME="libstar_api.so"
@@ -364,22 +364,22 @@ mkdir -p "$UZDOOM_SRC/build/src"
 for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
   cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
 done
-# OASIS_STAR_SYNC_IN_CLIENT: 1 = use star_sync from star_api (C#); 0 = compile star_sync.c (C). See star_sync.h / OASIS Omniverse/Docs/STAR_INTEGRATION_AUDIT.md.
+# OASIS_STAR_SYNC_IN_CLIENT: 1 = use star_sync from star_api (C#); 0 = compile ogengine_sync.c (C). See ogengine_sync.h / OASIS Omniverse/Docs/STAR_INTEGRATION_AUDIT.md.
 if [[ "${OASIS_STAR_SYNC_IN_CLIENT:-1}" == "0" ]]; then
   CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=OFF"
-  echo "[ODOOM][INFO] Compiling star_sync.c - C implementation"
+  echo "[ODOOM][INFO] Compiling ogengine_sync.c - C implementation"
 else
   CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=ON"
   echo "[ODOOM][INFO] Using star_sync from star_api - default"
 fi
 # Add both ODOOM folder and build/src to link path so -lstar_api resolves
-CMAKE_LINK_FLAGS="-L\"$UZDOOM_SRC/build/src\" -L\"$STAR_API_LIB_DIR\""
+CMAKE_LINK_FLAGS="-L\"$UZDOOM_SRC/build/src\" -L\"$OGENGINE_LIB_DIR\""
 cmake .. \
   -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release \
   -DOASIS_STAR_API=ON \
-  -DSTAR_API_DIR:PATH="$STAR_API_DIR" \
-  -DSTAR_API_LIB_DIR:PATH="$STAR_API_LIB_DIR" \
+  -DOGENGINE_DIR:PATH="$OGENGINE_DIR" \
+  -DOGENGINE_LIB_DIR:PATH="$OGENGINE_LIB_DIR" \
   "$CMAKE_STAR_SYNC" \
   -DCMAKE_EXE_LINKER_FLAGS:STRING="$CMAKE_LINK_FLAGS" \
   -DPython3_EXECUTABLE:FILEPATH="$PYTHON3_EXE"
@@ -388,7 +388,7 @@ echo ""
 echo "[ODOOM][STEP] Building..."
 NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
 # Ensure linker finds libstar_api.so at link time (in case CMake does not pass our -L flags)
-export LIBRARY_PATH="$UZDOOM_SRC/build/src:$STAR_API_LIB_DIR${LIBRARY_PATH:+:$LIBRARY_PATH}"
+export LIBRARY_PATH="$UZDOOM_SRC/build/src:$OGENGINE_LIB_DIR${LIBRARY_PATH:+:$LIBRARY_PATH}"
 cmake --build . -j${NPROC}
 
 echo ""

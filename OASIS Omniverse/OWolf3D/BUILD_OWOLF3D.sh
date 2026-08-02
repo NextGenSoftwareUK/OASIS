@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # OWolf3D Build Script (Linux / macOS)
 set -e
 
@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ECWOLF_SRC="${OWOLF3D_SRC:-${HOME}/Source/OWolf3D}"
 OASIS_DIR="${SCRIPT_DIR}"
 OGLIB_DIR="${SCRIPT_DIR}/../OGLib"
-STAR_DIR="${SCRIPT_DIR}/../STARAPIClient"
+STAR_DIR="${SCRIPT_DIR}/../OGEngineClient"
 
 echo "============================================================="
 echo " OWolf3D Build"
@@ -21,18 +21,18 @@ fi
 DST="$ECWOLF_SRC/src"
 
 echo "[1/4] Copying integration files to $DST ..."
-cp -v "$OASIS_DIR/owolf3d_star_integration.h"   "$DST/"
-cp -v "$OASIS_DIR/owolf3d_star_integration.cpp" "$DST/"
+cp -v "$OASIS_DIR/owolf3d_ogengine_integration.h"   "$DST/"
+cp -v "$OASIS_DIR/owolf3d_ogengine_integration.cpp" "$DST/"
 cp -rv "$OGLIB_DIR/"   "$DST/OGLib/"
-cp -v  "$STAR_DIR/star_api.h"   "$DST/"
-cp -v  "$STAR_DIR/star_sync.h"  "$DST/"
+cp -v  "$STAR_DIR/ogengine.h"   "$DST/"
+cp -v  "$STAR_DIR/ogengine_sync.h"  "$DST/"
 
 echo "[2/4] Patching CMakeLists.txt ..."
 CMAKEFILE="$ECWOLF_SRC/src/CMakeLists.txt"
-if ! grep -q "owolf3d_star_integration" "$CMAKEFILE"; then
+if ! grep -q "owolf3d_ogengine_integration" "$CMAKEFILE"; then
     # Insert before the closing ) of initial_sources(...)
-    sed -i 's/\tzstring\.cpp$/\tzstring.cpp\n\towolf3d_star_integration.cpp/' "$CMAKEFILE"
-    echo "  Added owolf3d_star_integration.cpp to source list"
+    sed -i 's/\tzstring\.cpp$/\tzstring.cpp\n\towolf3d_ogengine_integration.cpp/' "$CMAKEFILE"
+    echo "  Added owolf3d_ogengine_integration.cpp to source list"
 else
     echo "  Already present in CMakeLists.txt"
 fi

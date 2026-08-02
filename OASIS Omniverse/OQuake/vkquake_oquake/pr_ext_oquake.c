@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OQuake extension builtins
  *
  * Provides PF_ wrappers for OQuake STAR API so QuakeC can call
@@ -15,7 +15,7 @@
  */
 
 #include "quakedef.h"
-#include "oquake_star_integration.h"
+#include "oquake_ogengine_integration.h"
 
 /* OQuake builtin: void(string keyname) - report key pickup to STAR */
 void PF_OQuake_OnKeyPickup (void)

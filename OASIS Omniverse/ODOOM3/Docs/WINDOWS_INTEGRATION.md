@@ -1,4 +1,4 @@
-# ODOOM3 — Windows Integration Guide (Manual diff)
+﻿# ODOOM3 — Windows Integration Guide (Manual diff)
 
 These are the exact changes applied to `C:\Source\ODOOM3\neo\` by the build script.
 If you prefer to apply them manually rather than running `COPY_TO_DHEWM3_AND_BUILD.ps1`,
@@ -18,7 +18,7 @@ Find the line:
 Change to:
 ```cmake
 	game/physics/Push.cpp
-	game/d3doom3_star_integration.cpp
+	game/d3doom3_ogengine_integration.cpp
 )
 ```
 
@@ -46,7 +46,7 @@ Change to:
 	else()
 		target_link_libraries(base idlib)
 		if(MSVC)
-			target_link_libraries(base "${CMAKE_SOURCE_DIR}/game/star_api.lib")
+			target_link_libraries(base "${CMAKE_SOURCE_DIR}/game/ogengine.lib")
 		endif()
 	endif()
 ```
@@ -65,7 +65,7 @@ After the last `#include` line near the top:
 ```
 Add:
 ```cpp
-#include "d3doom3_star_integration.h"
+#include "d3doom3_ogengine_integration.h"
 ```
 
 ### Init hook
@@ -138,7 +138,7 @@ Change to:
 
 After the last `#include` line near the top, add:
 ```cpp
-#include "d3doom3_star_integration.h"
+#include "d3doom3_ogengine_integration.h"
 ```
 
 ### GiveInventoryItem hook
@@ -164,7 +164,7 @@ Change to:
 
 After `#include "ai/AI.h"`, add:
 ```cpp
-#include "d3doom3_star_integration.h"
+#include "d3doom3_ogengine_integration.h"
 ```
 
 ### Killed hook

@@ -1,10 +1,10 @@
-<#
+﻿<#
 .SYNOPSIS
     Copies ODOOM3-BFG integration files into the RBDOOM-3-BFG source tree,
     then runs CMake to build the game DLL.
 
 .DESCRIPTION
-    Run this after editing d3doom_star_integration.cpp/.h, OGLib, or star_api.h.
+    Run this after editing d3doom_ogengine_integration.cpp/.h, OGLib, or ogengine.h.
     The script copies deltas into C:\Source\ODOOM3-BFG\neo\d3xp\ and rebuilds.
 
 .PARAMETER BatchMode
@@ -23,7 +23,7 @@ $ErrorActionPreference = "Stop"
 
 $OmniverseRoot = Split-Path -Parent $PSScriptRoot   # ODOOM3-BFG folder
 $OGLibSrc      = Join-Path (Split-Path -Parent $OmniverseRoot) "OGLib"
-$STARSrc       = Join-Path (Split-Path -Parent $OmniverseRoot) "STARAPIClient"
+$STARSrc       = Join-Path (Split-Path -Parent $OmniverseRoot) "OGEngineClient"
 $RBDoomRoot    = "C:\Source\ODOOM3-BFG"
 $Dest          = Join-Path $RBDoomRoot "neo\d3xp"
 $BuildDir      = Join-Path $RBDoomRoot "build-vs2019-win64"
@@ -43,8 +43,8 @@ if (-not (Test-Path $RBDoomRoot)) {
 Write-Host "`n[1/4] Copying integration source files..."
 
 $IntegrationFiles = @(
-    "d3doom_star_integration.h",
-    "d3doom_star_integration.cpp"
+    "d3doom_ogengine_integration.h",
+    "d3doom_ogengine_integration.cpp"
 )
 foreach ($f in $IntegrationFiles) {
     $src = Join-Path $OmniverseRoot $f
@@ -91,7 +91,7 @@ foreach ($f in $OGLibFiles) {
 # -----------------------------------------------------------------
 Write-Host "`n[3/4] Copying STAR API files..."
 
-$STARFiles = @("star_api.h", "star_sync.h", "star_api.lib", "star_api.dll")
+$STARFiles = @("ogengine.h", "star_sync.h", "ogengine.lib", "ogengine.dll")
 foreach ($f in $STARFiles) {
     $src = Join-Path $STARSrc $f
     $dst = Join-Path $Dest $f
@@ -119,12 +119,12 @@ if (-not (Test-Path $BuildDir)) {
 & cmake --build $BuildDir --config $BuildType --target d3game -- /m
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed." }
 
-# Copy star_api.dll next to the output exe
+# Copy ogengine.dll next to the output exe
 $ExeDir = Join-Path $BuildDir $BuildType
-$DllSrc = Join-Path $Dest "star_api.dll"
+$DllSrc = Join-Path $Dest "ogengine.dll"
 if ((Test-Path $DllSrc) -and (Test-Path $ExeDir)) {
     Copy-Item $DllSrc $ExeDir -Force
-    Write-Host "  Deployed star_api.dll to $ExeDir"
+    Write-Host "  Deployed ogengine.dll to $ExeDir"
 }
 
 # Copy oasisstar.json next to exe if not already there

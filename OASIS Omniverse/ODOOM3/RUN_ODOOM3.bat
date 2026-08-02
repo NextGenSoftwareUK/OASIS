@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 REM RUN_ODOOM3.bat — Launch dhewm3 with OASIS STAR integration
 REM
 REM Usage:
@@ -23,8 +23,8 @@ if not exist "%DHEWM3_BUILD%\oasisstar.json" (
     copy /y "%~dp0oasisstar.json" "%DHEWM3_BUILD%\oasisstar.json"
 )
 
-REM Deploy latest star_api.dll if updated
-set STARDLL=%~dp0..\STARAPIClient\star_api.dll
+REM Deploy latest ogengine.dll if updated
+set STARDLL=%~dp0..\OGEngineClient\ogengine.dll
 if exist "%STARDLL%" (
     xcopy /y /d "%STARDLL%" "%DHEWM3_BUILD%\" >nul
 )

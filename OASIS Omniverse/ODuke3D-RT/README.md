@@ -1,4 +1,4 @@
-# ODuke3D-RT – Duke Nukem 3D + Vulkan Ray Tracing + OASIS STAR API
+﻿# ODuke3D-RT – Duke Nukem 3D + Vulkan Ray Tracing + OASIS STAR API
 
 **ODuke3D-RT** is a fork of [Duke-RT](https://github.com/fgsfdsfgs/duke-rt) — a Vulkan ray-tracing modification of EDuke32 — with the **OASIS STAR API** integrated. It offers the same cross-game OASIS features as **ODuke3D** but with modern ray-traced lighting and reflections for Duke Nukem 3D.
 
@@ -25,7 +25,7 @@ ODuke3D-RT is a fork of Duke-RT (Vulkan ray tracing EDuke32 mod, GPL-2.0) which 
    RUN_ODUKE3DRT.bat [C:\Duke3D]
    ```
 
-4. **STAR API:** Set `STAR_USERNAME`/`STAR_PASSWORD` or `STAR_API_KEY`/`STAR_AVATAR_ID`.
+4. **STAR API:** Set `STAR_USERNAME`/`STAR_PASSWORD` or `OGENGINE_KEY`/`STAR_AVATAR_ID`.
 
 ### Linux / macOS
 
@@ -44,11 +44,11 @@ ODuke3D-RT is a fork of Duke-RT (Vulkan ray tracing EDuke32 mod, GPL-2.0) which 
 ## Architecture
 
 ```
-oduke3drt_star_integration.c   (ODuke3D-RT hooks + HUD/GUI — same API as ODuke3D)
+oduke3drt_ogengine_integration.c   (ODuke3D-RT hooks + HUD/GUI — same API as ODuke3D)
          ↓
     OGLib  (shared C library — config, beamin, session shims)
          ↓
-  STARAPIClient  (C# NativeAOT → star_api.dll)
+  OGEngineClient  (C# NativeAOT → ogengine.dll)
          ↓
   WEB4 / WEB5 OASIS APIs
 ```

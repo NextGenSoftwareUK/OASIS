@@ -1,4 +1,4 @@
-# ODuke3D Integration Instructions
+﻿# ODuke3D Integration Instructions
 
 High-level steps to integrate the OASIS STAR API into an EDuke32 fork so it becomes **ODuke3D** (cross-game keys with ODOOM, OQuake, ODOOM3, ODOOM3-BFG, and ODuke3D-RT).
 
@@ -6,26 +6,26 @@ High-level steps to integrate the OASIS STAR API into an EDuke32 fork so it beco
 
 From **OASIS Omniverse\ODuke3D** you need:
 
-- `oduke3d_star_integration.c`
-- `oduke3d_star_integration.h`
-- `star_sync.c` and `star_sync.h` (from **OASIS Omniverse\STARAPIClient**)
-- `star_api.h` (from STARAPIClient)
-- `star_api.lib` and `star_api.dll` (from STARAPIClient publish)
+- `oduke3d_ogengine_integration.c`
+- `oduke3d_ogengine_integration.h`
+- `ogengine_sync.c` and `ogengine_sync.h` (from **OASIS Omniverse\OGEngineClient**)
+- `ogengine.h` (from OGEngineClient)
+- `ogengine.lib` and `ogengine.dll` (from OGEngineClient publish)
 - `OGLib/` headers (from **OASIS Omniverse\OGLib**)
 
 ## 2. Add to the EDuke32 build
 
-Copy the files above into `source/duke3d/src/` (for `oduke3d_star_integration.*`, `star_sync.*`, `star_api.h`, `OGLib/`).
+Copy the files above into `source/duke3d/src/` (for `oduke3d_ogengine_integration.*`, `star_sync.*`, `ogengine.h`, `OGLib/`).
 
-Add `oduke3d_star_integration.c` and `star_sync.c` to `source/duke3d/Makefile` (or CMakeLists.txt if your fork uses CMake). Link `star_api.lib` and `winhttp.lib` (Windows) or `star_api.so` (Linux).
+Add `oduke3d_ogengine_integration.c` and `ogengine_sync.c` to `source/duke3d/Makefile` (or CMakeLists.txt if your fork uses CMake). Link `ogengine.lib` and `winhttp.lib` (Windows) or `star_api.so` (Linux).
 
 ## 3. Engine C code hooks
 
-Include `oduke3d_star_integration.h` in the appropriate source files:
+Include `oduke3d_ogengine_integration.h` in the appropriate source files:
 
 ### Init / shutdown (game.cpp or app_main.cpp)
 ```c
-#include "oduke3d_star_integration.h"
+#include "oduke3d_ogengine_integration.h"
 
 // At end of app_main():
 ODuke3D_STAR_Init();
@@ -99,7 +99,7 @@ Place `oasisstar.json` (from this folder) next to `eduke32.exe`. It configures m
 
 ## 5. Run
 
-Set `STAR_USERNAME`/`STAR_PASSWORD` or `STAR_API_KEY`/`STAR_AVATAR_ID`, then launch ODuke3D with your Duke3D data (e.g. `eduke32.exe -j C:\Duke3D`).  The console should show:
+Set `STAR_USERNAME`/`STAR_PASSWORD` or `OGENGINE_KEY`/`STAR_AVATAR_ID`, then launch ODuke3D with your Duke3D data (e.g. `eduke32.exe -j C:\Duke3D`).  The console should show:
 
 ```
 [DUKE3D] OASIS STAR API: Authenticated. Cross-game keys enabled.

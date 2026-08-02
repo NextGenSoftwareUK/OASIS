@@ -1,4 +1,4 @@
-# OQuake – Credits and License
+﻿# OQuake – Credits and License
 
 ## OQuake is based on vkQuake
 
@@ -16,7 +16,7 @@
 
 The OASIS Omniverse integration adds:
 
-- STAR API integration code (`oquake_star_integration.c`, `oquake_star_integration.h`, `oquake_version.h`)
+- STAR API integration code (`oquake_ogengine_integration.c`, `oquake_ogengine_integration.h`, `oquake_version.h`)
 - vkQuake-specific glue (`vkquake_oquake/pr_ext_oquake.c`, `apply_oquake_to_vkquake.ps1`)
 - Build and run scripts (`BUILD_OQUAKE.bat`, `RUN OQUAKE.bat`)
 - Documentation in this folder

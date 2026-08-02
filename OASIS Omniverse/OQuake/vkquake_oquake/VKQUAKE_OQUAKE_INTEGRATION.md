@@ -1,4 +1,4 @@
-# vkQuake OQuake (STAR API) integration
+﻿# vkQuake OQuake (STAR API) integration
 
 This folder contains files and instructions to build **OQuake**: vkQuake with OASIS STAR API so keys from ODOOM can open doors in Quake and vice versa.
 
@@ -6,7 +6,7 @@ This folder contains files and instructions to build **OQuake**: vkQuake with OA
 
 ## Overview
 
-**BUILD_OQUAKE.bat** (and **apply_oquake_to_vkquake.ps1**) do **everything automatically** (like ODOOM): copy OQuake + STAR files into vkQuake and patch **host.c**, **pr_ext.c**, **sbar.c**, **gl_screen.c**, and the Visual Studio project (sources + star_api.lib). No manual one-time edits are required.
+**BUILD_OQUAKE.bat** (and **apply_oquake_to_vkquake.ps1**) do **everything automatically** (like ODOOM): copy OQuake + STAR files into vkQuake and patch **host.c**, **pr_ext.c**, **sbar.c**, **gl_screen.c**, and the Visual Studio project (sources + ogengine.lib). No manual one-time edits are required.
 
 After running the script on a fresh vkQuake tree, QuakeC (e.g. quake-rerelease-qc) can use `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, and `OQuake_OnMonsterKilled` via the extension builtins, and the HUD shows Beamed In, XP, version, inventory overlay, and the anorak face when beamed in.
 
@@ -18,13 +18,13 @@ Copy these into `VKQUAKE_SRC/Quake/` (from OASIS Omniverse):
 
 | File | Source |
 |------|--------|
-| `oquake_star_integration.c` | `OQuake/Code/oquake_star_integration.c` |
-| `oquake_star_integration.h` | `OQuake/Code/oquake_star_integration.h` |
+| `oquake_ogengine_integration.c` | `OQuake/Code/oquake_ogengine_integration.c` |
+| `oquake_ogengine_integration.h` | `OQuake/Code/oquake_ogengine_integration.h` |
 | `oquake_version.h` | `OQuake/Code/oquake_version.h` (generated from **`OQuake/Version/oquake_version.txt`** – run build or `Scripts/generate_oquake_version.ps1` to regenerate) |
-| `star_api.h` | `STARAPIClient/` (use STARAPIClient only) |
+| `ogengine.h` | `OGEngineClient/` (use OGEngineClient only) |
 | `pr_ext_oquake.c` | `OQuake/vkquake_oquake/pr_ext_oquake.c` |
 
-Also copy `star_api.dll` and `star_api.lib` from **STARAPIClient** publish (or Doom folder if already built) next to the **built** vkquake.exe; the build only needs the `.lib` for linking.
+Also copy `ogengine.dll` and `ogengine.lib` from **OGEngineClient** publish (or Doom folder if already built) next to the **built** vkquake.exe; the build only needs the `.lib` for linking.
 
 ---
 
@@ -33,7 +33,7 @@ Also copy `star_api.dll` and `star_api.lib` from **STARAPIClient** publish (or D
 **Include** (near top, with other includes):
 
 ```c
-#include "oquake_star_integration.h"
+#include "oquake_ogengine_integration.h"
 ```
 
 **In `Host_Init()`** call `OQuake_STAR_Init()` **after** the console is initialized (e.g. after `Con_Init()` or equivalent) so the "Welcome to OQuake" and STAR hint appear in the in-game console:
@@ -81,21 +81,21 @@ Exact location and format depend on the vkQuake version; look for `ex_` or `PR_E
 
 In the `Quake` subdir’s `meson.build` (or wherever `pr_ext.c` is listed), add:
 
-- `oquake_star_integration.c`
+- `oquake_ogengine_integration.c`
 - `pr_ext_oquake.c`  
-  (No need to add `oquake_version.h` to the build; it is included by `oquake_star_integration.c`.)
+  (No need to add `oquake_version.h` to the build; it is included by `oquake_ogengine_integration.c`.)
 
-Ensure the target that builds the Quake lib/executable links `star_api.lib` (e.g. `link_with` or `link_args`). If `star_api` is built as a DLL, add something like:
+Ensure the target that builds the Quake lib/executable links `ogengine.lib` (e.g. `link_with` or `link_args`). If `star_api` is built as a DLL, add something like:
 
 ```meson
-link_args : ['-lstar_api']  # or the path to star_api.lib
+link_args : ['-lstar_api']  # or the path to ogengine.lib
 ```
 
 ### Windows Visual Studio
 
-- Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the Quake project (e.g. the vkquake or game lib project that already has `pr_ext.c`). Ensure `oquake_version.h` is in the same Quake folder so the include finds it.
-- In Project → Properties → Linker → Input → Additional Dependencies, add `star_api.lib` (or full path to it).
-- Ensure `star_api.dll` is in the same directory as the exe when running (BUILD_OQUAKE.bat can copy it there).
+- Add `oquake_ogengine_integration.c` and `pr_ext_oquake.c` to the Quake project (e.g. the vkquake or game lib project that already has `pr_ext.c`). Ensure `oquake_version.h` is in the same Quake folder so the include finds it.
+- In Project → Properties → Linker → Input → Additional Dependencies, add `ogengine.lib` (or full path to it).
+- Ensure `ogengine.dll` is in the same directory as the exe when running (BUILD_OQUAKE.bat can copy it there).
 
 ---
 
@@ -118,7 +118,7 @@ If you patch by hand, in **`_Host_Frame`** (same indent as the `// update video`
  time1 = Sys_DoubleTime ();
 ```
 
-Ensure **`#include "oquake_star_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init` and `OQuake_STAR_PollItems`).
+Ensure **`#include "oquake_ogengine_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init` and `OQuake_STAR_PollItems`).
 
 ---
 
@@ -134,11 +134,11 @@ When the apply script has patched host.c with the poll, sbar.c should not call t
 
 So that the player **does not move** and **arrow keys, HOME, PGDOWN, etc. do not pan the view** while the quest popup (Q) or inventory popup (I) is open, and **keys work immediately** after closing, the engine must not apply movement or view angles when either popup is open. The integration exposes **`OQuake_STAR_IsQuestPopupOpen()`** and **`OQuake_STAR_IsInventoryPopupOpen()`** and does **not** modify `keydown[]`, so key state is preserved.
 
-**The apply script patches this automatically:** it patches **cl_input.c** to add `#include "oquake_star_integration.h"` and, inside `CL_BaseMove`, a check that returns early (so `forwardmove`/`sidemove`/`upmove` stay 0) when **either** `OQuake_STAR_IsQuestPopupOpen()` or `OQuake_STAR_IsInventoryPopupOpen()` returns 1. It also patches **CL_AdjustAngles** to return early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). No manual patch is needed unless your vkQuake layout differs.
+**The apply script patches this automatically:** it patches **cl_input.c** to add `#include "oquake_ogengine_integration.h"` and, inside `CL_BaseMove`, a check that returns early (so `forwardmove`/`sidemove`/`upmove` stay 0) when **either** `OQuake_STAR_IsQuestPopupOpen()` or `OQuake_STAR_IsInventoryPopupOpen()` returns 1. It also patches **CL_AdjustAngles** to return early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). No manual patch is needed unless your vkQuake layout differs.
 
 **Tab key and scoreboard:** While the quest popup (Q) or inventory popup (I) is open, Tab is used by the integration (quest: switch between main list and right-side lists). The **apply script** patches **keys.c** so that when the quest or inventory popup is open, the engine does not execute the Tab key binding (+showscores). Same technique as the other keys: in **cl_input.c** the engine returns early so it does not *use* arrow/Home/PgDn for movement; in **keys.c** the engine skips executing the Tab binding so the scoreboard does not open.
 
-**If you patch by hand:** in **cl_input.c**, add the include and early return in `CL_BaseMove` and `CL_AdjustAngles` as above. In **keys.c**, add `#include "oquake_star_integration.h"` and in `Key_Event` inside the block that runs key bindings for `key_game`, add at the top: `if (key == K_TAB && (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())) return;`
+**If you patch by hand:** in **cl_input.c**, add the include and early return in `CL_BaseMove` and `CL_AdjustAngles` as above. In **keys.c**, add `#include "oquake_ogengine_integration.h"` and in `Key_Event` inside the block that runs key bindings for `key_game`, add at the top: `if (key == K_TAB && (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())) return;`
 
 ---
 
@@ -146,13 +146,13 @@ So that the player **does not move** and **arrow keys, HOME, PGDOWN, etc. do not
 
 When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatically** does everything (like ODOOM):
 
-1. **Copies** into `VkQuakeSrc\Quake\`: `oquake_star_integration.c/h`, `oquake_version.h`, `pr_ext_oquake.c`, `star_sync.h`, `star_api.h`, `star_api.dll`, `star_api.lib`.
-2. **Patches host.c**: adds `#include "oquake_version.h"` and `#include "oquake_star_integration.h"`, calls **OQuake_STAR_Init()** after PR_Init, **OQuake_STAR_Cleanup()** at shutdown, **OQuake_STAR_PollItems()** after CL_ReadFromServer, and the **pr_engine** version string (OQuake 1.0 (Build 1) (vkQuake …)).
+1. **Copies** into `VkQuakeSrc\Quake\`: `oquake_ogengine_integration.c/h`, `oquake_version.h`, `pr_ext_oquake.c`, `ogengine_sync.h`, `ogengine.h`, `ogengine.dll`, `ogengine.lib`.
+2. **Patches host.c**: adds `#include "oquake_version.h"` and `#include "oquake_ogengine_integration.h"`, calls **OQuake_STAR_Init()** after PR_Init, **OQuake_STAR_Cleanup()** at shutdown, **OQuake_STAR_PollItems()** after CL_ReadFromServer, and the **pr_engine** version string (OQuake 1.0 (Build 1) (vkQuake …)).
 3. **Patches pr_ext.c**: adds **extern** declarations for the four OQuake builtins and adds them to the **extensionbuiltins** table (`ex_OQuake_OnKeyPickup`, `ex_OQuake_CheckDoorAccess`, `ex_OQuake_OnBossKilled`, `ex_OQuake_OnMonsterKilled`).
-4. **Patches sbar.c**: adds `#include "oquake_star_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
-5. **Patches gl_screen.c**: adds `#include "oquake_star_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
-6. **Patches cl_input.c**: adds `#include "oquake_star_integration.h"`; in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** or **OQuake_STAR_IsInventoryPopupOpen()** is true (so no movement); in **CL_AdjustAngles** returns early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). Keys work after closing.
-7. **Patches the Visual Studio project**: adds **oquake_star_integration.c** and **pr_ext_oquake.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies. `star_sync_*` comes from `star_api.dll` exports (client implementation), not engine `star_sync.c`.
+4. **Patches sbar.c**: adds `#include "oquake_ogengine_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
+5. **Patches gl_screen.c**: adds `#include "oquake_ogengine_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
+6. **Patches cl_input.c**: adds `#include "oquake_ogengine_integration.h"`; in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** or **OQuake_STAR_IsInventoryPopupOpen()** is true (so no movement); in **CL_AdjustAngles** returns early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). Keys work after closing.
+7. **Patches the Visual Studio project**: adds **oquake_ogengine_integration.c** and **pr_ext_oquake.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **ogengine.lib** to the linker’s AdditionalDependencies. `star_sync_*` comes from `ogengine.dll` exports (client implementation), not engine `ogengine_sync.c`.
 
 No manual one-time setup is required. On a fresh vkQuake clone, run the script once (or BUILD_OQUAKE.bat); then build. Every subsequent run just copies the latest OQuake/STAR code and re-applies the patches.
 
@@ -210,9 +210,9 @@ Once integrated, the OASIS splash will appear during loading and match the profe
 ## 8. Verify
 
 1. Build vkQuake with the above changes.
-2. Copy `star_api.dll` next to the engine exe (e.g. `OQUAKE.exe` or `vkquake.exe`).
+2. Copy `ogengine.dll` next to the engine exe (e.g. `OQUAKE.exe` or `vkquake.exe`).
 3. Build or copy quake-rerelease-qc progs (with `OQuake_OnKeyPickup` / `OQuake_CheckDoorAccess` / `OQuake_OnBossKilled` in defs.qc) into the game dir.
-4. Run with STAR env set (`STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`).
+4. Run with STAR env set (`STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID`).
 5. In-game: pick up a key in OQuake and/or ODOOM; doors that use the OQuake builtins should open with cross-game keys.
 
 ---
@@ -221,23 +221,23 @@ Once integrated, the OASIS splash will appear during loading and match the profe
 
 ## 9. Anorak face when beamed in, inventory overlay (I key), and Send to Avatar / Send to Clan
 
-All of the **logic** for these features lives in **OASIS**, in `OQuake/oquake_star_integration.c` (and its header). The apply script copies that file into vkQuake and patches **host.c** only. For the following to **appear in-game**, the **vkQuake engine** must call into the integration:
+All of the **logic** for these features lives in **OASIS**, in `OQuake/oquake_ogengine_integration.c` (and its header). The apply script copies that file into vkQuake and patches **host.c** only. For the following to **appear in-game**, the **vkQuake engine** must call into the integration:
 
 | Feature | Where the logic lives (OASIS) | What vkQuake must do |
 |--------|------------------------------|------------------------|
-| **I key** for inventory | `OQuake_STAR_Init()` binds `oasis_inventory_toggle` to key **I** if unbound (see oquake_star_integration.c in OQuake/Code/). | Nothing extra: once host.c calls `OQuake_STAR_Init()`, the binding is registered. |
+| **I key** for inventory | `OQuake_STAR_Init()` binds `oasis_inventory_toggle` to key **I** if unbound (see oquake_ogengine_integration.c in OQuake/Code/). | Nothing extra: once host.c calls `OQuake_STAR_Init()`, the binding is registered. |
 | **Inventory popup** (tabs, list, status) | `OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx)` | Somewhere in the 2D HUD path (e.g. **gl_screen.c** or **r_screen.c**), call `OQuake_STAR_DrawInventoryOverlay(cbx)` so the overlay and **Send to Avatar / Send to Clan** popups are drawn. |
 | **Send to Avatar / Send to Clan** | Same overlay: Z=Send Avatar, X=Send Clan; popup uses `g_inventory_send_popup` and `star_sync` send-item API. | Same as above: drawing the inventory overlay draws the send popups. |
 | **Beamed In: &lt;username&gt;** text | `OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx)` | In the same 2D HUD path, call `OQuake_STAR_DrawBeamedInStatus(cbx)` (e.g. once per frame when in game). |
 | **Anorak face** when beamed in | `OQuake_STAR_ShouldUseAnorakFace()` and cvar `oasis_star_anorak_face` | In **sbar.c**, where the status bar face is drawn, if `OQuake_STAR_ShouldUseAnorakFace()` is true, draw the **face_anorak** pic instead of the normal health face. |
 
-So: **the code is not missing from OASIS** — it is all in `oquake_star_integration.c`. What can be “missing” is the **engine hooks** in **vkQuake’s** `sbar.c` and the 2D drawing file (e.g. **gl_screen.c**). If you re-cloned vkQuake or reverted it, those edits live only in **C:\\Source\\OQUAKE** (or wherever your OQUAKE/vkQuake source is), not in the OASIS repo.
+So: **the code is not missing from OASIS** — it is all in `oquake_ogengine_integration.c`. What can be “missing” is the **engine hooks** in **vkQuake’s** `sbar.c` and the 2D drawing file (e.g. **gl_screen.c**). If you re-cloned vkQuake or reverted it, those edits live only in **C:\\Source\\OQUAKE** (or wherever your OQUAKE/vkQuake source is), not in the OASIS repo.
 
 ### 9a. sbar.c – anorak face when beamed in
 
 1. Add at the top with the other includes:
    ```c
-   #include "oquake_star_integration.h"
+   #include "oquake_ogengine_integration.h"
    ```
 2. Add a static pic pointer (e.g. next to `sb_face_invis`):
    ```c
@@ -268,7 +268,7 @@ You need a **cb_context_t** and the same drawing API the status bar uses (`Draw_
 
 1. Add:
    ```c
-   #include "oquake_star_integration.h"
+   #include "oquake_ogengine_integration.h"
    ```
 2. Where you have `cbx` and are drawing the HUD (e.g. after `Sbar_Draw` or in the same function that draws the sbar):
    ```c
@@ -279,7 +279,7 @@ You need a **cb_context_t** and the same drawing API the status bar uses (`Draw_
    ```
    Order depends on desired layering; typically draw Beamed In first, then XP/version, then the overlay so the overlay can sit on top.
 
-After rebuilding vkQuake with these changes, the anorak face when beamed in, the I key inventory, and the Send to Avatar / Send to Clan popups from the inventory will work, using the logic already in **OASIS Omniverse/OQuake/Code/oquake_star_integration.c**.
+After rebuilding vkQuake with these changes, the anorak face when beamed in, the I key inventory, and the Send to Avatar / Send to Clan popups from the inventory will work, using the logic already in **OASIS Omniverse/OQuake/Code/oquake_ogengine_integration.c**.
 
 ---
 

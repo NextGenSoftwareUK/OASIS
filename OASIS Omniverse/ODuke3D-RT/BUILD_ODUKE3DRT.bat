@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 REM BUILD_ODUKE3DRT.bat — Build ODuke3D-RT (Duke-RT with OASIS STAR integration)
@@ -12,7 +12,7 @@ REM   - Visual Studio 2019 (Community or higher) with C++ workload
 REM   - CMake 3.15+ in PATH
 REM   - Vulkan SDK in PATH (Duke-RT uses Vulkan ray tracing)
 REM   - C:\Source\ODuke3D-RT\ exists (git clone of Duke-RT)
-REM   - STARAPIClient built (star_api.dll / star_api.lib in STARAPIClient\)
+REM   - OGEngineClient built (ogengine.dll / ogengine.lib in OGEngineClient\)
 REM   - Source variable: DUKERT_SRC (default C:\Source\ODuke3D-RT)
 
 set BATCH=%1

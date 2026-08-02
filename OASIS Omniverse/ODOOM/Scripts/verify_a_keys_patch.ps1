@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Verifies whether UZDoom src/gamedata/a_keys.cpp has the ODOOM STAR door patch (UZDoom_STAR_CheckDoorAccess).
   Run from ODOOM folder: .\Scripts\verify_a_keys_patch.ps1 -UZDOOM_SRC "C:\Source\UZDoom"
@@ -15,10 +15,10 @@ if (-not (Test-Path $aKeysCpp)) {
 }
 $content = Get-Content $aKeysCpp -Raw
 $hasStar = $content -match 'UZDoom_STAR_CheckDoorAccess'
-$hasInclude = $content -match 'uzdoom_star_integration\.h'
+$hasInclude = $content -match 'uzdoom_ogengine_integration\.h'
 Write-Host "File: $aKeysCpp" -ForegroundColor Cyan
 Write-Host "  STAR block (UZDoom_STAR_CheckDoorAccess): $(if ($hasStar) { 'YES - patched' } else { 'NO - not patched' })" -ForegroundColor $(if ($hasStar) { 'Green' } else { 'Red' })
-Write-Host "  Include (uzdoom_star_integration.h):      $(if ($hasInclude) { 'YES' } else { 'NO' })" -ForegroundColor $(if ($hasInclude) { 'Green' } else { 'Yellow' })
+Write-Host "  Include (uzdoom_ogengine_integration.h):      $(if ($hasInclude) { 'YES' } else { 'NO' })" -ForegroundColor $(if ($hasInclude) { 'Green' } else { 'Yellow' })
 if (-not $hasStar) {
     $hasLockCheck = $content -match 'lock->check\(owner\)'
     $hasQuiet = $content -match 'if \(quiet\) return false'

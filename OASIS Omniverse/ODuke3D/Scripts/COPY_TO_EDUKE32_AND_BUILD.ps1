@@ -1,10 +1,10 @@
-<#
+﻿<#
 .SYNOPSIS
     Copies ODuke3D integration files into the EDuke32 source tree,
     then runs Make (MinGW) or MSBuild to build the game executable.
 
 .DESCRIPTION
-    Run this after editing oduke3d_star_integration.c/.h, OGLib, or star_api.h.
+    Run this after editing oduke3d_ogengine_integration.c/.h, OGLib, or ogengine.h.
     The script copies deltas into C:\Source\ODuke3D\source\duke3d\src\ and rebuilds.
     ODuke3D is a fork of EDuke32 (https://eduke32.com).
 
@@ -32,7 +32,7 @@ $ErrorActionPreference = "Stop"
 
 $OmniverseRoot = Split-Path -Parent $PSScriptRoot   # ODuke3D folder
 $OGLibSrc      = Join-Path (Split-Path -Parent $OmniverseRoot) "OGLib"
-$STARSrc       = Join-Path (Split-Path -Parent $OmniverseRoot) "STARAPIClient"
+$STARSrc       = Join-Path (Split-Path -Parent $OmniverseRoot) "OGEngineClient"
 
 if ($EDuke32Src -eq "") {
     $EDuke32Src = if ($env:EDUKE32_SRC) { $env:EDUKE32_SRC } else { "C:\Source\ODuke3D" }
@@ -60,8 +60,8 @@ if (-not (Test-Path $Dest)) {
 Write-Host "`n[1/4] Copying integration source files..."
 
 $IntegrationFiles = @(
-    "oduke3d_star_integration.h",
-    "oduke3d_star_integration.c"
+    "oduke3d_ogengine_integration.h",
+    "oduke3d_ogengine_integration.c"
 )
 foreach ($f in $IntegrationFiles) {
     $src = Join-Path $OmniverseRoot $f
@@ -111,7 +111,7 @@ foreach ($f in $OGLibFiles) {
 # -----------------------------------------------------------------
 Write-Host "`n[3/4] Copying STAR API files..."
 
-$STARFiles = @("star_api.h", "star_sync.h", "star_sync.c", "star_api.lib", "star_api.dll")
+$STARFiles = @("ogengine.h", "star_sync.h", "star_sync.c", "ogengine.lib", "ogengine.dll")
 foreach ($f in $STARFiles) {
     $src = Join-Path $STARSrc $f
     $dst = Join-Path $Dest $f

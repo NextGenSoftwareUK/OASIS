@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # OQuake - vkQuake + OASIS STAR API. Cross-platform (Linux, macOS) build; equivalent of "BUILD_OQUAKE.bat" on Windows.
 # Supports: Windows (use BUILD_OQUAKE.bat), Linux, macOS (use this script).
 # Usage: ./BUILD_OQUAKE.sh [ run ] [ batch ]
@@ -24,7 +24,7 @@ fi
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OMNIVERSE="$(cd "$HERE/.." && pwd)"
-STARAPICLIENT="$OMNIVERSE/STARAPIClient"
+OGENGINECLIENT="$OMNIVERSE/OGEngineClient"
 OQUAKE_INTEGRATION="$HERE"
 OQUAKE_CODE="$HERE/Code"
 
@@ -70,9 +70,9 @@ if [[ -f "$OMNIVERSE/run_oasis_header.sh" ]]; then
   bash "$OMNIVERSE/run_oasis_header.sh" OQUAKE "$VERSION_DISPLAY" || true
 fi
 
-echo "[OQuake] Checking STARAPIClient - build if changed, deploy..."
-DEPLOY_SCRIPT="$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh"
-[[ ! -f "$DEPLOY_SCRIPT" ]] && DEPLOY_SCRIPT="$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh"
+echo "[OQuake] Checking OGEngineClient - build if changed, deploy..."
+DEPLOY_SCRIPT="$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-unix.sh"
+[[ ! -f "$DEPLOY_SCRIPT" ]] && DEPLOY_SCRIPT="$OMNIVERSE/OGEngineClient/Scripts/build-and-deploy-star-api-linux.sh"
 if [[ "$BUILD_STAR_CLIENT" == "1" ]]; then
   bash "$DEPLOY_SCRIPT" -ForceBuild
 else
@@ -101,26 +101,26 @@ if [[ -z "$STAR_SO" ]]; then
     *)      RID="linux-x64" ;;
   esac
   for name in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
-    if [[ -f "$STARAPICLIENT/bin/Release/net10.0/$RID/publish/$name" ]]; then
-      STAR_SO="$STARAPICLIENT/bin/Release/net10.0/$RID/publish/$name"
+    if [[ -f "$OGENGINECLIENT/bin/Release/net10.0/$RID/publish/$name" ]]; then
+      STAR_SO="$OGENGINECLIENT/bin/Release/net10.0/$RID/publish/$name"
       break
     fi
   done
 fi
 if [[ -z "$STAR_SO" || ! -f "$STAR_SO" ]]; then
-  echo "ERROR: STAR API native library (libstar_api.so / libstar_api.dylib) missing after deploy. Check STARAPIClient build."
+  echo "ERROR: STAR API native library (libstar_api.so / libstar_api.dylib) missing after deploy. Check OGEngineClient build."
   exit 1
 fi
 
-if [[ ! -f "$STARAPICLIENT/star_api.h" ]]; then
-  echo "ERROR: star_api.h not found: $STARAPICLIENT"
+if [[ ! -f "$OGENGINECLIENT/ogengine.h" ]]; then
+  echo "ERROR: ogengine.h not found: $OGENGINECLIENT"
   exit 1
 fi
 
 # star_sync API comes from star_api client exports; only header is needed for declarations.
-if [[ -f "$STARAPICLIENT/star_sync.h" ]]; then
+if [[ -f "$OGENGINECLIENT/ogengine_sync.h" ]]; then
   mkdir -p "$OQUAKE_CODE"
-  cp -f "$STARAPICLIENT/star_sync.h" "$OQUAKE_CODE/"
+  cp -f "$OGENGINECLIENT/ogengine_sync.h" "$OQUAKE_CODE/"
 fi
 
 # Require vkQuake to build the exe. QUAKE_SRC (quake-rerelease-qc) is optional if you only run BUILD QUAKE.
@@ -134,13 +134,13 @@ echo ""
 echo "[OQuake] Installing..."
 if [[ -d "$QUAKE_SRC" ]]; then
   echo "[OQuake] Installing integration into QuakeC tree..."
-  cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_SRC/"
-  cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_SRC/"
+  cp -f "$OQUAKE_CODE/oquake_ogengine_integration.c" "$QUAKE_SRC/"
+  cp -f "$OQUAKE_CODE/oquake_ogengine_integration.h" "$QUAKE_SRC/"
   [[ -f "$OQUAKE_CODE/oquake_version.h" ]] && cp -f "$OQUAKE_CODE/oquake_version.h" "$QUAKE_SRC/"
   [[ -f "$HERE/Docs/WINDOWS_INTEGRATION.md" ]] && cp -f "$HERE/Docs/WINDOWS_INTEGRATION.md" "$QUAKE_SRC/"
   [[ -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" ]] && cp -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" "$QUAKE_SRC/"
-  cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_SRC/"
-  [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_SRC/"
+  cp -f "$OGENGINECLIENT/ogengine.h" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/ogengine_sync.h" ]] && cp -f "$OQUAKE_CODE/ogengine_sync.h" "$QUAKE_SRC/"
   cp -f "$STAR_SO" "$QUAKE_SRC/"
   echo "  $QUAKE_SRC"
 else
@@ -157,10 +157,10 @@ if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c"
   else
     echo "[OQuake][WARN] pwsh not found or apply script missing; copying integration files manually."
     QUAKE_DIR="$VKQUAKE_SRC/Quake"
-    [[ -f "$OQUAKE_CODE/oquake_star_integration.c" ]] && cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_DIR/"
-    [[ -f "$OQUAKE_CODE/oquake_star_integration.h" ]] && cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_DIR/"
-    [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_DIR/"
-    cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_DIR/"
+    [[ -f "$OQUAKE_CODE/oquake_ogengine_integration.c" ]] && cp -f "$OQUAKE_CODE/oquake_ogengine_integration.c" "$QUAKE_DIR/"
+    [[ -f "$OQUAKE_CODE/oquake_ogengine_integration.h" ]] && cp -f "$OQUAKE_CODE/oquake_ogengine_integration.h" "$QUAKE_DIR/"
+    [[ -f "$OQUAKE_CODE/ogengine_sync.h" ]] && cp -f "$OQUAKE_CODE/ogengine_sync.h" "$QUAKE_DIR/"
+    cp -f "$OGENGINECLIENT/ogengine.h" "$QUAKE_DIR/"
   fi
   # Stage anorak HUD face (same as apply script): Images/ is canonical; pwsh path may be skipped above.
   if [[ -f "$HERE/Images/face_anorak.png" ]]; then
@@ -256,7 +256,7 @@ if [[ -n "$QUAKE_ENGINE_EXE" ]]; then
 else
   echo "To build engine: set VKQUAKE_SRC (e.g. \$HOME/Source/OQUAKE) and ensure meson/ninja are installed."
 fi
-echo "Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or STAR_API_KEY / STAR_AVATAR_ID"
+echo "Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or OGENGINE_KEY / STAR_AVATAR_ID"
 echo "---"
 
 if [[ $RUN_AFTER_BUILD -eq 1 ]] && [[ -x "$OQUAKE_INTEGRATION/build/OQUAKE" ]]; then

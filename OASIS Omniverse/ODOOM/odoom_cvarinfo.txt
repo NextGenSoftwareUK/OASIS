@@ -1,4 +1,4 @@
-// ODOOM inventory overlay - CVars for ZScript/C++ coordination.
+﻿// ODOOM inventory overlay - CVars for ZScript/C++ coordination.
 // When inventory is open, ZScript sets odoom_inventory_open=1 so C++ can
 // temporarily clear key bindings (OQuake-style). Key state CVars are set by C++.
 server int odoom_inventory_open = 0;
@@ -92,10 +92,10 @@ server int odoom_quest_count = 0;
 // ZScript sets when jumping from detail to a quest; C++ finds row, adjusts odoom_quest_scroll_offset, sets odoom_quest_pending_select_filtered_index, then clears.
 server string odoom_quest_scroll_to_id = "";
 server int odoom_quest_pending_select_filtered_index = -1;
-// Set active quest from popup: ZScript sets odoom_quest_set_active_id and odoom_quest_set_active_do_it=1; C++ calls star_api_start_quest and clears do_it.
+// Set active quest from popup: ZScript sets odoom_quest_set_active_id and odoom_quest_set_active_do_it=1; C++ calls ogengine_start_quest and clears do_it.
 server string odoom_quest_set_active_id = "";
 server int odoom_quest_set_active_do_it = 0;
-// Not Started + Enter on objective: ZScript sets tracker CVars + odoom_quest_start_then_track_do_it=1; C++ calls star_api_start_quest_then_set_active_objective (start then persist, no race with odoom_quest_persist_active_now).
+// Not Started + Enter on objective: ZScript sets tracker CVars + odoom_quest_start_then_track_do_it=1; C++ calls ogengine_start_quest_then_set_active_objective (start then persist, no race with odoom_quest_persist_active_now).
 server int odoom_quest_start_then_track_do_it = 0;
 // Current selected quest id (main list or detail). ZScript sets every frame when quest popup is open; C++ uses this when K is pressed so Start/Set works reliably.
 server string odoom_quest_selected_id = "";

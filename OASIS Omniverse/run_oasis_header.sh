@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # Print OASIS banner (coloured header + slogan). Centre-aligned, same design as show_oasis_header.ps1.
 # Usage: ./run_oasis_header.sh [ ODOOM | OQUAKE | BUILD | RUN_ODOOM | RUN_OQUAKE ] [ version ]
 #   version = optional (shown as "Title  vversion" for ODOOM/OQUAKE/BUILD).
@@ -58,7 +58,7 @@ case "$MODE" in
   BUILD)
     TITLE="T H E   O A S I S   O M N I V E R S E"
     [[ -n "$VERSION" ]] && TITLE="$TITLE  v$VERSION"
-    SUB="STARAPIClient + ODOOM + OQuake"
+    SUB="OGEngineClient + ODOOM + OQuake"
     ;;
   RUN_ODOOM)
     TITLE="O A S I S   O D O O M   |   Run"
