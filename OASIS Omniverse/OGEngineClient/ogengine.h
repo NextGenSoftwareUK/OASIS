@@ -186,6 +186,50 @@ void ogengine_set_callback(ogengine_callback_t callback, void* user_data);
 /** Optional: set callback with operation_type so game only reacts to profile-loaded. If set, profile refresh uses this; else uses ogengine_set_callback. */
 void ogengine_set_operation_callback(ogengine_operation_callback_t callback, void* user_data);
 
+/* ---- Cross-game portal / teleport API ----------------------------------------
+ * These functions implement the OASIS Portal system so players can warp between
+ * OGames.  Call ogengine_poll_teleport_request each frame (or from the same tick
+ * that calls ogengine_sync_pump / ogengine_sync_tick).  On receipt, perform the
+ * game-native warp then call ogengine_confirm_teleport_arrival so the STAR relay
+ * knows the client has arrived and clears the pending request.
+ * ogengine_request_teleport initiates an outgoing warp to another OGame.
+ * ----------------------------------------------------------------------------- */
+
+/** Poll for a pending incoming teleport request from another OGame.
+ *  Returns 1 if a request is waiting; out_map, out_x/y/z are filled in.
+ *  out_map receives the target map name (null-terminated, up to map_len bytes).
+ *  Returns 0 when no request is pending (out args are unchanged). */
+int ogengine_poll_teleport_request(char* out_map, size_t map_len, float* out_x, float* out_y, float* out_z);
+
+/** Confirm that the local player has been warped to the requested position.
+ *  Call immediately after performing the game-native teleport move so the STAR
+ *  relay clears the pending request and notifies the source OGame. */
+void ogengine_confirm_teleport_arrival(void);
+
+/** Initiate an outgoing OASIS Portal teleport to another OGame.
+ *  target_game: canonical game ID (e.g. "ODOOM", "OQUAKE").
+ *  target_map:  map/level name in that game.
+ *  x/y/z:       spawn position in target-game coordinates (0 = use default). */
+void ogengine_request_teleport(const char* target_game, const char* target_map, float x, float y, float z);
+
+/* ---- Cross-game spawn-event API ----------------------------------------------
+ * The STAR relay can instruct a game to spawn an entity (e.g. a monster or
+ * object imported from another OGame).  Poll each frame after sync_pump/tick.
+ * On receipt, spawn the entity in game-native code, then confirm so the relay
+ * removes the event from the queue.
+ * ----------------------------------------------------------------------------- */
+
+/** Poll for a pending cross-game spawn event.
+ *  Returns 1 if an event is waiting; out_entity_id, out_x/y/z are filled in.
+ *  out_entity_id receives the OASIS entity ID (null-terminated, up to id_len bytes).
+ *  Returns 0 when no event is pending (out args are unchanged). */
+int ogengine_poll_spawn_event(char* out_entity_id, size_t id_len, float* out_x, float* out_y, float* out_z);
+
+/** Confirm that the spawn event has been handled.
+ *  Call after the entity has been spawned in the game world so the relay removes
+ *  the event from the queue and notifies the originating OGame. */
+void ogengine_confirm_spawn(const char* entity_id);
+
 #ifdef __cplusplus
 }
 #endif

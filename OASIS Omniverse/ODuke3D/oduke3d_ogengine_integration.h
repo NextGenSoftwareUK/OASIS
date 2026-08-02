@@ -145,6 +145,7 @@ void ODuke3D_STAR_DrawPopupOverlay(void);
  * @param down  1 = key pressed, 0 = released.
  */
 void ODuke3D_STAR_HandleKey(int sc, int down);
+void ODuke3D_STAR_CheckIncomingTeleport(void);
 
 #ifdef __cplusplus
 }

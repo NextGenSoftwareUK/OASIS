@@ -232,6 +232,21 @@ void ODuke3D_STAR_Cleanup(void) {
 void ODuke3D_STAR_Tick(void) {
     if (!g_initialized) return;
     ogengine_sync_tick(NULL);
+
+    /* --- cross-game spawn poll --- */
+    {
+        char entity_id[128];
+        float sx, sy, sz;
+        if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+        {
+            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+             * Map entity_id to native classname using OGAsset catalog lookup.
+             * For now, log the request. */
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            ogengine_confirm_spawn(entity_id);
+        }
+    }
+
     if (g_toast_ticks > 0) g_toast_ticks--;
 }
 
@@ -477,4 +492,19 @@ void ODuke3D_STAR_HandleKey(int sc, int down) {
         default:
             break;
     }
+}
+
+/*===========================================================================
+ * OASIS Portal / Teleport — incoming warp from another OGame
+ * Call from app_main or level-load path (e.g. G_NewGame / G_LoadGame).
+ *=========================================================================*/
+
+void ODuke3D_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    /* TODO: ps[myconnectindex].pos = { x, y, z }; ps[myconnectindex].opos = ps[myconnectindex].pos; */
+    ogengine_confirm_teleport_arrival();
 }

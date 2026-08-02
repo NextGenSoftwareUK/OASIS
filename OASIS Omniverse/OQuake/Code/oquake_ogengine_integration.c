@@ -4145,6 +4145,21 @@ void OQuake_STAR_PollItems(void) {
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     ogengine_sync_pump();
+
+    /* --- cross-game spawn poll --- */
+    {
+        char entity_id[128];
+        float sx, sy, sz;
+        if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+        {
+            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+             * Map entity_id to native classname using OGAsset catalog lookup.
+             * For now, log the request. */
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            ogengine_confirm_spawn(entity_id);
+        }
+    }
+
     /* Keep movement bind capture in sync every frame so closing a popup still restores WASD if the HUD draw path did not run (Linux / loading / menu). */
     OQ_UpdatePopupInputCapture();
 
@@ -6927,4 +6942,19 @@ const char* OQuake_STAR_GetUsername(void) {
     if (g_star_initialized && g_star_username[0])
         return g_star_username;
     return NULL;
+}
+
+/*=============================================================================
+ * OASIS Portal / Teleport — incoming warp from another OGame
+ * Call from CL_ParseServerMessage or map-load path (e.g. CL_SignonReply).
+ *===========================================================================*/
+
+void OQuake_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    /* TODO: VectorCopy(origin, sv.edicts[1].v.origin); SV_LinkEdict(sv.edicts[1], false); */
+    ogengine_confirm_teleport_arrival();
 }
