@@ -1,4 +1,4 @@
-# OWolf3D — Windows Integration Guide (Manual diff)
+﻿# OWolf3D — Windows Integration Guide (Manual diff)
 
 These are the exact changes applied to `C:\Source\OWolf3D\src\` by the build script.
 If you prefer to apply them manually rather than running `COPY_TO_ECWOLF_AND_BUILD.ps1`,
@@ -21,7 +21,7 @@ Find the last entry in the list:
 Change to:
 ```cmake
     zstring.cpp
-    owolf3d_star_integration.cpp
+    owolf3d_ogengine_integration.cpp
 )
 ```
 
@@ -31,7 +31,7 @@ At the end of `CMakeLists.txt` (or after the `initial_sources(...)` block), add:
 ```cmake
 # OWolf3D: OASIS STAR API link
 if(WIN32)
-    target_link_libraries(engine PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/star_api.lib")
+    target_link_libraries(engine PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ogengine.lib")
     target_compile_definitions(engine PRIVATE OASIS_STAR_SYNC_IN_CLIENT=1)
 endif()
 ```
@@ -43,7 +43,7 @@ endif()
 ### 2a. Add include after existing includes near top of file
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 2b. `InitGame()` — call OWolf3D_STAR_Init at the end
@@ -85,7 +85,7 @@ void Quit ()
 ### 3a. Add include
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 3b. `GameLoop()` — call OWolf3D_STAR_Tick each frame
@@ -108,7 +108,7 @@ Add before `IN_ProcessEvents()`:
 ### 4a. Add include
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 4b. `AActor::Die()` — report kill after FL_COUNTKILL
@@ -136,7 +136,7 @@ Add after:
 ### 5a. Add include
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 5b. `AInventory::TryPickup()` — report item after it's granted
@@ -164,7 +164,7 @@ Change to:
 ### 6a. Add include
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 6b. `P_CheckKeys()` — STAR fallback when key is missing
@@ -192,7 +192,7 @@ Change to:
 ### 7a. Add include
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 7b. `CheckKeys()` — forward keys to STAR handler
@@ -224,7 +224,7 @@ Wrap to skip movement when a popup is open:
 ### 8a. Add include
 
 ```cpp
-#include "owolf3d_star_integration.h"
+#include "owolf3d_ogengine_integration.h"
 ```
 
 ### 8b. `WolfStatusBar::DrawStatusBar()` — draw OASIS HUD at the end

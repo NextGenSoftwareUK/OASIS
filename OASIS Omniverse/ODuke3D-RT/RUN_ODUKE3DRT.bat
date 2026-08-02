@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 REM RUN_ODUKE3DRT.bat — Build (if needed) and launch ODuke3D-RT
@@ -10,7 +10,7 @@ REM Environment variables:
 REM   DUKERT_SRC         — path to ODuke3D-RT (Duke-RT fork) source (default C:\Source\ODuke3D-RT)
 REM   STAR_USERNAME      — OASIS username
 REM   STAR_PASSWORD      — OASIS password
-REM   STAR_API_KEY       — API key (alternative to username/password)
+REM   OGENGINE_KEY       — API key (alternative to username/password)
 REM   STAR_AVATAR_ID     — OASIS avatar ID
 
 set DUKERT_SRC=%DUKERT_SRC%

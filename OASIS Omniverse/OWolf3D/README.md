@@ -1,4 +1,4 @@
-# OWolf3D — Wolfenstein 3D + OASIS STAR API
+﻿# OWolf3D — Wolfenstein 3D + OASIS STAR API
 
 **OWolf3D** is a fork of [ECWolf](https://maniacsvault.net/ecwolf/) with the **OASIS STAR API** integrated,
 bringing Wolfenstein 3D into the cross-game OASIS Omniverse.
@@ -64,14 +64,14 @@ ECWolf (C++, src/)
       │  7 hook calls  (actor.cpp, a_inventory.cpp, a_keys.cpp,
       │                  wolf_sbar.cpp, wl_main.cpp, wl_game.cpp, wl_play.cpp)
       ▼
-owolf3d_star_integration.cpp   ← delta file (OASIS Omniverse/OWolf3D/)
+owolf3d_ogengine_integration.cpp   ← delta file (OASIS Omniverse/OWolf3D/)
       │
-      ├── star_api.h            ← C ABI (links against star_api.dll)
-      ├── star_sync.h           ← async auth/inventory helpers
+      ├── ogengine.h            ← C ABI (links against ogengine.dll)
+      ├── ogengine_sync.h           ← async auth/inventory helpers
       └── OGLib/oglib.h         ← header-only utility library
                 │
                 ▼
-          star_api.dll          ← STARAPIClient (C# NativeAOT)
+          ogengine.dll          ← OGEngineClient (C# NativeAOT)
                 │
                 ▼
          OASIS STAR API
@@ -97,8 +97,8 @@ When beamed in, OWolf3D adds:
 
 | File | Purpose |
 |------|---------|
-| `owolf3d_star_integration.h` | Public hook API |
-| `owolf3d_star_integration.cpp` | Full integration implementation |
+| `owolf3d_ogengine_integration.h` | Public hook API |
+| `owolf3d_ogengine_integration.cpp` | Full integration implementation |
 | `oasisstar.json` | Monster XP/mint table + key mapping |
 | `BUILD_OWOLF3D.bat/.sh` | Build entry points |
 | `RUN_OWOLF3D.bat/.sh` | Launch entry points |

@@ -1,4 +1,4 @@
-# ODuke3D-RT Integration Instructions
+﻿# ODuke3D-RT Integration Instructions
 
 High-level steps to integrate the OASIS STAR API into a Duke-RT fork so it becomes **ODuke3D-RT** (cross-game keys with ODOOM, OQuake, ODOOM3, ODOOM3-BFG, and ODuke3D).
 
@@ -8,15 +8,15 @@ Duke-RT is a Vulkan ray-tracing fork of EDuke32. The OASIS integration hooks are
 
 From **OASIS Omniverse\ODuke3D-RT**:
 
-- `oduke3drt_star_integration.c`
-- `oduke3drt_star_integration.h`
-- `star_sync.c` / `star_sync.h` (from **OASIS Omniverse\STARAPIClient**)
-- `star_api.h`, `star_api.lib`, `star_api.dll`
+- `oduke3drt_ogengine_integration.c`
+- `oduke3drt_ogengine_integration.h`
+- `ogengine_sync.c` / `ogengine_sync.h` (from **OASIS Omniverse\OGEngineClient**)
+- `ogengine.h`, `ogengine.lib`, `ogengine.dll`
 - `OGLib/` headers (from **OASIS Omniverse\OGLib**)
 
 ## 2. Add to the Duke-RT build
 
-Duke-RT uses **CMake**.  Add `oduke3drt_star_integration.c` and `star_sync.c` to the `CMakeLists.txt` in `source/duke3d/` (or to the game target's source list).  Link `star_api.lib` and `winhttp.lib` (Windows), or `star_api.so` (Linux).
+Duke-RT uses **CMake**.  Add `oduke3drt_ogengine_integration.c` and `ogengine_sync.c` to the `CMakeLists.txt` in `source/duke3d/` (or to the game target's source list).  Link `ogengine.lib` and `winhttp.lib` (Windows), or `star_api.so` (Linux).
 
 Copy OGLib headers to `source/duke3d/src/OGLib/`.
 

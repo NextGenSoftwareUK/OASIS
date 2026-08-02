@@ -38,7 +38,7 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 
 3. **Run:** `./RUN_OQUAKE.sh` (or `./BUILD_OQUAKE.sh run` to build then launch). If you see **"couldn't load gfx.wad"**, the run script will try to extract `gfx.wad` from `id1/pak0.pak` automatically (Steam often has only the pak files).
 
-4. **Cross-game keys (optional):** set `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`.
+4. **Cross-game keys (optional):** set `STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID`.
 
 See **OASIS Omniverse/Docs/GettingStarted_Linux.md** for the full Linux guide.
 
@@ -47,11 +47,11 @@ See **OASIS Omniverse/Docs/GettingStarted_Linux.md** for the full Linux guide.
 OQuake sits at the top of the OASIS Omniverse integration stack:
 
 ```
-oquake_star_integration.c  (OQuake engine hooks only)
+oquake_ogengine_integration.c  (OQuake engine hooks only)
          ↓
     OGLib  (shared C library — config, beamin, session shims)
          ↓
-  STARAPIClient  (C# NativeAOT → star_api.dll / libstar_api.so)
+  OGEngineClient  (C# NativeAOT → ogengine.dll / libstar_api.so)
          ↓
   WEB4 / WEB5 OASIS APIs
 ```
@@ -76,9 +76,9 @@ See **[OGLib/README.md](../OGLib/README.md)** for the shared game integration li
 
 | File | Purpose |
 |------|--------|
-| **BUILD_OQUAKE.bat** | Build star_api, copy OQuake + STAR into quake-rerelease-qc and vkQuake, build vkQuake (OQUAKE.exe + star_api.dll copied to `build\`) |
+| **BUILD_OQUAKE.bat** | Build star_api, copy OQuake + STAR into quake-rerelease-qc and vkQuake, build vkQuake (OQUAKE.exe + ogengine.dll copied to `build\`) |
 | **RUN OQUAKE.bat** | If already built, launches OQuake with Steam basedir; otherwise runs BUILD_OQUAKE.bat then launches |
-| **Code/oquake_star_integration.c/h** | STAR API integration (init, key pickup, door check) |
+| **Code/oquake_ogengine_integration.c/h** | STAR API integration (init, key pickup, door check) |
 | **Code/oquake_version.h** | OQuake version/build for branding (from Version/oquake_version.txt) |
 | **Code/engine_oquake_hooks.c.example** | Example engine hooks (Host_Init, key pickup, door) |
 | **Scripts/** | generate_oquake_version.ps1, COPY_TO_QUAKE_AND_BUILD.ps1 |
@@ -89,7 +89,7 @@ See **[OGLib/README.md](../OGLib/README.md)** for the shared game integration li
 
 ## Engine (vkQuake)
 
-**vkQuake** is the recommended engine (Vulkan, 2021 rerelease support). Set `VKQUAKE_SRC=C:\Source\vkQuake` in BUILD_OQUAKE.bat; the script will clone and build vkQuake and copy **OQUAKE.exe** and **star_api.dll** into `OQuake\build\`. See **Docs/ENGINE_RECOMMENDATION.md** for why vkQuake and **vkquake_oquake/VKQUAKE_OQUAKE_INTEGRATION.md** for host.c/pr_ext.c edits.
+**vkQuake** is the recommended engine (Vulkan, 2021 rerelease support). Set `VKQUAKE_SRC=C:\Source\vkQuake` in BUILD_OQUAKE.bat; the script will clone and build vkQuake and copy **OQUAKE.exe** and **ogengine.dll** into `OQuake\build\`. See **Docs/ENGINE_RECOMMENDATION.md** for why vkQuake and **vkquake_oquake/VKQUAKE_OQUAKE_INTEGRATION.md** for host.c/pr_ext.c edits.
 
 ## Cross-game keys and inventory
 
@@ -98,4 +98,4 @@ See **[OGLib/README.md](../OGLib/README.md)** for the shared game integration li
 - **Ammo** (shells, nails, rockets, cells) syncs with the **actual pickup amount** (e.g. Shells +20 per box); totals persist correctly after quit/reload.
 - In-game console **add_item** messages are shown only when **star debug** is on (`star debug on` / `star debug off` / `star debug status` in console).
 
-Set **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID** for the STAR API.
+Set **STAR_USERNAME** / **STAR_PASSWORD** or **OGENGINE_KEY** / **STAR_AVATAR_ID** for the STAR API.

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 REM BUILD_ODUKE3D.bat — Build ODuke3D (EDuke32 with OASIS STAR integration)
@@ -11,7 +11,7 @@ REM Prerequisites:
 REM   - MinGW-w64 (with gcc and make) in PATH  — OR  —
 REM     Visual Studio 2019+ with C++ workload (for MSVC nmake build)
 REM   - C:\Source\ODuke3D\ exists (git clone of ODuke3D, EDuke32 fork)
-REM   - STARAPIClient built (star_api.dll / star_api.lib in STARAPIClient\)
+REM   - OGEngineClient built (ogengine.dll / ogengine.lib in OGEngineClient\)
 REM   - EDuke32 source variable: EDUKE32_SRC (default C:\Source\ODuke3D)
 
 set BATCH=%1

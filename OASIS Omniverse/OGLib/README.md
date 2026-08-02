@@ -1,8 +1,8 @@
 ﻿# OGLib — OASIS Game Integration Library
 
-OGLib is a lightweight C library that sits between the raw `star_api.h` exports and your game engine. It contains all the boilerplate that every OASIS-integrated game needs: config loading, session management, beamin/beamout workflow, cross-game mappings, and common utilities.
+OGLib is a lightweight C library that sits between the raw `ogengine.h` exports and your game engine. It contains all the boilerplate that every OASIS-integrated game needs: config loading, session management, beamin/beamout workflow, cross-game mappings, and common utilities.
 
-**Games that want minimal ceremony** use `STARAPIClient` directly via `star_api.h`.  
+**Games that want minimal ceremony** use `OGEngineClient` directly via `ogengine.h`.  
 **Games that want the full workflow** include OGLib and get all the plumbing for free.
 
 ---
@@ -13,8 +13,8 @@ OGLib is a lightweight C library that sits between the raw `star_api.h` exports 
 Game engine (ODOOM / OQuake / your game)
       ↓  engine hooks only
    OGLib   ← this library (C, header-only / single-TU impl)
-      ↓  star_api.h / star_sync.h
-  STARAPIClient  (C# NativeAOT → star_api.dll / libstar_api.so)
+      ↓  ogengine.h / ogengine_sync.h
+  OGEngineClient  (C# NativeAOT → ogengine.dll / libstar_api.so)
       ↓
   WEB4 / WEB5 OASIS APIs
 ```
@@ -54,19 +54,19 @@ In exactly **one** `.c` or `.cpp` file in your project (e.g. `my_game_star_integ
 #define OGLIB_CONFIG_IMPL
 #define OGLIB_BEAMIN_IMPL
 #include "oglib.h"
-#include "star_api.h"
-#include "star_sync.h"
+#include "ogengine.h"
+#include "ogengine_sync.h"
 ```
 
 All other files that use OGLib just include `oglib.h` without the defines.
 
-### 3. Include star_api.h / star_sync.h
+### 3. Include ogengine.h / ogengine_sync.h
 
-OGLib wraps the STAR API — you still need to link `star_api.lib` (Windows) or `libstar_api.so` (Linux). Get the canonical copies from `STARAPIClient/`:
+OGLib wraps the STAR API — you still need to link `ogengine.lib` (Windows) or `libstar_api.so` (Linux). Get the canonical copies from `OGEngineClient/`:
 
-- `STARAPIClient/star_api.h`
-- `STARAPIClient/star_sync.h`
-- `STARAPIClient/star_sync.c` (add to your build, or use `OASIS_STAR_SYNC_IN_CLIENT=1` to skip)
+- `OGEngineClient/ogengine.h`
+- `OGEngineClient/ogengine_sync.h`
+- `OGEngineClient/ogengine_sync.c` (add to your build, or use `OASIS_STAR_SYNC_IN_CLIENT=1` to skip)
 
 ---
 
@@ -80,16 +80,16 @@ memset(&cfg, 0, sizeof(cfg));
 oglib_config_load("oasisstar.json", &cfg, NULL, NULL);
 
 // Initialize STAR API
-star_api_config_t api_cfg = { ... };
-snprintf(api_cfg.base_url_buf, sizeof(api_cfg.base_url_buf), "%s", cfg.star_api_url);
-star_api_init(&api_cfg);
+ogengine_config_t api_cfg = { ... };
+snprintf(api_cfg.base_url_buf, sizeof(api_cfg.base_url_buf), "%s", cfg.ogengine_url);
+ogengine_init(&api_cfg);
 
 // Restore saved session if available
 if (cfg.jwt_token[0]) {
-    star_api_set_saved_session(cfg.jwt_token);
+    ogengine_set_saved_session(cfg.jwt_token);
     if (cfg.refresh_token[0])
-        star_api_set_refresh_token(cfg.refresh_token);
-    star_api_restore_session();
+        ogengine_set_refresh_token(cfg.refresh_token);
+    ogengine_restore_session();
 }
 ```
 
@@ -139,7 +139,7 @@ void MyGame_Beamin(const char* username, const char* password)
 
 ## Session Forwarders
 
-`oglib_session.h` provides Win32/POSIX runtime forwarders for the nine session/auth functions declared in `star_api.h`. Include `OGLIB_SESSION_IMPL` in your implementation TU and they resolve automatically at runtime from the loaded `star_api.dll` / `libstar_api.so`.
+`oglib_session.h` provides Win32/POSIX runtime forwarders for the nine session/auth functions declared in `ogengine.h`. Include `OGLIB_SESSION_IMPL` in your implementation TU and they resolve automatically at runtime from the loaded `ogengine.dll` / `libstar_api.so`.
 
 This avoids link-time symbol resolution issues that occur when the DLL is loaded by the engine after your code runs.
 
@@ -175,7 +175,7 @@ if (oglib_str_contains_nocase(item_name, "key")) { ... }
 
 // Extract a JSON value
 char url[512];
-oglib_json_extract(json_text, "star_api_url", url, sizeof(url));
+oglib_json_extract(json_text, "ogengine_url", url, sizeof(url));
 ```
 
 ---
@@ -190,16 +190,16 @@ OGLib deliberately excludes anything that is engine-specific or game-specific:
 - Monster XP tables or pickup detection (game-specific actor names)
 - Logging to the engine console (`Con_Printf`, `Printf`, etc.)
 
-Those belong in your game's own integration file (`uzdoom_star_integration.cpp`, `oquake_star_integration.c`, etc.).
+Those belong in your game's own integration file (`uzdoom_ogengine_integration.cpp`, `oquake_ogengine_integration.c`, etc.).
 
 ---
 
 ## Adding OGLib to a New Game
 
 1. Copy `OGLib/` headers into your project (or reference via include path).
-2. Copy `star_api.h`, `star_sync.h`, `star_sync.c` from `STARAPIClient/`.
-3. Add `star_sync.c` to your build (or set `OASIS_STAR_SYNC_IN_CLIENT=1` if the client DLL already includes it).
-4. Link `star_api.lib` (Win) / `libstar_api.so` (Linux).
+2. Copy `ogengine.h`, `ogengine_sync.h`, `ogengine_sync.c` from `OGEngineClient/`.
+3. Add `ogengine_sync.c` to your build (or set `OASIS_STAR_SYNC_IN_CLIENT=1` if the client DLL already includes it).
+4. Link `ogengine.lib` (Win) / `libstar_api.so` (Linux).
 5. Create `my_game_star_integration.c` with the `OGLIB_*_IMPL` defines and your engine hooks.
 6. Call `star_sync_pump()` every frame from your game loop.
-7. Add `oasisstar.json` to your game directory and fill in `star_api_url`.
+7. Add `oasisstar.json` to your game directory and fill in `ogengine_url`.

@@ -1,4 +1,4 @@
-# ODOOM3-BFG: Engine Hook Guide (RBDOOM-3-BFG on Windows)
+﻿# ODOOM3-BFG: Engine Hook Guide (RBDOOM-3-BFG on Windows)
 
 Step-by-step diff guide for applying all engine hook points.
 Run `Scripts\COPY_TO_RBDOOM3_AND_BUILD.ps1` **before** editing engine files
@@ -17,7 +17,7 @@ All file paths are relative to `C:\Source\ODOOM3-BFG\neo\d3xp\`.
 At the top of `Game_local.cpp`, after the other game includes, add:
 
 ```cpp
-#include "d3doom_star_integration.h"
+#include "d3doom_ogengine_integration.h"
 ```
 
 ### 1b. idGameLocal::Init() — call D3Doom_STAR_Init
@@ -82,7 +82,7 @@ to:
 Add at the top of `Player.cpp` (after the existing includes):
 
 ```cpp
-#include "d3doom_star_integration.h"
+#include "d3doom_ogengine_integration.h"
 ```
 
 ### 2b. idPlayer::GiveInventoryItem() — report to STAR
@@ -109,7 +109,7 @@ the item to the player's inventory list), add:
 Add at the top of `ai/AI.cpp`:
 
 ```cpp
-#include "d3doom_star_integration.h"
+#include "d3doom_ogengine_integration.h"
 ```
 
 ### 3b. idAI::Killed() — report kill to STAR
@@ -131,7 +131,7 @@ Add the integration source file:
 ```cmake
 set( GAMED3XP_SOURCES
     # ... existing entries ...
-    d3xp/d3doom_star_integration.cpp   # ← ADD
+    d3xp/d3doom_ogengine_integration.cpp   # ← ADD
 )
 ```
 
@@ -140,7 +140,7 @@ Also add the header to `GAMED3XP_INCLUDES` (or wherever other d3xp headers are l
 ```cmake
 set( GAMED3XP_INCLUDES
     # ... existing entries ...
-    d3xp/d3doom_star_integration.h     # ← ADD
+    d3xp/d3doom_ogengine_integration.h     # ← ADD
 )
 ```
 
@@ -158,7 +158,7 @@ Link the STAR API import library:
 ```cmake
 target_link_libraries( d3game PRIVATE
     # ... existing ...
-    ${CMAKE_CURRENT_SOURCE_DIR}/d3xp/star_api.lib   # ← ADD (Windows)
+    ${CMAKE_CURRENT_SOURCE_DIR}/d3xp/ogengine.lib   # ← ADD (Windows)
 )
 ```
 
@@ -183,7 +183,7 @@ Find or create `idGameLocal::Draw()` (the function that draws the in-game HUD).
 Add after the HUD GUI has been rendered:
 
 ```cpp
-#include "d3doom_star_integration.h"
+#include "d3doom_ogengine_integration.h"
 
 void idGameLocal::Draw( int clientNum ) {
     // ... existing HUD draw code ...
@@ -198,7 +198,7 @@ void idGameLocal::Draw( int clientNum ) {
 In the key processing path (before normal game key bindings), add:
 
 ```cpp
-#include "d3doom_star_integration.h"
+#include "d3doom_ogengine_integration.h"
 
 // In key-press handler:
 D3Doom_STAR_HandleKey( key, down );

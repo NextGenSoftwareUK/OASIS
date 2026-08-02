@@ -1,11 +1,11 @@
-# Contributing to OQuake
+﻿# Contributing to OQuake
 
 Thank you for your interest in contributing to OQuake. OQuake is Quake (vkQuake-based) with OASIS STAR API integration, by NextGen World Ltd.
 
 ## How to contribute
 
 - **Bug reports and feature requests:** Open an issue in the OASIS repository (or the channel used by the OQuake/OASIS team). Include steps to reproduce, your environment (Windows, Vulkan SDK, Visual Studio, vkQuake path), and OQuake version (from `oquake_version.txt` or in-game).
-- **Code and documentation:** Submit a pull request (or patch) against the OASIS repo. Changes to integration code in `OASIS Omniverse\OQuake\` (e.g. `oquake_star_integration.c`, build scripts, docs) are welcome. Changes to vkQuake itself should follow upstream [vkQuake](https://github.com/Novum/vkQuake) contribution guidelines where applicable.
+- **Code and documentation:** Submit a pull request (or patch) against the OASIS repo. Changes to integration code in `OASIS Omniverse\OQuake\` (e.g. `oquake_ogengine_integration.c`, build scripts, docs) are welcome. Changes to vkQuake itself should follow upstream [vkQuake](https://github.com/Novum/vkQuake) contribution guidelines where applicable.
 - **License:** By contributing, you agree that your contributions will be compatible with the project license. OQuake builds on vkQuake (GPL-2.0). See [CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md) and [LICENSE](LICENSE).
 
 ## Development setup

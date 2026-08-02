@@ -1,6 +1,6 @@
-{
+﻿{
   "star_transport": "remote",
-  "star_api_url": "http://localhost:8888",
+  "ogengine_url": "http://localhost:8888",
   "oasis_api_url": "http://localhost:7777",
   "oasis_dna_path": "",
   "beam_face": 1,

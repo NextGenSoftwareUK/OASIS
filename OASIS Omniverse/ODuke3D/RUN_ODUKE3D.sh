@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # RUN_ODUKE3D.sh — Build (if needed) and launch ODuke3D
 #
 # Usage: ./RUN_ODUKE3D.sh [gamedata_dir]
@@ -8,7 +8,7 @@
 #   EDUKE32_SRC    — ODuke3D (EDuke32 fork) source path (default: $HOME/Source/ODuke3D)
 #   STAR_USERNAME  — OASIS username
 #   STAR_PASSWORD  — OASIS password
-#   STAR_API_KEY   — API key (alternative)
+#   OGENGINE_KEY   — API key (alternative)
 #   STAR_AVATAR_ID — OASIS avatar ID
 
 set -e

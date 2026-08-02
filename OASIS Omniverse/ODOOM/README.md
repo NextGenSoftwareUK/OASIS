@@ -20,7 +20,7 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 
 3. **Run:** Use **RUN ODOOM.bat** to build (if needed) and launch, or run `build\ODOOM.exe` directly.
 
-4. **STAR API:** Set `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID` for cross-game keys and inventory.
+4. **STAR API:** Set `STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID` for cross-game keys and inventory.
 
 ### Linux (and macOS)
 
@@ -41,11 +41,11 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 ODOOM sits at the top of the OASIS Omniverse integration stack:
 
 ```
-uzdoom_star_integration.cpp  (ODOOM engine hooks only)
+uzdoom_ogengine_integration.cpp  (ODOOM engine hooks only)
          ↓
     OGLib  (shared C library — config, beamin, session shims)
          ↓
-  STARAPIClient  (C# NativeAOT → star_api.dll)
+  OGEngineClient  (C# NativeAOT → ogengine.dll)
          ↓
   WEB4 / WEB5 OASIS APIs
 ```

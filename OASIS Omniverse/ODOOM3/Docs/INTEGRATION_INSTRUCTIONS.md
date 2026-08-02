@@ -1,4 +1,4 @@
-# ODOOM3 — OASIS STAR Integration Instructions
+﻿# ODOOM3 — OASIS STAR Integration Instructions
 
 **Port:** dhewm3 (classic Doom 3 GPL source port)  
 **Game source ID:** `ODOOM3`  
@@ -18,7 +18,7 @@
 | Git | any |
 
 - dhewm3 source cloned at `C:\Source\ODOOM3`
-- STARAPIClient built; `star_api.dll` / `star_api.lib` in `OASIS Omniverse\STARAPIClient\`
+- OGEngineClient built; `ogengine.dll` / `ogengine.lib` in `OASIS Omniverse\OGEngineClient\`
 
 ---
 
@@ -35,11 +35,11 @@ BUILD_ODOOM3.bat batch
 ```
 
 The script:
-1. Copies `d3doom3_star_integration.h/.cpp` → `C:\Source\ODOOM3\neo\game\`
+1. Copies `d3doom3_ogengine_integration.h/.cpp` → `C:\Source\ODOOM3\neo\game\`
 2. Copies `OGLib\` headers → `C:\Source\ODOOM3\neo\game\OGLib\`
-3. Copies `star_api.h`, `star_sync.h`, `star_api.lib`, `star_api.dll` → `neo\game\`
+3. Copies `ogengine.h`, `ogengine_sync.h`, `ogengine.lib`, `ogengine.dll` → `neo\game\`
 4. CMake-configures and builds the `base` target (→ `base.dll`)
-5. Deploys `star_api.dll` and `oasisstar.json` next to the output
+5. Deploys `ogengine.dll` and `oasisstar.json` next to the output
 
 ---
 

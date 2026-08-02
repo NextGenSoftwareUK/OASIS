@@ -1,5 +1,5 @@
-{
-  "star_api_url": "https://star-api.oasisplatform.world/api",
+﻿{
+  "ogengine_url": "https://star-api.oasisplatform.world/api",
   "oasis_api_url": "https://api.oasisplatform.world",
   "nft_provider": "SolanaOASIS",
   "mint_keys": 0,

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # BUILD_ODUKE3D.sh — Build ODuke3D (EDuke32 fork) with OASIS STAR integration
 #
 # Usage:
@@ -8,7 +8,7 @@
 # Prerequisites:
 #   - gcc, make (GNU Make), and build-essential installed
 #   - EDUKE32_SRC set (default: $HOME/Source/ODuke3D — EDuke32 fork)
-#   - STARAPIClient built (star_api.so / star_api.h in STARAPIClient/)
+#   - OGEngineClient built (star_api.so / ogengine.h in OGEngineClient/)
 
 set -e
 
@@ -26,7 +26,7 @@ if [[ ! -d "$EDUKE32_SRC" ]]; then
     exit 1
 fi
 
-STAR_SRC="$OMNIVERSE_ROOT/STARAPIClient"
+STAR_SRC="$OMNIVERSE_ROOT/OGEngineClient"
 OGLIB_SRC="$OMNIVERSE_ROOT/OGLib"
 DEST="$EDUKE32_SRC/source/duke3d/src"
 
@@ -37,9 +37,9 @@ echo "[ODuke3D] Destination : $DEST"
 # 1. Copy integration files
 echo ""
 echo "[1/3] Copying integration source files..."
-cp -f "$SCRIPT_DIR/oduke3d_star_integration.h" "$DEST/"
-cp -f "$SCRIPT_DIR/oduke3d_star_integration.c" "$DEST/"
-echo "  Copied: oduke3d_star_integration.h / .c"
+cp -f "$SCRIPT_DIR/oduke3d_ogengine_integration.h" "$DEST/"
+cp -f "$SCRIPT_DIR/oduke3d_ogengine_integration.c" "$DEST/"
+echo "  Copied: oduke3d_ogengine_integration.h / .c"
 
 # 2. Copy OGLib headers
 echo ""
@@ -56,7 +56,7 @@ done
 # 3. Copy STAR API headers/library
 echo ""
 echo "[3/3] Copying STAR API files..."
-for f in star_api.h star_sync.h star_sync.c; do
+for f in ogengine.h ogengine_sync.h ogengine_sync.c; do
     if [[ -f "$STAR_SRC/$f" ]]; then
         cp -f "$STAR_SRC/$f" "$DEST/"
         echo "  Copied: $f"

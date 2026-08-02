@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Copies OQuake + STAR files into vkQuake and patches host.c, pr_ext.c, sbar.c, gl_screen.c, pr_edict.c/pr_cx.c (monster kill hook), and the build (like ODOOM: full automation).
   Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\OQUAKE"
@@ -30,7 +30,7 @@ if ([string]::IsNullOrWhiteSpace($QuakeInstallDir)) {
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OQuakeRoot = Split-Path -Parent $ScriptDir
 $OasisRoot = Split-Path -Parent $OQuakeRoot
-$STARAPIClientRoot = Join-Path $OasisRoot "STARAPIClient"
+$OGEngineClientRoot = Join-Path $OasisRoot "OGEngineClient"
 
 if (-not $VkQuakeSrc -or -not (Test-Path $VkQuakeSrc)) {
     Write-Host "Error: VkQuake source path required. Use -VkQuakeSrc or set VKQUAKE_SRC." -ForegroundColor Red
@@ -70,30 +70,30 @@ $versionDisplay = "1.0 (Build 1)"
 $versionDisplayPath = Join-Path $OQuakeVersion "version_display.txt"
 if (Test-Path $versionDisplayPath) { $versionDisplay = (Get-Content $versionDisplayPath -Raw).Trim() }
 
-# STAR DLL/LIB (prefer OQuake Code, then STARAPIClient publish)
+# STAR DLL/LIB (prefer OQuake Code, then OGEngineClient publish)
 $StarDll = $null
 $StarLib = $null
-if (Test-Path (Join-Path $OQuakeCode "star_api.dll")) {
-    $StarDll = Join-Path $OQuakeCode "star_api.dll"
-    $StarLib = Join-Path $OQuakeCode "star_api.lib"
+if (Test-Path (Join-Path $OQuakeCode "ogengine.dll")) {
+    $StarDll = Join-Path $OQuakeCode "ogengine.dll"
+    $StarLib = Join-Path $OQuakeCode "ogengine.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
-$StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net9.0\win-x64\publish"
-if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
-    $StarDll = Join-Path $StarPublishDir "star_api.dll"
-    $StarLibDir = Join-Path $STARAPIClientRoot "bin\Release\net9.0\win-x64\native"
-    $StarLib = Join-Path $StarLibDir "star_api.lib"
+$StarPublishDir = Join-Path $OGEngineClientRoot "bin\Release\net9.0\win-x64\publish"
+if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "ogengine.dll"))) {
+    $StarDll = Join-Path $StarPublishDir "ogengine.dll"
+    $StarLibDir = Join-Path $OGEngineClientRoot "bin\Release\net9.0\win-x64\native"
+    $StarLib = Join-Path $StarLibDir "ogengine.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 
-# star_sync API is exported from star_api.dll; only header is copied for declarations.
-$starSyncRoot = $STARAPIClientRoot
+# star_sync API is exported from ogengine.dll; only header is copied for declarations.
+$starSyncRoot = $OGEngineClientRoot
 $files = @(
-    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
-    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
+    @{ Src = Join-Path $OQuakeCode "oquake_ogengine_integration.c"; Dest = "oquake_ogengine_integration.c" },
+    @{ Src = Join-Path $OQuakeCode "oquake_ogengine_integration.h"; Dest = "oquake_ogengine_integration.h" },
     @{ Src = Join-Path $OQuakeCode "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "pr_ext_oquake.c"; Dest = "pr_ext_oquake.c" },
-    @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" },
+    @{ Src = Join-Path $OGEngineClientRoot "ogengine.h"; Dest = "ogengine.h" },
     @{ Src = Join-Path $starSyncRoot "star_sync.h"; Dest = "star_sync.h" }
 )
 $copied = 0
@@ -104,10 +104,10 @@ foreach ($f in $files) {
     }
 }
 if ($StarDll) {
-    Copy-Item -Path $StarDll -Destination (Join-Path $QuakeDir "star_api.dll") -Force
+    Copy-Item -Path $StarDll -Destination (Join-Path $QuakeDir "ogengine.dll") -Force
     $copied++
     if ($StarLib -and (Test-Path $StarLib)) {
-        Copy-Item -Path $StarLib -Destination (Join-Path $QuakeDir "star_api.lib") -Force
+        Copy-Item -Path $StarLib -Destination (Join-Path $QuakeDir "ogengine.lib") -Force
         $copied++
     }
 }
@@ -159,10 +159,10 @@ if (Test-Path $HostC) {
         $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_version.h`""
         $patched = $true
     }
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"oquake_version\.h")', "`$1`r`n#include `"oquake_star_integration.h`""
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"oquake_version\.h")', "`$1`r`n#include `"oquake_ogengine_integration.h`""
         $patched = $true
-        Write-Host "[OQuake] Patched host.c: added #include oquake_star_integration.h" -ForegroundColor Green
+        Write-Host "[OQuake] Patched host.c: added #include oquake_ogengine_integration.h" -ForegroundColor Green
     }
     # OQuake STAR init at startup (registers 'star' command and prints welcome message)
     if ($content -notmatch 'OQuake_STAR_Init') {
@@ -296,10 +296,10 @@ $SbarC = Join-Path $QuakeDir "sbar.c"
 if (Test-Path $SbarC) {
     $content = Get-Content $SbarC -Raw
     $sbarPatched = $false
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
         $sbarPatched = $true
-        Write-Host "[OQuake] Patched sbar.c: added #include oquake_star_integration.h" -ForegroundColor Green
+        Write-Host "[OQuake] Patched sbar.c: added #include oquake_ogengine_integration.h" -ForegroundColor Green
     }
     if ($content -notmatch 'sb_face_anorak') {
         $content = $content -replace '(static qpic_t \*sb_face_invis_invuln\;)(\r?\n)', "`$1`$2static qpic_t *sb_face_anorak;`$2"
@@ -330,10 +330,10 @@ $ClInputC = Join-Path $QuakeDir "cl_input.c"
 if (Test-Path $ClInputC) {
     $content = Get-Content $ClInputC -Raw
     $clInputPatched = $false
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
         $clInputPatched = $true
-        Write-Host "[OQuake] Patched cl_input.c: added #include oquake_star_integration.h" -ForegroundColor Green
+        Write-Host "[OQuake] Patched cl_input.c: added #include oquake_ogengine_integration.h" -ForegroundColor Green
     }
     # Block movement when quest popup (Q) or inventory popup (I) is open (same as arrow/Home/PgDn: engine just does not use keys). Tab/scoreboard is blocked in keys.c.
     if ($content -notmatch 'OQuake_STAR_IsQuestPopupOpen') {
@@ -374,10 +374,10 @@ $KeysC = Join-Path $QuakeDir "keys.c"
 if (Test-Path $KeysC) {
     $content = Get-Content $KeysC -Raw
     $keysPatched = $false
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
         $keysPatched = $true
-        Write-Host "[OQuake] Patched keys.c: added #include oquake_star_integration.h" -ForegroundColor Green
+        Write-Host "[OQuake] Patched keys.c: added #include oquake_ogengine_integration.h" -ForegroundColor Green
     }
     if ($content -notmatch 'K_TAB.*OQuake_STAR_IsQuestPopupOpen|OQuake_STAR_IsQuestPopupOpen.*K_TAB') {
         # In Key_Event, when about to run binding for key_game etc., skip Tab so scoreboard does not open (same as not using arrow keys in CL_BaseMove)
@@ -412,10 +412,10 @@ function Add-MonsterHookInsideEDFree {
         return $true
     }
     if ($content -notmatch 'void ED_Free\s*\(\s*edict_t\s*\*\s*ed\s*\)') { return $false }
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"pr_edict\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
-        if ($content -notmatch 'oquake_star_integration\.h') {
-            $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"pr_edict\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
+        if ($content -notmatch 'oquake_ogengine_integration\.h') {
+            $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
         }
     }
     $orig = $content
@@ -450,8 +450,8 @@ function Add-MonsterHookInPrCmds {
     $content = Get-Content $FilePath -Raw
     if ($content -match 'OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)') { return $false }
     if ($content -notmatch '// throw the entity away now\s*\r?\n\s*ED_Free\s*\(\s*ent\s*\)') { return $false }
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
     }
     $orig = $content
     $content = $content -replace '(// throw the entity away now\s*\r?\n)(\s*)(ED_Free\s*\(\s*ent\s*\)\s*;)', "`$1`$2OQuake_STAR_OnEntityFreed(ent);`r`n`$2`$3"
@@ -533,8 +533,8 @@ function Add-SVImpactTouchIntercept {
         Write-Host "[OQuake] sv_phys.c does not contain expected SV_Impact/touch pattern; skipping patch." -ForegroundColor Yellow
         return $false
     }
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_star_integration.h`""
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_ogengine_integration.h`""
     }
     # Already has return-2 handling (detection earlier for at-max health when engine only calls (player,item))
     if ($content -match 'r == 2|oq_done:') {
@@ -696,10 +696,10 @@ function Add-MonsterHookToFile {
     if ($content -match 'OQuake_STAR_OnEntityFreed|OQuake_STAR_OnMonsterKilled') { return $false }
     if ($content -notmatch 'ED_Free\s*\(\s*\w+\s*\)') { return $false }
     # Add include so OQuake_STAR_OnEntityFreed is declared
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"pr_edict\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
-        if ($content -notmatch 'oquake_star_integration\.h') {
-            $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"pr_edict\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
+        if ($content -notmatch 'oquake_ogengine_integration\.h') {
+            $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
         }
     }
     # Replace each ED_Free(ent); with single safe call + ED_Free. Preprocessor (#ifdef/#endif) must start in column 0 for MSVC (C2014).
@@ -714,7 +714,7 @@ function Add-MonsterHookToFile {
 function Remove-MonsterHookFromFile {
     param([string]$FilePath, [string]$FileLabel)
     if (-not (Test-Path $FilePath)) { return $false }
-    # Only strip from engine files that have the ED_Free hook; never touch oquake_star_integration.c (it contains OQuake_STAR_On* in normal code).
+    # Only strip from engine files that have the ED_Free hook; never touch oquake_ogengine_integration.c (it contains OQuake_STAR_On* in normal code).
     if ($FileLabel -ne 'pr_edict.c' -and $FileLabel -ne 'pr_cx.c') { return $false }
     $content = Get-Content $FilePath -Raw
     if ($content -notmatch 'OQuake_STAR_OnMonsterKilled|OQuake_STAR_OnEntityFreed') { return $false }
@@ -848,10 +848,10 @@ $GlScreenC = Join-Path $QuakeDir "gl_screen.c"
 if (Test-Path $GlScreenC) {
     $content = Get-Content $GlScreenC -Raw
     $glPatched = $false
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'oquake_ogengine_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_ogengine_integration.h`"`$2"
         $glPatched = $true
-        Write-Host "[OQuake] Patched gl_screen.c: added #include oquake_star_integration.h" -ForegroundColor Green
+        Write-Host "[OQuake] Patched gl_screen.c: added #include oquake_ogengine_integration.h" -ForegroundColor Green
     }
     if ($content -notmatch 'OQuake_STAR_DrawBeamedInStatus') {
         # After SCR_DrawClock (cbx); in the normal game HUD block add the four OQuake draw calls
@@ -871,7 +871,7 @@ if (Test-Path $GlScreenC) {
     }
 }
 
-# Patch vkQuake Visual Studio project: add OQuake sources (integration, pr_ext_oquake) + star_api.lib
+# Patch vkQuake Visual Studio project: add OQuake sources (integration, pr_ext_oquake) + ogengine.lib
 $vcxprojPaths = @(
     (Join-Path $VkQuakeSrc "Windows\VisualStudio\vkquake.vcxproj"),
     (Join-Path $VkQuakeSrc "Windows\VisualStudio\Quake\Quake.vcxproj")
@@ -882,12 +882,12 @@ foreach ($vcxproj in $vcxprojPaths) {
     # Find path prefix from pr_ext.c so we can add OQuake sources to the same ItemGroup
     $pathPrefix = $null
     if ($projContent -match '<ClCompile\s+Include="([^"]*?)pr_ext\.c"') { $pathPrefix = $Matches[1] }
-    if (-not $pathPrefix -and $projContent -match '<ClCompile\s+Include="([^"]*?)oquake_star_integration\.c"') { $pathPrefix = $Matches[1] }
+    if (-not $pathPrefix -and $projContent -match '<ClCompile\s+Include="([^"]*?)oquake_ogengine_integration\.c"') { $pathPrefix = $Matches[1] }
     if (-not $pathPrefix) { continue }
 
     $vcxprojChanged = $false
     $blockIntegration = @"
-    <ClCompile Include="$pathPrefix`oquake_star_integration.c">
+    <ClCompile Include="$pathPrefix`oquake_ogengine_integration.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
 "@
@@ -896,46 +896,46 @@ foreach ($vcxproj in $vcxprojPaths) {
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
 "@
-    if ($projContent -notmatch 'oquake_star_integration\.c') {
+    if ($projContent -notmatch 'oquake_ogengine_integration\.c') {
         $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*pr_ext\.c`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockIntegration`r`n"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added oquake_star_integration.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+        Write-Host "[OQuake] Added oquake_ogengine_integration.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
     if ($projContent -notmatch 'pr_ext_oquake\.c') {
-        $anchor = if ($projContent -match 'oquake_star_integration\.c') { 'oquake_star_integration\.c' } else { 'pr_ext\.c' }
+        $anchor = if ($projContent -match 'oquake_ogengine_integration\.c') { 'oquake_ogengine_integration\.c' } else { 'pr_ext\.c' }
         $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*$anchor`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockPrExtOquake`r`n"
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added pr_ext_oquake.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    # Stub no longer needed: star_api.def is auto-generated from C# so star_api.lib has all symbols (see STARAPIClient/Scripts/generate_star_api_def.ps1).
-    if ($projContent -match 'star_api_quest_level_time_stub\.c') {
-        $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_api_quest_level_time_stub\.c"[^>]*>[\s\S]*?</ClCompile>\s*\r?\n', "`r`n"
+    # Stub no longer needed: ogengine.def is auto-generated from C# so ogengine.lib has all symbols (see OGEngineClient/Scripts/generate_ogengine_def.ps1).
+    if ($projContent -match 'ogengine_quest_level_time_stub\.c') {
+        $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*ogengine_quest_level_time_stub\.c"[^>]*>[\s\S]*?</ClCompile>\s*\r?\n', "`r`n"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Removed star_api_quest_level_time_stub.c from project (lib now has symbol)" -ForegroundColor Green
+        Write-Host "[OQuake] Removed ogengine_quest_level_time_stub.c from project (lib now has symbol)" -ForegroundColor Green
     }
     if ($projContent -match 'star_sync\.c') {
         $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_sync\.c"[^>]*>\s*\r?\n\s*<PrecompiledHeader>[^<]+</PrecompiledHeader>\s*\r?\n\s*</ClCompile>\s*\r?\n', "`r`n"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Removed star_sync.c from project (use star_sync exports from star_api.dll only)" -ForegroundColor Green
+        Write-Host "[OQuake] Removed star_sync.c from project (use star_sync exports from ogengine.dll only)" -ForegroundColor Green
     }
     if ($projContent -notmatch 'star_api\.lib') {
         if ($projContent -match '<AdditionalDependencies>([^<]*)</AdditionalDependencies>') {
-            $projContent = $projContent -replace '(<AdditionalDependencies>)([^<]*)(</AdditionalDependencies>)', "`$1`$2;star_api.lib`$3"
+            $projContent = $projContent -replace '(<AdditionalDependencies>)([^<]*)(</AdditionalDependencies>)', "`$1`$2;ogengine.lib`$3"
             $vcxprojChanged = $true
-            Write-Host "[OQuake] Added star_api.lib to linker in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+            Write-Host "[OQuake] Added ogengine.lib to linker in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
         }
     }
-    # Client exports star_api_refresh_avatar_profile (see STARAPIClient obj/.../native/star_api.def). Linker must use the deployed lib in vkQuake\Quake.
+    # Client exports ogengine_refresh_avatar_profile (see OGEngineClient obj/.../native/ogengine.def). Linker must use the deployed lib in vkQuake\Quake.
     if ($projContent -match 'star_api\.lib' -and $projContent -notmatch 'AdditionalLibraryDirectories.*\.\.\\\.\.\\Quake') {
         $projContent = $projContent -replace '(<AdditionalDependencies>[^<]*</AdditionalDependencies>)([\s\S]*?)(</Link>)', "`$1`r`n      <AdditionalLibraryDirectories>..\..\Quake;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>`r`n`$2`$3"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added AdditionalLibraryDirectories ..\..\Quake so linker uses deployed star_api.lib in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+        Write-Host "[OQuake] Added AdditionalLibraryDirectories ..\..\Quake so linker uses deployed ogengine.lib in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    # Ensure Quake folder is on include path so compiler finds star_api.h (with STAR_API_OP_PROFILE_LOADED and star_api_set_operation_callback) copied by BUILD_OQUAKE.bat / apply script.
+    # Ensure Quake folder is on include path so compiler finds ogengine.h (with OGENGINE_OP_PROFILE_LOADED and ogengine_set_operation_callback) copied by BUILD_OQUAKE.bat / apply script.
     if ($projContent -notmatch 'AdditionalIncludeDirectories.*\.\.\\\.\.\\Quake') {
         $projContent = $projContent -replace '(<ClCompile>\s*\r?\n)(\s*<(?:WarningLevel|PreprocessorDefinitions))', "`$1      <AdditionalIncludeDirectories>..\..\Quake;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>`r`n`$2"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added AdditionalIncludeDirectories ..\..\Quake so compiler finds star_api.h in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+        Write-Host "[OQuake] Added AdditionalIncludeDirectories ..\..\Quake so compiler finds ogengine.h in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
     # Define OASIS_STAR_API so #ifdef OASIS_STAR_API blocks in pr_edict.c, host.c, sbar.c, etc. are compiled (monster hook, init, HUD).
     if ($projContent -notmatch 'OASIS_STAR_API') {
@@ -943,29 +943,29 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_API to PreprocessorDefinitions in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    # Always use client-exported star_sync_* from star_api.dll (do not compile star_sync.c in engine).
+    # Always use client-exported star_sync_* from ogengine.dll (do not compile star_sync.c in engine).
     if ($projContent -notmatch 'OASIS_STAR_SYNC_IN_CLIENT') {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_SYNC_IN_CLIENT;`$2`$3"
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_SYNC_IN_CLIENT to PreprocessorDefinitions (star_sync from DLL)" -ForegroundColor Green
     }
-    # Do NOT define OQUAKE_STAR_API_TRACKER_STUBS so the game uses the real star_api.dll for tracker APIs (star_api_set_active_quest, get_quest_tracker_objectives_string, etc.). If the define is present, remove it so selecting a quest in-game actually persists to the API.
-    if ($projContent -match 'OQUAKE_STAR_API_TRACKER_STUBS') {
-        $projContent = $projContent -replace 'OQUAKE_STAR_API_TRACKER_STUBS;?', ''
+    # Do NOT define OQUAKE_OGENGINE_TRACKER_STUBS so the game uses the real ogengine.dll for tracker APIs (ogengine_set_active_quest, get_quest_tracker_objectives_string, etc.). If the define is present, remove it so selecting a quest in-game actually persists to the API.
+    if ($projContent -match 'OQUAKE_OGENGINE_TRACKER_STUBS') {
+        $projContent = $projContent -replace 'OQUAKE_OGENGINE_TRACKER_STUBS;?', ''
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Removed OQUAKE_STAR_API_TRACKER_STUBS so star_api_set_active_quest uses real DLL (quest/objective will persist)" -ForegroundColor Green
+        Write-Host "[OQuake] Removed OQUAKE_OGENGINE_TRACKER_STUBS so ogengine_set_active_quest uses real DLL (quest/objective will persist)" -ForegroundColor Green
     }
-    # Define OQUAKE_STAR_API_SESSION_IMPL so oquake_star_integration.c provides JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export them (e.g. NativeAOT trimmer).
-    if ($projContent -notmatch 'OQUAKE_STAR_API_SESSION_IMPL') {
-        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_SESSION_IMPL;`$2`$3"
+    # Define OQUAKE_OGENGINE_SESSION_IMPL so oquake_ogengine_integration.c provides JWT/session APIs by forwarding to ogengine.dll at runtime. Use when ogengine.lib does not export them (e.g. NativeAOT trimmer).
+    if ($projContent -notmatch 'OQUAKE_OGENGINE_SESSION_IMPL') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_OGENGINE_SESSION_IMPL;`$2`$3"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added OQUAKE_STAR_API_SESSION_IMPL (forward star_api_set_saved_session, star_api_restore_session, get_current_username, get_current_jwt from DLL at runtime)" -ForegroundColor Green
+        Write-Host "[OQuake] Added OQUAKE_OGENGINE_SESSION_IMPL (forward ogengine_set_saved_session, ogengine_restore_session, get_current_username, get_current_jwt from DLL at runtime)" -ForegroundColor Green
     }
-    # Define OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL so oquake_star_integration.c provides star_api_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked star_api.lib does not export this symbol.
-    if ($projContent -notmatch 'OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL') {
-        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL;`$2`$3"
+    # Define OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL so oquake_ogengine_integration.c provides ogengine_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked ogengine.lib does not export this symbol.
+    if ($projContent -notmatch 'OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL;`$2`$3"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL (provides star_api_refresh_avatar_profile when lib does not)" -ForegroundColor Green
+        Write-Host "[OQuake] Added OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL (provides ogengine_refresh_avatar_profile when lib does not)" -ForegroundColor Green
     }
     if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
 }
@@ -974,14 +974,14 @@ foreach ($vcxproj in $vcxprojPaths) {
 $mesonBuildPath = Join-Path $VkQuakeSrc "meson.build"
 if (Test-Path $mesonBuildPath) {
     $mesonContent = Get-Content $mesonBuildPath -Raw
-    if ($mesonContent -notmatch "oquake_star_integration\.c") {
+    if ($mesonContent -notmatch "oquake_ogengine_integration\.c") {
         $mesonBlock = @"
 
 # OQuake (injected by apply_oquake_to_vkquake.ps1): add integration sources + star_api when present
-if import('fs').exists(join_paths(meson.source_root(), 'Quake', 'oquake_star_integration.c'))
-    srcs += ['Quake/oquake_star_integration.c', 'Quake/pr_ext_oquake.c']
+if import('fs').exists(join_paths(meson.source_root(), 'Quake', 'oquake_ogengine_integration.c'))
+    srcs += ['Quake/oquake_ogengine_integration.c', 'Quake/pr_ext_oquake.c']
     deps += cc.find_library('star_api', dirs: join_paths(meson.source_root(), 'Quake'), required: true)
-    cflags += ['-DOASIS_STAR_API', '-DOQUAKE_STAR_API_SESSION_IMPL', '-DOQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL']
+    cflags += ['-DOASIS_STAR_API', '-DOQUAKE_OGENGINE_SESSION_IMPL', '-DOQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL']
 endif
 
 "@

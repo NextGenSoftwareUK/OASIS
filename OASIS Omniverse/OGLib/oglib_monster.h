@@ -1,4 +1,4 @@
-/**
+﻿/**
  * oglib_monster.h — OGLib JSON-driven monster table
  *
  * Replaces (or augments) hardcoded monster arrays in ODOOM, OQuake, and
@@ -223,15 +223,15 @@ static int oglib_monster_table_load_json_array(oglib_monster_table_t* table,
  * Returns number of entries loaded, or 0 on failure.
  */
 static int oglib_monster_table_load_from_oasisstar(oglib_monster_table_t* table,
-                                                    const char* oasisstar_json,
+                                                    const char* ogengine_json,
                                                     const char* game_section)
 {
-    if (!table || !oasisstar_json || !game_section) return 0;
+    if (!table || !ogengine_json || !game_section) return 0;
 
     /* Find game section key, e.g. "odoom3bfg" : { */
     char sec_pattern[128];
     snprintf(sec_pattern, sizeof(sec_pattern), "\"%s\"", game_section);
-    const char* sec = strstr(oasisstar_json, sec_pattern);
+    const char* sec = strstr(ogengine_json, sec_pattern);
     if (!sec) return 0;
 
     /* Find "monsters" array inside this section.

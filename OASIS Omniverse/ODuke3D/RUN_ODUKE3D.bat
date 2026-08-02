@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 REM RUN_ODUKE3D.bat — Build (if needed) and launch ODuke3D
@@ -10,7 +10,7 @@ REM Environment variables:
 REM   EDUKE32_SRC        — path to ODuke3D (EDuke32 fork) source  (default C:\Source\ODuke3D)
 REM   STAR_USERNAME      — OASIS username
 REM   STAR_PASSWORD      — OASIS password
-REM   STAR_API_KEY       — API key (alternative to username/password)
+REM   OGENGINE_KEY       — API key (alternative to username/password)
 REM   STAR_AVATAR_ID     — OASIS avatar ID
 
 set EDUKE32_SRC=%EDUKE32_SRC%

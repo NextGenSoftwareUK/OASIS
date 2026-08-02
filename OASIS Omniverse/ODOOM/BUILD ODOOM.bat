@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal EnableExtensions
 REM ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
 REM Usage: BUILD ODOOM.bat [ run ] [ nosprites ]
@@ -31,7 +31,7 @@ exit /b %ODOOM_BUILD_EXIT%
 REM ODOOM source (fork of UZDoom). Default path after folder rename: C:\Source\ODOOM.
 set "UZDOOM_SRC=C:\Source\ODOOM"
 set "HERE=%~dp0"
-set "STARAPICLIENT=%HERE%..\STARAPIClient"
+set "OGENGINECLIENT=%HERE%..\OGEngineClient"
 set "ODOOM_INTEGRATION=%HERE%"
 set "DOOM_FOLDER=%ODOOM_INTEGRATION%"
 set "ULTIMATE_DOOM_BUILDER_BUILD=C:\Source\UltimateDoomBuilder\Build"
@@ -49,11 +49,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY;
 set "DO_FULL_CLEAN=0"
 set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
-REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / OASIS Omniverse\Docs\STAR_INTEGRATION_AUDIT.md.
+REM Default: use star_sync from ogengine.dll (C#). Set to 0 to compile ogengine_sync.c (C) instead. See ogengine_sync.h / OASIS Omniverse\Docs\STAR_INTEGRATION_AUDIT.md.
 if not defined OASIS_STAR_SYNC_IN_CLIENT set "OASIS_STAR_SYNC_IN_CLIENT=1"
 set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
-REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
+REM Set to 1 to always build and deploy OGEngineClient before building (script skips build if client unchanged).
 set "BUILD_STAR_CLIENT=0"
 set "QUAKE_PAK0=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK0.PAK"
 set "QUAKE_PAK1=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK1.PAK"
@@ -86,27 +86,27 @@ if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
     pause
     exit /b 1
 )
-REM Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
-echo [ODOOM] Checking STARAPIClient - build if changed, deploy...
+REM Always check OGEngineClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
+echo [ODOOM] Checking OGEngineClient - build if changed, deploy...
 if "%BUILD_STAR_CLIENT%"=="1" (
     call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
 ) else (
     call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
 )
 if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
-if not exist "%ODOOM_INTEGRATION%\star_api.dll" (
+if not exist "%ODOOM_INTEGRATION%\ogengine.dll" (
     echo star_api not found: %ODOOM_INTEGRATION%
-    echo Run BUILD_AND_DEPLOY_STAR_CLIENT.bat from OASIS Omniverse, or copy star_api.dll and star_api.lib into the ODOOM folder.
+    echo Run BUILD_AND_DEPLOY_STAR_CLIENT.bat from OASIS Omniverse, or copy ogengine.dll and ogengine.lib into the ODOOM folder.
     pause
     exit /b 1
 )
-if not exist "%ODOOM_INTEGRATION%\star_api.lib" (
-    echo star_api.lib not found: %ODOOM_INTEGRATION%
+if not exist "%ODOOM_INTEGRATION%\ogengine.lib" (
+    echo ogengine.lib not found: %ODOOM_INTEGRATION%
     pause
     exit /b 1
 )
-if not exist "%STARAPICLIENT%\star_api.h" (
-    echo star_api.h not found: %STARAPICLIENT%
+if not exist "%OGENGINECLIENT%\ogengine.h" (
+    echo ogengine.h not found: %OGENGINECLIENT%
     pause
     exit /b 1
 )
@@ -123,20 +123,20 @@ if not defined PYTHON3_EXE (
     pause
     exit /b 1
 )
-REM --- star_sync (generic async layer from STARAPIClient) ---
-set "STARAPICLIENT=%HERE%..\STARAPIClient"
-if exist "%STARAPICLIENT%\star_sync.c" (
-    copy /Y "%STARAPICLIENT%\star_sync.c" "%ODOOM_INTEGRATION%\" >nul
-    copy /Y "%STARAPICLIENT%\star_sync.h" "%ODOOM_INTEGRATION%\" >nul
+REM --- star_sync (generic async layer from OGEngineClient) ---
+set "OGENGINECLIENT=%HERE%..\OGEngineClient"
+if exist "%OGENGINECLIENT%\ogengine_sync.c" (
+    copy /Y "%OGENGINECLIENT%\ogengine_sync.c" "%ODOOM_INTEGRATION%\" >nul
+    copy /Y "%OGENGINECLIENT%\ogengine_sync.h" "%ODOOM_INTEGRATION%\" >nul
 )
 echo.
 echo [ODOOM][STEP] Installing integration files...
 echo [ODOOM][INFO] OASIS sprite source: %OASIS_SPRITES_SRC%
-copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.cpp" "%UZDOOM_SRC%\src\uzdoom_star_integration.cpp" >nul
-copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.h" "%UZDOOM_SRC%\src\uzdoom_star_integration.h" >nul
-copy /Y "%STARAPICLIENT%\star_api.h" "%UZDOOM_SRC%\src\star_api.h" >nul
-if exist "%ODOOM_INTEGRATION%star_sync.c" copy /Y "%ODOOM_INTEGRATION%star_sync.c" "%UZDOOM_SRC%\src\star_sync.c" >nul
-if exist "%ODOOM_INTEGRATION%star_sync.h" copy /Y "%ODOOM_INTEGRATION%star_sync.h" "%UZDOOM_SRC%\src\star_sync.h" >nul
+copy /Y "%ODOOM_INTEGRATION%uzdoom_ogengine_integration.cpp" "%UZDOOM_SRC%\src\uzdoom_ogengine_integration.cpp" >nul
+copy /Y "%ODOOM_INTEGRATION%uzdoom_ogengine_integration.h" "%UZDOOM_SRC%\src\uzdoom_ogengine_integration.h" >nul
+copy /Y "%OGENGINECLIENT%\ogengine.h" "%UZDOOM_SRC%\src\ogengine.h" >nul
+if exist "%ODOOM_INTEGRATION%ogengine_sync.c" copy /Y "%ODOOM_INTEGRATION%ogengine_sync.c" "%UZDOOM_SRC%\src\ogengine_sync.c" >nul
+if exist "%ODOOM_INTEGRATION%ogengine_sync.h" copy /Y "%ODOOM_INTEGRATION%ogengine_sync.h" "%UZDOOM_SRC%\src\ogengine_sync.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_keys.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_keys.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_items.zs" >nul
@@ -318,20 +318,20 @@ echo [ODOOM][STEP] Configuring CMake and STAR API...
 cd /d "%UZDOOM_SRC%"
 if not exist build mkdir build
 cd build
-set "STAR_API_DIR=%STARAPICLIENT%"
-set "STAR_API_LIB_DIR=%DOOM_FOLDER%"
+set "OGENGINE_DIR=%OGENGINECLIENT%"
+set "OGENGINE_LIB_DIR=%DOOM_FOLDER%"
 REM Use short (8.3) paths for cmake so paths with spaces (e.g. OASIS Omniverse) do not break the linker
-for %%I in ("%STAR_API_DIR%") do set "STAR_API_DIR_CMAKE=%%~sI"
-for %%I in ("%STAR_API_LIB_DIR%") do set "STAR_API_LIB_DIR_CMAKE=%%~sI"
+for %%I in ("%OGENGINE_DIR%") do set "OGENGINE_DIR_CMAKE=%%~sI"
+for %%I in ("%OGENGINE_LIB_DIR%") do set "OGENGINE_LIB_DIR_CMAKE=%%~sI"
 for %%I in ("%PYTHON3_EXE%") do set "PYTHON3_EXE_CMAKE=%%~sI"
-if not defined STAR_API_DIR_CMAKE set "STAR_API_DIR_CMAKE=%STAR_API_DIR%"
-if not defined STAR_API_LIB_DIR_CMAKE set "STAR_API_LIB_DIR_CMAKE=%STAR_API_LIB_DIR%"
+if not defined OGENGINE_DIR_CMAKE set "OGENGINE_DIR_CMAKE=%OGENGINE_DIR%"
+if not defined OGENGINE_LIB_DIR_CMAKE set "OGENGINE_LIB_DIR_CMAKE=%OGENGINE_LIB_DIR%"
 if not defined PYTHON3_EXE_CMAKE set "PYTHON3_EXE_CMAKE=%PYTHON3_EXE%"
-echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR_CMAKE%"
-echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR_CMAKE%"
+echo [ODOOM][INFO] CMake OGENGINE_DIR="%OGENGINE_DIR_CMAKE%"
+echo [ODOOM][INFO] CMake OGENGINE_LIB_DIR="%OGENGINE_LIB_DIR_CMAKE%"
 echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE_CMAKE%"
-if "%OASIS_STAR_SYNC_IN_CLIENT%"=="0" (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=OFF" & echo [ODOOM][INFO] Compiling star_sync.c - C implementation) else (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=ON" & echo [ODOOM][INFO] Using star_sync from star_api.dll - default)
-cmake .. -G "Visual Studio 18 2026" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%" %CMAKE_STAR_SYNC%
+if "%OASIS_STAR_SYNC_IN_CLIENT%"=="0" (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=OFF" & echo [ODOOM][INFO] Compiling ogengine_sync.c - C implementation) else (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=ON" & echo [ODOOM][INFO] Using star_sync from ogengine.dll - default)
+cmake .. -G "Visual Studio 18 2026" -A x64 -DOASIS_STAR_API=ON -DOGENGINE_DIR:PATH="%OGENGINE_DIR_CMAKE%" -DOGENGINE_LIB_DIR:PATH="%OGENGINE_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%" %CMAKE_STAR_SYNC%
 if errorlevel 1 (echo "[ODOOM][ERROR] CMake failed." & pause & exit /b 1)
 
 echo.
@@ -346,11 +346,11 @@ echo [ODOOM][STEP] Packaging OASIS beamed-in face (OASFACE)...
 "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%create_odoom_face_pk3.py"
 if errorlevel 1 echo [ODOOM][WARN] OASFACE pk3 generation failed - beamed-in face may be missing.
 
-copy /Y "%DOOM_FOLDER%\star_api.dll" "%UZDOOM_SRC%\build\Release\star_api.dll" >nul
+copy /Y "%DOOM_FOLDER%\ogengine.dll" "%UZDOOM_SRC%\build\Release\ogengine.dll" >nul
 if not exist "%ODOOM_INTEGRATION%build" mkdir "%ODOOM_INTEGRATION%build"
 xcopy "%UZDOOM_SRC%\build\Release\*" "%ODOOM_INTEGRATION%build" /Y /I /Q /E >nul
 copy /Y "%UZDOOM_SRC%\build\Release\uzdoom.exe" "%ODOOM_INTEGRATION%build\ODOOM.exe" >nul
-copy /Y "%DOOM_FOLDER%\star_api.dll" "%ODOOM_INTEGRATION%build\star_api.dll" >nul
+copy /Y "%DOOM_FOLDER%\ogengine.dll" "%ODOOM_INTEGRATION%build\ogengine.dll" >nul
 if exist "%ODOOM_INTEGRATION%odoom_face.pk3" copy /Y "%ODOOM_INTEGRATION%odoom_face.pk3" "%ODOOM_INTEGRATION%build\odoom_face.pk3" >nul
 if exist "%ODOOM_INTEGRATION%build\uzdoom.exe" del "%ODOOM_INTEGRATION%build\uzdoom.exe"
 if exist "%ODOOM_INTEGRATION%soft_oal.dll" copy /Y "%ODOOM_INTEGRATION%soft_oal.dll" "%ODOOM_INTEGRATION%build\soft_oal.dll" >nul

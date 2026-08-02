@@ -1,4 +1,4 @@
-# Copy OQuake integration to Quake source and optionally trigger build.
+﻿# Copy OQuake integration to Quake source and optionally trigger build.
 # Usage: .\COPY_TO_QUAKE_AND_BUILD.ps1 [-QuakeSrc "C:\Source\quake-rerelease-qc"] [-VkQuakeSrc "C:\Source\vkQuake"]
 # Or set env vars QUAKE_SRC / VKQUAKE_SRC.
 
@@ -12,34 +12,34 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OQuakeRoot = Split-Path -Parent $ScriptDir
 $OQuakeCode = Join-Path $OQuakeRoot "Code"
 $OQuakeDocs = Join-Path $OQuakeRoot "Docs"
-$STARAPIClientRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
+$OGEngineClientRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "OGEngineClient"
 
 if (-not $QuakeSrc -or -not (Test-Path $QuakeSrc)) {
     Write-Host "Set QUAKE_SRC or pass -QuakeSrc (e.g. C:\Source\quake-rerelease-qc)"
     exit 1
 }
 
-# STAR DLL/LIB (prefer OQuake Code, then STARAPIClient publish)
+# STAR DLL/LIB (prefer OQuake Code, then OGEngineClient publish)
 $StarDll = $null
 $StarLib = $null
-if (Test-Path (Join-Path $OQuakeCode "star_api.dll")) {
-    $StarDll = Join-Path $OQuakeCode "star_api.dll"
-    $StarLib = Join-Path $OQuakeCode "star_api.lib"
+if (Test-Path (Join-Path $OQuakeCode "ogengine.dll")) {
+    $StarDll = Join-Path $OQuakeCode "ogengine.dll"
+    $StarLib = Join-Path $OQuakeCode "ogengine.lib"
 }
-$StarPublish = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
-if (-not $StarDll -and (Test-Path (Join-Path $StarPublish "star_api.dll"))) {
-    $StarDll = Join-Path $StarPublish "star_api.dll"
-    $StarNative = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\native"
-    if (Test-Path (Join-Path $StarNative "star_api.lib")) { $StarLib = Join-Path $StarNative "star_api.lib" }
+$StarPublish = Join-Path $OGEngineClientRoot "bin\Release\net8.0\win-x64\publish"
+if (-not $StarDll -and (Test-Path (Join-Path $StarPublish "ogengine.dll"))) {
+    $StarDll = Join-Path $StarPublish "ogengine.dll"
+    $StarNative = Join-Path $OGEngineClientRoot "bin\Release\net8.0\win-x64\native"
+    if (Test-Path (Join-Path $StarNative "ogengine.lib")) { $StarLib = Join-Path $StarNative "ogengine.lib" }
 }
 
 $files = @(
-    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
-    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
+    @{ Src = Join-Path $OQuakeCode "oquake_ogengine_integration.c"; Dest = "oquake_ogengine_integration.c" },
+    @{ Src = Join-Path $OQuakeCode "oquake_ogengine_integration.h"; Dest = "oquake_ogengine_integration.h" },
     @{ Src = Join-Path $OQuakeCode "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $OQuakeCode "engine_oquake_hooks.c.example"; Dest = "engine_oquake_hooks.c.example" },
     @{ Src = Join-Path $OQuakeDocs "WINDOWS_INTEGRATION.md"; Dest = "WINDOWS_INTEGRATION.md" },
-    @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" }
+    @{ Src = Join-Path $OGEngineClientRoot "ogengine.h"; Dest = "ogengine.h" }
 )
 
 Write-Host "Copying OQuake integration to $QuakeSrc"
@@ -52,12 +52,12 @@ foreach ($f in $files) {
     }
 }
 if ($StarDll) {
-    Copy-Item -Path $StarDll -Destination (Join-Path $QuakeSrc "star_api.dll") -Force
-    Write-Host "  star_api.dll"
+    Copy-Item -Path $StarDll -Destination (Join-Path $QuakeSrc "ogengine.dll") -Force
+    Write-Host "  ogengine.dll"
 }
 if ($StarLib) {
-    Copy-Item -Path $StarLib -Destination (Join-Path $QuakeSrc "star_api.lib") -Force
-    Write-Host "  star_api.lib"
+    Copy-Item -Path $StarLib -Destination (Join-Path $QuakeSrc "ogengine.lib") -Force
+    Write-Host "  ogengine.lib"
 }
 
 Write-Host ""

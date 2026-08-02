@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Patches UZDoom engine source for ODOOM: version.h, startscreen, status bar, p_interaction (boss kill), launcher, etc.
   Invoked by BUILD ODOOM.bat. Manual: .\patch_uzdoom_engine.ps1 -UZDOOM_SRC "C:\Source\UZDoom"
@@ -126,8 +126,8 @@ if (Test-Path $sharedSbarCpp) {
         $content = $content -replace '(FString verText = GAMENAME;)\r?\n\s+verText \+= " ";\r?\n\s+verText \+= GetVersionString\(\);', 'FString verText = GAMENAME " " ODOOM_FULL_VERSION_STR;'
         $sbarChanged = $true
     }
-    if ($content -match 'ODOOM_InventoryInputCaptureFrame' -and $content -notmatch 'uzdoom_star_integration\.h') {
-        $content = $content -replace '(#ifdef OASIS_STAR_API)', "#include `"uzdoom_star_integration.h`"`r`n`$1"
+    if ($content -match 'ODOOM_InventoryInputCaptureFrame' -and $content -notmatch 'uzdoom_ogengine_integration\.h') {
+        $content = $content -replace '(#ifdef OASIS_STAR_API)', "#include `"uzdoom_ogengine_integration.h`"`r`n`$1"
         $sbarChanged = $true
     }
     # Move version string from top-right (y=2) to just above HUD on the right (same x, only y changes)
@@ -151,7 +151,7 @@ if (Test-Path $dMainCpp) {
     if ($dContent -notmatch 'ODOOM_InventoryInputCaptureFrame') {
         $dChanged = $false
         if ($dContent -match '#include "d_net\.h"') {
-            $dContent = $dContent -replace '(#include "d_net\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+            $dContent = $dContent -replace '(#include "d_net\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_ogengine_integration.h`"`r`n#endif"
             $dChanged = $true
         }
         # Insert at start of for(;;) loop in D_DoomLoop so capture runs before TryRunTics/G_BuildTiccmd
@@ -180,8 +180,8 @@ $dNetCpp = "$src\src\d_net.cpp"
 if (Test-Path $dNetCpp) {
     $dnContent = Get-Content $dNetCpp -Raw
     $dnChanged = $false
-    if ($dnContent -notmatch 'uzdoom_star_integration\.h') {
-        $dnContent = $dnContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+    if ($dnContent -notmatch 'uzdoom_ogengine_integration\.h') {
+        $dnContent = $dnContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_ogengine_integration.h`"`r`n#endif"
         $dnChanged = $true
     }
     if ($dnContent -notmatch 'ODOOM_PostOneTic') {
@@ -200,8 +200,8 @@ if (Test-Path $gGameCpp) {
     $gContent = Get-Content $gGameCpp -Raw
     if ($gContent -notmatch 'ODOOM_InventoryInputCaptureFrame') {
         $gChanged = $false
-        if ($gContent -match '#include "version\.h"' -and $gContent -notmatch 'uzdoom_star_integration\.h') {
-            $gContent = $gContent -replace '(#include "version\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        if ($gContent -match '#include "version\.h"' -and $gContent -notmatch 'uzdoom_ogengine_integration\.h') {
+            $gContent = $gContent -replace '(#include "version\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_ogengine_integration.h`"`r`n#endif"
             $gChanged = $true
         }
         $runTicPatterns = @(
@@ -243,8 +243,8 @@ if (Test-Path $sbarMugshotCpp) {
 `$2
 "@
         $mugContent = $mugContent -replace $oldMug, $newMug
-        if ($mugContent -notmatch 'uzdoom_star_integration\.h') {
-            $mugContent = $mugContent -replace '(#include "texturemanager\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        if ($mugContent -notmatch 'uzdoom_ogengine_integration\.h') {
+            $mugContent = $mugContent -replace '(#include "texturemanager\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_ogengine_integration.h`"`r`n#endif"
         }
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot"
@@ -276,8 +276,8 @@ $pInteractionCpp = "$src\src\playsim\p_interaction.cpp"
 if (Test-Path $pInteractionCpp) {
     $piContent = Get-Content $pInteractionCpp -Raw
     $piChanged = $false
-    if ($piContent -notmatch 'uzdoom_star_integration\.h') {
-        $piContent = $piContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+    if ($piContent -notmatch 'uzdoom_ogengine_integration\.h') {
+        $piContent = $piContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_ogengine_integration.h`"`r`n#endif"
         $piChanged = $true
     }
     # Prefer OnMonsterKilled (mint + add to inventory per mint_monsters); fallback to OnBossKilled block if only that exists
@@ -359,13 +359,13 @@ $aKeysCpp = "$src\src\gamedata\a_keys.cpp"
 if (Test-Path $aKeysCpp) {
     $akContent = Get-Content $aKeysCpp -Raw
     $akChanged = $false
-    if ($akContent -notmatch 'uzdoom_star_integration\.h') {
-        $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+    if ($akContent -notmatch 'uzdoom_ogengine_integration\.h') {
+        $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#include `"uzdoom_ogengine_integration.h`""
         $akChanged = $true
     }
     # Convert #ifdef-wrapped include to unconditional so door code always compiles
-    if ($akContent -match '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif') {
-        $akContent = $akContent -replace '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif', '#include "uzdoom_star_integration.h"'
+    if ($akContent -match '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_ogengine_integration\.h"\r?\n\s*#endif') {
+        $akContent = $akContent -replace '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_ogengine_integration\.h"\r?\n\s*#endif', '#include "uzdoom_ogengine_integration.h"'
         $akChanged = $true
     }
     # Unconditional STAR block (no #ifdef) so door log/check always runs regardless of OASIS_STAR_API define.
@@ -553,8 +553,8 @@ $pLnspecCpp = "$src\src\playsim\p_lnspec.cpp"
 if (Test-Path $pLnspecCpp) {
     $plContent = Get-Content $pLnspecCpp -Raw
     $plChanged = $false
-    if ($plContent -notmatch 'uzdoom_star_integration\.h') {
-        $plContent = $plContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+    if ($plContent -notmatch 'uzdoom_ogengine_integration\.h') {
+        $plContent = $plContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_ogengine_integration.h`""
         $plChanged = $true
     }
     if ($plContent -notmatch 'ODOOM_STAR_LogDoorLockedRaiseLock') {
@@ -572,8 +572,8 @@ $pSpecCpp = "$src\src\playsim\p_spec.cpp"
 if (Test-Path $pSpecCpp) {
     $psContent = Get-Content $pSpecCpp -Raw
     $psChanged = $false
-    if ($psContent -notmatch 'uzdoom_star_integration\.h') {
-        $psContent = $psContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+    if ($psContent -notmatch 'uzdoom_ogengine_integration\.h') {
+        $psContent = $psContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_ogengine_integration.h`""
         $psChanged = $true
     }
     # Add or fix P_ActivateLine log (log every line activation so E on door is visible)
@@ -625,12 +625,12 @@ if (Test-Path $aDoorsCpp) {
             $adChanged = $true
         }
     }
-    if ($adContent -notmatch 'uzdoom_star_integration\.h') {
-        $adContent = $adContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+    if ($adContent -notmatch 'uzdoom_ogengine_integration\.h') {
+        $adContent = $adContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_ogengine_integration.h`""
         $adChanged = $true
     }
-    if ($adContent -match '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif') {
-        $adContent = $adContent -replace '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif', '#include "uzdoom_star_integration.h"'
+    if ($adContent -match '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_ogengine_integration\.h"\r?\n\s*#endif') {
+        $adContent = $adContent -replace '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_ogengine_integration\.h"\r?\n\s*#endif', '#include "uzdoom_ogengine_integration.h"'
         $adChanged = $true
     }
     if ($adContent -notmatch 'ODOOM_STAR_LogEvDoDoorLock') {
@@ -726,35 +726,35 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 4a. CMake: ensure OASIS_STAR_API and ODOOM_STAR_API_SESSION_IMPL are passed when -DOASIS_STAR_API=ON. Add option OASIS_STAR_SYNC_IN_CLIENT (use star_sync from DLL; when ON, do not compile star_sync.c). Only patch the existing if(OASIS_STAR_API) block at top of root CMake; do NOT insert before add_subdirectory (that caused hundreds of duplicate blocks).
+# 4a. CMake: ensure OASIS_STAR_API and ODOOM_OGENGINE_SESSION_IMPL are passed when -DOASIS_STAR_API=ON. Add option OASIS_STAR_SYNC_IN_CLIENT (use star_sync from DLL; when ON, do not compile star_sync.c). Only patch the existing if(OASIS_STAR_API) block at top of root CMake; do NOT insert before add_subdirectory (that caused hundreds of duplicate blocks).
 $cmakeRoot = "$src\CMakeLists.txt"
 if (Test-Path $cmakeRoot) {
     $cmakeContent = Get-Content $cmakeRoot -Raw
     $cmakeChanged = $false
     if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*') {
-        if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*STAR_API_DIR') {
-            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`n`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2`$3"
+        if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*OGENGINE_DIR') {
+            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*OGENGINE_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_OGENGINE_SESSION_IMPL)`r`n`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2`$3"
             $cmakeChanged = $true
-            $changes += "cmake(OASIS_STAR_API, ODOOM_STAR_API_SESSION_IMPL defines)"
+            $changes += "cmake(OASIS_STAR_API, ODOOM_OGENGINE_SESSION_IMPL defines)"
         }
-    } elseif ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'ODOOM_STAR_API_SESSION_IMPL') {
-        $cmakeContent = $cmakeContent -replace 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)', 'add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)'
+    } elseif ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'ODOOM_OGENGINE_SESSION_IMPL') {
+        $cmakeContent = $cmakeContent -replace 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)', 'add_compile_definitions(OASIS_STAR_API ODOOM_OGENGINE_SESSION_IMPL)'
         $cmakeChanged = $true
-        $changes += "cmake(ODOOM_STAR_API_SESSION_IMPL define)"
+        $changes += "cmake(ODOOM_OGENGINE_SESSION_IMPL define)"
     }
     if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'option\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT') {
-        $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(add_compile_definitions|set\s*\(\s*STAR_API_DIR)', "`$1`$2option(OASIS_STAR_SYNC_IN_CLIENT `"Use star_sync from star_api.dll (C#) instead of compiling star_sync.c`" OFF)`r`n`$2`$3"
+        $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(add_compile_definitions|set\s*\(\s*OGENGINE_DIR)', "`$1`$2option(OASIS_STAR_SYNC_IN_CLIENT `"Use star_sync from ogengine.dll (C#) instead of compiling star_sync.c`" OFF)`r`n`$2`$3"
         $cmakeChanged = $true
         $changes += "cmake(option OASIS_STAR_SYNC_IN_CLIENT)"
     }
     if ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*' -and $cmakeContent -notmatch 'if\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT\s*\)') {
-        $cmakeContent = $cmakeContent -replace '(add_compile_definitions\s*\(\s*OASIS_STAR_API\s+ODOOM_STAR_API_SESSION_IMPL\s*\)\s*\r?\n)(\s*)', "`$1`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2"
+        $cmakeContent = $cmakeContent -replace '(add_compile_definitions\s*\(\s*OASIS_STAR_API\s+ODOOM_OGENGINE_SESSION_IMPL\s*\)\s*\r?\n)(\s*)', "`$1`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2"
         $cmakeChanged = $true
         $changes += "cmake(OASIS_STAR_SYNC_IN_CLIENT define when ON)"
     }
     if ($cmakeChanged) { Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline }
 }
-# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used and OASIS_STAR_SYNC_IN_CLIENT is OFF (otherwise use star_sync from star_api.dll). Use STAR_SYNC_SRC so it is conditional.
+# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used and OASIS_STAR_SYNC_IN_CLIENT is OFF (otherwise use star_sync from ogengine.dll). Use STAR_SYNC_SRC so it is conditional.
 $cmakeFiles = @()
 if (Test-Path "$src\CMakeLists.txt") { $cmakeFiles += "$src\CMakeLists.txt" }
 if (Test-Path "$src\src\CMakeLists.txt") { $cmakeFiles += "$src\src\CMakeLists.txt" }
@@ -769,7 +769,7 @@ foreach ($cmakePath in $cmakeFiles) {
     if (-not (Test-Path $cmakePath)) { continue }
     $cmakeContent = Get-Content $cmakePath -Raw
     $cmakeChanged = $false
-    if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'STAR_SYNC_SRC') {
+    if ($cmakeContent -match 'uzdoom_ogengine_integration\.cpp' -and $cmakeContent -notmatch 'STAR_SYNC_SRC') {
         if ($cmakeContent -match '\r?\n\s*project\s*\([^)]*\)\s*\r?\n') {
             $cmakeContent = $cmakeContent -replace '(\r?\n\s*project\s*\([^)]*\)\s*\r?\n)', "`$1`$starSyncSrcBlock`r`n"
             $cmakeChanged = $true
@@ -777,11 +777,11 @@ foreach ($cmakePath in $cmakeFiles) {
             $cmakeContent = $starSyncSrcBlock + "`r`n" + $cmakeContent
             $cmakeChanged = $true
         }
-        if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c|\$\{STAR_SYNC_SRC\}') {
-            $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
+        if ($cmakeContent -match 'uzdoom_ogengine_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c|\$\{STAR_SYNC_SRC\}') {
+            $cmakeContent = $cmakeContent -replace '(\buzdoom_ogengine_integration\.cpp\b)', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
             $cmakeChanged = $true
-        } elseif ($cmakeContent -match 'uzdoom_star_integration\.cpp\s*\r?\n\s*star_sync\.c') {
-            $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)\s*\r?\n\s*star_sync\.c', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
+        } elseif ($cmakeContent -match 'uzdoom_ogengine_integration\.cpp\s*\r?\n\s*star_sync\.c') {
+            $cmakeContent = $cmakeContent -replace '(\buzdoom_ogengine_integration\.cpp\b)\s*\r?\n\s*star_sync\.c', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
             $cmakeChanged = $true
         }
         if ($cmakeChanged) {

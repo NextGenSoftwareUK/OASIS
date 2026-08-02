@@ -1,5 +1,5 @@
-{
-  "star_api_url":        "https://api.oasisplatform.world/api/",
+﻿{
+  "ogengine_url":        "https://api.oasisplatform.world/api/",
   "oasis_api_url":       "https://api.oasisplatform.world/api/",
   "mint_keys":           0,
   "mint_monsters":       1,

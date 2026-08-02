@@ -1,4 +1,4 @@
-# OWolf3D — OASIS STAR Integration Instructions
+﻿# OWolf3D — OASIS STAR Integration Instructions
 
 **Port:** ECWolf (extended Wolf3D source port, C++, CMake)
 **Game source ID:** `OWOLF3D`
@@ -19,7 +19,7 @@ Keys, inventory, XP, and quests are shared across all seven.
 | Wolf3D / Spear of Destiny data | original game data files |
 
 - ECWolf source cloned at `C:\Source\OWolf3D` (or set `OWOLF3D_SRC`)
-- STARAPIClient built; `star_api.dll` / `star_api.lib` in `OASIS Omniverse\STARAPIClient\`
+- OGEngineClient built; `ogengine.dll` / `ogengine.lib` in `OASIS Omniverse\OGEngineClient\`
 
 ---
 
@@ -36,12 +36,12 @@ BUILD_OWOLF3D.bat batch
 ```
 
 The script:
-1. Copies `owolf3d_star_integration.h/.cpp` → `C:\Source\OWolf3D\src\`
+1. Copies `owolf3d_ogengine_integration.h/.cpp` → `C:\Source\OWolf3D\src\`
 2. Copies `OGLib\` headers → `C:\Source\OWolf3D\src\OGLib\`
-3. Copies `star_api.h`, `star_sync.h`, `star_api.lib`, `star_api.dll` → `src\`
-4. Patches `src\CMakeLists.txt` to include the new source file and link `star_api.lib`
+3. Copies `ogengine.h`, `ogengine_sync.h`, `ogengine.lib`, `ogengine.dll` → `src\`
+4. Patches `src\CMakeLists.txt` to include the new source file and link `ogengine.lib`
 5. CMake-configures and builds the `engine` target (→ `ecwolf.exe`)
-6. Deploys `star_api.dll` and `oasisstar.json` next to the output
+6. Deploys `ogengine.dll` and `oasisstar.json` next to the output
 
 ---
 
