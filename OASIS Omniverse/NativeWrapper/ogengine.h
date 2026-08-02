@@ -98,6 +98,40 @@ int ogengine_consume_last_mint_result(char* item_name_out, size_t item_name_size
 int ogengine_consume_last_background_error(char* buf, size_t size);
 void ogengine_set_callback(ogengine_callback_t callback, void* user_data);
 
+/* ── Cross-game teleportation ─────────────────────────────────────────── */
+
+/** Request teleport to another game+map. Called by game when player steps on oasis_portal entity.
+ *  Writes %TEMP%\oasis_teleport_<avatarId>.json for OmniverseKernel to pick up. */
+void ogengine_request_teleport(const char* target_game, const char* target_map,
+                                float x, float y, float z);
+
+/** Poll: did OmniverseKernel request a teleport INTO this game?
+ *  Returns 1 if a pending request exists and fills out_map/out_x/y/z; 0 otherwise.
+ *  Reads %TEMP%\oasis_teleport_arrive_<avatarId>.json and deletes it after reading. */
+int  ogengine_poll_teleport_request(char* out_map,  size_t map_len,
+                                     float* out_x, float* out_y, float* out_z);
+
+/** Game calls this after it has loaded the target map at the requested position. */
+void ogengine_confirm_teleport_arrival(void);
+
+/* ── Cross-game entity spawning ───────────────────────────────────────── */
+
+/** Poll for a pending cross-game spawn event pushed by the STAR API.
+ *  Returns 1 if an event exists; fills entity_id (e.g. "oasset_quake_shambler") and position. */
+int  ogengine_poll_spawn_event(char* out_entity_id, size_t id_len,
+                                float* out_x, float* out_y, float* out_z);
+
+/** Game calls this after successfully spawning the entity. */
+void ogengine_confirm_spawn(const char* entity_id);
+
+/* ── Map entity list ──────────────────────────────────────────────────── */
+
+/** Fetch the cross-game entity list for a given map (from oasis_{mapname}.json sidecar via STAR API).
+ *  out_json receives a JSON array: [{"entityId":"oasset_quake_shambler","x":100,"y":0,"z":64}, ...]
+ *  Returns OGENGINE_SUCCESS or error code. */
+ogengine_result_t ogengine_get_map_entities(const char* game_id, const char* map_name,
+                                             char* out_json, size_t buf_len);
+
 #ifdef __cplusplus
 }
 #endif
