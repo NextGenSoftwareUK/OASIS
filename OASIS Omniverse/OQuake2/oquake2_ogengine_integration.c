@@ -950,6 +950,20 @@ void OQuake2_STAR_PollItems(void) {
 
     ogengine_sync_pump();
 
+    /* --- cross-game spawn poll --- */
+    {
+        char entity_id[128];
+        float sx, sy, sz;
+        if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+        {
+            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+             * Map entity_id to native classname using OGAsset catalog lookup.
+             * For now, log the request. */
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            ogengine_confirm_spawn(entity_id);
+        }
+    }
+
     /* Handle async auth timeout */
     if (g_star_async_auth_pending) {
 #ifdef _WIN32
@@ -1071,4 +1085,20 @@ int OQuake2_STAR_ShouldUseAnorakFace(void) {
 
 const char* OQuake2_STAR_GetUsername(void) {
     return g_star_username;
+}
+
+/* -------------------------------------------------------------------------
+ * Cross-game teleportation
+ * ------------------------------------------------------------------------- */
+
+void OQuake2_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+    /* TODO: warp player — e.g. gi.WriteByte(svc_stufftext); gi.WriteString("map <mapname>\n"); gi.unicast(player, true);
+     * For in-map position warp: set player->s.origin and call gi.linkentity(player) */
+    ogengine_confirm_teleport_arrival();
 }
