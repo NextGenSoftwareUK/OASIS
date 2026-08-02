@@ -165,13 +165,12 @@ Each editor gains a top-level **OASIS** menu. Editors discover each other via th
 **OASIS menu (identical across all editors):**
 ```
 OASIS
-├── Open Map In ▶
+├── Open Portal Partner In ▶      [cross-family: open the linked destination map]
 │   ├── UltimateDoomBuilder
 │   ├── OQuakeEditor (TrenchBroom)
 │   ├── OQuake3Editor (NetRadiant)
 │   └── ODOOM3Editor (DarkRadiant)
-├── Convert Map To ▶
-│   ├── Doom/Doom2 format
+├── Convert Map To ▶              [same-family only: Quake↔Quake2↔Quake3, Doom↔Doom3]
 │   ├── Quake / Quake2 format
 │   ├── Quake3 format
 │   └── Doom 3 format
@@ -186,9 +185,21 @@ OASIS
 └── About OGEditor Integration
 ```
 
-For "Open Map In": the current map file is saved, then the target editor is launched with the file path as a command-line argument. Each editor already accepts a file path argument on launch.
+### "Open Portal Partner In" — important distinction
 
-For "Convert Map To": calls `ogeditor_convert_map()` (in OGEditorSDK / OASISMapConverter), writes a converted file, then opens the result in the target editor.
+**The map formats used by each OGame engine family are incompatible.** A Doom WAD (2D sectors) cannot be opened in TrenchBroom. A Quake BSP (3D brushes) cannot be opened in UDB. These tools are built for completely different geometry systems.
+
+"Open Portal Partner In" therefore does **not** open the current map file in another editor. Instead it reads the selected `oasis_portal_enter` entity's destination (`oasis_game_id` + `oasis_map`) from the `.oasis.json` sidecar, looks up that map file path from the STAR API map registry, and launches the **appropriate editor for the destination game** with **that destination map**. This lets a level designer keep both sides of a portal pair open simultaneously in the correct tool.
+
+Example: editing `base3.bsp` in OQuakeEditor, you select an `oasis_portal_enter` pointing to `odoom/e1m1`. Click "Open Portal Partner In → UltimateDoomBuilder" — UDB opens with `e1m1.wad`. Both editors are now open, each with the right map in the right tool.
+
+### "Convert Map To" — same geometry family only
+
+`.map` source files for Quake, Quake2, and Quake3 are all brush-based text formats close enough that conversion is practical — entity classnames and some keys differ, but the geometry representation is the same. `OASISMapConverter` remaps entity classnames and OASIS keys between these engines.
+
+Doom/Doom3 are a separate compatible pair (sector-based → idTech4 format shares conceptual proximity).
+
+**Cross-family conversion (Quake ↔ Doom, Quake ↔ Duke3D, etc.) is not supported** — the geometry primitives are incompatible at a fundamental level and no automated conversion would produce a usable map.
 
 ---
 
@@ -250,14 +261,16 @@ Format conversion capability matrix:
 
 | From → To | Quake | Quake2 | Quake3 | Doom | Doom3 | Duke3D |
 |-----------|-------|--------|--------|------|-------|--------|
-| Quake     | —     | ✓      | ✓      | ✗*   | ✗*    | ✗*     |
-| Quake2    | ✓     | —      | ✓      | ✗*   | ✗*    | ✗*     |
-| Quake3    | ✓     | ✓      | —      | ✗*   | ✗*    | ✗*     |
-| Doom      | ✗*    | ✗*     | ✗*     | —    | ✓     | ✓      |
-| Doom3     | ✗*    | ✗*     | ✗*     | ✓    | —     | ✗*     |
-| Duke3D    | ✗*    | ✗*     | ✗*     | ✓    | ✗*    | —      |
+| Quake     | —     | ✓      | ✓      | ✗    | ✗     | ✗      |
+| Quake2    | ✓     | —      | ✓      | ✗    | ✗     | ✗      |
+| Quake3    | ✓     | ✓      | —      | ✗    | ✗     | ✗      |
+| Doom      | ✗     | ✗      | ✗      | —    | ✓     | ✓      |
+| Doom3     | ✗     | ✗      | ✗      | ✓    | —     | ✗      |
+| Duke3D    | ✗     | ✗      | ✗      | ✓    | ✗     | —      |
 
-✗* = geometry format too different; entity classname mapping only (OASIS metadata preserved).
+✓ = geometry conversion supported (same primitive family, entity classnames remapped).
+✗ = incompatible geometry — 3D brushes (Quake family) vs 2D sectors (Doom/Duke) vs tiles (Wolf3D).
+     Cross-family editors are linked via "Open Portal Partner In", not map conversion.
 
 ---
 
