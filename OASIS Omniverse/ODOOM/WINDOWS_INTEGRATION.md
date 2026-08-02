@@ -250,3 +250,18 @@ No `OASIS_STAR_API` or `OGENGINE_DIR`; the STAR hooks are compiled out.
 - UZDoom’s Windows port should give you correct sound, music, and mouse behavior compared to the older Linux Doom port.
 - **ODOOM (UZDoom) is the supported Doom port** for STAR; use **BUILD ODOOM.bat** to build (output: **ODOOM.exe** in `ODOOM\build\`) or **RUN ODOOM.bat** to build and launch.
 - **Credits:** ODOOM is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) (GPL-3.0). See **CREDITS_AND_LICENSE.md** in this folder.
+
+## Cross-Game Teleportation
+
+Call `UZDoom_STAR_CheckIncomingTeleport()` at the start of every map load to detect incoming teleports from other OGames:
+
+```c
+// In your map load / level start hook:
+UZDoom_STAR_CheckIncomingTeleport();
+```
+
+This reads `%TEMP%\oasis_teleport_arrive_{avatarId}.json`, warps the player to the requested position (game-specific — see the TODO comment in the integration file), then calls `ogengine_confirm_teleport_arrival()`.
+
+To place an outbound portal in a map, use the OGEngine Editor's `OASISPortalPanel` (UDB) or add an `oasis_portal` entity using the companion editor and `oasis_entities.fgd`.
+
+**Spawn-event polling** is also active in the tick function — the integration now polls `ogengine_poll_spawn_event()` each frame and logs any incoming cross-game entity spawn requests via `oglib_log`.

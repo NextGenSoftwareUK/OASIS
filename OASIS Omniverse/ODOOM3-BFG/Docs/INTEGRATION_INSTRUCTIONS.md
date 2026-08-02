@@ -122,3 +122,18 @@ Key fields:
 | `Scripts/COPY_TO_RBDOOM3_AND_BUILD.ps1` | Copy + CMake build script |
 | `Docs/INTEGRATION_INSTRUCTIONS.md` | This file |
 | `Docs/WINDOWS_INTEGRATION.md` | Step-by-step engine diff guide |
+
+## Cross-Game Teleportation
+
+Call `D3Doom_STAR_CheckIncomingTeleport()` at the start of every map load to detect incoming teleports from other OGames:
+
+```c
+// In your map load / level start hook:
+D3Doom_STAR_CheckIncomingTeleport();
+```
+
+This reads `%TEMP%\oasis_teleport_arrive_{avatarId}.json`, warps the player to the requested position (game-specific — see the TODO comment in the integration file), then calls `ogengine_confirm_teleport_arrival()`.
+
+To place an outbound portal in a map, use the OGEngine Editor's `OASISPortalPanel` (UDB) or add an `oasis_portal` entity using the companion editor and `oasis_entities.fgd`.
+
+**Spawn-event polling** is also active in the tick function — the integration now polls `ogengine_poll_spawn_event()` each frame and logs any incoming cross-game entity spawn requests via `oglib_log`.
