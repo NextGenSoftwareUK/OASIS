@@ -1,0 +1,28 @@
+{
+  "story_id": "oasis_arc_001",
+  "title": "The Dimensional Rift",
+  "chapters": [
+    {
+      "game": "ODOOM",
+      "map": "E1M3",
+      "trigger": "kill_cyberdemon",
+      "reward": "open_portal_to_oquake",
+      "narration": "The demon's death tears a rift in space-time. A swirling portal of neon blue energy opens ahead..."
+    },
+    {
+      "game": "OQUAKE",
+      "map": "e2m3",
+      "trigger": "collect_rune",
+      "reward": "open_portal_to_owolf3d",
+      "cross_spawn": { "game": "ODOOM", "entity": "cacodemon", "count": 3 },
+      "narration": "As you grasp the rune, three glowing eyes tear through the dimensional fabric behind you..."
+    },
+    {
+      "game": "OWOLF3D",
+      "map": "e1l8",
+      "trigger": "kill_hitler",
+      "reward": "arc_complete",
+      "narration": "The final echo of the Nazi stronghold fades. The rift closes. The OASIS is safe — for now."
+    }
+  ]
+}
