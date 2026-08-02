@@ -78,6 +78,9 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 - **WEB5 STAR API** (`C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI`) — quest definitions, objectives, GeoHotSpots, missions, STARNET holons, cross-game progress, OGAsset catalog, portal registry
 - **Quest system** — cross-game quests with objectives spanning multiple games, ExternalHandoffUri for cross-app handoffs (CLI, OPortal, Telegram, Discord)
 - **STAR API controllers already built:** QuestsController, MissionsController, GamesController, GeoHotSpotsController, OAPPsController, ZomesController, TeleportController, SpawnEventsController, StoriesController, MapEntitiesController — all data persists via HolonManager → MongoDB
+  - **TeleportController / SpawnEventsController:** in-memory `ConcurrentDictionary` (correct — ephemeral sub-second runtime state, not Holon content)
+  - **StoriesController / MapEntitiesController:** `STARHolonType.StoryArc` / `STARHolonType.MapEntityList` Holons via `_starAPI.Holons`; `Config/stories/*.json` and `Config/map_entities/*.json` are **seed/import format only** (seeded into Holons on first request); canonical store is HolonManager → provider (MongoDB, IPFS, etc.)
+  - **StoryArc is a Holon (WEB4) and SmartBrick (WEB5)** — discoverable, downloadable, composable via STARNET; publish via `POST /api/holons/{id}/publish`
 
 ### 2.6 Full OASIS Platform Stack
 
@@ -597,8 +600,8 @@ Action items:
 
 **Status:** ✅ DONE (infrastructure)
 
-- [x] `StoriesController` in STAR API (`GET/POST /api/stories`)
-- [x] First cross-game story arc: `oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
+- [x] `StoriesController` in STAR API (`GET/POST /api/stories`) — StoryArc stored as `STARHolonType.StoryArc` Holon via HolonManager (WEB4 Holon / WEB5 SmartBrick)
+- [x] First cross-game story arc seeded from `Config/stories/oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D) — JSON is import format only; canonical store is HolonManager
 - [ ] `GeoHotSpotType.Text/Audio` narration delivery (still pending per-game)
 - [ ] STARNET web Quest Builder integration (optional)
 
