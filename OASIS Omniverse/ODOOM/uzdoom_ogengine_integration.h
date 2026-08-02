@@ -91,6 +91,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 
 /** Whether to show OASIS anorak face in status bar. Only set by star face on/off and beam-in/out. */
 int UZDoom_STAR_GetShowAnorakFace(void);
+void UZDoom_STAR_CheckIncomingTeleport(void);
 
 #ifdef __cplusplus
 }

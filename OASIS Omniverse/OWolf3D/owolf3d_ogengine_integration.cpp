@@ -191,6 +191,20 @@ void OWolf3D_STAR_Tick(void)
 
     ogengine_sync_tick();
 
+    /* --- cross-game spawn poll --- */
+    {
+        char entity_id[128];
+        float sx, sy, sz;
+        if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+        {
+            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+             * Map entity_id to native classname using OGAsset catalog lookup.
+             * For now, log the request. */
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            ogengine_confirm_spawn(entity_id);
+        }
+    }
+
     /* Poll beamed-in status */
     g_ow_beamedin = ogengine_is_beamedin();
     if (g_ow_beamedin) {
@@ -537,4 +551,18 @@ void OWolf3D_STAR_DrawPopupOverlay(void)
         screen->DrawText(SmallFont, CR_DARKGRAY,
             panX + (panW - cw) / 2, panY + panH - lh - 4, ctrl, TAG_DONE);
     }
+}
+
+/*-----------------------------------------------------------------------------
+ * OASIS Portal / Teleport — incoming warp from another OGame
+ *---------------------------------------------------------------------------*/
+
+void OWolf3D_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    /* TODO: player.position = { (int)x, (int)y }; player.angle = 0; */
+    ogengine_confirm_teleport_arrival();
 }

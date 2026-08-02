@@ -69,6 +69,7 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict);
 int OQuake_STAR_IsQuestPopupOpen(void);
 /** Returns 1 if the inventory popup (I key) is open, 0 otherwise. Engine should use the same movement/view blocking as for the quest popup when either popup is open. */
 int OQuake_STAR_IsInventoryPopupOpen(void);
+void OQuake_STAR_CheckIncomingTeleport(void);
 
 #ifdef __cplusplus
 }

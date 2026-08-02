@@ -136,6 +136,7 @@ void D3Doom_STAR_DrawPopupOverlay(void* render_system);
  * @param down  1 = pressed, 0 = released.
  */
 void D3Doom_STAR_HandleKey(int key, int down);
+void D3Doom_STAR_CheckIncomingTeleport(void);
 
 #ifdef __cplusplus
 }

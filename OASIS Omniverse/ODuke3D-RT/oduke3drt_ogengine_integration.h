@@ -123,6 +123,7 @@ void ODuke3DRT_STAR_DrawPopupOverlay(void);
  * @param down  1 = pressed, 0 = released.
  */
 void ODuke3DRT_STAR_HandleKey(int sc, int down);
+void ODuke3DRT_STAR_CheckIncomingTeleport(void);
 
 #ifdef __cplusplus
 }
