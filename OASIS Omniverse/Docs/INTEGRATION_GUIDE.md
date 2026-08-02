@@ -12,10 +12,13 @@ This guide describes how **ODOOM** and **OQuake** (and other games) integrate wi
 2. [Phase 1: Cross-Game Item Sharing](#phase-1-cross-game-item-sharing)
 3. [Phase 2: Multi-Game Quests](#phase-2-multi-game-quests)
 4. [Inventory NFT minting](#inventory-nft-minting)
-5. [Future: NFT Boss Collection](#future-nft-boss-collection)
-6. [Setup Instructions](#setup-instructions)
-7. [API Reference](#api-reference)
-8. [Troubleshooting](#troubleshooting)
+5. [Phase 3: Cross-Game Teleportation](#phase-3-cross-game-teleportation)
+6. [Phase 4: Cross-Game Entity Spawning](#phase-4-cross-game-entity-spawning)
+7. [Story Arcs](#story-arcs)
+8. [Future: NFT Boss Collection](#future-nft-boss-collection)
+9. [Setup Instructions](#setup-instructions)
+10. [API Reference](#api-reference)
+11. [Troubleshooting](#troubleshooting)
 
 ## Architecture Overview
 
@@ -181,6 +184,131 @@ if (objective1_complete && objective2_complete) {
    - All objectives complete
    - Master keycard reward given
    - Available in all games!
+
+## Phase 3: Cross-Game Teleportation
+
+### Goal
+
+Enable players to step through a portal in any OGame map and appear instantly in another game's map.
+
+### Architecture
+
+The teleport system uses a file-based IPC channel through `%TEMP%`:
+
+```
+Player steps on oasis_portal entity
+        ↓
+Game calls ogengine_request_teleport("OQUAKE", "e1m1", 128, 0, 64)
+        ↓
+ogengine writes %TEMP%\oasis_teleport_{avatarId}.json
+        ↓
+OmniverseKernel.TickTeleportIpc() picks it up (polls every 0.5s)
+        ↓
+Kernel hides current game → ActivateGameAsync("OQUAKE")
+        ↓
+Kernel writes %TEMP%\oasis_teleport_arrive_{avatarId}.json
+        ↓
+OQUAKE calls {Prefix}_STAR_CheckIncomingTeleport() on map load
+        ↓
+ogengine_poll_teleport_request() reads + deletes the arrive file
+        ↓
+Game warps player to e1m1 at 128/0/64 → ogengine_confirm_teleport_arrival()
+```
+
+### C API
+
+```c
+// Game calls when player touches an oasis_portal entity:
+void ogengine_request_teleport(const char* target_game, const char* target_map,
+                                float x, float y, float z);
+
+// Game calls on map load to check for incoming teleport:
+int  ogengine_poll_teleport_request(char* out_map, size_t map_len,
+                                     float* out_x, float* out_y, float* out_z);
+// Returns 1 if incoming teleport pending (fills out_map + position); 0 if none.
+
+// Game calls after warping player to the requested position:
+void ogengine_confirm_teleport_arrival(void);
+```
+
+### Per-game hook: CheckIncomingTeleport
+
+Each integration file has a `{Prefix}_STAR_CheckIncomingTeleport()` function — call it at the start of every map load:
+
+```c
+void UZDoom_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    // TODO: warp player to x/y/z at map (game-specific)
+    ogengine_confirm_teleport_arrival();
+}
+```
+
+### STAR API
+
+- `POST /api/teleport` — record a teleport request
+- `GET  /api/teleport/pending?avatarId=...` — poll for pending request (consumed on read)
+
+### Placing portals in maps
+
+Use the **OGEngine Editor** (UDB) — the `OASISPortalPanel` lets you pick the target game, map, and spawn position and writes the entity to the map. For Q-engine companion editors (TrenchBroom/NetRadiant), import `Plugins/UDBScript/Assets/oasis_entities.fgd` to get the `oasis_portal` entity with full field descriptions.
+
+## Phase 4: Cross-Game Entity Spawning
+
+### Goal
+
+Spawn monsters, weapons, or items from any OGame into any other OGame's live session — driven by quest triggers or STAR API events.
+
+### C API
+
+```c
+// Game polls each frame for pending spawn events:
+int  ogengine_poll_spawn_event(char* out_entity_id, size_t id_len,
+                                float* out_x, float* out_y, float* out_z);
+// Returns 1 if a spawn event is pending (fills entity_id and position); 0 if none.
+
+// Game calls after successfully spawning the entity:
+void ogengine_confirm_spawn(const char* entity_id);
+
+// Game calls on map load to get the cross-game entity list for this map:
+ogengine_result_t ogengine_get_map_entities(const char* game_id, const char* map_name,
+                                             char* out_json, size_t buf_len);
+// out_json: JSON array [{"entityId":"oasset_quake_shambler","x":100,"y":0,"z":64}, ...]
+```
+
+### STAR API
+
+- `POST /api/spawn-events` — push a spawn event to a live game
+- `GET  /api/spawn-events/pending?game=OQUAKE&avatarId=...` — poll for pending event
+- `POST /api/spawn-events/confirm` — acknowledge spawn
+- `GET  /api/maps/{game}/{map}/entities` — get cross-game entity list for a map
+- `PUT  /api/maps/{game}/{map}/entities` — set cross-game entity list (from OGEngine Editor)
+
+### Cross-game asset IDs
+
+All spawnable entities use IDs from the OGAsset catalog. Examples:
+- `oasset_quake_shambler` — Quake Shambler (spawns in ODOOM as `OQuake_Shambler` actor)
+- `oasset_doom_cacodemon` — Doom Cacodemon (spawns in OQUAKE as a foreign entity)
+- `oasset_wolf3d_guard` — Wolf3D Guard
+
+Use `GET /api/oassets?gameId={game}` to list all spawnable entities for a game.
+
+### Story arc integration
+
+Cross-game spawns can be driven by story arcs. Example from `oasis_arc_001_dimensional_rift.json`:
+
+```json
+{
+  "game": "OQUAKE",
+  "trigger": "collect_rune",
+  "cross_spawn": { "game": "ODOOM", "entity": "cacodemon", "count": 3 }
+}
+```
+
+When the OQUAKE chapter triggers, `StoriesController` pushes 3 cacodemon spawn events to the STAR API. The OQUAKE integration picks them up on the next tick and logs the spawn request.
 
 ## Inventory NFT minting
 
@@ -357,6 +485,32 @@ if (result == OGENGINE_SUCCESS) {
 ### C# API
 
 See `OGEngineClient/GameIntegrationClient.cs` for full C# API documentation.
+
+## Story Arcs
+
+Story arcs define multi-game narrative sequences stored as JSON and served by the STAR API.
+
+**First arc:** `Config/stories/oasis_arc_001_dimensional_rift.json`
+
+```json
+{
+  "story_id": "oasis_arc_001",
+  "title": "The Dimensional Rift",
+  "chapters": [
+    { "game": "ODOOM", "map": "E1M3", "trigger": "kill_cyberdemon",
+      "reward": "open_portal_to_oquake",
+      "narration": "The demon's death tears a rift in space-time..." },
+    { "game": "OQUAKE", "map": "e2m3", "trigger": "collect_rune",
+      "cross_spawn": { "game": "ODOOM", "entity": "cacodemon", "count": 3 },
+      "narration": "As you grasp the rune, three glowing eyes tear through the dimensional fabric..." },
+    { "game": "OWOLF3D", "map": "e1l8", "trigger": "kill_hitler",
+      "reward": "arc_complete",
+      "narration": "The final echo of the Nazi stronghold fades. The rift closes." }
+  ]
+}
+```
+
+**STAR API:** `GET /api/stories` — list all arcs; `GET /api/stories/{id}` — get one; `POST /api/stories` — add.
 
 ## Troubleshooting
 
