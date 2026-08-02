@@ -68,9 +68,9 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 | ODuke3D | EDuke32 | ✅ Complete | `oduke3d_ogengine_integration.c` | ✅ Complete | ✅ Complete |
 | ODuke3D-RT | Duke-RT | ✅ Complete | `oduke3drt_ogengine_integration.c` | ✅ Complete | ✅ Complete |
 | OWolf3D | ECWolf | ✅ Complete | `owolf3d_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
-| OQuake2 | Yamagi Q2 | 🔄 Integration files ready (engine not cloned yet) | `oquake2_ogengine_integration.c` | 🔄 | 🔄 |
-| OQuake2-RTX | Q2 RTX | 🔄 Integration files ready (engine not cloned yet) | `oquake2rtx_ogengine_integration.c` | 🔄 | 🔄 |
-| OQuake3 | Quake3e | 🔄 Integration files ready (engine not cloned yet) | `oquake3_ogengine_integration.c` | 🔄 | 🔄 |
+| OQuake2 | Yamagi Q2 | ✅ Complete | `oquake2_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| OQuake2-RTX | Q2 RTX | ✅ Complete | `oquake2rtx_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| OQuake3 | Quake3e | ✅ Complete | `oquake3_ogengine_integration.c` | ✅ Complete | ✅ Complete |
 
 ### 2.5 WEB4 / WEB5 APIs
 
@@ -690,35 +690,49 @@ Architecture mirrors existing ports:
 
 ### Phase 2 — Cross-Game Teleportation
 - [x] Add `ogengine_request_teleport` / `ogengine_poll_teleport_request` to `ogengine.h`
-- [x] Implement in OGEngineClient (write/poll teleport JSON via IPC file or named pipe)
-- [x] Implement `OmniverseKernel` FileSystemWatcher for teleport requests
-- [x] Add `oasis_portal` entity to each OGame's integration
-- [ ] Test ODOOM → OQuake portal
+- [x] Implement in OGEngineClient (write/poll teleport JSON via `%TEMP%` IPC files)
+- [x] Implement `OmniverseKernel.TickTeleportIpc()` polling every 0.5s
+- [x] Add `{Prefix}_STAR_CheckIncomingTeleport()` to all 10 game integrations
+- [ ] **TODO (per-game):** Fill in the actual player warp call inside `CheckIncomingTeleport()`:
+  - ODOOM: `P_TeleportMove(player, x, y, z)` (UZDoom/GZDoom)
+  - OQuake: `VectorCopy(origin, sv.edicts[1].v.origin); SV_LinkEdict(...)`
+  - ODOOM3 / ODOOM3-BFG: `gameLocal.GetLocalPlayer()->Teleport(idVec3(x,y,z), ang, NULL)`
+  - ODuke3D: `ps[myconnectindex].pos = { x, y, z }; ps[myconnectindex].opos = ...`
+  - OWolf3D: `player.position = { (int)x, (int)y }`
+  - OQuake2 / OQuake2-RTX: `gi.WriteByte(svc_stufftext); gi.WriteString("map <name>\n"); gi.unicast(player, true)`
+  - OQuake3: `trap_SendConsoleCommand(EXEC_APPEND, va("map %s\n", map))`
+- [ ] Test ODOOM → OQuake portal (requires compiled game binaries)
 
 ### Phase 3 — OGAsset Catalog + Cross-Game Entities
 - [x] Design OGAsset catalog schema (JSON + STAR API endpoint)
-- [x] Seed catalog with all monsters/keys/weapons from all 10 OGames
-- [x] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` to C API
-- [ ] Implement per-game `OGame_STAR_SpawnCrossGameEntity` function
+- [x] Seed catalog with weapons/ammo/powerups/keys/monsters for all 10 OGames in `oasis_star_assets.json`
+- [x] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` / `ogengine_confirm_spawn` to C API
+- [x] Spawn-event polling block added to all 10 game integration tick functions
+- [ ] **TODO (per-game):** Fill in native entity spawn inside the spawn-event polling block:
+  - Each game has `/* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API */`
+  - Requires mapping `entity_id` (e.g. `oasset_quake_shambler`) → native classname, then calling the engine's spawn API
+  - ODOOM: `Thing_Spawn(classname, x, y, z)` via ACS/ZScript
+  - OQuake: QuakeC `spawn_entity(classname, origin)`
+  - ODOOM3/BFG: `gameLocal.SpawnEntityType(classname, dict)`
+  - ODuke3D: `A_InsertSprite(...)` with reserved tile index
+  - OWolf3D: DECORATE `OASISSpawnPoint` actor class
 - [ ] Test: Quake Shambler spawning in ODOOM map
 
 ### Phase 4 — OGEngine Editor (MVP) — UDB-based ✅ foundation done
-- [x] UDB OASIS plugin foundation: OGEnginePanel (all 10 OGames), OASISPortalPanel, OASISMapConverter, OASISMapSidecar
-- [x] OGEditorSDK: OGAssetCatalog, OGMapSidecar, OGStarApiClient, OGEntityMappings, C ABI header + NativeAOT wrapper
-- [x] OGEnginePanel refactored to use OGAssetCatalog.ForGame() + category filter (drops inline asset list)
-- [x] Quest Weaver panel in UDB (drag objectives onto map triggers, write to STAR API)
-- [x] Live STAR API asset catalog panel (replaces hardcoded list with server-driven data)
+- [x] UDB OASIS plugin foundation: OGEnginePanel, OASISPortalPanel, OASISMapConverter, OASISMapSidecar
+- [x] OGEditorSDK: OGAssetCatalog, OGMapSidecar, OGStarApiClient, OGEntityMappings, C ABI + NativeAOT
+- [x] Quest Weaver panel in UDB; live STAR API asset catalog panel
+- [x] `oasis_entities.fgd` / `oasis_entities.def` — portal, spawn, objective-trigger entity defs for TrenchBroom/NetRadiant
+- [x] Companion editor launch button in UDB (TrenchBroom / NetRadiant / DarkRadiant)
 - [ ] Improved Quake sprite extraction (render MDL from fixed angle vs. cropping skin)
-- [x] Add `oasis_portal` and `oasis_spawn` entity definitions to all game `.fgd` / `.def` files
-- [x] Companion editor launch from UDB (TrenchBroom for Q1/Q2, NetRadiant for Q3, DarkRadiant for D3)
-- [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional hybrid UX)
+- [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional)
 - [ ] Test: place a portal in a Doom map, walk through it in ODOOM → appear in OQuake
 
 ### Phase 5 — Quest Weaver + Infinite Story
-- [ ] Add Quest Weaver panel to OGEngine Editor
-- [x] Implement story arc JSON schema and STAR API endpoints
-- [ ] Implement `GeoHotSpotType.Text/Audio` narration in game integrations
-- [x] Write first cross-game story arc spanning ODOOM → OQuake → OWolf3D
+- [x] Story arc JSON schema (`Config/stories/*.json`) + STAR API endpoints (`/api/stories`)
+- [x] First cross-game story arc: `oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
+- [ ] `GeoHotSpotType.Text/Audio` narration delivery in each game integration
+- [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional)
 
 ### Phase 6 — Native HUD Polish
 - [ ] Verify Unity overlay renders on top of all 10 embedded games (borderless windowed)
