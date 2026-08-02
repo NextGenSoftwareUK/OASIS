@@ -25,7 +25,9 @@ namespace OASIS.Omniverse.UnityHost.UI
             Avatar,
             Karma,
             Settings,
-            Diagnostics
+            Diagnostics,
+            Friends,
+            Teleport
         }
 
         private enum ToastSeverity
@@ -142,6 +144,10 @@ namespace OASIS.Omniverse.UnityHost.UI
         private Web4Web5GatewayClient _apiClient;
         private GlobalSettingsService _settingsService;
         private OmniverseKernel _kernel;
+        private OmniverseHostConfig _config;
+        private GameObject _teleportRoot;
+        private string _teleportSelectedGameId;
+        private InputField _teleportMapInput;
 
         private readonly Dictionary<OmniverseTab, string[]> _sortOptions = new Dictionary<OmniverseTab, string[]>
         {
@@ -151,11 +157,14 @@ namespace OASIS.Omniverse.UnityHost.UI
             { OmniverseTab.Karma, new[] { "Date", "Source", "Amount" } },
             { OmniverseTab.Avatar, new[] { "Name" } },
             { OmniverseTab.Settings, new[] { "Name" } },
-            { OmniverseTab.Diagnostics, new[] { "Name" } }
+            { OmniverseTab.Diagnostics, new[] { "Name" } },
+            { OmniverseTab.Friends, new[] { "Name" } },
+            { OmniverseTab.Teleport, new[] { "Name" } }
         };
 
         public void Initialize(OmniverseHostConfig config, Web4Web5GatewayClient apiClient, GlobalSettingsService settingsService, OmniverseKernel kernel)
         {
+            _config = config;
             _apiClient = apiClient;
             _settingsService = settingsService;
             _kernel = kernel;
@@ -256,6 +265,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateTabButton(tabs.transform, "Karma", OmniverseTab.Karma, 4);
             CreateTabButton(tabs.transform, "Settings", OmniverseTab.Settings, 5);
             CreateTabButton(tabs.transform, "Diagnostics", OmniverseTab.Diagnostics, 6);
+            CreateTabButton(tabs.transform, "Friends", OmniverseTab.Friends, 7);
+            CreateTabButton(tabs.transform, "Teleport", OmniverseTab.Teleport, 8);
 
             // List controls: below tabs, 10% height (76-86%)
             BuildListControls();
@@ -278,6 +289,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             SetAnchors(settingsRect, 0.02f, 0.02f, 0.98f, 0.87f);
             BuildSettingsUi(_settingsRoot.transform);
             _settingsRoot.SetActive(false);
+
+            BuildTeleportUi();
 
             BuildToastUi();
             BuildStatusStripUi();
@@ -1072,17 +1085,23 @@ namespace OASIS.Omniverse.UnityHost.UI
             ConfigureSortOptionsForTab(tab);
 
             var isSettings = tab == OmniverseTab.Settings;
-            if (_contentRoot != null) _contentRoot.SetActive(!isSettings);
+            var isTeleport = tab == OmniverseTab.Teleport;
+            var isSpecialRoot = isSettings || isTeleport;
+
+            if (_contentRoot != null) _contentRoot.SetActive(!isSpecialRoot);
             if (_settingsRoot != null) _settingsRoot.SetActive(isSettings);
-            if (_listControlsRoot != null) _listControlsRoot.SetActive(!isSettings);
+            if (_teleportRoot != null) _teleportRoot.SetActive(isTeleport);
+            if (_listControlsRoot != null) _listControlsRoot.SetActive(!isSpecialRoot);
+
+            var noControls = tab == OmniverseTab.Diagnostics || tab == OmniverseTab.Friends || isTeleport;
+            if (_searchInput != null) _searchInput.gameObject.SetActive(!noControls);
+            if (_sortFieldDropdown != null) _sortFieldDropdown.gameObject.SetActive(!noControls);
+            if (_sortDirectionDropdown != null) _sortDirectionDropdown.gameObject.SetActive(!noControls);
+            if (_presetDropdown != null) _presetDropdown.gameObject.SetActive(!noControls);
+            if (_templateDropdown != null) _templateDropdown.gameObject.SetActive(!noControls);
+            if (_presetNameInput != null) _presetNameInput.gameObject.SetActive(!noControls);
+            if (_pageIndicator != null) _pageIndicator.gameObject.SetActive(!noControls);
             var diagnosticsMode = tab == OmniverseTab.Diagnostics;
-            if (_searchInput != null) _searchInput.gameObject.SetActive(!diagnosticsMode);
-            if (_sortFieldDropdown != null) _sortFieldDropdown.gameObject.SetActive(!diagnosticsMode);
-            if (_sortDirectionDropdown != null) _sortDirectionDropdown.gameObject.SetActive(!diagnosticsMode);
-            if (_presetDropdown != null) _presetDropdown.gameObject.SetActive(!diagnosticsMode);
-            if (_templateDropdown != null) _templateDropdown.gameObject.SetActive(!diagnosticsMode);
-            if (_presetNameInput != null) _presetNameInput.gameObject.SetActive(!diagnosticsMode);
-            if (_pageIndicator != null) _pageIndicator.gameObject.SetActive(!diagnosticsMode);
             if (_diagnosticsExportButton != null) _diagnosticsExportButton.gameObject.SetActive(diagnosticsMode);
             if (_diagnosticsExportSanitizedButton != null) _diagnosticsExportSanitizedButton.gameObject.SetActive(diagnosticsMode);
 
@@ -1090,7 +1109,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             {
                 RenderSettings();
             }
-            else
+            else if (!isTeleport)
             {
                 await RefreshCurrentTabAsync();
             }
@@ -1185,6 +1204,11 @@ namespace OASIS.Omniverse.UnityHost.UI
                     {
                         break;
                     }
+                    case OmniverseTab.Friends:
+                    {
+                        // No GetClanMembersAsync exists yet; placeholder rendered in RedrawListTab
+                        break;
+                    }
                 }
             }
             finally
@@ -1223,6 +1247,12 @@ namespace OASIS.Omniverse.UnityHost.UI
                     break;
                 case OmniverseTab.Diagnostics:
                     DrawDiagnostics(builder);
+                    break;
+                case OmniverseTab.Friends:
+                    DrawFriends(builder);
+                    break;
+                case OmniverseTab.Teleport:
+                    // Teleport is rendered in _teleportRoot, not _contentText
                     break;
             }
 
@@ -1342,6 +1372,14 @@ namespace OASIS.Omniverse.UnityHost.UI
             builder.AppendLine();
             builder.AppendLine("Use 'Copy Diag' to export snapshot + recent runtime log to clipboard.");
             builder.AppendLine("Use 'Copy Diag (Sanitized)' to export with sensitive data redacted.");
+        }
+
+        private void DrawFriends(StringBuilder builder)
+        {
+            _pageIndicator.text = "Friends";
+            builder.AppendLine("Friends & Clan");
+            builder.AppendLine(new string('-', 64));
+            builder.AppendLine("  Clan member list coming soon");
         }
 
         private void CopyDiagnosticsToClipboard()
@@ -2659,6 +2697,88 @@ namespace OASIS.Omniverse.UnityHost.UI
                 case KeyCode.Space: return 0x20;
                 default: return 0;
             }
+        }
+
+        public void ShowToast(string message)
+        {
+            ShowToast(message, ToastSeverity.Success);
+        }
+
+        private void BuildTeleportUi()
+        {
+            _teleportRoot = new GameObject("TeleportRoot");
+            _teleportRoot.transform.SetParent(_panel.transform, false);
+            var teleportRect = _teleportRoot.AddComponent<RectTransform>();
+            SetAnchors(teleportRect, 0.02f, 0.02f, 0.98f, 0.87f);
+
+            CreateText("TeleportHeader", "Quick Teleport", 22, TextAnchor.UpperLeft, _teleportRoot.transform, 0f, 0.91f, 0.6f, 1f);
+
+            var games = _config?.games;
+            if (games != null && games.Count > 0)
+            {
+                var count = Mathf.Min(games.Count, 10);
+                var totalRows = Mathf.CeilToInt(count / 2f);
+                var gridH = 0.80f;
+                var rowH = gridH / Mathf.Max(1, totalRows);
+
+                for (var i = 0; i < count; i++)
+                {
+                    var game = games[i];
+                    var col = i % 2;
+                    var row = i / 2;
+                    var xMin = col == 0 ? 0f : 0.51f;
+                    var xMax = col == 0 ? 0.49f : 1f;
+                    var yMax = 0.88f - (row * rowH);
+                    var yMin = yMax - rowH + 0.01f;
+
+                    var capturedGameId = game.gameId;
+                    var btn = CreateButton(_teleportRoot.transform, game.displayName, xMin, yMin, xMax, yMax);
+                    var btnImage = btn.GetComponent<Image>();
+                    if (btnImage != null)
+                    {
+                        btnImage.color = new Color(
+                            Mathf.Clamp01(game.portalColorR),
+                            Mathf.Clamp01(game.portalColorG),
+                            Mathf.Clamp01(game.portalColorB),
+                            0.85f);
+                    }
+
+                    btn.onClick.AddListener(() =>
+                    {
+                        _teleportSelectedGameId = capturedGameId;
+                        _ = OmniverseKernel.Instance.EnterPortalAsync(capturedGameId, null);
+                        SetVisible(false);
+                    });
+                }
+            }
+            else
+            {
+                CreateText("TeleportNoGames", "No games configured.", 16, TextAnchor.MiddleCenter, _teleportRoot.transform, 0.1f, 0.45f, 0.9f, 0.55f);
+            }
+
+            // Map name row at the bottom
+            CreateText("MapLabel", "Map name (optional)", 15, TextAnchor.MiddleLeft, _teleportRoot.transform, 0f, 0.005f, 0.30f, 0.09f);
+            _teleportMapInput = CreateInputField(_teleportRoot.transform, 0.31f, 0.01f, 0.76f, 0.085f);
+            var goButton = CreateButton(_teleportRoot.transform, "Go", 0.77f, 0.01f, 0.90f, 0.085f);
+            goButton.onClick.AddListener(() =>
+            {
+                if (string.IsNullOrWhiteSpace(_teleportSelectedGameId))
+                {
+                    ShowToast("Select a game card first.", ToastSeverity.Warning, 1.5f);
+                    return;
+                }
+
+                var mapName = (_teleportMapInput?.text ?? string.Empty).Trim();
+                _ = OmniverseKernel.Instance.EnterPortalAsync(_teleportSelectedGameId, null);
+                if (!string.IsNullOrWhiteSpace(mapName))
+                {
+                    Debug.Log($"[OASIS Teleport] Map-targeted teleport: game={_teleportSelectedGameId} map={mapName}");
+                    ShowToast($"Teleporting to {_teleportSelectedGameId} / {mapName}...");
+                }
+                SetVisible(false);
+            });
+
+            _teleportRoot.SetActive(false);
         }
 
         private void CreateTabButton(Transform parent, string label, OmniverseTab tab, int index)

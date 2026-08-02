@@ -1,6 +1,7 @@
 using OASIS.Omniverse.UnityHost.Config;
 using OASIS.Omniverse.UnityHost.Core;
 using OASIS.Omniverse.UnityHost.UI;
+using System.IO;
 using UnityEngine;
 using OASIS.Omniverse.UnityHost.API;
 
@@ -25,6 +26,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         private GlobalSettingsService _globalSettingsService;
         private LoginScreen _loginScreen;
         private bool _isInitialized;
+        private float _lastTeleportPollTime;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -153,6 +155,98 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             if (_hudOverlay != null && _hostService != null)
             {
                 _hudOverlay.UpdateReturnToHubButtonVisibility(_hostService.HasActiveGame());
+            }
+
+            TickTeleportIpc();
+        }
+
+        [System.Serializable]
+        private class TeleportRequest
+        {
+            public string targetGame;
+            public string targetMap;
+            public float x;
+            public float y;
+            public float z;
+        }
+
+        private async void TickTeleportIpc()
+        {
+            if (!_isInitialized || _hostService == null || _config == null || string.IsNullOrWhiteSpace(_config.avatarId))
+            {
+                return;
+            }
+
+            if (Time.unscaledTime - _lastTeleportPollTime < 0.5f)
+            {
+                return;
+            }
+
+            _lastTeleportPollTime = Time.unscaledTime;
+
+            var path = Path.Combine(Path.GetTempPath(), $"oasis_teleport_{_config.avatarId}.json");
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            string json;
+            try
+            {
+                json = File.ReadAllText(path);
+                File.Delete(path);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[OASIS Teleport] Failed to read teleport IPC file: {ex.Message}");
+                return;
+            }
+
+            TeleportRequest request;
+            try
+            {
+                request = JsonUtility.FromJson<TeleportRequest>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[OASIS Teleport] Failed to parse teleport request: {ex.Message}");
+                return;
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.targetGame))
+            {
+                Debug.LogWarning("[OASIS Teleport] Received empty or invalid teleport request.");
+                return;
+            }
+
+            Debug.Log($"[OASIS Teleport] {_config.avatarId} → {request.targetGame}:{request.targetMap}");
+
+            if (_hudOverlay != null)
+            {
+                _hudOverlay.ShowToast($"Teleporting to {request.targetGame}...");
+            }
+            else
+            {
+                Debug.Log($"[OASIS Teleport] Teleporting to {request.targetGame}...");
+            }
+
+            var result = await _hostService.ActivateGameAsync(request.targetGame);
+            if (result.IsError)
+            {
+                Debug.LogError($"[OASIS Teleport] ActivateGameAsync failed for '{request.targetGame}': {result.Message}");
+                return;
+            }
+
+            var arrivePath = Path.Combine(Path.GetTempPath(), $"oasis_teleport_arrive_{_config.avatarId}.json");
+            var arriveJson = $"{{\"map\":\"{request.targetMap}\",\"x\":{request.x},\"y\":{request.y},\"z\":{request.z}}}";
+            try
+            {
+                File.WriteAllText(arrivePath, arriveJson);
+                Debug.Log($"[OASIS Teleport] Arrive file written for {request.targetGame} → map '{request.targetMap}'.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[OASIS Teleport] Failed to write arrive file: {ex.Message}");
             }
         }
 
