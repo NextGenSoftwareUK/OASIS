@@ -52,6 +52,7 @@ void OWolf3D_STAR_DrawPopupOverlay(void);   /* inventory / quest full-screen pop
 /* ── Input (call from CheckKeys in wl_play.cpp) ────────────────────────── */
 /* Reads Keyboard[] directly — pass nothing, returns nothing.               */
 void OWolf3D_STAR_HandleKeys(void);
+void OWolf3D_STAR_CheckIncomingTeleport(void);
 
 #ifdef __cplusplus
 }

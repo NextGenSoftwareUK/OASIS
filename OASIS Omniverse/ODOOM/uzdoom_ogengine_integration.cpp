@@ -2371,6 +2371,20 @@ void ODOOM_InventoryInputCaptureFrame(void)
 
 	ogengine_sync_pump();
 
+	/* --- cross-game spawn poll --- */
+	{
+		char entity_id[128];
+		float sx, sy, sz;
+		if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+		{
+			/* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+			 * Map entity_id to native classname using OGAsset catalog lookup.
+			 * For now, log the request. */
+			oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+			ogengine_confirm_spawn(entity_id);
+		}
+	}
+
 	/* If async auth was started but callback never fired (e.g. hang/timeout), show error once after ~30 s. */
 	if (g_star_async_auth_pending) {
 		g_star_async_auth_pending_frames++;
@@ -5008,4 +5022,19 @@ CCMD(stam)
 		return;
 	}
 	Printf("Unknown STAM subcommand: %s. Use beamin|beamout.\n", argv[1]);
+}
+
+/*=============================================================================
+ * OASIS Portal / Teleport — incoming warp from another OGame
+ *===========================================================================*/
+
+void UZDoom_STAR_CheckIncomingTeleport(void)
+{
+	char map[256];
+	float x = 0, y = 0, z = 64;
+	if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+		return;
+	/* TODO: ACS_Execute(OASIS_WARP_SCRIPT, 0, x, y, z) */
+	/* Use UZDoom's P_TeleportMove to warp the local player to position x/y/z. */
+	ogengine_confirm_teleport_arrival();
 }

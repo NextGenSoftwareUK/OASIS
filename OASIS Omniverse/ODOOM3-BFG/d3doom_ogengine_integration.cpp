@@ -508,6 +508,20 @@ void D3Doom_STAR_Tick(void) {
     char errbuf[256];
     if (ogengine_consume_last_background_error(errbuf, sizeof(errbuf)))
         StarLog("Background error: %s", errbuf);
+
+    /* --- cross-game spawn poll --- */
+    {
+        char entity_id[128];
+        float sx, sy, sz;
+        if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+        {
+            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+             * Map entity_id to native classname using OGAsset catalog lookup.
+             * For now, log the request. */
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            ogengine_confirm_spawn(entity_id);
+        }
+    }
 }
 
 void D3Doom_STAR_OnItemPickup(const char* inv_name, const char* inv_classname, int is_carry_item) {
@@ -798,4 +812,18 @@ void D3Doom_STAR_HandleKey(int key, int down) {
         g_d3doom_inv_count = 0;
         return;
     }
+}
+
+/*=============================================================================
+ * OASIS Portal / Teleport — incoming warp from another OGame
+ *===========================================================================*/
+
+void D3Doom_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    /* TODO: gameLocal.GetLocalPlayer()->Teleport(idVec3(x,y,z), ang, NULL) */
+    ogengine_confirm_teleport_arrival();
 }
