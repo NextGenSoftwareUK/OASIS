@@ -46,6 +46,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public string ExternalHandoffUri { get; set; }
 
+        /// <summary>Primary game the player must be in to complete this objective (e.g. "ODOOM", "OQUAKE"). Used by HUD tracker and game-side polling.</summary>
+        [CustomOASISProperty()]
+        public string GameSource { get; set; } = string.Empty;
+
+        /// <summary>Specific map/level within GameSource (e.g. "E1M3", "e2m3"). Empty = any map.</summary>
+        [CustomOASISProperty()]
+        public string MapName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Effects to fire in other games when this objective is completed.
+        /// Examples: spawn a Shambler in ODOOM/E1M3, unlock a portal in OQUAKE/e2m3, show narration in OWOLF3D.
+        /// </summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<CrossGameEvent> CrossGameEventsOnComplete { get; set; } = new List<CrossGameEvent>();
+
         /// <summary>Computed progress text from Need* + progress dictionaries.</summary>
         [JsonPropertyName("ProgressSummary")]
         public string ProgressSummary

@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     /// <summary>
     /// An objective belonging to a Quest. Has requirement and progress dictionaries keyed by game id.
     /// The Objective (string) property is computed from the requirement dictionaries.
+    ///
+    /// Cross-game objectives: set GameSource to which game the player must be in to complete this
+    /// objective, and MapName to which specific map/level. CrossGameEventsOnComplete fires effects
+    /// in other games (spawn entity, unlock portal, narration) when this objective is completed.
     /// </summary>
     public interface IObjective : IQuestObjectiveDictionaries
     {
@@ -21,5 +26,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid? LinkedGeoHotSpotId { get; set; }
         /// <summary>Optional URI for cross-app handoff (STAR CLI, OPortal, Telegram, web task, etc.).</summary>
         string ExternalHandoffUri { get; set; }
+        /// <summary>Primary game this objective is completed in (e.g. "ODOOM", "OQUAKE"). Used by HUD tracker and game-side polling.</summary>
+        string GameSource { get; set; }
+        /// <summary>Specific map/level within GameSource where this objective happens (e.g. "E1M3", "e2m3"). Empty = any map.</summary>
+        string MapName { get; set; }
     }
 }

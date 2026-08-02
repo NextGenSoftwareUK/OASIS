@@ -77,10 +77,14 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 - **WEB4 OASIS API** — avatar, inventory, karma, settings, NFTs, quests (persistence layer)
 - **WEB5 STAR API** (`C:\Source\OASIS2\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI`) — quest definitions, objectives, GeoHotSpots, missions, STARNET holons, cross-game progress, OGAsset catalog, portal registry
 - **Quest system** — cross-game quests with objectives spanning multiple games, ExternalHandoffUri for cross-app handoffs (CLI, OPortal, Telegram, Discord)
-- **STAR API controllers already built:** QuestsController, MissionsController, GamesController, GeoHotSpotsController, OAPPsController, ZomesController, TeleportController, SpawnEventsController, StoriesController, MapEntitiesController — all data persists via HolonManager → MongoDB
+  - Cross-game story arcs are **Chapter → Mission → Quest → Objective** (not a separate concept)
+  - `Objective.GameSource` + `Objective.MapName` — which game and map this specific objective happens in
+  - `Objective.CrossGameEventsOnComplete` — effects fired in other games on completion (SpawnEntity, UnlockPortal, ShowNarration, TeleportTo)
+  - Example: Obj1 [ODOOM/E1M3] kill Cyberdemon → fires UnlockPortal in OQUAKE/e2m3 + narration; Obj2 [OQUAKE/e2m3] collect Rune → fires SpawnEntity (3× cacodemon) in ODOOM/E1M3
+- **STAR API controllers already built:** QuestsController, MissionsController, GamesController, GeoHotSpotsController, OAPPsController, ZomesController, TeleportController, SpawnEventsController, MapEntitiesController — all data persists via HolonManager → MongoDB
+  - **StoriesController REMOVED** — story arcs ARE the Chapter/Mission/Quest/Objective hierarchy; no separate concept needed
   - **TeleportController / SpawnEventsController:** in-memory `ConcurrentDictionary` (correct — ephemeral sub-second runtime state, not Holon content)
-  - **StoriesController / MapEntitiesController:** `STARHolonType.StoryArc` / `STARHolonType.MapEntityList` Holons via `_starAPI.Holons`; `Config/stories/*.json` and `Config/map_entities/*.json` are **seed/import format only** (seeded into Holons on first request); canonical store is HolonManager → provider (MongoDB, IPFS, etc.)
-  - **StoryArc is a Holon (WEB4) and SmartBrick (WEB5)** — discoverable, downloadable, composable via STARNET; publish via `POST /api/holons/{id}/publish`
+  - **MapEntitiesController:** `STARHolonType.MapEntityList` Holons via `_starAPI.Holons`; `Config/map_entities/*.json` are **seed/import format only**; canonical store is HolonManager → provider
 
 ### 2.6 Full OASIS Platform Stack
 
@@ -600,8 +604,10 @@ Action items:
 
 **Status:** ✅ DONE (infrastructure)
 
-- [x] `StoriesController` in STAR API (`GET/POST /api/stories`) — StoryArc stored as `STARHolonType.StoryArc` Holon via HolonManager (WEB4 Holon / WEB5 SmartBrick)
-- [x] First cross-game story arc seeded from `Config/stories/oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D) — JSON is import format only; canonical store is HolonManager
+- [x] Cross-game story arcs modelled as `Chapter → Mission → Quest → Objective` — no separate StoriesController needed
+- [x] `Objective.GameSource` + `Objective.MapName` — which game and map each objective happens in
+- [x] `Objective.CrossGameEventsOnComplete` (`List<CrossGameEvent>`) — fires SpawnEntity / UnlockPortal / ShowNarration / TeleportTo in other games on completion
+- [x] Reference arc `Config/stories/oasis_arc_001_dimensional_rift.json` updated to show correct Chapter/Mission/Quest/Objective structure
 - [ ] `GeoHotSpotType.Text/Audio` narration delivery (still pending per-game)
 - [ ] STARNET web Quest Builder integration (optional)
 
