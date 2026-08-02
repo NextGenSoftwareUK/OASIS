@@ -221,6 +221,13 @@ int OQuake3_STAR_ShouldUseAnorakFace(void);
 const char* OQuake3_STAR_GetUsername(void);
 
 /* -------------------------------------------------------------------------
+ * Cross-game teleportation
+ * ------------------------------------------------------------------------- */
+
+/** Call at map load. Polls for incoming teleport from OmniverseKernel; warp call is TODO. */
+void OQuake3_STAR_CheckIncomingTeleport(void);
+
+/* -------------------------------------------------------------------------
  * Console command
  * ------------------------------------------------------------------------- */
 

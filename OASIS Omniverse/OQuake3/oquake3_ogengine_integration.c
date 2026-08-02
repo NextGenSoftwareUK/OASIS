@@ -895,6 +895,20 @@ void OQuake3_STAR_PollItems(void)
 
     ogengine_sync_pump();
 
+    /* --- cross-game spawn poll --- */
+    {
+        char entity_id[128];
+        float sx, sy, sz;
+        if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
+        {
+            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
+             * Map entity_id to native classname using OGAsset catalog lookup.
+             * For now, log the request. */
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            ogengine_confirm_spawn(entity_id);
+        }
+    }
+
     /* Auth timeout check */
     if (g_star_async_auth_pending) {
         time_t now = time(NULL);
@@ -978,4 +992,20 @@ void OQuake3_STAR_Console_f(void)
         Q3_Com_Printf("[OQuake3-STAR] Not beamed in. Usage: star <username> <password>\n");
         Q3_Com_Printf("  OASIS thing type range: 7000-7899 (Quake III Arena)\n");
     }
+}
+
+/* -------------------------------------------------------------------------
+ * Cross-game teleportation
+ * ------------------------------------------------------------------------- */
+
+void OQuake3_STAR_CheckIncomingTeleport(void)
+{
+    char map[256];
+    float x = 0, y = 0, z = 64;
+    if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
+        return;
+    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+    /* TODO: warp player — trap_SendConsoleCommand(EXEC_APPEND, va("map %s\n", map));
+     * For in-map position warp: VectorSet(client->ps.origin, x, y, z); trap_LinkEntity(ent); */
+    ogengine_confirm_teleport_arrival();
 }
