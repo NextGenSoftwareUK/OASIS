@@ -25,7 +25,7 @@ A brush entity — the mapper draws it around the portal frame or doorway. When 
 
 | Key | Type | Required | Description |
 |-----|------|----------|-------------|
-| `oasis_game_id` | string | Yes | Destination OGame ID (`oquake`, `oquake2`, `oquake3`, `odoom`, `odoom3`, `odoom3bfg`, `oduke3d`, `oduke3drt`, `owolf3d`) |
+| `target_game` | choices | Yes | Destination OGame ID — one of: `ODOOM`, `OQUAKE`, `OQUAKE2`, `OQUAKE3`, `ODOOM3`, `ODOOM3BFG`, `ODUKE3D`, `ODUKE3DRT`, `OWOLF3D` (FGD: `oasis_entities.fgd`; choices list contains all 10 OGames) |
 | `oasis_map` | string | Yes | Destination map name as the engine knows it (e.g. `e1m1`, `base1`, `mars_city1`) |
 | `oasis_exit_name` | string | Yes | Must match `targetname` on the `oasis_portal_exit` in the destination map |
 | `message` | string | No | Text shown to player on approach (optional HUD hint) |
@@ -51,7 +51,7 @@ A classic example: the hub level of OQuake2 has portals leading to each episode.
 **Hub map (`hub.bsp`):**
 ```
 Entity: oasis_portal_enter  (brush drawn around the glowing doorway)
-  oasis_game_id  = "oquake2"
+  target_game    = "OQUAKE2"
   oasis_map      = "base1"
   oasis_exit_name = "hub_exit_to_base1"
   message        = "Base 1 — Unit 1"
@@ -71,7 +71,7 @@ A portal in an OQuake2 map leading to an ODOOM map.
 **OQuake2 map (`base3.bsp`):**
 ```
 Entity: oasis_portal_enter  (drawn around a pentagram-shaped doorway)
-  oasis_game_id  = "odoom"
+  target_game    = "ODOOM"
   oasis_map      = "e1m1"
   oasis_exit_name = "from_quake2"
   message        = "The rift tears open..."
@@ -191,6 +191,28 @@ Every map that contains OASIS portal entities should have an accompanying sideca
 
 **Satellite editors** (TrenchBroom, NetRadiant, DarkRadiant) read/write via `ogeditor_sidecar_load()` / `ogeditor_sidecar_save()` from `ogeditor_api.dll`.
 
+**Entity definition files (done):** `oasis_entities.fgd` and `oasis_entities.def` are now at:
+```
+C:\Source\UltimateDoomBuilder\Source\Plugins\UDBScript\Assets\oasis_entities.fgd
+C:\Source\UltimateDoomBuilder\Source\Plugins\UDBScript\Assets\oasis_entities.def
+```
+The FGD defines `oasis_portal_enter` with a full `choices` list for `target_game` covering all 10 OGames:
+```
+target_game(choices) : "Target OGame ID" : "ODOOM" = [
+    "ODOOM":"ODOOM (Doom/Doom2)"
+    "OQUAKE":"OQUAKE (Quake)"
+    "OQUAKE2":"OQUAKE2 (Quake 2)"
+    "OQUAKE3":"OQUAKE3 (Quake 3)"
+    "ODOOM3":"ODOOM3 (Doom 3)"
+    "ODOOM3BFG":"ODOOM3BFG (Doom 3 BFG)"
+    "ODUKE3D":"ODUKE3D (Duke Nukem 3D)"
+    "ODUKE3DRT":"ODUKE3DRT (Duke Nukem 3D RT)"
+    "OWOLF3D":"OWOLF3D (Wolfenstein 3D)"
+]
+```
+
+**Companion editor launch (done):** The UDB `OGEnginePanel.cs` panel now includes a launch button that opens the companion editor directly from within UDB.
+
 ---
 
 ## 6. STAR Web API Registration
@@ -297,4 +319,4 @@ For teleportation to work, each engine must implement `OGGame_TeleportTo()` in i
 3. On confirmation: save any local state to the OGEngine (via `ogengine_sync_pump()`)
 4. On timeout/failure: show an error message to the player and cancel the teleport
 
-This is not yet implemented in any engine integration file — it is the **next required engine-level hook** after the existing Init/Shutdown/RunFrame/pickup/kill hooks.
+**Status (2026-08-02):** `CheckIncomingTeleport()` and spawn-event polling have been added to all 7 game integrations (ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, OWolf3D, and ODuke3D-RT). Each integration calls its `{Prefix}_STAR_CheckIncomingTeleport()` function at map load to detect and handle incoming cross-game teleports, and polls `ogengine_poll_spawn_event()` each frame via the tick function, logging incoming spawn requests via `oglib_log`.

@@ -2,6 +2,10 @@
 
 This document defines how **powerups** (first) and later **weapons** should align across **ODOOM** and **OQuake** for STAR inventory, beam-in, and “use in other game” behaviour.
 
+> **Updated 2026-08-02:** Weapons, ammo, and powerup entries added to `Config/oasis_star_assets.json`
+> for ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, and OWolf3D. OQuake2, OQuake2-RTX, and OQuake3
+> still pending (integration files ready, engine cloning not yet done).
+
 ## Why this exists
 
 - Today each game sends **`ogengine_queue_add_item(name, …, itemType, …)`** with **game-specific display names** (see ODOOM `ToStarItemName()` in `uzdoom_ogengine_integration.cpp` and OQuake names in `oquake_ogengine_integration.c`, e.g. `"Megahealth"`, `"Soul Sphere"`).
