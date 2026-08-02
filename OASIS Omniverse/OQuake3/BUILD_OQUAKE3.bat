@@ -5,7 +5,7 @@ REM Base: Quake3e (https://github.com/ec-/Quake3e) — open-source Quake III Are
 REM OASIS thing type range: 7000-7899 (Quake III Arena)
 REM Usage: BUILD_OQUAKE3.bat [ run | batch ]
 
-set "Q3E_SRC=C:\Source\Quake3e"
+set "Q3E_SRC=C:\Source\OQuake3"
 set "Q3E_ENGINE_EXE="
 set "HERE=%~dp0"
 set "OGENGINECLIENT=%HERE%..\OGEngineClient"
@@ -60,7 +60,7 @@ copy /Y "%OGENGINECLIENT%\ogengine.h" "%OQUAKE3_CODE%" >nul
 if exist "%OGENGINECLIENT%\ogengine_sync.h" copy /Y "%OGENGINECLIENT%\ogengine_sync.h" "%OQUAKE3_CODE%" >nul
 
 REM --- Require Quake3e source ---
-if not exist "%Q3E_SRC%\code\game\g_main.c" (
+if not exist "%Q3E_SRC%\CMakeLists.txt" (
     echo Quake3e source not found: %Q3E_SRC%
     echo Download from: https://github.com/ec-/Quake3e
     goto :done
