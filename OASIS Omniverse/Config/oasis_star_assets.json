@@ -256,5 +256,140 @@
       { "id": "extra_life",  "name": "Extra Life",    "wolf3dClassname": "ExtraLife", "category": "powerup" },
       { "id": "crown",       "name": "Crown",         "wolf3dClassname": "Crown",     "category": "powerup" }
     ]
+  },
+  "oquake2": {
+    "description": "Yamagi Quake II cross-game asset catalog",
+    "monsters": [
+      { "id": "soldier",   "name": "Soldier",   "q2classname": "monster_soldier",        "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "infantry",  "name": "Infantry",  "q2classname": "monster_infantry",       "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "gunner",    "name": "Gunner",    "q2classname": "monster_gunner",         "category": "monster", "xp": 50,  "isBoss": false },
+      { "id": "floater",   "name": "Floater",   "q2classname": "monster_floater",        "category": "monster", "xp": 45,  "isBoss": false },
+      { "id": "medic",     "name": "Medic",     "q2classname": "monster_medic",          "category": "monster", "xp": 55,  "isBoss": false },
+      { "id": "mutant",    "name": "Mutant",    "q2classname": "monster_mutant",         "category": "monster", "xp": 60,  "isBoss": false },
+      { "id": "brain",     "name": "Brain",     "q2classname": "monster_brain",          "category": "monster", "xp": 80,  "isBoss": false },
+      { "id": "gladiator", "name": "Gladiator", "q2classname": "monster_gladiator",      "category": "monster", "xp": 120, "isBoss": false },
+      { "id": "tank",      "name": "Tank",      "q2classname": "monster_tank",           "category": "monster", "xp": 150, "isBoss": true  },
+      { "id": "jorg",      "name": "Jorg",      "q2classname": "monster_jorg",           "category": "monster", "xp": 400, "isBoss": true  },
+      { "id": "makron",    "name": "Makron",    "q2classname": "monster_makron",         "category": "monster", "xp": 500, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "blaster",          "name": "Blaster",          "q2classname": "weapon_blaster",          "category": "weapon" },
+      { "id": "shotgun",          "name": "Shotgun",           "q2classname": "weapon_shotgun",          "category": "weapon" },
+      { "id": "super_shotgun",    "name": "Super Shotgun",     "q2classname": "weapon_supershotgun",     "category": "weapon" },
+      { "id": "machinegun",       "name": "Machinegun",        "q2classname": "weapon_machinegun",       "category": "weapon" },
+      { "id": "chaingun",         "name": "Chaingun",          "q2classname": "weapon_chaingun",         "category": "weapon" },
+      { "id": "grenade_launcher", "name": "Grenade Launcher",  "q2classname": "weapon_grenadelauncher",  "category": "weapon" },
+      { "id": "rocket_launcher",  "name": "Rocket Launcher",   "q2classname": "weapon_rocketlauncher",   "category": "weapon" },
+      { "id": "hyperblaster",     "name": "Hyperblaster",      "q2classname": "weapon_hyperblaster",     "category": "weapon" },
+      { "id": "railgun",          "name": "Railgun",           "q2classname": "weapon_railgun",          "category": "weapon" },
+      { "id": "bfg10k",           "name": "BFG10K",            "q2classname": "weapon_bfg",              "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "bullets",  "name": "Bullets",  "q2classname": "ammo_bullets",  "category": "ammo" },
+      { "id": "shells",   "name": "Shells",   "q2classname": "ammo_shells",   "category": "ammo" },
+      { "id": "grenades", "name": "Grenades", "q2classname": "ammo_grenades", "category": "ammo" },
+      { "id": "rockets",  "name": "Rockets",  "q2classname": "ammo_rockets",  "category": "ammo" },
+      { "id": "cells",    "name": "Cells",    "q2classname": "ammo_cells",    "category": "ammo" },
+      { "id": "slugs",    "name": "Slugs",    "q2classname": "ammo_slugs",    "category": "ammo" }
+    ],
+    "powerups": [
+      { "id": "quad_damage",   "name": "Quad Damage",     "q2classname": "item_quad",          "category": "powerup" },
+      { "id": "invulnerability","name": "Invulnerability", "q2classname": "item_invulnerability","category": "powerup" },
+      { "id": "enviro_suit",   "name": "Environment Suit","q2classname": "item_enviro",         "category": "powerup" },
+      { "id": "rebreather",    "name": "Rebreather",      "q2classname": "item_breather",       "category": "powerup" },
+      { "id": "adrenaline",    "name": "Adrenaline",      "q2classname": "item_adrenaline",     "category": "powerup" },
+      { "id": "silencer",      "name": "Silencer",        "q2classname": "item_silencer",       "category": "powerup" },
+      { "id": "bandolier",     "name": "Bandolier",       "q2classname": "item_bandolier",      "category": "powerup" },
+      { "id": "pack",          "name": "Ammo Pack",       "q2classname": "item_pack",           "category": "powerup" }
+    ]
+  },
+  "oquake2rtx": {
+    "description": "Q2 RTX (Quake II ray-traced) — same asset catalog as OQuake2",
+    "monsters": [
+      { "id": "soldier",   "name": "Soldier",   "q2classname": "monster_soldier",   "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "infantry",  "name": "Infantry",  "q2classname": "monster_infantry",  "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "gunner",    "name": "Gunner",    "q2classname": "monster_gunner",    "category": "monster", "xp": 50,  "isBoss": false },
+      { "id": "floater",   "name": "Floater",   "q2classname": "monster_floater",   "category": "monster", "xp": 45,  "isBoss": false },
+      { "id": "medic",     "name": "Medic",     "q2classname": "monster_medic",     "category": "monster", "xp": 55,  "isBoss": false },
+      { "id": "mutant",    "name": "Mutant",    "q2classname": "monster_mutant",    "category": "monster", "xp": 60,  "isBoss": false },
+      { "id": "brain",     "name": "Brain",     "q2classname": "monster_brain",     "category": "monster", "xp": 80,  "isBoss": false },
+      { "id": "gladiator", "name": "Gladiator", "q2classname": "monster_gladiator", "category": "monster", "xp": 120, "isBoss": false },
+      { "id": "tank",      "name": "Tank",      "q2classname": "monster_tank",      "category": "monster", "xp": 150, "isBoss": true  },
+      { "id": "jorg",      "name": "Jorg",      "q2classname": "monster_jorg",      "category": "monster", "xp": 400, "isBoss": true  },
+      { "id": "makron",    "name": "Makron",    "q2classname": "monster_makron",    "category": "monster", "xp": 500, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "blaster",          "name": "Blaster",         "q2classname": "weapon_blaster",         "category": "weapon" },
+      { "id": "shotgun",          "name": "Shotgun",          "q2classname": "weapon_shotgun",         "category": "weapon" },
+      { "id": "super_shotgun",    "name": "Super Shotgun",    "q2classname": "weapon_supershotgun",    "category": "weapon" },
+      { "id": "machinegun",       "name": "Machinegun",       "q2classname": "weapon_machinegun",      "category": "weapon" },
+      { "id": "chaingun",         "name": "Chaingun",         "q2classname": "weapon_chaingun",        "category": "weapon" },
+      { "id": "grenade_launcher", "name": "Grenade Launcher", "q2classname": "weapon_grenadelauncher", "category": "weapon" },
+      { "id": "rocket_launcher",  "name": "Rocket Launcher",  "q2classname": "weapon_rocketlauncher",  "category": "weapon" },
+      { "id": "hyperblaster",     "name": "Hyperblaster",     "q2classname": "weapon_hyperblaster",    "category": "weapon" },
+      { "id": "railgun",          "name": "Railgun",          "q2classname": "weapon_railgun",         "category": "weapon" },
+      { "id": "bfg10k",           "name": "BFG10K",           "q2classname": "weapon_bfg",             "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "bullets",  "name": "Bullets",  "q2classname": "ammo_bullets",  "category": "ammo" },
+      { "id": "shells",   "name": "Shells",   "q2classname": "ammo_shells",   "category": "ammo" },
+      { "id": "grenades", "name": "Grenades", "q2classname": "ammo_grenades", "category": "ammo" },
+      { "id": "rockets",  "name": "Rockets",  "q2classname": "ammo_rockets",  "category": "ammo" },
+      { "id": "cells",    "name": "Cells",    "q2classname": "ammo_cells",    "category": "ammo" },
+      { "id": "slugs",    "name": "Slugs",    "q2classname": "ammo_slugs",    "category": "ammo" }
+    ],
+    "powerups": [
+      { "id": "quad_damage",    "name": "Quad Damage",     "q2classname": "item_quad",          "category": "powerup" },
+      { "id": "invulnerability","name": "Invulnerability", "q2classname": "item_invulnerability","category": "powerup" },
+      { "id": "enviro_suit",    "name": "Environment Suit","q2classname": "item_enviro",         "category": "powerup" },
+      { "id": "rebreather",     "name": "Rebreather",      "q2classname": "item_breather",       "category": "powerup" },
+      { "id": "adrenaline",     "name": "Adrenaline",      "q2classname": "item_adrenaline",     "category": "powerup" },
+      { "id": "silencer",       "name": "Silencer",        "q2classname": "item_silencer",       "category": "powerup" },
+      { "id": "bandolier",      "name": "Bandolier",       "q2classname": "item_bandolier",      "category": "powerup" },
+      { "id": "pack",           "name": "Ammo Pack",       "q2classname": "item_pack",           "category": "powerup" }
+    ]
+  },
+  "oquake3": {
+    "description": "Quake III Arena (Quake3e) cross-game asset catalog — bots as monster equivalents",
+    "monsters": [
+      { "id": "grunt",  "name": "Grunt Bot",  "q3classname": "bot_grunt",  "category": "monster", "xp": 50,  "isBoss": false },
+      { "id": "klesk",  "name": "Klesk Bot",  "q3classname": "bot_klesk",  "category": "monster", "xp": 75,  "isBoss": false },
+      { "id": "orbb",   "name": "Orbb Bot",   "q3classname": "bot_orbb",   "category": "monster", "xp": 60,  "isBoss": false },
+      { "id": "xaero",  "name": "Xaero Bot",  "q3classname": "bot_xaero",  "category": "monster", "xp": 200, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "gauntlet",       "name": "Gauntlet",        "q3itemname": "Gauntlet",         "category": "weapon" },
+      { "id": "machinegun",     "name": "Machinegun",      "q3itemname": "Machinegun",        "category": "weapon" },
+      { "id": "shotgun",        "name": "Shotgun",         "q3itemname": "Shotgun",           "category": "weapon" },
+      { "id": "grenade_launcher","name": "Grenade Launcher","q3itemname": "Grenade Launcher", "category": "weapon" },
+      { "id": "rocket_launcher","name": "Rocket Launcher", "q3itemname": "Rocket Launcher",  "category": "weapon" },
+      { "id": "lightning_gun",  "name": "Lightning Gun",   "q3itemname": "Lightning Gun",     "category": "weapon" },
+      { "id": "railgun",        "name": "Railgun",         "q3itemname": "Railgun",           "category": "weapon" },
+      { "id": "plasma_gun",     "name": "Plasma Gun",      "q3itemname": "Plasma Gun",        "category": "weapon" },
+      { "id": "bfg",            "name": "BFG",             "q3itemname": "BFG",               "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "bullets",   "name": "Bullets",   "q3itemname": "Bullets",   "category": "ammo" },
+      { "id": "shells",    "name": "Shells",    "q3itemname": "Shells",    "category": "ammo" },
+      { "id": "grenades",  "name": "Grenades",  "q3itemname": "Grenades",  "category": "ammo" },
+      { "id": "rockets",   "name": "Rockets",   "q3itemname": "Rockets",   "category": "ammo" },
+      { "id": "lightning", "name": "Lightning", "q3itemname": "Lightning", "category": "ammo" },
+      { "id": "slugs",     "name": "Slugs",     "q3itemname": "Slugs",     "category": "ammo" },
+      { "id": "plasma",    "name": "Plasma",    "q3itemname": "Plasma",    "category": "ammo" },
+      { "id": "bfg_ammo",  "name": "BFG Ammo",  "q3itemname": "BFG Ammo",  "category": "ammo" }
+    ],
+    "powerups": [
+      { "id": "quad_damage",  "name": "Quad Damage",  "q3itemname": "Quad Damage",  "category": "powerup" },
+      { "id": "battle_suit",  "name": "Battle Suit",  "q3itemname": "Battle Suit",  "category": "powerup" },
+      { "id": "haste",        "name": "Haste",        "q3itemname": "Haste",        "category": "powerup" },
+      { "id": "invisibility", "name": "Invisibility", "q3itemname": "Invisibility", "category": "powerup" },
+      { "id": "regeneration", "name": "Regeneration", "q3itemname": "Regeneration", "category": "powerup" }
+    ],
+    "runes": [
+      { "id": "rune_strength",     "name": "Strength Rune",     "q3classname": "item_rune1", "category": "powerup" },
+      { "id": "rune_haste",        "name": "Haste Rune",        "q3classname": "item_rune2", "category": "powerup" },
+      { "id": "rune_regeneration", "name": "Regeneration Rune", "q3classname": "item_rune3", "category": "powerup" },
+      { "id": "rune_resistance",   "name": "Resistance Rune",   "q3classname": "item_rune4", "category": "powerup" }
+    ]
   }
 }

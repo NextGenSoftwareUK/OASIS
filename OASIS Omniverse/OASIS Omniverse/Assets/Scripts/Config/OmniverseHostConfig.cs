@@ -144,5 +144,17 @@ namespace OASIS.Omniverse.UnityHost.Config
         public float width;
         public float height;
     }
+
+    [Serializable]
+    public class ClanMemberItem
+    {
+        public string id;
+        public string username;
+        public float karmaScore;
+        public bool isOnline;
+        public string lastSeen;
+        public string currentGame;
+        public string clanRole;
+    }
 }
 

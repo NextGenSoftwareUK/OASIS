@@ -97,6 +97,7 @@ int ogengine_get_active_objective_id(char* buf, size_t buf_size);
 void ogengine_queue_add_xp(int amount);
 void ogengine_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
 int ogengine_get_avatar_xp(int* xp_out);
+int ogengine_get_avatar_karma(long* karma_out);
 void ogengine_refresh_avatar_profile(void);
 
 /* NFT */

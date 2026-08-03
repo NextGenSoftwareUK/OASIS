@@ -87,6 +87,8 @@ void ogengine_queue_monster_kill(const char* monster_name, const char* game_sour
 ogengine_result_t ogengine_get_quests(void);
 ogengine_result_t ogengine_complete_quest(const char* quest_id);
 void ogengine_refresh_avatar_profile(void);
+int  ogengine_get_avatar_xp(int* xp_out);
+int  ogengine_get_avatar_karma(long* karma_out);
 ogengine_result_t ogengine_get_avatar_detail(char* buf, size_t buf_size);
 
 /* Callbacks */

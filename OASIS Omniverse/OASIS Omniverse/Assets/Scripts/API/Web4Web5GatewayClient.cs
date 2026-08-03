@@ -218,6 +218,45 @@ namespace OASIS.Omniverse.UnityHost.API
             }
         }
 
+        public async Task<OASISResult<List<ClanMemberItem>>> GetClanMembersAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_avatarId))
+                return OASISResult<List<ClanMemberItem>>.Error("AvatarId is empty. Set avatarId in omniverse_host_config.json.");
+
+            var fetch = await GetJsonFromCandidatesAsync(
+                $"{_web4Base}/api/avatar/get-clan-members/{_avatarId}",
+                $"{_web4Base}/api/avatar/social/{_avatarId}/clan",
+                $"{_web5Base}/api/avatar/social/{_avatarId}/clan",
+                $"{_web5Base}/api/holons/clan/{_avatarId}");
+
+            if (fetch.IsError)
+                return OASISResult<List<ClanMemberItem>>.Error($"Clan members unavailable: {fetch.Message}");
+
+            try
+            {
+                var arr = ExtractArray(fetch.Result);
+                var members = new List<ClanMemberItem>();
+                foreach (var m in arr)
+                {
+                    members.Add(new ClanMemberItem
+                    {
+                        id          = m.Value<string>("Id")          ?? m.Value<string>("id"),
+                        username    = m.Value<string>("Username")     ?? m.Value<string>("username")  ?? m.Value<string>("name") ?? "(unknown)",
+                        karmaScore  = m.Value<float>("KarmaScore")   == 0 ? m.Value<float>("karmaScore") : m.Value<float>("KarmaScore"),
+                        isOnline    = m.Value<bool>("IsOnline")       || m.Value<bool>("isOnline"),
+                        lastSeen    = m.Value<string>("LastSeen")     ?? m.Value<string>("lastSeen"),
+                        currentGame = m.Value<string>("CurrentGame")  ?? m.Value<string>("currentGame"),
+                        clanRole    = m.Value<string>("ClanRole")     ?? m.Value<string>("clanRole") ?? "Member"
+                    });
+                }
+                return OASISResult<List<ClanMemberItem>>.Success(members);
+            }
+            catch (Exception ex)
+            {
+                return OASISResult<List<ClanMemberItem>>.Error($"Clan parse failed: {ex.Message}");
+            }
+        }
+
         public async Task<OASISResult<KarmaOverview>> GetKarmaOverviewAsync()
         {
             if (string.IsNullOrWhiteSpace(_avatarId))

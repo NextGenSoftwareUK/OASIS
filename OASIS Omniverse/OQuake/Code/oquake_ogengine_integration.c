@@ -7001,7 +7001,8 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
     extern int glwidth, glheight;
     int xp = 0;
-    char buf[64];
+    long karma = 0;
+    char buf[128];
     int x, y;
 
     if (!cbx || glwidth <= 0 || glheight <= 0)
@@ -7012,7 +7013,13 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
         return;
     if (!ogengine_get_avatar_xp(&xp))
         return;
-    q_snprintf(buf, sizeof(buf), "XP: %d", xp);
+
+    /* Show XP and karma on the same line: "XP: 1234  Karma: 56" */
+    if (ogengine_get_avatar_karma(&karma) && karma != 0)
+        q_snprintf(buf, sizeof(buf), "XP: %d  Karma: %ld", xp, karma);
+    else
+        q_snprintf(buf, sizeof(buf), "XP: %d", xp);
+
     /* Top right: same horizontal alignment as version, a bit below top edge */
     x = glwidth - OQ_TEXT_W_CHARS((int)strlen(buf)) * 2 - 8;
     y = OQ_PY(12);
