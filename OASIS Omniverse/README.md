@@ -1,192 +1,319 @@
-﻿# OASIS Omniverse
+# OASIS Omniverse
 
-OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the shared STAR API client and tooling into one place. It enables cross-game inventory, quests, and avatar/SSO auth across all games.
+**OASIS Omniverse** is a suite of ten game integrations that bring classic first-person shooters into a shared cross-game universe powered by the **OASIS STAR API**. Keys, inventory, quests, XP, NFTs, avatars, and story arcs are shared across all games — collect a keycard in ODOOM, open a door in OQuake2; complete a quest in OWolf3D, spawn an enemy wave in ODuke3D.
 
-**All Markdown guides for this area live under [`Docs/`](Docs/).** This README is the **entry point and full index**; use the tables below to jump to what you need.
+**All Markdown guides live under [`Docs/`](Docs/). This README is the entry-point index; use the tables below to jump to what you need.**
 
-**ODOOM and OQuake are built to be 100% compatible with Windows, macOS, and Linux.** Use the platform-specific Getting Started guide below for your OS.
+---
+
+## Games at a glance
+
+| OGame | Engine base | Integration file | Cross-game teleport | Cross-game spawn |
+|-------|-------------|-----------------|---------------------|-----------------|
+| **ODOOM** | UZDoom (GZDoom) | `ODOOM/uzdoom_ogengine_integration.cpp` | ✅ `P_TeleportMove` | ✅ `C_DoCommand("summon …")` |
+| **OQuake** | vkQuake | `OQuake/Code/oquake_ogengine_integration.c` | ✅ `SV_LinkEdict` | ✅ `ED_Alloc` / QuakeC |
+| **ODOOM3** | dhewm3 (idTech4) | `ODOOM3/d3doom3_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
+| **ODOOM3-BFG** | RBDOOM-3-BFG | `ODOOM3-BFG/d3doom_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
+| **ODuke3D** | EDuke32 | `ODuke3D/oduke3d_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
+| **ODuke3D-RT** | Duke-RT | `ODuke3D-RT/oduke3drt_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
+| **OWolf3D** | ECWolf | `OWolf3D/owolf3d_ogengine_integration.cpp` | ✅ `player.position` | ⏳ ECWolf API deferred |
+| **OQuake2** | Yamagi Q2 | `OQuake2/oquake2_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
+| **OQuake2-RTX** | Q2 RTX | `OQuake2-RTX/oquake2rtx_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
+| **OQuake3** | Quake3e | `OQuake3/oquake3_ogengine_integration.c` | ✅ `trap_LinkEntity` | ✅ `trap_SendConsoleCommand` |
 
 ---
 
 ## New here? Start with a Getting Started guide
 
-Choose your platform for a clear, step-by-step setup:
-
 | Platform | Guide |
 |----------|--------|
-| **Windows** | **[Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md)** |
-| **Linux** | **[Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md)** |
-| **macOS** | **[Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md)** |
+| **Windows** | [Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md) |
+| **Linux** | [Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md) |
+| **macOS** | [Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md) |
 
-**→ [Developer Onboarding (ODOOM, OQuake & OASIS)](Docs/DEVELOPER_ONBOARDING.md)** — Deeper canonical setup (repos, tools, build, run, `oasisstar.json`). Use with the platform guide above.
-
-**→ [Docs/README.md](Docs/README.md)** — Short hub for the same platform guides plus pointers back here.
+**→ [Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md)** — canonical setup (repos, tools, build, run, `oasisstar.json`).
 
 ---
 
-## Documentation index (Omniverse `Docs/`)
+## Documentation index (`Docs/`)
 
 ### Setup and daily workflow
 
-| Document | What it’s for |
+| Document | What it's for |
 |----------|----------------|
-| [Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md) | Repos to clone, tools, build/run scripts, local vs live APIs, `oasisstar.json`, quick reference table |
-| [Docs/QUICKSTART.md](Docs/QUICKSTART.md) | Minimal path to build and run + checklist |
-| [Docs/LINUX_BUILD.md](Docs/LINUX_BUILD.md) | Linux/macOS script equivalents, env vars, pointers to Getting Started |
-| [Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md) | Windows: prerequisites, clone layout, build ODOOM/OQuake/OGEngineClient |
+| [Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md) | Repos, tools, build/run scripts, `oasisstar.json` quick ref |
+| [Docs/QUICKSTART.md](Docs/QUICKSTART.md) | Minimal build + run checklist |
+| [Docs/LINUX_BUILD.md](Docs/LINUX_BUILD.md) | Linux/macOS script equivalents |
+| [Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md) | Windows: prerequisites, clone, build all games |
 | [Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md) | Linux: same |
 | [Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md) | macOS: same |
 
-### Architecture, integration, and audits
+### Architecture, integration, and roadmap
 
-| Document | What it’s for |
+| Document | What it's for |
 |----------|----------------|
-| [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md) | Client-centric design, layers, porting checklist, `star_sync` notes |
+| [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md) | Client-centric design, layers, porting checklist |
 | [Docs/INTEGRATION_GUIDE.md](Docs/INTEGRATION_GUIDE.md) | Cross-game items, quests, API usage, phases, troubleshooting |
-| [Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md](Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md) | Doom ↔ Quake powerup/weapon canonical IDs and mapping phases |
-| [Docs/STAR_INTEGRATION_AUDIT.md](Docs/STAR_INTEGRATION_AUDIT.md) | Integration audit (e.g. in-client `star_sync` vs C implementation) |
+| [Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md](Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md) | Canonical item IDs and cross-game mappings |
+| [Docs/STAR_INTEGRATION_AUDIT.md](Docs/STAR_INTEGRATION_AUDIT.md) | Integration audit (sync vs C implementation) |
+| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 10 games |
+| [Docs/OGEngine_Overview.md](Docs/OGEngine_Overview.md) | WEB4/WEB5 APIs, GeoHotSpot media types, quest handoff |
 
-### Quests, players, and ODOOM UI behaviour
+### Quests and story system
 
-| Document | What it’s for |
+| Document | What it's for |
 |----------|----------------|
-| [Docs/PHASE2_QUEST_SYSTEM.md](Docs/PHASE2_QUEST_SYSTEM.md) | Quest system overview and design |
-| [Docs/STAR_Quest_System_Developer_Guide.md](Docs/STAR_Quest_System_Developer_Guide.md) | WEB5 quest API, OGEngineClient, `ogengine_*`, game hooks (developers) |
-| [Docs/STAR_Games_User_Guide.md](Docs/STAR_Games_User_Guide.md) | Beam-in, inventory, quest keys for OQuake / ODOOM (players & testers) |
+| [Docs/PHASE2_QUEST_SYSTEM.md](Docs/PHASE2_QUEST_SYSTEM.md) | Quest system design |
+| [Docs/STAR_Quest_System_Developer_Guide.md](Docs/STAR_Quest_System_Developer_Guide.md) | WEB5 quest API, ogengine_* hooks, cross-game events (developers) |
+| [Docs/STAR_Games_User_Guide.md](Docs/STAR_Games_User_Guide.md) | Beam-in, inventory, quest keys for all games (players/testers) |
 | [Docs/ODOOM_Quest_List_STAR.md](Docs/ODOOM_Quest_List_STAR.md) | ODOOM quest list CVars, ZScript, scroll/filter invariants |
 
-### Build sync, native library, and transport
+### Build sync and native library
 
-| Document | What it’s for |
+| Document | What it's for |
 |----------|----------------|
-| [Docs/ODOOM_UZDoom_Build_Sync.md](Docs/ODOOM_UZDoom_Build_Sync.md) | ODOOM repo vs `UZDOOM_SRC`, copy step, `star_api` / `libstar_api` deploy |
-| [Docs/OGENGINE_Native_Transport_Architecture.md](Docs/OGENGINE_Native_Transport_Architecture.md) | `star_transport` native vs remote, size/AOT considerations |
+| [Docs/ODOOM_UZDoom_Build_Sync.md](Docs/ODOOM_UZDoom_Build_Sync.md) | ODOOM build sync, copy step, `star_api` / `libstar_api` deploy |
+| [Docs/OGENGINE_Native_Transport_Architecture.md](Docs/OGENGINE_Native_Transport_Architecture.md) | `star_transport` native vs remote, size/AOT |
 
-### Broader OASIS documentation
+### Per-game READMEs
 
-| Document | What it’s for |
-|----------|----------------|
-| [Docs/DEVELOPER_DOCUMENTATION_INDEX.md](Docs/DEVELOPER_DOCUMENTATION_INDEX.md) | Large index linking Omniverse topics plus repo-wide `Docs/Devs/` material |
-
-### Per-folder READMEs (code next to docs)
-
-| Location | What it’s for |
-|----------|----------------|
-| [OGEngineClient/README.md](OGEngineClient/README.md) | STAR API client build, exports, tests, quest hooks |
-| [ODOOM/README.md](ODOOM/README.md) | ODOOM build, run, features |
-| [OQuake/README.md](OQuake/README.md) | OQuake build, run, game data |
-| [ODOOM/WINDOWS_INTEGRATION.md](ODOOM/WINDOWS_INTEGRATION.md) | ODOOM Windows details |
-| [OQuake/Docs/WINDOWS_INTEGRATION.md](OQuake/Docs/WINDOWS_INTEGRATION.md) | OQuake Windows setup, game data, troubleshooting |
-| [NativeWrapper/README.md](NativeWrapper/README.md) | Deprecated wrapper (reference only) |
-| [OASIS Omniverse/README.md](OASIS%20Omniverse/README.md) | Optional Unity hub project (nested folder) |
-
-**Repo root (AI / policy):** [AGENTS.md](../AGENTS.md) — handoff table including Omniverse doc paths.
+| Game | README |
+|------|--------|
+| ODOOM | [ODOOM/README.md](ODOOM/README.md) |
+| OQuake | [OQuake/README.md](OQuake/README.md) |
+| ODuke3D | [ODuke3D/README.md](ODuke3D/README.md) |
+| ODuke3D-RT | [ODuke3D-RT/README.md](ODuke3D-RT/README.md) |
+| OWolf3D | [OWolf3D/README.md](OWolf3D/README.md) |
+| OQuake2 | [OQuake2/README.md](OQuake2/README.md) |
+| OQuake2-RTX | [OQuake2-RTX/README.md](OQuake2-RTX/README.md) |
+| OQuake3 | [OQuake3/README.md](OQuake3/README.md) |
+| OGEngineClient | [OGEngineClient/README.md](OGEngineClient/README.md) |
 
 ---
 
 ## Repositories to clone
 
-To build ODOOM and OQuake you need the OASIS repo plus the game engines and Quake data. Clone into a common parent (e.g. `C:\Source\`):
+| Repository | Purpose | Default path |
+|------------|---------|--------------|
+| **OASIS** (this repo) | Backend, OGEngineClient, all 10 integrations | `C:\Source\OASIS2` |
+| **ODOOM engine** (`UZDOOM_SRC`) | UZDoom/GZDoom fork | `C:\Source\UZDoom` |
+| **OQuake engine** (`VKQUAKE_SRC`) | vkQuake fork | `C:\Source\vkQuake` |
+| **quake-rerelease-qc** | QuakeC for OQuake | `C:\Source\quake-rerelease-qc` |
+| **ODuke3D engine** | EDuke32 fork | `C:\Source\ODuke3D` |
+| **ODuke3D-RT engine** | Duke-RT fork | `C:\Source\ODuke3D-RT` |
+| **OWolf3D engine** | ECWolf fork | `C:\Source\OWolf3D` |
+| **OQuake2 engine** | Yamagi Q2 fork (`YQUAKE2_SRC`) | `C:\Source\yquake2` |
+| **OQuake2-RTX engine** | Q2 RTX fork (`YQUAKE2RTX_SRC`) | `C:\Source\yquake2rtx` |
+| **OQuake3 engine** | Quake3e fork (`Q3E_SRC`) | `C:\Source\Quake3e` |
+| **ODOOM3 engine** | dhewm3 fork (`DHEWM3_SRC`) | `C:\Source\dhewm3` |
+| **ODOOM3-BFG engine** | RBDOOM-3-BFG fork (`RBD3_SRC`) | `C:\Source\RBDOOM-3-BFG` |
 
-| Repository | Purpose |
-|------------|---------|
-| **OASIS** (this repo) | Backend, OGEngineClient, ODOOM/OQuake integration |
-| **Engine for ODOOM** (`UZDOOM_SRC`) | UZDoom-based tree the ODOOM build compiles |
-| **Engine for OQuake** (`VKQUAKE_SRC`) | vkQuake-based tree the OQuake build compiles |
-| **quake-rerelease-qc** | QuakeC source used by OQuake |
-
-**Recommended:** although upstream is **UZDoom** and **vkQuake**, use the OASIS-maintained forks **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** and **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** for `UZDOOM_SRC` and `VKQUAKE_SRC` so the engine already tracks OASIS integration; vanilla upstream requires you to rely entirely on copy/patch steps from this repo.
-
-Example clone commands (see [Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md) for full setup):
-
-```bash
-git clone <OASIS-repo-url> C:\Source\OASIS-master
-git clone https://github.com/NextGenSoftwareUK/ODOOM.git C:\Source\UZDoom
-git clone https://github.com/NextGenSoftwareUK/OQUAKE.git C:\Source\vkQuake
-git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
-```
-
-Build scripts expect these paths by default; you can change them in the build script for your platform (`BUILD ODOOM.bat` / `BUILD_ODOOM.sh`, `BUILD_OQUAKE.bat` / `BUILD_OQUAKE.sh`).
-
-| Platform | ODOOM build | OQuake build |
-|----------|-------------|--------------|
-| **Windows** | `BUILD ODOOM.bat` | `BUILD_OQUAKE.bat` |
-| **Linux / macOS** | `./BUILD_ODOOM.sh` | `./BUILD_OQUAKE.sh` |
+Use OASIS-maintained forks (under `NextGenSoftwareUK/`) so the engine already tracks OASIS integration; vanilla upstream requires relying entirely on the copy/patch steps from this repo.
 
 ---
 
-## Overview
+## Building
 
-- **ODOOM** – UZDoom-based Doom with STAR API integration (keycards, inventory, quests, SSO).
-- **OQuake** – vkQuake-based Quake with STAR API integration (keys, ammo, weapons, inventory, quests, SSO).
-- **OGEngineClient** – **The STAR API client used by ODOOM and OQuake.** C# client that implements the C ABI (`ogengine_*`); builds `ogengine.dll` and `ogengine.lib`. Use this for all game integrations.
-- **NativeWrapper** – **Deprecated; do not use.** Legacy C++ wrapper kept for reference only. ODOOM and OQuake use **OGEngineClient** only.
-- **star_sync** – C layer (in ODOOM/OQuake folders) for async auth and inventory sync; sits between game code and OGEngineClient.
-- **OASIS Omniverse (Unity)** – Optional Unity host shell with hub, ODOOM/OQuake portals, and Control Center (inventory, quests, settings). See [`OASIS Omniverse/README.md`](OASIS%20Omniverse/README.md) inside the Unity project folder.
+### Build everything (recommended)
+
+From `OASIS Omniverse\`:
+
+```batch
+BUILD EVERYTHING.bat
+```
+
+Builds OGEngineClient (the shared C# NativeAOT `ogengine.dll`/`libstar_api.so`) then builds all 10 game integrations in sequence. No prompts, no launch.
+
+### Build a single game
+
+| Game | Windows | Linux/macOS |
+|------|---------|-------------|
+| ODOOM | `ODOOM\BUILD ODOOM.bat` | `./ODOOM/BUILD_ODOOM.sh` |
+| OQuake | `OQuake\BUILD_OQUAKE.bat` | `./OQuake/BUILD_OQUAKE.sh` |
+| ODOOM3 | `ODOOM3\BUILD_ODOOM3.bat` | `./ODOOM3/BUILD_ODOOM3.sh` |
+| ODOOM3-BFG | `ODOOM3-BFG\BUILD_ODOOM3BFG.bat` | `./ODOOM3-BFG/BUILD_ODOOM3BFG.sh` |
+| ODuke3D | `ODuke3D\BUILD_ODUKE3D.bat` | `./ODuke3D/BUILD_ODUKE3D.sh` |
+| ODuke3D-RT | `ODuke3D-RT\BUILD_ODUKE3DRT.bat` | `./ODuke3D-RT/BUILD_ODUKE3DRT.sh` |
+| OWolf3D | `OWolf3D\BUILD_OWOLF3D.bat` | `./OWolf3D/BUILD_OWOLF3D.sh` |
+| OQuake2 | `OQuake2\BUILD_OQUAKE2.bat` | `./OQuake2/BUILD_OQUAKE2.sh` |
+| OQuake2-RTX | `OQuake2-RTX\BUILD_OQUAKE2RTX.bat` | `./OQuake2-RTX/BUILD_OQUAKE2RTX.sh` |
+| OQuake3 | `OQuake3\BUILD_OQUAKE3.bat` | `./OQuake3/BUILD_OQUAKE3.sh` |
+| STAR API client only | `BUILD_AND_DEPLOY_STAR_CLIENT.bat` | `./BUILD_AND_DEPLOY_STAR_CLIENT.sh` |
+
+### Run a game
+
+| Game | Windows | Linux/macOS |
+|------|---------|-------------|
+| ODOOM | `ODOOM\RUN ODOOM.bat` | `./ODOOM/RUN_ODOOM.sh` |
+| OQuake | `OQuake\RUN OQUAKE.bat` | `./OQuake/RUN_OQUAKE.sh` |
+| ODOOM3 | `ODOOM3\RUN_ODOOM3.bat` | `./ODOOM3/RUN_ODOOM3.sh` |
+| ODOOM3-BFG | `ODOOM3-BFG\RUN_ODOOM3BFG.bat` | `./ODOOM3-BFG/RUN_ODOOM3BFG.sh` |
+| ODuke3D | `ODuke3D\RUN_ODUKE3D.bat` | `./ODuke3D/RUN_ODUKE3D.sh` |
+| ODuke3D-RT | `ODuke3D-RT\RUN_ODUKE3DRT.bat` | `./ODuke3D-RT/RUN_ODUKE3DRT.sh` |
+| OWolf3D | `OWolf3D\RUN_OWOLF3D.bat` | `./OWolf3D/RUN_OWOLF3D.sh` |
+| OQuake2 | `OQuake2\RUN_OQUAKE2.bat` | `./OQuake2/RUN_OQUAKE2.sh` |
+| OQuake2-RTX | `OQuake2-RTX\RUN_OQUAKE2RTX.bat` | `./OQuake2-RTX/RUN_OQUAKE2RTX.sh` |
+| OQuake3 | `OQuake3\RUN_OQUAKE3.bat` | `./OQuake3/RUN_OQUAKE3.sh` |
+
+---
 
 ## Directory structure
 
 ```
 OASIS Omniverse/
-├── README.md                    # This file — index + overview
-├── Docs/                        # All Markdown guides (see index above)
-│   ├── README.md
-│   ├── DEVELOPER_ONBOARDING.md
-│   ├── GettingStarted_*.md
+├── README.md                        ← This file
+├── Docs/                            ← All Markdown guides
+│   ├── OGENGINE_VISION_AND_ROADMAP.md
+│   ├── OGEngine_Overview.md
 │   ├── ARCHITECTURE.md
-│   ├── INTEGRATION_GUIDE.md
-│   ├── QUICKSTART.md
-│   ├── LINUX_BUILD.md
-│   ├── PHASE2_QUEST_SYSTEM.md
+│   ├── DEVELOPER_ONBOARDING.md
+│   ├── STAR_Quest_System_Developer_Guide.md
 │   └── …
-├── BUILD EVERYTHING.bat         # Build OGEngineClient + ODOOM + OQuake (no prompts, no launch)
-├── BUILD_AND_DEPLOY_STAR_CLIENT.bat
-├── OGEngineClient/
-│   ├── README.md
-│   └── ...
-├── NativeWrapper/               # Deprecated; do not use. Use OGEngineClient.
-│   ├── BUILD_INSTRUCTIONS.md
-│   └── ...
-├── ODOOM/
-│   ├── README.md
-│   ├── WINDOWS_INTEGRATION.md
-│   ├── BUILD ODOOM.bat
-│   ├── RUN ODOOM.bat
-│   └── build/
-├── OQuake/
-│   ├── README.md
-│   ├── Docs/
-│   │   └── WINDOWS_INTEGRATION.md
-│   ├── BUILD_OQUAKE.bat
-│   ├── RUN OQUAKE.bat
-│   └── build/
-├── Doom/                        # Doom integration notes/examples
-├── Quake/                       # Quake integration notes/examples
-└── OASIS Omniverse/             # Unity hub project (optional)
+├── Config/
+│   ├── oasis_star_assets.json       ← Cross-game entity / asset catalog (all 10 games)
+│   └── stories/
+│       └── oasis_arc_001_dimensional_rift.json  ← First cross-game story arc
+├── BUILD EVERYTHING.bat / .sh       ← Build OGEngineClient + all 10 games
+├── BUILD_AND_DEPLOY_STAR_CLIENT.bat/.sh
+├── OGEngineClient/                  ← C# NativeAOT STAR API client (ogengine.dll)
+│   ├── OGEngineClient.cs
+│   ├── OGEngineExports.cs           ← NativeAOT [UnmanagedCallersOnly] exports
+│   └── ogengine.h                   ← C ABI header (canonical; copied to each game)
+├── NativeWrapper/                   ← Deprecated; reference only. Use OGEngineClient.
+│   └── ogengine.h                   ← Shared C ABI header (kept in sync with OGEngineClient/ogengine.h)
+├── OGLib/                           ← Header-only C utility library (monster table, session, config)
+│   └── oglib.h
+├── ODOOM/                           ← Doom (UZDoom/GZDoom)
+├── OQuake/                          ← Quake (vkQuake)
+├── ODOOM3/                          ← Doom 3 classic (dhewm3)
+├── ODOOM3-BFG/                      ← Doom 3 BFG Edition (RBDOOM-3-BFG)
+├── ODuke3D/                         ← Duke Nukem 3D (EDuke32)
+├── ODuke3D-RT/                      ← Duke Nukem 3D ray-traced (Duke-RT)
+├── OWolf3D/                         ← Wolfenstein 3D (ECWolf)
+├── OQuake2/                         ← Quake II (Yamagi Q2)
+├── OQuake2-RTX/                     ← Quake II ray-traced (Q2 RTX)
+├── OQuake3/                         ← Quake III Arena (Quake3e)
+└── OASIS Omniverse/                 ← Unity hub project (optional embedded shell)
     └── README.md
 ```
 
-## Quick reference
+Each game folder contains:
+- `{Game}_ogengine_integration.{c,cpp}` — engine hook implementation
+- `{Game}_ogengine_integration.h` — public API header
+- `ogengine.h` / `ogengine_sync.h` — STAR API C ABI (build script copies from OGEngineClient)
+- `oasisstar.json` — per-game config (API URL, session, mint flags, monster XP table)
+- `BUILD_*.bat` / `BUILD_*.sh` — build scripts
+- `RUN_*.bat` / `RUN_*.sh` — launch scripts
+- `Docs/` — per-game integration guide
 
-- **Build one thing at a time** – Do not run more than one build (or heavy test run) at a time; it can cause issues. Run each build or test suite separately and wait for it to finish before starting the next.
-- **First-time setup** – Follow **[Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md)**.
-- **Build everything (no prompts)** – From `OASIS Omniverse\`: run **BUILD EVERYTHING.bat** to build and deploy OGEngineClient, then build ODOOM and OQuake with no prompts and without launching. Use **RUN ODOOM.bat** / **RUN OQUAKE.bat** to launch afterward.
-- **Build STAR API client** – From `OASIS Omniverse\`: run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** to build and copy `ogengine.dll` / `ogengine.lib` / `ogengine.h` into Doom, Quake, ODOOM, OQuake, and (if present) UZDoom and vkQuake folders. Or at the start of **BUILD ODOOM.bat** or **BUILD_OQUAKE.bat** choose **Y** when asked “Build and deploy OGEngineClient first?”.
-- **Build ODOOM** – From `OASIS Omniverse\ODOOM\`: run **BUILD ODOOM.bat**.
-- **Build OQuake** – Run **"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"** (use Developer Command Prompt for VS).
-- **Run ODOOM** – **"OASIS Omniverse\ODOOM\RUN ODOOM.bat"** (builds if needed, then launches).
-- **Run OQuake** – **"OASIS Omniverse\OQuake\RUN OQUAKE.bat"** (builds if needed, then launches).
-- **Run local APIs** – From OASIS repo root: `Scripts\start_web4_and_web5_apis.bat`.
-- **Game config** – Edit `ODOOM\build\oasisstar.json` and `OQuake\build\oasisstar.json` (see onboarding doc).
+---
+
+## Overview
+
+### OGEngineClient
+
+The **C# NativeAOT** STAR API client used by all 10 games. Builds `ogengine.dll` (Windows) or `libstar_api.so` (Linux/macOS). Exposes a C ABI (`ogengine_*`) that each game's integration C/C++ file links against.
+
+Key exports: `ogengine_init`, `ogengine_authenticate`, `ogengine_get_inventory`, `ogengine_add_item`, `ogengine_complete_quest_objective`, `ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_poll_spawn_event`, `ogengine_poll_cross_game_event`, `ogengine_poll_inventory_grant`, `ogengine_get_quests_string`, and more.
+
+### OGLib
+
+A **header-only C utility library** shared by all 10 games. Provides:
+- Monster XP table loaded from `oasisstar.json`
+- Session management helpers
+- Config file I/O
+
+### OGEngine Editor
+
+A **UDB (Ultimate Doom Builder) plugin** that lets designers:
+- Browse the OASIS asset catalog (entities, weapons, monsters from all 10 games)
+- Place cross-game portal entities (`oasis_portal` / thing type 5900)
+- Author quests and objectives via the Quest Weaver panel
+- Link objectives to GeoHotSpots and cross-game events
+
+---
 
 ## Features
 
-- **Cross-game item sharing** – Collect keycards/keys in one game, use in another; persistent inventory via STAR API.
-- **Inventory NFT minting** – When enabled in `oasisstar.json` (e.g. `mint_weapons`, `mint_keys`), collecting items can mint an NFT (WEB4 NFTHolon) and attach it to the inventory item; optional per category (weapons, armor, powerups, keys).
-- **Avatar/SSO** – Log in with STAR username/password or API key + avatar ID.
-- **Multi-game quests** – Quests and objectives spanning ODOOM, OQuake, and more.
-- **Stacked/ammo quantities** – Ammo pickups (e.g. shells, nails) sync with correct quantities to the API so totals persist correctly after reload.
+### Cross-game item sharing
+
+Collect keys/weapons/powerups in one game, use them in another. Persistent inventory via the STAR API. All 10 games share the same inventory namespace.
+
+| Game | Key types |
+|------|-----------|
+| ODOOM / ODOOM3 / ODOOM3-BFG | Blue keycard, Red keycard, Yellow keycard |
+| OQuake | Silver key, Gold key |
+| ODuke3D / ODuke3D-RT | Blue access card, Red access card, Yellow access card |
+| OWolf3D | Gold key, Silver key |
+| OQuake2 / OQuake2-RTX | Bluekey, Redkey |
+| OQuake3 | Runes (Team Arena) |
+
+### Cross-game teleportation
+
+Step on an `oasis_portal` entity (thing type 5900) in any game → OmniverseKernel teleports you to the target game at the target map position. All 10 games implement `{Prefix}_STAR_CheckIncomingTeleport()` and warp the player using each engine's native position API.
+
+### Cross-game entity spawning
+
+Quest objectives can trigger entity spawns in other games:
+- ODOOM: `C_DoCommand("summon <classname>")`
+- OQuake: QuakeC `ED_Alloc` / `PR_ExecuteProgram`
+- ODOOM3 / ODOOM3-BFG: `cmdSystem->BufferCommandText("spawn <classname>\n")`
+- ODuke3D / ODuke3D-RT: `A_InsertSprite` with picnum lookup from asset catalog
+- OQuake3: `trap_SendConsoleCommand("spawn <classname>\n")`
+- OWolf3D, OQuake2, OQuake2-RTX: deferred (engine API constraints)
+
+### Cross-game quests and story arcs
+
+Multi-game quests spanning multiple games. Each objective has:
+- `GameSource` + `MapName` — which game and map
+- `CrossGameEventsOnActivate` — events fired when objective first activates (opening narration, audio)
+- `CrossGameEventsOnComplete` — events fired in other games on completion (spawn enemies, unlock portals, show narration, teleport, play audio/video, open website)
+- `CrossGameEventsOnGeoHotSpotTriggered` — events fired when a linked real-world GeoHotSpot is visited
+- `NeedToKillMonstersByType` — per-classname kill requirements
+- `RewardInventoryItemIds` — OASIS inventory item GUIDs granted on completion
+
+The first cross-game story arc (`oasis_arc_001_dimensional_rift.json`) spans ODOOM → OQuake → OWolf3D.
+
+### Cross-game events (in-game delivery)
+
+All 10 games poll `ogengine_poll_cross_game_event()` every frame. When a quest triggers a cross-game event:
+- `ShowNarration` → toast notification in-game (all 10 games)
+- `SpawnEntity` → calls the game's native spawn path
+- `TeleportTo` → queues a teleport request
+- `PlayAudio` / `PlayVideo` / `OpenWebsite` → logged + toasted (full media streaming is future work)
+- `UnlockPortal` → notifies OGEditor portal system (future work)
+
+### Inventory NFT minting
+
+When enabled in `oasisstar.json` (`mint_weapons`, `mint_keys`, `mint_monsters`), collecting items mints an NFT (WEB4 NFTHolon) attached to the inventory item. Per-category opt-in.
+
+### Avatar / SSO
+
+Log in with STAR username/password or API key + avatar ID. In-game console: `star beamin <username> <password>`.
+
+### Native HUD (fallback / standalone)
+
+Each game has a native C/C++ HUD that renders without Unity:
+- Inventory popup (`I` key) — live fetch from `ogengine_get_inventory`
+- Quest popup (`Q` key) — live fetch from `ogengine_get_quests_string`, parses quest list
+- Toast notifications — XP awards, key pickups, cross-game events
+- XP / karma counter and beamed-in label
+
+---
+
+## Quick reference
+
+| Task | Command |
+|------|---------|
+| Build everything | `BUILD EVERYTHING.bat` (Windows) / `./BUILD_EVERYTHING.sh` (Linux/macOS) |
+| Build STAR client only | `BUILD_AND_DEPLOY_STAR_CLIENT.bat` |
+| Run local APIs | `Scripts\start_web4_and_web5_apis.bat` (from repo root) |
+| Game config | `{Game}\oasisstar.json` — set `ogengine_url`, `oasis_api_url`, credentials |
+| Cross-game assets | `Config\oasis_star_assets.json` — entity catalog for all 10 games |
+| Story arcs | `Config\stories\*.json` — cross-game quest/objective definitions |
+
+---
 
 ## License
 
-This integration follows the same license as the OASIS project.
+All 10 game integrations follow the same license as the base engine they extend (GPL-2.0 for all, since ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, and OQuake3 are all GPL-licensed source ports). The OASIS integration layer (OGEngineClient, OGLib, integration C/C++ files) is licensed under the OASIS project license. See `OASIS Omniverse/LICENSE.md` or each game's `Docs/CREDITS_AND_LICENSE.md`.
