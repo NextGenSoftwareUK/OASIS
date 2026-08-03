@@ -1,8 +1,8 @@
-/*
- * ogeditor_api.h  —  OGEditorSDK C ABI for native C++ editor plugins
+﻿/*
+ * OGEditorClient.h  —  OGEditorSDK C ABI for native C++ editor plugins
  *
  * Allows TrenchBroom, NetRadiant, DarkRadiant, Mapster32, or any other
- * C/C++ editor to load ogeditor_api.dll and call into the managed SDK
+ * C/C++ editor to load OGEditorClient.dll and call into the managed SDK
  * without requiring any .NET knowledge on the C++ side.
  *
  * Pattern mirrors STARAPIClient/star_api.h.
@@ -20,9 +20,9 @@
 #pragma once
 
 #ifdef _WIN32
-#  define OGEDITOR_API __declspec(dllimport)
+#  define OGEditorClient __declspec(dllimport)
 #else
-#  define OGEDITOR_API
+#  define OGEditorClient
 #endif
 
 #ifdef __cplusplus
@@ -52,7 +52,7 @@ typedef void* OGEditorHandle;
  * @param avatarId        Authenticated avatar GUID string (may be empty/null for read-only)
  * @return  Non-null handle on success; NULL on allocation failure.
  */
-OGEDITOR_API OGEditorHandle ogeditor_init(
+OGEditorClient OGEditorHandle ogeditor_init(
     const char* starApiBaseUrl,
     const char* avatarId);
 
@@ -60,7 +60,7 @@ OGEDITOR_API OGEditorHandle ogeditor_init(
  * Destroy a handle and release all managed resources.
  * Passing NULL is a no-op.
  */
-OGEDITOR_API void ogeditor_dispose(OGEditorHandle handle);
+OGEditorClient void ogeditor_dispose(OGEditorHandle handle);
 
 /* ── Asset catalog ────────────────────────────────────────────────────────── */
 
@@ -79,7 +79,7 @@ OGEDITOR_API void ogeditor_dispose(OGEditorHandle handle);
  *   { "gameId": "OQUAKE2", "thingType": 6101, "displayName": "Soldier",
  *     "nativeClassname": "monster_soldier", "category": "Monsters" }
  */
-OGEDITOR_API int ogeditor_get_assets_json(
+OGEditorClient int ogeditor_get_assets_json(
     OGEditorHandle handle,
     const char*    gameId,
     char*          outBuf,
@@ -89,7 +89,7 @@ OGEDITOR_API int ogeditor_get_assets_json(
  * Look up a single asset by OASIS thing type.
  * Returns OGEDITOR_ERR_NOT_FOUND if the type is unknown.
  */
-OGEDITOR_API int ogeditor_get_asset_by_type(
+OGEditorClient int ogeditor_get_asset_by_type(
     OGEditorHandle handle,
     int            thingType,
     char*          outBuf,
@@ -103,7 +103,7 @@ OGEDITOR_API int ogeditor_get_asset_by_type(
  *
  * @param mapFilePath  Absolute path to the .map / .wad / etc. file.
  */
-OGEDITOR_API int ogeditor_get_portals_json(
+OGEditorClient int ogeditor_get_portals_json(
     OGEditorHandle handle,
     const char*    mapFilePath,
     char*          outBuf,
@@ -119,7 +119,7 @@ OGEDITOR_API int ogeditor_get_portals_json(
  *     "destinationX":0.0, "destinationY":0.0, "destinationZ":0.0 }
  * @return OGEDITOR_OK or error code.
  */
-OGEDITOR_API int ogeditor_append_portal(
+OGEditorClient int ogeditor_append_portal(
     OGEditorHandle handle,
     const char*    mapFilePath,
     const char*    portalJson);
@@ -130,7 +130,7 @@ OGEDITOR_API int ogeditor_append_portal(
  * Return a JSON array of quests from the STAR API, optionally filtered by gameId.
  * @param gameId  OGame ID filter, or NULL/empty for all quests.
  */
-OGEDITOR_API int ogeditor_get_quests_json(
+OGEditorClient int ogeditor_get_quests_json(
     OGEditorHandle handle,
     const char*    gameId,
     char*          outBuf,
@@ -141,7 +141,7 @@ OGEDITOR_API int ogeditor_get_quests_json(
  * @param questJson  JSON request body (name, description, gameId, …).
  * @param outBuf     Receives the created quest JSON on success.
  */
-OGEDITOR_API int ogeditor_create_quest(
+OGEditorClient int ogeditor_create_quest(
     OGEditorHandle handle,
     const char*    questJson,
     char*          outBuf,
@@ -155,7 +155,7 @@ OGEDITOR_API int ogeditor_create_quest(
  *   { "objectiveId":"<guid>", "mapPath":"<abs-path>",
  *     "triggerType":"Thing|Linedef|Sector", "triggerId":<int> }
  */
-OGEDITOR_API int ogeditor_bind_objective(
+OGEditorClient int ogeditor_bind_objective(
     OGEditorHandle handle,
     const char*    questId,
     const char*    bindingJson);
@@ -165,7 +165,7 @@ OGEDITOR_API int ogeditor_bind_objective(
 /**
  * Return a JSON array of missions, optionally filtered by questId.
  */
-OGEDITOR_API int ogeditor_get_missions_json(
+OGEditorClient int ogeditor_get_missions_json(
     OGEditorHandle handle,
     const char*    questId,
     char*          outBuf,
@@ -180,7 +180,7 @@ OGEDITOR_API int ogeditor_get_missions_json(
  * @param outThingType Receives the OASIS thing type on success.
  * @return OGEDITOR_OK, or OGEDITOR_ERR_NOT_FOUND if unmapped.
  */
-OGEDITOR_API int ogeditor_classname_to_thing_type(
+OGEditorClient int ogeditor_classname_to_thing_type(
     OGEditorHandle handle,
     const char*    sourceGame,
     const char*    classname,
@@ -192,7 +192,7 @@ OGEDITOR_API int ogeditor_classname_to_thing_type(
  * @param thingType   OASIS thing type.
  * @param outBuf      Receives the native classname string.
  */
-OGEDITOR_API int ogeditor_thing_type_to_classname(
+OGEditorClient int ogeditor_thing_type_to_classname(
     OGEditorHandle handle,
     const char*    targetGame,
     int            thingType,
@@ -209,14 +209,14 @@ OGEDITOR_API int ogeditor_thing_type_to_classname(
  *     "extensions": [".map"], "family": 0 }
  * family: 0=Brush3D, 1=Sector2D, 2=Build2D, 3=Tile2D
  */
-OGEDITOR_API int ogeditor_list_adapters(char* outBuf, int bufLen);
+OGEditorClient int ogeditor_list_adapters(char* outBuf, int bufLen);
 
 /**
  * Return the estimated conversion fidelity (0.0–1.0) from srcFormat to dstFormat.
  * 1.0 = lossless; <0.6 = significant manual cleanup required.
  * Returns -1.0 if either format is unknown.
  */
-OGEDITOR_API float ogeditor_conversion_fidelity(
+OGEditorClient float ogeditor_conversion_fidelity(
     const char* srcFormatId,
     const char* dstFormatId);
 
@@ -235,7 +235,7 @@ OGEDITOR_API float ogeditor_conversion_fidelity(
  *         OGEDITOR_ERR_IO if source could not be read or destination written.
  *         OGEDITOR_ERR_NOT_FOUND if an adapter ID is unknown.
  */
-OGEDITOR_API int ogeditor_convert_map(
+OGEditorClient int ogeditor_convert_map(
     const char* srcPath,
     const char* srcFormatId,
     const char* dstPath,
@@ -248,13 +248,13 @@ OGEDITOR_API int ogeditor_convert_map(
 /**
  * Return the SDK version string (e.g. "1.0.0").
  */
-OGEDITOR_API int ogeditor_version(char* outBuf, int bufLen);
+OGEditorClient int ogeditor_version(char* outBuf, int bufLen);
 
 /**
  * Return the last error message string for a given handle.
  * Useful when a function returns a non-OK code and you need details.
  */
-OGEDITOR_API int ogeditor_last_error(OGEditorHandle handle, char* outBuf, int bufLen);
+OGEditorClient int ogeditor_last_error(OGEditorHandle handle, char* outBuf, int bufLen);
 
 #ifdef __cplusplus
 }  /* extern "C" */
