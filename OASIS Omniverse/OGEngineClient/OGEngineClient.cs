@@ -2612,7 +2612,7 @@ public sealed class OGEngineClient : IDisposable
         StartAddItemWorker();
         _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xpVal, isBoss, doMint, provider ?? "SolanaOASIS", gs));
         _addItemSignal.Release();
-        EnqueueQuestProgressFromGame(gs, 1, xpVal, null, 0, 0, null);
+        EnqueueQuestProgressFromGame(gs, 1, xpVal, null, 0, 0, null, null, engineName);
     }
 
     public async Task<OASISResult<bool>> FlushAddItemJobsAsync(CancellationToken cancellationToken = default)
@@ -2977,6 +2977,17 @@ public sealed class OGEngineClient : IDisposable
         OGEngineExports.StarApiLogFileOnly($"[Quests] StartQuestAsync OK questId={questId} url={url} body={response.Result ?? ""}");
         OGEngineExports.StarApiLog("[Quests] StartQuestAsync: OK (see ogengine.log for response body)");
         UpdateQuestStatusInCache(questId, "InProgress");
+        try
+        {
+            var eventsUrl = $"{_baseApiUrl}/api/quests/{questId}/first-objective-events";
+            var eventsResponse = await SendRawAsync(HttpMethod.Get, eventsUrl, null, cancellationToken).ConfigureAwait(false);
+            if (!eventsResponse.IsError)
+                DispatchCrossGameEventsFromProgressResponse(eventsResponse.Result, string.Empty);
+        }
+        catch (Exception ex2)
+        {
+            try { OGEngineExports.StarApiLogFileOnly($"[Quests] StartQuestAsync: first-objective-events fetch failed (non-fatal): {ex2.Message}"); } catch { /* ignore */ }
+        }
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest started successfully.");
     }
@@ -3473,7 +3484,7 @@ public sealed class OGEngineClient : IDisposable
     }
 
     /// <summary>POST /api/quests/{activeQuestId}/progress — realtime objective progress (kills, XP, pickups by type, level time). No-op if no active quest or all deltas are zero. Backend must expose this route (e.g. STAR ODK QuestsController); 404 means the URL (e.g. ONODE) may not have the progress endpoint.</summary>
-    private async Task ApplyQuestProgressToActiveQuestAsync(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int armorDelta, int healthDelta, int weaponsDelta, int powerupsDelta, int ammoDelta, int genericItemPickup, int? levelTimeSeconds, CancellationToken cancellationToken)
+    private async Task ApplyQuestProgressToActiveQuestAsync(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int armorDelta, int healthDelta, int weaponsDelta, int powerupsDelta, int ammoDelta, int genericItemPickup, int? levelTimeSeconds, string? monsterKilledClassname, CancellationToken cancellationToken)
     {
         if (!IsInitialized() || string.IsNullOrWhiteSpace(_baseApiUrl)) return;
         Guid? qid;
@@ -3489,14 +3500,15 @@ public sealed class OGEngineClient : IDisposable
             return;
         }
         var gs = string.IsNullOrWhiteSpace(gameSource) ? "ODOOM" : gameSource.Trim();
-        var hasDeltas = monstersKilledDelta != 0 || xpEarnedDelta != 0 || keysCollectedDelta != 0 || armorDelta != 0 || healthDelta != 0 || weaponsDelta != 0 || powerupsDelta != 0 || ammoDelta != 0 || genericItemPickup != 0 || (levelTimeSeconds.HasValue && levelTimeSeconds.Value > 0);
+        var mkc = string.IsNullOrWhiteSpace(monsterKilledClassname) ? null : monsterKilledClassname.Trim();
+        var hasDeltas = monstersKilledDelta != 0 || xpEarnedDelta != 0 || keysCollectedDelta != 0 || armorDelta != 0 || healthDelta != 0 || weaponsDelta != 0 || powerupsDelta != 0 || ammoDelta != 0 || genericItemPickup != 0 || (levelTimeSeconds.HasValue && levelTimeSeconds.Value > 0) || mkc != null;
         if (!hasDeltas)
         {
             try { OGEngineExports.StarApiLogFileOnly($"[Quest] Progress SKIP: all deltas zero (itemName={itemCollectedName ?? ""}, genericItem={genericItemPickup}, armor={armorDelta}, health={healthDelta})"); } catch { /* ignore */ }
             return; /* Do not send progress when nothing changed (avoids 0-delta calls and reduces 404s if backend route is missing). */
         }
         /* Always POST progress while quest popup is open. Skipping POST here previously dropped persistence (armor/keys-style deltas) while the UI still looked updated from earlier merges — reload then showed 0% from server. GET-all-for-avatar refresh remains discarded while popup is open (see quest cache refresh). */
-        OGEngineExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds} questPopupOpen={Volatile.Read(ref _questUiPopupOpen)}");
+        OGEngineExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds} classname={mkc ?? ""} questPopupOpen={Volatile.Read(ref _questUiPopupOpen)}");
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
@@ -3515,6 +3527,8 @@ public sealed class OGEngineClient : IDisposable
             writer.WriteString("itemCollectedName", itemCollectedName ?? string.Empty);
             if (levelTimeSeconds.HasValue)
                 writer.WriteNumber("levelTimeSeconds", levelTimeSeconds.Value);
+            if (mkc != null)
+                writer.WriteString("monsterKilledClassname", mkc);
             writer.WriteEndObject();
         });
         QuestProgressCacheRefreshMode mode;
@@ -3540,6 +3554,7 @@ public sealed class OGEngineClient : IDisposable
                     OGEngineExports.StarApiLogFileOnly($"[Quest] Progress OK: cache refresh mode={(mode == QuestProgressCacheRefreshMode.FullServerRefresh ? "server_GET" : "client_merge")}");
                 }
                 catch { /* ignore */ }
+                DispatchCrossGameEventsFromProgressResponse(response.Result, gs);
                 if (mode == QuestProgressCacheRefreshMode.FullServerRefresh)
                     RequestQuestCacheRefreshInBackground(forceRefetch: true);
                 else if (!mergedOptimistically)
@@ -3562,12 +3577,102 @@ public sealed class OGEngineClient : IDisposable
         }
     }
 
+    /// <summary>Parse CrossGameEventsToDispatch and InventoryItemsToGrant from a progress/start API response body and route them into the engine's pending event queues.</summary>
+    private void DispatchCrossGameEventsFromProgressResponse(string? responseBody, string requestGameSource)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody)) return;
+        try
+        {
+            using var doc = JsonDocument.Parse(responseBody);
+            var root = doc.RootElement;
+            /* Unwrap OASISResult envelope: Result → QuestProgressApplyResult */
+            if (root.TryGetProperty("Result", out var resultEl) || root.TryGetProperty("result", out resultEl))
+                root = resultEl;
+            /* CrossGameEventsToDispatch */
+            if ((root.TryGetProperty("CrossGameEventsToDispatch", out var evtsEl) || root.TryGetProperty("crossGameEventsToDispatch", out evtsEl))
+                && evtsEl.ValueKind == JsonValueKind.Array)
+            {
+                var clientGame = _config?.ClientGameSource ?? requestGameSource;
+                foreach (var evt in evtsEl.EnumerateArray())
+                {
+                    if (evt.ValueKind != JsonValueKind.Object) continue;
+                    var eventType = (evt.TryGetProperty("EventType", out var et) || evt.TryGetProperty("eventType", out et)) ? (et.GetString() ?? string.Empty) : string.Empty;
+                    var targetGame = (evt.TryGetProperty("TargetGame", out var tg) || evt.TryGetProperty("targetGame", out tg)) ? (tg.GetString() ?? string.Empty) : string.Empty;
+                    /* Only dispatch events that target the current game. Cross-game targeting other games requires server-side storage (future). */
+                    var isForThisGame = string.IsNullOrEmpty(targetGame) || string.IsNullOrEmpty(clientGame)
+                        || string.Equals(targetGame, clientGame, StringComparison.OrdinalIgnoreCase);
+                    if (!isForThisGame)
+                    {
+                        try { OGEngineExports.StarApiLogFileOnly($"[CrossGameEvent] Skipping event type={eventType} targetGame={targetGame} (current game={clientGame}); cross-game routing requires server-side storage."); } catch { /* ignore */ }
+                        continue;
+                    }
+                    try { OGEngineExports.StarApiLogFileOnly($"[CrossGameEvent] Dispatching type={eventType} targetGame={targetGame}"); } catch { /* ignore */ }
+                    /* SpawnEntity: route through the existing spawn temp-file mechanism */
+                    if (string.Equals(eventType, "SpawnEntity", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var classname = (evt.TryGetProperty("EntityClassname", out var ec) || evt.TryGetProperty("entityClassname", out ec)) ? (ec.GetString() ?? string.Empty) : string.Empty;
+                        var count = (evt.TryGetProperty("SpawnCount", out var sc) || evt.TryGetProperty("spawnCount", out sc)) ? (sc.TryGetInt32(out var sci) ? sci : 1) : 1;
+                        var category = (evt.TryGetProperty("EntityCategory", out var ecat) || evt.TryGetProperty("entityCategory", out ecat)) ? (ecat.GetString() ?? "Monster") : "Monster";
+                        if (!string.IsNullOrEmpty(classname))
+                            for (var i = 0; i < Math.Max(1, count); i++)
+                                WriteSpawnEventToFile(classname, category, 0f, 0f, 0f);
+                    }
+                    /* TeleportTo: use existing RequestTeleport which writes oasis_teleport_{avatarId}.json */
+                    else if (string.Equals(eventType, "TeleportTo", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var destGame = (evt.TryGetProperty("TargetGame", out var dg) || evt.TryGetProperty("targetGame", out dg)) ? (dg.GetString() ?? string.Empty) : string.Empty;
+                        var destMap = (evt.TryGetProperty("TargetMap", out var dm) || evt.TryGetProperty("targetMap", out dm)) ? (dm.GetString() ?? string.Empty) : string.Empty;
+                        if (!string.IsNullOrEmpty(destGame))
+                            RequestTeleport(destGame, destMap, 0f, 0f, 0f);
+                    }
+                    /* All other event types: enqueue as JSON for ogengine_poll_cross_game_event */
+                    else
+                    {
+                        OGEngineExports.EnqueueCrossGameEvent(evt.GetRawText());
+                    }
+                }
+            }
+            /* InventoryItemsToGrant */
+            if ((root.TryGetProperty("InventoryItemsToGrant", out var itemsEl) || root.TryGetProperty("inventoryItemsToGrant", out itemsEl))
+                && itemsEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in itemsEl.EnumerateArray())
+                {
+                    var id = item.ValueKind == JsonValueKind.String ? (item.GetString() ?? string.Empty) : item.GetRawText().Trim('"');
+                    if (!string.IsNullOrEmpty(id))
+                        OGEngineExports.EnqueueInventoryGrant(id);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            try { OGEngineExports.StarApiLogFileOnly($"[CrossGameEvent] DispatchFromProgressResponse error: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /// <summary>Write a cross-game spawn event to the per-avatar temp file (oasis_spawn_{avatarId}.json). Games poll ogengine_poll_spawn_event to consume it.</summary>
+    private void WriteSpawnEventToFile(string entityClassname, string entityCategory, float x, float y, float z)
+    {
+        try
+        {
+            var avatarId = GetCachedAvatarId() ?? "unknown";
+            var path = Path.Combine(Path.GetTempPath(), $"oasis_spawn_{avatarId}.json");
+            var json = $"{{\"entityId\":{JsonSerializer.Serialize(entityClassname)},\"entityCategory\":{JsonSerializer.Serialize(entityCategory)},\"x\":{x.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"y\":{y.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"z\":{z.ToString(System.Globalization.CultureInfo.InvariantCulture)}}}";
+            File.WriteAllText(path, json);
+            OGEngineExports.StarApiLogFileOnly($"[Spawn] WriteSpawnEventToFile: classname={entityClassname} category={entityCategory}");
+        }
+        catch (Exception ex)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Spawn] WriteSpawnEventToFile error: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Queue realtime quest progress (non-blocking) for the avatar's cached active quest id (from profile after beam-in / start quest).
     /// Objectives are updated server-side by the API; when <see cref="QuestProgressCacheRefreshMode.ClientCacheMerge"/> is active, the client also mirrors those deltas into cached dictionaries for instant UI (see ApplyQuestProgressToActiveQuestAsync).
     /// Called for native <c>queue_add_item</c>, <c>queue_pickup_with_mint</c>, <c>queue_quest_progress_from_pickup</c>, and after successful <c>use_item</c>.
     /// </summary>
-    public void EnqueueQuestProgressFromGame(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int genericItemPickup, int? levelTimeSeconds = null, string? itemType = null)
+    public void EnqueueQuestProgressFromGame(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int genericItemPickup, int? levelTimeSeconds = null, string? itemType = null, string? monsterKilledClassname = null)
     {
         if (!IsInitialized())
         {
@@ -3616,7 +3721,7 @@ public sealed class OGEngineClient : IDisposable
         }
         _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
         {
-            await ApplyQuestProgressToActiveQuestAsync(gameSource, monstersKilledDelta, xpEarnedDelta, itemCollectedName, keysCollectedDelta, armor, health, weapons, powerups, ammo, genericItemPickup, levelTimeSeconds, ct).ConfigureAwait(false);
+            await ApplyQuestProgressToActiveQuestAsync(gameSource, monstersKilledDelta, xpEarnedDelta, itemCollectedName, keysCollectedDelta, armor, health, weapons, powerups, ammo, genericItemPickup, levelTimeSeconds, monsterKilledClassname, ct).ConfigureAwait(false);
             return Success(true, StarApiResultCode.Success, "");
         }, CancellationToken.None);
     }
@@ -5724,7 +5829,7 @@ public sealed class OGEngineClient : IDisposable
     private static StarQuestObjectiveDictionaries? ParseObjectiveDictionariesBody(JsonElement element)
     {
         if (element.ValueKind != JsonValueKind.Object) return null;
-        var names = new[] { "NeedToCollectArmor", "NeedToCollectAmmo", "NeedToCollectHealth", "NeedToCollectWeapons", "NeedToCollectPowerups", "NeedToCollectItems", "NeedToCollectKeys", "NeedToKillMonsters", "NeedToCompleteInMins", "NeedToEarnKarma", "NeedToEarnXP", "NeedToGoToGeoHotSpots", "NeedToCompleteLevel", "NeedToUseWeapons", "NeedToUsePowerups", "NeedToVisitLocations", "NeedToSurviveMins", "ArmorCollected", "AmmoCollected", "HealthCollected", "WeaponsCollected", "PowerupsCollected", "ItemsCollected", "KeysCollected", "MonstersKilled", "TimeStarted", "TimeEnded", "TimeTaken", "KarmaEarnt", "XPEarnt", "GeoHotSpotsArrived", "LevelsCompleted" };
+        var names = new[] { "NeedToCollectArmor", "NeedToCollectAmmo", "NeedToCollectHealth", "NeedToCollectWeapons", "NeedToCollectPowerups", "NeedToCollectItems", "NeedToCollectKeys", "NeedToKillMonsters", "NeedToKillMonstersByType", "NeedToCompleteInMins", "NeedToEarnKarma", "NeedToEarnXP", "NeedToGoToGeoHotSpots", "NeedToCompleteLevel", "NeedToUseWeapons", "NeedToUsePowerups", "NeedToVisitLocations", "NeedToSurviveMins", "ArmorCollected", "AmmoCollected", "HealthCollected", "WeaponsCollected", "PowerupsCollected", "ItemsCollected", "KeysCollected", "MonstersKilled", "MonstersKilledByType", "TimeStarted", "TimeEnded", "TimeTaken", "KarmaEarnt", "XPEarnt", "GeoHotSpotsArrived", "LevelsCompleted" };
         var dicts = new Dictionary<string, Dictionary<string, List<string>>>(StringComparer.OrdinalIgnoreCase);
         foreach (var name in names)
         {
@@ -5746,6 +5851,7 @@ public sealed class OGEngineClient : IDisposable
             NeedToCollectItems = dicts.GetValueOrDefault("NeedToCollectItems") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             NeedToCollectKeys = dicts.GetValueOrDefault("NeedToCollectKeys") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             NeedToKillMonsters = dicts.GetValueOrDefault("NeedToKillMonsters") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToKillMonstersByType = dicts.GetValueOrDefault("NeedToKillMonstersByType") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             NeedToCompleteInMins = dicts.GetValueOrDefault("NeedToCompleteInMins") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             NeedToEarnKarma = dicts.GetValueOrDefault("NeedToEarnKarma") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             NeedToEarnXP = dicts.GetValueOrDefault("NeedToEarnXP") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
@@ -5763,6 +5869,7 @@ public sealed class OGEngineClient : IDisposable
             ItemsCollected = dicts.GetValueOrDefault("ItemsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             KeysCollected = dicts.GetValueOrDefault("KeysCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             MonstersKilled = dicts.GetValueOrDefault("MonstersKilled") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            MonstersKilledByType = dicts.GetValueOrDefault("MonstersKilledByType") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             TimeStarted = dicts.GetValueOrDefault("TimeStarted") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             TimeEnded = dicts.GetValueOrDefault("TimeEnded") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
             TimeTaken = dicts.GetValueOrDefault("TimeTaken") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
@@ -5798,6 +5905,7 @@ public sealed class OGEngineClient : IDisposable
         WriteDict("NeedToCollectItems", dicts.NeedToCollectItems);
         WriteDict("NeedToCollectKeys", dicts.NeedToCollectKeys);
         WriteDict("NeedToKillMonsters", dicts.NeedToKillMonsters);
+        WriteDict("NeedToKillMonstersByType", dicts.NeedToKillMonstersByType);
         WriteDict("NeedToCompleteInMins", dicts.NeedToCompleteInMins);
         WriteDict("NeedToEarnKarma", dicts.NeedToEarnKarma);
         WriteDict("NeedToEarnXP", dicts.NeedToEarnXP);
@@ -5815,6 +5923,7 @@ public sealed class OGEngineClient : IDisposable
         WriteDict("ItemsCollected", dicts.ItemsCollected);
         WriteDict("KeysCollected", dicts.KeysCollected);
         WriteDict("MonstersKilled", dicts.MonstersKilled);
+        WriteDict("MonstersKilledByType", dicts.MonstersKilledByType);
         WriteDict("TimeStarted", dicts.TimeStarted);
         WriteDict("TimeEnded", dicts.TimeEnded);
         WriteDict("TimeTaken", dicts.TimeTaken);

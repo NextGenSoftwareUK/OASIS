@@ -131,6 +131,22 @@ static const char *picnum_to_name(int picnum) {
     return NULL;
 }
 
+static int name_to_picnum(const char *entity_id) {
+    const char *id = entity_id;
+    if (strncmp(id, "oduke3drt_", 10) == 0) id += 10;
+    else if (strncmp(id, "oduke3d_", 8) == 0) id += 8;
+    for (int i = 0; s_picnum_map[i].name; i++)
+        if (strcmp(id, s_picnum_map[i].name) == 0) return s_picnum_map[i].picnum;
+    return -1;
+}
+
+extern int32_t A_InsertSprite(int16_t whatsect, int32_t s_x, int32_t s_y, int32_t s_z,
+                               int16_t s_pn, int8_t s_shade, uint8_t s_xr, uint8_t s_yr,
+                               int16_t s_ang, int32_t s_xv, int32_t s_yv,
+                               int16_t s_owner, int32_t s_statnum);
+extern playerdata_t g_player[];
+extern int myconnectindex;
+
 /*===========================================================================
  * Internal helpers
  *=========================================================================*/
@@ -147,6 +163,23 @@ static void rt_log(const char *fmt, ...) {
 static void set_toast(const char *msg) {
     Bstrncpy(g_toast_msg, msg, sizeof(g_toast_msg) - 1);
     g_toast_ticks = ODUKE3DRT_TOAST_TICKS;
+}
+
+static int ODRT_ExtractJsonValue(const char *json, const char *key, char *out, int maxlen)
+{
+    char search[128];
+    const char *p;
+    int i;
+    snprintf(search, sizeof(search), "\"%s\"", key);
+    p = strstr(json, search);
+    if (!p) return 0;
+    p += strlen(search);
+    while (*p == ' ' || *p == ':') ++p;
+    if (*p != '"') return 0;
+    ++p;
+    for (i = 0; *p && *p != '"' && i < maxlen - 1; ++i) out[i] = *p++;
+    out[i] = '\0';
+    return i > 0;
 }
 
 static void close_all_popups(void) {
@@ -217,11 +250,62 @@ void ODuke3DRT_STAR_Tick(void) {
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-             * Map entity_id to native classname using OGAsset catalog lookup.
-             * For now, log the request. */
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            {
+                int pn = name_to_picnum(entity_id);
+                if (pn >= 0) {
+                    int16_t sect = (int16_t)g_player[myconnectindex].ps->cursectnum;
+                    A_InsertSprite(sect, (int32_t)sx, (int32_t)sy, (int32_t)sz,
+                                   (int16_t)pn, 0, 32, 32, 0, 0, 0, -1, 1);
+                    oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s (picnum %d) at %.0f/%.0f/%.0f", entity_id, pn, sx, sy, sz);
+                } else {
+                    oglib_log(OGLIB_LOG_WARN, "OASIS SpawnEvent: unknown entity '%s' — no Duke-RT picnum", entity_id);
+                }
+            }
             ogengine_confirm_spawn(entity_id);
+        }
+    }
+
+    /* --- cross-game event poll --- */
+    {
+        char evt_json[4096];
+        while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+        {
+            char evt_type[64] = "";
+            ODRT_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+            if (strcmp(evt_type, "ShowNarration") == 0) {
+                char narration[256] = "";
+                ODRT_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+                if (narration[0]) set_toast(narration);
+            } else if (strcmp(evt_type, "PlayAudio") == 0) {
+                char audio_title[128] = "", audio_url[256] = "";
+                ODRT_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+                ODRT_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
+                /* TODO: play audio via Duke-RT sound system */
+            } else if (strcmp(evt_type, "PlayVideo") == 0) {
+                char video_title[128] = "", video_url[256] = "";
+                ODRT_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+                ODRT_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+            } else if (strcmp(evt_type, "OpenWebsite") == 0) {
+                char website_url[256] = "";
+                ODRT_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+            } else if (strcmp(evt_type, "UnlockPortal") == 0) {
+                char portal_id[64] = "";
+                ODRT_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+                oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+            }
+        }
+    }
+
+    /* --- inventory grant poll --- */
+    {
+        char item_guid[64];
+        while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+        {
+            oglib_log(OGLIB_LOG_INFO, "OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
+            ogengine_get_inventory(NULL);
         }
     }
 
@@ -446,6 +530,14 @@ void ODuke3DRT_STAR_CheckIncomingTeleport(void)
     float x = 0, y = 0, z = 64;
     if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
         return;
-    /* TODO: ps[myconnectindex].pos = { x, y, z }; ps[myconnectindex].opos = ps[myconnectindex].pos; */
+    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+    {
+        DukePlayer_t *psp = g_player[myconnectindex].ps;
+        psp->pos.x = (int32_t)x;
+        psp->pos.y = (int32_t)y;
+        psp->pos.z = (int32_t)z;
+        psp->opos  = psp->pos;
+        psp->vel.x = psp->vel.y = psp->vel.z = 0;
+    }
     ogengine_confirm_teleport_arrival();
 }

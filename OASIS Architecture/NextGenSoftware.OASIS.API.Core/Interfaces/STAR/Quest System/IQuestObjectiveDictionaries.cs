@@ -18,6 +18,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IDictionary<string, IList<string>> NeedToCollectItems { get; set; }
         IDictionary<string, IList<string>> NeedToCollectKeys { get; set; }
         IDictionary<string, IList<string>> NeedToKillMonsters { get; set; }
+        /// <summary>Kill specific monster types. Value = ["classname:count", ...] e.g. ["cyberdemon:1", "cacodemon:3"].
+        /// Use NeedToKillMonsters for "kill N of any type". Use this to require specific types.</summary>
+        IDictionary<string, IList<string>> NeedToKillMonstersByType { get; set; }
         IDictionary<string, IList<string>> NeedToCompleteInMins { get; set; }
         IDictionary<string, IList<string>> NeedToEarnKarma { get; set; }
         IDictionary<string, IList<string>> NeedToEarnXP { get; set; }
@@ -38,6 +41,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IDictionary<string, IList<string>> ItemsCollected { get; set; }
         IDictionary<string, IList<string>> KeysCollected { get; set; }
         IDictionary<string, IList<string>> MonstersKilled { get; set; }
+        /// <summary>Per-type kill progress paired with NeedToKillMonstersByType. Value = ["classname:count", ...].</summary>
+        IDictionary<string, IList<string>> MonstersKilledByType { get; set; }
         IDictionary<string, IList<string>> TimeStarted { get; set; }
         IDictionary<string, IList<string>> TimeEnded { get; set; }
         IDictionary<string, IList<string>> TimeTaken { get; set; }

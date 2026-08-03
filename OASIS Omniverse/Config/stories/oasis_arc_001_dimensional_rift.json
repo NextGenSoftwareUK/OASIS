@@ -1,103 +1,170 @@
 {
   "_comment": "REFERENCE ONLY — Cross-game story arcs are Chapter → Mission → Quest → Objective in the OASIS hierarchy.",
   "_how_to_create": "POST /api/chapters/create → POST /api/missions/create → POST /api/quests/create → POST /api/quests/{id}/objectives",
+  "_event_types": {
+    "SpawnEntity": "Spawn EntityClassname (monster, item, NPC) at TargetGame/TargetMap. Use EntityCategory for HUD label.",
+    "UnlockPortal": "Activate portal PortalId in TargetGame/TargetMap.",
+    "ShowNarration": "Display NarrationText in TargetGame HUD overlay.",
+    "TeleportTo": "Trigger OmniverseKernel teleport to TargetGame/TargetMap.",
+    "PlayAudio": "Play AudioUrl clip in TargetGame (optional AudioTitle for HUD label).",
+    "PlayVideo": "Play VideoUrl as overlay or cutscene in TargetGame (optional VideoTitle).",
+    "OpenWebsite": "Open WebsiteUrl in the OASIS browser overlay."
+  },
   "_arc": {
     "Chapter": {
       "Name": "The Dimensional Rift",
-      "Description": "A cross-game story arc spanning ODOOM, OQUAKE, and OWOLF3D."
-    },
-    "Missions": [
-      {
-        "Name": "The Cyberdemon's Fall",
-        "GameSource": "ODOOM",
-        "Description": "Descend to E1M3 and slay the Cyberdemon. A dimensional key awaits.",
-        "Quests": [
-          {
-            "Name": "Slay the Cyberdemon",
-            "Objectives": [
-              {
-                "Order": 1,
-                "Title": "Kill the Cyberdemon",
-                "GameSource": "ODOOM",
-                "MapName": "E1M3",
-                "NeedToKillMonsters": { "ODOOM": ["1"] },
-                "CrossGameEventsOnComplete": [
-                  {
-                    "EventType": "UnlockPortal",
-                    "TargetGame": "OQUAKE",
-                    "TargetMap": "e2m3",
-                    "PortalId": "dimensional_rift_portal_001"
-                  },
-                  {
-                    "EventType": "ShowNarration",
-                    "TargetGame": "ODOOM",
-                    "NarrationText": "The demon's death tears a rift in space-time. A swirling portal of neon blue energy opens ahead..."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "Name": "The Rune of Passage",
-        "GameSource": "OQUAKE",
-        "Description": "Enter the rift and collect the Rune of Strength in e2m3.",
-        "Quests": [
-          {
-            "Name": "Collect the Rune",
-            "Objectives": [
-              {
-                "Order": 1,
-                "Title": "Collect the Rune of Strength",
-                "GameSource": "OQUAKE",
-                "MapName": "e2m3",
-                "NeedToCollectItems": { "OQUAKE": ["1"] },
-                "CrossGameEventsOnComplete": [
-                  {
-                    "EventType": "SpawnEntity",
-                    "TargetGame": "ODOOM",
-                    "TargetMap": "E1M3",
-                    "EntityClassname": "cacodemon",
-                    "SpawnCount": 3
-                  },
-                  {
-                    "EventType": "ShowNarration",
-                    "TargetGame": "OQUAKE",
-                    "NarrationText": "As you grasp the rune, three glowing eyes tear through the dimensional fabric behind you..."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "Name": "The Final Bunker",
-        "GameSource": "OWOLF3D",
-        "Description": "Storm the bunker on E1L8 and end the Reich.",
-        "Quests": [
-          {
-            "Name": "Defeat Hitler",
-            "Objectives": [
-              {
-                "Order": 1,
-                "Title": "Kill Hitler",
-                "GameSource": "OWOLF3D",
-                "MapName": "e1l8",
-                "NeedToKillMonsters": { "OWOLF3D": ["1"] },
-                "CrossGameEventsOnComplete": [
-                  {
-                    "EventType": "ShowNarration",
-                    "TargetGame": "OWOLF3D",
-                    "NarrationText": "The final echo of the Nazi stronghold fades. The rift closes. The OASIS is safe — for now."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
+      "Description": "A cross-game story arc spanning ODOOM, OQUAKE, and OWOLF3D.",
+      "Missions": [
+        {
+          "Name": "The Cyberdemon's Fall",
+          "GameSource": "ODOOM",
+          "Description": "Descend to E1M3 and slay the Cyberdemon. A dimensional key awaits.",
+          "Quests": [
+            {
+              "Name": "Slay the Cyberdemon",
+              "Objectives": [
+                {
+                  "Order": 1,
+                  "Title": "Kill the Cyberdemon",
+                  "GameSource": "ODOOM",
+                  "MapName": "E1M3",
+                  "NeedToKillMonstersByType": { "ODOOM": ["cyberdemon:1"] },
+                  "CrossGameEventsOnActivate": [
+                    {
+                      "EventType": "PlayAudio",
+                      "TargetGame": "ODOOM",
+                      "AudioUrl": "https://cdn.oasis.earth/audio/dimensional_rift/obj1_intro.ogg",
+                      "AudioTitle": "The Rift Awakens"
+                    },
+                    {
+                      "EventType": "ShowNarration",
+                      "TargetGame": "ODOOM",
+                      "NarrationText": "Somewhere in E1M3 lurks the Cyberdemon. Its death will open the dimensional rift..."
+                    }
+                  ],
+                  "CrossGameEventsOnComplete": [
+                    {
+                      "EventType": "UnlockPortal",
+                      "TargetGame": "OQUAKE",
+                      "TargetMap": "e2m3",
+                      "PortalId": "dimensional_rift_portal_001"
+                    },
+                    {
+                      "EventType": "ShowNarration",
+                      "TargetGame": "ODOOM",
+                      "NarrationText": "The demon's death tears a rift in space-time. A swirling portal of neon blue energy opens ahead..."
+                    }
+                  ],
+                  "CrossGameEventsOnGeoHotSpotTriggered": [
+                    {
+                      "EventType": "PlayAudio",
+                      "TargetGame": "ODOOM",
+                      "AudioUrl": "https://cdn.oasis.earth/audio/dimensional_rift/cyberdemon_lair_ambience.ogg",
+                      "AudioTitle": "Lair of the Cyberdemon"
+                    }
+                  ],
+                  "LinkedGeoHotSpotId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "RewardInventoryItemIds": ["f1e2d3c4-b5a6-7890-fedc-ba0987654321"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "The Rune of Passage",
+          "GameSource": "OQUAKE",
+          "Description": "Enter the rift and collect the Rune of Strength in e2m3.",
+          "Quests": [
+            {
+              "Name": "Collect the Rune",
+              "Objectives": [
+                {
+                  "Order": 1,
+                  "Title": "Collect the Rune of Strength",
+                  "GameSource": "OQUAKE",
+                  "MapName": "e2m3",
+                  "NeedToCollectItems": { "OQUAKE": ["1"] },
+                  "CrossGameEventsOnActivate": [
+                    {
+                      "EventType": "PlayVideo",
+                      "TargetGame": "OQUAKE",
+                      "VideoUrl": "https://cdn.oasis.earth/video/dimensional_rift/quake_rift_intro.mp4",
+                      "VideoTitle": "The Rift Opens"
+                    }
+                  ],
+                  "CrossGameEventsOnComplete": [
+                    {
+                      "EventType": "SpawnEntity",
+                      "TargetGame": "OQUAKE",
+                      "TargetMap": "e2m3",
+                      "EntityClassname": "monster_cacodemon",
+                      "EntityCategory": "Monster",
+                      "SpawnCount": 3
+                    },
+                    {
+                      "EventType": "SpawnEntity",
+                      "TargetGame": "OQUAKE",
+                      "TargetMap": "e2m3",
+                      "EntityClassname": "item_armorInv",
+                      "EntityCategory": "Item",
+                      "SpawnCount": 1
+                    },
+                    {
+                      "EventType": "ShowNarration",
+                      "TargetGame": "OQUAKE",
+                      "NarrationText": "As you grasp the rune, three glowing eyes tear through the dimensional fabric behind you..."
+                    }
+                  ],
+                  "RewardInventoryItemIds": ["c0ffee00-dead-beef-cafe-123456789abc"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Name": "The Final Bunker",
+          "GameSource": "OWOLF3D",
+          "Description": "Storm the bunker on E1L8 and end the Reich.",
+          "Quests": [
+            {
+              "Name": "Defeat Hitler",
+              "Objectives": [
+                {
+                  "Order": 1,
+                  "Title": "Kill Hitler",
+                  "GameSource": "OWOLF3D",
+                  "MapName": "e1l8",
+                  "NeedToKillMonstersByType": { "OWOLF3D": ["hitler:1"] },
+                  "CrossGameEventsOnActivate": [
+                    {
+                      "EventType": "PlayAudio",
+                      "TargetGame": "OWOLF3D",
+                      "AudioUrl": "https://cdn.oasis.earth/audio/dimensional_rift/final_bunker_intro.ogg",
+                      "AudioTitle": "The Final Bunker"
+                    }
+                  ],
+                  "CrossGameEventsOnComplete": [
+                    {
+                      "EventType": "ShowNarration",
+                      "TargetGame": "OWOLF3D",
+                      "NarrationText": "The final echo of the Nazi stronghold fades. The rift closes. The OASIS is safe — for now."
+                    },
+                    {
+                      "EventType": "OpenWebsite",
+                      "TargetGame": "OWOLF3D",
+                      "WebsiteUrl": "https://oasis.earth/dimensional-rift/epilogue"
+                    }
+                  ],
+                  "RewardInventoryItemIds": [
+                    "aaaabbbb-cccc-dddd-eeee-ffff00001111",
+                    "11112222-3333-4444-5555-666677778888"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 }

@@ -956,11 +956,53 @@ void OQuake2_STAR_PollItems(void) {
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-             * Map entity_id to native classname using OGAsset catalog lookup.
-             * For now, log the request. */
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            OQ2_StarLog("OASIS SpawnEvent: %s at %.0f/%.0f/%.0f (Q2 G_Spawn setup deferred)", entity_id, sx, sy, sz);
+            /* TODO: call G_Spawn() + set classname/origin fields + gi.linkentity() */
             ogengine_confirm_spawn(entity_id);
+        }
+    }
+
+    /* --- cross-game event poll --- */
+    {
+        char evt_json[4096];
+        while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+        {
+            char evt_type[64] = "";
+            OQ2_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+            if (strcmp(evt_type, "ShowNarration") == 0) {
+                char narration[256] = "";
+                OQ2_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+                if (narration[0]) OQ2_SetToastMessage(narration);
+            } else if (strcmp(evt_type, "PlayAudio") == 0) {
+                char audio_title[128] = "", audio_url[256] = "";
+                OQ2_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+                OQ2_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
+                OQ2_StarLog("OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
+                /* TODO: play audio via Yamagi Q2 sound system */
+            } else if (strcmp(evt_type, "PlayVideo") == 0) {
+                char video_title[128] = "", video_url[256] = "";
+                OQ2_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+                OQ2_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
+                OQ2_StarLog("OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+            } else if (strcmp(evt_type, "OpenWebsite") == 0) {
+                char website_url[256] = "";
+                OQ2_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+                OQ2_StarLog("OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+            } else if (strcmp(evt_type, "UnlockPortal") == 0) {
+                char portal_id[64] = "";
+                OQ2_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+                OQ2_StarLog("OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+            }
+        }
+    }
+
+    /* --- inventory grant poll --- */
+    {
+        char item_guid[64];
+        while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+        {
+            OQ2_StarLog("OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
+            ogengine_get_inventory(NULL);
         }
     }
 
@@ -1097,8 +1139,12 @@ void OQuake2_STAR_CheckIncomingTeleport(void)
     float x = 0, y = 0, z = 64;
     if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
         return;
-    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
-    /* TODO: warp player — e.g. gi.WriteByte(svc_stufftext); gi.WriteString("map <mapname>\n"); gi.unicast(player, true);
-     * For in-map position warp: set player->s.origin and call gi.linkentity(player) */
+    OQ2_StarLog("OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+    {
+        edict_t *player_ent = &g_edicts[1];
+        VectorSet(player_ent->s.origin, x, y, z);
+        VectorClear(player_ent->velocity);
+        gi.linkentity(player_ent);
+    }
     ogengine_confirm_teleport_arrival();
 }

@@ -54,12 +54,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public string MapName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Effects to fire in other games when this objective is completed.
-        /// Examples: spawn a Shambler in ODOOM/E1M3, unlock a portal in OQUAKE/e2m3, show narration in OWOLF3D.
-        /// </summary>
+        /// <summary>Events fired the moment this objective becomes active (intro audio, narration, spawn escort NPC, etc.).</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<CrossGameEvent> CrossGameEventsOnActivate { get; set; } = new List<CrossGameEvent>();
+
+        /// <summary>Effects to fire in other games when this objective is completed (spawn entities, unlock portals, narration, etc.).</summary>
         [CustomOASISProperty(StoreAsJsonString = true)]
         public List<CrossGameEvent> CrossGameEventsOnComplete { get; set; } = new List<CrossGameEvent>();
+
+        /// <summary>Events fired when the linked GeoHotSpot (LinkedGeoHotSpotId) is triggered — in-game zone or real-world Our World GPS.</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<CrossGameEvent> CrossGameEventsOnGeoHotSpotTriggered { get; set; } = new List<CrossGameEvent>();
+
+        /// <summary>InventoryItem Holon IDs granted to the avatar when this objective completes.</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<Guid> RewardInventoryItemIds { get; set; } = new List<Guid>();
 
         /// <summary>Computed progress text from Need* + progress dictionaries.</summary>
         [JsonPropertyName("ProgressSummary")]
@@ -99,6 +108,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> NeedToKillMonsters { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToKillMonstersByType { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> NeedToCompleteInMins { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> NeedToEarnKarma { get; set; } = new Dictionary<string, IList<string>>();
@@ -134,6 +145,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public IDictionary<string, IList<string>> KeysCollected { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> MonstersKilled { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> MonstersKilledByType { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> TimeStarted { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
@@ -184,6 +197,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
                 }
             }
 
+            // Per-type monster kills: NeedToKillMonstersByType["ODOOM"] = ["cyberdemon:1","cacodemon:3"]
+            void AddSpecificMonsterLines()
+            {
+                if (NeedToKillMonstersByType == null) return;
+                foreach (var kv in NeedToKillMonstersByType)
+                {
+                    var game = kv.Key;
+                    var reqEntries = kv.Value;
+                    if (reqEntries == null || reqEntries.Count == 0) continue;
+                    var killedByType = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                    if (MonstersKilledByType != null && MonstersKilledByType.TryGetValue(game, out var killedEntries) && killedEntries != null)
+                    {
+                        foreach (var entry in killedEntries)
+                        {
+                            var p = entry.Split(':');
+                            if (p.Length == 2 && int.TryParse(p[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var k))
+                                killedByType[p[0]] = k;
+                        }
+                    }
+                    foreach (var req in reqEntries)
+                    {
+                        var p = req.Split(':');
+                        if (p.Length != 2) continue;
+                        var classname = p[0];
+                        if (!int.TryParse(p[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var required) || required <= 0) continue;
+                        killedByType.TryGetValue(classname, out var current);
+                        var pct = Math.Min(100, (int)Math.Floor((double)current * 100 / required));
+                        phrases.Add($"Killed {current}/{required} {classname} in {game} ({pct}%)");
+                    }
+                }
+            }
+
             void AddKeyed(string verb, string nounPlural, IDictionary<string, IList<string>>? need, IDictionary<string, IList<string>>? progress)
             {
                 if (need == null) return;
@@ -202,6 +247,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             }
 
             AddMonsterLines();
+            AddSpecificMonsterLines();
             AddKeyed("Collected", "armor", NeedToCollectArmor, ArmorCollected);
             AddKeyed("Collected", "ammo", NeedToCollectAmmo, AmmoCollected);
             AddKeyed("Collected", "health", NeedToCollectHealth, HealthCollected);
@@ -299,6 +345,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             d.ItemsCollected = new Dictionary<string, IList<string>>();
             d.KeysCollected = new Dictionary<string, IList<string>>();
             d.MonstersKilled = new Dictionary<string, IList<string>>();
+            d.MonstersKilledByType = new Dictionary<string, IList<string>>();
             d.TimeStarted = new Dictionary<string, IList<string>>();
             d.TimeEnded = new Dictionary<string, IList<string>>();
             d.TimeTaken = new Dictionary<string, IList<string>>();
