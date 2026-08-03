@@ -4707,6 +4707,23 @@ public sealed class OGEngineClient : IDisposable
         }
     }
 
+    /// <summary>Write portal unlock signal to %TEMP%\oasis_portal_unlock_{portalId}.json for OGEditor/OmniverseKernel pickup.</summary>
+    public void NotifyPortalUnlock(string portalId)
+    {
+        try
+        {
+            var avatarId = GetCachedAvatarId() ?? "unknown";
+            var path = Path.Combine(Path.GetTempPath(), $"oasis_portal_unlock_{portalId}.json");
+            var json = $"{{\"portalId\":{JsonSerializer.Serialize(portalId)},\"avatarId\":{JsonSerializer.Serialize(avatarId)},\"unlockedAt\":{JsonSerializer.Serialize(DateTimeOffset.UtcNow.ToString("O"))}}}";
+            File.WriteAllText(path, json);
+            OGEngineExports.StarApiLogFileOnly($"[Portal] NotifyPortalUnlock: wrote {path} portalId={portalId}");
+        }
+        catch (Exception ex)
+        {
+            OGEngineExports.StarApiLogFileOnly($"[Portal] NotifyPortalUnlock error: {ex.Message}");
+        }
+    }
+
     /// <summary>Read and delete %TEMP%\oasis_teleport_arrive_{avatarId}.json. Returns true and fills out params if a pending request exists.</summary>
     public bool PollTeleportRequest(out string map, out float x, out float y, out float z)
     {

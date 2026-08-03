@@ -956,7 +956,9 @@ void OQuake3_STAR_PollItems(void)
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 OQ3_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
-                Q3_Com_Printf("[OQuake3-STAR] OASIS UnlockPortal: %s — portal unlock not yet implemented\n", portal_id);
+                ogengine_notify_portal_unlock(portal_id);
+                OQ3_SetToast("Portal unlocked!");
+                Q3_Com_Printf("[OQuake3-STAR] OASIS UnlockPortal: %s\n", portal_id);
             }
         }
     }

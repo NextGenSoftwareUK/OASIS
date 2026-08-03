@@ -186,6 +186,24 @@ void ogengine_set_callback(ogengine_callback_t callback, void* user_data);
 /** Optional: set callback with operation_type so game only reacts to profile-loaded. If set, profile refresh uses this; else uses ogengine_set_callback. */
 void ogengine_set_operation_callback(ogengine_operation_callback_t callback, void* user_data);
 
+/* Cross-game teleportation */
+int  ogengine_poll_teleport_request(char* out_map, size_t map_len, float* out_x, float* out_y, float* out_z);
+void ogengine_confirm_teleport_arrival(void);
+void ogengine_request_teleport(const char* target_game, const char* target_map, float x, float y, float z);
+
+/* Cross-game entity spawning */
+int  ogengine_poll_spawn_event(char* out_entity_id, size_t id_len, float* out_x, float* out_y, float* out_z);
+void ogengine_confirm_spawn(const char* entity_id);
+
+/* Cross-game event polling (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal) */
+int  ogengine_poll_cross_game_event(char* out_json, size_t json_len);
+
+/* Inventory grant polling */
+int  ogengine_poll_inventory_grant(char* out_guid, size_t guid_len);
+
+/* Portal unlock notification */
+void ogengine_notify_portal_unlock(const char* portal_id);
+
 #ifdef __cplusplus
 }
 #endif
