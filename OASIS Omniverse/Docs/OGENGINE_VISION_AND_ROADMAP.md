@@ -160,7 +160,7 @@ The OASIS Omniverse is not just the in-game layer — it is a complete creator +
 │  │  Public browse portal for OGames, quests, OGAsset metadata                      │  │
 │  │  Currently static HTML — to be upgraded to React + live STAR API queries        │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
-│                        ↕ ogengine.dll C ABI  /  ogeditor_api.dll C ABI              │
+│                        ↕ ogengine.dll C ABI  /  OGEditorClient.dll C ABI              │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  PLAYER LAYER — OGames + OASIS Kernel                                           │  │
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT   │  │
@@ -214,12 +214,12 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 | `OGMapSidecar.cs` | `oasis_{mapname}.json` reader/writer (portals + cross-game entities) |
 | `OGStarApiClient.cs` | HTTP client for STAR API (`/api/quests`, `/api/games`, `/api/portals`, …) |
 | `OGEntityMappings.cs` | Bidirectional classname ↔ OASIS thing type lookup (Q1/Q2/Q3/Duke/Wolf) |
-| `Native/ogeditor_api.h` | C ABI header — same pattern as `ogengine.h` |
-| `Native/NativeExports.cs` | NativeAOT [UnmanagedCallersOnly] exports → `ogeditor_api.dll` |
+| `Native/OGEditorClient.h` | C ABI header — same pattern as `ogengine.h` |
+| `Native/NativeExports.cs` | NativeAOT [UnmanagedCallersOnly] exports → `OGEditorClient.dll` |
 
 **Any editor can use it:**
 - **UDB** — references `OGEditorSDK.csproj` directly (already done)
-- **TrenchBroom (C++)** — `#include "ogeditor_api.h"`, `LoadLibrary("ogeditor_api.dll")`
+- **TrenchBroom (C++)** — `#include "OGEditorClient.h"`, `LoadLibrary("OGEditorClient.dll")`
 - **NetRadiant (C++)** — same pattern
 - **DarkRadiant (C++)** — same pattern
 - **Mapster32 (C)** — same pattern (C linkage via `extern "C"`)
@@ -507,9 +507,9 @@ A quest objective can trigger: "spawn a Cacodemon in the current Quake map" by p
 - [x] Improved Quake sprite extraction — `OQuakeMdlRenderer.cs` software rasterizer; `--render` flag in ExtractOquakeSprites
 - [x] STARNET Quest Builder embedded via WebView2 — `OGSTARNETQuestBuilderPanel.cs`; action `ogengine_show_starnet_builder`; NuGet `Microsoft.Web.WebView2` added to UDBScript.csproj
 - [x] **TrenchBroom/OQuakeEditor** — `OASIS_OQuake.fgd` (OQ1), `OASIS_OQuake2.fgd` (OQ2) and new `OASIS_OQuake3.fgd` (OQ3) in `C:\Source\OQuakeEditor`; all three GameConfig.cfg files updated to include OASIS FGDs
-- [x] **DarkRadiant/ODOOM3-Editor** — `plugins/dm.oasis/` plugin (`oasis.cpp` + `OASISPanel.cpp`) loads `ogeditor_api.dll` at startup and provides "OASIS OGEngine…" menu entry with 3-tab dialog: Asset Browser, Portal Placer, Quest Binder
-- [x] **NetRadiant** — `EditorIntegrations/NetRadiant/oasis_nr_plugin.c` implements classic `QERPlug_*` ABI and calls `ogeditor_api.dll` for asset listing, portal appending, and quest display
-- [x] **Mapster32** — `EditorIntegrations/Mapster32/oasis_m32_tool.c` standalone CLI tool registered as an external user tool in Mapster32; calls `ogeditor_api.dll` for asset catalog, portal sidecar, quest list, and map conversion
+- [x] **DarkRadiant/ODOOM3-Editor** — `plugins/dm.oasis/` plugin (`oasis.cpp` + `OASISPanel.cpp`) loads `OGEditorClient.dll` at startup and provides "OASIS OGEngine…" menu entry with 3-tab dialog: Asset Browser, Portal Placer, Quest Binder
+- [x] **NetRadiant** — `EditorIntegrations/NetRadiant/oasis_nr_plugin.c` implements classic `QERPlug_*` ABI and calls `OGEditorClient.dll` for asset listing, portal appending, and quest display
+- [x] **Mapster32** — `EditorIntegrations/Mapster32/oasis_m32_tool.c` standalone CLI tool registered as an external user tool in Mapster32; calls `OGEditorClient.dll` for asset catalog, portal sidecar, quest list, and map conversion
 
 The universal cross-game map editor — the tool that makes all of the above *creatable*.
 
@@ -536,8 +536,8 @@ The universal cross-game map editor — the tool that makes all of the above *cr
 
 | Criterion | UDB (C#/.NET) | TrenchBroom / DarkRadiant / NetRadiant / Mapster32 |
 |-----------|--------------|---------------------------------------------------|
-| OASIS integration | ✅ UDB plugin (C# `BuilderPlug`) — full panels, converters, portal editor | ✅ Via `ogeditor_api.dll` C ABI — any C/C++ editor calls `ogeditor_init`, `ogeditor_get_assets_json`, `ogeditor_append_portal`, etc. without .NET knowledge |
-| Language / stack | C#/.NET | C/C++ editors load `ogeditor_api.dll` via `LoadLibrary` — NativeAOT, no runtime dependency |
+| OASIS integration | ✅ UDB plugin (C# `BuilderPlug`) — full panels, converters, portal editor | ✅ Via `OGEditorClient.dll` C ABI — any C/C++ editor calls `ogeditor_init`, `ogeditor_get_assets_json`, `ogeditor_append_portal`, etc. without .NET knowledge |
+| Language / stack | C#/.NET | C/C++ editors load `OGEditorClient.dll` via `LoadLibrary` — NativeAOT, no runtime dependency |
 | Doom WAD editing | ✅ Native | ❌ Not supported (companion editors handle their own format) |
 | Plugin architecture | ✅ Rich C# `Plug` base class | Per-editor plugin model (TB game config, DR module, NR plugin, M32 CON script) |
 | Q-engine .map support | ✅ Via OASISMapConverter (import/export) | ✅ Native |
@@ -549,11 +549,11 @@ The universal cross-game map editor — the tool that makes all of the above *cr
 **Multi-editor strategy:**
 - **UDB** = primary OASIS host (Doom WAD maps — the most complex; also the import/export hub for all other formats)
 - **TrenchBroom** (`C:\Source\OQuakeEditor`) = companion for Q1/Q2/Q3 geometry editing; carries `OASIS_OQuake.fgd`, `OASIS_OQuake2.fgd`, `OASIS_OQuake3.fgd` ✅
-- **NetRadiant-custom** = companion for Q3 curve/patch editing; `oasis_nr_plugin.c` plugin via `ogeditor_api.dll` ✅
-- **Mapster32** (bundled with EDuke32) = companion for Duke3D BUILD maps; `oasis_m32_tool.exe` CLI companion via `ogeditor_api.dll` ✅
-- **DarkRadiant** (`C:\Source\ODOOM3-Editor`) = companion for Doom 3 maps; `plugins/dm.oasis/` module via `ogeditor_api.dll` ✅
+- **NetRadiant-custom** = companion for Q3 curve/patch editing; `oasis_nr_plugin.c` plugin via `OGEditorClient.dll` ✅
+- **Mapster32** (bundled with EDuke32) = companion for Duke3D BUILD maps; `oasis_m32_tool.exe` CLI companion via `OGEditorClient.dll` ✅
+- **DarkRadiant** (`C:\Source\ODOOM3-Editor`) = companion for Doom 3 maps; `plugins/dm.oasis/` module via `OGEditorClient.dll` ✅
 
-All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OASIS metadata is portable. All reach the STAR API through `ogeditor_api.dll` — no .NET knowledge required.
+All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OASIS metadata is portable. All reach the STAR API through `OGEditorClient.dll` — no .NET knowledge required.
 
 #### What is already built in UDB (as of 2026-08-01)
 
@@ -563,8 +563,8 @@ All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OAS
 | `OGEditorSDK/OGMapSidecar.cs` | ✅ Done | `oasis_{mapname}.json` reader/writer — SDK version usable by any editor |
 | `OGEditorSDK/OGStarApiClient.cs` | ✅ Done | HTTP client for STAR API (/api/quests, /api/games, /api/portals, …) |
 | `OGEditorSDK/OGEntityMappings.cs` | ✅ Done | Bidirectional classname ↔ OASIS thing type lookup (Q1/Q2/Q3/Duke/Wolf) |
-| `OGEditorSDK/Native/ogeditor_api.h` | ✅ Done | C ABI header for C++ editor plugins (same pattern as ogengine.h) |
-| `OGEditorSDK/Native/NativeExports.cs` | ✅ Done | NativeAOT exports → ogeditor_api.dll |
+| `OGEditorSDK/Native/OGEditorClient.h` | ✅ Done | C ABI header for C++ editor plugins (same pattern as ogengine.h) |
+| `OGEditorSDK/Native/NativeExports.cs` | ✅ Done | NativeAOT exports → OGEditorClient.dll |
 | `Plugins/UDBScript/Controls/OGEnginePanel.cs` | ✅ Done | Asset browser — live catalog from STAR API, falls back to OGAssetCatalog offline; category filter, config UI |
 | `Plugins/UDBScript/Controls/OGQuestWeaverPanel.cs` | ✅ Done | Quest Weaver — fetches quests from STAR API, binds objectives to sector/thing/linedef/script triggers |
 | `Plugins/UDBScript/Controls/OASISPortalPanel.cs` | ✅ Done | Portal placement UI — picks destination game/map/coords, writes sidecar on placement |
@@ -833,8 +833,8 @@ Source/OGEditorSDK/
   OGMapSidecar.cs           — oasis_{mapname}.json reader/writer (SDK version)
   OGStarApiClient.cs        — HTTP client for STAR API
   OGEntityMappings.cs       — Q1/Q2/Q3/Duke/Wolf classname ↔ OASIS thing type tables
-  Native/ogeditor_api.h     — C ABI header for C++ editor plugins
-  Native/NativeExports.cs   — NativeAOT [UnmanagedCallersOnly] → ogeditor_api.dll
+  Native/OGEditorClient.h     — C ABI header for C++ editor plugins
+  Native/NativeExports.cs   — NativeAOT [UnmanagedCallersOnly] → OGEditorClient.dll
 
 Source/Plugins/UDBScript/
   Controls/OGEnginePanel.cs    — Asset browser (uses OGAssetCatalog.ForGame() + category filter)
@@ -896,7 +896,7 @@ OASIS entities added to all companion editor format files:
 - `OASIS_OQuake.fgd` — OQ1 portals, silver/gold keys (TrenchBroom) ✅
 - `OASIS_OQuake2.fgd` — OQ2 portals, blue/red/commander's head keys (TrenchBroom) ✅
 - `OASIS_OQuake3.fgd` — OQ3 portals, quad/regen/haste tokens, XP anchors (TrenchBroom) ✅
-- DarkRadiant: dm.oasis plugin handles entity insertion programmatically via `ogeditor_api.dll` ✅
+- DarkRadiant: dm.oasis plugin handles entity insertion programmatically via `OGEditorClient.dll` ✅
 - NetRadiant / Mapster32: entity definitions included via `ogeditor_get_assets_json` response ✅
 
 ---

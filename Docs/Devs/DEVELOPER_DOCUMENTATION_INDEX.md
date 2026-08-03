@@ -1,4 +1,4 @@
-# OASIS & STARNET Developer Documentation Index
+﻿# OASIS & STARNET Developer Documentation Index
 
 ## 📋 **Complete Developer Documentation Guide**
 
@@ -6,10 +6,46 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 
 ## 🏗️ **Architecture Overview**
 
-### **Omniverse games (OQuake, ODOOM) + STAR**
-- **[STAR Quest System — Developer Guide](../../OASIS%20Omniverse/Docs/STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, STARAPIClient, `star_api_*`, extending games
-- **[STAR Games — User Guide](../../OASIS%20Omniverse/Docs/STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
-- **[ODOOM quest list + STAR](../../OASIS%20Omniverse/Docs/ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
+### **OASIS Omniverse — OGames, Hub & HUD**
+
+> All Omniverse-specific docs live under [`OASIS Omniverse/Docs/`](../../OASIS%20Omniverse/Docs/). The **[OASIS Omniverse README](../../OASIS%20Omniverse/README.md)** is the entry-point index for everything game-integration related. The **[OASIS Omniverse Developer Documentation Index](../../OASIS%20Omniverse/Docs/DEVELOPER_DOCUMENTATION_INDEX.md)** lists every doc in that folder.
+
+**Getting started & build**
+- **[Getting Started — Windows](../../OASIS%20Omniverse/Docs/GettingStarted_Windows.md)** — Prerequisites, clone, build all 10 OGames on Windows
+- **[Getting Started — Linux](../../OASIS%20Omniverse/Docs/GettingStarted_Linux.md)** — Linux build
+- **[Getting Started — macOS](../../OASIS%20Omniverse/Docs/GettingStarted_Mac.md)** — macOS build
+- **[Developer Onboarding](../../OASIS%20Omniverse/Docs/DEVELOPER_ONBOARDING.md)** — Repos, tools, build/run scripts, `oasisstar.json` quick ref
+- **[Quick Start](../../OASIS%20Omniverse/Docs/QUICKSTART.md)** — Minimal build + run checklist
+
+**Architecture & integration**
+- **[OGEngine Overview](../../OASIS%20Omniverse/Docs/OGEngine_Overview.md)** — WEB4/WEB5 APIs, OGEngineClient, GeoHotSpots, quest handoff
+- **[OGEngine Vision & Roadmap](../../OASIS%20Omniverse/Docs/OGENGINE_VISION_AND_ROADMAP.md)** — Phases, integration status for all 10 OGames, cross-game teleport/spawn/quest/GeoHotSpot progress
+- **[Architecture](../../OASIS%20Omniverse/Docs/ARCHITECTURE.md)** — Client-centric design, layers, porting checklist
+- **[Integration Guide](../../OASIS%20Omniverse/Docs/INTEGRATION_GUIDE.md)** — Cross-game items, quests, API usage, phases, troubleshooting
+- **[STAR Integration Audit](../../OASIS%20Omniverse/Docs/STAR_INTEGRATION_AUDIT.md)** — Integration audit (sync vs C implementation across all 10 games)
+- **[Cross-Game Powerup & Weapon Map](../../OASIS%20Omniverse/Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md)** — Canonical item IDs and cross-game mappings
+
+**Hub & HUD overlay (Unity)**
+- **[HUD User Guide](../../OASIS%20Omniverse/Docs/OMNIVERSE_HUD_USER_GUIDE.md)** — Player guide: all 9 Control Center tabs, hotkeys, preset system, toast notifications, runtime status strip, Return to Hub, Quest Tracker mini-HUD
+- **[HUD Developer Guide](../../OASIS%20Omniverse/Docs/OMNIVERSE_HUD_DEVELOPER_GUIDE.md)** — `SharedHudOverlay.cs` architecture, class relationships, tab data flow, toast system, panel layout persistence, Win32 hotkey detection, preset internals, extension guide
+
+**Quests & story**
+- **[STAR Quest System — Developer Guide](../../OASIS%20Omniverse/Docs/STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, OGEngineClient, `ogengine_*`, extending games
+- **[STAR Games — User Guide](../../OASIS%20Omniverse/Docs/STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for all 10 OGames
+- **[ODOOM Quest List + STAR](../../OASIS%20Omniverse/Docs/ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
+- **[Phase 2 Quest System](../../OASIS%20Omniverse/Docs/PHASE2_QUEST_SYSTEM.md)** — Quest system design
+
+**OGEngine Editor (UDB + companion editors)**
+- **[OGEditor Integration Roadmap](../../OASIS%20Omniverse/Docs/OGEDITOR_INTEGRATION_ROADMAP.md)** — Editor suite roadmap and status
+- **[OGEditor Plugin Guide](../../OASIS%20Omniverse/Docs/OGEDITOR_PLUGIN_GUIDE.md)** — Writing plugins for UDB, TrenchBroom, DarkRadiant, NetRadiant, Mapster32
+- **[OGEditor Portal System](../../OASIS%20Omniverse/Docs/OGEDITOR_PORTAL_SYSTEM.md)** — Portal entity placement, sidecar format, cross-game links
+- **[OGEditor Asset Catalog](../../OASIS%20Omniverse/Docs/OGEDITOR_ASSET_CATALOG.md)** — 140-asset cross-game catalog, `OGEditorClient.dll` C ABI
+- **[OGEditor Map Format SDK](../../OASIS%20Omniverse/Docs/OGEDITOR_MAPFORMAT_SDK.md)** — `oasis_{map}.json` sidecar format, bidirectional entity conversion
+
+**Native library & build**
+- **[ODOOM / UZDoom Build Sync](../../OASIS%20Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md)** — ODOOM build sync, copy step, `ogengine.dll` / `libstar_api.so` deploy
+- **[STAR API Native Transport Architecture](../../OASIS%20Omniverse/Docs/STAR_API_Native_Transport_Architecture.md)** — `star_transport` native vs remote, NativeAOT size/performance
+- **[Best Ports & Editors](../../OASIS%20Omniverse/Docs/BEST_PORTS_AND_EDITORS.md)** — Recommended engine forks and editor choices per OGame
 
 ### **System Architecture**
 - **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture (WEB4–WEB10)
