@@ -165,6 +165,18 @@ static void set_toast(const char *msg) {
     g_toast_ticks = ODUKE3DRT_TOAST_TICKS;
 }
 
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
+
 static int ODRT_ExtractJsonValue(const char *json, const char *key, char *out, int maxlen)
 {
     char search[128];
@@ -325,17 +337,21 @@ void ODuke3DRT_STAR_Tick(void) {
                 char audio_title[128] = "", audio_url[256] = "";
                 ODRT_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
                 ODRT_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
-                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
-                /* TODO: play audio via Duke-RT sound system */
+                oasis_open_url(audio_url);
+                if (audio_title[0]) set_toast(audio_title);
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s → %s", audio_title, audio_url);
             } else if (strcmp(evt_type, "PlayVideo") == 0) {
                 char video_title[128] = "", video_url[256] = "";
                 ODRT_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
                 ODRT_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
-                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+                oasis_open_url(video_url);
+                if (video_title[0]) set_toast(video_title);
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s → %s", video_title, video_url);
             } else if (strcmp(evt_type, "OpenWebsite") == 0) {
                 char website_url[256] = "";
                 ODRT_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
-                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+                oasis_open_url(website_url);
+                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s", website_url);
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 ODRT_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));

@@ -565,18 +565,21 @@ void D3Doom3_STAR_Tick(void) {
                 char audio_title[128] = "", audio_url[256] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
                 D3Doom3_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
-                StarLog("OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
-                /* TODO: play audio via idSoundSystem */
+                oasis_open_url(audio_url);
+                if (audio_title[0]) { snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", audio_title); g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES; }
+                StarLog("OASIS PlayAudio: %s → %s", audio_title, audio_url);
             } else if (strcmp(evt_type, "PlayVideo") == 0) {
                 char video_title[128] = "", video_url[256] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
                 D3Doom3_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
-                StarLog("OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
-                /* TODO: show video via idCinematic */
+                oasis_open_url(video_url);
+                if (video_title[0]) { snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", video_title); g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES; }
+                StarLog("OASIS PlayVideo: %s → %s", video_title, video_url);
             } else if (strcmp(evt_type, "OpenWebsite") == 0) {
                 char website_url[256] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
-                StarLog("OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+                oasis_open_url(website_url);
+                StarLog("OASIS OpenWebsite: %s", website_url);
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
@@ -685,6 +688,18 @@ static char g_d3doom3_toast_msg[128];
 static char g_d3doom3_inv_names[D3DOOM3_INV_MAX][64];
 static char g_d3doom3_quest_names[D3DOOM3_QUEST_MAX][64];
 static char g_d3doom3_quest_descs[D3DOOM3_QUEST_MAX][128];
+
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
 
 int         D3Doom3_STAR_IsBeamedIn(void)          { return g_d3doom3_client_ready ? 1 : 0; }
 const char* D3Doom3_STAR_GetUsername(void)          { return g_d3doom3_saved_username; }

@@ -1,6 +1,8 @@
 # OASIS Omniverse
 
-**OASIS Omniverse** is a suite of ten game integrations that bring classic first-person shooters into a shared cross-game universe powered by the **OASIS STAR API**. Keys, inventory, quests, XP, NFTs, avatars, and story arcs are shared across all games — collect a keycard in ODOOM, open a door in OQuake2; complete a quest in OWolf3D, spawn an enemy wave in ODuke3D.
+**OASIS Omniverse** is a unified cross-game metaverse powered by the **OASIS STAR API** — spanning every game genre, not just FPS. The name means exactly what it says: *every* game, *every* genre, *one* universe. Keys, inventory, quests, XP, NFTs, avatars, and story arcs flow freely between all OGames, regardless of what kind of game they are.
+
+We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The ten FPS integrations below are **Generation 1**. **Generation 2** is already planned: an MMORPG (Morrowind-style open world RPG) and a voxel sandbox (Minecraft-style). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
 
 **All Markdown guides live under [`Docs/`](Docs/). This README is the entry-point index; use the tables below to jump to what you need.**
 
@@ -20,6 +22,17 @@
 | **OQuake2** | Yamagi Q2 | `OQuake2/oquake2_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
 | **OQuake2-RTX** | Q2 RTX | `OQuake2-RTX/oquake2rtx_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
 | **OQuake3** | Quake3e | `OQuake3/oquake3_ogengine_integration.c` | ✅ `trap_LinkEntity` | ✅ `trap_SendConsoleCommand` |
+
+### Generation 2 — coming next
+
+| OGame | Genre | Base engine | Status |
+|-------|-------|-------------|--------|
+| **OMorrowind** | Open-world MMORPG / RPG | OpenMW (Morrowind clone) | 🔜 Planned |
+| **OMineClone** | Voxel sandbox | Minetest / MineClone2 | 🔜 Planned |
+
+### Generation 3 and beyond
+
+Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, survival, horror, fighting — the OGEngine integration pattern is game-engine-agnostic. Any game with an open-source base and a native C/C++ hook layer can become an OGame. The OASIS STAR API, OGEngineClient (`ogengine.dll`), OGLib, and the OGEngine Editor work the same way regardless of genre.
 
 ---
 
@@ -225,11 +238,19 @@ A **header-only C utility library** shared by all 10 games. Provides:
 
 ### OGEngine Editor
 
-A **UDB (Ultimate Doom Builder) plugin** that lets designers:
-- Browse the OASIS asset catalog (entities, weapons, monsters from all 10 games)
-- Place cross-game portal entities (`oasis_portal` / thing type 5900)
-- Author quests and objectives via the Quest Weaver panel
-- Link objectives to GeoHotSpots and cross-game events
+**Ultimate Doom Builder** is the primary host. Already built:
+
+| Tool | What it does |
+|------|-------------|
+| **OGEditorSDK** (`Source/OGEditorSDK/`) | .NET Standard 2.0 library — `OGAssetCatalog` (140-asset cross-game catalog), `OGMapSidecar` (`oasis_{map}.json` reader/writer), `OGStarApiClient` (live STAR API HTTP client), `OGEntityMappings` (classname ↔ OASIS thing-type bidirectional lookup). Also exports a C ABI (`ogeditor_api.h` / `ogeditor_api.dll`) so TrenchBroom, NetRadiant, DarkRadiant, and Mapster32 can call it too. |
+| **OGEngine Panel** | Live asset browser — pulls catalog from STAR API (`/api/oassets`), falls back to offline catalog; category filter; shows all 10 OGames |
+| **OASIS Portal Editor** | Drag-drop portal placement UI — picks target game, target map, spawn coords; writes to map sidecar on placement |
+| **Quest Weaver Panel** | Fetches quests from STAR API, lets you drag objectives onto sector/thing/linedef map triggers; saves objective↔trigger binding to sidecar |
+| **OASISMapConverter** | Bidirectional entity conversion: OQuake↔ODOOM, OQuake2↔ODOOM, OQuake3→ODOOM, ODuke3D→ODOOM |
+| **OASISMapSidecar** | Reads/writes `oasis_{mapname}.json` sidecar (portals, cross-game entities, objective triggers) |
+| **Companion launch** | UDB "Edit in native editor…" — opens TrenchBroom for Q1/Q2 maps, NetRadiant for Q3, DarkRadiant for Doom 3, Mapster32 for Duke3D; all companions share the same sidecar |
+| **Sprite extractor** | `Tools/ExtractOquakeSprites/` — extracts Quake MDL sprites from pak0 for UDB thing display |
+| **Entity definitions** | `oasis_entities.fgd` / `oasis_entities.def` — `oasis_portal`, `oasis_spawn`, `oasis_objective_trigger` for TrenchBroom/NetRadiant |
 
 ---
 
