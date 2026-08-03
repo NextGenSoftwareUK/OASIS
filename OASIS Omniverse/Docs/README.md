@@ -1,16 +1,17 @@
 ﻿# OASIS Omniverse — Documentation
 
-All Markdown guides for ODOOM, OQuake, and OGEngineClient in this repo live in **this folder** (`OASIS Omniverse/Docs/`). For a **complete index** (architecture, quests, build sync, links to `OGEngineClient/` and game READMEs), open the main **[OASIS Omniverse README](../README.md)** one level up.
+All Markdown guides for the ten OASIS Omniverse game integrations live in **this folder** (`OASIS Omniverse/Docs/`). For a **complete index** (architecture, quests, build sync, links to `OGEngineClient/` and all ten game READMEs), open the main **[OASIS Omniverse README](../README.md)** one level up.
 
 - **[OGEngine overview](OGEngine_Overview.md)** — WEB4 OASIS API, WEB5 STAR API, OGEngineClient, GeoHotSpot media types, quest handoff (CLI, OPortal, messaging, games).
+- **[OGEngine vision and roadmap](OGENGINE_VISION_AND_ROADMAP.md)** — phases, integration status for all 10 games, cross-game teleport/spawn/quest/GeoHotSpot progress.
 
-**Engine trees:** for `UZDOOM_SRC` and `VKQUAKE_SRC`, prefer the OASIS forks **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** and **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** (see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)) rather than only vanilla UZDoom/vkQuake.
+**Engine trees:** for each game, prefer the OASIS forks (see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)) rather than vanilla upstream, as forks already include the OASIS integration hooks.
 
-**ODOOM and OQuake support Windows, macOS, and Linux.** Use the guide for your OS below.
+**All ten games support Windows; Linux and macOS support depends on each engine's upstream OS support.** Use the guide for your OS below.
 
 ## Getting Started (by platform)
 
-Use the guide for your operating system to install prerequisites, clone repos, and build ODOOM, OQuake, and OGEngineClient:
+Use the guide for your operating system to install prerequisites, clone repos, and build any of the ten games:
 
 | Platform | Guide |
 |----------|--------|
@@ -22,8 +23,8 @@ Each guide includes:
 
 - Prerequisites and where to install them
 - Clone commands and folder layout
-- Building OGEngineClient, ODOOM, and OQuake
-- Running the games
+- Building OGEngineClient and all ten games
+- Running each game
 - Environment variables and custom paths
 - Troubleshooting
 

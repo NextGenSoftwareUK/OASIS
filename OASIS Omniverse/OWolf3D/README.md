@@ -2,8 +2,8 @@
 
 **OWolf3D** is a fork of [ECWolf](https://maniacsvault.net/ecwolf/) with the **OASIS STAR API** integrated,
 bringing Wolfenstein 3D into the cross-game OASIS Omniverse.
-Keys, inventory, XP, and quests are shared across all seven OASIS Omniverse games:
-**ODOOM**, **OQuake**, **ODOOM3**, **ODOOM3-BFG**, **ODuke3D**, **ODuke3D-RT**, and **OWolf3D**.
+Keys, inventory, XP, and quests are shared across all ten OASIS Omniverse games:
+**ODOOM**, **OQuake**, **ODOOM3**, **ODOOM3-BFG**, **ODuke3D**, **ODuke3D-RT**, **OWolf3D**, **OQuake2**, **OQuake2-RTX**, and **OQuake3**.
 
 Engine: ECWolf (extended Wolf3D source port — GPL-2.0, supports Wolf3D, Spear of Destiny, Noah's Ark)
 
@@ -61,8 +61,8 @@ Wolf3D keys can unlock doors in any other OASIS Omniverse game, and vice versa:
 ```
 ECWolf (C++, src/)
       │
-      │  7 hook calls  (actor.cpp, a_inventory.cpp, a_keys.cpp,
-      │                  wolf_sbar.cpp, wl_main.cpp, wl_game.cpp, wl_play.cpp)
+      │  hook calls  (actor.cpp, a_inventory.cpp, a_keys.cpp,
+      │               wolf_sbar.cpp, wl_main.cpp, wl_game.cpp, wl_play.cpp)
       ▼
 owolf3d_ogengine_integration.cpp   ← delta file (OASIS Omniverse/OWolf3D/)
       │
