@@ -204,13 +204,52 @@ static void close_all_popups(void) {
 }
 
 static void refresh_inventory(void) {
+    ogengine_item_list_t *list = NULL;
+    int i;
     g_inv_count = 0;
-    /* TODO: call ogengine_sync_get_inventory(&items, &count) once star_sync exposes it */
+    if (ogengine_get_inventory(&list) != OGENGINE_SUCCESS || !list) return;
+    for (i = 0; i < (int)list->count && i < ODUKE3D_INV_MAX; i++)
+        Bstrncpy(g_inv_names[i], list->items[i].name, sizeof(g_inv_names[i]) - 1);
+    g_inv_count = (int)list->count < ODUKE3D_INV_MAX ? (int)list->count : ODUKE3D_INV_MAX;
+    ogengine_free_item_list(list);
 }
 
 static void refresh_quests(void) {
+    static char qbuf[16384];
+    const char *p, *eol, *end;
+    int n;
     g_quest_count = 0;
-    /* TODO: call ogengine_sync_get_quests(&quests, &count) once star_sync exposes it */
+    n = ogengine_get_quests_string(qbuf, sizeof(qbuf));
+    if (n <= 0 || qbuf[0] == '\0') return;
+    qbuf[n < (int)sizeof(qbuf) ? n : (int)sizeof(qbuf) - 1] = '\0';
+    p = qbuf; end = qbuf + n;
+    while (p < end && g_quest_count < ODUKE3D_QUEST_MAX) {
+        eol = (const char *)memchr(p, '\n', (size_t)(end - p));
+        if (!eol) eol = end;
+        /* Line format: Q\t<id>\t<name>\t<desc>\t... */
+        if (eol - p >= 2 && p[0] == 'Q' && p[1] == '\t') {
+            const char *f  = p + 2;
+            const char *t1 = (const char *)memchr(f, '\t', (size_t)(eol - f));
+            if (t1) {
+                const char *f2 = t1 + 1;
+                const char *t2 = (const char *)memchr(f2, '\t', (size_t)(eol - f2));
+                int nlen = t2 ? (int)(t2 - f2) : (int)(eol - f2);
+                if (nlen > 63) nlen = 63;
+                Bstrncpy(g_quest_names[g_quest_count], f2, nlen);
+                g_quest_names[g_quest_count][nlen] = '\0';
+                if (t2 && t2 + 1 < eol) {
+                    const char *f3 = t2 + 1;
+                    const char *t3 = (const char *)memchr(f3, '\t', (size_t)(eol - f3));
+                    int dlen = t3 ? (int)(t3 - f3) : (int)(eol - f3);
+                    if (dlen > 127) dlen = 127;
+                    Bstrncpy(g_quest_descs[g_quest_count], f3, dlen);
+                    g_quest_descs[g_quest_count][dlen] = '\0';
+                }
+                g_quest_count++;
+            }
+        }
+        p = eol + 1;
+    }
 }
 
 /*===========================================================================

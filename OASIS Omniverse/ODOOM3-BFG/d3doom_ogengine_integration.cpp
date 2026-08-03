@@ -698,7 +698,16 @@ void D3Doom_STAR_ToggleInventoryPopup(void) {
     if (g_d3doom_inv_popup_open) {
         g_d3doom_quest_popup_open = false;
         g_d3doom_inv_selected = 0;
-        g_d3doom_inv_count = 0;   /* TODO: call ogengine_get_inventory */
+        g_d3doom_inv_count = 0;
+        ogengine_item_list_t *list = nullptr;
+        if (ogengine_get_inventory(&list) == OGENGINE_SUCCESS && list) {
+            for (int i = 0; i < (int)list->count && i < D3DOOM_INV_MAX; i++)
+                snprintf(g_d3doom_inv_names[i], sizeof(g_d3doom_inv_names[i]),
+                         "%s", list->items[i].name);
+            g_d3doom_inv_count = (int)list->count < D3DOOM_INV_MAX
+                                  ? (int)list->count : D3DOOM_INV_MAX;
+            ogengine_free_item_list(list);
+        }
     }
 }
 
@@ -707,7 +716,39 @@ void D3Doom_STAR_ToggleQuestPopup(void) {
     if (g_d3doom_quest_popup_open) {
         g_d3doom_inv_popup_open = false;
         g_d3doom_quest_selected = 0;
-        g_d3doom_quest_count = 0; /* TODO: call ogengine_get_quests */
+        g_d3doom_quest_count = 0;
+        static char qbuf[16384];
+        int n = ogengine_get_quests_string(qbuf, sizeof(qbuf));
+        if (n > 0) {
+            qbuf[n < (int)sizeof(qbuf) ? n : (int)sizeof(qbuf) - 1] = '\0';
+            const char *p = qbuf, *end = qbuf + n;
+            while (p < end && g_d3doom_quest_count < D3DOOM_QUEST_MAX) {
+                const char *eol = (const char *)memchr(p, '\n', (size_t)(end - p));
+                if (!eol) eol = end;
+                if (eol - p >= 2 && p[0] == 'Q' && p[1] == '\t') {
+                    const char *f  = p + 2;
+                    const char *t1 = (const char *)memchr(f, '\t', (size_t)(eol - f));
+                    if (t1) {
+                        const char *f2 = t1 + 1;
+                        const char *t2 = (const char *)memchr(f2, '\t', (size_t)(eol - f2));
+                        int nlen = t2 ? (int)(t2 - f2) : (int)(eol - f2);
+                        if (nlen > 63) nlen = 63;
+                        snprintf(g_d3doom_quest_names[g_d3doom_quest_count],
+                                 sizeof(g_d3doom_quest_names[0]), "%.*s", nlen, f2);
+                        if (t2 && t2 + 1 < eol) {
+                            const char *f3 = t2 + 1;
+                            const char *t3 = (const char *)memchr(f3, '\t', (size_t)(eol - f3));
+                            int dlen = t3 ? (int)(t3 - f3) : (int)(eol - f3);
+                            if (dlen > 127) dlen = 127;
+                            snprintf(g_d3doom_quest_descs[g_d3doom_quest_count],
+                                     sizeof(g_d3doom_quest_descs[0]), "%.*s", dlen, f3);
+                        }
+                        g_d3doom_quest_count++;
+                    }
+                }
+                p = eol + 1;
+            }
+        }
     }
 }
 
