@@ -6,18 +6,48 @@
 
 ## 1. The Vision
 
-The OASIS Omniverse is not a collection of separate games with a shared leaderboard. It is **one infinite, borderless world** where:
+The OASIS Omniverse is not a collection of separate games with a shared leaderboard. It is **one infinite, borderless universe spanning every game genre** — the real-life Ready Player One.
+
+> *"The OASIS was the most important thing in the world — a virtual utopia where you could go anywhere, be anyone, do anything." — Ready Player One*
+
+The name **Omniverse** is intentional. This is not an FPS metaverse. It is **every kind of game, unified**:
+
+### What it is today — Generation 1 (FPS)
+
+We started where 3D gaming began. The ten Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3.
+
+In the Gen-1 universe:
 
 - Every OGame is a **region** of the same universe, not a silo.
 - You can **walk through a portal in a Doom map and appear in a Quake 2 level**.
 - A **Quake Shambler can spawn into a Duke Nukem 3D episode**. A Cacodemon can hunt you in Wolfenstein 3D.
 - A **gold key found in Wolf3D opens a door in Doom**. An ammo crate picked up in Quake restocks your shotgun in Duke3D.
 - **Quests weave across all games** — start a mission in Doom, collect an artefact in Quake 3, deliver it in Quake 2, complete it in Wolf3D.
-- The **OASIS HUD** — a neon-blue Steam/Xbox-style overlay — works identically in every OGame. Press `I` anywhere, in any game, and your shared OASIS inventory, quests, avatar, NFTs, and clan appear.
-- The **OASIS HUB** is a 3D space station from which portals lead to any game, any map, any level.
-- The **OGEngine Editor** lets you place assets, monsters, weapons, ammo, and portals from ANY game into ANY map.
 
-This is the same vision as **Ready Player One**'s OASIS: a single continuous experience where the rules, assets, and story of one world bleed into the next.
+### What it becomes — Generation 2 and beyond (all genres)
+
+| Generation | Games | Genres |
+|------------|-------|--------|
+| Gen 1 (now) | 10 FPS OGames | First-person shooter |
+| Gen 2 (next) | OMorrowind (OpenMW), OMineClone (Minetest) | Open-world MMORPG, voxel sandbox |
+| Gen 3+ (future) | Strategy, racing, platformers, survival, fighting, flight sims, horror… | All genres |
+
+In the Gen-2+ universe, everything learned from FPS cross-game integration scales up:
+
+- **Step through a Doom portal and arrive in Morrowind's Vvardenfell.** The same `ogengine_request_teleport` / `ogengine_poll_teleport_request` API works regardless of engine.
+- **A sword found in Morrowind appears in your OASIS inventory.** The same `ogengine_add_item` / `ogengine_get_inventory` ABI handles RPG items, crafting materials, vehicles, pets — any item type.
+- **A Minecraft chest contains OASIS cross-game loot.** The voxel world is just another OGame region in the shared universe.
+- **Quests span genres** — kill a dragon in OMorrowind, build a fortress in OMineClone, collect a rune in ODOOM, deliver it to OQuake3.
+- **The OASIS HUB** connects to all of it — portals to every game, every genre, every world.
+
+### The unchanging core — across every genre
+
+- The **OASIS HUD** — a neon-blue Steam/Xbox-style overlay — works identically in every OGame, regardless of genre. Press `I` anywhere, in any game, and your shared OASIS inventory, quests, avatar, NFTs, karma, and clan appear.
+- The **OASIS HUB** is a 3D space station from which portals lead to any game, any map, any level, any genre.
+- The **OGEngine Editor** lets you place assets, portals, and quest triggers from ANY game into ANY map, regardless of engine or genre.
+- The **OGEngine integration pattern** (C hook layer → `ogengine.dll` C ABI → OGEngineClient → STAR API) is game-engine-agnostic. Any open-source game with a native C/C++ hook layer becomes an OGame.
+
+This is **Ready Player One's OASIS** — a single continuous experience where the rules, assets, economy, and story of one world bleed into every other.
 
 ---
 
@@ -133,8 +163,10 @@ The OASIS Omniverse is not just the in-game layer — it is a complete creator +
 │                        ↕ ogengine.dll C ABI  /  ogeditor_api.dll C ABI              │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  PLAYER LAYER — OGames + OASIS Kernel                                           │  │
-│  │  ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT • OWolf3D       │  │
-│  │  OQuake2 • OQuake2-RTX • OQuake3                                               │  │
+│  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT   │  │
+│  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                       │  │
+│  │  Gen 2 (next): OMorrowind (OpenMW) • OMineClone (Minetest)                   │  │
+│  │  Gen 3+: strategy • racing • platformers • survival • fighting • …             │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -229,9 +261,11 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
 │                        ↕ native C game hooks                                                │
 │  ┌──────────────────────────────────────────────────────────────────────────────────────┐   │
-│  │  LAYER 1: OGames (C/C++ native processes)                                            │   │
-│  │  ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT • OWolf3D             │   │
-│  │  OQuake2 • OQuake2-RTX • OQuake3  (each with *_ogengine_integration.c/cpp)              │   │
+│  │  LAYER 1: OGames (native processes — C/C++, any engine)                              │   │
+│  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT         │   │
+│  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                            │   │
+│  │  Gen 2: OMorrowind (OpenMW) • OMineClone (Minetest)  [planned]                     │   │
+│  │  Gen 3+: any open-source game with a C/C++ hook layer  [extensible]                │   │
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                             │
 │  OGEngine Editor — standalone tool, edits maps for all Layer 1 games                       │
@@ -373,8 +407,8 @@ These entities are placed via the **OGEngine Editor** (see §4.4).
 - [x] **ODOOM3 / ODOOM3-BFG:** `cmdSystem->BufferCommandText(CMD_EXEC_APPEND, "spawn …\n")`
 - [x] **ODuke3D / ODuke3D-RT:** `A_InsertSprite` with `name_to_picnum` lookup; monster catalog in `oasis_star_assets.json`
 - [x] **OQuake3:** `trap_SendConsoleCommand(EXEC_APPEND, "spawn <classname>\n")`
-- [ ] **OWolf3D:** ECWolf `Actor::Spawn` deferred — API not accessible from integration layer
-- [ ] **OQuake2 / OQuake2-RTX:** `G_Spawn()` deferred — complex entity initialization
+- [x] **OWolf3D:** `ClassDef::FindClass(FName)` + `Actor::Spawn(cls, fx, fy, spot, nodir, false)` — ECWolf DECORATE class lookup
+- [x] **OQuake2 / OQuake2-RTX:** `G_Spawn()` + `ED_CallSpawn(ent)` + `gi.linkentity(ent)` — auto-dispatches to `SP_*` per classname
 - [ ] Test: Quake Shambler spawning in ODOOM map (pending builds)
 
 This is the "Doom monsters spawn in Quake, Wolf3D enemies appear in Duke3D" feature — and the "any item/weapon/ammo from any game can be picked up anywhere" feature.
@@ -633,8 +667,8 @@ Action items:
 - [x] `OGEngineExports.ogengine_poll_cross_game_event` — native export; game polls per-frame, receives JSON for ShowNarration / PlayAudio / PlayVideo / OpenWebsite / UnlockPortal
 - [x] `OGEngineExports.ogengine_poll_inventory_grant` — native export; game polls per-frame, receives GUID string and triggers `ogengine_get_inventory`
 - [x] Reference arc `Config/stories/oasis_arc_001_dimensional_rift.json` updated to show correct Chapter/Mission/Quest/Objective structure with `NeedToKillMonstersByType` and `CrossGameEventsOnActivate`
-- [ ] `GeoHotSpotType.Text/Audio` narration delivery (still pending per-game — per-game delivery in queue)
-- [ ] PlayAudio / PlayVideo / OpenWebsite — game-side audio streaming and video overlay (logged + toasted now; full playback is per-game future work)
+- [~] `GeoHotSpotType.Text/Audio` narration delivery — `ShowNarration` cross-game event IS delivered as a toast in all 10 game integrations via `ogengine_poll_cross_game_event`; full in-world scrolling-text panel + audio playback per game is future work
+- [x] PlayAudio / PlayVideo / OpenWebsite — `oasis_open_url()` implemented in all 10 games; opens URL in OS default handler (`start` / `open` / `xdg-open`); title shown as in-game toast; richer in-engine playback is future work
 - [ ] STARNET web Quest Builder integration (optional)
 
 **What's needed:**
@@ -750,8 +784,8 @@ Architecture mirrors existing ports:
 - [x] **ODOOM3 / ODOOM3-BFG spawn:** `cmdSystem->BufferCommandText(CMD_EXEC_APPEND, "spawn <classname>\n")` — idTech4 console command
 - [x] **ODuke3D / ODuke3D-RT spawn:** `A_InsertSprite(sect, x, y, z, picnum, ...)` — entity_id mapped to tile picnum via static lookup table (`name_to_picnum`); monster catalog added to `oasis_star_assets.json`
 - [x] **OQuake3 spawn:** `trap_SendConsoleCommand(EXEC_APPEND, "spawn <classname>\n")` — implemented (runtime testing pending)
-- [ ] **OWolf3D spawn:** ECWolf `Actor::Spawn` — deferred (ECWolf runtime spawn API not yet accessible from integration layer)
-- [ ] **OQuake2 / OQuake2-RTX spawn:** `G_Spawn()` + field setup + `gi.linkentity()` — deferred (complex entity initialization)
+- [x] **OWolf3D spawn:** `ClassDef::FindClass(FName(wolf_id))` + `Actor::Spawn(cls, fx, fy, spot, nodir, false)` — ECWolf DECORATE class lookup + spawn
+- [x] **OQuake2 / OQuake2-RTX spawn:** `G_Spawn()` + set `classname`/`origin`/`angles` + `ED_CallSpawn(ent)` + `gi.linkentity(ent)` — dispatches to per-type `SP_monster_*` automatically
 - [ ] Test: Quake Shambler spawning in ODOOM map
 
 ### Phase 4 — OGEngine Editor (MVP) — UDB-based ✅ foundation done
@@ -767,7 +801,7 @@ Architecture mirrors existing ports:
 ### Phase 5 — Quest Weaver + Infinite Story
 - [x] Story arc JSON schema (`Config/stories/*.json`) + STAR API endpoints (`/api/stories`)
 - [x] First cross-game story arc: `oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
-- [ ] `GeoHotSpotType.Text/Audio` narration delivery in each game integration
+- [~] `GeoHotSpotType.Text/Audio` narration delivery — toast delivered in all 10 games; full scrolling-text panel + audio playback is future work
 - [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional)
 
 ### Phase 6 — Native HUD Polish

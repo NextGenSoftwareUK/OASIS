@@ -13,6 +13,10 @@
 #include "id_in.h"          /* Keyboard[], SDLK_*, sc_Escape, sc_UpArrow, sc_DownArrow */
 #include "wl_def.h"         /* SCREENWIDTH / SCREENHEIGHT via v_video.h */
 #include "zstring.h"        /* FString */
+#include "actor.h"          /* Actor::Spawn, ClassDef */
+#include "classdef.h"       /* ClassDef::FindClass, FName */
+
+extern Map *map;            /* ECWolf current level — defined in id_ca.cpp */
 
 /* ── OASIS STAR API ─────────────────────────────────────────────────────── */
 #define OGLIB_JSON_IMPL
@@ -147,6 +151,19 @@ static void show_toast(const char *msg)
     g_toast_ticks = TOAST_DURATION;
 }
 
+/* ── OS media/URL launch ─────────────────────────────────────────────────── */
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
+
 /* ── JSON helper (minimal key:"value" extractor) ─────────────────────────── */
 static int OWolf3D_ExtractJsonValue(const char *json, const char *key, char *out, int maxlen)
 {
@@ -215,8 +232,22 @@ void OWolf3D_STAR_Tick(void)
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f (ECWolf runtime spawn not yet implemented)", entity_id, sx, sy, sz);
-            /* TODO: spawn entity via ECWolf Actor::Spawn or ACS scripting once API is accessible from integration layer */
+            const char *wolf_id = entity_id;
+            if (strncmp(wolf_id, "owolf3d_", 8) == 0) wolf_id += 8;
+            const ClassDef *cls = ClassDef::FindClass(FName(wolf_id));
+            if (cls && map) {
+                unsigned tx = (sx > 0.0f) ? (unsigned)sx : 0u;
+                unsigned ty = (sy > 0.0f) ? (unsigned)sy : 0u;
+                if (tx >= (unsigned)map->GetWidth())  tx = map->GetWidth()  > 0 ? (unsigned)map->GetWidth()  - 1u : 0u;
+                if (ty >= (unsigned)map->GetHeight()) ty = map->GetHeight() > 0 ? (unsigned)map->GetHeight() - 1u : 0u;
+                MapSpot spot = map->GetSpot(tx, ty, 0);
+                fixed fx = (fixed)((int)sx << FRACBITS);
+                fixed fy = (fixed)((int)sy << FRACBITS);
+                Actor::Spawn(cls, fx, fy, spot, nodir, false);
+                oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: spawned '%s' in ECWolf", entity_id);
+            } else {
+                oglib_log(OGLIB_LOG_WARN, "OASIS SpawnEvent: ECWolf ClassDef '%s' not found", wolf_id);
+            }
             ogengine_confirm_spawn(entity_id);
         }
     }
@@ -238,20 +269,22 @@ void OWolf3D_STAR_Tick(void)
                 char audio_url[256]   = "";
                 OWolf3D_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
                 OWolf3D_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
-                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
-                /* TODO: play audio via ECWolf sound system */
+                oasis_open_url(audio_url);
+                if (audio_title[0]) show_toast(audio_title);
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s → %s", audio_title, audio_url);
             } else if (strcmp(evt_type, "PlayVideo") == 0) {
                 char video_title[128] = "";
                 char video_url[256]   = "";
                 OWolf3D_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
                 OWolf3D_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
-                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
-                /* TODO: show video overlay via external launcher */
+                oasis_open_url(video_url);
+                if (video_title[0]) show_toast(video_title);
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s → %s", video_title, video_url);
             } else if (strcmp(evt_type, "OpenWebsite") == 0) {
                 char website_url[256] = "";
                 OWolf3D_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
-                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
-                /* TODO: open browser overlay via OGEditor portal */
+                oasis_open_url(website_url);
+                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s", website_url);
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 OWolf3D_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));

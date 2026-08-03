@@ -1090,6 +1090,18 @@ static void OQ_SetToastMessage(const char* msg) {
     g_oq_toast_frames = OQ_TOAST_FRAMES_DEFAULT;
 }
 
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
+
 static void OQ_UseHealth_f(void) {
     const char* toast_msg = NULL;
     OQ_StarDebugLog("UseHealth (C key): invoked");
@@ -4213,22 +4225,22 @@ void OQuake_STAR_PollItems(void) {
             {
                 OQ_ExtractJsonValue(evt_json, "AudioUrl", audio_url, sizeof(audio_url));
                 OQ_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
-                /* TODO: play audio_url via OASIS browser overlay or a streaming audio channel. */
-                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s)", audio_url, audio_title);
+                oasis_open_url(audio_url);
                 if (audio_title[0]) OQ_SetToastMessage(audio_title);
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s -> %s", audio_title, audio_url);
             }
             else if (strcmp(evt_type, "PlayVideo") == 0)
             {
                 OQ_ExtractJsonValue(evt_json, "VideoUrl", video_url, sizeof(video_url));
                 OQ_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
-                /* TODO: play video_url as a fullscreen or HUD overlay via OASIS video layer. */
-                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s)", video_url, video_title);
+                oasis_open_url(video_url);
                 if (video_title[0]) OQ_SetToastMessage(video_title);
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s -> %s", video_title, video_url);
             }
             else if (strcmp(evt_type, "OpenWebsite") == 0)
             {
                 OQ_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
-                /* TODO: open website_url in the OASIS browser overlay. */
+                oasis_open_url(website_url);
                 oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s", website_url);
             }
             else if (strcmp(evt_type, "UnlockPortal") == 0)
