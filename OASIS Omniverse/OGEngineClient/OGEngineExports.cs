@@ -20,6 +20,11 @@ public static unsafe class OGEngineExports
     private static string? _lastBackgroundError;
     private static readonly ConcurrentQueue<string> _consoleLogQueue = new();
     private const int MaxConsoleLogMessages = 64;
+    /// <summary>Pending cross-game events from quest progress/start responses (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal). Consumed by ogengine_poll_cross_game_event.</summary>
+    private static readonly ConcurrentQueue<string> _pendingCrossGameEvents = new();
+    private const int MaxPendingCrossGameEvents = 64;
+    /// <summary>Pending inventory item GUIDs to grant the avatar on objective/quest completion. Consumed by ogengine_poll_inventory_grant.</summary>
+    private static readonly ConcurrentQueue<string> _pendingInventoryGrants = new();
     /// <summary>Cap UTF-8 size for queued console lines so ogengine_consume_console_log never hits GetBytes buffer-too-small (native crash).</summary>
     private const int MaxConsoleLogUtf8Bytes = 1536;
     /// <summary>Per-line cap for ogengine.log (file only). Large enough for API bodies; avoids multi-megabyte single-line OOM.</summary>
@@ -71,6 +76,21 @@ public static unsafe class OGEngineExports
     public static string? TryConsumeConsoleLog()
     {
         return _consoleLogQueue.TryDequeue(out var msg) ? msg : null;
+    }
+
+    /// <summary>Enqueue a cross-game event JSON for ogengine_poll_cross_game_event. Called by OGEngineClient when progress/start returns events.</summary>
+    internal static void EnqueueCrossGameEvent(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return;
+        while (_pendingCrossGameEvents.Count >= MaxPendingCrossGameEvents && _pendingCrossGameEvents.TryDequeue(out _)) { }
+        _pendingCrossGameEvents.Enqueue(json);
+    }
+
+    /// <summary>Enqueue an inventory item GUID for ogengine_poll_inventory_grant. Called by OGEngineClient when progress/start returns InventoryItemsToGrant.</summary>
+    internal static void EnqueueInventoryGrant(string itemGuid)
+    {
+        if (string.IsNullOrWhiteSpace(itemGuid)) return;
+        _pendingInventoryGrants.Enqueue(itemGuid);
     }
 
     static OGEngineExports()
@@ -1922,6 +1942,53 @@ public static unsafe class OGEngineExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Spawn] ogengine_confirm_spawn exception: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /* ── Cross-game objective events (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal) ─── */
+
+    /// <summary>
+    /// Poll for the next pending cross-game event from quest progress (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal).
+    /// Returns 1 and writes event JSON to out_json if available; returns 0 otherwise.
+    /// SpawnEntity and TeleportTo are routed to their dedicated exports (ogengine_poll_spawn_event / ogengine_poll_teleport_request) — not here.
+    /// JSON keys: EventType, TargetGame, TargetMap, NarrationText, AudioUrl, AudioTitle, VideoUrl, VideoTitle, WebsiteUrl, PortalId.
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_poll_cross_game_event", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiPollCrossGameEvent(sbyte* outJson, nuint bufLen)
+    {
+        try
+        {
+            if (outJson == null || bufLen == 0) return 0;
+            if (!_pendingCrossGameEvents.TryDequeue(out var json) || string.IsNullOrEmpty(json)) return 0;
+            WriteUtf8ToOutput(json, outJson, (int)Math.Min(bufLen, (nuint)int.MaxValue));
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[CrossGameEvent] ogengine_poll_cross_game_event exception: {ex.Message}"); } catch { /* ignore */ }
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// Poll for the next inventory item GUID to grant the avatar (from objective/quest completion RewardInventoryItemIds).
+    /// Returns 1 and writes the GUID string to out_guid if available; returns 0 otherwise.
+    /// Call ogengine_get_inventory after granting to refresh the local inventory display.
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_poll_inventory_grant", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiPollInventoryGrant(sbyte* outGuid, nuint bufLen)
+    {
+        try
+        {
+            if (outGuid == null || bufLen == 0) return 0;
+            if (!_pendingInventoryGrants.TryDequeue(out var guid) || string.IsNullOrEmpty(guid)) return 0;
+            WriteUtf8ToOutput(guid, outGuid, (int)Math.Min(bufLen, (nuint)int.MaxValue));
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[CrossGameEvent] ogengine_poll_inventory_grant exception: {ex.Message}"); } catch { /* ignore */ }
+            return 0;
         }
     }
 

@@ -970,6 +970,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        /// <summary>
+        /// Returns the CrossGameEventsOnActivate of the first (lowest Order) incomplete objective on a quest.
+        /// Call this immediately after StartQuestAsync to fire the opening events for the quest's first objective
+        /// (intro audio, narration, spawn escort NPC, etc.).
+        /// Returns an empty list when the quest has no objectives or the first objective has no activate events.
+        /// </summary>
+        public async Task<OASISResult<List<CrossGameEvent>>> GetFirstObjectiveActivationEventsAsync(Guid avatarId, Guid questId)
+        {
+            var result = new OASISResult<List<CrossGameEvent>> { Result = new List<CrossGameEvent>() };
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error in GetFirstObjectiveActivationEventsAsync: quest not found. Reason: {questResult.Message}");
+                    return result;
+                }
+                var first = questResult.Result.Objectives?
+                    .Where(o => !o.IsCompleted)
+                    .OrderBy(o => o.Order).ThenBy(o => o.Id)
+                    .FirstOrDefault();
+                if (first?.CrossGameEventsOnActivate?.Count > 0)
+                    result.Result = first.CrossGameEventsOnActivate;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in GetFirstObjectiveActivationEventsAsync: {ex.Message}");
+            }
+            return result;
+        }
+
         /// <summary>Incomplete objectives in apply order: <paramref name="activeObjectiveId"/> first if present on the quest, then by <see cref="Objective.Order"/> and Id. Same ordering intent as STAR client <c>MergeQuestProgressIntoLocalCache</c>.</summary>
         private static IEnumerable<Objective> OrderIncompleteObjectivesForProgress(IList<Objective>? objectives, Guid? activeObjectiveId)
         {
@@ -1026,6 +1057,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (quest.Objectives == null)
                     quest.Objectives = new List<Objective>();
                 int completedThisRound = 0;
+                var eventsToDispatch = new List<CrossGameEvent>();
+                var itemsToGrant = new List<Guid>();
                 /* Match STAR client MergeQuestProgressIntoLocalCache: process every incomplete objective (active first when
                    ActiveObjectiveId is set). Each objective only absorbs deltas that match its Need* rows — e.g. kills on
                    the kill objective, health pickups on the health objective. Applying to active only dropped health/armor/etc.
@@ -1044,7 +1077,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         objective.CompletedAt = DateTime.UtcNow;
                         objective.CompletedBy = avatarId;
                         completedThisRound++;
+                        // Collect on-complete cross-game events and inventory rewards
+                        if (objective.CrossGameEventsOnComplete?.Count > 0)
+                            eventsToDispatch.AddRange(objective.CrossGameEventsOnComplete);
+                        if (objective.RewardInventoryItemIds?.Count > 0)
+                            itemsToGrant.AddRange(objective.RewardInventoryItemIds);
                     }
+                }
+                // If any objectives completed this round, the next one in Order is now active — fire its OnActivate events
+                if (completedThisRound > 0)
+                {
+                    var nextActive = quest.Objectives
+                        .Where(o => !o.IsCompleted)
+                        .OrderBy(o => o.Order).ThenBy(o => o.Id)
+                        .FirstOrDefault();
+                    if (nextActive?.CrossGameEventsOnActivate?.Count > 0)
+                        eventsToDispatch.AddRange(nextActive.CrossGameEventsOnActivate);
                 }
                 var allDone = quest.Objectives.Count > 0 && quest.Objectives.All(x => x.IsCompleted);
                 if (allDone)
@@ -1055,6 +1103,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
                     quest.MetaData["Status"] = quest.Status.ToString();
                     result.Result.QuestCompleted = true;
+                    // Quest-level inventory rewards granted when all objectives are done
+                    if (quest.RewardInventoryItemIds?.Count > 0)
+                        itemsToGrant.AddRange(quest.RewardInventoryItemIds);
                 }
                 else
                 {
@@ -1075,6 +1126,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
                 result.Result.ObjectivesCompleted = completedThisRound;
                 result.Result.PercentComplete = pct;
+                result.Result.CrossGameEventsToDispatch = eventsToDispatch;
+                result.Result.InventoryItemsToGrant = itemsToGrant;
                 result.Result.Message = allDone ? "Quest completed." : $"Progress updated ({pct}% complete).";
                 result.IsError = false;
             }
@@ -1164,6 +1217,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
             foreach (var kv in o.NeedToKillMonsters ?? new Dictionary<string, IList<string>>())
                 AddPair(o.NeedToKillMonsters, o.MonstersKilled, kv.Key);
+            // Per-type kill contribution: score each classname:count requirement independently
+            foreach (var kv in o.NeedToKillMonstersByType ?? new Dictionary<string, IList<string>>())
+            {
+                var reqs = kv.Value;
+                if (reqs == null) continue;
+                var killedByType = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                if (o.MonstersKilledByType != null && o.MonstersKilledByType.TryGetValue(kv.Key, out var kList) && kList != null)
+                {
+                    foreach (var e in kList) { var p = e.Split(':'); if (p.Length == 2 && int.TryParse(p[1], out var k)) killedByType[p[0]] = k; }
+                }
+                foreach (var req in reqs)
+                {
+                    var rp = req.Split(':');
+                    if (rp.Length != 2 || !int.TryParse(rp[1], out var needed) || needed <= 0) continue;
+                    killedByType.TryGetValue(rp[0], out var got);
+                    scores.Add((int)System.Math.Min(99, 100 * got / needed));
+                }
+            }
             foreach (var kv in o.NeedToEarnXP ?? new Dictionary<string, IList<string>>())
                 AddPair(o.NeedToEarnXP, o.XPEarnt, kv.Key);
             foreach (var kv in o.NeedToCollectItems ?? new Dictionary<string, IList<string>>())
@@ -1217,6 +1288,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             var mk = ResolveDictGameKey(o.NeedToKillMonsters, gs);
             if (d.MonstersKilledDelta != 0 && mk != null)
                 AddDictInt(o.MonstersKilled, mk, d.MonstersKilledDelta);
+            // Per-type kill: update MonstersKilledByType when MonsterKilledClassname is specified and required by this objective
+            if (!string.IsNullOrWhiteSpace(d.MonsterKilledClassname))
+            {
+                var btKey = ResolveDictGameKey(o.NeedToKillMonstersByType, gs);
+                if (btKey != null && o.NeedToKillMonstersByType.TryGetValue(btKey, out var reqs) && reqs != null)
+                {
+                    var classname = d.MonsterKilledClassname.Trim();
+                    var isRequired = reqs.Any(r => { var p = r.Split(':'); return p.Length == 2 && string.Equals(p[0], classname, StringComparison.OrdinalIgnoreCase); });
+                    if (isRequired)
+                        AddOrIncrementTypedKill(o.MonstersKilledByType, btKey, classname);
+                }
+            }
             var xpk = ResolveDictGameKey(o.NeedToEarnXP, gs);
             if (d.XpEarnedDelta != 0 && xpk != null)
                 AddDictInt(o.XPEarnt, xpk, d.XpEarnedDelta);
@@ -1262,6 +1345,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             if (string.IsNullOrWhiteSpace(gs)) gs = "ODOOM";
             if (o.NeedToKillMonsters != null && o.NeedToKillMonsters.Count > 0 && ResolveDictGameKey(o.NeedToKillMonsters, gs) != null) return true;
+            if (o.NeedToKillMonstersByType != null && o.NeedToKillMonstersByType.Count > 0 && ResolveDictGameKey(o.NeedToKillMonstersByType, gs) != null) return true;
             if (o.NeedToEarnXP != null && o.NeedToEarnXP.Count > 0 && ResolveDictGameKey(o.NeedToEarnXP, gs) != null) return true;
             if (o.NeedToCollectKeys != null && o.NeedToCollectKeys.Count > 0 && ResolveDictGameKey(o.NeedToCollectKeys, gs) != null) return true;
             if (o.NeedToCollectArmor != null && o.NeedToCollectArmor.Count > 0 && ResolveDictGameKey(o.NeedToCollectArmor, gs) != null) return true;
@@ -1299,6 +1383,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 return GetDictInt(o.ItemsCollected, key) >= items.Count;
             }
             if (!OkNeed(o.NeedToKillMonsters, o.MonstersKilled)) return false;
+            // Per-type kill check: every classname:count requirement must be met
+            bool OkKillsByType()
+            {
+                if (o.NeedToKillMonstersByType == null || o.NeedToKillMonstersByType.Count == 0) return true;
+                var key = ResolveDictGameKey(o.NeedToKillMonstersByType, gs);
+                if (key == null) return false;
+                if (!o.NeedToKillMonstersByType.TryGetValue(key, out var reqs) || reqs == null || reqs.Count == 0) return true;
+                var killed = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                if (o.MonstersKilledByType != null && o.MonstersKilledByType.TryGetValue(key, out var kList) && kList != null)
+                {
+                    foreach (var e in kList) { var p = e.Split(':'); if (p.Length == 2 && int.TryParse(p[1], out var k)) killed[p[0]] = k; }
+                }
+                foreach (var req in reqs)
+                {
+                    var p = req.Split(':');
+                    if (p.Length != 2 || !int.TryParse(p[1], out var needed) || needed <= 0) continue;
+                    killed.TryGetValue(p[0], out var got);
+                    if (got < needed) return false;
+                }
+                return true;
+            }
+            if (!OkKillsByType()) return false;
             if (!OkNeed(o.NeedToEarnXP, o.XPEarnt)) return false;
             if (!OkNeed(o.NeedToCollectKeys, o.KeysCollected)) return false;
             if (!OkNeed(o.NeedToCollectArmor, o.ArmorCollected)) return false;
@@ -1332,6 +1438,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             if (d == null) return;
             d[key] = new List<string> { value.ToString() };
+        }
+
+        /// <summary>Increment the kill count for a specific monster classname in a MonstersKilledByType dictionary entry (format "classname:count").</summary>
+        private static void AddOrIncrementTypedKill(IDictionary<string, IList<string>> dict, string gameKey, string classname)
+        {
+            if (dict == null) return;
+            if (!dict.TryGetValue(gameKey, out var list) || list == null)
+                dict[gameKey] = list = new List<string>();
+            for (int i = 0; i < list.Count; i++)
+            {
+                var p = list[i].Split(':');
+                if (p.Length == 2 && string.Equals(p[0], classname, StringComparison.OrdinalIgnoreCase))
+                {
+                    var cur = int.TryParse(p[1], out var n) ? n : 0;
+                    list[i] = $"{p[0]}:{cur + 1}";
+                    return;
+                }
+            }
+            list.Add($"{classname}:1");
         }
 
         /// <summary>
@@ -1877,6 +2002,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>Optional profile active objective; when set, that incomplete objective is updated before others (then Order, Id). Omit when the caller does not specify one.</summary>
         public Guid? ActiveObjectiveId { get; set; }
         public int MonstersKilledDelta { get; set; }
+        /// <summary>Classname of the specific monster killed (e.g. "cyberdemon", "cacodemon"). When set, matched against NeedToKillMonstersByType requirements. Leave empty when classname is unknown (falls back to NeedToKillMonsters any-type tracking).</summary>
+        public string MonsterKilledClassname { get; set; }
         public int XpEarnedDelta { get; set; }
         public int KeysCollectedDelta { get; set; }
         public int ArmorCollectedDelta { get; set; }
@@ -1889,12 +2016,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public int? LevelTimeSeconds { get; set; }
     }
 
-    /// <summary>Result of applying quest progress (percent complete, quest finished).</summary>
+    /// <summary>Result of applying quest progress (percent complete, quest finished, events to dispatch, items to grant).</summary>
     public class QuestProgressApplyResult
     {
         public bool QuestCompleted { get; set; }
         public int ObjectivesCompleted { get; set; }
         public int PercentComplete { get; set; }
         public string Message { get; set; }
+        /// <summary>
+        /// CrossGameEvents the caller should dispatch immediately after receiving this result.
+        /// Populated from CrossGameEventsOnComplete (objectives that completed this round) and
+        /// CrossGameEventsOnActivate (the next objective that is now active).
+        /// The API controller or game-side client is responsible for actually dispatching these
+        /// (e.g. via OGEngineClient, or returning them in the response for the game to poll).
+        /// </summary>
+        public List<CrossGameEvent> CrossGameEventsToDispatch { get; set; } = new List<CrossGameEvent>();
+        /// <summary>
+        /// InventoryItem Holon IDs to grant to the avatar for objectives and quests completed in this update.
+        /// The API controller should call InventoryItemManager.GrantAsync (or equivalent) for each ID.
+        /// </summary>
+        public List<Guid> InventoryItemsToGrant { get; set; } = new List<Guid>();
     }
 }

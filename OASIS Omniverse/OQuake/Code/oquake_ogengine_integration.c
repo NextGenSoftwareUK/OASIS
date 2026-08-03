@@ -4149,14 +4149,105 @@ void OQuake_STAR_PollItems(void) {
     /* --- cross-game spawn poll --- */
     {
         char entity_id[128];
+        char entity_category[64];
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-             * Map entity_id to native classname using OGAsset catalog lookup.
-             * For now, log the request. */
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            /* entity_id is the native Quake classname (e.g. "monster_cacodemon"). Spawn near the player when coords are zero. */
+            extern server_t sv;
+            extern edict_t *sv_player;
+            if (sv.active && sv_player != NULL && entity_id[0])
+            {
+                edict_t *ent = ED_Alloc();
+                if (ent)
+                {
+                    float ox = (sx == 0.0f && sy == 0.0f) ? sv_player->v.origin[0] : sx;
+                    float oy = (sx == 0.0f && sy == 0.0f) ? sv_player->v.origin[1] : sy;
+                    float oz = (sx == 0.0f && sy == 0.0f) ? sv_player->v.origin[2] + 64.0f : sz;
+                    ent->v.classname = PR_SetEngineString(entity_id);
+                    ent->v.origin[0] = ox; ent->v.origin[1] = oy; ent->v.origin[2] = oz;
+                    /* Locate and call the QC spawn function for this classname. */
+                    dfunction_t *f = ED_FindFunction(entity_id);
+                    if (f)
+                    {
+                        pr_global_struct->self = EDICT_TO_PROG(ent);
+                        PR_ExecuteProgram(f - pr_functions);
+                    }
+                    SV_LinkEdict(ent, false);
+                    oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: spawned %s at %.0f/%.0f/%.0f", entity_id, ox, oy, oz);
+                }
+                else
+                {
+                    oglib_log(OGLIB_LOG_WARN, "OASIS SpawnEvent: ED_Alloc failed for %s", entity_id);
+                }
+            }
+            else
+            {
+                oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s (server not active — deferred)", entity_id);
+            }
             ogengine_confirm_spawn(entity_id);
+        }
+    }
+
+    /* --- cross-game objective event poll (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal) --- */
+    {
+        char evt_json[4096];
+        while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+        {
+            char evt_type[64] = "";
+            char narration[512] = "";
+            char audio_url[512] = "";
+            char audio_title[128] = "";
+            char video_url[512] = "";
+            char video_title[128] = "";
+            char website_url[512] = "";
+            char portal_id[128] = "";
+            OQ_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+            if (strcmp(evt_type, "ShowNarration") == 0)
+            {
+                OQ_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+                if (narration[0]) OQ_SetToastMessage(narration);
+                oglib_log(OGLIB_LOG_INFO, "OASIS Narration: %s", narration);
+            }
+            else if (strcmp(evt_type, "PlayAudio") == 0)
+            {
+                OQ_ExtractJsonValue(evt_json, "AudioUrl", audio_url, sizeof(audio_url));
+                OQ_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+                /* TODO: play audio_url via OASIS browser overlay or a streaming audio channel. */
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s)", audio_url, audio_title);
+                if (audio_title[0]) OQ_SetToastMessage(audio_title);
+            }
+            else if (strcmp(evt_type, "PlayVideo") == 0)
+            {
+                OQ_ExtractJsonValue(evt_json, "VideoUrl", video_url, sizeof(video_url));
+                OQ_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+                /* TODO: play video_url as a fullscreen or HUD overlay via OASIS video layer. */
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s)", video_url, video_title);
+                if (video_title[0]) OQ_SetToastMessage(video_title);
+            }
+            else if (strcmp(evt_type, "OpenWebsite") == 0)
+            {
+                OQ_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+                /* TODO: open website_url in the OASIS browser overlay. */
+                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s", website_url);
+            }
+            else if (strcmp(evt_type, "UnlockPortal") == 0)
+            {
+                OQ_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+                /* TODO: unlock portal portal_id via OGEditor portal system when integrated. */
+                oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s", portal_id);
+            }
+        }
+    }
+
+    /* --- inventory grant poll (objective/quest completion rewards) --- */
+    {
+        char item_guid[64];
+        while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+        {
+            oglib_log(OGLIB_LOG_INFO, "OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
+            /* Trigger inventory cache refresh so the new item appears in the HUD. */
+            ogengine_get_inventory(NULL); /* NULL: fire-and-forget refresh using existing callback. */
         }
     }
 
@@ -6955,6 +7046,12 @@ void OQuake_STAR_CheckIncomingTeleport(void)
     float x = 0, y = 0, z = 64;
     if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
         return;
-    /* TODO: VectorCopy(origin, sv.edicts[1].v.origin); SV_LinkEdict(sv.edicts[1], false); */
+    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+    {
+        edict_t *pl = EDICT_NUM(1);
+        pl->v.origin[0] = x; pl->v.origin[1] = y; pl->v.origin[2] = z;
+        pl->v.velocity[0] = pl->v.velocity[1] = pl->v.velocity[2] = 0;
+        SV_LinkEdict(pl, false);
+    }
     ogengine_confirm_teleport_arrival();
 }

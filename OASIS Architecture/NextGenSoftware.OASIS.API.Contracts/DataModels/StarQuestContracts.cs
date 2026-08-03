@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Contracts
         public Dictionary<string, List<string>> NeedToCollectItems { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> NeedToCollectKeys { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> NeedToKillMonsters { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>Per-type kill requirements. Value entries are "classname:count" pairs, e.g. ["cyberdemon:1","cacodemon:3"].</summary>
+        public Dictionary<string, List<string>> NeedToKillMonstersByType { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> NeedToCompleteInMins { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> NeedToEarnKarma { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> NeedToEarnXP { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -34,6 +36,8 @@ namespace NextGenSoftware.OASIS.API.Contracts
         public Dictionary<string, List<string>> ItemsCollected { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> KeysCollected { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> MonstersKilled { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>Per-type kill progress. Value entries are "classname:count" pairs tracking kills against NeedToKillMonstersByType.</summary>
+        public Dictionary<string, List<string>> MonstersKilledByType { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> TimeStarted { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> TimeEnded { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> TimeTaken { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);

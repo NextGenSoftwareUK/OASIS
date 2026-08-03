@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public QuestDifficulty Difficulty { get; set; }
         public long RewardKarma { get; set; }
         public long RewardXP { get; set; }
+        /// <summary>InventoryItem Holon IDs granted to the avatar when this quest/mission/chapter completes.</summary>
+        List<Guid> RewardInventoryItemIds { get; set; }
         public List<string> Requirements { get; set; }
         /// <summary>Game (e.g. Doom, Quake) this quest/objective applies to. Used when quest is a sub-quest/objective.</summary>
         public string GameSource { get; set; }

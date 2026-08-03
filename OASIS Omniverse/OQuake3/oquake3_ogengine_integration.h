@@ -224,7 +224,8 @@ const char* OQuake3_STAR_GetUsername(void);
  * Cross-game teleportation
  * ------------------------------------------------------------------------- */
 
-/** Call at map load. Polls for incoming teleport from OmniverseKernel; warp call is TODO. */
+/** Call at map load. Polls for an incoming teleport from OmniverseKernel.
+ *  Warps the player to the target position via g_entities[0].client->ps.origin + trap_LinkEntity. */
 void OQuake3_STAR_CheckIncomingTeleport(void);
 
 /* -------------------------------------------------------------------------

@@ -115,6 +115,22 @@ static idCVar d3doom_star_consume_key_on_door(
  * Logging helpers
  *===========================================================================*/
 
+static int D3Doom_ExtractJsonValue(const char* json, const char* key, char* out, int maxlen)
+{
+    char search[128];
+    snprintf(search, sizeof(search), "\"%s\"", key);
+    const char* p = strstr(json, search);
+    if (!p) return 0;
+    p += strlen(search);
+    while (*p == ' ' || *p == ':') ++p;
+    if (*p != '"') return 0;
+    ++p;
+    int i = 0;
+    while (*p && *p != '"' && i < maxlen - 1) out[i++] = *p++;
+    out[i] = '\0';
+    return i > 0;
+}
+
 static void StarLog(const char* fmt, ...) {
     char buf[1024];
     va_list ap;
@@ -515,11 +531,60 @@ void D3Doom_STAR_Tick(void) {
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-             * Map entity_id to native classname using OGAsset catalog lookup.
-             * For now, log the request. */
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            StarLog("OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            char spawn_cmd[256];
+            snprintf(spawn_cmd, sizeof(spawn_cmd), "spawn %s\n", entity_id);
+            cmdSystem->BufferCommandText(CMD_EXEC_APPEND, spawn_cmd);
             ogengine_confirm_spawn(entity_id);
+        }
+    }
+
+    /* --- cross-game event poll --- */
+    {
+        char evt_json[4096];
+        while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+        {
+            char evt_type[64] = "";
+            D3Doom_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+            if (strcmp(evt_type, "ShowNarration") == 0) {
+                char narration[128] = "";
+                D3Doom_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+                if (narration[0]) {
+                    snprintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "%s", narration);
+                    g_d3doom_toast_frames = D3DOOM_TOAST_FRAMES;
+                }
+            } else if (strcmp(evt_type, "PlayAudio") == 0) {
+                char audio_title[128] = "", audio_url[256] = "";
+                D3Doom_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+                D3Doom_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
+                StarLog("OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
+                /* TODO: play audio via idSoundSystem */
+            } else if (strcmp(evt_type, "PlayVideo") == 0) {
+                char video_title[128] = "", video_url[256] = "";
+                D3Doom_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+                D3Doom_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
+                StarLog("OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+                /* TODO: show video via idCinematic */
+            } else if (strcmp(evt_type, "OpenWebsite") == 0) {
+                char website_url[256] = "";
+                D3Doom_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+                StarLog("OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+            } else if (strcmp(evt_type, "UnlockPortal") == 0) {
+                char portal_id[64] = "";
+                D3Doom_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+                StarLog("OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+                /* TODO: notify OGEditor portal system */
+            }
+        }
+    }
+
+    /* --- inventory grant poll --- */
+    {
+        char item_guid[64];
+        while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+        {
+            StarLog("OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
+            ogengine_get_inventory(NULL);
         }
     }
 }
@@ -824,6 +889,14 @@ void D3Doom_STAR_CheckIncomingTeleport(void)
     float x = 0, y = 0, z = 64;
     if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
         return;
-    /* TODO: gameLocal.GetLocalPlayer()->Teleport(idVec3(x,y,z), ang, NULL) */
+    StarLog("OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+    {
+        idPlayer *localPlayer = gameLocal.GetLocalPlayer();
+        if (localPlayer)
+        {
+            idAngles ang(0.0f, 0.0f, 0.0f);
+            localPlayer->Teleport(idVec3(x, y, z), ang, NULL);
+        }
+    }
     ogengine_confirm_teleport_arrival();
 }

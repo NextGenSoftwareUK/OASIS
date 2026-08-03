@@ -147,6 +147,24 @@ static void show_toast(const char *msg)
     g_toast_ticks = TOAST_DURATION;
 }
 
+/* ── JSON helper (minimal key:"value" extractor) ─────────────────────────── */
+static int OWolf3D_ExtractJsonValue(const char *json, const char *key, char *out, int maxlen)
+{
+    char search[128];
+    snprintf(search, sizeof(search), "\"%s\"", key);
+    const char *p = strstr(json, search);
+    if (!p) return 0;
+    p += strlen(search);
+    while (*p == ' ' || *p == ':' || *p == ' ') ++p;
+    if (*p != '"') return 0;
+    ++p;
+    int i = 0;
+    while (*p && *p != '"' && i < maxlen - 1)
+        out[i++] = *p++;
+    out[i] = '\0';
+    return i > 0;
+}
+
 /* ── Lifecycle ─────────────────────────────────────────────────────────── */
 
 void OWolf3D_STAR_Init(void)
@@ -197,11 +215,59 @@ void OWolf3D_STAR_Tick(void)
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-             * Map entity_id to native classname using OGAsset catalog lookup.
-             * For now, log the request. */
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f (ECWolf runtime spawn not yet implemented)", entity_id, sx, sy, sz);
+            /* TODO: spawn entity via ECWolf Actor::Spawn or ACS scripting once API is accessible from integration layer */
             ogengine_confirm_spawn(entity_id);
+        }
+    }
+
+    /* --- cross-game event poll --- */
+    {
+        char evt_json[4096];
+        while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+        {
+            char evt_type[64] = "";
+            OWolf3D_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+            if (strcmp(evt_type, "ShowNarration") == 0) {
+                char narration[256] = "";
+                OWolf3D_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+                if (narration[0])
+                    show_toast(narration);
+            } else if (strcmp(evt_type, "PlayAudio") == 0) {
+                char audio_title[128] = "";
+                char audio_url[256]   = "";
+                OWolf3D_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+                OWolf3D_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
+                /* TODO: play audio via ECWolf sound system */
+            } else if (strcmp(evt_type, "PlayVideo") == 0) {
+                char video_title[128] = "";
+                char video_url[256]   = "";
+                OWolf3D_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+                OWolf3D_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
+                oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+                /* TODO: show video overlay via external launcher */
+            } else if (strcmp(evt_type, "OpenWebsite") == 0) {
+                char website_url[256] = "";
+                OWolf3D_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+                oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+                /* TODO: open browser overlay via OGEditor portal */
+            } else if (strcmp(evt_type, "UnlockPortal") == 0) {
+                char portal_id[64] = "";
+                OWolf3D_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+                oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+                /* TODO: notify OGEditor portal system */
+            }
+        }
+    }
+
+    /* --- inventory grant poll --- */
+    {
+        char item_guid[64];
+        while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+        {
+            oglib_log(OGLIB_LOG_INFO, "OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
+            ogengine_get_inventory(NULL);
         }
     }
 
@@ -563,6 +629,8 @@ void OWolf3D_STAR_CheckIncomingTeleport(void)
     float x = 0, y = 0, z = 64;
     if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
         return;
-    /* TODO: player.position = { (int)x, (int)y }; player.angle = 0; */
+    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f", map, x, y);
+    player.position = { (int)x, (int)y };
+    player.angle = 0;
     ogengine_confirm_teleport_arrival();
 }
