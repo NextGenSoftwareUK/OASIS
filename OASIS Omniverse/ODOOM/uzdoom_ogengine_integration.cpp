@@ -2377,11 +2377,70 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		float sx, sy, sz;
 		if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
 		{
-			/* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-			 * Map entity_id to native classname using OGAsset catalog lookup.
-			 * For now, log the request. */
 			oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+			FString summonCmd;
+			summonCmd.Format("summon %s", entity_id);
+			C_DoCommand(summonCmd.GetChars());
 			ogengine_confirm_spawn(entity_id);
+		}
+	}
+
+	/* --- cross-game event poll --- */
+	{
+		char evt_json[4096];
+		while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+		{
+			char evt_type[64] = "";
+			ODOOM_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+			if (strcmp(evt_type, "ShowNarration") == 0) {
+				char narration[512] = "";
+				ODOOM_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+				if (narration[0]) {
+					FBaseCVar* toastMsgCv    = FindCVar("odoom_star_toast_message", nullptr);
+					FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames",  nullptr);
+					if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String &&
+					    toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+						UCVarValue vMsg;    vMsg.String = narration;
+						UCVarValue vFrames; vFrames.Int = 210; /* ~6 s at 35 fps */
+						toastMsgCv->SetGenericRep(vMsg, CVAR_String);
+						toastFramesCv->SetGenericRep(vFrames, CVAR_Int);
+					}
+				}
+			} else if (strcmp(evt_type, "PlayAudio") == 0) {
+				char audio_url[256] = "";
+				char audio_title[128] = "";
+				ODOOM_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
+				ODOOM_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+				oglib_log(OGLIB_LOG_INFO, "OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
+				/* TODO: play audio via GZDoom sound system or external player */
+			} else if (strcmp(evt_type, "PlayVideo") == 0) {
+				char video_url[256] = "";
+				char video_title[128] = "";
+				ODOOM_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
+				ODOOM_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+				oglib_log(OGLIB_LOG_INFO, "OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+				/* TODO: show video overlay via GZDoom or external launcher */
+			} else if (strcmp(evt_type, "OpenWebsite") == 0) {
+				char website_url[256] = "";
+				ODOOM_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+				oglib_log(OGLIB_LOG_INFO, "OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+				/* TODO: open browser overlay via OGEditor portal */
+			} else if (strcmp(evt_type, "UnlockPortal") == 0) {
+				char portal_id[64] = "";
+				ODOOM_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+				oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+				/* TODO: notify OGEditor portal system */
+			}
+		}
+	}
+
+	/* --- inventory grant poll --- */
+	{
+		char item_guid[64];
+		while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+		{
+			oglib_log(OGLIB_LOG_INFO, "OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
+			ogengine_get_inventory(NULL);
 		}
 	}
 
@@ -5034,7 +5093,11 @@ void UZDoom_STAR_CheckIncomingTeleport(void)
 	float x = 0, y = 0, z = 64;
 	if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
 		return;
-	/* TODO: ACS_Execute(OASIS_WARP_SCRIPT, 0, x, y, z) */
-	/* Use UZDoom's P_TeleportMove to warp the local player to position x/y/z. */
+	oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
+	{
+		AActor *mo = players[consoleplayer].mo;
+		if (mo)
+			P_TeleportMove(mo, DVector3(x, y, z), false);
+	}
 	ogengine_confirm_teleport_arrival();
 }

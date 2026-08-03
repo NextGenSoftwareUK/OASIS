@@ -61,7 +61,7 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 
 | OGame | Base Port | Status | Integration file | Teleport Hook | Spawn Hook |
 |-------|-----------|--------|-----------------|---------------|------------|
-| ODOOM | UZDoom | ✅ Complete | `uzdoom_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| ODOOM | UZDoom | ✅ Complete | `uzdoom_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
 | OQuake | vkQuake | ✅ Complete | `oquake_ogengine_integration.c` | ✅ Complete | ✅ Complete |
 | ODOOM3 | dhewm3 | ✅ Complete | `d3doom3_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
 | ODOOM3-BFG | RBDOOM-3-BFG | ✅ Complete | `d3doom_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
@@ -79,8 +79,15 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 - **Quest system** — cross-game quests with objectives spanning multiple games, ExternalHandoffUri for cross-app handoffs (CLI, OPortal, Telegram, Discord)
   - Cross-game story arcs are **Chapter → Mission → Quest → Objective** (not a separate concept)
   - `Objective.GameSource` + `Objective.MapName` — which game and map this specific objective happens in
-  - `Objective.CrossGameEventsOnComplete` — effects fired in other games on completion (SpawnEntity, UnlockPortal, ShowNarration, TeleportTo)
-  - Example: Obj1 [ODOOM/E1M3] kill Cyberdemon → fires UnlockPortal in OQUAKE/e2m3 + narration; Obj2 [OQUAKE/e2m3] collect Rune → fires SpawnEntity (3× cacodemon) in ODOOM/E1M3
+  - `Objective.CrossGameEventsOnActivate` — effects fired when an objective first becomes active (e.g. opening narration, ambient audio)
+  - `Objective.CrossGameEventsOnComplete` — effects fired in other games on completion (SpawnEntity, UnlockPortal, ShowNarration, TeleportTo, PlayAudio, PlayVideo, OpenWebsite)
+  - `Objective.CrossGameEventsOnGeoHotSpotTriggered` — effects fired when the linked GeoHotSpot is physically reached
+  - `Objective.RewardInventoryItemIds` — OASIS inventory item GUIDs granted on completion; game receives them via `ogengine_poll_inventory_grant`
+  - `Objective.NeedToKillMonstersByType` — per-classname kill requirements (e.g. `{"OQUAKE": ["monster_cacodemon:3"]}`)
+  - `QuestProgressDelta.MonsterKilledClassname` — engine classname sent with each kill event for per-type tracking
+  - `QuestProgressApplyResult.CrossGameEventsToDispatch` — events the client must dispatch to the running game after a progress POST
+  - `QuestProgressApplyResult.InventoryItemsToGrant` — item GUIDs to grant; piped through `ogengine_poll_inventory_grant`
+  - Example: Obj1 [ODOOM/E1M3] kill Cyberdemon → fires UnlockPortal in OQUAKE/e2m3 + narration; Obj2 [OQUAKE/e2m3] collect Rune → fires SpawnEntity (3× monster_cacodemon) in OQUAKE/e2m3
 - **STAR API controllers already built:** QuestsController, MissionsController, GamesController, GeoHotSpotsController, OAPPsController, ZomesController, TeleportController, SpawnEventsController, MapEntitiesController — all data persists via HolonManager → MongoDB
   - **StoriesController REMOVED** — story arcs ARE the Chapter/Mission/Quest/Objective hierarchy; no separate concept needed
   - **TeleportController / SpawnEventsController:** in-memory `ConcurrentDictionary` (correct — ephemeral sub-second runtime state, not Holon content)
@@ -272,7 +279,7 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 - [x] `ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_confirm_teleport_arrival` added to `ogengine.h`
 - [x] Implemented in OGEngineClient (`RequestTeleport`, `PollTeleportRequest`, `ConfirmTeleportArrivalAsync`)
 - [x] `OmniverseKernel.TickTeleportIpc()` polls every 0.5s via `%TEMP%\oasis_teleport_{avatarId}.json`
-- [x] `{Prefix}_STAR_CheckIncomingTeleport()` added to all 7 game integrations
+- [x] `{Prefix}_STAR_CheckIncomingTeleport()` added to all 10 game integrations
 - [ ] Test ODOOM → OQuake portal (pending: requires built game binaries)
 
 This is the "instant teleport between any map in any game" feature — not just Hub → game, but  
@@ -360,8 +367,14 @@ These entities are placed via the **OGEngine Editor** (see §4.4).
 - [x] `ogengine_poll_spawn_event`, `ogengine_confirm_spawn` added to C API + OGEngineClient
 - [x] `SpawnEventsController` in STAR API (`POST/GET /api/spawn-events`)
 - [x] `MapEntitiesController` in STAR API (`GET/PUT /api/maps/{game}/{map}/entities`)
-- [x] Spawn-event polling block added to all 7 game integration tick functions
-- [ ] Per-game `OGame_STAR_SpawnCrossGameEntity` native spawn (game-specific — needs each engine's spawn API)
+- [x] Spawn-event polling block added to all 10 game integration tick functions
+- [x] **ODOOM:** `C_DoCommand("summon <classname>")` — GZDoom/UZDoom console summon
+- [x] **OQuake:** `ED_Alloc` / `PR_SetEngineString` / `PR_ExecuteProgram` / `SV_LinkEdict`
+- [x] **ODOOM3 / ODOOM3-BFG:** `cmdSystem->BufferCommandText(CMD_EXEC_APPEND, "spawn …\n")`
+- [x] **ODuke3D / ODuke3D-RT:** `A_InsertSprite` with `name_to_picnum` lookup; monster catalog in `oasis_star_assets.json`
+- [x] **OQuake3:** `trap_SendConsoleCommand(EXEC_APPEND, "spawn <classname>\n")`
+- [ ] **OWolf3D:** ECWolf `Actor::Spawn` deferred — API not accessible from integration layer
+- [ ] **OQuake2 / OQuake2-RTX:** `G_Spawn()` deferred — complex entity initialization
 - [ ] Test: Quake Shambler spawning in ODOOM map (pending builds)
 
 This is the "Doom monsters spawn in Quake, Wolf3D enemies appear in Duke3D" feature — and the "any item/weapon/ammo from any game can be picked up anywhere" feature.
@@ -606,9 +619,22 @@ Action items:
 
 - [x] Cross-game story arcs modelled as `Chapter → Mission → Quest → Objective` — no separate StoriesController needed
 - [x] `Objective.GameSource` + `Objective.MapName` — which game and map each objective happens in
-- [x] `Objective.CrossGameEventsOnComplete` (`List<CrossGameEvent>`) — fires SpawnEntity / UnlockPortal / ShowNarration / TeleportTo in other games on completion
-- [x] Reference arc `Config/stories/oasis_arc_001_dimensional_rift.json` updated to show correct Chapter/Mission/Quest/Objective structure
-- [ ] `GeoHotSpotType.Text/Audio` narration delivery (still pending per-game)
+- [x] `Objective.CrossGameEventsOnActivate` (`List<CrossGameEvent>`) — fires on objective activation; used for opening narration / ambient audio
+- [x] `Objective.CrossGameEventsOnComplete` (`List<CrossGameEvent>`) — fires SpawnEntity / UnlockPortal / ShowNarration / TeleportTo / PlayAudio / PlayVideo / OpenWebsite in other games on completion
+- [x] `Objective.CrossGameEventsOnGeoHotSpotTriggered` (`List<CrossGameEvent>`) — fires when the linked GeoHotSpot is physically reached
+- [x] `CrossGameEvent.EntityCategory` — `"Monster"` / `"Weapon"` / `"Ammo"` / `"Key"` / `"Powerup"` / `"Item"` for classifying spawned entities
+- [x] `CrossGameEvent.AudioUrl` / `AudioTitle` — for `PlayAudio` events (streamed narration / ambient)
+- [x] `CrossGameEvent.VideoUrl` / `VideoTitle` — for `PlayVideo` events (cutscene / cinematic)
+- [x] `CrossGameEvent.WebsiteUrl` — for `OpenWebsite` events (lore / portal overlay)
+- [x] `Objective.RewardInventoryItemIds` — OASIS inventory items granted on completion; game polls via `ogengine_poll_inventory_grant`
+- [x] `Objective.NeedToKillMonstersByType` / `MonstersKilledByType` — per-classname kill requirements and progress; game sends engine classname via `MonsterKilledClassname` in progress delta
+- [x] `GET /api/quests/{id}/first-objective-events` — returns `CrossGameEventsOnActivate` for the first active objective; `OGEngineClient.StartQuestAsync` calls this automatically after a successful quest start to dispatch opening narration / audio
+- [x] `OGEngineClient.DispatchCrossGameEventsFromProgressResponse` — routes events from every progress POST: SpawnEntity → `WriteSpawnEventToFile`, TeleportTo → `RequestTeleport`, all other types → `ogengine_poll_cross_game_event` queue; InventoryItemsToGrant → `ogengine_poll_inventory_grant` queue
+- [x] `OGEngineExports.ogengine_poll_cross_game_event` — native export; game polls per-frame, receives JSON for ShowNarration / PlayAudio / PlayVideo / OpenWebsite / UnlockPortal
+- [x] `OGEngineExports.ogengine_poll_inventory_grant` — native export; game polls per-frame, receives GUID string and triggers `ogengine_get_inventory`
+- [x] Reference arc `Config/stories/oasis_arc_001_dimensional_rift.json` updated to show correct Chapter/Mission/Quest/Objective structure with `NeedToKillMonstersByType` and `CrossGameEventsOnActivate`
+- [ ] `GeoHotSpotType.Text/Audio` narration delivery (still pending per-game — per-game delivery in queue)
+- [ ] PlayAudio / PlayVideo / OpenWebsite — game-side audio streaming and video overlay (logged + toasted now; full playback is per-game future work)
 - [ ] STARNET web Quest Builder integration (optional)
 
 **What's needed:**
@@ -643,7 +669,7 @@ Action items:
       "game": "OQUAKE",
       "map": "e2m3",
       "trigger": "collect_rune",
-      "cross_spawn": { "game": "ODOOM", "entity": "cacodemon", "count": 3 },
+      "cross_spawn": { "game": "OQUAKE", "entity": "monster_cacodemon", "count": 3 },
       "narration": "As you grasp the rune, the darkness follows..."
     }
   ]
@@ -687,6 +713,7 @@ Architecture mirrors existing ports:
 | Poll spawn events | `GET /api/spawn-events/pending?game=...&avatarId=...` | ✅ Done | Game polls on tick |
 | Story arc | `GET/POST /api/stories` | ✅ Done | Multi-game narrative arcs |
 | Portal registry | `GET/POST /api/portals` | 🔜 Pending | All teleporter endpoints, shown in OGEngine Editor |
+| First-objective events | `GET /api/quests/{id}/first-objective-events` | ✅ Done | Returns `CrossGameEventsOnActivate` for the first objective; called by `StartQuestAsync` to dispatch opening narration/audio |
 
 ---
 
@@ -702,14 +729,14 @@ Architecture mirrors existing ports:
 - [x] Implement in OGEngineClient (write/poll teleport JSON via `%TEMP%` IPC files)
 - [x] Implement `OmniverseKernel.TickTeleportIpc()` polling every 0.5s
 - [x] Add `{Prefix}_STAR_CheckIncomingTeleport()` to all 10 game integrations
-- [ ] **TODO (per-game):** Fill in the actual player warp call inside `CheckIncomingTeleport()`:
-  - ODOOM: `P_TeleportMove(player, x, y, z)` (UZDoom/GZDoom)
-  - OQuake: `VectorCopy(origin, sv.edicts[1].v.origin); SV_LinkEdict(...)`
-  - ODOOM3 / ODOOM3-BFG: `gameLocal.GetLocalPlayer()->Teleport(idVec3(x,y,z), ang, NULL)`
-  - ODuke3D: `ps[myconnectindex].pos = { x, y, z }; ps[myconnectindex].opos = ...`
-  - OWolf3D: `player.position = { (int)x, (int)y }`
-  - OQuake2 / OQuake2-RTX: `gi.WriteByte(svc_stufftext); gi.WriteString("map <name>\n"); gi.unicast(player, true)`
-  - OQuake3: `trap_SendConsoleCommand(EXEC_APPEND, va("map %s\n", map))`
+- [x] **Implement actual player warp calls inside `CheckIncomingTeleport()` — all 10 games done:**
+  - ODOOM: `P_TeleportMove(players[consoleplayer].mo, DVector3(x,y,z), false)` — GZDoom/UZDoom
+  - OQuake: `EDICT_NUM(1)→v.origin = {x,y,z}; velocity cleared; SV_LinkEdict(pl, false)`
+  - ODOOM3 / ODOOM3-BFG: `gameLocal.GetLocalPlayer()->Teleport(idVec3(x,y,z), idAngles(0,0,0), NULL)`
+  - ODuke3D / ODuke3D-RT: `g_player[myconnectindex].ps→pos/opos = {x,y,z}; vel cleared`
+  - OWolf3D: `player.position = { (int)x, (int)y }; player.angle = 0`
+  - OQuake2 / OQuake2-RTX: `g_edicts[1]→s.origin = {x,y,z}; velocity cleared; gi.linkentity(...)`
+  - OQuake3: `g_entities[0].client→ps.origin = {x,y,z}; trap_LinkEntity(...)`
 - [ ] Test ODOOM → OQuake portal (requires compiled game binaries)
 
 ### Phase 3 — OGAsset Catalog + Cross-Game Entities
@@ -717,14 +744,14 @@ Architecture mirrors existing ports:
 - [x] Seed catalog with weapons/ammo/powerups/keys/monsters for all 10 OGames in `oasis_star_assets.json`
 - [x] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` / `ogengine_confirm_spawn` to C API
 - [x] Spawn-event polling block added to all 10 game integration tick functions
-- [ ] **TODO (per-game):** Fill in native entity spawn inside the spawn-event polling block:
-  - Each game has `/* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API */`
-  - Requires mapping `entity_id` (e.g. `oasset_quake_shambler`) → native classname, then calling the engine's spawn API
-  - ODOOM: `Thing_Spawn(classname, x, y, z)` via ACS/ZScript
-  - OQuake: QuakeC `spawn_entity(classname, origin)`
-  - ODOOM3/BFG: `gameLocal.SpawnEntityType(classname, dict)`
-  - ODuke3D: `A_InsertSprite(...)` with reserved tile index
-  - OWolf3D: DECORATE `OASISSpawnPoint` actor class
+- [x] `ogengine_poll_cross_game_event` + `ogengine_poll_inventory_grant` poll loops added to **all 10 game integrations**
+- [x] **ODOOM spawn:** `C_DoCommand("summon <classname>")` — GZDoom/UZDoom console command, works at runtime
+- [x] **OQuake spawn:** `ED_Alloc` / `PR_SetEngineString` / `ED_FindFunction` / `PR_ExecuteProgram` / `SV_LinkEdict`
+- [x] **ODOOM3 / ODOOM3-BFG spawn:** `cmdSystem->BufferCommandText(CMD_EXEC_APPEND, "spawn <classname>\n")` — idTech4 console command
+- [x] **ODuke3D / ODuke3D-RT spawn:** `A_InsertSprite(sect, x, y, z, picnum, ...)` — entity_id mapped to tile picnum via static lookup table (`name_to_picnum`); monster catalog added to `oasis_star_assets.json`
+- [x] **OQuake3 spawn:** `trap_SendConsoleCommand(EXEC_APPEND, "spawn <classname>\n")` — implemented (runtime testing pending)
+- [ ] **OWolf3D spawn:** ECWolf `Actor::Spawn` — deferred (ECWolf runtime spawn API not yet accessible from integration layer)
+- [ ] **OQuake2 / OQuake2-RTX spawn:** `G_Spawn()` + field setup + `gi.linkentity()` — deferred (complex entity initialization)
 - [ ] Test: Quake Shambler spawning in ODOOM map
 
 ### Phase 4 — OGEngine Editor (MVP) — UDB-based ✅ foundation done
@@ -862,5 +889,5 @@ The table below shows which item types are already cross-game mapped (from `oasi
 
 ---
 
-*Last updated: 2026-08-02 — Phases 2, 3 (infrastructure), 4 (partial), 5 (infrastructure), and 6 complete: teleport IPC, spawn-event system, 4 new STAR API controllers, .fgd/.def entity defs, companion editor launch, Friends + Teleport HUD tabs, first story arc, weapons/ammo/powerup catalog expansion*
+*Last updated: 2026-08-02 — Phases 2, 3 (infrastructure + ODOOM/OQuake native spawn), 4 (partial), 5 (infrastructure), and 6 complete. New: CrossGameEventsOnActivate / OnComplete / OnGeoHotSpotTriggered; PlayAudio / PlayVideo / OpenWebsite / UnlockPortal cross-game events; EntityCategory; NeedToKillMonstersByType + MonsterKilledClassname; RewardInventoryItemIds; ogengine_poll_cross_game_event + ogengine_poll_inventory_grant exports; GET /api/quests/{id}/first-objective-events; ODOOM summon-based spawn; OWolf3D cross-game event polls*
 *Vision: NextGen World Ltd — "One Infinite World"*

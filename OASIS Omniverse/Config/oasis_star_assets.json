@@ -206,6 +206,24 @@
   },
   "oduke3d": {
     "description": "Duke Nukem 3D cross-game asset catalog",
+    "monsters": [
+      { "id": "liztroop",    "name": "Lizard Troop",          "duke3dActor": "LIZTROOP",   "category": "Monster" },
+      { "id": "pigcop",      "name": "Pig Cop",               "duke3dActor": "PIGCOP",     "category": "Monster" },
+      { "id": "octabrain",   "name": "Octabrain",             "duke3dActor": "OCTABRAIN",  "category": "Monster" },
+      { "id": "commander",   "name": "Commander",             "duke3dActor": "COMMANDER",  "category": "Monster" },
+      { "id": "drone",       "name": "Assault Drone",         "duke3dActor": "DRONE",      "category": "Monster" },
+      { "id": "sentry",      "name": "Sentry Drone",          "duke3dActor": "SENTRY",     "category": "Monster" },
+      { "id": "newbeast",    "name": "Protector Drone",       "duke3dActor": "NEWBEAST",   "category": "Monster" },
+      { "id": "greenslime",  "name": "Slimer",                "duke3dActor": "GREENSLIME", "category": "Monster" },
+      { "id": "recon",       "name": "Recon Patrol Vehicle",  "duke3dActor": "RECON",      "category": "Monster" },
+      { "id": "lizman",      "name": "Lizard Man",            "duke3dActor": "LIZMAN",     "category": "Monster" },
+      { "id": "rotategun",   "name": "Turret",                "duke3dActor": "ROTATEGUN",  "category": "Monster" },
+      { "id": "boss1",       "name": "Battlelord",            "duke3dActor": "BOSS1",      "category": "Monster" },
+      { "id": "boss2",       "name": "Overlord",              "duke3dActor": "BOSS2",      "category": "Monster" },
+      { "id": "boss3",       "name": "Cycloid Emperor",       "duke3dActor": "BOSS3",      "category": "Monster" },
+      { "id": "boss4",       "name": "Alien Queen",           "duke3dActor": "BOSS4",      "category": "Monster" },
+      { "id": "boss5",       "name": "Cycloid Incinerator",   "duke3dActor": "BOSS5",      "category": "Monster" }
+    ],
     "weapons": [
       { "id": "pistol",      "name": "Pistol",            "duke3dActor": "PISTOLSPRITE",   "category": "weapon" },
       { "id": "shotgun",     "name": "Shotgun",           "duke3dActor": "SHOTGUN",        "category": "weapon" },

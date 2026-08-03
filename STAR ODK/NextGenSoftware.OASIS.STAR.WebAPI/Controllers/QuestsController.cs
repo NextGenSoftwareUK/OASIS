@@ -1419,7 +1419,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     AmmoCollectedDelta = request.AmmoCollectedDelta,
                     ItemCollectedName = request.ItemCollectedName ?? string.Empty,
                     GenericItemPickup = request.GenericItemPickup,
-                    LevelTimeSeconds = request.LevelTimeSeconds
+                    LevelTimeSeconds = request.LevelTimeSeconds,
+                    MonsterKilledClassname = request.MonsterKilledClassname ?? string.Empty
                 };
                 var result = await _starAPI.Quests.ApplyQuestProgressAsync(AvatarId, id, request.GameSource ?? "ODOOM", delta);
                 if (result.IsError)
@@ -1429,6 +1430,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new OASISResult<QuestProgressApplyResult> { IsError = true, Message = ex.Message });
+            }
+        }
+
+        /// <summary>Returns CrossGameEventsOnActivate for the first incomplete objective. Call once after StartQuest to get opening audio/narration/video events.</summary>
+        [HttpGet("{id}/first-objective-events")]
+        [ProducesResponseType(typeof(OASISResult<List<CrossGameEvent>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<List<CrossGameEvent>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetFirstObjectiveActivationEvents(Guid id)
+        {
+            try
+            {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+                var result = await _starAPI.Quests.GetFirstObjectiveActivationEventsAsync(AvatarId, id);
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<CrossGameEvent>>(ex, "getting first objective activation events");
             }
         }
 
@@ -2076,5 +2098,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string ItemCollectedName { get; set; } = "";
         public int GenericItemPickup { get; set; }
         public int? LevelTimeSeconds { get; set; }
+        /// <summary>Specific monster classname killed this tick (e.g. "cyberdemon"). Empty = any-type kill only.</summary>
+        public string? MonsterKilledClassname { get; set; }
     }
 }

@@ -71,6 +71,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public long RewardXP { get; set; }
 
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<Guid> RewardInventoryItemIds { get; set; } = new List<Guid>();
+
         [CustomOASISProperty()]
         public List<string> Requirements { get; set; } = new List<string>();
         
@@ -138,7 +141,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public IDictionary<string, IList<string>> NeedToCollectKeys { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> NeedToKillMonsters { get; set; } = new Dictionary<string, IList<string>>();
-        
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToKillMonstersByType { get; set; } = new Dictionary<string, IList<string>>();
+
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> NeedToCompleteInMins { get; set; } = new Dictionary<string, IList<string>>();
         
@@ -189,7 +194,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> MonstersKilled { get; set; } = new Dictionary<string, IList<string>>();
-        
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> MonstersKilledByType { get; set; } = new Dictionary<string, IList<string>>();
+
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> TimeStarted { get; set; } = new Dictionary<string, IList<string>>();
         

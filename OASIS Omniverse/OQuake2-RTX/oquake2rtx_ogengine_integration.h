@@ -191,7 +191,8 @@ const char* OQuake2RTX_STAR_GetUsername(void);
  * Cross-game teleportation
  * ------------------------------------------------------------------------- */
 
-/** Call at map load. Polls for incoming teleport from OmniverseKernel; warp call is TODO. */
+/** Call at map load. Polls for an incoming teleport from OmniverseKernel.
+ *  Warps the player to the target position via g_edicts[1] + gi.linkentity and confirms arrival. */
 void OQuake2RTX_STAR_CheckIncomingTeleport(void);
 
 /* -------------------------------------------------------------------------

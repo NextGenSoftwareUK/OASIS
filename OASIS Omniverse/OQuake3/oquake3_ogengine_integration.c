@@ -901,11 +901,57 @@ void OQuake3_STAR_PollItems(void)
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            /* TODO: spawn entity by entity_id at sx/sy/sz via game's native spawn API.
-             * Map entity_id to native classname using OGAsset catalog lookup.
-             * For now, log the request. */
-            oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
+            Q3_Com_Printf("[OQuake3-STAR] OASIS SpawnEvent: %s at %.0f/%.0f/%.0f\n", entity_id, sx, sy, sz);
+            {
+                char spawn_cmd[192];
+                Q3_Q_snprintf(spawn_cmd, sizeof(spawn_cmd), "spawn %s\n", entity_id);
+                trap_SendConsoleCommand(EXEC_APPEND, spawn_cmd);
+            }
             ogengine_confirm_spawn(entity_id);
+        }
+    }
+
+    /* --- cross-game event poll --- */
+    {
+        char evt_json[4096];
+        while (ogengine_poll_cross_game_event(evt_json, sizeof(evt_json)))
+        {
+            char evt_type[64] = "";
+            OQ3_ExtractJsonValue(evt_json, "EventType", evt_type, sizeof(evt_type));
+            if (strcmp(evt_type, "ShowNarration") == 0) {
+                char narration[256] = "";
+                OQ3_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
+                if (narration[0]) OQ3_SetToast(narration);
+            } else if (strcmp(evt_type, "PlayAudio") == 0) {
+                char audio_title[128] = "", audio_url[256] = "";
+                OQ3_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
+                OQ3_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
+                Q3_Com_Printf("[OQuake3-STAR] OASIS PlayAudio: %s (%s) — streaming not yet implemented\n", audio_title, audio_url);
+                /* TODO: play audio via Q3 sound trap */
+            } else if (strcmp(evt_type, "PlayVideo") == 0) {
+                char video_title[128] = "", video_url[256] = "";
+                OQ3_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
+                OQ3_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
+                Q3_Com_Printf("[OQuake3-STAR] OASIS PlayVideo: %s (%s) — video overlay not yet implemented\n", video_title, video_url);
+            } else if (strcmp(evt_type, "OpenWebsite") == 0) {
+                char website_url[256] = "";
+                OQ3_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
+                Q3_Com_Printf("[OQuake3-STAR] OASIS OpenWebsite: %s — browser overlay not yet implemented\n", website_url);
+            } else if (strcmp(evt_type, "UnlockPortal") == 0) {
+                char portal_id[64] = "";
+                OQ3_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
+                Q3_Com_Printf("[OQuake3-STAR] OASIS UnlockPortal: %s — portal unlock not yet implemented\n", portal_id);
+            }
+        }
+    }
+
+    /* --- inventory grant poll --- */
+    {
+        char item_guid[64];
+        while (ogengine_poll_inventory_grant(item_guid, sizeof(item_guid)))
+        {
+            Q3_Com_Printf("[OQuake3-STAR] OASIS InventoryGrant: %s — inventory refresh triggered\n", item_guid);
+            ogengine_get_inventory(NULL);
         }
     }
 
@@ -1004,8 +1050,13 @@ void OQuake3_STAR_CheckIncomingTeleport(void)
     float x = 0, y = 0, z = 64;
     if (!ogengine_poll_teleport_request(map, sizeof(map), &x, &y, &z))
         return;
-    oglib_log(OGLIB_LOG_INFO, "OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f", map, x, y, z);
-    /* TODO: warp player — trap_SendConsoleCommand(EXEC_APPEND, va("map %s\n", map));
-     * For in-map position warp: VectorSet(client->ps.origin, x, y, z); trap_LinkEntity(ent); */
+    Q3_Com_Printf("[OQuake3-STAR] OASIS Teleport arrive: map=%s pos=%.0f/%.0f/%.0f\n", map, x, y, z);
+    {
+        gentity_t *player_ent = &g_entities[0];
+        player_ent->client->ps.origin[0] = x;
+        player_ent->client->ps.origin[1] = y;
+        player_ent->client->ps.origin[2] = z;
+        trap_LinkEntity(player_ent);
+    }
     ogengine_confirm_teleport_arrival();
 }
