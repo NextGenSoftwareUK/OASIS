@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+﻿cmake_minimum_required(VERSION 3.16)
 project(oasis_nr_plugin C)
 
 set(CMAKE_C_STANDARD 11)
@@ -7,9 +7,9 @@ add_library(oasis_nr_plugin MODULE oasis_nr_plugin.c)
 target_include_directories(oasis_nr_plugin PRIVATE .)
 
 if(WIN32)
-    # Link the ogeditor_api import library; dll must be deployed next to NetRadiant.exe
+    # Link the OGEditorClient import library; dll must be deployed next to NetRadiant.exe
     target_link_libraries(oasis_nr_plugin PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../UltimateDoomBuilder/Source/OGEditorSDK/Native/ogeditor_api.lib")
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../UltimateDoomBuilder/Source/OGEditorSDK/Native/OGEditorClient.lib")
 else()
     target_link_libraries(oasis_nr_plugin PRIVATE dl)
 endif()

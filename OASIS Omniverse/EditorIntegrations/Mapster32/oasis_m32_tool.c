@@ -1,4 +1,4 @@
-/*
+﻿/*
  * oasis_m32_tool.c — OASIS OGEngine companion tool for Mapster32 / EDuke32
  *
  * Mapster32 does not support native C plugin modules in the same way as
@@ -17,7 +17,7 @@
  *   2. Add this executable with appropriate arguments.
  *   3. Set working directory to the OASIS EditorIntegrations\Mapster32\ folder.
  *
- * The tool loads ogeditor_api.dll / libogeditor_api.so at runtime from the
+ * The tool loads OGEditorClient.dll / libOGEditorClient.so at runtime from the
  * same directory.  No .NET runtime needed.
  *
  * Build:
@@ -36,17 +36,17 @@ typedef HMODULE DylibHandle;
 static DylibHandle dylib_open(const char* p)  { return LoadLibraryA(p); }
 static void*       dylib_sym(DylibHandle h, const char* s) { return (void*)GetProcAddress(h,s); }
 static void        dylib_close(DylibHandle h) { FreeLibrary(h); }
-#  define LIBNAME "ogeditor_api.dll"
+#  define LIBNAME "OGEditorClient.dll"
 #else
 #  include <dlfcn.h>
 typedef void* DylibHandle;
 static DylibHandle dylib_open(const char* p)  { return dlopen(p, RTLD_LAZY|RTLD_LOCAL); }
 static void*       dylib_sym(DylibHandle h, const char* s) { return dlsym(h, s); }
 static void        dylib_close(DylibHandle h) { dlclose(h); }
-#  define LIBNAME "libogeditor_api.so"
+#  define LIBNAME "libOGEditorClient.so"
 #endif
 
-#include "ogeditor_api.h"
+#include "OGEditorClient.h"
 
 typedef void*  (*fn_init_t)(const char*, const char*);
 typedef void   (*fn_dispose_t)(void*);

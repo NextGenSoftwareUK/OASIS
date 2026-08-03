@@ -1,4 +1,4 @@
-# OASIS Omniverse
+﻿# OASIS Omniverse
 
 **OASIS Omniverse** is a unified cross-game metaverse powered by the **OASIS STAR API** — spanning every game genre, not just FPS. The name means exactly what it says: *every* game, *every* genre, *one* universe. Keys, inventory, quests, XP, NFTs, avatars, and story arcs flow freely between all OGames, regardless of what kind of game they are.
 
@@ -249,7 +249,7 @@ A **header-only C utility library** shared by all 10 games. Provides:
 
 | Tool | What it does |
 |------|-------------|
-| **OGEditorSDK** (`Source/OGEditorSDK/`) | .NET Standard 2.0 library — `OGAssetCatalog` (140-asset cross-game catalog), `OGMapSidecar` (`oasis_{map}.json` reader/writer), `OGStarApiClient` (live STAR API HTTP client), `OGEntityMappings` (classname ↔ OASIS thing-type bidirectional lookup). Also exports a C ABI (`ogeditor_api.h` / `ogeditor_api.dll`) so TrenchBroom, NetRadiant, DarkRadiant, and Mapster32 can call it too. |
+| **OGEditorSDK** (`Source/OGEditorSDK/`) | .NET Standard 2.0 library — `OGAssetCatalog` (140-asset cross-game catalog), `OGMapSidecar` (`oasis_{map}.json` reader/writer), `OGStarApiClient` (live STAR API HTTP client), `OGEntityMappings` (classname ↔ OASIS thing-type bidirectional lookup). Also exports a C ABI (`OGEditorClient.h` / `OGEditorClient.dll`) so TrenchBroom, NetRadiant, DarkRadiant, and Mapster32 can call it too. |
 | **OGEngine Panel** | Live asset browser — pulls catalog from STAR API (`/api/oassets`), falls back to offline catalog; category filter; shows all 10 OGames |
 | **OASIS Portal Editor** | Drag-drop portal placement UI — picks target game, target map, spawn coords; writes to map sidecar on placement |
 | **Quest Weaver Panel** | Fetches quests from STAR API, lets you drag objectives onto sector/thing/linedef map triggers; saves objective↔trigger binding to sidecar |

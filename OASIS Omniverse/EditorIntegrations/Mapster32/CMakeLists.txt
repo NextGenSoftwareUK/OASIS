@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+﻿cmake_minimum_required(VERSION 3.16)
 project(oasis_m32_tool C)
 
 set(CMAKE_C_STANDARD 11)
@@ -8,7 +8,7 @@ target_include_directories(oasis_m32_tool PRIVATE .)
 
 if(WIN32)
     target_link_libraries(oasis_m32_tool PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../UltimateDoomBuilder/Source/OGEditorSDK/Native/ogeditor_api.lib")
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../UltimateDoomBuilder/Source/OGEditorSDK/Native/OGEditorClient.lib")
 else()
     target_link_libraries(oasis_m32_tool PRIVATE dl)
 endif()
