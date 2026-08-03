@@ -315,6 +315,18 @@ static void OQ3_SetToast(const char* msg)
     g_oq3_toast_frames = OQ3_TOAST_DURATION_FRAMES;
 }
 
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
+
 /* ---------------------------------------------------------------------------
  * Simple JSON value extractor (same pattern as OQuake2)
  * --------------------------------------------------------------------------- */
@@ -926,17 +938,21 @@ void OQuake3_STAR_PollItems(void)
                 char audio_title[128] = "", audio_url[256] = "";
                 OQ3_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
                 OQ3_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
-                Q3_Com_Printf("[OQuake3-STAR] OASIS PlayAudio: %s (%s) — streaming not yet implemented\n", audio_title, audio_url);
-                /* TODO: play audio via Q3 sound trap */
+                oasis_open_url(audio_url);
+                if (audio_title[0]) OQ3_SetToast(audio_title);
+                Q3_Com_Printf("[OQuake3-STAR] OASIS PlayAudio: %s → %s\n", audio_title, audio_url);
             } else if (strcmp(evt_type, "PlayVideo") == 0) {
                 char video_title[128] = "", video_url[256] = "";
                 OQ3_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
                 OQ3_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
-                Q3_Com_Printf("[OQuake3-STAR] OASIS PlayVideo: %s (%s) — video overlay not yet implemented\n", video_title, video_url);
+                oasis_open_url(video_url);
+                if (video_title[0]) OQ3_SetToast(video_title);
+                Q3_Com_Printf("[OQuake3-STAR] OASIS PlayVideo: %s → %s\n", video_title, video_url);
             } else if (strcmp(evt_type, "OpenWebsite") == 0) {
                 char website_url[256] = "";
                 OQ3_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
-                Q3_Com_Printf("[OQuake3-STAR] OASIS OpenWebsite: %s — browser overlay not yet implemented\n", website_url);
+                oasis_open_url(website_url);
+                Q3_Com_Printf("[OQuake3-STAR] OASIS OpenWebsite: %s\n", website_url);
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 OQ3_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));

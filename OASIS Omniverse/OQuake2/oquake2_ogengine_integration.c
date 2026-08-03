@@ -327,6 +327,23 @@ static void OQ2_SetToastMessage(const char* msg) {
     g_oq2_toast_frames = OQ2_TOAST_FRAMES_DEFAULT;
 }
 
+/* Opens a URL/file in the OS default handler (browser, media player, etc.) */
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
+
+/* Q2 game-DLL spawn functions (defined in g_utils.c / g_spawn.c) */
+extern edict_t *G_Spawn(void);
+void ED_CallSpawn(edict_t *ent);
+
 /** Returns 1 if mint is on for this item_type, 0 otherwise. */
 static int OQ2_DoMintForItemType(const char* item_type) {
     if (!item_type || !item_type[0]) return 0;
@@ -956,8 +973,17 @@ void OQuake2_STAR_PollItems(void) {
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
-            OQ2_StarLog("OASIS SpawnEvent: %s at %.0f/%.0f/%.0f (Q2 G_Spawn setup deferred)", entity_id, sx, sy, sz);
-            /* TODO: call G_Spawn() + set classname/origin fields + gi.linkentity() */
+            const char *classname = entity_id;
+            if (strncmp(classname, "oquake2_", 8) == 0) classname += 8;
+            edict_t *ent = G_Spawn();
+            if (ent) {
+                ent->classname = classname;
+                VectorSet(ent->s.origin, sx, sy, sz);
+                ent->s.angles[YAW] = 0.0f;
+                ED_CallSpawn(ent);
+                gi.linkentity(ent);
+                OQ2_StarLog("OASIS SpawnEvent: spawned '%s' at %.0f/%.0f/%.0f", classname, sx, sy, sz);
+            }
             ogengine_confirm_spawn(entity_id);
         }
     }
@@ -977,17 +1003,21 @@ void OQuake2_STAR_PollItems(void) {
                 char audio_title[128] = "", audio_url[256] = "";
                 OQ2_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
                 OQ2_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
-                OQ2_StarLog("OASIS PlayAudio: %s (%s) — streaming not yet implemented", audio_title, audio_url);
-                /* TODO: play audio via Yamagi Q2 sound system */
+                oasis_open_url(audio_url);
+                if (audio_title[0]) OQ2_SetToastMessage(audio_title);
+                OQ2_StarLog("OASIS PlayAudio: %s → %s", audio_title, audio_url);
             } else if (strcmp(evt_type, "PlayVideo") == 0) {
                 char video_title[128] = "", video_url[256] = "";
                 OQ2_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
                 OQ2_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
-                OQ2_StarLog("OASIS PlayVideo: %s (%s) — video overlay not yet implemented", video_title, video_url);
+                oasis_open_url(video_url);
+                if (video_title[0]) OQ2_SetToastMessage(video_title);
+                OQ2_StarLog("OASIS PlayVideo: %s → %s", video_title, video_url);
             } else if (strcmp(evt_type, "OpenWebsite") == 0) {
                 char website_url[256] = "";
                 OQ2_ExtractJsonValue(evt_json, "WebsiteUrl", website_url, sizeof(website_url));
-                OQ2_StarLog("OASIS OpenWebsite: %s — browser overlay not yet implemented", website_url);
+                oasis_open_url(website_url);
+                OQ2_StarLog("OASIS OpenWebsite: %s", website_url);
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 OQ2_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
