@@ -81,6 +81,11 @@ ogengine_result_t ogengine_start_quest(const char* quest_id);
 ogengine_result_t ogengine_start_quest_then_set_active_objective(const char* quest_id, const char* objective_id);
 ogengine_result_t ogengine_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 ogengine_result_t ogengine_complete_quest(const char* quest_id);
+/** Write serialized quest list to buf (format: "Q\t<id>\t<name>\t<desc>\t<status>\t<pct>\n" per quest).
+ *  Returns bytes written (excl. NUL). Cache miss returns "Loading...\n" and starts background refresh. */
+int ogengine_get_quests_string(char* buf, size_t buf_size);
+/** Invalidate quest cache so next ogengine_get_quests_string fetches fresh data from STAR API. */
+void ogengine_invalidate_quest_cache(void);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 ogengine_result_t ogengine_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 ogengine_result_t ogengine_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
