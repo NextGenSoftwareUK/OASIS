@@ -575,8 +575,10 @@ void D3Doom_STAR_Tick(void) {
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 D3Doom_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
-                StarLog("OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
-                /* TODO: notify OGEditor portal system */
+                ogengine_notify_portal_unlock(portal_id);
+                snprintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "Portal unlocked!");
+                g_d3doom_toast_frames = D3DOOM_TOAST_FRAMES;
+                StarLog("OASIS UnlockPortal: %s", portal_id);
             }
         }
     }

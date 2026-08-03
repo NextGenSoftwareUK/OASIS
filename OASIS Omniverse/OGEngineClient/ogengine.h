@@ -230,6 +230,22 @@ int ogengine_poll_spawn_event(char* out_entity_id, size_t id_len, float* out_x, 
  *  the event from the queue and notifies the originating OGame. */
 void ogengine_confirm_spawn(const char* entity_id);
 
+/* ---- Cross-game event polling -----------------------------------------------
+ * Poll for queued cross-game events (ShowNarration, PlayAudio, PlayVideo,
+ * OpenWebsite, UnlockPortal) from quest progress responses.  Call each frame.
+ * Returns 1 and writes event JSON to out_json if an event is queued; 0 otherwise. */
+int ogengine_poll_cross_game_event(char* out_json, size_t json_len);
+
+/* ---- Inventory grant polling ------------------------------------------------
+ * Poll for a pending inventory grant (item GUID) from the STAR relay.
+ * Returns 1 and writes GUID to out_guid (null-terminated) if found; 0 otherwise. */
+int ogengine_poll_inventory_grant(char* out_guid, size_t guid_len);
+
+/* ---- Portal unlock notification ---------------------------------------------
+ * Notify OGEditor/OmniverseKernel that the named OASIS portal has been unlocked.
+ * Writes oasis_portal_unlock_{portalId}.json to %TEMP% for OGEditor pickup. */
+void ogengine_notify_portal_unlock(const char* portal_id);
+
 #ifdef __cplusplus
 }
 #endif

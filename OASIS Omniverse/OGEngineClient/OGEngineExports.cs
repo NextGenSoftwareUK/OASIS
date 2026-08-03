@@ -1945,6 +1945,25 @@ public static unsafe class OGEngineExports
         }
     }
 
+    /* ── Portal unlock notification ──────────────────────────────────────── */
+
+    /// <summary>Notify OGEditor/OmniverseKernel that a portal has been unlocked. Writes oasis_portal_unlock_{portalId}.json to %TEMP%.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_notify_portal_unlock", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiNotifyPortalUnlock(sbyte* portalId)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return;
+            var id = PtrToString(portalId) ?? string.Empty;
+            client.NotifyPortalUnlock(id);
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Portal] ogengine_notify_portal_unlock exception: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
     /* ── Cross-game objective events (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal) ─── */
 
     /// <summary>

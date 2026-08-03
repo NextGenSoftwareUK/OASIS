@@ -815,7 +815,9 @@ void OQuake2RTX_STAR_PollItems(void) {
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 OQ2RTX_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
-                OQ2RTX_StarLog("OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+                ogengine_notify_portal_unlock(portal_id);
+                OQ2RTX_SetToastMessage("Portal unlocked!");
+                OQ2RTX_StarLog("OASIS UnlockPortal: %s", portal_id);
             }
         }
     }

@@ -118,6 +118,24 @@ ogengine_result_t ogengine_get_avatar_id(char* avatar_id_out, size_t avatar_id_s
 void ogengine_set_quest_progress_cache_refresh(int mode);
 void ogengine_refresh_quest_cache_in_background(void);
 
+/* Cross-game teleportation */
+int  ogengine_poll_teleport_request(char* out_map, size_t map_len, float* out_x, float* out_y, float* out_z);
+void ogengine_confirm_teleport_arrival(void);
+void ogengine_request_teleport(const char* target_game, const char* target_map, float x, float y, float z);
+
+/* Cross-game entity spawning */
+int  ogengine_poll_spawn_event(char* out_entity_id, size_t id_len, float* out_x, float* out_y, float* out_z);
+void ogengine_confirm_spawn(const char* entity_id);
+
+/* Cross-game event polling (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal) */
+int  ogengine_poll_cross_game_event(char* out_json, size_t json_len);
+
+/* Inventory grant polling */
+int  ogengine_poll_inventory_grant(char* out_guid, size_t guid_len);
+
+/* Portal unlock notification */
+void ogengine_notify_portal_unlock(const char* portal_id);
+
 #ifdef __cplusplus
 }
 #endif
