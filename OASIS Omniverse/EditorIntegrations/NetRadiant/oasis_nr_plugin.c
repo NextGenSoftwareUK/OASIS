@@ -1,4 +1,4 @@
-/*
+﻿/*
  * oasis_nr_plugin.c — OASIS OGEngine plugin for NetRadiant
  *
  * Implements the classic GtkRadiant/NetRadiant plugin ABI:
@@ -8,8 +8,8 @@
  *       "OASIS Portal Placer"  – creates an info_oasis_portal_enter brush entity
  *       "OASIS Quest Binder"   – binds a quest objective to the selected entity
  *
- * The plugin loads ogeditor_api.dll / libogeditor_api.so at startup and calls
- * through the C ABI declared in ogeditor_api.h.  No .NET knowledge required.
+ * The plugin loads OGEditorClient.dll / libOGEditorClient.so at startup and calls
+ * through the C ABI declared in OGEditorClient.h.  No .NET knowledge required.
  *
  * Build with the NetRadiant SDK (radiant/plugin.h included from the NetRadiant
  * source tree).  Copy the resulting .so / .dll into NetRadiant/plugins/.
@@ -36,7 +36,7 @@ static void*      dylib_sym(DylibHandle h, const char* sym) { return dlsym(h, sy
 static void       dylib_close(DylibHandle h) { dlclose(h); }
 #endif
 
-#include "ogeditor_api.h"
+#include "OGEditorClient.h"
 
 /* ── NetRadiant plugin ABI typedefs (mirror of radiant/plugin.h essentials) ─ */
 
@@ -68,9 +68,9 @@ static fn_bind_objective_t g_fn_bind_objective = NULL;
 
 static int load_ogeditor(void) {
 #ifdef _WIN32
-    const char* libname = "ogeditor_api.dll";
+    const char* libname = "OGEditorClient.dll";
 #else
-    const char* libname = "libogeditor_api.so";
+    const char* libname = "libOGEditorClient.so";
 #endif
     g_lib = dylib_open(libname);
     if (!g_lib) { fprintf(stderr, "[OASIS] Could not load %s\n", libname); return 0; }
@@ -84,14 +84,14 @@ static int load_ogeditor(void) {
 
     if (!g_fn_init || !g_fn_dispose || !g_fn_get_assets ||
         !g_fn_append_portal || !g_fn_get_quests || !g_fn_bind_objective) {
-        fprintf(stderr, "[OASIS] Missing exports in ogeditor_api — version mismatch?\n");
+        fprintf(stderr, "[OASIS] Missing exports in OGEditorClient — version mismatch?\n");
         dylib_close(g_lib); g_lib = NULL; return 0;
     }
 
     g_handle = g_fn_init("http://localhost:5000", "");
     if (!g_handle) { fprintf(stderr, "[OASIS] ogeditor_init returned NULL\n"); return 0; }
 
-    fprintf(stderr, "[OASIS] ogeditor_api loaded OK.\n");
+    fprintf(stderr, "[OASIS] OGEditorClient loaded OK.\n");
     return 1;
 }
 
