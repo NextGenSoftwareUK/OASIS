@@ -4246,7 +4246,8 @@ void OQuake_STAR_PollItems(void) {
             else if (strcmp(evt_type, "UnlockPortal") == 0)
             {
                 OQ_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
-                /* TODO: unlock portal portal_id via OGEditor portal system when integrated. */
+                ogengine_notify_portal_unlock(portal_id);
+                OQ_SetToastMessage("Portal unlocked!");
                 oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s", portal_id);
             }
         }

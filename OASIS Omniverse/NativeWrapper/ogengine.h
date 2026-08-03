@@ -137,6 +137,9 @@ void ogengine_confirm_spawn(const char* entity_id);
 ogengine_result_t ogengine_get_map_entities(const char* game_id, const char* map_name,
                                              char* out_json, size_t buf_len);
 
+/* Portal unlock notification */
+void ogengine_notify_portal_unlock(const char* portal_id);
+
 #ifdef __cplusplus
 }
 #endif

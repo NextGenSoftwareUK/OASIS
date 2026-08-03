@@ -372,7 +372,9 @@ void ODuke3D_STAR_Tick(void) {
             } else if (strcmp(evt_type, "UnlockPortal") == 0) {
                 char portal_id[64] = "";
                 OD3_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
-                oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s — portal unlock not yet implemented", portal_id);
+                ogengine_notify_portal_unlock(portal_id);
+                set_toast("Portal unlocked!");
+                oglib_log(OGLIB_LOG_INFO, "OASIS UnlockPortal: %s", portal_id);
             }
         }
     }

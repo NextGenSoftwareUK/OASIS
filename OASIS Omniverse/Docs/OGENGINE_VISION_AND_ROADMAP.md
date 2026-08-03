@@ -666,6 +666,7 @@ Action items:
 - [x] `OGEngineClient.DispatchCrossGameEventsFromProgressResponse` — routes events from every progress POST: SpawnEntity → `WriteSpawnEventToFile`, TeleportTo → `RequestTeleport`, all other types → `ogengine_poll_cross_game_event` queue; InventoryItemsToGrant → `ogengine_poll_inventory_grant` queue
 - [x] `OGEngineExports.ogengine_poll_cross_game_event` — native export; game polls per-frame, receives JSON for ShowNarration / PlayAudio / PlayVideo / OpenWebsite / UnlockPortal
 - [x] `OGEngineExports.ogengine_poll_inventory_grant` — native export; game polls per-frame, receives GUID string and triggers `ogengine_get_inventory`
+- [x] `ogengine_notify_portal_unlock(portalId)` — native export added to all `ogengine.h` copies; `OGEngineClient.NotifyPortalUnlock` writes `oasis_portal_unlock_{portalId}.json` to `%TEMP%` for OGEditor/OmniverseKernel pickup; all 10 game integrations call it + show in-game toast on `UnlockPortal` event
 - [x] Reference arc `Config/stories/oasis_arc_001_dimensional_rift.json` updated to show correct Chapter/Mission/Quest/Objective structure with `NeedToKillMonstersByType` and `CrossGameEventsOnActivate`
 - [~] `GeoHotSpotType.Text/Audio` narration delivery — `ShowNarration` cross-game event IS delivered as a toast in all 10 game integrations via `ogengine_poll_cross_game_event`; full in-world scrolling-text panel + audio playback per game is future work
 - [x] PlayAudio / PlayVideo / OpenWebsite — `oasis_open_url()` implemented in all 10 games; opens URL in OS default handler (`start` / `open` / `xdg-open`); title shown as in-game toast; richer in-engine playback is future work
@@ -746,7 +747,7 @@ Architecture mirrors existing ports:
 | Cross-game spawn push | `POST /api/spawn-events` | ✅ Done | Push entity spawn into a live game |
 | Poll spawn events | `GET /api/spawn-events/pending?game=...&avatarId=...` | ✅ Done | Game polls on tick |
 | Story arc | `GET/POST /api/stories` | ✅ Done | Multi-game narrative arcs |
-| Portal registry | `GET/POST /api/portals` | 🔜 Pending | All teleporter endpoints, shown in OGEngine Editor |
+| Portal registry | `GET/POST /api/portals` | ✅ Done | `PortalsController.cs` — register, list, get, unlock, lock; `ogengine_notify_portal_unlock` writes IPC file for OGEditor pickup |
 | First-objective events | `GET /api/quests/{id}/first-objective-events` | ✅ Done | Returns `CrossGameEventsOnActivate` for the first objective; called by `StartQuestAsync` to dispatch opening narration/audio |
 
 ---
@@ -923,5 +924,5 @@ The table below shows which item types are already cross-game mapped (from `oasi
 
 ---
 
-*Last updated: 2026-08-02 — Phases 2, 3 (infrastructure + ODOOM/OQuake native spawn), 4 (partial), 5 (infrastructure), and 6 complete. New: CrossGameEventsOnActivate / OnComplete / OnGeoHotSpotTriggered; PlayAudio / PlayVideo / OpenWebsite / UnlockPortal cross-game events; EntityCategory; NeedToKillMonstersByType + MonsterKilledClassname; RewardInventoryItemIds; ogengine_poll_cross_game_event + ogengine_poll_inventory_grant exports; GET /api/quests/{id}/first-objective-events; ODOOM summon-based spawn; OWolf3D cross-game event polls*
+*Last updated: 2026-08-02 — Phases 2, 3, 4 (partial), 5 (infrastructure), and 6 complete. New: CrossGameEventsOnActivate / OnComplete / OnGeoHotSpotTriggered; PlayAudio / PlayVideo / OpenWebsite cross-game events with `oasis_open_url()` in all 10 games; OWolf3D entity spawn via ECWolf DECORATE; OQuake2 / OQuake2-RTX entity spawn via `G_Spawn` + `ED_CallSpawn`; `UnlockPortal` event handler + `ogengine_notify_portal_unlock` implemented in all 10 games + `OGEngineExports`; `PortalsController.cs` (`GET/POST/unlock/lock /api/portals`) added to STAR WebAPI; `ogengine_poll_cross_game_event` + `ogengine_poll_inventory_grant` + `ogengine_notify_portal_unlock` declared in all per-game `ogengine.h` copies; OASIS Omniverse multi-genre vision docs updated (Gen1/2/3, Ready Player One framing, OGEngine Editor expanded)*
 *Vision: NextGen World Ltd — "One Infinite World"*
