@@ -1413,15 +1413,21 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		// Level timer: shared_sbar (native) left clock; odoom_hud_show_timer flipped in C++ (raw Z) — no duplicate MM:SS in this overlay.
 
-		// XP at far right of screen when beamed in (always visible during play)
+		// XP (and karma if non-zero) at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
 		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
+		CVar karmaVar = CVar.FindCVar("odoom_star_avatar_karma");
 		CVar showXpCv = CVar.FindCVar("odoom_hud_show_xp");
 		int showXpHud = (showXpCv != null) ? showXpCv.GetInt() : 1;
 		if (beamedVar != null && beamedVar.GetInt() != 0 && xpVar != null && showXpHud != 0)
 		{
 			int xp = xpVar.GetInt();
-			String xpText = String.Format("XP: %d", xp);
+			int karma = (karmaVar != null) ? karmaVar.GetInt() : 0;
+			String xpText;
+			if (karma != 0)
+				xpText = String.Format("XP: %d  Karma: %d", xp, karma);
+			else
+				xpText = String.Format("XP: %d", xp);
 			int xpW = f.StringWidth(xpText);
 			int xpX = 320 - xpW - 2 + 50;  // 50px to the right of original position
 			screen.DrawText(f, Font.CR_GOLD, xpX, 2, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
