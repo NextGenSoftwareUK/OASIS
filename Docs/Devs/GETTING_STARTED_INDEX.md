@@ -52,12 +52,16 @@ For more docs, see the [Developer Documentation Index](./DEVELOPER_DOCUMENTATION
 
 ---
 
-## OASIS Omniverse (ODOOM, OQuake, games)
+## OASIS Omniverse (OGames, Hub & HUD)
 
-For building and running **ODOOM** and **OQuake** (game integrations with OASIS STAR API), use the Omniverse guides:
+For building and running the 10 OASIS OGames (ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, and more), use the Omniverse guides:
 
 | Platform | Guide |
 |----------|--------|
 | **Windows** | [OASIS Omniverse — Windows](../../OASIS%20Omniverse/Docs/GettingStarted_Windows.md) |
 | **Linux** | [OASIS Omniverse — Linux](../../OASIS%20Omniverse/Docs/GettingStarted_Linux.md) |
 | **macOS** | [OASIS Omniverse — macOS](../../OASIS%20Omniverse/Docs/GettingStarted_Mac.md) |
+
+For the full Omniverse documentation (architecture, HUD overlay, editors, quests, cross-game teleport, per-game integration guides, and more), see:
+- **[OASIS Omniverse README](../../OASIS%20Omniverse/README.md)** — entry-point index for all Omniverse docs
+- **[OASIS Omniverse Developer Documentation Index](../../OASIS%20Omniverse/Docs/DEVELOPER_DOCUMENTATION_INDEX.md)** — complete listing of every doc in `OASIS Omniverse/Docs/`

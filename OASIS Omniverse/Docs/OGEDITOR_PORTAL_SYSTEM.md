@@ -1,4 +1,4 @@
-# OGEditor Portal System
+﻿# OGEditor Portal System
 
 Full specification for the OASIS Omniverse cross-map and cross-game teleport system — entity placement, runtime flow, OGMapSidecar format, and STAR API registration.
 
@@ -189,7 +189,7 @@ Every map that contains OASIS portal entities should have an accompanying sideca
 
 **UDB reads and writes this automatically** via `OGMapSidecar.cs` / `OASISMapSidecar.cs` whenever the map is saved.
 
-**Satellite editors** (TrenchBroom, NetRadiant, DarkRadiant) read/write via `ogeditor_sidecar_load()` / `ogeditor_sidecar_save()` from `ogeditor_api.dll`.
+**Satellite editors** (TrenchBroom, NetRadiant, DarkRadiant) read/write via `ogeditor_sidecar_load()` / `ogeditor_sidecar_save()` from `OGEditorClient.dll`.
 
 **Entity definition files (done):** `oasis_entities.fgd` and `oasis_entities.def` are now at:
 ```

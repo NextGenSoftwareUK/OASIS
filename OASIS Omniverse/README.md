@@ -81,6 +81,13 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 | [Docs/STAR_Games_User_Guide.md](Docs/STAR_Games_User_Guide.md) | Beam-in, inventory, quest keys for all games (players/testers) |
 | [Docs/ODOOM_Quest_List_STAR.md](Docs/ODOOM_Quest_List_STAR.md) | ODOOM quest list CVars, ZScript, scroll/filter invariants |
 
+### Hub and HUD overlay
+
+| Document | What it's for |
+|----------|----------------|
+| [Docs/OMNIVERSE_HUD_USER_GUIDE.md](Docs/OMNIVERSE_HUD_USER_GUIDE.md) | Player guide: all 9 Control Center tabs, hotkeys, presets, toasts, status strip, Return to Hub, Quest Tracker |
+| [Docs/OMNIVERSE_HUD_DEVELOPER_GUIDE.md](Docs/OMNIVERSE_HUD_DEVELOPER_GUIDE.md) | Developer reference: architecture, class relationships, data flow, toast system, preset internals, extension points |
+
 ### Build sync and native library
 
 | Document | What it's for |
@@ -311,6 +318,20 @@ When enabled in `oasisstar.json` (`mint_weapons`, `mint_keys`, `mint_monsters`),
 ### Avatar / SSO
 
 Log in with STAR username/password or API key + avatar ID. In-game console: `star beamin <username> <password>`.
+
+### OASIS Omniverse HUD overlay (Unity hub)
+
+When running OGames through the OASIS Omniverse Unity hub, a **Steam/Xbox-style overlay** (`SharedHudOverlay.cs`) sits at `sortingOrder 9999` above all embedded game windows. Press `I` in any OGame to open it.
+
+**Control Center tabs:** Inventory · Quests · NFTs · Avatar · Karma · Settings · Diagnostics · Friends · Teleport
+
+**Always-visible:** Runtime Status Strip (API health, active game, free RAM, polled every 0.6 s) and toast notifications (success/warning/error, animated, configurable duration and max count).
+
+**Also always-visible:** `QuestTrackerWidget` — a compact mini-HUD showing active quests, auto-refreshes every 20 s, independently repositionable.
+
+See the full documentation:
+- **[Docs/OMNIVERSE_HUD_USER_GUIDE.md](Docs/OMNIVERSE_HUD_USER_GUIDE.md)** — player guide (all tabs, hotkeys, presets, Return to Hub)
+- **[Docs/OMNIVERSE_HUD_DEVELOPER_GUIDE.md](Docs/OMNIVERSE_HUD_DEVELOPER_GUIDE.md)** — developer reference (architecture, data flow, extension points)
 
 ### Native HUD (fallback / standalone)
 

@@ -1,4 +1,4 @@
-# OGEditor Asset Catalog
+﻿# OGEditor Asset Catalog
 
 Specification for the shared OASIS asset catalog — how it is defined, generated, distributed, and consumed by all editors.
 
@@ -279,7 +279,7 @@ This tool should be run as part of the UDB build pipeline whenever `OGAssetCatal
 
 ## 5. How Editors Consume the Catalog
 
-### Via ogeditor_api.dll (satellite editors)
+### Via OGEditorClient.dll (satellite editors)
 
 ```c
 // On startup
@@ -314,5 +314,5 @@ The catalog JSON carries a `schema_version`. When the DLL loads it:
 
 The catalog JSON should be distributed:
 1. Bundled with the OGEditorSDK NuGet package (for UDB)
-2. Bundled with `ogeditor_api.dll` (for satellite editors)
+2. Bundled with `OGEditorClient.dll` (for satellite editors)
 3. Available at `GET /api/assets/catalog` on the STAR Web API (for live refresh)

@@ -1,4 +1,4 @@
-# OGEditor Integration Roadmap
+﻿# OGEditor Integration Roadmap
 
 This document covers the current state of OASIS Omniverse editor integration, the planned deep-integration layers, and the long-term goal of merging all forked editors into a single unified **OGEditor** — with **UltimateDoomBuilder (UDB)** as the established primary base.
 
@@ -19,7 +19,7 @@ For the full platform vision, see `OGENGINE_VISION_AND_ROADMAP.md`.
 
 ## 2. Architecture: UDB as the Hub
 
-UDB is not just one of four equal editors — it is the **intelligence hub** for the entire OGEditor system. The OGEditorSDK it hosts is compiled to a native C ABI DLL (`ogeditor_api.dll` / `libogeditor_api.so`) via .NET NativeAOT, exposing every OASIS capability to any editor regardless of implementation language.
+UDB is not just one of four equal editors — it is the **intelligence hub** for the entire OGEditor system. The OGEditorSDK it hosts is compiled to a native C ABI DLL (`OGEditorClient.dll` / `libOGEditorClient.so`) via .NET NativeAOT, exposing every OASIS capability to any editor regardless of implementation language.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -28,12 +28,12 @@ UDB is not just one of four equal editors — it is the **intelligence hub** for
 │  │                    OGEditorSDK (.NET)                   │ │
 │  │  OGAssetCatalog   OGMapSidecar   OGStarApiClient        │ │
 │  │  OGEntityMappings                                        │ │
-│  │  Native/ → ogeditor_api.h + NativeExports.cs            │ │
+│  │  Native/ → OGEditorClient.h + NativeExports.cs            │ │
 │  └──────────────────────┬──────────────────────────────────┘ │
 │                         │ NativeAOT compile                  │
 └─────────────────────────┼────────────────────────────────────┘
                           │
-               ogeditor_api.dll / libogeditor_api.so
+               OGEditorClient.dll / libOGEditorClient.so
                           │
           ┌───────────────┼───────────────┐
           │               │               │
@@ -49,7 +49,7 @@ UDB is not just one of four equal editors — it is the **intelligence hub** for
 
 This means:
 - **OASIS intelligence lives once** — in OGEditorSDK / UDB
-- Satellite editors call `ogeditor_api.dll` for asset lookup, portal registration, STAR API calls, entity mapping, and sidecar I/O
+- Satellite editors call `OGEditorClient.dll` for asset lookup, portal registration, STAR API calls, entity mapping, and sidecar I/O
 - Adding a new game asset type, fixing a thing type number, or changing STAR API behaviour only needs to change in one place
 
 ---
@@ -64,8 +64,8 @@ This means:
 | `OGEntityMappings.cs` | Classname ↔ OASIS thing type tables for Q1/Q2/Q3/Duke/Wolf |
 | `OGMapSidecar.cs` | `.oasis.json` sidecar file reader/writer for portal topology and map metadata |
 | `OGStarApiClient.cs` | HTTP client for the WEB5 STAR Web API |
-| `Native/ogeditor_api.h` | C ABI header for NativeAOT exports |
-| `Native/NativeExports.cs` | NativeAOT export declarations → `ogeditor_api.dll` |
+| `Native/OGEditorClient.h` | C ABI header for NativeAOT exports |
+| `Native/NativeExports.cs` | NativeAOT export declarations → `OGEditorClient.dll` |
 
 ### UDB Plugins (`Source/Plugins/UDBScript/`)
 
@@ -97,11 +97,11 @@ These definitions let level designers place OASIS entities in the editor. The **
 
 ## 5. Integration Phases
 
-### Phase 1 — ogeditor_api.dll Integration in Satellite Editors
+### Phase 1 — OGEditorClient.dll Integration in Satellite Editors
 
-Each satellite editor loads `ogeditor_api.dll` at startup and calls into it for all OASIS intelligence. This replaces the need to duplicate any OASIS logic in C++ or C.
+Each satellite editor loads `OGEditorClient.dll` at startup and calls into it for all OASIS intelligence. This replaces the need to duplicate any OASIS logic in C++ or C.
 
-**API surface exposed by `ogeditor_api.h`** (to be expanded — see `OGEDITOR_PLUGIN_GUIDE.md`):
+**API surface exposed by `OGEditorClient.h`** (to be expanded — see `OGEDITOR_PLUGIN_GUIDE.md`):
 
 ```c
 // Asset catalog
@@ -134,10 +134,10 @@ int  ogeditor_ogengine_connect(const char* ogengine_url);
 int  ogeditor_ogengine_get_status(OGEngineStatus* out);
 ```
 
-**Discovery**: Each satellite editor looks for `ogeditor_api.dll` in:
+**Discovery**: Each satellite editor looks for `OGEditorClient.dll` in:
 1. Same directory as the editor executable
 2. `%APPDATA%\OASIS\bin\` (Windows) / `~/.oasis/bin/` (Linux/macOS)
-3. Path from `%APPDATA%\OASIS\editor_config.json` → `"ogeditor_api_path"`
+3. Path from `%APPDATA%\OASIS\editor_config.json` → `"OGEditorClient_path"`
 
 If not found, OASIS features degrade gracefully — entity definitions still work, the OASIS panel shows "OGEditorSDK not found" and a download link.
 
@@ -156,7 +156,7 @@ Each editor gains a top-level **OASIS** menu. Editors discover each other via th
     "oquake3_editor":"C:\\Source\\OQuake3Editor\\install\\netradiant.exe",
     "odoom3_editor": "C:\\Source\\ODOOM3Editor\\install\\darkradiant.exe"
   },
-  "ogeditor_api_path": "C:\\Source\\UltimateDoomBuilder\\build\\ogeditor_api.dll",
+  "OGEditorClient_path": "C:\\Source\\UltimateDoomBuilder\\build\\OGEditorClient.dll",
   "ogengine_url":      "http://localhost:8888",
   "star_api_url":      "http://localhost:7777"
 }
@@ -205,7 +205,7 @@ Doom/Doom3 are a separate compatible pair (sector-based → idTech4 format share
 
 ### Phase 3 — OASISStarPanel in Satellite Editors
 
-UDB already has `OASISStarPanel.cs` as a dockable panel. The satellite editors need equivalent panels that call `ogeditor_api.dll` rather than calling .NET code directly.
+UDB already has `OASISStarPanel.cs` as a dockable panel. The satellite editors need equivalent panels that call `OGEditorClient.dll` rather than calling .NET code directly.
 
 **Panel spec:**
 
@@ -233,7 +233,7 @@ UDB already has `OASISStarPanel.cs` as a dockable panel. The satellite editors n
 └─────────────────────────────────────────────────┘
 ```
 
-In TrenchBroom (OQuakeEditor), this panel is a `wxPanel` or `QDockWidget` in a new plugin at `plugins/oasis/`. It calls `ogeditor_api.dll` via `dlopen`/`LoadLibrary` and polls every 5 seconds.
+In TrenchBroom (OQuakeEditor), this panel is a `wxPanel` or `QDockWidget` in a new plugin at `plugins/oasis/`. It calls `OGEditorClient.dll` via `dlopen`/`LoadLibrary` and polls every 5 seconds.
 
 In NetRadiant (OQuake3Editor), it's a module in `contrib/oasis/` using GTK widgets.
 
@@ -284,10 +284,10 @@ See `OGEDITOR_PLUGIN_GUIDE.md` for per-editor implementation detail and `OGEDITO
 
 | Phase | Work | Outcome |
 |-------|------|---------|
-| A | Satellite editors load `ogeditor_api.dll` (Phase 1 above) | All editors share one OASIS intelligence source |
+| A | Satellite editors load `OGEditorClient.dll` (Phase 1 above) | All editors share one OASIS intelligence source |
 | B | OASIS menu + "Open Portal Partner In" in all editors (Phase 2) | Designers navigate between both sides of a portal pair without leaving the tool |
 | C | OASISStarPanel + OASISPortalPanel in satellite editors (Phases 3–4) | Full OASIS UI everywhere |
-| D | **OGMapFormat SDK** — `OGMapIR`, `IOGMapFormatAdapter`, built-in adapters for all 10 OGames; community adapter API | Any editor can convert any map to any compatible format via `ogeditor_api.dll`. UDB gains Quake/Q3/Doom3 import-export through the SDK. |
+| D | **OGMapFormat SDK** — `OGMapIR`, `IOGMapFormatAdapter`, built-in adapters for all 10 OGames; community adapter API | Any editor can convert any map to any compatible format via `OGEditorClient.dll`. UDB gains Quake/Q3/Doom3 import-export through the SDK. |
 | E | Ship OGEditor: single installer, all formats, full OASIS integration | OGEditor v1.0 |
 
 Phase D is the key unlock for the unified OGEditor: once UDB can read and write Quake `.map`, Quake3 `.map`, and Doom3 `.map` files via format adapters, a single UDB install opens every OASIS game's maps natively. The satellite editors remain available as specialised tools but are no longer required.
@@ -302,7 +302,7 @@ See `OGEDITOR_MAPFORMAT_SDK.md` for the full adapter interface specification, IR
 |----------|---------|
 | `OGEDITOR_MAPFORMAT_SDK.md` | OGMapIR spec, IOGMapFormatAdapter interface, built-in adapters, community adapter guide, C ABI |
 | `OGEDITOR_PORTAL_SYSTEM.md` | Portal entity spec, runtime flow, OGMapSidecar format, STAR API registration |
-| `OGEDITOR_PLUGIN_GUIDE.md` | Per-editor implementation guide for ogeditor_api.dll integration |
+| `OGEDITOR_PLUGIN_GUIDE.md` | Per-editor implementation guide for OGEditorClient.dll integration |
 | `OGEDITOR_ASSET_CATALOG.md` | Asset catalog JSON schema, generation from OGAssetCatalog.cs, consumption |
 | `OGENGINE_VISION_AND_ROADMAP.md` | Full OGEngine platform vision |
 | `ARCHITECTURE.md` | OASIS Omniverse technical architecture |

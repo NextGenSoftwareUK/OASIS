@@ -15,6 +15,10 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Story arcs](./OGENGINE_VISION_AND_ROADMAP.md#46-cross-game-quests--missions--story)** — `StoriesController` (`GET/POST /api/stories`); first arc: `stories/oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
 - **[Entity definitions (.fgd/.def)](./OGENGINE_VISION_AND_ROADMAP.md#44-ogengine-editor)** — `oasis_portal`, `oasis_spawn`, `oasis_objective_trigger` at `Plugins/UDBScript/Assets/oasis_entities.fgd/.def`
 
+### **Hub & HUD overlay (Unity)**
+- **[OMNIVERSE_HUD_USER_GUIDE.md](./OMNIVERSE_HUD_USER_GUIDE.md)** — Player guide: all 9 Control Center tabs (Inventory, Quests, NFTs, Avatar, Karma, Settings, Diagnostics, Friends, Teleport), hotkeys, preset system, toast notifications, runtime status strip, Return to Hub, Quest Tracker mini-HUD
+- **[OMNIVERSE_HUD_DEVELOPER_GUIDE.md](./OMNIVERSE_HUD_DEVELOPER_GUIDE.md)** — Developer reference: `SharedHudOverlay.cs` architecture, class relationships (`OmniverseKernel`, `Web4Web5GatewayClient`, `GlobalSettingsService`, `DraggableResizablePanel`), tab data flow, toast system internals, panel layout persistence, Win32 hotkey detection, preset export/import format, accessibility system, extension guide (new tabs, toasts, settings, panels)
+
 ### **System Architecture**
 - **[OASIS Architecture Overview](../../../Docs/Devs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
 - **[OASIS Architecture Diagrams](../../../Docs/Devs/OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
