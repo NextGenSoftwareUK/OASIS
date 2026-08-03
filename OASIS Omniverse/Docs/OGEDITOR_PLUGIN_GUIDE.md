@@ -1,29 +1,29 @@
-# OGEditor Plugin Implementation Guide
+﻿# OGEditor Plugin Implementation Guide
 
-Per-editor guide for integrating `ogeditor_api.dll` and implementing the OASIS menu, OASISStarPanel, and OASISPortalPanel in each satellite editor.
+Per-editor guide for integrating `OGEditorClient.dll` and implementing the OASIS menu, OASISStarPanel, and OASISPortalPanel in each satellite editor.
 
 UDB already has full implementations of all of these. This guide is for **OQuakeEditor (TrenchBroom)**, **OQuake3Editor (NetRadiant)**, and **ODOOM3Editor (DarkRadiant)**.
 
 ---
 
-## 1. ogeditor_api.dll — The Shared C ABI
+## 1. OGEditorClient.dll — The Shared C ABI
 
 All OASIS editor intelligence lives in UDB's OGEditorSDK, compiled to a native DLL via .NET NativeAOT. Every satellite editor calls this DLL rather than duplicating any logic.
 
-**Header:** `UltimateDoomBuilder/Source/OGEditorSDK/Native/ogeditor_api.h`
+**Header:** `UltimateDoomBuilder/Source/OGEditorSDK/Native/OGEditorClient.h`
 
-**Build output:** `UltimateDoomBuilder/build/ogeditor_api.dll` (Windows) / `libogeditor_api.so` (Linux) / `libogeditor_api.dylib` (macOS)
+**Build output:** `UltimateDoomBuilder/build/OGEditorClient.dll` (Windows) / `libOGEditorClient.so` (Linux) / `libOGEditorClient.dylib` (macOS)
 
 ### Loading the DLL
 
 **C++ (TrenchBroom, DarkRadiant):**
 ```cpp
-#include "ogeditor_api.h"
+#include "OGEditorClient.h"
 
 // Windows
-HMODULE ogeditor_lib = LoadLibraryA("ogeditor_api.dll");
+HMODULE ogeditor_lib = LoadLibraryA("OGEditorClient.dll");
 if (!ogeditor_lib) {
-    // Try %APPDATA%\OASIS\bin\ogeditor_api.dll
+    // Try %APPDATA%\OASIS\bin\OGEditorClient.dll
     // Degrade gracefully — OASIS features unavailable
     return;
 }
@@ -35,12 +35,12 @@ auto ogeditor_get_thing_type =
 
 **C (NetRadiant):**
 ```c
-#include "ogeditor_api.h"
+#include "OGEditorClient.h"
 #include <dlfcn.h>
 
-void* ogeditor_lib = dlopen("libogeditor_api.so", RTLD_LAZY);
+void* ogeditor_lib = dlopen("libOGEditorClient.so", RTLD_LAZY);
 if (!ogeditor_lib) {
-    // Try ~/.oasis/bin/libogeditor_api.so
+    // Try ~/.oasis/bin/libOGEditorClient.so
     return;
 }
 int (*ogeditor_get_thing_type)(const char*, const char*) =
@@ -131,7 +131,7 @@ int ogeditor_convert_map(const char* src_path,  const char* src_game,
                           const char* out_path,  const char* dst_game);
 ```
 
-### Struct definitions (from ogeditor_api.h)
+### Struct definitions (from OGEditorClient.h)
 
 ```c
 typedef struct {
@@ -177,14 +177,14 @@ typedef struct {
 ```
 OQuakeEditor/app/TrenchBroom/src/oasis/
 ├── OASISPlugin.h
-├── OASISPlugin.cpp          ← loads ogeditor_api.dll, initialises
+├── OASISPlugin.cpp          ← loads OGEditorClient.dll, initialises
 ├── OASISMenu.h
 ├── OASISMenu.cpp            ← OASIS top-level menu
 ├── OASISStarPanel.h
 ├── OASISStarPanel.cpp       ← dockable panel (QDockWidget)
 ├── OASISPortalPanel.h
 ├── OASISPortalPanel.cpp     ← portal pair panel (QDockWidget)
-└── OGEditorAPI.h            ← thin C++ wrapper around ogeditor_api.h
+└── OGEditorAPI.h            ← thin C++ wrapper around OGEditorClient.h
 ```
 
 ### Hooking in the menu
@@ -268,10 +268,10 @@ private:
 
 ```
 OQuake3Editor/contrib/oasis/
-├── oasis_plugin.c           ← module entry point, loads libogeditor_api.so
+├── oasis_plugin.c           ← module entry point, loads libOGEditorClient.so
 ├── oasis_menu.c             ← OASIS menu (GtkMenu)
 ├── oasis_panel.c            ← OASIS panel (GtkWidget inside a GtkWindow)
-└── oasis_api.h              ← thin C wrapper around ogeditor_api.h
+└── oasis_api.h              ← thin C wrapper around OGEditorClient.h
 ```
 
 ### Module registration
@@ -287,7 +287,7 @@ const char* QERPluginInfo(void) {
 }
 
 int QERPluginInit(void* hApp, void* pMainWidget) {
-    oasis_api_load();   // dlopen libogeditor_api.so
+    oasis_api_load();   // dlopen libOGEditorClient.so
     oasis_menu_create((GtkWidget*)pMainWidget);
     oasis_panel_create((GtkWidget*)pMainWidget);
     return 0;
@@ -432,7 +432,7 @@ UDB already has the full OASIS implementation. For reference, the existing entry
 | `OGAssetCatalog` | `OGEditorSDK/OGAssetCatalog.cs` | Canonical asset list |
 | `OGStarApiClient` | `OGEditorSDK/OGStarApiClient.cs` | STAR Web API HTTP client |
 | `OGMapSidecar` | `OGEditorSDK/OGMapSidecar.cs` | Sidecar model |
-| `NativeExports` | `OGEditorSDK/Native/NativeExports.cs` | NativeAOT → ogeditor_api.dll |
+| `NativeExports` | `OGEditorSDK/Native/NativeExports.cs` | NativeAOT → OGEditorClient.dll |
 
 The OASIS menu in UDB should be added via the existing plugin menu infrastructure at `Source/Plugins/UDBScript/` using the `IMenusForm` or `BuilderPlug` menu registration.
 
@@ -454,7 +454,7 @@ macOS:   ~/Library/Application Support/OASIS/editor_config.json
 void OASISPlugin::registerSelf() {
     auto config = loadEditorConfig();
     config["editors"]["oquake_editor"] = QApplication::applicationFilePath();
-    config["ogeditor_api_path"] = findOGEditorApi();
+    config["OGEditorClient_path"] = findOGEditorApi();
     saveEditorConfig(config);
 }
 ```
@@ -462,14 +462,14 @@ void OASISPlugin::registerSelf() {
 **`findOGEditorApi()`** searches in order:
 1. Same directory as this editor's executable
 2. `%APPDATA%\OASIS\bin\` (Windows) / `~/.oasis/bin/`
-3. `config["ogeditor_api_path"]` if already set
+3. `config["OGEditorClient_path"]` if already set
 4. Returns empty string if not found → OASIS features degrade gracefully
 
 ---
 
 ## 7. Testing the Integration
 
-Once `ogeditor_api.dll` is loaded in a satellite editor:
+Once `OGEditorClient.dll` is loaded in a satellite editor:
 
 ```
 1. Open OQuakeEditor, load any Quake2 map

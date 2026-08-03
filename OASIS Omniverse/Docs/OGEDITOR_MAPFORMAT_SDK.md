@@ -1,4 +1,4 @@
-# OGMapFormat SDK
+﻿# OGMapFormat SDK
 
 Specification for the modular, community-extensible map format conversion system.
 The SDK defines a neutral **Intermediate Representation (IR)** that all format adapters
@@ -459,13 +459,13 @@ public class GoldsrcAdapter : IOGMapFormatAdapter
 
 ### Creating an adapter (C++ / native)
 
-For editors that can't use .NET, `ogeditor_api.dll` exposes a C ABI registration
+For editors that can't use .NET, `OGEditorClient.dll` exposes a C ABI registration
 interface. A native adapter is a DLL that exports `ogeditor_adapter_register()`:
 
 ```c
-// In your adapter DLL — ogeditor_api.h defines the vtable
+// In your adapter DLL — OGEditorClient.h defines the vtable
 
-#include "ogeditor_api.h"
+#include "OGEditorClient.h"
 
 static OGMapIR* my_read(const char* path, OGMapReadError* err) {
     // ... parse the format, build and return OGMapIR* ...
@@ -479,7 +479,7 @@ static float my_fidelity(OGGeometryFamily src_family) {
     return src_family == OG_FAMILY_BRUSH3D ? 0.95f : 0.40f;
 }
 
-// Called by ogeditor_api.dll when your DLL is loaded
+// Called by OGEditorClient.dll when your DLL is loaded
 void ogeditor_adapter_register(OGAdapterRegistry* reg) {
     OGFormatAdapterVTable vtable = {
         .format_id    = "goldsrc",
@@ -505,7 +505,7 @@ The SDK scans for adapters in this order:
 | Windows | `%APPDATA%\OASIS\format-adapters\*.dll` |
 | Linux | `~/.oasis/format-adapters/*.so` |
 | macOS | `~/Library/Application Support/OASIS/format-adapters/*.dylib` |
-| Any | Same directory as `ogeditor_api.dll` |
+| Any | Same directory as `OGEditorClient.dll` |
 | Any | Paths listed in `editor_config.json → "adapter_paths"` |
 
 .NET adapters are identified by the `[assembly: OGMapFormatAdapter]` attribute.
@@ -513,10 +513,10 @@ Native adapters are identified by the presence of an exported `ogeditor_adapter_
 
 ---
 
-## 8. ogeditor_api.dll — C ABI for Conversion
+## 8. OGEditorClient.dll — C ABI for Conversion
 
 Satellite editors (TrenchBroom, NetRadiant, DarkRadiant) call conversion through
-`ogeditor_api.dll` rather than using the .NET types directly:
+`OGEditorClient.dll` rather than using the .NET types directly:
 
 ```c
 // List available adapters
@@ -598,6 +598,6 @@ These formats are not in the built-in set but are close matches to existing fami
 | Document | Contents |
 |----------|---------|
 | `OGEDITOR_INTEGRATION_ROADMAP.md` | Overall OGEditor roadmap; Phase D covers this SDK |
-| `OGEDITOR_PLUGIN_GUIDE.md` | Per-editor implementation — how to call ogeditor_api.dll |
+| `OGEDITOR_PLUGIN_GUIDE.md` | Per-editor implementation — how to call OGEditorClient.dll |
 | `OGEDITOR_ASSET_CATALOG.md` | Asset catalog JSON — entity classname and thing type reference |
 | `OGEDITOR_PORTAL_SYSTEM.md` | Portal entity spec and OGMapSidecar format |
