@@ -138,6 +138,8 @@ namespace OASIS.Omniverse.UnityHost.UI
         private readonly List<QuestItem> _questCache = new List<QuestItem>();
         private readonly List<NftAssetItem> _nftCache = new List<NftAssetItem>();
         private readonly List<KarmaEntry> _karmaCache = new List<KarmaEntry>();
+        private readonly List<ClanMemberItem> _clanCache = new List<ClanMemberItem>();
+        private string _clanLoadError;
         private AvatarProfileItem _avatarCache;
         private float _karmaTotal;
 
@@ -1206,7 +1208,17 @@ namespace OASIS.Omniverse.UnityHost.UI
                     }
                     case OmniverseTab.Friends:
                     {
-                        // No GetClanMembersAsync exists yet; placeholder rendered in RedrawListTab
+                        _clanCache.Clear();
+                        _clanLoadError = null;
+                        var clanResult = await _apiClient.GetClanMembersAsync();
+                        if (clanResult.IsError)
+                        {
+                            _clanLoadError = clanResult.Message;
+                        }
+                        else if (clanResult.Result != null)
+                        {
+                            _clanCache.AddRange(clanResult.Result);
+                        }
                         break;
                     }
                 }
@@ -1379,7 +1391,38 @@ namespace OASIS.Omniverse.UnityHost.UI
             _pageIndicator.text = "Friends";
             builder.AppendLine("Friends & Clan");
             builder.AppendLine(new string('-', 64));
-            builder.AppendLine("  Clan member list coming soon");
+
+            if (_clanLoadError != null)
+            {
+                builder.AppendLine($"  Unavailable: {_clanLoadError}");
+                builder.AppendLine("  (STAR API may be offline or clan not configured)");
+                return;
+            }
+
+            if (_clanCache.Count == 0)
+            {
+                builder.AppendLine("  No clan members found.");
+                builder.AppendLine("  Use Refresh to load, or join a clan via the OASIS platform.");
+                return;
+            }
+
+            int online = _clanCache.Count(m => m.isOnline);
+            builder.AppendLine($"  Clan members: {_clanCache.Count}  |  Online: {online}");
+            builder.AppendLine();
+
+            int start = _currentPage * PageSize;
+            int end   = Math.Min(start + PageSize, _clanCache.Count);
+            _pageIndicator.text = $"Friends  ({start + 1}–{end} of {_clanCache.Count})";
+
+            for (int i = start; i < end; i++)
+            {
+                var m = _clanCache[i];
+                string onlineMark = m.isOnline ? "[ON]" : "[off]";
+                string karma = m.karmaScore != 0 ? $"  karma:{m.karmaScore:0.#}" : string.Empty;
+                string game  = !string.IsNullOrEmpty(m.currentGame) ? $"  in:{m.currentGame}" : string.Empty;
+                string role  = !string.IsNullOrEmpty(m.clanRole) && m.clanRole != "Member" ? $"  ({m.clanRole})" : string.Empty;
+                builder.AppendLine($"  {onlineMark} {m.username}{role}{karma}{game}");
+            }
         }
 
         private void CopyDiagnosticsToClipboard()

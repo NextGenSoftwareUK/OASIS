@@ -500,12 +500,16 @@ A quest objective can trigger: "spawn a Cacodemon in the current Quake map" by p
 
 ### 4.4 OGEngine Editor
 
-**Status:** ✅ (partial) — entity defs and companion launch complete; sprite extraction and WebView2 pending
+**Status:** ✅ Complete
 
 - [x] `.fgd` and `.def` entity definitions (`oasis_portal`, `oasis_spawn`, `oasis_objective_trigger`) at `Plugins/UDBScript/Assets/oasis_entities.fgd/.def`
 - [x] Companion editor launch button in `OGEnginePanel.cs` (TrenchBroom/NetRadiant/DarkRadiant auto-detected via PATH)
-- [ ] Improved Quake sprite extraction (still pending)
-- [ ] STARNET Quest Builder embedded via WebView2 (optional)
+- [x] Improved Quake sprite extraction — `OQuakeMdlRenderer.cs` software rasterizer; `--render` flag in ExtractOquakeSprites
+- [x] STARNET Quest Builder embedded via WebView2 — `OGSTARNETQuestBuilderPanel.cs`; action `ogengine_show_starnet_builder`; NuGet `Microsoft.Web.WebView2` added to UDBScript.csproj
+- [x] **TrenchBroom/OQuakeEditor** — `OASIS_OQuake.fgd` (OQ1), `OASIS_OQuake2.fgd` (OQ2) and new `OASIS_OQuake3.fgd` (OQ3) in `C:\Source\OQuakeEditor`; all three GameConfig.cfg files updated to include OASIS FGDs
+- [x] **DarkRadiant/ODOOM3-Editor** — `plugins/dm.oasis/` plugin (`oasis.cpp` + `OASISPanel.cpp`) loads `ogeditor_api.dll` at startup and provides "OASIS OGEngine…" menu entry with 3-tab dialog: Asset Browser, Portal Placer, Quest Binder
+- [x] **NetRadiant** — `EditorIntegrations/NetRadiant/oasis_nr_plugin.c` implements classic `QERPlug_*` ABI and calls `ogeditor_api.dll` for asset listing, portal appending, and quest display
+- [x] **Mapster32** — `EditorIntegrations/Mapster32/oasis_m32_tool.c` standalone CLI tool registered as an external user tool in Mapster32; calls `ogeditor_api.dll` for asset catalog, portal sidecar, quest list, and map conversion
 
 The universal cross-game map editor — the tool that makes all of the above *creatable*.
 
@@ -530,26 +534,26 @@ The universal cross-game map editor — the tool that makes all of the above *cr
 
 **Ultimate Doom Builder** is the correct base because:
 
-| Criterion | UDB (C#/.NET) | TrenchBroom (C++/Qt) |
-|-----------|--------------|----------------------|
-| OASIS integration | ✅ Already built and growing | 🔜 Would need a new codebase |
-| Language / stack | ✅ C#/.NET — matches OGEngineClient | C++ / Qt — different stack |
-| Doom WAD editing | ✅ Native (the whole app is this) | ❌ Not supported |
-| Plugin architecture | ✅ Rich C# `Plug` base class | C++ only |
+| Criterion | UDB (C#/.NET) | TrenchBroom / DarkRadiant / NetRadiant / Mapster32 |
+|-----------|--------------|---------------------------------------------------|
+| OASIS integration | ✅ UDB plugin (C# `BuilderPlug`) — full panels, converters, portal editor | ✅ Via `ogeditor_api.dll` C ABI — any C/C++ editor calls `ogeditor_init`, `ogeditor_get_assets_json`, `ogeditor_append_portal`, etc. without .NET knowledge |
+| Language / stack | C#/.NET | C/C++ editors load `ogeditor_api.dll` via `LoadLibrary` — NativeAOT, no runtime dependency |
+| Doom WAD editing | ✅ Native | ❌ Not supported (companion editors handle their own format) |
+| Plugin architecture | ✅ Rich C# `Plug` base class | Per-editor plugin model (TB game config, DR module, NR plugin, M32 CON script) |
 | Q-engine .map support | ✅ Via OASISMapConverter (import/export) | ✅ Native |
-| Q3 curve/patch | Via companion NetRadiant | ✅ Native |
-| Build engine (Duke3D) | Via companion Mapster32 | Via companion |
-| Doom 3 maps | Via companion DarkRadiant | Via companion |
+| Q3 curve/patch | Via companion NetRadiant | ✅ TrenchBroom / NetRadiant native |
+| Build engine (Duke3D) | Via companion Mapster32 | ✅ Mapster32 native |
+| Doom 3 maps | Via companion DarkRadiant | ✅ DarkRadiant native |
 | License | GPL2 | GPL3 |
 
 **Multi-editor strategy:**
 - **UDB** = primary OASIS host (Doom WAD maps — the most complex; also the import/export hub for all other formats)
-- **TrenchBroom** = companion for Q1/Q2 geometry editing; UDB can launch it as a subprocess
-- **NetRadiant-custom** = companion for Q3 maps (curve/patch editing)
-- **Mapster32** (bundled with EDuke32) = companion for Duke3D BUILD maps
-- **DarkRadiant** = companion for Doom 3 maps (`C:\Source\ODOOM3-Editor`)
+- **TrenchBroom** (`C:\Source\OQuakeEditor`) = companion for Q1/Q2/Q3 geometry editing; carries `OASIS_OQuake.fgd`, `OASIS_OQuake2.fgd`, `OASIS_OQuake3.fgd` ✅
+- **NetRadiant-custom** = companion for Q3 curve/patch editing; `oasis_nr_plugin.c` plugin via `ogeditor_api.dll` ✅
+- **Mapster32** (bundled with EDuke32) = companion for Duke3D BUILD maps; `oasis_m32_tool.exe` CLI companion via `ogeditor_api.dll` ✅
+- **DarkRadiant** (`C:\Source\ODOOM3-Editor`) = companion for Doom 3 maps; `plugins/dm.oasis/` module via `ogeditor_api.dll` ✅
 
-All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OASIS metadata is portable.
+All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OASIS metadata is portable. All reach the STAR API through `ogeditor_api.dll` — no .NET knowledge required.
 
 #### What is already built in UDB (as of 2026-08-01)
 
@@ -567,7 +571,7 @@ All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OAS
 | `Plugins/UDBScript/OASISMapConverter.cs` | ✅ Done | Bidirectional entity conversion: OQUAKE↔ODOOM, OQUAKE2↔ODOOM, OQUAKE3→ODOOM, ODUKE3D→ODOOM |
 | `Plugins/UDBScript/OASISMapSidecar.cs` | ✅ Done | Reads/writes `oasis_{mapname}.json` sidecar (portals + cross-game entities) |
 | `Tools/ExtractOquakeSprites/` | ✅ Done | Extracts OQUAKE thing sprites from pak0.pak for UDB thing icon display |
-| Improved sprite extraction | 🔜 Next | 3D render Quake MDL models instead of cropping MDL skin texture (fixes "rough sprites") |
+| Improved sprite extraction | ✅ Done | `OQuakeMdlRenderer.cs` software rasterizer — 3D render Quake MDL models; `--render` flag in ExtractOquakeSprites |
 
 #### OGEngine Editor architecture
 
@@ -670,7 +674,7 @@ Action items:
 - [x] Reference arc `Config/stories/oasis_arc_001_dimensional_rift.json` updated to show correct Chapter/Mission/Quest/Objective structure with `NeedToKillMonstersByType` and `CrossGameEventsOnActivate`
 - [~] `GeoHotSpotType.Text/Audio` narration delivery — `ShowNarration` cross-game event IS delivered as a toast in all 10 game integrations via `ogengine_poll_cross_game_event`; full in-world scrolling-text panel + audio playback per game is future work
 - [x] PlayAudio / PlayVideo / OpenWebsite — `oasis_open_url()` implemented in all 10 games; opens URL in OS default handler (`start` / `open` / `xdg-open`); title shown as in-game toast; richer in-engine playback is future work
-- [ ] STARNET web Quest Builder integration (optional)
+- [x] STARNET web Quest Builder integration — embedded via WebView2 in UDB (`OGSTARNETQuestBuilderPanel.cs`)
 
 **What's needed:**
 
@@ -795,20 +799,20 @@ Architecture mirrors existing ports:
 - [x] Quest Weaver panel in UDB; live STAR API asset catalog panel
 - [x] `oasis_entities.fgd` / `oasis_entities.def` — portal, spawn, objective-trigger entity defs for TrenchBroom/NetRadiant
 - [x] Companion editor launch button in UDB (TrenchBroom / NetRadiant / DarkRadiant)
-- [ ] Improved Quake sprite extraction (render MDL from fixed angle vs. cropping skin)
-- [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional)
+- [x] Improved Quake sprite extraction — `OQuakeMdlRenderer.cs` software rasterizer; `--render` flag in ExtractOquakeSprites for 3D-rendered monster sprites
+- [x] STARNET Quest Builder embedded via WebView2 in UDB — `OGSTARNETQuestBuilderPanel.cs`
 - [ ] Test: place a portal in a Doom map, walk through it in ODOOM → appear in OQuake
 
 ### Phase 5 — Quest Weaver + Infinite Story
 - [x] Story arc JSON schema (`Config/stories/*.json`) + STAR API endpoints (`/api/stories`)
 - [x] First cross-game story arc: `oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
 - [~] `GeoHotSpotType.Text/Audio` narration delivery — toast delivered in all 10 games; full scrolling-text panel + audio playback is future work
-- [ ] STARNET Quest Builder embedded via WebView2 in UDB (optional)
+- [x] STARNET Quest Builder embedded via WebView2 in UDB — `OGSTARNETQuestBuilderPanel.cs`
 
 ### Phase 6 — Native HUD Polish
 - [ ] Verify Unity overlay renders on top of all 10 embedded games (borderless windowed)
-- [ ] Enrich per-game native fallback HUD (for standalone mode)
-- [x] Add "Friends" tab to SharedHudOverlay (clan chat, item gifting)
+- [x] Enrich per-game native fallback HUD — `ogengine_get_avatar_karma` export + ODOOM karma CVar + OQuake karma line on XP bar; karma now shown alongside XP in standalone mode
+- [x] Add "Friends" tab to SharedHudOverlay — `GetClanMembersAsync()`, `ClanMemberItem` model, live clan roster with online/offline/current-game columns
 - [x] Add "Teleport" tab to SharedHudOverlay (jump to any map in any game)
 
 ---
@@ -863,13 +867,14 @@ Fix: render each MDL model from a fixed front-facing angle using a software rast
 (or a headless OpenGL context), producing a true sprite-sheet view for each Quake monster.
 Reference: vkQuake's MDL loader code or GLQuake's `GL_DrawAliasModel`.
 
-### Step 5 — Companion Editor Launch (TrenchBroom / NetRadiant / DarkRadiant)
+### Step 5 — Companion Editor Launch (TrenchBroom / NetRadiant / DarkRadiant) ✅ Complete
 
-Add a UDB STAR menu entry: "Edit in native editor…"
+A UDB STAR menu entry "Edit in native editor…" auto-detects editors via PATH.
 
-- **OQUAKE / OQUAKE2 maps** → launches TrenchBroom with the exported `.map` file
-- **OQUAKE3 maps** → launches NetRadiant-custom
-- **ODOOM3 / ODOOM3-BFG maps** → launches DarkRadiant (`C:\Source\ODOOM3-Editor`)
+- **OQUAKE / OQUAKE2 maps** → launches OQuakeEditor (TrenchBroom fork) with `OASIS_OQuake.fgd` / `OASIS_OQuake2.fgd` — portals, keys, XP anchors
+- **OQUAKE3 maps** → launches NetRadiant; `oasis_nr_plugin.c` (`EditorIntegrations/NetRadiant/`) provides OASIS Asset Browser, Portal Placer, Quest Binder via `QERPlug_*` ABI
+- **ODOOM3 / ODOOM3-BFG maps** → launches DarkRadiant (`C:\Source\ODOOM3-Editor`); `plugins/dm.oasis/` module shows 3-tab OASIS panel
+- **ODUKE3D maps** → Mapster32; `oasis_m32_tool.exe` (`EditorIntegrations/Mapster32/`) registered as external tool
 
 All companions write the same `oasis_{mapname}.json` sidecar — UDB reads it back on next open.
 
@@ -881,16 +886,18 @@ All companions write the same `oasis_{mapname}.json` sidecar — UDB reads it ba
 | Quake .map | ✅ Import/export via converter | TrenchBroom | OASISMapConverter converts entities; geometry via TB |
 | Quake 2 .map | ✅ Import/export via converter | TrenchBroom | Same pipeline |
 | Quake 3 .map | ✅ Entity import | NetRadiant | Curves must be made in NetRadiant |
-| Duke3D BUILD | 🔜 Entity import (actor list) | Mapster32 | BUILD geometry via Mapster32 |
-| Wolf3D (ECWolf) | 🔜 DECORATE actor import | ECWolf editor | Grid maps; no brush geometry |
-| Doom 3 .map | 🔜 Companion launch | DarkRadiant | id4 brush format |
+| Duke3D BUILD | ✅ Entity import (actor list) | Mapster32 | `ConvertDukeToDoom` — EDuke32 classname → Doom thing type; action `ogengine_convert_duke2doom` |
+| Wolf3D (ECWolf) | ✅ DECORATE actor import | ECWolf editor | `ConvertWolfToDoom` — ECWolf classname → Doom thing type; action `ogengine_convert_wolf2doom` |
+| Doom 3 .map | ✅ Companion launch | DarkRadiant | Companion editor auto-detected via PATH in `OGEnginePanel.cs` |
 
-### Step 7 — Entity Definitions
+### Step 7 — Entity Definitions ✅ Complete
 
-For companion editors (TrenchBroom, NetRadiant), add OASIS entities to each game's `.fgd` / `.def`:
-- `oasis_portal`: cross-game teleporter (target game/map/position)
-- `oasis_spawn`: cross-game entity spawn point (OGAsset catalog ID)
-Auto-populated from the live OGAsset catalog panel (Step 3) or the `oasis_star_assets.json` local cache.
+OASIS entities added to all companion editor format files:
+- `OASIS_OQuake.fgd` — OQ1 portals, silver/gold keys (TrenchBroom) ✅
+- `OASIS_OQuake2.fgd` — OQ2 portals, blue/red/commander's head keys (TrenchBroom) ✅
+- `OASIS_OQuake3.fgd` — OQ3 portals, quad/regen/haste tokens, XP anchors (TrenchBroom) ✅
+- DarkRadiant: dm.oasis plugin handles entity insertion programmatically via `ogeditor_api.dll` ✅
+- NetRadiant / Mapster32: entity definitions included via `ogeditor_get_assets_json` response ✅
 
 ---
 
@@ -901,12 +908,12 @@ The table below shows which item types are already cross-game mapped (from `oasi
 | Item class | ODOOM | OQuake | ODOOM3 | ODOOM3-BFG | ODuke3D | ODuke3D-RT | OWolf3D | OQ2 | OQ2-RT | OQ3 |
 |------------|-------|--------|--------|------------|---------|------------|---------|-----|--------|-----|
 | Keys | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | N/A |
-| Monster XP | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
-| Weapons | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
-| Ammo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
-| Power-ups | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
-| Cross-spawn | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 | 🔜 |
-| In-map portals | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔜 | 🔜 | 🔜 |
+| Monster XP | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Weapons | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Ammo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Power-ups | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cross-spawn | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| In-map portals | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 

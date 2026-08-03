@@ -905,6 +905,17 @@ public static unsafe class OGEngineExports
         return 1;
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "ogengine_get_avatar_karma", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetAvatarKarma(long* karmaOut)
+    {
+        var client = GetClient();
+        if (client is null) { try { OGEngineExports.StarApiLogFileOnly("[STAR] ogengine_get_avatar_karma: no client"); } catch { } return 0; }
+        var karma = client.GetCachedAvatarKarma();
+        if (karmaOut is not null)
+            *karmaOut = karma;
+        return 1;
+    }
+
     // REDUNDANT / REMOVED: ogengine_refresh_avatar_xp was a duplicate. Use ogengine_refresh_avatar_profile() only.
     // [UnmanagedCallersOnly(EntryPoint = "ogengine_refresh_avatar_xp", ...)]
     // public static void StarApiRefreshAvatarXp() { ... }

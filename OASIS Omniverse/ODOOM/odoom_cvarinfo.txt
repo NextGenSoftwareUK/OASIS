@@ -60,6 +60,8 @@ server int odoom_star_has_gold_key = 0;
 server int odoom_star_has_silver_key = 0;
 // Avatar XP (experience points). Updated from STAR API; shown in top-right when beamed in.
 server int odoom_star_avatar_xp = 0;
+// Avatar karma score. Updated from STAR API; shown alongside XP when beamed in.
+server int odoom_star_avatar_karma = 0;
 
 // Use STAR item from inventory (E on selected STAR row). ZScript sets name + type + description and do_it=1; C++ runs use_item and applies Health/Armor using (+X) from description.
 server string odoom_star_use_item_name = "";

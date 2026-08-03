@@ -20,6 +20,7 @@ ogengine_free_item_list
 ogengine_get_active_objective_id
 ogengine_get_active_quest_id
 ogengine_get_avatar_id
+ogengine_get_avatar_karma
 ogengine_get_avatar_xp
 ogengine_get_current_jwt
 ogengine_get_current_refresh_token

@@ -137,6 +137,10 @@ void ogengine_confirm_spawn(const char* entity_id);
 ogengine_result_t ogengine_get_map_entities(const char* game_id, const char* map_name,
                                              char* out_json, size_t buf_len);
 
+/* Avatar stats */
+int ogengine_get_avatar_xp(int* xp_out);
+int ogengine_get_avatar_karma(long* karma_out);
+
 /* Portal unlock notification */
 void ogengine_notify_portal_unlock(const char* portal_id);
 

@@ -1269,10 +1269,12 @@ static void ODOOM_UpdateStarKeyHudCVars(const ogengine_item_list_t* list) {
 	if (!g_star_initialized || !list) {
 		FBaseCVar* g = FindCVar("odoom_star_has_gold_key", nullptr);
 		FBaseCVar* s = FindCVar("odoom_star_has_silver_key", nullptr);
-		FBaseCVar* xpVar = FindCVar("odoom_star_avatar_xp", nullptr);
-		if (g && g->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = 0; g->SetGenericRep(u, CVAR_Int); }
-		if (s && s->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = 0; s->SetGenericRep(u, CVAR_Int); }
-		if (xpVar && xpVar->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = 0; xpVar->SetGenericRep(u, CVAR_Int); }
+		FBaseCVar* xpVar    = FindCVar("odoom_star_avatar_xp", nullptr);
+		FBaseCVar* karmaVar = FindCVar("odoom_star_avatar_karma", nullptr);
+		if (g && g->GetRealType() == CVAR_Int)       { UCVarValue u; u.Int = 0; g->SetGenericRep(u, CVAR_Int); }
+		if (s && s->GetRealType() == CVAR_Int)       { UCVarValue u; u.Int = 0; s->SetGenericRep(u, CVAR_Int); }
+		if (xpVar && xpVar->GetRealType() == CVAR_Int)       { UCVarValue u; u.Int = 0; xpVar->SetGenericRep(u, CVAR_Int); }
+		if (karmaVar && karmaVar->GetRealType() == CVAR_Int)  { UCVarValue u; u.Int = 0; karmaVar->SetGenericRep(u, CVAR_Int); }
 		return;
 	}
 	int hasGold = 0, hasSilver = 0;
@@ -1298,6 +1300,12 @@ static void ODOOM_UpdateStarKeyHudCVars(const ogengine_item_list_t* list) {
 	{
 		FBaseCVar* xpVar = FindCVar("odoom_star_avatar_xp", nullptr);
 		if (xpVar && xpVar->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = xp; xpVar->SetGenericRep(u, CVAR_Int); }
+	}
+	long karma = 0;
+	if (ogengine_get_avatar_karma(&karma))
+	{
+		FBaseCVar* karmaVar = FindCVar("odoom_star_avatar_karma", nullptr);
+		if (karmaVar && karmaVar->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = (int)karma; karmaVar->SetGenericRep(u, CVAR_Int); }
 	}
 }
 

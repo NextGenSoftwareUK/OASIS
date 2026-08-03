@@ -127,6 +127,8 @@ public sealed class OGEngineClient : IDisposable
     private int _activeQuestObjectiveJobs;
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp response). Used by ogengine_get_avatar_xp.</summary>
     private int _cachedAvatarXp;
+    /// <summary>Last known avatar karma score (from get-current-avatar). Used by ogengine_get_avatar_karma.</summary>
+    private long _cachedAvatarKarma;
     /// <summary>Pending XP to add (queued by ogengine_queue_add_xp). Flushed with add-item worker.</summary>
     private int _pendingXp;
     private CancellationTokenSource? _jobCts;
@@ -696,6 +698,7 @@ public sealed class OGEngineClient : IDisposable
         {
             _avatarId = avatar.Id.ToString();
             _cachedAvatarXp = avatar.XP;
+            Volatile.Write(ref _cachedAvatarKarma, avatar.Karma);
             /* If user saved a quest/objective after this GET was started, do not let stale response overwrite their choice (fixes "wrong quest" on load). */
             if (!_questTrackerSavedSinceLastGet)
             {
@@ -1998,6 +2001,7 @@ public sealed class OGEngineClient : IDisposable
 
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For ogengine_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
+    public long GetCachedAvatarKarma() => Volatile.Read(ref _cachedAvatarKarma);
 
     /// <summary>Last active quest ID from avatar detail (restored after beam-in).</summary>
     public Guid? GetCachedActiveQuestId()
@@ -7025,6 +7029,12 @@ public sealed class OGEngineClient : IDisposable
         }
         try { OGEngineExports.StarApiLogFileOnly($"[Avatar] ParseAvatarProfile: ActiveQuestId={activeQuestId} (from {questSource ?? "none"}) ActiveObjectiveId={activeObjectiveId} (from {objectiveSource ?? "none"})"); } catch { /* ignore */ }
         try { OGEngineExports.StarApiLogFileOnly($"[Quest] LOAD (parsed from API) questId={activeQuestId} objectiveId={activeObjectiveId}"); } catch { /* ignore */ }
+        long? karma = GetLongProperty(element, "Karma") ?? GetLongProperty(element, "karma")
+            ?? GetLongProperty(element, "KarmaScore") ?? GetLongProperty(element, "karmaScore");
+        if (karma is null && TryGetProperty(element, "AvatarDetail", out var karmaDetailEl))
+            karma = GetLongProperty(karmaDetailEl, "Karma") ?? GetLongProperty(karmaDetailEl, "karma")
+                 ?? GetLongProperty(karmaDetailEl, "KarmaScore") ?? GetLongProperty(karmaDetailEl, "karmaScore");
+
         return new StarAvatarProfile
         {
             Id = id,
@@ -7033,6 +7043,7 @@ public sealed class OGEngineClient : IDisposable
             FirstName = GetStringProperty(element, "FirstName") ?? string.Empty,
             LastName = GetStringProperty(element, "LastName") ?? string.Empty,
             XP = xp ?? 0,
+            Karma = karma ?? 0,
             ActiveQuestId = activeQuestId,
             ActiveObjectiveId = activeObjectiveId
         };
