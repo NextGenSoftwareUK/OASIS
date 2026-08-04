@@ -1,7 +1,7 @@
 ﻿/**
  * oglib_session.h — OGLib runtime session forwarders
  *
- * The STAR API ships as a native DLL (ogengine.dll / libstar_api.so) and exports
+ * The STAR API ships as a native DLL (ogengine.dll / libOGEngineClient.so) and exports
  * functions like ogengine_authenticate_with_jwt_out, ogengine_set_saved_session, etc.
  * via [UnmanagedCallersOnly] from the C# StarApiClient.
  *
@@ -120,7 +120,7 @@ void ogengine_request_inventory_in_background(void) {
 
 /* Try RTLD_NOLOAD first (already loaded), fall back to dlopen(NULL) for in-process. */
 static void* oglib_session_handle(void) {
-    void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+    void* h = dlopen("libOGEngineClient.so", RTLD_NOW | RTLD_NOLOAD);
     if (!h) h = dlopen(NULL, RTLD_NOW);
     return h;
 }
