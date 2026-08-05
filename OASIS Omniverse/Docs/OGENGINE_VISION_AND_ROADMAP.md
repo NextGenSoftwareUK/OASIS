@@ -14,7 +14,7 @@ The name **Omniverse** is intentional. This is not an FPS metaverse. It is **eve
 
 ### What it is today — Generation 1 (FPS)
 
-We started where 3D gaming began. The ten Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3.
+We started where 3D gaming began. The thirteen Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, OHeretic, OHexen, OShadowWarrior.
 
 In the Gen-1 universe:
 
@@ -28,8 +28,8 @@ In the Gen-1 universe:
 
 | Generation | Games | Genres |
 |------------|-------|--------|
-| Gen 1 (now) | 10 FPS OGames | First-person shooter |
-| Gen 2 (next) | OMorrowind (OpenMW), OMineClone (Minetest) | Open-world MMORPG, voxel sandbox |
+| Gen 1 (now) | 13 FPS OGames | First-person shooter |
+| Gen 2 (next) | OMorrowind (OpenMW), OMineCraft (Minetest) | Open-world RPG, voxel sandbox |
 | Gen 3+ (future) | Strategy, racing, platformers, survival, fighting, flight sims, horror… | All genres |
 
 In the Gen-2+ universe, everything learned from FPS cross-game integration scales up:
@@ -37,7 +37,7 @@ In the Gen-2+ universe, everything learned from FPS cross-game integration scale
 - **Step through a Doom portal and arrive in Morrowind's Vvardenfell.** The same `ogengine_request_teleport` / `ogengine_poll_teleport_request` API works regardless of engine.
 - **A sword found in Morrowind appears in your OASIS inventory.** The same `ogengine_add_item` / `ogengine_get_inventory` ABI handles RPG items, crafting materials, vehicles, pets — any item type.
 - **A Minecraft chest contains OASIS cross-game loot.** The voxel world is just another OGame region in the shared universe.
-- **Quests span genres** — kill a dragon in OMorrowind, build a fortress in OMineClone, collect a rune in ODOOM, deliver it to OQuake3.
+- **Quests span genres** — kill a dragon in OMorrowind, build a fortress in OMineCraft, collect a rune in ODOOM, deliver it to OQuake3.
 - **The OASIS HUB** connects to all of it — portals to every game, every genre, every world.
 
 ### The unchanging core — across every genre
@@ -165,7 +165,8 @@ The OASIS Omniverse is not just the in-game layer — it is a complete creator +
 │  │  PLAYER LAYER — OGames + OASIS Kernel                                           │  │
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT   │  │
 │  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                       │  │
-│  │  Gen 2 (next): OMorrowind (OpenMW) • OMineClone (Minetest)                   │  │
+│  │               OHeretic • OHexen • OShadowWarrior                              │  │
+│  │  Gen 2 (next): OMorrowind (OpenMW) • OMineCraft (Minetest)                   │  │
 │  │  Gen 3+: strategy • racing • platformers • survival • fighting • …             │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────────────┘
@@ -264,7 +265,8 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 │  │  LAYER 1: OGames (native processes — C/C++, any engine)                              │   │
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT         │   │
 │  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                            │   │
-│  │  Gen 2: OMorrowind (OpenMW) • OMineClone (Minetest)  [planned]                     │   │
+│  │               OHeretic • OHexen • OShadowWarrior                                   │   │
+│  │  Gen 2: OMorrowind (OpenMW) • OMineCraft (Minetest)  [planned]                     │   │
 │  │  Gen 3+: any open-source game with a C/C++ hook layer  [extensible]                │   │
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                             │

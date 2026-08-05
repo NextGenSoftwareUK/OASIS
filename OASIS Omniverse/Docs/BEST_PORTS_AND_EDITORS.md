@@ -150,6 +150,50 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 
 ---
 
+## Heretic
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **UZDoom** | ✅ Best for OASIS | GZDoom fork used by ODOOM. Inherits full GZDoom Heretic support — ZScript/DECORATE, OpenGL/Vulkan, cross-platform. Using the same binary as ODOOM keeps the OASIS ecosystem consistent and integration hooks identical. |
+| **GZDoom** | ✅ Best standalone | The definitive modern port for Heretic. Full ZScript/DECORATE, OpenGL/Vulkan, massive mod ecosystem. UZDoom is a fork of this. |
+| **Crispy Heretic** | Best vanilla-faithful | Stays close to the original DOS Heretic behaviour with modern QoL fixes (uncapped framerate, widescreen). |
+| **Chocolate Heretic** | Most accurate | Bit-perfect original DOS accuracy. Minimal extras; best for demo playback. |
+
+**OASIS Omniverse choice: UZDoom (GZDoom fork) → [OHeretic](../OHeretic/README.md)**
+
+---
+
+## Hexen: Beyond Heretic
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **UZDoom** | ✅ Best for OASIS | GZDoom fork used by ODOOM. Inherits full GZDoom Hexen support including all three character classes (Fighter, Cleric, Mage). Same binary and hook patterns as ODOOM and OHeretic. |
+| **GZDoom** | ✅ Best standalone | Full Hexen support, ZScript/ACS modding, OpenGL/Vulkan. UZDoom is a fork of this. |
+| **Crispy Hexen** | Best vanilla-faithful | Vanilla-faithful Hexen port derived from Chocolate Hexen. |
+| **Chocolate Hexen** | Most accurate | Bit-perfect original DOS accuracy. |
+
+**OASIS Omniverse choice: UZDoom (GZDoom fork) → [OHexen](../OHexen/README.md)**
+
+---
+
+## Shadow Warrior Classic
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **Raze** | ✅ Best overall | ZDoom team's Build engine reimplementation. Shadow Warrior Classic backend is first-class. Runs inside the same GZDoom C++ infrastructure as OHeretic/OHexen — identical CCMD system, hook patterns, and screen API. Actively maintained. |
+| **BuildGDX** | Java-based alternative | Runs SW, Duke3D, Blood, Exhumed. Cross-platform. Good fallback where Raze is unavailable. |
+| **VoidSW** | Abandoned | Historical Build-engine SW port. Development effectively halted; superseded by Raze. |
+
+**OASIS Omniverse choice: Raze → [OShadowWarrior](../OShadowWarrior/README.md)**
+
+---
+
 ## Doom 3
 
 ### Best ports
@@ -172,6 +216,9 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 |------|------------|------------|--------|
 | Wolfenstein 3D | ECWolf | OWolf3D | ✅ Complete |
 | Doom / Doom II | UZDoom (GZDoom fork) | ODOOM | ✅ Complete |
+| Heretic | UZDoom (GZDoom fork) | OHeretic | 🔧 Integration files complete |
+| Hexen: Beyond Heretic | UZDoom (GZDoom fork) | OHexen | 🔧 Integration files complete |
+| Shadow Warrior Classic | Raze | OShadowWarrior | 🔧 Integration files complete |
 | Quake | vkQuake | OQuake | ✅ Complete |
 | Quake II | Yamagi Quake 2 | OQuake2 | 🔜 Planned |
 | Quake II (RT) | Q2 RTX | OQuake2-RTX | 🔜 Planned |

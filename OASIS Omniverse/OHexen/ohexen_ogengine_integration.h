@@ -1,10 +1,9 @@
 /**
  * OHexen - OASIS STAR API Integration Header
  *
- * Hook these functions into the GZDoom source tree to bring Hexen into the
- * OASIS Omniverse.  OHexen builds on top of GZDoom (same codebase as
- * UZDoom / ODOOM / OHeretic) so the integration pattern mirrors
- * uzdoom_ogengine_integration.h.
+ * Hook these functions into the UZDoom source tree to bring Hexen into the
+ * OASIS Omniverse.  OHexen uses UZDoom (the GZDoom fork that powers ODOOM /
+ * OHeretic) so the integration pattern mirrors uzdoom_ogengine_integration.h.
  *
  * Hexen-specific considerations:
  *   - Three player classes: Fighter, Cleric, Mage — reported in STAR as the

@@ -1,11 +1,11 @@
 /**
  * OHeretic - OASIS STAR API Integration Header
  *
- * Hook these functions into the GZDoom source tree to bring Heretic into the
- * OASIS Omniverse.  OHeretic builds on top of GZDoom (same codebase as
- * UZDoom/ODOOM) so the integration pattern mirrors uzdoom_ogengine_integration.h.
+ * Hook these functions into the UZDoom source tree to bring Heretic into the
+ * OASIS Omniverse.  OHeretic uses UZDoom (the GZDoom fork that powers ODOOM)
+ * so the integration pattern mirrors uzdoom_ogengine_integration.h exactly.
  *
- * Minimum hook sites in the GZDoom source:
+ * Minimum hook sites in the UZDoom/GZDoom source:
  *   src/gamedata/a_keys.cpp  AInventory::CallTryPickup path
  *                              → OHeretic_STAR_OnItemPickup
  *   src/playsim/p_spec.cpp   P_ActivateLine locked-door check
