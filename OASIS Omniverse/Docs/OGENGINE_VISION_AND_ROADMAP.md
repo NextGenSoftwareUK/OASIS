@@ -14,7 +14,7 @@ The name **Omniverse** is intentional. This is not an FPS metaverse. It is **eve
 
 ### What it is today — Generation 1 (FPS)
 
-We started where 3D gaming began. The fourteen Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, OHeretic, OHexen, OShadowWarrior, OShadowWarriorRT.
+We started where 3D gaming began. The twenty Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, OHeretic, OHexen, OShadowWarrior, OShadowWarriorRT, OBlood, OExhumed, OStrife, ODoom64, OHexenII, ORtCW.
 
 In the Gen-1 universe:
 
@@ -28,7 +28,7 @@ In the Gen-1 universe:
 
 | Generation | Games | Genres |
 |------------|-------|--------|
-| Gen 1 (now) | 14 FPS OGames | First-person shooter |
+| Gen 1 (now) | 20 FPS OGames | First-person shooter |
 | Gen 2 (next) | OMorrowind (OpenMW), OMineCraft (Minetest) | Open-world RPG, voxel sandbox |
 | Gen 3+ (future) | Strategy, racing, platformers, survival, fighting, flight sims, horror… | All genres |
 
@@ -166,6 +166,7 @@ The OASIS Omniverse is not just the in-game layer — it is a complete creator +
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT   │  │
 │  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                       │  │
 │  │               OHeretic • OHexen • OShadowWarrior • OShadowWarriorRT           │  │
+│  │               OBlood • OExhumed • OStrife • ODoom64 • OHexenII • ORtCW        │  │
 │  │  Gen 2 (next): OMorrowind (OpenMW) • OMineCraft (Minetest)                   │  │
 │  │  Gen 3+: strategy • racing • platformers • survival • fighting • …             │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -211,7 +212,7 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 
 | File | What it provides |
 |------|-----------------|
-| `OGAssetCatalog.cs` | Canonical ~140-asset catalog across all 14 OGames (single source of truth) |
+| `OGAssetCatalog.cs` | Canonical ~140-asset catalog across all 20 OGames (single source of truth) |
 | `OGMapSidecar.cs` | `oasis_{mapname}.json` reader/writer (portals + cross-game entities) |
 | `OGStarApiClient.cs` | HTTP client for STAR API (`/api/quests`, `/api/games`, `/api/portals`, …) |
 | `OGEntityMappings.cs` | Bidirectional classname ↔ OASIS thing type lookup (Q1/Q2/Q3/Duke/Wolf) |
@@ -236,7 +237,7 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 │                                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────────────────────┐   │
 │  │  LAYER 5: OASIS HUB (Unity)                                                          │   │
-│  │  3D space station • portals to all 14 OGames • SpaceHubBuilder                       │   │
+│  │  3D space station • portals to all 20 OGames • SpaceHubBuilder                       │   │
 │  │  OmniverseKernel • GameProcessHostService (embeds native game windows)                │   │
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
 │                        ↕ Win32 window embed / process IPC                                   │
@@ -265,7 +266,8 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 │  │  LAYER 1: OGames (native processes — C/C++, any engine)                              │   │
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT         │   │
 │  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                            │   │
-│  │               OHeretic • OHexen • OShadowWarrior • OShadowWarriorRT              │   │
+│  │               OHeretic • OHexen • OShadowWarrior • OShadowWarriorRT               │   │
+│  │               OBlood • OExhumed • OStrife • ODoom64 • OHexenII • ORtCW            │   │
 │  │  Gen 2: OMorrowind (OpenMW) • OMineCraft (Minetest)  [planned]                     │   │
 │  │  Gen 3+: any open-source game with a C/C++ hook layer  [extensible]                │   │
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
@@ -517,7 +519,7 @@ The universal cross-game map editor — the tool that makes all of the above *cr
 
 #### What it needs to do
 
-- Open and edit maps from all 14 OGame formats (Doom/Heretic/Hexen WAD, Quake BSP/MAP, Quake 2 BSP, Quake 3 BSP, Wolf3D map, Duke3D/SW Build MAP, Doom 3 MAP)
+- Open and edit maps from all 20 OGame formats (Doom/Heretic/Hexen/Strife/Doom64 WAD, Quake BSP/MAP, Quake 2 BSP, Quake 3/RtCW BSP, Wolf3D map, Duke3D/SW/Blood/Exhumed Build MAP, Doom 3 MAP, Hexen II BSP)
 - Display them in a unified 3D view
 - Show a **cross-game asset browser** (the OGAsset Catalog from §4.3)
 - Drag-drop monsters/weapons/items from any game into any map
@@ -561,7 +563,7 @@ All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OAS
 
 | File | Status | What it does |
 |------|--------|-------------|
-| `OGEditorSDK/OGAssetCatalog.cs` | ✅ Done | Canonical ~140-asset catalog across all 14 OGames (SDK, used by all editors) |
+| `OGEditorSDK/OGAssetCatalog.cs` | ✅ Done | Canonical ~140-asset catalog across all 20 OGames (SDK, used by all editors) |
 | `OGEditorSDK/OGMapSidecar.cs` | ✅ Done | `oasis_{mapname}.json` reader/writer — SDK version usable by any editor |
 | `OGEditorSDK/OGStarApiClient.cs` | ✅ Done | HTTP client for STAR API (/api/quests, /api/games, /api/portals, …) |
 | `OGEditorSDK/OGEntityMappings.cs` | ✅ Done | Bidirectional classname ↔ OASIS thing type lookup (Q1/Q2/Q3/Duke/Wolf) |
@@ -782,7 +784,7 @@ Architecture mirrors existing ports:
 
 ### Phase 3 — OGAsset Catalog + Cross-Game Entities
 - [x] Design OGAsset catalog schema (JSON + STAR API endpoint)
-- [x] Seed catalog with weapons/ammo/powerups/keys/monsters for all 14 OGames in `oasis_star_assets.json`
+- [x] Seed catalog with weapons/ammo/powerups/keys/monsters for all 20 OGames in `oasis_star_assets.json`
 - [x] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` / `ogengine_confirm_spawn` to C API
 - [x] Spawn-event polling block added to all 10 game integration tick functions
 - [x] `ogengine_poll_cross_game_event` + `ogengine_poll_inventory_grant` poll loops added to **all 10 game integrations**
@@ -831,7 +833,7 @@ Already built:
 ```
 Source/OGEditorSDK/
   OGEditorSDK.csproj        — .NET Standard 2.0, no external deps, used by UDB + C++ editors
-  OGAssetCatalog.cs         — canonical ~140-asset catalog across all 14 OGames
+  OGAssetCatalog.cs         — canonical ~140-asset catalog across all 20 OGames
   OGMapSidecar.cs           — oasis_{mapname}.json reader/writer (SDK version)
   OGStarApiClient.cs        — HTTP client for STAR API
   OGEntityMappings.cs       — Q1/Q2/Q3/Duke/Wolf classname ↔ OASIS thing type tables
