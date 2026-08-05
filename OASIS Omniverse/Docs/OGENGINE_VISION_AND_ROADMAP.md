@@ -211,7 +211,7 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 
 | File | What it provides |
 |------|-----------------|
-| `OGAssetCatalog.cs` | Canonical ~140-asset catalog across all 10 OGames (single source of truth) |
+| `OGAssetCatalog.cs` | Canonical ~140-asset catalog across all 14 OGames (single source of truth) |
 | `OGMapSidecar.cs` | `oasis_{mapname}.json` reader/writer (portals + cross-game entities) |
 | `OGStarApiClient.cs` | HTTP client for STAR API (`/api/quests`, `/api/games`, `/api/portals`, …) |
 | `OGEntityMappings.cs` | Bidirectional classname ↔ OASIS thing type lookup (Q1/Q2/Q3/Duke/Wolf) |
@@ -236,7 +236,7 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 │                                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────────────────────┐   │
 │  │  LAYER 5: OASIS HUB (Unity)                                                          │   │
-│  │  3D space station • portals to all 10 OGames • SpaceHubBuilder                       │   │
+│  │  3D space station • portals to all 14 OGames • SpaceHubBuilder                       │   │
 │  │  OmniverseKernel • GameProcessHostService (embeds native game windows)                │   │
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
 │                        ↕ Win32 window embed / process IPC                                   │
@@ -517,7 +517,7 @@ The universal cross-game map editor — the tool that makes all of the above *cr
 
 #### What it needs to do
 
-- Open and edit maps from all 10 OGame formats (Doom WAD, Quake BSP/MAP, Quake 2 BSP, Quake 3 BSP, Wolf3D map, Duke3D MAP, Doom 3 MAP)
+- Open and edit maps from all 14 OGame formats (Doom/Heretic/Hexen WAD, Quake BSP/MAP, Quake 2 BSP, Quake 3 BSP, Wolf3D map, Duke3D/SW Build MAP, Doom 3 MAP)
 - Display them in a unified 3D view
 - Show a **cross-game asset browser** (the OGAsset Catalog from §4.3)
 - Drag-drop monsters/weapons/items from any game into any map
@@ -561,7 +561,7 @@ All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OAS
 
 | File | Status | What it does |
 |------|--------|-------------|
-| `OGEditorSDK/OGAssetCatalog.cs` | ✅ Done | Canonical ~140-asset catalog across all 10 OGames (SDK, used by all editors) |
+| `OGEditorSDK/OGAssetCatalog.cs` | ✅ Done | Canonical ~140-asset catalog across all 14 OGames (SDK, used by all editors) |
 | `OGEditorSDK/OGMapSidecar.cs` | ✅ Done | `oasis_{mapname}.json` reader/writer — SDK version usable by any editor |
 | `OGEditorSDK/OGStarApiClient.cs` | ✅ Done | HTTP client for STAR API (/api/quests, /api/games, /api/portals, …) |
 | `OGEditorSDK/OGEntityMappings.cs` | ✅ Done | Bidirectional classname ↔ OASIS thing type lookup (Q1/Q2/Q3/Duke/Wolf) |
@@ -782,7 +782,7 @@ Architecture mirrors existing ports:
 
 ### Phase 3 — OGAsset Catalog + Cross-Game Entities
 - [x] Design OGAsset catalog schema (JSON + STAR API endpoint)
-- [x] Seed catalog with weapons/ammo/powerups/keys/monsters for all 10 OGames in `oasis_star_assets.json`
+- [x] Seed catalog with weapons/ammo/powerups/keys/monsters for all 14 OGames in `oasis_star_assets.json`
 - [x] Add `ogengine_get_map_entities` / `ogengine_poll_spawn_event` / `ogengine_confirm_spawn` to C API
 - [x] Spawn-event polling block added to all 10 game integration tick functions
 - [x] `ogengine_poll_cross_game_event` + `ogengine_poll_inventory_grant` poll loops added to **all 10 game integrations**
@@ -831,7 +831,7 @@ Already built:
 ```
 Source/OGEditorSDK/
   OGEditorSDK.csproj        — .NET Standard 2.0, no external deps, used by UDB + C++ editors
-  OGAssetCatalog.cs         — canonical ~140-asset catalog across all 10 OGames
+  OGAssetCatalog.cs         — canonical ~140-asset catalog across all 14 OGames
   OGMapSidecar.cs           — oasis_{mapname}.json reader/writer (SDK version)
   OGStarApiClient.cs        — HTTP client for STAR API
   OGEntityMappings.cs       — Q1/Q2/Q3/Duke/Wolf classname ↔ OASIS thing type tables
