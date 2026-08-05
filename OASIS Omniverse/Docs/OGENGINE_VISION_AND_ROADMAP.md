@@ -14,7 +14,7 @@ The name **Omniverse** is intentional. This is not an FPS metaverse. It is **eve
 
 ### What it is today — Generation 1 (FPS)
 
-We started where 3D gaming began. The thirteen Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, OHeretic, OHexen, OShadowWarrior.
+We started where 3D gaming began. The fourteen Generation 1 OGames are the open-source FPS classics that built the genre: ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, OHeretic, OHexen, OShadowWarrior, OShadowWarriorRT.
 
 In the Gen-1 universe:
 
@@ -28,7 +28,7 @@ In the Gen-1 universe:
 
 | Generation | Games | Genres |
 |------------|-------|--------|
-| Gen 1 (now) | 13 FPS OGames | First-person shooter |
+| Gen 1 (now) | 14 FPS OGames | First-person shooter |
 | Gen 2 (next) | OMorrowind (OpenMW), OMineCraft (Minetest) | Open-world RPG, voxel sandbox |
 | Gen 3+ (future) | Strategy, racing, platformers, survival, fighting, flight sims, horror… | All genres |
 
@@ -165,7 +165,7 @@ The OASIS Omniverse is not just the in-game layer — it is a complete creator +
 │  │  PLAYER LAYER — OGames + OASIS Kernel                                           │  │
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT   │  │
 │  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                       │  │
-│  │               OHeretic • OHexen • OShadowWarrior                              │  │
+│  │               OHeretic • OHexen • OShadowWarrior • OShadowWarriorRT           │  │
 │  │  Gen 2 (next): OMorrowind (OpenMW) • OMineCraft (Minetest)                   │  │
 │  │  Gen 3+: strategy • racing • platformers • survival • fighting • …             │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -265,7 +265,7 @@ The two halves communicate via the STAR API: STARNET writes quest JSON → STAR 
 │  │  LAYER 1: OGames (native processes — C/C++, any engine)                              │   │
 │  │  Gen 1 (FPS): ODOOM • OQuake • ODOOM3 • ODOOM3-BFG • ODuke3D • ODuke3D-RT         │   │
 │  │               OWolf3D • OQuake2 • OQuake2-RTX • OQuake3                            │   │
-│  │               OHeretic • OHexen • OShadowWarrior                                   │   │
+│  │               OHeretic • OHexen • OShadowWarrior • OShadowWarriorRT              │   │
 │  │  Gen 2: OMorrowind (OpenMW) • OMineCraft (Minetest)  [planned]                     │   │
 │  │  Gen 3+: any open-source game with a C/C++ hook layer  [extensible]                │   │
 │  └──────────────────────────────────────────────────────────────────────────────────────┘   │
