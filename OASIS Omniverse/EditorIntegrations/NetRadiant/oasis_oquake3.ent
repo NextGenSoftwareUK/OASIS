@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+ OASIS Omniverse — OQuake3 entity definitions for NetRadiant (OQuake3Editor)
+
+ Installation: Copy or merge into your Quake 3 gamepack's scripts/entities.ent,
+ or reference from your .game file's entitypath.
+
+ Thing type range: 7001-7999 (OQuake3)
+ Portal: 5900 (shared cross-game)
+-->
+<classes>
+
+<!--
+=============================================================================
+
+ OASIS OMNIVERSE ENTITIES
+
+=============================================================================
+-->
+
+<group name="oasis_portal_enter" color="0 0.75 1">
+-------- OASIS PORTAL ENTER (TELEPORT SOURCE) --------
+OASIS teleport source — brush entity the player walks into to be sent to another OASIS game or map. Draw this brush around the portal frame or doorway. OASIS thing type 5900.
+<string key="oasis_game_id" name="Target OGame">Destination game (e.g. oquake, oquake2, odoom, oduke3d, owolf3d).</string>
+<string key="oasis_map" name="Target map">Destination map name in the target game (e.g. e1m1, base1).</string>
+<string key="oasis_exit_name" name="Exit name">targetname of the oasis_portal_exit in the destination map where the player will spawn.</string>
+<string key="message" name="Approach message">Optional text shown to the player when they enter this portal.</string>
+<string key="targetname" name="Portal name">Name used by other entities to reference this portal.</string>
+</group>
+
+<point name="oasis_portal_exit" color="0 1 0.75" box="-16 -16 -24 16 16 24">
+-------- OASIS PORTAL EXIT (TELEPORT DESTINATION) --------
+OASIS teleport destination — point entity marking where players arrive from another OASIS game or map. Place at the exit of the portal frame. OASIS thing type 5900.
+<string key="targetname" name="Exit name">Must match the oasis_exit_name on the corresponding oasis_portal_enter in the source map.</string>
+<integer key="angle" name="Spawn angle">Direction the player faces on arrival (0=east, 90=north, 180=west, 270=south).</integer>
+</point>
+
+
+</classes>

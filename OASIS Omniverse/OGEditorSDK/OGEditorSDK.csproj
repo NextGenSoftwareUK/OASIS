@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- .NET Standard 2.0: compatible with UDB (.NET 4.7.2), Unity, .NET 8 NativeAOT wrapper, and any modern .NET editor -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>OGEditorSDK</RootNamespace>
+    <AssemblyName>OGEditorSDK</AssemblyName>
+    <Version>1.0.0</Version>
+    <Description>OGEditorSDK — generic OASIS Omniverse editor plugin module. Plug into any map editor (UDB, TrenchBroom, NetRadiant, DarkRadiant, Mapster32, or any web editor via REST). Provides the OGAsset catalog, map sidecar, STAR API client, entity conversion tables, and cross-game portal/quest binding shared by all OGEngine editors. Mirror of STARAPIClient — but for creators/editors rather than for playing games.</Description>
+    <Authors>NextGen Software Ltd</Authors>
+    <PackageId>OGEditorSDK</PackageId>
+    <Nullable>disable</Nullable>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <!-- No external dependencies — pure .NET Standard 2.0 for maximum compatibility across all editor hosts -->
+
+  <ItemGroup>
+    <!-- Native/ contains NativeAOT exports (.NET 8 only) — compiled separately by OGEditorSDK.Native.csproj -->
+    <Compile Remove="Native\**\*.cs" />
+  </ItemGroup>
+
+</Project>
