@@ -310,20 +310,20 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 |------|------------|------------|--------|
 | Wolfenstein 3D | ECWolf | OWolf3D | ✅ Complete |
 | Doom / Doom II | UZDoom (GZDoom fork) | ODOOM | ✅ Complete |
-| Heretic | UZDoom (GZDoom fork) | OHeretic | 🔧 Integration files complete |
-| Hexen: Beyond Heretic | UZDoom (GZDoom fork) | OHexen | 🔧 Integration files complete |
-| Shadow Warrior Classic | Raze | OShadowWarrior | 🔧 Integration files complete |
-| Shadow Warrior Classic (RT) | Duke-RT (Raze fork) | OShadowWarriorRT | 🔧 Integration files complete |
-| Blood | Raze | OBlood | 🔧 Integration files complete |
-| Exhumed / PowerSlave | Raze | OExhumed | 🔧 Integration files complete |
-| Strife: Quest for the Sigil | UZDoom (GZDoom fork) | OStrife | 🔧 Integration files complete |
-| Doom 64 | Doom64 EX+ | ODoom64 | 🔧 Integration files complete |
-| Hexen II | uhexen2 (Hammer of Thyrion) | OHexenII | 🔧 Integration files complete |
-| Return to Castle Wolfenstein | iortcw | ORtCW | 🔧 Integration files complete |
+| Heretic | UZDoom (GZDoom fork) | OHeretic | ✅ Complete |
+| Hexen: Beyond Heretic | UZDoom (GZDoom fork) | OHexen | ✅ Complete |
+| Shadow Warrior Classic | Raze | OShadowWarrior | ✅ Complete |
+| Shadow Warrior Classic (RT) | Duke-RT (Raze fork) | OShadowWarriorRT | ✅ Complete |
+| Blood | Raze | OBlood | ✅ Complete |
+| Exhumed / PowerSlave | Raze | OExhumed | ✅ Complete |
+| Strife: Quest for the Sigil | UZDoom (GZDoom fork) | OStrife | ✅ Complete |
+| Doom 64 | Doom64 EX+ | ODoom64 | ✅ Complete |
+| Hexen II | uhexen2 (Hammer of Thyrion) | OHexenII | ✅ Complete |
+| Return to Castle Wolfenstein | iortcw | ORtCW | ✅ Complete |
 | Quake | vkQuake | OQuake | ✅ Complete |
-| Quake II | Yamagi Quake 2 | OQuake2 | 🔜 Planned |
-| Quake II (RT) | Q2 RTX | OQuake2-RTX | 🔜 Planned |
-| Quake III Arena | Quake3e | OQuake3 | 🔜 Planned |
+| Quake II | Yamagi Quake 2 | OQuake2 | ✅ Complete |
+| Quake II (RT) | Q2 RTX | OQuake2-RTX | ✅ Complete |
+| Quake III Arena | Quake3e | OQuake3 | ✅ Complete |
 | Doom 3 (classic) | dhewm3 | ODOOM3 | ✅ Complete |
 | Doom 3 BFG | RBDOOM-3-BFG | ODOOM3-BFG | ✅ Complete |
 | Duke Nukem 3D | EDuke32 | ODuke3D | ✅ Complete |
@@ -338,10 +338,30 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Quake I | TrenchBroom | Ironwail (in-engine) |
 | Quake II | TrenchBroom + q2tools-220 | J.A.C.K. |
 | Quake III | NetRadiant-custom | GtkRadiant / Q3Edit (browser) |
-| Doom / Doom II | [Ultimate Doom Builder](https://forum.zdoom.org/viewtopic.php?t=69920) | SLADE |
-| Duke Nukem 3D | Mapster32 (bundled with EDuke32) | — |
+| Doom / Doom II / Heretic / Hexen / Strife / Doom 64 | [Ultimate Doom Builder](https://forum.zdoom.org/viewtopic.php?t=69920) | SLADE |
+| Duke Nukem 3D / Blood / Exhumed / Shadow Warrior | Mapster32 (bundled with EDuke32) | — |
 | Wolfenstein 3D | ECWolf + DECORATE (no dedicated visual editor; Tiled works for grid maps) | — |
+| Doom 3 / Doom 3 BFG | DarkRadiant | — |
+| Return to Castle Wolfenstein | NetRadiant-custom | — |
 
 ---
 
-*Last updated: 2026-07-31*
+## OASIS EditorIntegrations: Editor-to-OGame assignments
+
+The OASIS Omniverse integrates all five editors into a unified system via `EditorIntegrations/` (integration stubs + entity definitions) and `OGEditorSDK/` (shared .NET SDK → `OGEditorClient.dll` C ABI).
+
+| Editor | EditorIntegrations folder | External repo | OGames covered |
+|--------|---------------------------|---------------|----------------|
+| **Mapster32** | `EditorIntegrations/Mapster32/` | OASIS2 only | ODuke3D, OBlood, OExhumed, OShadowWarrior |
+| **NetRadiant** | `EditorIntegrations/NetRadiant/` | `C:\Source\OQuake3Editor` | OQuake3, ORtCW |
+| **DarkRadiant** | `EditorIntegrations/DarkRadiant/` | `C:\Source\ODOOM3-Editor` | ODOOM3, ODOOM3-BFG |
+| **TrenchBroom** | `EditorIntegrations/TrenchBroom/` | `C:\Source\OQuakeEditor` | OQuake, OQuake2 |
+| **UltimateDoomBuilder** | `EditorIntegrations/UltimateDoomBuilder/` | `C:\Source\UltimateDoomBuilder` | ODOOM, OHeretic, OHexen, OStrife, ODoom64 |
+
+UltimateDoomBuilder is the **primary OGEditor host**: it references `OGEditorSDK` directly in C# and hosts the OGEngine panel, OASIS Portal Editor, Quest Weaver, and OASISMapConverter. The other four editors load `OGEditorClient.dll` (compiled from OGEditorSDK via NativeAOT) via `LoadLibrary`/`dlopen` to access the same OASIS intelligence from C/C++.
+
+See [`OGEDITOR_INTEGRATION_ROADMAP.md`](OGEDITOR_INTEGRATION_ROADMAP.md) and [`OGEDITOR_PLUGIN_GUIDE.md`](OGEDITOR_PLUGIN_GUIDE.md) for full detail.
+
+---
+
+*Last updated: 2026-08-05*

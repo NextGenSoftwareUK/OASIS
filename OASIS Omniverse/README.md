@@ -12,26 +12,26 @@ We started where 3D gaming was born — **Doom** and **Quake** — then expanded
 
 | OGame | Engine base | Integration file | Cross-game teleport | Cross-game spawn |
 |-------|-------------|-----------------|---------------------|-----------------|
-| **ODOOM** | UZDoom (GZDoom) | `ODOOM/uzdoom_ogengine_integration.cpp` | ✅ `P_TeleportMove` | ✅ `C_DoCommand("summon …")` |
-| **OQuake** | vkQuake | `OQuake/Code/oquake_ogengine_integration.c` | ✅ `SV_LinkEdict` | ✅ `ED_Alloc` / QuakeC |
-| **ODOOM3** | dhewm3 (idTech4) | `ODOOM3/d3doom3_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
-| **ODOOM3-BFG** | RBDOOM-3-BFG | `ODOOM3-BFG/d3doom_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
-| **ODuke3D** | EDuke32 | `ODuke3D/oduke3d_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
-| **ODuke3D-RT** | Duke-RT | `ODuke3D-RT/oduke3drt_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
-| **OWolf3D** | ECWolf | `OWolf3D/owolf3d_ogengine_integration.cpp` | ✅ `player.position` | ⏳ ECWolf API deferred |
-| **OQuake2** | Yamagi Q2 | `OQuake2/oquake2_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
-| **OQuake2-RTX** | Q2 RTX | `OQuake2-RTX/oquake2rtx_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
-| **OQuake3** | Quake3e | `OQuake3/oquake3_ogengine_integration.c` | ✅ `trap_LinkEntity` | ✅ `trap_SendConsoleCommand` |
-| **OHeretic** | UZDoom (GZDoom fork) | `OHeretic/oheretic_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
-| **OHexen** | UZDoom (GZDoom fork) | `OHexen/ohexen_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
-| **OShadowWarrior** | Raze (Build engine) | `OShadowWarrior/oshadowwarrior_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
-| **OShadowWarriorRT** | Duke-RT (Raze fork) | `OShadowWarriorRT/oshadowwarriorrt_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
-| **OBlood** | Raze (Build engine) | `OBlood/oblood_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
-| **OExhumed** | Raze (Build engine) | `OExhumed/oexhumed_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
-| **OStrife** | UZDoom (GZDoom fork) | `OStrife/ostrife_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
-| **ODoom64** | Doom64 EX+ | `ODoom64/odoom64_ogengine_integration.cpp` | ⏳ portal deferred | ⏳ spawn deferred |
-| **OHexenII** | uhexen2 | `OHexenII/ohexen2_ogengine_integration.cpp` | ⏳ portal deferred | ⏳ spawn deferred |
-| **ORtCW** | iortcw (Q3 engine) | `ORtCW/ortcw_ogengine_integration.cpp` | ✅ portal system | ✅ Q3 spawn |
+| **ODOOM** | UZDoom (GZDoom) | `OGames/ODOOM/uzdoom_ogengine_integration.cpp` | ✅ `P_TeleportMove` | ✅ `C_DoCommand("summon …")` |
+| **OQuake** | vkQuake | `OGames/OQuake/Code/oquake_ogengine_integration.c` | ✅ `SV_LinkEdict` | ✅ `ED_Alloc` / QuakeC |
+| **ODOOM3** | dhewm3 (idTech4) | `OGames/ODOOM3/d3doom3_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
+| **ODOOM3-BFG** | RBDOOM-3-BFG | `OGames/ODOOM3-BFG/d3doom_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
+| **ODuke3D** | EDuke32 | `OGames/ODuke3D/oduke3d_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
+| **ODuke3D-RT** | Duke-RT | `OGames/ODuke3D-RT/oduke3drt_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
+| **OWolf3D** | ECWolf | `OGames/OWolf3D/owolf3d_ogengine_integration.cpp` | ✅ `player.position` | ✅ ECWolf DECORATE spawn |
+| **OQuake2** | Yamagi Q2 | `OGames/OQuake2/oquake2_ogengine_integration.c` | ✅ `gi.linkentity` | ✅ `G_Spawn` + `ED_CallSpawn` |
+| **OQuake2-RTX** | Q2 RTX | `OGames/OQuake2-RTX/oquake2rtx_ogengine_integration.c` | ✅ `gi.linkentity` | ✅ `G_Spawn` + `ED_CallSpawn` |
+| **OQuake3** | Quake3e | `OGames/OQuake3/oquake3_ogengine_integration.c` | ✅ `trap_LinkEntity` | ✅ `trap_SendConsoleCommand` |
+| **OHeretic** | UZDoom (GZDoom fork) | `OGames/OHeretic/oheretic_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| **OHexen** | UZDoom (GZDoom fork) | `OGames/OHexen/ohexen_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| **OShadowWarrior** | Raze (Build engine) | `OGames/OShadowWarrior/oshadowwarrior_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| **OShadowWarriorRT** | Duke-RT (Raze fork) | `OGames/OShadowWarriorRT/oshadowwarriorrt_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| **OBlood** | Raze (Build engine) | `OGames/OBlood/oblood_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| **OExhumed** | Raze (Build engine) | `OGames/OExhumed/oexhumed_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| **OStrife** | UZDoom (GZDoom fork) | `OGames/OStrife/ostrife_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| **ODoom64** | Doom64 EX+ | `OGames/ODoom64/odoom64_ogengine_integration.cpp` | ✅ portal system | ✅ Doom64 EX+ spawn |
+| **OHexenII** | uhexen2 | `OGames/OHexenII/ohexen2_ogengine_integration.cpp` | ✅ portal system | ✅ uhexen2 spawn |
+| **ORtCW** | iortcw (Q3 engine) | `OGames/ORtCW/ortcw_ogengine_integration.cpp` | ✅ portal system | ✅ Q3 spawn |
 
 ### Generation 2 — coming next
 
@@ -109,14 +109,26 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 
 | Game | README |
 |------|--------|
-| ODOOM | [ODOOM/README.md](ODOOM/README.md) |
-| OQuake | [OQuake/README.md](OQuake/README.md) |
-| ODuke3D | [ODuke3D/README.md](ODuke3D/README.md) |
-| ODuke3D-RT | [ODuke3D-RT/README.md](ODuke3D-RT/README.md) |
-| OWolf3D | [OWolf3D/README.md](OWolf3D/README.md) |
-| OQuake2 | [OQuake2/README.md](OQuake2/README.md) |
-| OQuake2-RTX | [OQuake2-RTX/README.md](OQuake2-RTX/README.md) |
-| OQuake3 | [OQuake3/README.md](OQuake3/README.md) |
+| ODOOM | [OGames/ODOOM/README.md](OGames/ODOOM/README.md) |
+| OQuake | [OGames/OQuake/README.md](OGames/OQuake/README.md) |
+| ODOOM3 | [OGames/ODOOM3/README.md](OGames/ODOOM3/README.md) |
+| ODOOM3-BFG | [OGames/ODOOM3-BFG/README.md](OGames/ODOOM3-BFG/README.md) |
+| ODuke3D | [OGames/ODuke3D/README.md](OGames/ODuke3D/README.md) |
+| ODuke3D-RT | [OGames/ODuke3D-RT/README.md](OGames/ODuke3D-RT/README.md) |
+| OWolf3D | [OGames/OWolf3D/README.md](OGames/OWolf3D/README.md) |
+| OQuake2 | [OGames/OQuake2/README.md](OGames/OQuake2/README.md) |
+| OQuake2-RTX | [OGames/OQuake2-RTX/README.md](OGames/OQuake2-RTX/README.md) |
+| OQuake3 | [OGames/OQuake3/README.md](OGames/OQuake3/README.md) |
+| OHeretic | [OGames/OHeretic/README.md](OGames/OHeretic/README.md) |
+| OHexen | [OGames/OHexen/README.md](OGames/OHexen/README.md) |
+| OShadowWarrior | [OGames/OShadowWarrior/README.md](OGames/OShadowWarrior/README.md) |
+| OShadowWarriorRT | [OGames/OShadowWarriorRT/README.md](OGames/OShadowWarriorRT/README.md) |
+| OBlood | [OGames/OBlood/README.md](OGames/OBlood/README.md) |
+| OExhumed | [OGames/OExhumed/README.md](OGames/OExhumed/README.md) |
+| OStrife | [OGames/OStrife/README.md](OGames/OStrife/README.md) |
+| ODoom64 | [OGames/ODoom64/README.md](OGames/ODoom64/README.md) |
+| OHexenII | [OGames/OHexenII/README.md](OGames/OHexenII/README.md) |
+| ORtCW | [OGames/ORtCW/README.md](OGames/ORtCW/README.md) |
 | OGEngineClient | [OGEngineClient/README.md](OGEngineClient/README.md) |
 
 ---
@@ -125,18 +137,26 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 
 | Repository | Purpose | Default path |
 |------------|---------|--------------|
-| **OASIS** (this repo) | Backend, OGEngineClient, all 10 integrations | `C:\Source\OASIS2` |
-| **ODOOM engine** (`UZDOOM_SRC`) | UZDoom/GZDoom fork | `C:\Source\UZDoom` |
+| **OASIS** (this repo) | Backend, OGEngineClient, OGEditorSDK, all 20 integrations | `C:\Source\OASIS2` |
+| **ODOOM engine** (`UZDOOM_SRC`) | UZDoom/GZDoom fork (ODOOM · OHeretic · OHexen · OStrife) | `C:\Source\UZDoom` |
 | **OQuake engine** (`VKQUAKE_SRC`) | vkQuake fork | `C:\Source\vkQuake` |
 | **quake-rerelease-qc** | QuakeC for OQuake | `C:\Source\quake-rerelease-qc` |
 | **ODuke3D engine** | EDuke32 fork | `C:\Source\ODuke3D` |
-| **ODuke3D-RT engine** | Duke-RT fork | `C:\Source\ODuke3D-RT` |
+| **ODuke3D-RT engine** | Duke-RT fork (ODuke3D-RT · OShadowWarriorRT) | `C:\Source\ODuke3D-RT` |
 | **OWolf3D engine** | ECWolf fork | `C:\Source\OWolf3D` |
 | **OQuake2 engine** | Yamagi Q2 fork (`YQUAKE2_SRC`) | `C:\Source\yquake2` |
 | **OQuake2-RTX engine** | Q2 RTX fork (`YQUAKE2RTX_SRC`) | `C:\Source\yquake2rtx` |
 | **OQuake3 engine** | Quake3e fork (`Q3E_SRC`) | `C:\Source\Quake3e` |
 | **ODOOM3 engine** | dhewm3 fork (`DHEWM3_SRC`) | `C:\Source\dhewm3` |
 | **ODOOM3-BFG engine** | RBDOOM-3-BFG fork (`RBD3_SRC`) | `C:\Source\RBDOOM-3-BFG` |
+| **Raze engine** | Raze fork (OBlood · OExhumed · OShadowWarrior) | `C:\Source\Raze` |
+| **ODoom64 engine** | Doom64 EX+ fork | `C:\Source\ODoom64` |
+| **OHexenII engine** | uhexen2 fork | `C:\Source\OHexenII` |
+| **ORtCW engine** | iortcw fork | `C:\Source\ORtCW` |
+| **OQuakeEditor** | TrenchBroom fork (OQuake · OQuake2 editor) | `C:\Source\OQuakeEditor` |
+| **OQuake3Editor** | NetRadiant-custom fork (OQuake3 · ORtCW editor) | `C:\Source\OQuake3Editor` |
+| **ODOOM3-Editor** | DarkRadiant fork (ODOOM3 · ODOOM3-BFG editor) | `C:\Source\ODOOM3-Editor` |
+| **UltimateDoomBuilder** | UDB fork (primary OGEditor host; ODOOM · OHeretic · OHexen · OStrife · ODoom64) | `C:\Source\UltimateDoomBuilder` |
 
 Use OASIS-maintained forks (under `NextGenSoftwareUK/`) so the engine already tracks OASIS integration; vanilla upstream requires relying entirely on the copy/patch steps from this repo.
 
@@ -156,34 +176,46 @@ Builds OGEngineClient (the shared C# NativeAOT `ogengine.dll`/`libstar_api.so`) 
 
 ### Build a single game
 
+All game folders live under `OGames\`:
+
 | Game | Windows | Linux/macOS |
 |------|---------|-------------|
-| ODOOM | `ODOOM\BUILD ODOOM.bat` | `./ODOOM/BUILD_ODOOM.sh` |
-| OQuake | `OQuake\BUILD_OQUAKE.bat` | `./OQuake/BUILD_OQUAKE.sh` |
-| ODOOM3 | `ODOOM3\BUILD_ODOOM3.bat` | `./ODOOM3/BUILD_ODOOM3.sh` |
-| ODOOM3-BFG | `ODOOM3-BFG\BUILD_ODOOM3BFG.bat` | `./ODOOM3-BFG/BUILD_ODOOM3BFG.sh` |
-| ODuke3D | `ODuke3D\BUILD_ODUKE3D.bat` | `./ODuke3D/BUILD_ODUKE3D.sh` |
-| ODuke3D-RT | `ODuke3D-RT\BUILD_ODUKE3DRT.bat` | `./ODuke3D-RT/BUILD_ODUKE3DRT.sh` |
-| OWolf3D | `OWolf3D\BUILD_OWOLF3D.bat` | `./OWolf3D/BUILD_OWOLF3D.sh` |
-| OQuake2 | `OQuake2\BUILD_OQUAKE2.bat` | `./OQuake2/BUILD_OQUAKE2.sh` |
-| OQuake2-RTX | `OQuake2-RTX\BUILD_OQUAKE2RTX.bat` | `./OQuake2-RTX/BUILD_OQUAKE2RTX.sh` |
-| OQuake3 | `OQuake3\BUILD_OQUAKE3.bat` | `./OQuake3/BUILD_OQUAKE3.sh` |
+| ODOOM | `OGames\ODOOM\BUILD ODOOM.bat` | `./OGames/ODOOM/BUILD_ODOOM.sh` |
+| OQuake | `OGames\OQuake\BUILD_OQUAKE.bat` | `./OGames/OQuake/BUILD_OQUAKE.sh` |
+| ODOOM3 | `OGames\ODOOM3\BUILD_ODOOM3.bat` | `./OGames/ODOOM3/BUILD_ODOOM3.sh` |
+| ODOOM3-BFG | `OGames\ODOOM3-BFG\BUILD_ODOOM3BFG.bat` | `./OGames/ODOOM3-BFG/BUILD_ODOOM3BFG.sh` |
+| ODuke3D | `OGames\ODuke3D\BUILD_ODUKE3D.bat` | `./OGames/ODuke3D/BUILD_ODUKE3D.sh` |
+| ODuke3D-RT | `OGames\ODuke3D-RT\BUILD_ODUKE3DRT.bat` | `./OGames/ODuke3D-RT/BUILD_ODUKE3DRT.sh` |
+| OWolf3D | `OGames\OWolf3D\BUILD_OWOLF3D.bat` | `./OGames/OWolf3D/BUILD_OWOLF3D.sh` |
+| OQuake2 | `OGames\OQuake2\BUILD_OQUAKE2.bat` | `./OGames/OQuake2/BUILD_OQUAKE2.sh` |
+| OQuake2-RTX | `OGames\OQuake2-RTX\BUILD_OQUAKE2RTX.bat` | `./OGames/OQuake2-RTX/BUILD_OQUAKE2RTX.sh` |
+| OQuake3 | `OGames\OQuake3\BUILD_OQUAKE3.bat` | `./OGames/OQuake3/BUILD_OQUAKE3.sh` |
+| OHeretic | `OGames\OHeretic\BUILD_OHERETIC.bat` | `./OGames/OHeretic/BUILD_OHERETIC.sh` |
+| OHexen | `OGames\OHexen\BUILD_OHEXEN.bat` | `./OGames/OHexen/BUILD_OHEXEN.sh` |
+| OShadowWarrior | `OGames\OShadowWarrior\BUILD_OSHADOWWARRIOR.bat` | `./OGames/OShadowWarrior/BUILD_OSHADOWWARRIOR.sh` |
+| OShadowWarriorRT | `OGames\OShadowWarriorRT\BUILD_OSHADOWWARRIORRT.bat` | `./OGames/OShadowWarriorRT/BUILD_OSHADOWWARRIORRT.sh` |
+| OBlood | `OGames\OBlood\BUILD_OBLOOD.bat` | `./OGames/OBlood/BUILD_OBLOOD.sh` |
+| OExhumed | `OGames\OExhumed\BUILD_OEXHUMED.bat` | `./OGames/OExhumed/BUILD_OEXHUMED.sh` |
+| OStrife | `OGames\OStrife\BUILD_OSTRIFE.bat` | `./OGames/OStrife/BUILD_OSTRIFE.sh` |
+| ODoom64 | `OGames\ODoom64\BUILD_ODOOM64.bat` | `./OGames/ODoom64/BUILD_ODOOM64.sh` |
+| OHexenII | `OGames\OHexenII\BUILD_OHEXEN2.bat` | `./OGames/OHexenII/BUILD_OHEXEN2.sh` |
+| ORtCW | `OGames\ORtCW\BUILD_ORTCW.bat` | `./OGames/ORtCW/BUILD_ORTCW.sh` |
 | STAR API client only | `BUILD_AND_DEPLOY_STAR_CLIENT.bat` | `./BUILD_AND_DEPLOY_STAR_CLIENT.sh` |
 
 ### Run a game
 
 | Game | Windows | Linux/macOS |
 |------|---------|-------------|
-| ODOOM | `ODOOM\RUN ODOOM.bat` | `./ODOOM/RUN_ODOOM.sh` |
-| OQuake | `OQuake\RUN OQUAKE.bat` | `./OQuake/RUN_OQUAKE.sh` |
-| ODOOM3 | `ODOOM3\RUN_ODOOM3.bat` | `./ODOOM3/RUN_ODOOM3.sh` |
-| ODOOM3-BFG | `ODOOM3-BFG\RUN_ODOOM3BFG.bat` | `./ODOOM3-BFG/RUN_ODOOM3BFG.sh` |
-| ODuke3D | `ODuke3D\RUN_ODUKE3D.bat` | `./ODuke3D/RUN_ODUKE3D.sh` |
-| ODuke3D-RT | `ODuke3D-RT\RUN_ODUKE3DRT.bat` | `./ODuke3D-RT/RUN_ODUKE3DRT.sh` |
-| OWolf3D | `OWolf3D\RUN_OWOLF3D.bat` | `./OWolf3D/RUN_OWOLF3D.sh` |
-| OQuake2 | `OQuake2\RUN_OQUAKE2.bat` | `./OQuake2/RUN_OQUAKE2.sh` |
-| OQuake2-RTX | `OQuake2-RTX\RUN_OQUAKE2RTX.bat` | `./OQuake2-RTX/RUN_OQUAKE2RTX.sh` |
-| OQuake3 | `OQuake3\RUN_OQUAKE3.bat` | `./OQuake3/RUN_OQUAKE3.sh` |
+| ODOOM | `OGames\ODOOM\RUN ODOOM.bat` | `./OGames/ODOOM/RUN_ODOOM.sh` |
+| OQuake | `OGames\OQuake\RUN OQUAKE.bat` | `./OGames/OQuake/RUN_OQUAKE.sh` |
+| ODOOM3 | `OGames\ODOOM3\RUN_ODOOM3.bat` | `./OGames/ODOOM3/RUN_ODOOM3.sh` |
+| ODOOM3-BFG | `OGames\ODOOM3-BFG\RUN_ODOOM3BFG.bat` | `./OGames/ODOOM3-BFG/RUN_ODOOM3BFG.sh` |
+| ODuke3D | `OGames\ODuke3D\RUN_ODUKE3D.bat` | `./OGames/ODuke3D/RUN_ODUKE3D.sh` |
+| ODuke3D-RT | `OGames\ODuke3D-RT\RUN_ODUKE3DRT.bat` | `./OGames/ODuke3D-RT/RUN_ODUKE3DRT.sh` |
+| OWolf3D | `OGames\OWolf3D\RUN_OWOLF3D.bat` | `./OGames/OWolf3D/RUN_OWOLF3D.sh` |
+| OQuake2 | `OGames\OQuake2\RUN_OQUAKE2.bat` | `./OGames/OQuake2/RUN_OQUAKE2.sh` |
+| OQuake2-RTX | `OGames\OQuake2-RTX\RUN_OQUAKE2RTX.bat` | `./OGames/OQuake2-RTX/RUN_OQUAKE2RTX.sh` |
+| OQuake3 | `OGames\OQuake3\RUN_OQUAKE3.bat` | `./OGames/OQuake3/RUN_OQUAKE3.sh` |
 
 ---
 
@@ -200,30 +232,54 @@ OASIS Omniverse/
 │   ├── STAR_Quest_System_Developer_Guide.md
 │   └── …
 ├── Config/
-│   ├── oasis_star_assets.json       ← Cross-game entity / asset catalog (all 10 games)
+│   ├── oasis_star_assets.json       ← Cross-game entity / asset catalog (all 20 games)
 │   └── stories/
 │       └── oasis_arc_001_dimensional_rift.json  ← First cross-game story arc
-├── BUILD EVERYTHING.bat / .sh       ← Build OGEngineClient + all 10 games
+├── BUILD EVERYTHING.bat / .sh       ← Build OGEngineClient + all 20 games
 ├── BUILD_AND_DEPLOY_STAR_CLIENT.bat/.sh
 ├── OGEngineClient/                  ← C# NativeAOT STAR API client (ogengine.dll)
 │   ├── OGEngineClient.cs
 │   ├── OGEngineExports.cs           ← NativeAOT [UnmanagedCallersOnly] exports
 │   └── ogengine.h                   ← C ABI header (canonical; copied to each game)
+├── OGEditorSDK/                     ← .NET Standard 2.0 library (OGEditorClient.dll C ABI)
+│   ├── OGAssetCatalog.cs            ← ~140-asset cross-game catalog
+│   ├── OGMapSidecar.cs              ← oasis_{map}.json reader/writer
+│   ├── OGStarApiClient.cs           ← Live STAR API HTTP client
+│   ├── OGEntityMappings.cs          ← classname ↔ OASIS thing-type lookup
+│   └── Native/
+│       ├── OGEditorClient.h         ← C ABI header (TrenchBroom/NetRadiant/DarkRadiant/Mapster32)
+│       └── NativeExports.cs         ← NativeAOT → OGEditorClient.dll
+├── EditorIntegrations/              ← OASIS integration stubs for companion map editors
+│   ├── Mapster32/                   ← ODuke3D, OBlood, OExhumed, OShadowWarrior (Build engine)
+│   ├── NetRadiant/                  ← OQuake3, ORtCW (Q3 engine) — repo: C:\Source\OQuake3Editor
+│   ├── DarkRadiant/                 ← ODOOM3, ODOOM3-BFG (idTech4) — repo: C:\Source\ODOOM3-Editor
+│   ├── TrenchBroom/                 ← OQuake, OQuake2 (Quake BSP) — repo: C:\Source\OQuakeEditor
+│   └── UltimateDoomBuilder/         ← ODOOM, OHeretic, OHexen, OStrife, ODoom64 — repo: C:\Source\UltimateDoomBuilder
 ├── NativeWrapper/                   ← Deprecated; reference only. Use OGEngineClient.
-│   └── ogengine.h                   ← Shared C ABI header (kept in sync with OGEngineClient/ogengine.h)
 ├── OGLib/                           ← Header-only C utility library (monster table, session, config)
 │   └── oglib.h
-├── ODOOM/                           ← Doom (UZDoom/GZDoom)
-├── OQuake/                          ← Quake (vkQuake)
-├── ODOOM3/                          ← Doom 3 classic (dhewm3)
-├── ODOOM3-BFG/                      ← Doom 3 BFG Edition (RBDOOM-3-BFG)
-├── ODuke3D/                         ← Duke Nukem 3D (EDuke32)
-├── ODuke3D-RT/                      ← Duke Nukem 3D ray-traced (Duke-RT)
-├── OWolf3D/                         ← Wolfenstein 3D (ECWolf)
-├── OQuake2/                         ← Quake II (Yamagi Q2)
-├── OQuake2-RTX/                     ← Quake II ray-traced (Q2 RTX)
-├── OQuake3/                         ← Quake III Arena (Quake3e)
-└── OASIS Omniverse/                 ← Unity hub project (optional embedded shell)
+├── OGames/                          ← All 20 game integration folders
+│   ├── ODOOM/                       ← Doom (UZDoom/GZDoom)
+│   ├── OQuake/                      ← Quake (vkQuake)
+│   ├── ODOOM3/                      ← Doom 3 classic (dhewm3)
+│   ├── ODOOM3-BFG/                  ← Doom 3 BFG Edition (RBDOOM-3-BFG)
+│   ├── ODuke3D/                     ← Duke Nukem 3D (EDuke32)
+│   ├── ODuke3D-RT/                  ← Duke Nukem 3D ray-traced (Duke-RT)
+│   ├── OWolf3D/                     ← Wolfenstein 3D (ECWolf)
+│   ├── OQuake2/                     ← Quake II (Yamagi Q2)
+│   ├── OQuake2-RTX/                 ← Quake II ray-traced (Q2 RTX)
+│   ├── OQuake3/                     ← Quake III Arena (Quake3e)
+│   ├── OHeretic/                    ← Heretic (UZDoom/GZDoom fork)
+│   ├── OHexen/                      ← Hexen (UZDoom/GZDoom fork)
+│   ├── OShadowWarrior/              ← Shadow Warrior Classic (Raze)
+│   ├── OShadowWarriorRT/            ← Shadow Warrior Classic RT (Duke-RT/Raze fork)
+│   ├── OBlood/                      ← Blood (Raze)
+│   ├── OExhumed/                    ← Exhumed/PowerSlave (Raze)
+│   ├── OStrife/                     ← Strife (UZDoom/GZDoom fork)
+│   ├── ODoom64/                     ← Doom 64 (Doom64 EX+)
+│   ├── OHexenII/                    ← Hexen II (uhexen2 / Hammer of Thyrion)
+│   └── ORtCW/                       ← Return to Castle Wolfenstein (iortcw)
+└── OASIS Hub/                       ← Unity hub project (optional embedded shell)
     └── README.md
 ```
 
@@ -242,16 +298,36 @@ Each game folder contains:
 
 ### OGEngineClient
 
-The **C# NativeAOT** STAR API client used by all 10 games. Builds `ogengine.dll` (Windows) or `libstar_api.so` (Linux/macOS). Exposes a C ABI (`ogengine_*`) that each game's integration C/C++ file links against.
+The **C# NativeAOT** STAR API client used by all 20 games. Builds `ogengine.dll` (Windows) or `libstar_api.so` (Linux/macOS). Exposes a C ABI (`ogengine_*`) that each game's integration C/C++ file links against.
 
 Key exports: `ogengine_init`, `ogengine_authenticate`, `ogengine_get_inventory`, `ogengine_add_item`, `ogengine_complete_quest_objective`, `ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_poll_spawn_event`, `ogengine_poll_cross_game_event`, `ogengine_poll_inventory_grant`, `ogengine_get_quests_string`, and more.
 
 ### OGLib
 
-A **header-only C utility library** shared by all 10 games. Provides:
+A **header-only C utility library** shared by all 20 games. Provides:
 - Monster XP table loaded from `oasisstar.json`
 - Session management helpers
 - Config file I/O
+
+### OGEditorSDK
+
+A **.NET Standard 2.0 library** (`OASIS Omniverse/OGEditorSDK/`) that provides OASIS intelligence to all map editors. Compiles to `OGEditorClient.dll` via NativeAOT so any C/C++ editor can call it.
+
+See [`Docs/OGEDITOR_INTEGRATION_ROADMAP.md`](Docs/OGEDITOR_INTEGRATION_ROADMAP.md) and [`Docs/OGEDITOR_PLUGIN_GUIDE.md`](Docs/OGEDITOR_PLUGIN_GUIDE.md) for integration detail.
+
+### EditorIntegrations
+
+OASIS integration stubs for the five companion map editors. Each folder contains the entity definitions, plugin source, and/or build scripts that wire the editor into the OASIS ecosystem:
+
+| Editor | Folder | External repo | OGames covered |
+|--------|--------|---------------|----------------|
+| **Mapster32** | `EditorIntegrations/Mapster32/` | OASIS2 only | ODuke3D, OBlood, OExhumed, OShadowWarrior |
+| **NetRadiant** | `EditorIntegrations/NetRadiant/` | `C:\Source\OQuake3Editor` | OQuake3, ORtCW |
+| **DarkRadiant** | `EditorIntegrations/DarkRadiant/` | `C:\Source\ODOOM3-Editor` | ODOOM3, ODOOM3-BFG |
+| **TrenchBroom** | `EditorIntegrations/TrenchBroom/` | `C:\Source\OQuakeEditor` | OQuake, OQuake2 |
+| **UltimateDoomBuilder** | `EditorIntegrations/UltimateDoomBuilder/` | `C:\Source\UltimateDoomBuilder` | ODOOM, OHeretic, OHexen, OStrife, ODoom64 |
+
+All five editors share the same `oasis_{mapname}.json` sidecar format and reach the STAR API through `OGEditorClient.dll`.
 
 ### OGEngine Editor
 
@@ -275,7 +351,7 @@ A **header-only C utility library** shared by all 10 games. Provides:
 
 ### Cross-game item sharing
 
-Collect keys/weapons/powerups in one game, use them in another. Persistent inventory via the STAR API. All 10 games share the same inventory namespace.
+Collect keys/weapons/powerups in one game, use them in another. Persistent inventory via the STAR API. All 20 games share the same inventory namespace.
 
 | Game | Key types |
 |------|-----------|
@@ -314,7 +390,7 @@ The first cross-game story arc (`oasis_arc_001_dimensional_rift.json`) spans ODO
 
 ### Cross-game events (in-game delivery)
 
-All 10 games poll `ogengine_poll_cross_game_event()` every frame. When a quest triggers a cross-game event:
+All 20 games poll `ogengine_poll_cross_game_event()` every frame. When a quest triggers a cross-game event:
 - `ShowNarration` → toast notification in-game (all 10 games)
 - `SpawnEntity` → calls the game's native spawn path
 - `TeleportTo` → queues a teleport request
@@ -368,4 +444,4 @@ Each game has a native C/C++ HUD that renders without Unity:
 
 ## License
 
-All 10 game integrations follow the same license as the base engine they extend (GPL-2.0 for all, since ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OQuake2, OQuake2-RTX, and OQuake3 are all GPL-licensed source ports). The OASIS integration layer (OGEngineClient, OGLib, integration C/C++ files) is licensed under the OASIS project license. See `OASIS Omniverse/LICENSE.md` or each game's `Docs/CREDITS_AND_LICENSE.md`.
+All 20 game integrations follow the same license as the base engine they extend (GPL-2.0 for all — every engine in the OASIS Omniverse stack is a GPL-licensed source port). The OASIS integration layer (OGEngineClient, OGLib, OGEditorSDK, integration C/C++ files) is licensed under the OASIS project license. See `OASIS Omniverse/LICENSE.md` or each game's `Docs/CREDITS_AND_LICENSE.md`.
