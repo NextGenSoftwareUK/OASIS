@@ -2,7 +2,7 @@
 
 **OASIS Omniverse** is a unified cross-game metaverse powered by the **OASIS STAR API** — spanning every game genre, not just FPS. The name means exactly what it says: *every* game, *every* genre, *one* universe. Keys, inventory, quests, XP, NFTs, avatars, and story arcs flow freely between all OGames, regardless of what kind of game they are.
 
-We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The ten FPS integrations below are **Generation 1**. **Generation 2** is already planned: an MMORPG (Morrowind-style open world RPG) and a voxel sandbox (Minecraft-style). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
+We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The thirteen FPS integrations below are **Generation 1**. **Generation 2** is next: an open-world RPG (Morrowind via OpenMW) and a voxel sandbox (OMineCraft via Minetest). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
 
 **All Markdown guides live under [`Docs/`](Docs/). This README is the entry-point index; use the tables below to jump to what you need.**
 
@@ -22,13 +22,16 @@ We started where 3D gaming was born — **Doom** and **Quake** — then expanded
 | **OQuake2** | Yamagi Q2 | `OQuake2/oquake2_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
 | **OQuake2-RTX** | Q2 RTX | `OQuake2-RTX/oquake2rtx_ogengine_integration.c` | ✅ `gi.linkentity` | ⏳ G_Spawn deferred |
 | **OQuake3** | Quake3e | `OQuake3/oquake3_ogengine_integration.c` | ✅ `trap_LinkEntity` | ✅ `trap_SendConsoleCommand` |
+| **OHeretic** | UZDoom (GZDoom fork) | `OHeretic/oheretic_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| **OHexen** | UZDoom (GZDoom fork) | `OHexen/ohexen_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| **OShadowWarrior** | Raze (Build engine) | `OShadowWarrior/oshadowwarrior_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
 
 ### Generation 2 — coming next
 
 | OGame | Genre | Base engine | Status |
 |-------|-------|-------------|--------|
-| **OMorrowind** | Open-world MMORPG / RPG | OpenMW (Morrowind clone) | 🔜 Planned |
-| **OMineClone** | Voxel sandbox | Minetest / MineClone2 | 🔜 Planned |
+| **OMorrowind** | Open-world RPG | OpenMW | 🔧 Integration files complete |
+| **OMineCraft** | Voxel sandbox | Minetest / MineClone2 | 🔜 Planned |
 
 ### Generation 3 and beyond
 
@@ -69,7 +72,7 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 | [Docs/INTEGRATION_GUIDE.md](Docs/INTEGRATION_GUIDE.md) | Cross-game items, quests, API usage, phases, troubleshooting |
 | [Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md](Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md) | Canonical item IDs and cross-game mappings |
 | [Docs/STAR_INTEGRATION_AUDIT.md](Docs/STAR_INTEGRATION_AUDIT.md) | Integration audit (sync vs C implementation) |
-| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 10 games |
+| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 13 games |
 | [Docs/OGEngine_Overview.md](Docs/OGEngine_Overview.md) | WEB4/WEB5 APIs, GeoHotSpot media types, quest handoff |
 
 ### Quests and story system

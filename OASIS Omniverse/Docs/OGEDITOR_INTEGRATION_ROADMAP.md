@@ -12,8 +12,8 @@ For the full platform vision, see `OGENGINE_VISION_AND_ROADMAP.md`.
 |--------|------|----------|---------------|--------------|
 | **UltimateDoomBuilder** | UDB | C# / .NET 4.7.2 | ODOOM, ODuke3D, OWolf3D | **Primary base. Full OGEditorSDK, OASISStarPanel, OASISPortalPanel, OASISMapConverter, OGMapSidecar** |
 | **OQuakeEditor** | TrenchBroom | C++ / Qt | OQuake, OQuake2, OQuake3 | OASIS entity definitions only |
-| **OQuake3Editor** | NetRadiant | C | OQuake3 | OASIS entity definitions only |
-| **ODOOM3Editor** | DarkRadiant | C++ / wxWidgets | ODOOM3, ODOOM3-BFG | OASIS entity definitions only |
+| **OQuake3Editor** | NetRadiant | C | OQuake3 | Full GTK3 OASIS panel (oasis_nr_plugin.c) — Asset Browser, Portal Placer, Quest Binder |
+| **ODOOM3Editor** | DarkRadiant | C++ / wxWidgets | ODOOM3, ODOOM3-BFG | Full wxWidgets OASIS panel (dm.oasis plugin) — Asset Browser, Portal Placer, Quest Binder |
 
 ---
 
@@ -85,13 +85,24 @@ This means:
 
 ## 4. What the Satellite Editors Currently Have
 
-Each of the three satellite editors has **OASIS entity definitions only** — nothing more:
+Two of the three satellite editors now have **full OASIS panels** wired to `OGEditorClient.dll`:
 
+**DarkRadiant** (`ODOOM3Editor`) — `dm.oasis` plugin (C++ / wxWidgets):
+- Asset Browser — lists all OASIS assets for any OGame via `ogeditor_get_assets_json`
+- Portal Placer — creates portal JSON with destination game, map, and exit name via `ogeditor_append_portal`
+- Quest Binder — lists quests per game via `ogeditor_get_quests_json`, binds objectives via `ogeditor_bind_objective`; includes per-game filter
+
+**NetRadiant** (`OQuake3Editor`) — `oasis_nr_plugin` (C / GTK3):
+- Same three panels implemented as GTK3 modal dialogs
+- File chooser for map path, combo-with-entry for destination game, scrolled text views for JSON output
+- Plugs into the NetRadiant plugin ABI (`QERPlug_GetName`, `QERPlug_Init`, `QERPlug_Dispatch`)
+
+**OQuakeEditor** (TrenchBroom) — still has entity definitions only:
 - `oasis_portal_enter` — brush trigger entity (teleport source)
 - `oasis_portal_exit` — point entity (teleport destination)
 - Per-game key entities
 
-These definitions let level designers place OASIS entities in the editor. The **runtime behaviour** (connecting to OGEngine, registering with STAR API, persisting portal topology) is not yet wired up in any satellite editor.
+The **runtime behaviour** (connecting to OGEngine, registering with STAR API, persisting portal topology) is now wired up in DarkRadiant and NetRadiant. TrenchBroom integration is pending.
 
 ---
 
