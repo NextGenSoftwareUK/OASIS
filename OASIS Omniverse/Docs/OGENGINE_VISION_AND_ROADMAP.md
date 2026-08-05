@@ -89,18 +89,30 @@ The `ogengine.dll` is the bridge between native C/C++ games and the OASIS backen
 
 ### 2.4 Game Integrations (C/C++ hooks)
 
+All integration files live under `OASIS Omniverse/OGames/{OGame}/`.
+
 | OGame | Base Port | Status | Integration file | Teleport Hook | Spawn Hook |
 |-------|-----------|--------|-----------------|---------------|------------|
-| ODOOM | UZDoom | ✅ Complete | `uzdoom_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
-| OQuake | vkQuake | ✅ Complete | `oquake_ogengine_integration.c` | ✅ Complete | ✅ Complete |
-| ODOOM3 | dhewm3 | ✅ Complete | `d3doom3_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
-| ODOOM3-BFG | RBDOOM-3-BFG | ✅ Complete | `d3doom_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
-| ODuke3D | EDuke32 | ✅ Complete | `oduke3d_ogengine_integration.c` | ✅ Complete | ✅ Complete |
-| ODuke3D-RT | Duke-RT | ✅ Complete | `oduke3drt_ogengine_integration.c` | ✅ Complete | ✅ Complete |
-| OWolf3D | ECWolf | ✅ Complete | `owolf3d_ogengine_integration.cpp` | ✅ Complete | ✅ Complete |
-| OQuake2 | Yamagi Q2 | ✅ Complete | `oquake2_ogengine_integration.c` | ✅ Complete | ✅ Complete |
-| OQuake2-RTX | Q2 RTX | ✅ Complete | `oquake2rtx_ogengine_integration.c` | ✅ Complete | ✅ Complete |
-| OQuake3 | Quake3e | ✅ Complete | `oquake3_ogengine_integration.c` | ✅ Complete | ✅ Complete |
+| ODOOM | UZDoom | ✅ Complete | `uzdoom_ogengine_integration.cpp` | ✅ `P_TeleportMove` | ✅ `C_DoCommand("summon …")` |
+| OQuake | vkQuake | ✅ Complete | `oquake_ogengine_integration.c` | ✅ `SV_LinkEdict` | ✅ `ED_Alloc` / QuakeC |
+| ODOOM3 | dhewm3 | ✅ Complete | `d3doom3_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
+| ODOOM3-BFG | RBDOOM-3-BFG | ✅ Complete | `d3doom_ogengine_integration.cpp` | ✅ `idPlayer::Teleport` | ✅ `cmdSystem` spawn |
+| ODuke3D | EDuke32 | ✅ Complete | `oduke3d_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
+| ODuke3D-RT | Duke-RT | ✅ Complete | `oduke3drt_ogengine_integration.c` | ✅ `DukePlayer_t pos` | ✅ `A_InsertSprite` |
+| OWolf3D | ECWolf | ✅ Complete | `owolf3d_ogengine_integration.cpp` | ✅ `player.position` | ✅ DECORATE spawn |
+| OQuake2 | Yamagi Q2 | ✅ Complete | `oquake2_ogengine_integration.c` | ✅ `gi.linkentity` | ✅ `G_Spawn` + `ED_CallSpawn` |
+| OQuake2-RTX | Q2 RTX | ✅ Complete | `oquake2rtx_ogengine_integration.c` | ✅ `gi.linkentity` | ✅ `G_Spawn` + `ED_CallSpawn` |
+| OQuake3 | Quake3e | ✅ Complete | `oquake3_ogengine_integration.c` | ✅ `trap_LinkEntity` | ✅ `trap_SendConsoleCommand` |
+| OHeretic | UZDoom | ✅ Complete | `oheretic_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| OHexen | UZDoom | ✅ Complete | `ohexen_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| OShadowWarrior | Raze | ✅ Complete | `oshadowwarrior_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| OShadowWarriorRT | Duke-RT (Raze) | ✅ Complete | `oshadowwarriorrt_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| OBlood | Raze | ✅ Complete | `oblood_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| OExhumed | Raze | ✅ Complete | `oexhumed_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| OStrife | UZDoom | ✅ Complete | `ostrife_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
+| ODoom64 | Doom64 EX+ | ✅ Complete | `odoom64_ogengine_integration.cpp` | ✅ portal system | ✅ Doom64 EX+ spawn |
+| OHexenII | uhexen2 | ✅ Complete | `ohexen2_ogengine_integration.cpp` | ✅ portal system | ✅ uhexen2 spawn |
+| ORtCW | iortcw | ✅ Complete | `ortcw_ogengine_integration.cpp` | ✅ portal system | ✅ Q3 spawn |
 
 ### 2.5 WEB4 / WEB5 APIs
 
@@ -551,11 +563,14 @@ The universal cross-game map editor — the tool that makes all of the above *cr
 | License | GPL2 | GPL3 |
 
 **Multi-editor strategy:**
-- **UDB** = primary OASIS host (Doom WAD maps — the most complex; also the import/export hub for all other formats)
-- **TrenchBroom** (`C:\Source\OQuakeEditor`) = companion for Q1/Q2/Q3 geometry editing; carries `OASIS_OQuake.fgd`, `OASIS_OQuake2.fgd`, `OASIS_OQuake3.fgd` ✅
-- **NetRadiant-custom** = companion for Q3 curve/patch editing; `oasis_nr_plugin.c` plugin via `OGEditorClient.dll` ✅
-- **Mapster32** (bundled with EDuke32) = companion for Duke3D BUILD maps; `oasis_m32_tool.exe` CLI companion via `OGEditorClient.dll` ✅
-- **DarkRadiant** (`C:\Source\ODOOM3-Editor`) = companion for Doom 3 maps; `plugins/dm.oasis/` module via `OGEditorClient.dll` ✅
+
+| Editor | EditorIntegrations folder | External repo | OGames covered |
+|--------|---------------------------|---------------|----------------|
+| **UltimateDoomBuilder** (primary host) | `EditorIntegrations/UltimateDoomBuilder/` | `C:\Source\UltimateDoomBuilder` | ODOOM, OHeretic, OHexen, OStrife, ODoom64 |
+| **TrenchBroom** | `EditorIntegrations/TrenchBroom/` | `C:\Source\OQuakeEditor` | OQuake, OQuake2 |
+| **NetRadiant** | `EditorIntegrations/NetRadiant/` | `C:\Source\OQuake3Editor` | OQuake3, ORtCW |
+| **DarkRadiant** | `EditorIntegrations/DarkRadiant/` | `C:\Source\ODOOM3-Editor` | ODOOM3, ODOOM3-BFG |
+| **Mapster32** | `EditorIntegrations/Mapster32/` | OASIS2 only | ODuke3D, OBlood, OExhumed, OShadowWarrior |
 
 All companion editors write/read the same `oasis_{mapname}.json` sidecar, so OASIS metadata is portable. All reach the STAR API through `OGEditorClient.dll` — no .NET knowledge required.
 
@@ -875,10 +890,11 @@ Reference: vkQuake's MDL loader code or GLQuake's `GL_DrawAliasModel`.
 
 A UDB STAR menu entry "Edit in native editor…" auto-detects editors via PATH.
 
-- **OQUAKE / OQUAKE2 maps** → launches OQuakeEditor (TrenchBroom fork) with `OASIS_OQuake.fgd` / `OASIS_OQuake2.fgd` — portals, keys, XP anchors
-- **OQUAKE3 maps** → launches NetRadiant; `oasis_nr_plugin.c` (`EditorIntegrations/NetRadiant/`) provides OASIS Asset Browser, Portal Placer, Quest Binder via `QERPlug_*` ABI
-- **ODOOM3 / ODOOM3-BFG maps** → launches DarkRadiant (`C:\Source\ODOOM3-Editor`); `plugins/dm.oasis/` module shows 3-tab OASIS panel
-- **ODUKE3D maps** → Mapster32; `oasis_m32_tool.exe` (`EditorIntegrations/Mapster32/`) registered as external tool
+- **ODOOM / OHeretic / OHexen / OStrife / ODoom64 maps** → UltimateDoomBuilder (primary host) — full OGEditorSDK, OGEngine panel, OASIS Portal Editor, Quest Weaver
+- **OQUAKE / OQUAKE2 maps** → TrenchBroom (`C:\Source\OQuakeEditor`) — `OASIS_OQuake.fgd` / `OASIS_OQuake2.fgd`; `EditorIntegrations/TrenchBroom/`
+- **OQUAKE3 / ORTCW maps** → NetRadiant (`C:\Source\OQuake3Editor`) — `oasis_nr_plugin.c`; `EditorIntegrations/NetRadiant/`
+- **ODOOM3 / ODOOM3-BFG maps** → DarkRadiant (`C:\Source\ODOOM3-Editor`) — `plugins/dm.oasis/`; `EditorIntegrations/DarkRadiant/`
+- **ODUKE3D / OBLOOD / OEXHUMED / OSHADOWWARRIOR maps** → Mapster32 — `oasis_m32_tool.exe`; `EditorIntegrations/Mapster32/`
 
 All companions write the same `oasis_{mapname}.json` sidecar — UDB reads it back on next open.
 
@@ -935,5 +951,5 @@ The table below shows which item types are already cross-game mapped (from `oasi
 
 ---
 
-*Last updated: 2026-08-02 — Phases 2, 3, 4 (partial), 5 (infrastructure), and 6 complete. New: CrossGameEventsOnActivate / OnComplete / OnGeoHotSpotTriggered; PlayAudio / PlayVideo / OpenWebsite cross-game events with `oasis_open_url()` in all 10 games; OWolf3D entity spawn via ECWolf DECORATE; OQuake2 / OQuake2-RTX entity spawn via `G_Spawn` + `ED_CallSpawn`; `UnlockPortal` event handler + `ogengine_notify_portal_unlock` implemented in all 10 games + `OGEngineExports`; `PortalsController.cs` (`GET/POST/unlock/lock /api/portals`) added to STAR WebAPI; `ogengine_poll_cross_game_event` + `ogengine_poll_inventory_grant` + `ogengine_notify_portal_unlock` declared in all per-game `ogengine.h` copies; OASIS Omniverse multi-genre vision docs updated (Gen1/2/3, Ready Player One framing, OGEngine Editor expanded)*
+*Last updated: 2026-08-05 — All 20 Gen-1 OGames complete; full EditorIntegrations coverage (5 editors, 20 OGames); OGEditorSDK in OASIS Omniverse/OGEditorSDK/; OGames/ subfolder; OASIS Hub rename. Phases 2, 3, 4 (partial), 5 (infrastructure), and 6 complete. New: CrossGameEventsOnActivate / OnComplete / OnGeoHotSpotTriggered; PlayAudio / PlayVideo / OpenWebsite cross-game events with `oasis_open_url()` in all 10 games; OWolf3D entity spawn via ECWolf DECORATE; OQuake2 / OQuake2-RTX entity spawn via `G_Spawn` + `ED_CallSpawn`; `UnlockPortal` event handler + `ogengine_notify_portal_unlock` implemented in all 10 games + `OGEngineExports`; `PortalsController.cs` (`GET/POST/unlock/lock /api/portals`) added to STAR WebAPI; `ogengine_poll_cross_game_event` + `ogengine_poll_inventory_grant` + `ogengine_notify_portal_unlock` declared in all per-game `ogengine.h` copies; OASIS Omniverse multi-genre vision docs updated (Gen1/2/3, Ready Player One framing, OGEngine Editor expanded)*
 *Vision: NextGen World Ltd — "One Infinite World"*

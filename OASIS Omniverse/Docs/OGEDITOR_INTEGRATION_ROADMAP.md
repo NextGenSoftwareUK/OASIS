@@ -8,12 +8,13 @@ For the full platform vision, see `OGENGINE_VISION_AND_ROADMAP.md`.
 
 ## 1. Editor Inventory
 
-| Editor | Base | Language | Primary Games | OASIS Status |
-|--------|------|----------|---------------|--------------|
-| **UltimateDoomBuilder** | UDB | C# / .NET 4.7.2 | ODOOM, ODuke3D, OWolf3D | **Primary base. Full OGEditorSDK, OASISStarPanel, OASISPortalPanel, OASISMapConverter, OGMapSidecar** |
-| **OQuakeEditor** | TrenchBroom | C++ / Qt | OQuake, OQuake2, OQuake3 | OASIS entity definitions only |
-| **OQuake3Editor** | NetRadiant | C | OQuake3 | Full GTK3 OASIS panel (oasis_nr_plugin.c) — Asset Browser, Portal Placer, Quest Binder |
-| **ODOOM3Editor** | DarkRadiant | C++ / wxWidgets | ODOOM3, ODOOM3-BFG | Full wxWidgets OASIS panel (dm.oasis plugin) — Asset Browser, Portal Placer, Quest Binder |
+| Editor | EditorIntegrations folder | External repo | Language | OGames covered | OASIS Status |
+|--------|---------------------------|---------------|----------|----------------|--------------|
+| **UltimateDoomBuilder** (primary host) | `EditorIntegrations/UltimateDoomBuilder/` | `C:\Source\UltimateDoomBuilder` | C# / .NET 4.7.2 | ODOOM, OHeretic, OHexen, OStrife, ODoom64 | ✅ Full OGEditorSDK, OGEngine panel, OASISPortalPanel, Quest Weaver, OASISMapConverter, OGMapSidecar |
+| **TrenchBroom** (OQuakeEditor) | `EditorIntegrations/TrenchBroom/` | `C:\Source\OQuakeEditor` | C++ / Qt | OQuake, OQuake2 | ✅ OASIS FGDs (`OASIS_OQuake.fgd`, `OASIS_OQuake2.fgd`, `OASIS_OQuake3.fgd`) |
+| **NetRadiant** (OQuake3Editor) | `EditorIntegrations/NetRadiant/` | `C:\Source\OQuake3Editor` | C | OQuake3, ORtCW | ✅ Full GTK3 OASIS panel (`oasis_nr_plugin.c`) — Asset Browser, Portal Placer, Quest Binder |
+| **DarkRadiant** (ODOOM3-Editor) | `EditorIntegrations/DarkRadiant/` | `C:\Source\ODOOM3-Editor` | C++ / wxWidgets | ODOOM3, ODOOM3-BFG | ✅ Full wxWidgets OASIS panel (`plugins/dm.oasis/`) — Asset Browser, Portal Placer, Quest Binder; entity defs in `install/resources/oasis_odoom3.def` |
+| **Mapster32** | `EditorIntegrations/Mapster32/` | OASIS2 only | C | ODuke3D, OBlood, OExhumed, OShadowWarrior | ✅ CLI companion tool (`oasis_m32_tool.c`) registered as external tool in Mapster32 |
 
 ---
 
@@ -35,13 +36,13 @@ UDB is not just one of four equal editors — it is the **intelligence hub** for
                           │
                OGEditorClient.dll / libOGEditorClient.so
                           │
-          ┌───────────────┼───────────────┐
-          │               │               │
-   OQuakeEditor    OQuake3Editor   ODOOM3Editor
-  (TrenchBroom)   (NetRadiant)   (DarkRadiant)
-   C++ FFI call    C FFI call     C++ FFI call
-          │               │               │
-          └───────────────┴───────────────┘
+          ┌───────────────┼───────────────┬───────────────┐
+          │               │               │               │
+   OQuakeEditor    OQuake3Editor   ODOOM3-Editor      Mapster32
+  (TrenchBroom)   (NetRadiant)   (DarkRadiant)   (Build engine)
+   C++ FFI call    C FFI call     C++ FFI call      C FFI call
+          │               │               │               │
+          └───────────────┴───────────────┴───────────────┘
                           │
               All route through the same
               OGStarApiClient → STAR Web API
@@ -87,7 +88,7 @@ This means:
 
 Two of the three satellite editors now have **full OASIS panels** wired to `OGEditorClient.dll`:
 
-**DarkRadiant** (`ODOOM3Editor`) — `dm.oasis` plugin (C++ / wxWidgets):
+**DarkRadiant** (`ODOOM3-Editor`) — `dm.oasis` plugin (C++ / wxWidgets):
 - Asset Browser — lists all OASIS assets for any OGame via `ogeditor_get_assets_json`
 - Portal Placer — creates portal JSON with destination game, map, and exit name via `ogeditor_append_portal`
 - Quest Binder — lists quests per game via `ogeditor_get_quests_json`, binds objectives via `ogeditor_bind_objective`; includes per-game filter
@@ -97,12 +98,14 @@ Two of the three satellite editors now have **full OASIS panels** wired to `OGEd
 - File chooser for map path, combo-with-entry for destination game, scrolled text views for JSON output
 - Plugs into the NetRadiant plugin ABI (`QERPlug_GetName`, `QERPlug_Init`, `QERPlug_Dispatch`)
 
-**OQuakeEditor** (TrenchBroom) — still has entity definitions only:
-- `oasis_portal_enter` — brush trigger entity (teleport source)
-- `oasis_portal_exit` — point entity (teleport destination)
-- Per-game key entities
+**OQuakeEditor** (TrenchBroom) — entity definitions for OQuake and OQuake2:
+- `OASIS_OQuake.fgd` — OQ1 portals, silver/gold keys, XP anchors
+- `OASIS_OQuake2.fgd` — OQ2 portals, blue/red keys, commander's head
+- `OASIS_OQuake3.fgd` — OQ3 portals, power-ups, XP anchors (used with NetRadiant companion)
+- `oasis_portal_enter` / `oasis_portal_exit` — cross-game teleport entity pair
+- All three GameConfig.cfg files updated to include OASIS FGDs
 
-The **runtime behaviour** (connecting to OGEngine, registering with STAR API, persisting portal topology) is now wired up in DarkRadiant and NetRadiant. TrenchBroom integration is pending.
+The **runtime behaviour** (connecting to OGEngine, registering with STAR API, persisting portal topology) is fully wired in DarkRadiant and NetRadiant. TrenchBroom's runtime integration is via entity definitions + `OGEditorClient.dll` at launch (Phase 3).
 
 ---
 
@@ -165,7 +168,7 @@ Each editor gains a top-level **OASIS** menu. Editors discover each other via th
     "udb":           "C:\\Source\\UltimateDoomBuilder\\build\\Builder.exe",
     "oquake_editor": "C:\\Source\\OQuakeEditor\\build\\OQuakeEditor.exe",
     "oquake3_editor":"C:\\Source\\OQuake3Editor\\install\\netradiant.exe",
-    "odoom3_editor": "C:\\Source\\ODOOM3Editor\\install\\darkradiant.exe"
+    "odoom3_editor": "C:\\Source\\ODOOM3-Editor\\install\\darkradiant.exe"
   },
   "OGEditorClient_path": "C:\\Source\\UltimateDoomBuilder\\build\\OGEditorClient.dll",
   "ogengine_url":      "http://localhost:8888",
