@@ -197,6 +197,97 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 
 ---
 
+## Blood
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **Raze** | ✅ Best overall | ZDoom team's Build engine reimplementation with a first-class Blood backend. Same GZDoom C++ infrastructure as OShadowWarrior and OExhumed — hook patterns, CCMD system, and screen API are identical. Actively maintained. |
+| **BuildGDX** | Java-based alternative | Cross-platform Build engine port covering Blood, Duke3D, SW, and Exhumed. Good fallback. |
+| **NBlood** | Legacy option | Standalone Build engine Blood port. Now superseded by Raze's Blood backend. |
+| **BloodGDX** | Abandoned | Original Java Blood port by M210; development halted. Superseded by BuildGDX and Raze. |
+
+**OASIS Omniverse choice:**
+- Raze → [OBlood](../OBlood/README.md)
+
+---
+
+## Exhumed / PowerSlave
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **Raze** | ✅ Best overall | Raze's Exhumed backend is the most complete and actively maintained port. Shares the same hook infrastructure as OBlood and OShadowWarrior. |
+| **PCExhumed** | Historical | The original Exhumed PC source; early community port. Superseded by Raze. |
+| **BuildGDX** | Java-based alternative | Cross-platform Build port with Exhumed support. Good fallback. |
+
+**OASIS Omniverse choice:**
+- Raze → [OExhumed](../OExhumed/README.md)
+
+---
+
+## Strife: Quest for the Sigil
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **UZDoom** | ✅ Best overall (OASIS) | UZDoom (GZDoom fork) supports Strife natively with full GZDoom rendering, mod support, and the same hook API as OHeretic and OHexen. Keeps OASIS integration consistent. |
+| **GZDoom** | ✅ Excellent | GZDoom's Strife support is first-class and actively maintained. UZDoom is preferred for OASIS consistency. |
+| **Chocolate Strife** | ✅ Most authentic | Emulates the original game accurately (vanilla behavior, 320×200 output). No OASIS hook layer — compatibility mode only. |
+| **Crispy Strife** | Authentic + extras | Chocolate fork with a few quality-of-life improvements. |
+
+**OASIS Omniverse choice:**
+- UZDoom → [OStrife](../OStrife/README.md)
+
+---
+
+## Doom 64
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **Doom64 EX+** | ✅ Best overall | Community continuation of the original Doom64 EX by Kaiser. GPL, actively maintained, SDL2, faithful to the N64 original. The community standard for open-source Doom 64 play. |
+| **Doom64 CE** | Community Edition | Community Edition fork with additional features. Less widely used than EX+. |
+| **GZDoom** | Partial support | Can run Doom 64 WADs via conversion tools but lacks native N64-authentic rendering and the Unmaker behavior. Not suitable for ODoom64. |
+
+**OASIS Omniverse choice:**
+- Doom64 EX+ → [ODoom64](../ODoom64/README.md)
+
+---
+
+## Hexen II
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **uhexen2** | ✅ Best overall | Hammer of Thyrion — the long-running community-maintained Hexen II port (since 2005). SDL2, cross-platform, actively updated. The only serious option for open-source Hexen II. |
+| **HexenWorld** | Multiplayer | Built into uhexen2 for HexenWorld multiplayer mode. |
+
+**OASIS Omniverse choice:**
+- uhexen2 → [OHexenII](../OHexenII/README.md)
+
+---
+
+## Return to Castle Wolfenstein
+
+### Best ports
+
+| Port | Recommendation | Notes |
+|------|---------------|-------|
+| **iortcw** | ✅ Best overall | Community-maintained GPL Q3-engine port of RtCW. SDL2, cross-platform, actively maintained — the definitive open-source RtCW port. Same lineage as ioquake3. |
+| **Spearmint** | Generalist Q3 engine | Supports RtCW but is more of a general Q3 engine reimplementation. Less RtCW-focused than iortcw. |
+| **OpenWolf** | Abandoned | Early GPL RtCW fork. Development effectively halted. |
+
+**OASIS Omniverse choice:**
+- iortcw → [ORtCW](../ORtCW/README.md)
+
+---
+
 ## Doom 3
 
 ### Best ports
@@ -223,6 +314,12 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Hexen: Beyond Heretic | UZDoom (GZDoom fork) | OHexen | 🔧 Integration files complete |
 | Shadow Warrior Classic | Raze | OShadowWarrior | 🔧 Integration files complete |
 | Shadow Warrior Classic (RT) | Duke-RT (Raze fork) | OShadowWarriorRT | 🔧 Integration files complete |
+| Blood | Raze | OBlood | 🔧 Integration files complete |
+| Exhumed / PowerSlave | Raze | OExhumed | 🔧 Integration files complete |
+| Strife: Quest for the Sigil | UZDoom (GZDoom fork) | OStrife | 🔧 Integration files complete |
+| Doom 64 | Doom64 EX+ | ODoom64 | 🔧 Integration files complete |
+| Hexen II | uhexen2 (Hammer of Thyrion) | OHexenII | 🔧 Integration files complete |
+| Return to Castle Wolfenstein | iortcw | ORtCW | 🔧 Integration files complete |
 | Quake | vkQuake | OQuake | ✅ Complete |
 | Quake II | Yamagi Quake 2 | OQuake2 | 🔜 Planned |
 | Quake II (RT) | Q2 RTX | OQuake2-RTX | 🔜 Planned |
