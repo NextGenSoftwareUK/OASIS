@@ -187,10 +187,13 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Port | Recommendation | Notes |
 |------|---------------|-------|
 | **Raze** | ✅ Best overall | ZDoom team's Build engine reimplementation. Shadow Warrior Classic backend is first-class. Runs inside the same GZDoom C++ infrastructure as OHeretic/OHexen — identical CCMD system, hook patterns, and screen API. Actively maintained. |
+| **Duke-RT** | ✅ Best visuals | Raze fork (https://github.com/postmemetic/Duke-RT) that adds Vulkan path-traced ray-tracing. Inherits Raze's full Shadow Warrior backend, so hook sites are identical to the non-RT version. |
 | **BuildGDX** | Java-based alternative | Runs SW, Duke3D, Blood, Exhumed. Cross-platform. Good fallback where Raze is unavailable. |
 | **VoidSW** | Abandoned | Historical Build-engine SW port. Development effectively halted; superseded by Raze. |
 
-**OASIS Omniverse choice: Raze → [OShadowWarrior](../OShadowWarrior/README.md)**
+**OASIS Omniverse choices:**
+- Raze → [OShadowWarrior](../OShadowWarrior/README.md)
+- Duke-RT (Raze fork) → [OShadowWarriorRT](../OShadowWarriorRT/README.md)
 
 ---
 
@@ -219,6 +222,7 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Heretic | UZDoom (GZDoom fork) | OHeretic | 🔧 Integration files complete |
 | Hexen: Beyond Heretic | UZDoom (GZDoom fork) | OHexen | 🔧 Integration files complete |
 | Shadow Warrior Classic | Raze | OShadowWarrior | 🔧 Integration files complete |
+| Shadow Warrior Classic (RT) | Duke-RT (Raze fork) | OShadowWarriorRT | 🔧 Integration files complete |
 | Quake | vkQuake | OQuake | ✅ Complete |
 | Quake II | Yamagi Quake 2 | OQuake2 | 🔜 Planned |
 | Quake II (RT) | Q2 RTX | OQuake2-RTX | 🔜 Planned |

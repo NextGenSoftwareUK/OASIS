@@ -2,7 +2,7 @@
 
 **OASIS Omniverse** is a unified cross-game metaverse powered by the **OASIS STAR API** — spanning every game genre, not just FPS. The name means exactly what it says: *every* game, *every* genre, *one* universe. Keys, inventory, quests, XP, NFTs, avatars, and story arcs flow freely between all OGames, regardless of what kind of game they are.
 
-We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The thirteen FPS integrations below are **Generation 1**. **Generation 2** is next: an open-world RPG (Morrowind via OpenMW) and a voxel sandbox (OMineCraft via Minetest). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
+We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The fourteen FPS integrations below are **Generation 1**. **Generation 2** is next: an open-world RPG (Morrowind via OpenMW) and a voxel sandbox (OMineCraft via Minetest). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
 
 **All Markdown guides live under [`Docs/`](Docs/). This README is the entry-point index; use the tables below to jump to what you need.**
 
@@ -25,6 +25,7 @@ We started where 3D gaming was born — **Doom** and **Quake** — then expanded
 | **OHeretic** | UZDoom (GZDoom fork) | `OHeretic/oheretic_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
 | **OHexen** | UZDoom (GZDoom fork) | `OHexen/ohexen_ogengine_integration.cpp` | ✅ portal system | ✅ GZDoom actor spawn |
 | **OShadowWarrior** | Raze (Build engine) | `OShadowWarrior/oshadowwarrior_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
+| **OShadowWarriorRT** | Duke-RT (Raze fork) | `OShadowWarriorRT/oshadowwarriorrt_ogengine_integration.cpp` | ✅ portal system | ✅ Raze actor spawn |
 
 ### Generation 2 — coming next
 
@@ -72,7 +73,7 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 | [Docs/INTEGRATION_GUIDE.md](Docs/INTEGRATION_GUIDE.md) | Cross-game items, quests, API usage, phases, troubleshooting |
 | [Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md](Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md) | Canonical item IDs and cross-game mappings |
 | [Docs/STAR_INTEGRATION_AUDIT.md](Docs/STAR_INTEGRATION_AUDIT.md) | Integration audit (sync vs C implementation) |
-| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 13 games |
+| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 14 games |
 | [Docs/OGEngine_Overview.md](Docs/OGEngine_Overview.md) | WEB4/WEB5 APIs, GeoHotSpot media types, quest handoff |
 
 ### Quests and story system
