@@ -198,7 +198,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId",
             "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
             // [CustomOASISProperty] keys queried by the quest/avatar system
-            "Status", "ActiveQuestId", "ActiveObjectiveId",
+            "Status", "ActiveQuestId", "ActiveObjectiveId", "ParentMissionId",
+            // MongoDB avatar type discriminator value
+            "Avatar",
         };
         private const string EncMetaKey = "__oasis_enc__";
 
