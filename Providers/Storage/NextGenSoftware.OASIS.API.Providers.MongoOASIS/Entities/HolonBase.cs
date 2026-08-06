@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         /// <summary>Derived from DeletedDate; true when soft-deleted (IHolonBase).</summary>
         public bool IsDeleted => DeletedDate != DateTime.MinValue;
 
