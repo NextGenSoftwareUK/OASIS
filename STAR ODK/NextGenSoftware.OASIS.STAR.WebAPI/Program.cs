@@ -258,7 +258,10 @@ app.UseSwaggerUI(c =>
     };
 });
 
-app.UseHttpsRedirection();
+if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase)
+    && !app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
+
 app.UseCors("AllowAll");
 app.UseRateLimiter();
 

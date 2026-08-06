@@ -5,7 +5,8 @@
       "launchBrowser": true,
       "launchUrl": "api/values",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "PORT": "7777"
       },
       "applicationUrl": "https://localhost:5002;http://localhost:7777"
     },
@@ -14,7 +15,8 @@
       "launchBrowser": true,
       "launchUrl": "api/settings/version",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "PORT": "7777"
       },
       "applicationUrl": "https://localhost:5002;http://localhost:7777"
     },

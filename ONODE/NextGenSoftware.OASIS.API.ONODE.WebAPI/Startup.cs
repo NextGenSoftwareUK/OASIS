@@ -370,8 +370,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            // Skip HTTPS redirect in Testing so WebApplicationFactory (HTTP-only test server) does not throw
-            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+            // Skip HTTPS redirect in Testing/Development — no local TLS cert, and Railway terminates TLS externally
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase)
+                && !env.IsDevelopment())
                 app.UseHttpsRedirection();
 
             // WebSocket support — used by OPORTAL in local mode for real-time state push
