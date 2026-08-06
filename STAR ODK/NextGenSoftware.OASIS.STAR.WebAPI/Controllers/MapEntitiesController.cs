@@ -49,8 +49,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             get
             {
-                var oasis2Root = Path.GetDirectoryName(Path.GetDirectoryName(_env.ContentRootPath));
-                return Path.Combine(oasis2Root ?? AppContext.BaseDirectory, "OASIS Omniverse", "Config", "map_entities");
+                var oasis2Root = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(_env.ContentRootPath));
+                return System.IO.Path.Combine(oasis2Root ?? AppContext.BaseDirectory, "OASIS Omniverse", "Config", "map_entities");
             }
         }
 
@@ -101,13 +101,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 try
                 {
-                    var key = Path.GetFileNameWithoutExtension(file); // e.g. "ODOOM_E1M3"
+                    var key = System.IO.Path.GetFileNameWithoutExtension(file); // e.g. "ODOOM_E1M3"
                     var parts = key.Split('_', 2);
                     if (parts.Length < 2) continue;
 
                     var game = parts[0];
                     var map = parts[1];
-                    var json = File.ReadAllText(file);
+                    var json = System.IO.File.ReadAllText(file);
                     var entities = JsonSerializer.Deserialize<List<MapEntity>>(json, _jsonOpts);
                     if (entities == null) continue;
 
