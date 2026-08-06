@@ -105,7 +105,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB8 OASIS Inter-Galactic Layer API v", OASISBootLoader.WEB8APIVersion)));
 
-if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase)
+    && !app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
