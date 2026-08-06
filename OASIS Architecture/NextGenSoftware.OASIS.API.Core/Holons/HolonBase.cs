@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         
         public HolonType HolonType { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         /// <summary>Derived from DeletedDate; true when soft-deleted. Set only via Delete methods (DeletedDate/DeletedByAvatarId).</summary>
         public bool IsDeleted => DeletedDate != DateTime.MinValue;
 
