@@ -153,6 +153,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (holon.MetaData == null)
                 holon.MetaData = new Dictionary<string, object>();
             holon.MetaData["CreatedByAvatarId"] = holon.CreatedByAvatarId.ToString();
+            if (holon.IsNewHolon) holon.IsActive = true;
             holon.MetaData["Active"] = holon.IsActive ? "1" : "0";
 
             //if (holon.AllChildren == null)
