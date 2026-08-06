@@ -146,7 +146,8 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v2/swagger.json", string.Concat("WEB6 OASIS AI API v", OASISBootLoader.WEB6APIVersion));
 });
 
-if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase)
+    && !app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
