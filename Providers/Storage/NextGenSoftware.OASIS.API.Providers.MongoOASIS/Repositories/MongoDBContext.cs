@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (!_clients.TryGetValue(connectionString, out var client))
                 {
                     var settings = MongoClientSettings.FromConnectionString(connectionString);
-                    settings.MaxConnectionPoolSize = 50;
+                    settings.MaxConnectionPoolSize = 30;
                     client = new MongoClient(settings);
                     _clients[connectionString] = client;
                 }
