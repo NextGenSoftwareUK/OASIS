@@ -178,10 +178,10 @@ curl -X POST https://api.web4.oasisomniverse.one/api/avatar/authenticate \
   -d '{"username":"demouser","password":"SecurePass123!"}'
 
 # Dispatch a FAHRN task (WEB6 WebAPI)
-curl -X POST https://api.web6.oasisomniverse.one/api/fahrn/dispatch \
+curl -X POST https://api.web6.oasisomniverse.one/v1/fahrn/solve \
   -H "Authorization: Bearer <your-jwt>" \
   -H "Content-Type: application/json" \
-  -d '{"problem":"Explain holonic data models in two sentences.","taskType":"general","mode":0}'
+  -d '{"problem":"Explain holonic data models in two sentences.","taskType":"general","dispatchMode":"serial","maxCostUsd":0.05}'
 ```
 
 ---

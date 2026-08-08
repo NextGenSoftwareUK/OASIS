@@ -567,29 +567,29 @@ document.getElementById('themeBtn').addEventListener('click', () => {
 const EXAMPLES = {
   fahrn_dispatch: {
     method: 'POST',
-    endpoint: '/api/fahrn/dispatch',
+    endpoint: '/v1/fahrn/solve',
     desc: 'Dispatch a reasoning task via FAHRN (serial mode — best agent first)',
     body: JSON.stringify({
       problem: "In two sentences, explain why holonic data models make cross-world avatar identity possible.",
       taskType: "general",
-      mode: 0,
+      dispatchMode: "serial",
       maxCostUsd: 0.05
     }, null, 2)
   },
   fahrn_parallel: {
     method: 'POST',
-    endpoint: '/api/fahrn/dispatch',
+    endpoint: '/v1/fahrn/solve',
     desc: 'Parallel mode — all agents answer simultaneously, fastest wins',
     body: JSON.stringify({
       problem: "What are the top 3 benefits of the OASIS provider abstraction layer?",
       taskType: "general",
-      mode: 1,
+      dispatchMode: "parallel",
       maxCostUsd: 0.10
     }, null, 2)
   },
   skill_opt: {
     method: 'POST',
-    endpoint: '/api/skillopt/evolve',
+    endpoint: '/v1/skillopt/evolve',
     desc: 'Run a SkillOpt evolution loop — agent self-improves on a skill document',
     body: JSON.stringify({
       skillName: "explain-holon",

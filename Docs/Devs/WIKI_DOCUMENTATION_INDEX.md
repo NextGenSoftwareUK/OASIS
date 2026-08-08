@@ -37,6 +37,14 @@ This document serves as a comprehensive index of all Wiki documentation availabl
 - **[Data Management](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Data-Management)** - Data storage and retrieval
 - **[Security & Privacy](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Security-and-Privacy)** - Security best practices
 
+### WEB6 — AI Orchestration Layer
+
+- **[WEB6 Quick-Start Guide](../Devs/WEB6_QUICKSTART.md)** — 5-step C# + REST walkthrough: boot OASIS, register avatar, seed FAHRN agents, dispatch task, save result
+- **[WEB6 REST API Reference](API%20Documentation/WEB6/WEB6_REST_API_Reference.md)** — Full reference for all 56 REST endpoints
+- **[WEB6 MCP Tool Reference](API%20Documentation/WEB6/WEB6_MCP_Tool_Reference.md)** — Full reference for all 250 MCP tools
+- **[WEB6 User Guide](API%20Documentation/WEB6/WEB6_User_Guide.md)** — Getting started, common workflows, environment setup
+- **[OASIS Sandbox](https://sandbox.oasisomniverse.one)** — Try WEB4 / WEB5 / WEB6 live without installing anything
+
 ### STAR ODK (Web5)
 - **[STAR ODK Overview](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/STAR-ODK-Overview)** - STAR ODK introduction
 - **[Metaverse Development](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Metaverse-Development)** - Building metaverse experiences
