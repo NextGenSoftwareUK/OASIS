@@ -25,24 +25,24 @@ namespace NextGenSoftware.OASIS.API.Core
         //public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
         public event StorageProviderError OnStorageProviderError;
 
-        public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
-            return avatar.KarmaEarntAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            return avatar.KarmaEarntAsync(karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
-            return avatar.KarmaLostAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            return avatar.KarmaLostAsync(karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
-            return avatar.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            return avatar.KarmaEarnt(karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
-            return avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            return avatar.KarmaLost(karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
         protected void RaiseStorageProviderErrorEvent(string endPoint, string reason, Exception errorDetails)

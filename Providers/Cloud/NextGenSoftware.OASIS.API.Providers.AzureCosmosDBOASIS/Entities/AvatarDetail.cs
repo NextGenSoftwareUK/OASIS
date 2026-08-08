@@ -135,22 +135,22 @@
 //            throw new NotImplementedException();
 //        }
 
-//        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
+//        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
+//        public Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
+//        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
+//        public Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink, bool autoSave, int karmaOverride)
 //        {
 //            throw new NotImplementedException();
 //        }
