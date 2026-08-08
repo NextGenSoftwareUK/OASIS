@@ -2341,15 +2341,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
-        public async Task<OASISResult<IWeb4NFT>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request, ProviderType providerType = ProviderType.SolanaOASIS, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        public async Task<OASISResult<IWeb4NFT>> MintOnChainCollectionNFTAsync(IMintOnChainCollectionNFTRequest request, ProviderType providerType = ProviderType.SolanaOASIS, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
-            string errorMessage = "Error occured in CreateCollectionNFTAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in MintOnChainCollectionNFTAsync in NFTManager. Reason:";
 
             if (request == null)
             {
                 result.IsError = true;
-                result.Message = $"{errorMessage} The request is required. Please provide a valid ICreateCollectionNFTRequest.";
+                result.Message = $"{errorMessage} The request is required. Please provide a valid IMintOnChainCollectionNFTRequest.";
                 return result;
             }
 

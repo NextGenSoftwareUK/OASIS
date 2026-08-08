@@ -1,6 +1,6 @@
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
-    public interface ICreateCollectionNFTRequest : IMintWeb4NFTRequest
+    public interface IMintOnChainCollectionNFTRequest : IMintWeb4NFTRequest
     {
         ulong InitialSize { get; set; }
         bool WaitTillCollectionSizeSet { get; set; }
