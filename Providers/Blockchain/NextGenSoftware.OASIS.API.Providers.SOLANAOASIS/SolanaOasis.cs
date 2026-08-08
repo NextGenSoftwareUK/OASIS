@@ -2959,12 +2959,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IWeb3NFTTransactionResponse> CreateCollectionNFT(ICreateCollectionNFTRequest request)
+    public OASISResult<IWeb3NFTTransactionResponse> MintOnChainCollectionNFT(IMintOnChainCollectionNFTRequest request)
     {
-        return CreateCollectionNFTAsync(request).Result;
+        return MintOnChainCollectionNFTAsync(request).Result;
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request)
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintOnChainCollectionNFTAsync(IMintOnChainCollectionNFTRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 

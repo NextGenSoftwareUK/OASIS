@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
-    public class CreateCollectionNFTRequest
+    public class MintOnChainCollectionNFTRequest
     {
         // Collection-specific
         public ulong InitialSize { get; set; } = 0;
