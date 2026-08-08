@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
@@ -115,35 +115,35 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         // A record of all the karma the user has earnt/lost along with when and where from.
         public IList<IKarmaAkashicRecord> KarmaAkashicRecords { get; set; }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             // Delegates to KarmaManager to centralize karma + Akashic logic
-            return await KarmaManager.Instance.AddKarmaToAvatarAsync(this.Id, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
+            return await KarmaManager.Instance.AddKarmaToAvatarAsync(this.Id, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, webLink, karmaOverride);
         }
 
-        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
-            return KarmaManager.Instance.AddKarmaToAvatarAsync(this.Id, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride).Result;
+            return KarmaManager.Instance.AddKarmaToAvatarAsync(this.Id, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, webLink, karmaOverride).Result;
         }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             // Delegates to KarmaManager to centralize karma + Akashic logic
-            return await KarmaManager.Instance.RemoveKarmaFromAvatarAsync(this.Id, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
+            return await KarmaManager.Instance.RemoveKarmaFromAvatarAsync(this.Id, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, webLink, karmaOverride);
         }
 
-        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
-            return KarmaManager.Instance.RemoveKarmaFromAvatarAsync(this.Id, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride).Result;
+            return KarmaManager.Instance.RemoveKarmaFromAvatarAsync(this.Id, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, webLink, karmaOverride).Result;
         }
 
-        // private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        // private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         // {
         //     // Moved to KarmaManager
         //     throw new NotImplementedException();
         // }
 
-        // private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        // private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         // {
         //     // Moved to KarmaManager
         //     throw new NotImplementedException();
