@@ -416,6 +416,31 @@ header {
     </div>
 
     <div class="example-group">
+      <div class="example-group-label">WEB5 — Metaverse Layer</div>
+      <div class="example-item" data-example="create_mission">
+        <span class="example-icon">🗺️</span>
+        <div>
+          <div>Create Mission</div>
+          <div class="example-meta">Build a quest in the Omniverse</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="create_celestial_body">
+        <span class="example-icon">🌍</span>
+        <div>
+          <div>Create Celestial Body</div>
+          <div class="example-meta">Spawn a virtual world object</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="mint_nft">
+        <span class="example-icon">🎴</span>
+        <div>
+          <div>Mint NFT</div>
+          <div class="example-meta">Create a cross-chain NFT asset</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example-group">
       <div class="example-group-label">WEB4 — Data Layer</div>
       <div class="example-item" data-example="save_holon">
         <span class="example-icon">💾</span>
@@ -570,6 +595,45 @@ const EXAMPLES = {
       skillName: "explain-holon",
       taskPrompt: "Explain what a Holon is to a developer who has never used OASIS before.",
       epochs: 2
+    }, null, 2)
+  },
+  create_mission: {
+    method: 'POST',
+    endpoint: '/api/missions',
+    desc: 'Create a new quest/mission in the STAR Omniverse (WEB5)',
+    body: JSON.stringify({
+      name: "The Genesis Quest",
+      description: "Find the first Holon hidden across three worlds.",
+      missionType: "Quest",
+      avatarId: "paste-avatar-id-here",
+      rewardXp: 500,
+      rewardKarma: 10,
+      tags: ["demo", "web5", "genesis"]
+    }, null, 2)
+  },
+  create_celestial_body: {
+    method: 'POST',
+    endpoint: '/api/celestialbodies',
+    desc: 'Spawn a new virtual world object in the Omniverse metaverse',
+    body: JSON.stringify({
+      name: "Sandbox World",
+      description: "A test celestial body created from the OASIS Sandbox.",
+      celestialBodyType: "Moon",
+      avatarId: "paste-avatar-id-here",
+      metaData: { biome: "digital", atmosphere: "none" }
+    }, null, 2)
+  },
+  mint_nft: {
+    method: 'POST',
+    endpoint: '/api/nft/mint',
+    desc: 'Mint a cross-chain NFT asset via OASIS HyperDrive',
+    body: JSON.stringify({
+      name: "OASIS Genesis Token #1",
+      description: "First NFT minted from the sandbox.",
+      imageUrl: "https://oasisomniverse.one/assets/genesis.png",
+      mintOnProviders: ["EthereumOASIS", "SolanaOASIS"],
+      avatarId: "paste-avatar-id-here",
+      metaData: { rarity: "legendary", series: "genesis" }
     }, null, 2)
   },
   save_holon: {
@@ -732,10 +796,14 @@ document.getElementById('clearBtn').addEventListener('click', () => {
 
 // ── Run ──────────────────────────────────────────────────────────────────────
 const BASE_WEB4 = 'https://api.web4.oasisomniverse.one';
+const BASE_WEB5 = 'https://api.starnet.oasisomniverse.one';
 const BASE_WEB6 = 'https://api.web6.oasisomniverse.one';
+
+const WEB5_PREFIXES = ['/api/missions', '/api/celestialbodies', '/api/nft', '/api/celestialspaces'];
 
 function getBaseUrl(endpoint) {
   if (endpoint.startsWith('/api/fahrn') || endpoint.startsWith('/api/skillopt')) return BASE_WEB6;
+  if (WEB5_PREFIXES.some(p => endpoint.startsWith(p))) return BASE_WEB5;
   return BASE_WEB4;
 }
 
