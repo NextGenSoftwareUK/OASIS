@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using System.Collections.Generic;
+using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;

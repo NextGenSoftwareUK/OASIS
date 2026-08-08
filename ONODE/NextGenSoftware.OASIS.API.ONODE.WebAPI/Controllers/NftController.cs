@@ -823,28 +823,87 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("create-collection-nft")]
-        [ProducesResponseType(typeof(OASISResult<IWeb3NFTTransactionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync([FromBody] Models.NFT.CreateCollectionNFTRequest request)
+        public async Task<OASISResult<IWeb4NFT>> CreateCollectionNFTAsync([FromBody] Models.NFT.CreateCollectionNFTRequest request)
         {
             if (request == null)
-                return new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = "The request body is required." };
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required." };
 
-            ProviderType providerType = ProviderType.SolanaOASIS;
+            ProviderType onChainProvider = ProviderType.SolanaOASIS;
+            ProviderType offChainProvider = ProviderType.None;
+            NFTOffChainMetaType nftOffChainMetaType = NFTOffChainMetaType.OASIS;
+            NFTStandardType nftStandardType = NFTStandardType.ERC1155;
+            Guid sendToAvatarAfterMintingId = Guid.Empty;
 
-            if (!string.IsNullOrWhiteSpace(request.OnChainProvider))
-            {
-                if (!Enum.TryParse(request.OnChainProvider, out providerType))
-                    return new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = $"The OnChainProvider '{request.OnChainProvider}' is not valid." };
-            }
+            if (!string.IsNullOrWhiteSpace(request.OnChainProvider) && !Enum.TryParse(request.OnChainProvider, out onChainProvider))
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = $"The OnChainProvider '{request.OnChainProvider}' is not valid. It must be one of the following: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            if (!string.IsNullOrWhiteSpace(request.OffChainProvider) && !Enum.TryParse(request.OffChainProvider, out offChainProvider))
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = $"The OffChainProvider '{request.OffChainProvider}' is not valid. It must be one of the following: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            if (!string.IsNullOrWhiteSpace(request.NFTOffChainMetaType) && !Enum.TryParse(request.NFTOffChainMetaType, out nftOffChainMetaType))
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = $"The NFTOffChainMetaType '{request.NFTOffChainMetaType}' is not valid. It must be one of the following: {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            if (!string.IsNullOrWhiteSpace(request.NFTStandardType) && !Enum.TryParse(request.NFTStandardType, out nftStandardType))
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = $"The NFTStandardType '{request.NFTStandardType}' is not valid. It must be one of the following: {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID." };
+
+            var mintedByAvatarId = AvatarId;
+            bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
+            if (callerIsWizard && !string.IsNullOrEmpty(request.MintedByAvatarId) && Guid.TryParse(request.MintedByAvatarId, out Guid requestedMintedByAvatarId) && requestedMintedByAvatarId != Guid.Empty)
+                mintedByAvatarId = requestedMintedByAvatarId;
+            else if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
+                mintedByAvatarId = sendToAvatarAfterMintingId;
 
             return await NFTManager.CreateCollectionNFTAsync(new API.Core.Objects.NFT.Requests.CreateCollectionNFTRequest
             {
+                InitialSize = request.InitialSize,
+                MintedByAvatarId = mintedByAvatarId,
+                CollectionPublicKey = request.CollectionPublicKey,
                 Title = request.Title,
+                Description = request.Description,
+                Image = request.Image,
+                ImageUrl = request.ImageUrl,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                Price = request.Price,
                 Symbol = request.Symbol,
-                MetadataUri = request.MetadataUri,
-                InitialSize = request.InitialSize
-            }, providerType);
+                Discount = request.Discount,
+                MemoText = request.MemoText,
+                NumberToMint = request.NumberToMint,
+                Tags = request.Tags,
+                MetaData = request.MetaData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString() ?? string.Empty) ?? new Dictionary<string, string>(),
+                OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
+                OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
+                JSONMetaDataURL = request.JSONMetaDataURL,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(nftOffChainMetaType),
+                NFTStandardType = new EnumValue<NFTStandardType>(nftStandardType),
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                WaitTillNFTVerified = request.WaitTillNFTVerified,
+                WaitForNFTToVerifyInSeconds = request.WaitForNFTToVerifyInSeconds,
+                AttemptToVerifyEveryXSeconds = request.AttemptToVerifyEveryXSeconds,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                RoyaltyPercentage = request.RoyaltyPercentage,
+                IsForSale = request.IsForSale,
+                SaleStartDate = request.SaleStartDate,
+                SaleEndDate = request.SaleEndDate,
+                FreezeMetadata = request.FreezeMetadata,
+                WaitTillCollectionSizeSet = request.WaitTillCollectionSizeSet,
+                WaitForCollectionSizeToBeSetInSeconds = request.WaitForCollectionSizeToBeSetInSeconds,
+                AttemptToSetCollectionSizeEveryXSeconds = request.AttemptToSetCollectionSizeEveryXSeconds
+            }, onChainProvider);
         }
 
         /// <summary>

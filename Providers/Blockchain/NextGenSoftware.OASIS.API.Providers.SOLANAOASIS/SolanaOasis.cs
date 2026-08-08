@@ -2973,7 +2973,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             OASISResult<CreateCollectionNftResult> createResult =
-                await _solanaService.CreateCollectionNftAsync(request.Title, request.Symbol, request.MetadataUri, request.InitialSize);
+                await _solanaService.CreateCollectionNftAsync(request.Title, request.Symbol, request.JSONMetaDataURL, request.InitialSize);
 
             if (createResult.IsError || createResult.Result == null)
             {
