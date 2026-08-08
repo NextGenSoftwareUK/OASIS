@@ -3,6 +3,7 @@
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)
+- [Known Issues & Fixes](#known-issues--fixes)
 - [Network Management](#network-management)
 - [Node Operations](#node-operations)
 - [Network Analytics](#network-analytics)
@@ -12,6 +13,14 @@
 ## Overview
 
 The ONET API provides comprehensive network management services for the OASIS ecosystem. It handles network operations, node management, routing, and analytics with support for multiple protocols, real-time updates, and advanced security features.
+
+## Known Issues & Fixes
+
+### ONETProtocol sync-over-async deadlock (fixed)
+
+**File:** `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/ONET/ONETProtocol.cs`
+
+The `ONETProtocol` constructor previously called `Task.Run(InitializeAsync).GetAwaiter().GetResult()` which caused a deadlock in ASP.NET Core's synchronisation context — the network could silently fail to initialise on startup without throwing. The fix moves `await InitializeAsync()` to the top of `StartNetworkAsync()` where it runs properly async before the security and routing layers start.
 
 ## Network Management
 
