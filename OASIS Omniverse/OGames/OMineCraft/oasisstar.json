@@ -1,0 +1,35 @@
+{
+  "ogengine_url": "https://star-api.oasisplatform.world/api",
+  "oasis_api_url": "https://api.oasisplatform.world",
+  "nft_provider": "SolanaOASIS",
+  "mint_keys": 0,
+  "mint_monsters": 1,
+  "star_debug": 1,
+  "game_source": "OMINECRAFT",
+  "item_type_range_start": 7000,
+  "item_type_range_end": 7899,
+
+  "ominecraft": {
+    "monsters": [
+      { "engine_id": "mobs:zombie",         "display_name": "Zombie",         "xp": 10,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:skeleton",       "display_name": "Skeleton",       "xp": 15,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:creeper",        "display_name": "Creeper",        "xp": 20,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:spider",         "display_name": "Spider",         "xp": 10,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:enderman",       "display_name": "Enderman",       "xp": 50,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:blaze",          "display_name": "Blaze",          "xp": 40,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:witch",          "display_name": "Witch",          "xp": 35,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:ghast",          "display_name": "Ghast",          "xp": 50,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:wither_skeleton","display_name": "Wither Skeleton","xp": 60,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "mobs:ender_dragon",   "display_name": "Ender Dragon",   "xp": 1000,"is_boss": 1, "do_mint": 1 },
+      { "engine_id": "mobs:wither",         "display_name": "Wither",         "xp": 500, "is_boss": 1, "do_mint": 1 }
+    ],
+    "portal_node": "oasis:portal",
+    "key_items": [
+      { "engine_id": "oasis:cross_game_key_blue",   "star_type": "Key", "cross_game": "blue_keycard"   },
+      { "engine_id": "oasis:cross_game_key_red",    "star_type": "Key", "cross_game": "red_keycard"    },
+      { "engine_id": "oasis:cross_game_key_yellow", "star_type": "Key", "cross_game": "yellow_keycard" },
+      { "engine_id": "oasis:ender_eye",             "star_type": "Relic","cross_game": "mc_ender_eye"  },
+      { "engine_id": "oasis:nether_star",           "star_type": "Relic","cross_game": "mc_nether_star"}
+    ]
+  }
+}
