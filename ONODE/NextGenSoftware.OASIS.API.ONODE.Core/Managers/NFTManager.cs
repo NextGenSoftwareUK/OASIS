@@ -2341,26 +2341,87 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request, ProviderType providerType = ProviderType.SolanaOASIS)
+        public async Task<OASISResult<IWeb4NFT>> CreateCollectionNFTAsync(ICreateCollectionNFTRequest request, ProviderType providerType = ProviderType.SolanaOASIS, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
-            OASISResult<IWeb3NFTTransactionResponse> result = new OASISResult<IWeb3NFTTransactionResponse>();
+            OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            string errorMessage = "Error occured in CreateCollectionNFTAsync in NFTManager. Reason:";
 
             if (request == null)
             {
                 result.IsError = true;
-                result.Message = "The request is required. Please provide a valid ICreateCollectionNFTRequest.";
+                result.Message = $"{errorMessage} The request is required. Please provide a valid ICreateCollectionNFTRequest.";
                 return result;
             }
 
-            OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(providerType);
+            if (request.NumberToMint == 0)
+                request.NumberToMint = 1;
 
-            if (nftProviderResult == null || nftProviderResult.IsError || nftProviderResult.Result == null)
+            if (request.OnChainProvider == null)
+                request.OnChainProvider = new EnumValue<ProviderType>(providerType);
+
+            result = await MintNftAsync(request, false, responseFormatType);
+
+            if (result == null || result.IsError || result.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in CreateCollectionNFTAsync in NFTManager. Error occured calling GetNFTProvider. Reason: {nftProviderResult?.Message}");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling MintNftAsync. Reason: {result?.Message}");
                 return result;
             }
 
-            return await nftProviderResult.Result.CreateCollectionNFTAsync(request);
+            string collectionMintAddress = result.Result.NewlyMintedWeb3NFTs?.Count > 0
+                ? result.Result.NewlyMintedWeb3NFTs[0].NFTTokenAddress
+                : null;
+
+            if (string.IsNullOrWhiteSpace(collectionMintAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} MintNftAsync succeeded but no NFTTokenAddress was returned on the minted Web3 NFT — cannot call SetCollectionSizeAsync.");
+                return result;
+            }
+
+            if (request.InitialSize > 0)
+            {
+                bool attemptingToSetSize = true;
+                DateTime startTime = DateTime.Now;
+                string setSizeErrorMessage = string.Empty;
+
+                do
+                {
+                    try
+                    {
+                        OASISResult<string> setSizeResult = await SetCollectionSizeAsync(collectionMintAddress, request.InitialSize, providerType);
+
+                        if (setSizeResult != null && !setSizeResult.IsError)
+                            break;
+
+                        setSizeErrorMessage = $"{errorMessage} SetCollectionSizeAsync failed. Reason: {setSizeResult?.Message}";
+                    }
+                    catch (Exception e)
+                    {
+                        setSizeErrorMessage = $"{errorMessage} Unknown error occured calling SetCollectionSizeAsync. Reason: {e.Message}";
+                    }
+
+                    if (!string.IsNullOrEmpty(setSizeErrorMessage))
+                    {
+                        OASISErrorHandling.HandleWarning(ref result, setSizeErrorMessage, onlyLogToInnerMessages: true);
+
+                        if (!request.WaitTillCollectionSizeSet)
+                            break;
+
+                        setSizeErrorMessage = "";
+                    }
+
+                    Thread.Sleep(request.AttemptToSetCollectionSizeEveryXSeconds * 1000);
+
+                    if (startTime.AddSeconds(request.WaitForCollectionSizeToBeSetInSeconds).Ticks < DateTime.Now.Ticks)
+                    {
+                        setSizeErrorMessage = $"Timeout expired, WaitForCollectionSizeToBeSetInSeconds ({request.WaitForCollectionSizeToBeSetInSeconds}) exceeded. NFT was minted successfully but collection size could not be set. Try calling SetCollectionSize separately.";
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} {setSizeErrorMessage}", onlyLogToInnerMessages: true);
+                        break;
+                    }
+
+                } while (attemptingToSetSize);
+            }
+
+            return result;
         }
 
         public async Task<OASISResult<string>> SetCollectionSizeAsync(string collectionMintAddress, ulong size, ProviderType providerType = ProviderType.SolanaOASIS)
