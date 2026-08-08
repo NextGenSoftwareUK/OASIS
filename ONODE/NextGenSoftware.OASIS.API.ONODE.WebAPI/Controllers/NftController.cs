@@ -822,10 +822,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost]
-        [Route("create-collection-nft")]
+        [Route("mint-on-chain-collection-nft")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> CreateCollectionNFTAsync([FromBody] Models.NFT.CreateCollectionNFTRequest request)
+        public async Task<OASISResult<IWeb4NFT>> MintOnChainCollectionNFTAsync([FromBody] Models.NFT.MintOnChainCollectionNFTRequest request)
         {
             if (request == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required." };
@@ -858,7 +858,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
                 mintedByAvatarId = sendToAvatarAfterMintingId;
 
-            return await NFTManager.CreateCollectionNFTAsync(new API.Core.Objects.NFT.Requests.CreateCollectionNFTRequest
+            return await NFTManager.MintOnChainCollectionNFTAsync(new API.Core.Objects.NFT.Requests.MintOnChainCollectionNFTRequest
             {
                 InitialSize = request.InitialSize,
                 MintedByAvatarId = mintedByAvatarId,
