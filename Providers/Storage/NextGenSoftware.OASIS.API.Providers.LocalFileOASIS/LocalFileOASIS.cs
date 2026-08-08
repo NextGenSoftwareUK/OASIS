@@ -1,4 +1,4 @@
-//using System.Text.Json;
+﻿//using System.Text.Json;
 //using System.Text.Json.Serialization;
 using System.Collections.Generic;
 using System.Text;
@@ -1377,7 +1377,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
         {
             var result = new OASISResult<KarmaAkashicRecord>();
             try
@@ -1399,7 +1399,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 }
 
                 // Delegate to AvatarDetail's KarmaEarntAsync method
-                var karmaResult = await Avatar.KarmaEarntAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+                var karmaResult = await Avatar.KarmaEarntAsync(karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink);
                 if (!karmaResult.IsError && karmaResult.Result != null)
                 {
                     // Save the updated avatar detail
@@ -1426,12 +1426,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return result;
         }
 
-        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
         {
-            return AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
+            return AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
         }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
         {
             var result = new OASISResult<KarmaAkashicRecord>();
             try
@@ -1453,7 +1453,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 }
 
                 // Delegate to AvatarDetail's KarmaLostAsync method
-                var karmaResult = await Avatar.KarmaLostAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+                var karmaResult = await Avatar.KarmaLostAsync(karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink);
                 if (!karmaResult.IsError && karmaResult.Result != null)
                 {
                     // Save the updated avatar detail
@@ -1480,9 +1480,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return result;
         }
 
-        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
+        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null)
         {
-            return RemoveKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
+            return RemoveKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

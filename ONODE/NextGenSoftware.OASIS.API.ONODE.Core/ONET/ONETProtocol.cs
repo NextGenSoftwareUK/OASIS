@@ -99,8 +99,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var sig = await _security.SignMessageForNodeAsync(_localNodeId, "ONET_PING");
                 return (_localNodeId, sig);
             };
-
-            Task.Run(InitializeAsync).GetAwaiter().GetResult();
         }
 
         public async Task InitializeAsync()
@@ -138,6 +136,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     OASISErrorHandling.HandleError(ref result, "ONET network is already running");
                     return result;
                 }
+
+                // Load OASISDNA config and init bridges before starting network components
+                await InitializeAsync();
 
                 // Initialize security layer
                 await _security.InitializeAsync(_oasisdna);

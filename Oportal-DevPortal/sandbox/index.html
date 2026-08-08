@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OASIS Sandbox — Try the Omniverse API</title>
+<style>
+/* ── Tokens ─────────────────────────────────────────── */
+:root {
+  --bg-void:     #060b16;
+  --bg-surface:  #0f1827;
+  --bg-elevated: #1d2d42;
+  --bg-input:    #111e2f;
+  --border:      rgba(0,212,255,.12);
+  --border-hi:   rgba(0,212,255,.35);
+  --accent:      #00d4ff;
+  --accent-glow: rgba(0,212,255,.18);
+  --accent-dim:  rgba(0,212,255,.55);
+  --purple:      #7c3aed;
+  --purple-dim:  rgba(124,58,237,.4);
+  --green:       #22c55e;
+  --red:         #f87171;
+  --yellow:      #fbbf24;
+  --text-hi:     #e2eeff;
+  --text-body:   #a8bfd8;
+  --text-dim:    #4e6a8a;
+  --radius-sm:   4px;
+  --radius:      8px;
+  --radius-lg:   12px;
+  --mono:        "Cascadia Code","Fira Code","Consolas","Courier New",monospace;
+  --sans:        -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --header-h:    56px;
+  --sidebar-w:   240px;
+}
+@media (prefers-color-scheme: light) { :root {
+  --bg-void:     #f0f4f8;
+  --bg-surface:  #ffffff;
+  --bg-elevated: #e8eef5;
+  --bg-input:    #f5f8fc;
+  --border:      rgba(0,100,160,.12);
+  --border-hi:   rgba(0,100,160,.3);
+  --accent:      #0070cc;
+  --accent-glow: rgba(0,112,204,.12);
+  --accent-dim:  rgba(0,112,204,.6);
+  --purple:      #6d28d9;
+  --purple-dim:  rgba(109,40,217,.25);
+  --green:       #16a34a;
+  --red:         #dc2626;
+  --yellow:      #d97706;
+  --text-hi:     #0d1f35;
+  --text-body:   #2d4a68;
+  --text-dim:    #8aa3be;
+}}
+:root[data-theme="light"] {
+  --bg-void:     #f0f4f8;
+  --bg-surface:  #ffffff;
+  --bg-elevated: #e8eef5;
+  --bg-input:    #f5f8fc;
+  --border:      rgba(0,100,160,.12);
+  --border-hi:   rgba(0,100,160,.3);
+  --accent:      #0070cc;
+  --accent-glow: rgba(0,112,204,.12);
+  --accent-dim:  rgba(0,112,204,.6);
+  --purple:      #6d28d9;
+  --purple-dim:  rgba(109,40,217,.25);
+  --green:       #16a34a;
+  --red:         #dc2626;
+  --yellow:      #d97706;
+  --text-hi:     #0d1f35;
+  --text-body:   #2d4a68;
+  --text-dim:    #8aa3be;
+}
+:root[data-theme="dark"] {
+  --bg-void:     #060b16;
+  --bg-surface:  #0f1827;
+  --bg-elevated: #1d2d42;
+  --bg-input:    #111e2f;
+  --border:      rgba(0,212,255,.12);
+  --border-hi:   rgba(0,212,255,.35);
+  --accent:      #00d4ff;
+  --accent-glow: rgba(0,212,255,.18);
+  --accent-dim:  rgba(0,212,255,.55);
+  --purple:      #7c3aed;
+  --purple-dim:  rgba(124,58,237,.4);
+  --green:       #22c55e;
+  --red:         #f87171;
+  --yellow:      #fbbf24;
+  --text-hi:     #e2eeff;
+  --text-body:   #a8bfd8;
+  --text-dim:    #4e6a8a;
+}
+
+/* ── Reset ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg-void);
+  color: var(--text-body);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+header {
+  position: relative;
+  height: var(--header-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  z-index: 10;
+}
+#starfield {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: .6;
+}
+.logo {
+  display: flex; align-items: center; gap: .5rem;
+  text-decoration: none; flex-shrink: 0; position: relative; z-index: 1;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, var(--accent) 0%, var(--purple) 50%, var(--accent) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  box-shadow: 0 0 12px var(--accent-glow);
+  font-family: var(--mono);
+}
+.logo-text { font-size: .875rem; font-weight: 600; color: var(--text-hi); letter-spacing: .02em; }
+.logo-badge {
+  font-size: .65rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border-hi);
+  padding: .15rem .45rem; border-radius: var(--radius-sm);
+}
+.header-spacer { flex: 1; }
+.api-key-wrap {
+  display: flex; align-items: center; gap: .5rem; position: relative; z-index: 1;
+}
+.api-key-wrap label { font-size: .75rem; color: var(--text-dim); white-space: nowrap; }
+#apiKeyInput {
+  width: 200px; height: 30px; padding: 0 .6rem;
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-hi);
+  font-family: var(--mono); font-size: .72rem;
+  outline: none; transition: border-color .15s;
+}
+#apiKeyInput:focus { border-color: var(--border-hi); }
+#apiKeyInput::placeholder { color: var(--text-dim); }
+.theme-btn {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  color: var(--text-body); cursor: pointer; font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s; flex-shrink: 0;
+}
+.theme-btn:hover { border-color: var(--border-hi); color: var(--text-hi); }
+
+/* ── App shell ──────────────────────────────────────── */
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-title {
+  padding: .85rem 1rem .5rem;
+  font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.example-group { margin-bottom: .25rem; }
+.example-group-label {
+  padding: .35rem 1rem;
+  font-size: .65rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.example-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .45rem 1rem; cursor: pointer;
+  font-size: .8rem; color: var(--text-body);
+  border-left: 2px solid transparent;
+  transition: background .12s, color .12s, border-color .12s;
+  user-select: none;
+}
+.example-item:hover { background: var(--bg-elevated); color: var(--text-hi); }
+.example-item.active {
+  background: var(--accent-glow);
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+.example-icon { font-size: .9rem; flex-shrink: 0; }
+.example-meta { font-size: .68rem; color: var(--text-dim); margin-top: .1rem; }
+.sidebar-footer {
+  margin-top: auto; padding: .85rem 1rem;
+  border-top: 1px solid var(--border);
+  font-size: .72rem; color: var(--text-dim); line-height: 1.5;
+}
+.sidebar-footer a { color: var(--accent-dim); text-decoration: none; }
+.sidebar-footer a:hover { color: var(--accent); }
+
+/* ── Main pane ──────────────────────────────────────── */
+.main-pane {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Request panel ──────────────────────────────────── */
+.request-panel {
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column;
+}
+.panel-bar {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.panel-title { font-size: .75rem; font-weight: 600; color: var(--text-hi); }
+.panel-desc { font-size: .72rem; color: var(--text-body); flex: 1; }
+.method-badge {
+  font-family: var(--mono); font-size: .65rem; font-weight: 700;
+  padding: .2rem .5rem; border-radius: var(--radius-sm);
+  letter-spacing: .04em;
+}
+.method-POST { background: var(--purple-dim); color: #c4b5fd; border: 1px solid rgba(124,58,237,.35); }
+.method-GET  { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+.endpoint-chip {
+  font-family: var(--mono); font-size: .68rem; color: var(--text-dim);
+  background: var(--bg-elevated); padding: .2rem .5rem; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 360px;
+}
+.run-btn {
+  margin-left: auto; height: 30px; padding: 0 1rem;
+  background: var(--accent); color: #000;
+  border: none; border-radius: var(--radius-sm);
+  font-size: .78rem; font-weight: 700; letter-spacing: .03em;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+  display: flex; align-items: center; gap: .4rem;
+  flex-shrink: 0;
+}
+.run-btn:hover { opacity: .88; }
+.run-btn:active { transform: scale(.97); }
+.run-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.run-btn .spinner {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,.3); border-top-color: #000;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.editor-wrap {
+  padding: .75rem 1rem;
+  flex-shrink: 0;
+}
+.editor-label {
+  font-size: .65rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: .4rem;
+}
+#requestEditor {
+  width: 100%; min-height: 110px; max-height: 220px;
+  background: var(--bg-input); color: var(--text-hi);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .7rem .85rem;
+  font-family: var(--mono); font-size: .78rem; line-height: 1.6;
+  resize: vertical; outline: none; tab-size: 2;
+  transition: border-color .15s;
+}
+#requestEditor:focus { border-color: var(--border-hi); }
+
+/* ── Terminal panel ─────────────────────────────────── */
+.terminal-panel {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg-void);
+  overflow: hidden;
+}
+.terminal-bar {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .55rem 1rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.terminal-dots { display: flex; gap: .35rem; }
+.dot {
+  width: 9px; height: 9px; border-radius: 50%;
+}
+.dot-red    { background: #ff5f57; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green  { background: #28c840; }
+.terminal-label { font-size: .7rem; color: var(--text-dim); margin-left: .15rem; }
+.clear-btn {
+  margin-left: auto; background: none; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-dim);
+  font-size: .68rem; padding: .15rem .5rem; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.clear-btn:hover { color: var(--text-hi); border-color: var(--border-hi); }
+
+#terminal {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 1rem 1.25rem;
+  font-family: var(--mono); font-size: .78rem; line-height: 1.7;
+  color: var(--text-body);
+}
+/* Custom scrollbar */
+#terminal::-webkit-scrollbar { width: 5px; }
+#terminal::-webkit-scrollbar-track { background: transparent; }
+#terminal::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 3px; }
+
+.term-line { display: flex; gap: .5rem; margin-bottom: .1rem; }
+.term-prompt { color: var(--accent-dim); flex-shrink: 0; user-select: none; }
+.term-text   { color: var(--text-hi); white-space: pre-wrap; word-break: break-word; }
+.term-info   { color: var(--text-body); }
+.term-success{ color: var(--green); }
+.term-error  { color: var(--red); }
+.term-warn   { color: var(--yellow); }
+.term-muted  { color: var(--text-dim); }
+.term-key    { color: var(--accent); }
+.term-val    { color: #c4b5fd; }
+.term-str    { color: #86efac; }
+.term-num    { color: var(--yellow); }
+.term-cursor {
+  display: inline-block; width: .55em; height: 1em;
+  background: var(--accent); opacity: .9;
+  animation: blink .9s step-end infinite;
+  vertical-align: text-bottom; margin-left: 1px;
+}
+@keyframes blink { 0%,100%{opacity:.9} 50%{opacity:0} }
+.term-divider {
+  border: none; border-top: 1px solid var(--border);
+  margin: .5rem 0;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .api-key-wrap label { display: none; }
+  #apiKeyInput { width: 130px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .run-btn, .example-item, .theme-btn, .clear-btn { transition: none; }
+  .term-cursor { animation: none; opacity: .9; }
+  .run-btn .spinner { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <canvas id="starfield"></canvas>
+  <a class="logo" href="https://oasisomniverse.one" target="_blank" rel="noopener">
+    <div class="logo-mark">O</div>
+    <span class="logo-text">OASIS</span>
+    <span class="logo-badge">Sandbox</span>
+  </a>
+  <div class="header-spacer"></div>
+  <div class="api-key-wrap">
+    <label for="apiKeyInput">API Key</label>
+    <input id="apiKeyInput" type="password" placeholder="sk-oasis-… or use demo" autocomplete="off">
+  </div>
+  <button class="theme-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle colour theme">◑</button>
+</header>
+
+<!-- ── App Body ── -->
+<div class="app-body">
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" aria-label="Examples">
+    <div class="sidebar-title">Examples</div>
+
+    <div class="example-group">
+      <div class="example-group-label">WEB6 — AI Layer</div>
+      <div class="example-item active" data-example="fahrn_dispatch">
+        <span class="example-icon">⚡</span>
+        <div>
+          <div>FAHRN Dispatch</div>
+          <div class="example-meta">Route a task to the AI network</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="fahrn_parallel">
+        <span class="example-icon">⚡</span>
+        <div>
+          <div>FAHRN Parallel</div>
+          <div class="example-meta">All agents answer simultaneously</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="skill_opt">
+        <span class="example-icon">🧠</span>
+        <div>
+          <div>SkillOpt Evolve</div>
+          <div class="example-meta">Self-improving skill document</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example-group">
+      <div class="example-group-label">WEB4 — Data Layer</div>
+      <div class="example-item" data-example="save_holon">
+        <span class="example-icon">💾</span>
+        <div>
+          <div>Save Holon</div>
+          <div class="example-meta">Persist universal data object</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="load_holon">
+        <span class="example-icon">📂</span>
+        <div>
+          <div>Load Holon</div>
+          <div class="example-meta">Retrieve by ID across providers</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="register_avatar">
+        <span class="example-icon">👤</span>
+        <div>
+          <div>Register Avatar</div>
+          <div class="example-meta">Create cross-world identity</div>
+        </div>
+      </div>
+      <div class="example-item" data-example="hyperdrive">
+        <span class="example-icon">🔀</span>
+        <div>
+          <div>HyperDrive Route</div>
+          <div class="example-meta">Auto-failover routing demo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Base URL</div>
+      <code style="font-size:.68rem;color:var(--accent-dim)">api.web4.oasisomniverse.one</code>
+      <br><br>
+      <a href="https://oasisomniverse.one/docs" target="_blank">Docs ↗</a> ·
+      <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">GitHub ↗</a>
+    </div>
+  </nav>
+
+  <!-- ── Main Pane ── -->
+  <main class="main-pane">
+
+    <!-- Request -->
+    <div class="request-panel">
+      <div class="panel-bar">
+        <span id="methodBadge" class="method-badge method-POST">POST</span>
+        <span id="endpointChip" class="endpoint-chip">/api/fahrn/dispatch</span>
+        <span id="panelDesc" class="panel-desc">Dispatch a reasoning task via FAHRN</span>
+        <button class="run-btn" id="runBtn">
+          <span id="runBtnIcon">▶</span>
+          <span id="runBtnLabel">Run</span>
+        </button>
+      </div>
+      <div class="editor-wrap">
+        <div class="editor-label">Request Body</div>
+        <textarea id="requestEditor" spellcheck="false" aria-label="Request body JSON"></textarea>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal-panel">
+      <div class="terminal-bar">
+        <div class="terminal-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <span class="terminal-label">Response</span>
+        <button class="clear-btn" id="clearBtn">Clear</button>
+      </div>
+      <div id="terminal" role="log" aria-live="polite" aria-label="API response output"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Starfield ────────────────────────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('starfield');
+  const header = canvas.parentElement;
+  function resize() {
+    canvas.width  = header.offsetWidth;
+    canvas.height = header.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const STARS = 60;
+  const stars = Array.from({length: STARS}, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    r: Math.random() * 1.2 + .3,
+    speed: Math.random() * .00015 + .00005,
+    opacity: Math.random() * .6 + .2,
+  }));
+
+  const ctx = canvas.getContext('2d');
+  function draw(ts) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    if (!isDark) { requestAnimationFrame(draw); return; }
+    for (const s of stars) {
+      s.x = (s.x + s.speed) % 1;
+      ctx.beginPath();
+      ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,212,255,${s.opacity})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ── Theme toggle ─────────────────────────────────────────────────────────────
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme');
+  root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+});
+
+// ── Examples ─────────────────────────────────────────────────────────────────
+const EXAMPLES = {
+  fahrn_dispatch: {
+    method: 'POST',
+    endpoint: '/api/fahrn/dispatch',
+    desc: 'Dispatch a reasoning task via FAHRN (serial mode — best agent first)',
+    body: JSON.stringify({
+      problem: "In two sentences, explain why holonic data models make cross-world avatar identity possible.",
+      taskType: "general",
+      mode: 0,
+      maxCostUsd: 0.05
+    }, null, 2)
+  },
+  fahrn_parallel: {
+    method: 'POST',
+    endpoint: '/api/fahrn/dispatch',
+    desc: 'Parallel mode — all agents answer simultaneously, fastest wins',
+    body: JSON.stringify({
+      problem: "What are the top 3 benefits of the OASIS provider abstraction layer?",
+      taskType: "general",
+      mode: 1,
+      maxCostUsd: 0.10
+    }, null, 2)
+  },
+  skill_opt: {
+    method: 'POST',
+    endpoint: '/api/skillopt/evolve',
+    desc: 'Run a SkillOpt evolution loop — agent self-improves on a skill document',
+    body: JSON.stringify({
+      skillName: "explain-holon",
+      taskPrompt: "Explain what a Holon is to a developer who has never used OASIS before.",
+      epochs: 2
+    }, null, 2)
+  },
+  save_holon: {
+    method: 'POST',
+    endpoint: '/api/data/save-holon',
+    desc: 'Save a universal Holon to WEB4 storage via HyperDrive',
+    body: JSON.stringify({
+      name: "My First Holon",
+      description: "Created from the OASIS Sandbox",
+      holonType: 0,
+      metaData: { source: "sandbox", tags: ["demo", "web4"] }
+    }, null, 2)
+  },
+  load_holon: {
+    method: 'GET',
+    endpoint: '/api/data/load-holon/{id}',
+    desc: 'Load a Holon by ID — HyperDrive auto-selects the best provider',
+    body: '{\n  "id": "paste-holon-id-here"\n}'
+  },
+  register_avatar: {
+    method: 'POST',
+    endpoint: '/api/avatar/register',
+    desc: 'Register a new cross-world avatar identity',
+    body: JSON.stringify({
+      firstName: "Demo",
+      lastName:  "User",
+      email:     "demo@example.com",
+      password:  "SecurePass123!",
+      username:  "demouser"
+    }, null, 2)
+  },
+  hyperdrive: {
+    method: 'GET',
+    endpoint: '/api/hyperdrive/status',
+    desc: 'Check HyperDrive routing status — see active providers and failover state',
+    body: ''
+  }
+};
+
+let currentExample = 'fahrn_dispatch';
+
+function loadExample(key) {
+  const ex = EXAMPLES[key];
+  if (!ex) return;
+  currentExample = key;
+
+  // Sidebar active state
+  document.querySelectorAll('.example-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.example === key);
+  });
+
+  // Panel chrome
+  const badge = document.getElementById('methodBadge');
+  badge.textContent = ex.method;
+  badge.className = 'method-badge method-' + ex.method;
+  document.getElementById('endpointChip').textContent = ex.endpoint;
+  document.getElementById('panelDesc').textContent = ex.desc;
+
+  // Editor
+  const editor = document.getElementById('requestEditor');
+  editor.value = ex.body;
+  editor.style.display = ex.method === 'GET' ? 'none' : '';
+  document.querySelector('.editor-wrap').style.display = ex.method === 'GET' ? 'none' : '';
+}
+
+document.querySelectorAll('.example-item').forEach(el => {
+  el.addEventListener('click', () => loadExample(el.dataset.example));
+});
+
+loadExample('fahrn_dispatch');
+
+// ── Terminal ─────────────────────────────────────────────────────────────────
+const term = document.getElementById('terminal');
+
+function termLine(html, cls = '') {
+  const div = document.createElement('div');
+  div.className = 'term-line';
+  if (cls) div.classList.add(cls);
+  div.innerHTML = html;
+  term.appendChild(div);
+  term.scrollTop = term.scrollHeight;
+  return div;
+}
+
+function termPrompt(text, type = 'info') {
+  const classMap = { info: 'term-info', success: 'term-success', error: 'term-error', warn: 'term-warn', muted: 'term-muted' };
+  termLine(`<span class="term-prompt">›</span><span class="${classMap[type] || 'term-info'}">${escHtml(text)}</span>`);
+}
+
+function termDivider() {
+  const hr = document.createElement('hr');
+  hr.className = 'term-divider';
+  term.appendChild(hr);
+}
+
+function termJson(obj, indent = 0) {
+  const json = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+  const lines = json.split('\n');
+  for (const raw of lines) {
+    // Highlight keys and values
+    const highlighted = raw
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/("[\w\s]+")(\s*:)/g, '<span class="term-key">$1</span>$2')
+      .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span class="term-str">$1</span>')
+      .replace(/:\s*(-?\d+\.?\d*)/g, ': <span class="term-num">$1</span>')
+      .replace(/:\s*(true|false|null)/g, ': <span class="term-num">$1</span>');
+    const div = document.createElement('div');
+    div.style.paddingLeft = '1rem';
+    div.innerHTML = highlighted;
+    term.appendChild(div);
+  }
+  term.scrollTop = term.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Typewrite a single line character by character
+function typewrite(text, cls = 'term-text', delayMs = 10) {
+  return new Promise(resolve => {
+    const div = document.createElement('div');
+    div.className = 'term-line';
+    const prompt = document.createElement('span');
+    prompt.className = 'term-prompt';
+    prompt.textContent = '›';
+    const span = document.createElement('span');
+    span.className = cls;
+    const cursor = document.createElement('span');
+    cursor.className = 'term-cursor';
+    div.append(prompt, span, cursor);
+    term.appendChild(div);
+
+    let i = 0;
+    function step() {
+      if (i < text.length) {
+        span.textContent += text[i++];
+        term.scrollTop = term.scrollHeight;
+        setTimeout(step, delayMs);
+      } else {
+        cursor.remove();
+        resolve();
+      }
+    }
+    step();
+  });
+}
+
+// Welcome message
+(function() {
+  termPrompt('OASIS Sandbox ready.', 'success');
+  termPrompt('Select an example from the sidebar, edit the request, then click Run.', 'muted');
+  termDivider();
+})();
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  term.innerHTML = '';
+  termPrompt('Terminal cleared.', 'muted');
+});
+
+// ── Run ──────────────────────────────────────────────────────────────────────
+const BASE_WEB4 = 'https://api.web4.oasisomniverse.one';
+const BASE_WEB6 = 'https://api.web6.oasisomniverse.one';
+
+function getBaseUrl(endpoint) {
+  if (endpoint.startsWith('/api/fahrn') || endpoint.startsWith('/api/skillopt')) return BASE_WEB6;
+  return BASE_WEB4;
+}
+
+document.getElementById('runBtn').addEventListener('click', runRequest);
+
+async function runRequest() {
+  const btn    = document.getElementById('runBtn');
+  const icon   = document.getElementById('runBtnIcon');
+  const label  = document.getElementById('runBtnLabel');
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  const ex     = EXAMPLES[currentExample];
+
+  btn.disabled = true;
+  icon.outerHTML = '<span class="spinner" id="runBtnIcon"></span>';
+  label.textContent = 'Running…';
+
+  termDivider();
+
+  const endpoint = ex.endpoint.replace('{id}', (() => {
+    try { return JSON.parse(ex.body).id || 'demo-id'; } catch { return 'demo-id'; }
+  })());
+
+  const baseUrl = getBaseUrl(endpoint);
+  const url = baseUrl + endpoint;
+
+  termPrompt(`${ex.method} ${url}`, 'info');
+  if (apiKey) termPrompt(`Authorization: Bearer ${apiKey.slice(0,8)}…`, 'muted');
+
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+  if (apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
+
+  let body = undefined;
+  if (ex.method !== 'GET' && ex.body) {
+    const editorVal = document.getElementById('requestEditor').value.trim();
+    try {
+      body = editorVal;
+      JSON.parse(editorVal); // validate
+    } catch (e) {
+      termPrompt('Invalid JSON in request body: ' + e.message, 'error');
+      resetBtn();
+      return;
+    }
+  }
+
+  const t0 = performance.now();
+  try {
+    const resp = await fetch(url, {
+      method: ex.method,
+      headers,
+      body: body || undefined
+    });
+
+    const elapsed = Math.round(performance.now() - t0);
+    const status  = resp.status;
+    const ok      = resp.ok;
+
+    const statusCls = ok ? 'success' : (status >= 400 ? 'error' : 'warn');
+    termPrompt(`HTTP ${status} ${resp.statusText} — ${elapsed}ms`, statusCls);
+
+    let data;
+    const ct = resp.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      data = await resp.json();
+    } else {
+      const text = await resp.text();
+      data = { rawResponse: text };
+    }
+
+    // Typewrite the final answer if present, then show full JSON
+    if (ok && data.result?.finalAnswer) {
+      termPrompt('FAHRN answer:', 'success');
+      await typewrite(data.result.finalAnswer, 'term-success', 12);
+      if (data.result.winningAgentName)
+        termPrompt(`Agent: ${data.result.winningAgentName}  |  Cost: $${(data.result.totalCostUsd||0).toFixed(4)}  |  Tokens: ${data.result.totalTokens||'—'}`, 'muted');
+      termDivider();
+    } else if (ok && data.result?.id) {
+      termPrompt(`Holon ID: ${data.result.id}`, 'success');
+    }
+
+    termPrompt('Full response:', 'muted');
+    termJson(data);
+
+  } catch (err) {
+    const elapsed = Math.round(performance.now() - t0);
+    if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+      termPrompt(`Network error after ${elapsed}ms — CORS or connectivity issue.`, 'error');
+      termPrompt('The live API may require authentication. Paste your API key above or try the demo key.', 'warn');
+      termPrompt('You can also run the ONODE WebAPI locally: see Docs/Devs/OASIS_Quick_Start_Guide.md', 'muted');
+    } else {
+      termPrompt(`Error: ${err.message}`, 'error');
+    }
+  }
+
+  resetBtn();
+
+  function resetBtn() {
+    btn.disabled = false;
+    document.getElementById('runBtnIcon').outerHTML = '<span id="runBtnIcon">▶</span>';
+    document.getElementById('runBtnLabel').textContent = 'Run';
+  }
+}
+
+// Editor → update on example change
+document.getElementById('requestEditor').addEventListener('input', () => {
+  if (EXAMPLES[currentExample]) {
+    EXAMPLES[currentExample].body = document.getElementById('requestEditor').value;
+  }
+});
+</script>
+</body>
+</html>

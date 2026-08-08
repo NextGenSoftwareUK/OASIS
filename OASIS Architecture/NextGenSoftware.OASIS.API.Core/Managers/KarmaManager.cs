@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -236,7 +236,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await Task.FromResult(result);
         }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         {
             var result = new OASISResult<KarmaAkashicRecord>();
             try
@@ -268,7 +268,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     TotalKarma = avatarDetail.Karma,
                     // Provider expects EnumValue<ProviderType>; use the current provider enum directly
                     Provider = ProviderManager.Instance.CurrentStorageProviderType,
-                    KarmaSourceTitle = karamSourceTitle,
+                    KarmaSourceTitle = karmaSourceTitle,
                     KarmaSourceDesc = karmaSourceDesc,
                     WebLink = webLink,
                     KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
@@ -286,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 // Update in-memory ledgers and competition
                 var amount = Math.Abs(record.Karma);
-                await AddKarmaAsync(avatarId, amount, record.KarmaSource.Value, karamSourceTitle);
+                await AddKarmaAsync(avatarId, amount, record.KarmaSource.Value, karmaSourceTitle);
                 await UpdateKarmaCompetitionScoresAsync(avatarId, amount);
 
                 result.Result = record;
@@ -301,7 +301,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await Task.FromResult(result);
         }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         {
             var result = new OASISResult<KarmaAkashicRecord>();
             try
@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     TotalKarma = avatarDetail.Karma,
                     // Provider expects EnumValue<ProviderType>; use the current provider enum directly
                     Provider = ProviderManager.Instance.CurrentStorageProviderType,
-                    KarmaSourceTitle = karamSourceTitle,
+                    KarmaSourceTitle = karmaSourceTitle,
                     KarmaSourceDesc = karmaSourceDesc,
                     WebLink = webLink,
                     KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
@@ -351,7 +351,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 // Update in-memory ledgers and competition (negative amount)
                 var amount = Math.Abs(record.Karma);
-                await DeductKarmaAsync(avatarId, amount, record.KarmaSource.Value, karamSourceTitle);
+                await DeductKarmaAsync(avatarId, amount, record.KarmaSource.Value, karmaSourceTitle);
                 await UpdateKarmaCompetitionScoresAsync(avatarId, -amount);
 
                 result.Result = record;

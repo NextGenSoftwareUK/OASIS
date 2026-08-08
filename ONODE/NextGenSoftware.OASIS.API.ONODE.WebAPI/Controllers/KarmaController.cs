@@ -305,12 +305,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
+        /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karmaSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
         /// </summary>
         /// <param name="avatarId">The avatar ID to add the karma to.</param>
         /// <param name="karmaType">The type of positive karma.</param>
         /// <param name="karmaSourceType">Where the karma was earnt (App, dApp, hApp, Website, Game.</param>
-        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was earnt.</param>
+        /// <param name="karmaSourceTitle">The name of the app/website/game where the karma was earnt.</param>
         /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
         /// <returns></returns>
         [Authorize]
@@ -331,12 +331,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
+        /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karmaSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
         /// </summary>
         /// <param name="avatarId">The avatar ID to add the karma to.</param>
         /// <param name="karmaType">The type of positive karma.</param>
         /// <param name="karmaSourceType">Where the karma was earnt (App, dApp, hApp, Website, Game.</param>
-        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was earnt.</param>
+        /// <param name="karmaSourceTitle">The name of the app/website/game where the karma was earnt.</param>
         /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
@@ -350,12 +350,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost.
+        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karmaSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost.
         /// </summary>
         /// <param name="avatarId">The avatar ID to remove the karma from.</param>
         /// <param name="karmaType">The type of negative karma.</param>
         /// <param name="karmaSourceType">Where the karma was lost (App, dApp, hApp, Website, Game.</param>
-        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was lost.</param>
+        /// <param name="karmaSourceTitle">The name of the app/website/game where the karma was lost.</param>
         /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was lost.</param>
         /// <returns></returns>
         [Authorize]
@@ -376,12 +376,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karmaSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="avatarId">The avatar ID to remove the karma from.</param>
         /// <param name="karmaType">The type of negative karma.</param>
         /// <param name="karmaSourceType">Where the karma was lost (App, dApp, hApp, Website, Game.</param>
-        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was lost.</param>
+        /// <param name="karmaSourceTitle">The name of the app/website/game where the karma was lost.</param>
         /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was lost.</param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
