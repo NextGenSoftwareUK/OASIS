@@ -320,6 +320,9 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Doom 64 | Doom64 EX+ | ODoom64 | ✅ Complete |
 | Hexen II | uhexen2 (Hammer of Thyrion) | OHexenII | ✅ Complete |
 | Return to Castle Wolfenstein | iortcw | ORtCW | ✅ Complete |
+| Half-Life | Xash3D FWGS + HLSDK | OHalfLife | 🔧 Skeleton complete |
+| Morrowind | OpenMW | OMorrowind | ✅ Complete |
+| Minecraft | Minetest (Lua mod) | OMineCraft | ✅ Complete |
 | Quake | vkQuake | OQuake | ✅ Complete |
 | Quake II | Yamagi Quake 2 | OQuake2 | ✅ Complete |
 | Quake II (RT) | Q2 RTX | OQuake2-RTX | ✅ Complete |
@@ -343,6 +346,9 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Wolfenstein 3D | ECWolf + DECORATE (no dedicated visual editor; Tiled works for grid maps) | — |
 | Doom 3 / Doom 3 BFG | DarkRadiant | — |
 | Return to Castle Wolfenstein | NetRadiant-custom | — |
+| Half-Life | J.A.C.K. (Jackhammer) | TrenchBroom (GoldSrc .map support) |
+| Morrowind | OpenMW CS (Construction Set reimplementation) | Original TESCS (via Wine) |
+| Minecraft (Minetest) | WorldEdit mod (in-game) | — |
 
 ---
 
@@ -364,4 +370,4 @@ See [`OGEDITOR_INTEGRATION_ROADMAP.md`](OGEDITOR_INTEGRATION_ROADMAP.md) and [`O
 
 ---
 
-*Last updated: 2026-08-05*
+*Last updated: 2026-08-08 — Added OHalfLife (Xash3D FWGS + HLSDK), OMorrowind, OMineCraft.*

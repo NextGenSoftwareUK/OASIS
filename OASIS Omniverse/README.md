@@ -2,7 +2,7 @@
 
 **OASIS Omniverse** is a unified cross-game metaverse powered by the **OASIS STAR API** — spanning every game genre, not just FPS. The name means exactly what it says: *every* game, *every* genre, *one* universe. Keys, inventory, quests, XP, NFTs, avatars, and story arcs flow freely between all OGames, regardless of what kind of game they are.
 
-We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The twenty FPS integrations below are **Generation 1**. **Generation 2** is next: an open-world RPG (Morrowind via OpenMW) and a voxel sandbox (OMineCraft via Minetest). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
+We started where 3D gaming was born — **Doom** and **Quake** — then expanded across the open-source FPS classics that built the genre. The twenty-one FPS integrations below are **Generation 1**. **Generation 2** adds an open-world RPG (Morrowind via OpenMW) and a voxel sandbox (OMineCraft via Minetest). After that: strategy games, racing, platformers, and everything beyond — the real-life Ready Player One.
 
 **All Markdown guides live under [`Docs/`](Docs/). This README is the entry-point index; use the tables below to jump to what you need.**
 
@@ -32,13 +32,14 @@ We started where 3D gaming was born — **Doom** and **Quake** — then expanded
 | **ODoom64** | Doom64 EX+ | `OGames/ODoom64/odoom64_ogengine_integration.cpp` | ✅ portal system | ✅ Doom64 EX+ spawn |
 | **OHexenII** | uhexen2 | `OGames/OHexenII/ohexen2_ogengine_integration.cpp` | ✅ portal system | ✅ uhexen2 spawn |
 | **ORtCW** | iortcw (Q3 engine) | `OGames/ORtCW/ortcw_ogengine_integration.cpp` | ✅ portal system | ✅ Q3 spawn |
+| **OHalfLife** | Xash3D FWGS + HLSDK | `OGames/OHalfLife/ohalflife_ogengine_integration.cpp` | ✅ portal system | ✅ HLSDK `G_Spawn` |
 
-### Generation 2 — coming next
+### Generation 2
 
 | OGame | Genre | Base engine | Status |
 |-------|-------|-------------|--------|
-| **OMorrowind** | Open-world RPG | OpenMW | 🔧 Integration files complete |
-| **OMineCraft** | Voxel sandbox | Minetest / MineClone2 | 🔜 Planned |
+| **OMorrowind** | Open-world RPG | OpenMW | ✅ Complete — source wiring done |
+| **OMineCraft** | Voxel sandbox | Minetest | ✅ Complete — Lua mod, no C layer needed |
 
 ### Generation 3 and beyond
 
@@ -79,7 +80,7 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 | [Docs/INTEGRATION_GUIDE.md](Docs/INTEGRATION_GUIDE.md) | Cross-game items, quests, API usage, phases, troubleshooting |
 | [Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md](Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md) | Canonical item IDs and cross-game mappings |
 | [Docs/STAR_INTEGRATION_AUDIT.md](Docs/STAR_INTEGRATION_AUDIT.md) | Integration audit (sync vs C implementation) |
-| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 20 games |
+| [Docs/OGENGINE_VISION_AND_ROADMAP.md](Docs/OGENGINE_VISION_AND_ROADMAP.md) | Full OGEngine vision, phases, status checklist for all 23 games |
 | [Docs/OGEngine_Overview.md](Docs/OGEngine_Overview.md) | WEB4/WEB5 APIs, GeoHotSpot media types, quest handoff |
 
 ### Quests and story system
@@ -129,6 +130,9 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 | ODoom64 | [OGames/ODoom64/README.md](OGames/ODoom64/README.md) |
 | OHexenII | [OGames/OHexenII/README.md](OGames/OHexenII/README.md) |
 | ORtCW | [OGames/ORtCW/README.md](OGames/ORtCW/README.md) |
+| OHalfLife | [OGames/OHalfLife/README.md](OGames/OHalfLife/README.md) |
+| OMorrowind | [OGames/OMorrowind/README.md](OGames/OMorrowind/README.md) |
+| OMineCraft | [OGames/OMineCraft/README.md](OGames/OMineCraft/README.md) |
 | OGEngineClient | [OGEngineClient/README.md](OGEngineClient/README.md) |
 
 ---
@@ -137,7 +141,7 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 
 | Repository | Purpose | Default path |
 |------------|---------|--------------|
-| **OASIS** (this repo) | Backend, OGEngineClient, OGEditorSDK, all 20 integrations | `C:\Source\OASIS2` |
+| **OASIS** (this repo) | Backend, OGEngineClient, OGEditorSDK, all 23 integrations | `C:\Source\OASIS2` |
 | **ODOOM engine** (`UZDOOM_SRC`) | UZDoom/GZDoom fork (ODOOM · OHeretic · OHexen · OStrife) | `C:\Source\UZDoom` |
 | **OQuake engine** (`VKQUAKE_SRC`) | vkQuake fork | `C:\Source\vkQuake` |
 | **quake-rerelease-qc** | QuakeC for OQuake | `C:\Source\quake-rerelease-qc` |
@@ -153,6 +157,9 @@ Strategy (open-source RTS/4X), racing (SuperTuxKart), platformers, flight sims, 
 | **ODoom64 engine** | Doom64 EX+ fork | `C:\Source\ODoom64` |
 | **OHexenII engine** | uhexen2 fork | `C:\Source\OHexenII` |
 | **ORtCW engine** | iortcw fork | `C:\Source\ORtCW` |
+| **Xash3D FWGS engine** | Xash3D FWGS fork (OHalfLife engine layer) | `C:\Source\xash3d-fwgs` |
+| **HLSDK-portable** | hlsdk-portable fork (OHalfLife game DLL — OASIS hooks go here) | `C:\Source\hlsdk-portable` |
+| **OMorrowWind engine** | OpenMW fork (OMorrowind) | `C:\Source\OMorrowWind` |
 | **OQuakeEditor** | TrenchBroom fork (OQuake · OQuake2 editor) | `C:\Source\OQuakeEditor` |
 | **OQuake3Editor** | NetRadiant-custom fork (OQuake3 · ORtCW editor) | `C:\Source\OQuake3Editor` |
 | **ODOOM3-Editor** | DarkRadiant fork (ODOOM3 · ODOOM3-BFG editor) | `C:\Source\ODOOM3-Editor` |
@@ -200,6 +207,9 @@ All game folders live under `OGames\`:
 | ODoom64 | `OGames\ODoom64\BUILD_ODOOM64.bat` | `./OGames/ODoom64/BUILD_ODOOM64.sh` |
 | OHexenII | `OGames\OHexenII\BUILD_OHEXEN2.bat` | `./OGames/OHexenII/BUILD_OHEXEN2.sh` |
 | ORtCW | `OGames\ORtCW\BUILD_ORTCW.bat` | `./OGames/ORtCW/BUILD_ORTCW.sh` |
+| OHalfLife | `OGames\OHalfLife\BUILD_OHALFLIFE.bat` | `./OGames/OHalfLife/BUILD_OHALFLIFE.sh` |
+| OMorrowind | `OGames\OMorrowind\BUILD_OMORROWIND.bat` | `./OGames/OMorrowind/BUILD_OMORROWIND.sh` |
+| OMineCraft | `OGames\OMineCraft\BUILD_OMINECRAFT.bat` | `./OGames/OMineCraft/BUILD_OMINECRAFT.sh` |
 | STAR API client only | `BUILD_AND_DEPLOY_STAR_CLIENT.bat` | `./BUILD_AND_DEPLOY_STAR_CLIENT.sh` |
 
 ### Run a game
@@ -232,10 +242,10 @@ OASIS Omniverse/
 │   ├── STAR_Quest_System_Developer_Guide.md
 │   └── …
 ├── Config/
-│   ├── oasis_star_assets.json       ← Cross-game entity / asset catalog (all 20 games)
+│   ├── oasis_star_assets.json       ← Cross-game entity / asset catalog (all 23 games)
 │   └── stories/
 │       └── oasis_arc_001_dimensional_rift.json  ← First cross-game story arc
-├── BUILD EVERYTHING.bat / .sh       ← Build OGEngineClient + all 20 games
+├── BUILD EVERYTHING.bat / .sh       ← Build OGEngineClient + all 23 games
 ├── BUILD_AND_DEPLOY_STAR_CLIENT.bat/.sh
 ├── OGEngineClient/                  ← C# NativeAOT STAR API client (ogengine.dll)
 │   ├── OGEngineClient.cs
@@ -258,7 +268,7 @@ OASIS Omniverse/
 ├── NativeWrapper/                   ← Deprecated; reference only. Use OGEngineClient.
 ├── OGLib/                           ← Header-only C utility library (monster table, session, config)
 │   └── oglib.h
-├── OGames/                          ← All 20 game integration folders
+├── OGames/                          ← All 23 game integration folders
 │   ├── ODOOM/                       ← Doom (UZDoom/GZDoom)
 │   ├── OQuake/                      ← Quake (vkQuake)
 │   ├── ODOOM3/                      ← Doom 3 classic (dhewm3)
@@ -278,7 +288,10 @@ OASIS Omniverse/
 │   ├── OStrife/                     ← Strife (UZDoom/GZDoom fork)
 │   ├── ODoom64/                     ← Doom 64 (Doom64 EX+)
 │   ├── OHexenII/                    ← Hexen II (uhexen2 / Hammer of Thyrion)
-│   └── ORtCW/                       ← Return to Castle Wolfenstein (iortcw)
+│   ├── ORtCW/                       ← Return to Castle Wolfenstein (iortcw)
+│   ├── OHalfLife/                   ← Half-Life (Xash3D FWGS + HLSDK)
+│   ├── OMorrowind/                  ← Morrowind (OpenMW) — Gen-2
+│   └── OMineCraft/                  ← Minecraft (Minetest Lua mod) — Gen-2
 └── OASIS Hub/                       ← Unity hub project (optional embedded shell)
     └── README.md
 ```
@@ -298,13 +311,13 @@ Each game folder contains:
 
 ### OGEngineClient
 
-The **C# NativeAOT** STAR API client used by all 20 games. Builds `ogengine.dll` (Windows) or `libstar_api.so` (Linux/macOS). Exposes a C ABI (`ogengine_*`) that each game's integration C/C++ file links against.
+The **C# NativeAOT** STAR API client used by all 23 games. Builds `ogengine.dll` (Windows) or `libstar_api.so` (Linux/macOS). Exposes a C ABI (`ogengine_*`) that each game's integration C/C++ file links against.
 
 Key exports: `ogengine_init`, `ogengine_authenticate`, `ogengine_get_inventory`, `ogengine_add_item`, `ogengine_complete_quest_objective`, `ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_poll_spawn_event`, `ogengine_poll_cross_game_event`, `ogengine_poll_inventory_grant`, `ogengine_get_quests_string`, and more.
 
 ### OGLib
 
-A **header-only C utility library** shared by all 20 games. Provides:
+A **header-only C utility library** shared by all 23 games. Provides:
 - Monster XP table loaded from `oasisstar.json`
 - Session management helpers
 - Config file I/O
@@ -351,7 +364,7 @@ All five editors share the same `oasis_{mapname}.json` sidecar format and reach 
 
 ### Cross-game item sharing
 
-Collect keys/weapons/powerups in one game, use them in another. Persistent inventory via the STAR API. All 20 games share the same inventory namespace.
+Collect keys/weapons/powerups in one game, use them in another. Persistent inventory via the STAR API. All 23 games share the same inventory namespace.
 
 | Game | Key types |
 |------|-----------|
@@ -390,7 +403,7 @@ The first cross-game story arc (`oasis_arc_001_dimensional_rift.json`) spans ODO
 
 ### Cross-game events (in-game delivery)
 
-All 20 games poll `ogengine_poll_cross_game_event()` every frame. When a quest triggers a cross-game event:
+All 23 games poll `ogengine_poll_cross_game_event()` every frame. When a quest triggers a cross-game event:
 - `ShowNarration` → toast notification in-game (all 10 games)
 - `SpawnEntity` → calls the game's native spawn path
 - `TeleportTo` → queues a teleport request
@@ -444,4 +457,4 @@ Each game has a native C/C++ HUD that renders without Unity:
 
 ## License
 
-All 20 game integrations follow the same license as the base engine they extend (GPL-2.0 for all — every engine in the OASIS Omniverse stack is a GPL-licensed source port). The OASIS integration layer (OGEngineClient, OGLib, OGEditorSDK, integration C/C++ files) is licensed under the OASIS project license. See `OASIS Omniverse/LICENSE.md` or each game's `Docs/CREDITS_AND_LICENSE.md`.
+All 23 game integrations follow the same license as the base engine they extend (GPL-2.0 for all — every engine in the OASIS Omniverse stack is a GPL-licensed source port). The OASIS integration layer (OGEngineClient, OGLib, OGEditorSDK, integration C/C++ files) is licensed under the OASIS project license. See `OASIS Omniverse/LICENSE.md` or each game's `Docs/CREDITS_AND_LICENSE.md`.
