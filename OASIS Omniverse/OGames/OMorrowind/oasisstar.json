@@ -1,0 +1,58 @@
+{
+  "ogengine_url": "https://star-api.oasisplatform.world/api",
+  "oasis_api_url": "https://api.oasisplatform.world",
+  "nft_provider": "SolanaOASIS",
+  "mint_keys": 0,
+  "mint_monsters": 1,
+  "star_debug": 1,
+  "game_source": "OMORROWIND",
+  "item_type_range_start": 6000,
+  "item_type_range_end": 6899,
+
+  "omorrowind": {
+    "monsters": [
+      { "engine_id": "mudcrab",              "display_name": "Mudcrab",              "xp": 5,   "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "scrib",                "display_name": "Scrib",                "xp": 5,   "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "guar",                 "display_name": "Guar",                 "xp": 10,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "nix-hound",            "display_name": "Nix-Hound",            "xp": 15,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "kwamaworker",          "display_name": "Kwama Worker",         "xp": 10,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "kwama_warrior",        "display_name": "Kwama Warrior",        "xp": 15,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "kwamaqueen",           "display_name": "Kwama Queen",          "xp": 25,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "shalk",                "display_name": "Shalk",                "xp": 25,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "scamp",                "display_name": "Scamp",                "xp": 20,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "clannfear",            "display_name": "Clannfear",            "xp": 50,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "daedroth",             "display_name": "Daedroth",             "xp": 80,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "dremora",              "display_name": "Dremora",              "xp": 60,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "dremoralord",          "display_name": "Dremora Lord",         "xp": 100, "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "ogrim",                "display_name": "Ogrim",                "xp": 80,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "ogrimbeast",           "display_name": "Ogrim Beast",          "xp": 120, "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "wingedtwilight",       "display_name": "Winged Twilight",      "xp": 70,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "storm_atronach",       "display_name": "Storm Atronach",       "xp": 90,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "fire_atronach",        "display_name": "Fire Atronach",        "xp": 70,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "frost_atronach",       "display_name": "Frost Atronach",       "xp": 70,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "golden_saint",         "display_name": "Golden Saint",         "xp": 150, "is_boss": 0, "do_mint": 1 },
+      { "engine_id": "ancestor_ghost",       "display_name": "Ancestor Ghost",       "xp": 30,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "bonewalker",           "display_name": "Bonewalker",           "xp": 40,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "ash_zombie",           "display_name": "Ash Zombie",           "xp": 30,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "ash_ghoul",            "display_name": "Ash Ghoul",            "xp": 60,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "ash_vampire",          "display_name": "Ash Vampire",          "xp": 200, "is_boss": 0, "do_mint": 1 },
+      { "engine_id": "corprus_stalker",      "display_name": "Corprus Stalker",      "xp": 35,  "is_boss": 0, "do_mint": 0 },
+      { "engine_id": "dagoth_ur_1",          "display_name": "Dagoth Ur",            "xp": 500, "is_boss": 1, "do_mint": 1 }
+    ],
+    "key_items": [
+      { "engine_id": "misc_skeleton_key",     "star_type": "Key",     "cross_game": "mw_skeleton_key"   },
+      { "engine_id": "key_hlaalu_council",    "star_type": "Key",     "cross_game": "mw_key_council"    },
+      { "engine_id": "key_sunder",            "star_type": "Relic",   "cross_game": "mw_sunder"         },
+      { "engine_id": "key_keening",           "star_type": "Relic",   "cross_game": "mw_keening"        },
+      { "engine_id": "key_wraithguard",       "star_type": "Relic",   "cross_game": "mw_wraithguard"    }
+    ],
+    "notable_items": [
+      { "engine_id": "the_ring_of_phynaster",    "star_type": "ring",   "cross_game": "mw_ring_phynaster"   },
+      { "engine_id": "daedric_crescent_unique",  "star_type": "weapon", "cross_game": "mw_daedric_crescent" },
+      { "engine_id": "staff_of_magnus_unique",   "star_type": "staff",  "cross_game": "mw_staff_magnus"     },
+      { "engine_id": "ebony_mail_unique",        "star_type": "armor",  "cross_game": "mw_ebony_mail"       },
+      { "engine_id": "hircine_ring_unique",      "star_type": "ring",   "cross_game": "mw_hircine_ring"     },
+      { "engine_id": "sanguine_rose_unique",     "star_type": "wand",   "cross_game": "mw_sanguine_rose"    }
+    ]
+  }
+}
