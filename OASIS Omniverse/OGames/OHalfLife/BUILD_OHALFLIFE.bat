@@ -15,7 +15,7 @@ set OASIS_DIR=%SCRIPT_DIR%..\..
 set BUILD_DIR=%SCRIPT_DIR%build
 
 if not defined XASH3D_DIR set XASH3D_DIR=C:\Source\xash3d-fwgs
-if not defined HLSDK_DIR   set HLSDK_DIR=C:\Source\hlsdk-portable
+if not defined HLSDK_DIR   set HLSDK_DIR=C:\Source\OHalflife
 if not defined OGENGINE_LIB set OGENGINE_LIB=%SCRIPT_DIR%..\..\OGEditorSDK\build\OGEngineClient.dll
 
 echo.

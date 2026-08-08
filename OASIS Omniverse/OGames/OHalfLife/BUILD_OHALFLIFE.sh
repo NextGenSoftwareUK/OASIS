@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 
 XASH3D_DIR="${XASH3D_DIR:-$HOME/Source/xash3d-fwgs}"
-HLSDK_DIR="${HLSDK_DIR:-$HOME/Source/hlsdk-portable}"
+HLSDK_DIR="${HLSDK_DIR:-$HOME/Source/OHalflife}"
 OGENGINE_LIB="${OGENGINE_LIB:-$SCRIPT_DIR/../../OGEditorSDK/build/libOGEngineClient.so}"
 
 echo ""
