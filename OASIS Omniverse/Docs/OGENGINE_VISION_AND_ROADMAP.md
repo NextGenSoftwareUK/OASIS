@@ -113,7 +113,7 @@ All integration files live under `OASIS Omniverse/OGames/{OGame}/`.
 | ODoom64 | Doom64 EX+ | ✅ Complete | `odoom64_ogengine_integration.cpp` | ✅ portal system | ✅ Doom64 EX+ spawn |
 | OHexenII | uhexen2 | ✅ Complete | `ohexen2_ogengine_integration.cpp` | ✅ portal system | ✅ uhexen2 spawn |
 | ORtCW | iortcw | ✅ Complete | `ortcw_ogengine_integration.cpp` | ✅ portal system | ✅ Q3 spawn |
-| OHalfLife | Xash3D + HLSDK | 🔧 Skeleton complete | `ohalflife_ogengine_integration.cpp` | ✅ portal system | ✅ HLSDK `G_Spawn` |
+| OHalfLife | Xash3D + HLSDK | ✅ Complete | `ohalflife_ogengine_integration.cpp` | ✅ portal system | ✅ HLSDK `G_Spawn` |
 | OMorrowind | OpenMW | ✅ Complete | `omorrowind_ogengine_integration.cpp` | ✅ portal system | ✅ Lua global script |
 | OMineCraft | Minetest | ✅ Complete | `init.lua` (Lua mod, no C layer) | ✅ portal system | ✅ Minetest mod API |
 

@@ -320,7 +320,7 @@ NetRadiant-custom lets you **copy and paste brush geometry between Q1, Q2, and Q
 | Doom 64 | Doom64 EX+ | ODoom64 | ✅ Complete |
 | Hexen II | uhexen2 (Hammer of Thyrion) | OHexenII | ✅ Complete |
 | Return to Castle Wolfenstein | iortcw | ORtCW | ✅ Complete |
-| Half-Life | Xash3D FWGS + HLSDK | OHalfLife | 🔧 Skeleton complete |
+| Half-Life | Xash3D FWGS + HLSDK | OHalfLife | ✅ Complete |
 | Morrowind | OpenMW | OMorrowind | ✅ Complete |
 | Minecraft | Minetest (Lua mod) | OMineCraft | ✅ Complete |
 | Quake | vkQuake | OQuake | ✅ Complete |
