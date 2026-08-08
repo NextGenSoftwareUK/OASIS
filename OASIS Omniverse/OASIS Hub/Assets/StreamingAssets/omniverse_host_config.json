@@ -292,6 +292,19 @@
       "portalColorR": 0.2,
       "portalColorG": 0.8,
       "portalColorB": 0.15
+    },
+    {
+      "gameId": "ohalflife",
+      "displayName": "OHALFLIFE",
+      "executableRelativePath": "../../OHalfLife/build/OHalfLife.exe",
+      "workingDirectoryRelativePath": "../../OHalfLife/build",
+      "defaultLevelArgument": "-game valve +map c0a0",
+      "baseArguments": "-window",
+      "portalX": -20.0,
+      "portalZ": 28.0,
+      "portalColorR": 1.0,
+      "portalColorG": 0.55,
+      "portalColorB": 0.0
     }
   ]
 }
