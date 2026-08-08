@@ -32,7 +32,7 @@ We started where 3D gaming was born — **Doom** and **Quake** — then expanded
 | **ODoom64** | Doom64 EX+ | `OGames/ODoom64/odoom64_ogengine_integration.cpp` | ✅ portal system | ✅ Doom64 EX+ spawn |
 | **OHexenII** | uhexen2 | `OGames/OHexenII/ohexen2_ogengine_integration.cpp` | ✅ portal system | ✅ uhexen2 spawn |
 | **ORtCW** | iortcw (Q3 engine) | `OGames/ORtCW/ortcw_ogengine_integration.cpp` | ✅ portal system | ✅ Q3 spawn |
-| **OHalfLife** | Xash3D FWGS + HLSDK | `OGames/OHalfLife/ohalflife_ogengine_integration.cpp` | ✅ portal system | ✅ HLSDK `G_Spawn` |
+| **OHalfLife** | Xash3D FWGS + HLSDK | `OGames/OHalfLife/ohalflife_ogengine_integration.cpp` | ✅ portal system | ✅ HLSDK `G_Spawn` (wired in `C:\Source\OHalflife`) |
 
 ### Generation 2
 
