@@ -2401,10 +2401,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     if (!string.IsNullOrEmpty(setSizeErrorMessage))
                     {
-                        OASISErrorHandling.HandleWarning(ref result, setSizeErrorMessage, onlyLogToInnerMessages: true);
-
                         if (!request.WaitTillCollectionSizeSet)
+                        {
+                            OASISErrorHandling.HandleWarning(ref result, setSizeErrorMessage, onlyLogToInnerMessages: true);
                             break;
+                        }
 
                         setSizeErrorMessage = "";
                     }
