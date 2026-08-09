@@ -461,7 +461,6 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         [
             AccountMeta.Writable(collectionMetadataPda, false),   // collection metadata
             AccountMeta.Writable(oasisAccount.PublicKey, true),   // update authority (signer)
-            AccountMeta.Writable(oasisAccount.PublicKey, true),   // payer (signer)
             AccountMeta.ReadOnly(collectionMint, false),           // collection mint
         ];
 
