@@ -3364,3 +3364,5 @@ https://www.thejusticeleagueaccademy.icu <br/>
 <a href="https://www.youtube.com/watch?v=UICajpltv1Y">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 1</a><br>
 <a href="https://www.youtube.com/watch?v=SsNsEDPglos">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 2</a><br>
 <a href="https://www.youtube.com/watch?v=H5JJyLxGFe0">ThreeFold, Our World, Protocol Love, Soulfie API Meeting</a><br>
+
+- [JMT x402 Agent Tools](https://jmt-x402-proxy.jmthomasofficial.workers.dev) — 25 paid x402 endpoints on Base mainnet: web search, AI analysis, crypto/stock data, SEC filings, company intel, news, sentiment, macro dashboard. $0.001-$0.15/call USDC. Local LLM-powered.
