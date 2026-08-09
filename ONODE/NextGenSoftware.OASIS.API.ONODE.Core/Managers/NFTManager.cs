@@ -4016,10 +4016,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                             if (!string.IsNullOrEmpty(mintErrorMessage))
                             {
-                                OASISErrorHandling.HandleWarning(ref result, mintErrorMessage, onlyLogToInnerMessages: true);
-
                                 if (!mergedRequest.WaitTillNFTSent)
                                 {
+                                    OASISErrorHandling.HandleWarning(ref result, mintErrorMessage, onlyLogToInnerMessages: true);
                                     currentWeb3NFT.SendNFTTransactionHash = $"{mintErrorMessage}. WaitTillNFTSent is false so aborting! ";
                                     break;
                                 }
