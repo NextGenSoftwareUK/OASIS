@@ -2406,20 +2406,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, setSizeErrorMessage, onlyLogToInnerMessages: true);
                             break;
                         }
+
+                        setSizeErrorMessage = "";
                     }
 
                     Thread.Sleep(request.AttemptToSetCollectionSizeEveryXSeconds * 1000);
 
                     if (startTime.AddSeconds(request.WaitForCollectionSizeToBeSetInSeconds).Ticks < DateTime.Now.Ticks)
                     {
-                        string timeoutMsg = $"Timeout expired, WaitForCollectionSizeToBeSetInSeconds ({request.WaitForCollectionSizeToBeSetInSeconds}) exceeded. NFT was minted successfully but collection size could not be set. Try calling SetCollectionSize separately.";
-                        if (!string.IsNullOrEmpty(setSizeErrorMessage))
-                            timeoutMsg += $" Last error: {setSizeErrorMessage}";
-                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} {timeoutMsg}", onlyLogToInnerMessages: true);
+                        setSizeErrorMessage = $"Timeout expired, WaitForCollectionSizeToBeSetInSeconds ({request.WaitForCollectionSizeToBeSetInSeconds}) exceeded. NFT was minted successfully but collection size could not be set. Try calling SetCollectionSize separately.";
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} {setSizeErrorMessage}", onlyLogToInnerMessages: true);
                         break;
                     }
-
-                    setSizeErrorMessage = "";
 
                 } while (attemptingToSetSize);
             }
@@ -4018,10 +4016,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                             if (!string.IsNullOrEmpty(mintErrorMessage))
                             {
-                                OASISErrorHandling.HandleWarning(ref result, mintErrorMessage, onlyLogToInnerMessages: true);
-
                                 if (!mergedRequest.WaitTillNFTSent)
                                 {
+                                    OASISErrorHandling.HandleWarning(ref result, mintErrorMessage, onlyLogToInnerMessages: true);
                                     currentWeb3NFT.SendNFTTransactionHash = $"{mintErrorMessage}. WaitTillNFTSent is false so aborting! ";
                                     break;
                                 }
