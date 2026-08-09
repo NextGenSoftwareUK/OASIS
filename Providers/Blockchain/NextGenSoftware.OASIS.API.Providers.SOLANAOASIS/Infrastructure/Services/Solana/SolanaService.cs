@@ -482,6 +482,15 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             .AddInstruction(instruction)
             .Build(oasisAccount);
 
+        var simResult = await rpcClient.SimulateTransactionAsync(txBytes);
+        if (simResult?.Result?.Value?.Error != null)
+        {
+            string logs = simResult.Result.Value.Logs != null
+                ? string.Join(" | ", simResult.Result.Value.Logs)
+                : "no logs";
+            throw new Exception($"SetCollectionSize failed: Transaction simulation failed [ix={instructionData[0]} accounts={accounts.Count}]: {simResult.Result.Value.Error} — logs: {logs}");
+        }
+
         RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
 
         if (!sendResult.WasSuccessful)
