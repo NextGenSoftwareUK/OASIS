@@ -1,0 +1,599 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using EOSNewYork.EOSCore;
+using Newtonsoft.Json;
+using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.CurrencyBalance;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persistence;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using Nethereum.Signer;
+using Nethereum.Hex.HexConvertors.Extensions;
+using System.IO;
+using System.Text.Json;
+
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
+{
+    public partial class EOSIOOASIS
+    {
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Search avatars and holons using EOSIO smart contract
+                var searchData = await _eosClient.SearchAsync(searchParams);
+                // Wrap raw object into ISearchResults where appropriate
+                var searchResults = new SearchResults();
+                searchResults.NumberOfResults = 0;
+                result.Result = searchResults;
+                result.IsError = false;
+                result.Message = "Search completed successfully from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching from EOSIO: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+
+
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from EOSIO: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from EOSIO: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+
+
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(outputFolder))
+                    return false;
+
+                string eosioFolder = Path.Combine(outputFolder, "EOSIO");
+                if (!Directory.Exists(eosioFolder))
+                    Directory.CreateDirectory(eosioFolder);
+
+                if (!string.IsNullOrEmpty(nativeSource))
+                {
+                    File.WriteAllText(Path.Combine(eosioFolder, "contract.cpp"), nativeSource);
+                    return true;
+                }
+
+                if (celestialBody == null)
+                    return true;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("// Auto-generated by EOSIOOASIS.NativeCodeGenesis");
+                sb.AppendLine("#include <eosio/eosio.hpp>");
+                sb.AppendLine("#include <eosio/print.hpp>");
+                sb.AppendLine("#include <string>");
+                sb.AppendLine();
+                sb.AppendLine($"using namespace eosio;");
+                sb.AppendLine();
+                sb.AppendLine($"class {celestialBody.Name?.ToPascalCase() ?? "OAPP"} : public contract {{");
+                sb.AppendLine("  public:");
+                sb.AppendLine($"    using contract::contract;");
+                sb.AppendLine();
+
+                var zomes = celestialBody.CelestialBodyCore?.Zomes;
+                if (zomes != null)
+                {
+                    foreach (var zome in zomes)
+                    {
+                        if (zome?.Children == null) continue;
+
+                        foreach (var holon in zome.Children)
+                        {
+                            if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+
+                            var holonTypeName = holon.Name.ToPascalCase();
+                            var holonVarName = holon.Name.ToSnakeCase();
+
+                            sb.AppendLine($"    // {holonTypeName} struct");
+                            sb.AppendLine($"    struct [[eosio::table]] {holonVarName} {{");
+                            sb.AppendLine("      name id;");
+                            sb.AppendLine("      std::string name;");
+                            sb.AppendLine("      std::string description;");
+                            sb.AppendLine();
+                            sb.AppendLine($"      uint64_t primary_key() const {{ return id.value; }}");
+                            sb.AppendLine("    };");
+                            sb.AppendLine();
+                            sb.AppendLine($"    using {holonVarName}_table = eosio::multi_index<\"{holonVarName}\"_n, {holonVarName}>;");
+                            sb.AppendLine();
+
+                            sb.AppendLine($"    // Create {holonTypeName}");
+                            sb.AppendLine($"    ACTION create{holonTypeName}(name id, std::string name, std::string description) {{");
+                            sb.AppendLine($"      {holonVarName}_table {holonVarName}s(get_self(), get_self().value);");
+                            sb.AppendLine($"      {holonVarName}s.emplace(get_self(), [&](auto& row) {{");
+                            sb.AppendLine($"        row.id = id;");
+                            sb.AppendLine($"        row.name = name;");
+                            sb.AppendLine($"        row.description = description;");
+                            sb.AppendLine($"      }});");
+                            sb.AppendLine($"    }}");
+                            sb.AppendLine();
+                        }
+                    }
+                }
+
+                sb.AppendLine("};");
+                sb.AppendLine();
+                sb.AppendLine($"EOSIO_DISPATCH({celestialBody.Name?.ToPascalCase() ?? "OAPP"}, (createHolon))");
+
+                File.WriteAllText(Path.Combine(eosioFolder, "contract.cpp"), sb.ToString());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+
+
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error in SendTransactionByIdAsync (token) in EOSIOOASIS. Reason: ";
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarId);
+                if (fromWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message), fromWalletResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, toAvatarId);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                // token parameter currently defaults to network native token in repository (EOS)
+                var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
+                result.IsError = transferResult.IsError;
+                result.Message = transferResult.Message;
+                result.InnerMessages = transferResult.InnerMessages;
+                result.Result = transferResult.Result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync (token) in EOSIOOASIS. Reason: ";
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarUsername);
+                if (fromWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message), fromWalletResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, toAvatarUsername);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
+                result.IsError = transferResult.IsError;
+                result.Message = transferResult.Message;
+                result.InnerMessages = transferResult.InnerMessages;
+                result.Result = transferResult.Result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error in SendTransactionByEmailAsync (token) in EOSIOOASIS. Reason: ";
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarEmail);
+                if (fromWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message), fromWalletResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, toAvatarEmail);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
+                result.IsError = transferResult.IsError;
+                result.Message = transferResult.Message;
+                result.InnerMessages = transferResult.InnerMessages;
+                result.Result = transferResult.Result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
+        }
+
+
+        public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            // Repository supports 3-arg signature; memo is part of request MetaData
+            var resp = await _transferRepository.TransferEosToken(fromWalletAddress, toWalletAddress, amount);
+            if (!string.IsNullOrEmpty(memoText) && resp?.Result != null)
+                resp.Result.TransactionResult = string.Concat(resp.Result.TransactionResult, " | Memo:", memoText);
+            return resp;
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error in SendTransactionByIdAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarId);
+            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarId);
+
+            if (fromAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+
+            if (result.IsError)
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
+
+            // Get EOSIO account names directly without loading full avatars
+            var fromAvatarAccountName = GetEOSIOAccountNameForAvatarUsername(fromAvatarUsername);
+            var toAvatarAccountName = GetEOSIOAccountNameForAvatarUsername(toAvatarUsername);
+
+            if (string.IsNullOrEmpty(fromAvatarAccountName))
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get EOSIO account name for from avatar: " + fromAvatarUsername));
+                return result;
+            }
+
+            if (string.IsNullOrEmpty(toAvatarAccountName))
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get EOSIO account name for to avatar: " + toAvatarUsername));
+                return result;
+            }
+            result = await _transferRepository.TransferEosToken(fromAvatarAccountName, toAvatarAccountName, amount);
+
+            if (result.IsError)
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error in SendTransactionByEmailAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(fromAvatarEmail);
+            var toAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(toAvatarEmail);
+
+            if (fromAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
+                    fromAvatarResult.Exception);
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
+                    toAvatarResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+
+            if (result.IsError)
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId,
+            decimal amount)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            string errorMessage =
+                "Error in SendTransactionByDefaultWalletAsync method in EosioOasis sending transaction. Reason: ";
+
+            var fromWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            var toWalletResult =
+                await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EOSIOOASIS);
+
+            if (fromWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message),
+                    fromWalletResult.Exception);
+                return result;
+            }
+
+            if (toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message),
+                    toWalletResult.Exception);
+                return result;
+            }
+
+            var senderAvatarAccountName = fromWalletResult.Result.Name;
+            var receiverAvatarAccountName = toWalletResult.Result.Name;
+            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName,
+                amount);
+
+            if (result.IsError)
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+            return result;
+        }
+
+
+
+    }
+}
