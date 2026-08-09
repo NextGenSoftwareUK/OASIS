@@ -260,6 +260,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         };
 
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
+        if (!blockHash.WasSuccessful || blockHash.Result?.Value == null)
+            throw new Exception($"Failed to get latest blockhash: {blockHash.Reason}");
 
         byte[] txBytes = new TransactionBuilder()
             .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
@@ -316,6 +318,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         };
 
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
+        if (!blockHash.WasSuccessful || blockHash.Result?.Value == null)
+            throw new Exception($"Failed to get latest blockhash: {blockHash.Reason}");
 
         byte[] txBytes = new TransactionBuilder()
             .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
@@ -470,6 +474,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         };
 
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
+        if (!blockHash.WasSuccessful || blockHash.Result?.Value == null)
+            throw new Exception($"Failed to get latest blockhash: {blockHash.Reason}");
 
         byte[] txBytes = new TransactionBuilder()
             .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
