@@ -2377,7 +2377,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 return result;
             }
 
-            if (request.InitialSize > 0)
+            if (request.InitialSize >= 0)
             {
                 bool attemptingToSetSize = true;
                 DateTime startTime = DateTime.Now;
