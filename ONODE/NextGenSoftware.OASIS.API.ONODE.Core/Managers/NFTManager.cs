@@ -2406,18 +2406,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, setSizeErrorMessage, onlyLogToInnerMessages: true);
                             break;
                         }
-
-                        setSizeErrorMessage = "";
                     }
 
                     Thread.Sleep(request.AttemptToSetCollectionSizeEveryXSeconds * 1000);
 
                     if (startTime.AddSeconds(request.WaitForCollectionSizeToBeSetInSeconds).Ticks < DateTime.Now.Ticks)
                     {
-                        setSizeErrorMessage = $"Timeout expired, WaitForCollectionSizeToBeSetInSeconds ({request.WaitForCollectionSizeToBeSetInSeconds}) exceeded. NFT was minted successfully but collection size could not be set. Try calling SetCollectionSize separately.";
-                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} {setSizeErrorMessage}", onlyLogToInnerMessages: true);
+                        string timeoutMsg = $"Timeout expired, WaitForCollectionSizeToBeSetInSeconds ({request.WaitForCollectionSizeToBeSetInSeconds}) exceeded. NFT was minted successfully but collection size could not be set. Try calling SetCollectionSize separately.";
+                        if (!string.IsNullOrEmpty(setSizeErrorMessage))
+                            timeoutMsg += $" Last error: {setSizeErrorMessage}";
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} {timeoutMsg}", onlyLogToInnerMessages: true);
                         break;
                     }
+
+                    setSizeErrorMessage = "";
 
                 } while (attemptingToSetSize);
             }
