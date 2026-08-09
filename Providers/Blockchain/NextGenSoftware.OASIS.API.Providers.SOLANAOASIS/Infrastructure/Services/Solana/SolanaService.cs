@@ -236,10 +236,10 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         PublicKey collectionMetadataPda      = DeriveMetadataPda(collectionMint, metadataProgram);
         PublicKey collectionMasterEditionPda = DeriveMasterEditionPda(collectionMint, metadataProgram);
 
-        // Instruction 35 = SetAndVerifySizedCollectionItem (canonical Metaplex enum).
-        // Instruction 22 (SetAndVerifyCollection) is blocked for sized collections with error 0x66.
-        // SetAndVerifySizedCollectionItem also increments collectionDetails.size, so collectionMetadata must be writable.
-        byte[] instructionData = new byte[] { 35 };
+        // Instruction 32 = SetAndVerifySizedCollectionItem (deployed mpl-token-metadata program enum).
+        // Instruction 25 (SetAndVerifyCollection) is blocked for sized collections with error 0x66.
+        // Instruction 32 also increments collectionDetails.size, so collectionMetadata must be writable.
+        byte[] instructionData = new byte[] { 32 };
 
         List<AccountMeta> accounts = new()
         {
@@ -449,20 +449,19 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         PublicKey collectionMint = new(collectionMintAddress);
         PublicKey collectionMetadataPda = DeriveMetadataPda(collectionMint, metadataProgram);
 
-        // Instruction 36 = SetCollectionSize (canonical Metaplex token-metadata enum).
-        // 33 = VerifySizedCollectionItem (wrong — causes "invalid instruction data").
-        // 35 = SetAndVerifySizedCollectionItem. 36 = SetCollectionSize.
+        // Instruction 34 = SetCollectionSize (deployed mpl-token-metadata program enum).
         // Data: [discriminator u8 (1 byte)] + [size u64 LE (8 bytes)] = 9 bytes total.
         byte[] sizeBytes = BitConverter.GetBytes(size);
         if (!BitConverter.IsLittleEndian) Array.Reverse(sizeBytes);
         byte[] instructionData = new byte[9];
-        instructionData[0] = 36;
+        instructionData[0] = 34;
         Buffer.BlockCopy(sizeBytes, 0, instructionData, 1, 8);
 
         List<AccountMeta> accounts =
         [
             AccountMeta.Writable(collectionMetadataPda, false),   // collection metadata
             AccountMeta.Writable(oasisAccount.PublicKey, true),   // update authority (signer)
+            AccountMeta.Writable(oasisAccount.PublicKey, true),   // payer (signer)
             AccountMeta.ReadOnly(collectionMint, false),           // collection mint
         ];
 
