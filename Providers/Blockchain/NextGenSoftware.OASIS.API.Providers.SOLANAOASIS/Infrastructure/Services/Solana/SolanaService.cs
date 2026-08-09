@@ -236,11 +236,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         PublicKey collectionMetadataPda      = DeriveMetadataPda(collectionMint, metadataProgram);
         PublicKey collectionMasterEditionPda = DeriveMasterEditionPda(collectionMint, metadataProgram);
 
-        // Instruction 32 = SetAndVerifySizedCollectionItem (for sized collections).
+        // Instruction 35 = SetAndVerifySizedCollectionItem (for sized collections).
         // Instruction 25 (SetAndVerifyCollection) is hard-blocked for sized collections
         // with error 0x66: "Can't use this function on a sized collection".
-        // Instruction 32 also increments collectionDetails.size, so collectionMetadata must be writable.
-        byte[] instructionData = new byte[] { 32 };
+        // Instruction 35 also increments collectionDetails.size, so collectionMetadata must be writable.
+        byte[] instructionData = new byte[] { 35 };
 
         List<AccountMeta> accounts = new()
         {
@@ -446,11 +446,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         PublicKey collectionMint = new(collectionMintAddress);
         PublicKey collectionMetadataPda = DeriveMetadataPda(collectionMint, metadataProgram);
 
-        // Instruction 33 = SetCollectionSize; data = [discriminator (1)] + [size as u64 LE (8)]
+        // Instruction 36 = SetCollectionSize; data = [discriminator (1)] + [size as u64 LE (8)]
         byte[] sizeBytes = BitConverter.GetBytes(size);
         if (!BitConverter.IsLittleEndian) Array.Reverse(sizeBytes);
         byte[] instructionData = new byte[9];
-        instructionData[0] = 33;
+        instructionData[0] = 36;
         Buffer.BlockCopy(sizeBytes, 0, instructionData, 1, 8);
 
         List<AccountMeta> accounts =
