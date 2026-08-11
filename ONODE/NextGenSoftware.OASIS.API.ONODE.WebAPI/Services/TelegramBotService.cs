@@ -40,7 +40,7 @@
 //        private readonly System.Net.Http.HttpClient _httpClient;
         
 //        // AI Configuration
-//        private const string OPENAI_API_KEY = "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";
+//        private const string OPENAI_API_KEY = ""; // REMOVED: was hardcoded — load from config/env instead
 //        private const bool AI_ENABLED = true; // Toggle AI processing
 
 //        public TelegramBotService(
