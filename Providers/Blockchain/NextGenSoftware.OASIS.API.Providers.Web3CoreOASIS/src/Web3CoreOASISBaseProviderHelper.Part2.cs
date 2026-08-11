@@ -50,4 +50,16 @@ using static NextGenSoftware.Utilities.KeyHelper;
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 internal static partial class Web3CoreOASISBaseProviderHelper
 {
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        public static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 }
