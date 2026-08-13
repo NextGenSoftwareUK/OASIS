@@ -177,31 +177,4 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     }
 
 
-    public class Point3D
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
-    }
-
-    public class LoadAreaRequest
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
-        public double Radius { get; set; } = 100.0;
-    }
-
-    public class JumpToAreaRequest
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
-        public double Radius { get; set; } = 100.0;
-    }
-
-    public class VolumeRequest
-    {
-        public double Volume { get; set; }
-    }
 }

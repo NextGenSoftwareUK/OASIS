@@ -34,10 +34,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.Write(" STAR");
             Console.ForegroundColor = ConsoleColor.Green;
 
-            if (RandomNumberGenerator.GetInt32(1) == 0)
-                Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
-            else
-                Console.Write($" (Super Technogically Advanced Reality-Engine) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+            //if (RandomNumberGenerator.GetInt32(1) == 0)
+            //    Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+            //else
+                Console.Write($" (Sovereign Trust Application Runtime) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
 
             Console.WriteLine("");
             Console.WriteLine("*************************************************************************************************");
