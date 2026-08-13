@@ -90,6 +90,193 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        #region Property Access
 
+
+        #endregion
+
+        #region Get Children Methods
+
+
+        #endregion
+
+        #region Search Methods
+
+
+
+
+        #endregion
+
+        #region Omniverse Methods
+
+
+
+
+        #endregion
+
+        #region Multiverse Methods
+
+
+
+
+        #endregion
+
+        #region Universe Methods
+
+
+
+
+        #endregion
+
+        #region GalaxyCluster Methods
+
+
+
+
+        #endregion
+
+        #region Galaxy Methods
+
+
+
+
+        #endregion
+
+        #region SolarSystem Methods
+
+
+
+
+        #endregion
+
+        #region Star Methods
+
+
+
+
+        #endregion
+
+        #region Planet Methods
+
+
+
+
+        #endregion
+
+        #region Moon Methods
+
+
+
+
+        #endregion
+
+        #region Asteroid Methods
+
+
+
+
+        #endregion
+
+        #region Comet Methods
+
+
+
+
+        #endregion
+
+        #region Meteroid Methods
+
+
+
+
+        #endregion
+
+        #region Collection Methods
+
+
+
+
+
+
+        #endregion
+
+        #region Nebula Methods
+
+
+
+        #endregion
+
+        #region SuperVerse Methods
+
+
+
+        #endregion
+
+        #region WormHole Methods
+
+
+
+        #endregion
+
+        #region BlackHole Methods
+
+
+
+        #endregion
+
+        #region Portal Methods
+
+
+
+        #endregion
+
+        #region StarGate Methods
+
+
+
+        #endregion
+
+        #region SpaceTimeDistortion Methods
+
+
+
+        #endregion
+
+        #region SpaceTimeAbnormally Methods
+
+
+
+        #endregion
+
+        #region TemporalRift Methods
+
+
+
+        #endregion
+
+        #region StarDust Methods
+
+
+
+        #endregion
+
+        #region CosmicWave Methods
+
+
+
+        #endregion
+
+        #region CosmicRay Methods
+
+
+
+        #endregion
+
+        #region GravitationalWave Methods
+
+
+
+        #endregion
     }
 }
+
