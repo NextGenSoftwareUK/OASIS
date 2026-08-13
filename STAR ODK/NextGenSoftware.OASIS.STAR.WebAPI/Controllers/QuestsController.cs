@@ -41,10 +41,62 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         protected override STARAPI GetStarAPI() => _starAPI;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
-
-    public class CreateQuestRequest
+    public partial class CreateQuestRequest
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
@@ -61,7 +113,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     }
 
     /// <summary>Game-keyed requirement/progress dictionaries for objectives (matches backend IQuestObjectiveDictionaries). All optional.</summary>
-    public class QuestObjectiveDictionariesRequest
+    public partial class QuestObjectiveDictionariesRequest
     {
         public Dictionary<string, List<string>>? NeedToCollectArmor { get; set; }
         public Dictionary<string, List<string>>? NeedToCollectAmmo { get; set; }
@@ -98,7 +150,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     }
 
     /// <summary>Objective (sub-quest) payload for create or add objective. Matches backend Objective; optional Dictionaries for full requirement/progress.</summary>
-    public class QuestObjectiveRequest
+    public partial class QuestObjectiveRequest
     {
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
@@ -112,7 +164,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
-    public class AddQuestObjectiveRequest
+    public partial class AddQuestObjectiveRequest
     {
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
@@ -124,7 +176,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     }
 
     /// <summary>Request body for adding a sub-quest (full child quest).</summary>
-    public class AddSubQuestRequest
+    public partial class AddSubQuestRequest
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
@@ -133,19 +185,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
-    public class EditQuestRequest
+    public partial class EditQuestRequest
     {
         public STARNETDNA NewDNA { get; set; } = null;
     }
 
-    public class CompleteQuestObjectiveRequest
+    public partial class CompleteQuestObjectiveRequest
     {
         public string GameSource { get; set; } = "";
         public string CompletionNotes { get; set; } = "";
     }
 
-    /// <summary>Body for POST api/quests/objectives/complete — questId and objectiveId may be GUID strings or client slugs (e.g. cross_dimensional_keycard_hunt, doom_red_keycard).</summary>
-    public class CompleteQuestObjectiveIdentifiersRequest
+    /// <summary>Body for POST api/quests/objectives/complete â€” questId and objectiveId may be GUID strings or client slugs (e.g. cross_dimensional_keycard_hunt, doom_red_keycard).</summary>
+    public partial class CompleteQuestObjectiveIdentifiersRequest
     {
         public string QuestId { get; set; } = "";
         public string ObjectiveId { get; set; } = "";
@@ -154,7 +206,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     }
 
     /// <summary>Realtime quest progress from game (Doom/Quake): kills, XP, pickups by type, level time. Objective dictionaries (NeedToCollectArmor etc.) are keyed by game source (ODOOM, Quake, OQUAKE).</summary>
-    public class QuestProgressRequest
+    public partial class QuestProgressRequest
     {
         /// <summary>Optional avatar profile active objective id; server applies deltas to incomplete objectives in this order: this id first, then by objective Order.</summary>
         public Guid? ActiveObjectiveId { get; set; }

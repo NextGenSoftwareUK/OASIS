@@ -27,6 +27,12 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Game management endpoints for creating, updating, and managing STAR games.
+    /// Games can be created, searched, edited, published, downloaded, and installed through the STARNET system.
+    /// Also provides game session management, level/area loading, UI, audio, video, and input controls.
+    /// Enables cross-game interoperability with shared assets, karma, NFTs, and quests.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public partial class GamesController : STARControllerBase
@@ -35,14 +41,138 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         protected override STARAPI GetStarAPI() => _starAPI;
 
+        #region STARNET CRUD Operations
+
+
+
+
+
+
+        #endregion
+
+        #region STARNET Management Operations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        #endregion
+
+        #region Game Session Management
+
+
+
+
+
+        #endregion
+
+        #region Level Management
+
+
+
+
+
+        #endregion
+
+        #region Area Management
+
+
+
+
+        #endregion
+
+        #region UI Management
+
+
+
+
+
+        #endregion
+
+        #region Audio Settings
+
+
+
+
+
+
+
+        #endregion
+
+        #region Video Settings
+
+
+
+        #endregion
+
+        #region Input Management
+
+
+
+        #endregion
+
+        #region Cross-Game Interoperability - Shared Inventory System
+
+
+
+
+
+
+
+
+        #endregion
     }
 
-    public class VideoSettingRequest
+    #region Request Models
+
+    public partial class Point3D
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+    }
+
+    public partial class LoadAreaRequest
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+        public double Radius { get; set; } = 100.0;
+    }
+
+    public partial class JumpToAreaRequest
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+        public double Radius { get; set; } = 100.0;
+    }
+
+    public partial class VolumeRequest
+    {
+        public double Volume { get; set; }
+    }
+
+    public partial class VideoSettingRequest
     {
         public VideoSetting Setting { get; set; }
     }
 
-    public class CreateGameRequest
+    public partial class CreateGameRequest
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
@@ -51,9 +181,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public ISTARNETCreateOptions<Game, STARNETDNA> CreateOptions { get; set; } = null;
     }
 
-    public class EditGameRequest
+    public partial class EditGameRequest
     {
         public STARNETDNA NewDNA { get; set; } = null;
     }
 
+    #endregion
 }
+

@@ -18,6 +18,7 @@ using System.Drawing;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
+    //public abstract class CelestialBody<T> : CelestialHolon, ICelestialBody where T : ICelestialBody, new()
     public abstract partial class CelestialBody<T> : CelestialHolon, ICelestialBody where T : ICelestialBody, new()
     {
         public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the star/planet/moon/etc (OApp), which links to all the other stars/planets/moons/etc/zomes/holons...
@@ -152,6 +153,265 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         //    return result;
         //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //TODO: Is this needed?
+        //public async Task<OASISResult<IEnumerable<T>>> SaveZomesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        //{
+        //    return OASISResultHelperForHolons<IZome, T>.CopyResult(await SaveZomesAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType));
+        //}
+
+        //public OASISResult<IEnumerable<T>> SaveZomes<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IZome, new()
+        //{
+        //    return OASISResultHelperForHolons<IZome, T>.CopyResult(SaveZomes(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType));
+        //}
+
+        ////TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
+        //public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        //{
+        //    OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+        //    OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+
+        //    if (this.CelestialBodyCore.Zomes != null)
+        //    {
+        //        foreach (IZome zome in this.CelestialBodyCore.Zomes)
+        //        {
+        //            if (zome.HasHolonChanged())
+        //            {
+        //                zomeResult = await zome.SaveAsync(saveChildren, recursive, continueOnError);
+
+        //                if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+        //                    result.SavedCount++;
+        //                else
+        //                {
+        //                    result.ErrorCount++;
+        //                    OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBody.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+        //                    //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+        //                    if (!continueOnError)
+        //                        break;
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    if (result.ErrorCount > 0)
+        //    {
+        //        string message = $"{result.ErrorCount} Error(s) occured in CelestialBody.SaveZomes method whilst saving {CelestialBodyCore.Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+        //        if (result.SavedCount == 0)
+        //            OASISErrorHandling.HandleError(ref result, message);
+        //        else
+        //        {
+        //            OASISErrorHandling.HandleWarning(ref result, message);
+        //            result.IsSaved = true;
+        //        }
+
+        //        OnZomeError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}");
+        //    }
+        //    else
+        //        result.IsSaved = true;
+
+        //    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
+        //    return result;
+        //}
+
+        //public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        //{
+        //    OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+        //    OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+
+        //    if (this.CelestialBodyCore.Zomes != null)
+        //    {
+        //        foreach (IZome zome in this.CelestialBodyCore.Zomes)
+        //        {
+        //            if (zome.HasHolonChanged())
+        //            {
+        //                zomeResult = zome.Save(saveChildren, recursive, continueOnError);
+
+        //                if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+        //                    result.SavedCount++;
+        //                else
+        //                {
+        //                    result.ErrorCount++;
+        //                    OASISErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBody.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+        //                    //OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+        //                    if (!continueOnError)
+        //                        break;
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    if (result.ErrorCount > 0)
+        //    {
+        //        string message = $"{result.ErrorCount} Error(s) occured in CelestialBody.SaveZomes method whilst saving {CelestialBodyCore.Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+        //        if (result.SavedCount == 0)
+        //            OASISErrorHandling.HandleError(ref result, message);
+        //        else
+        //        {
+        //            OASISErrorHandling.HandleWarning(ref result, message);
+        //            result.IsSaved = true;
+        //        }
+
+        //        OnZomeError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}");
+        //    }
+        //    else
+        //        result.IsSaved = true;
+
+        //    OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
+        //    return result;
+        //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //protected async Task<OASISResult<ICelestialBody>> InitializeAsync(bool autoLoad = true)
+        //{
+        //    OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+
+        //    //InitCelestialBodyCore();
+        //    //WireUpEvents();
+
+        //    if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
+        //    {
+        //        result = await LoadAsync<T>();
+
+        //        if (result != null && !result.IsError && result.Result != null)
+        //            await base.InitializeAsync();
+        //    }
+        //    else
+        //        OASISErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
+
+        //    return result;
+        //}
+
+        //protected OASISResult<ICelestialBody> Initialize(bool autoLoad = true)
+        //{
+        //    OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+
+        //    //InitCelestialBodyCore();
+        //    //WireUpEvents();
+
+        //    if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
+        //    {
+        //        result = Load<T>();
+
+        //        if (result != null && !result.IsError && result.Result != null)
+        //            base.Initialize();
+        //    }
+        //    else
+        //        OASISErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
+
+        //    return result;
+        //}
+
+        //protected async Task<OASISResult<T>> InitializeAsync<T>(bool autoLoad = true) where T : ICelestialBody, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+
+        //    //InitCelestialBodyCore();
+        //    //WireUpEvents();
+
+        //    if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
+        //    {
+        //        OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync<T>();
+
+        //        OASISResultHelper<ICelestialBody, T>.CopyResult(celestialBodyResult, result);
+        //        result.Result = (T)celestialBodyResult.Result;
+
+        //        if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+        //            await base.InitializeAsync();
+        //    }
+        //    else
+        //        OASISErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
+
+        //    return result;
+        //}
+
+        //protected OASISResult<T> Initialize<T>(bool autoLoad = true) where T : ICelestialBody, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+
+        //    InitCelestialBodyCore();
+        //    WireUpEvents();
+
+        //    if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
+        //    {
+        //        OASISResult<ICelestialBody> celestialBodyResult = Load<T>();
+
+        //        OASISResultHelper<ICelestialBody, T>.CopyResult(celestialBodyResult, result);
+        //        result.Result = (T)celestialBodyResult.Result;
+
+        //        if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+        //            base.Initialize();
+        //    }
+        //    else
+        //        OASISErrorHandling.HandleWarning(ref result, "Warning in Initialize method in CelestialBody: Neither the Id or ProviderUniqueStorageKey have been set, at least one needs to be set.");
+
+        //    return result;
+        //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 }
