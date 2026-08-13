@@ -44,7 +44,7 @@ try {
     $exitCode = $LASTEXITCODE
     Write-Host ''
     Write-Host 'Press any key to exit...' -ForegroundColor Gray
-    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+    if (-not $env:OASIS_NO_PAUSE) { $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') }
     exit $exitCode
 }
 finally {
