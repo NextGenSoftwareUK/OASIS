@@ -86,6 +86,10 @@ ANTHROPIC_API_KEY=sk-ant-...
 GEMINI_API_KEY=...
 GROQ_API_KEY=...
 MISTRAL_API_KEY=...
+REPLICATE_API_KEY=...          # Replicate — open-source model marketplace
+
+# Observability (optional)
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317  # export traces to Jaeger/Grafana Tempo/Datadog
 
 # External memory (optional — enables automatic context injection)
 MEM0_API_KEY=...
@@ -100,7 +104,25 @@ OASIS_API_URL=https://api.web4.oasisomniverse.one
 
 ## Common Workflows
 
-### 1. Simple AI completion
+### 1. OpenAI-compatible drop-in (if you're already using LangChain / AutoGen / CrewAI / Semantic Kernel)
+
+Change only your base URL and API key. No other code changes required:
+
+```python
+# LangChain
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(
+    openai_api_base="https://api.web6.oasisomniverse.one/v1",
+    openai_api_key="<your-oasis-avatar-key>",
+    model="auto"   # or any specific model: "claude-sonnet-4-6", "gpt-4o", etc.
+)
+```
+
+WEB6 exposes `POST /v1/chat/completions` in the standard OpenAI format. The `model` field drives provider routing automatically.
+
+---
+
+### 2. Simple AI completion (WEB6 native)
 
 The quickest way to make an AI call that works across any provider:
 

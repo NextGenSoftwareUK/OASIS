@@ -6,9 +6,11 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse stack �
 
 | Document | Description |
 |---|---|
-| [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full reference for all 56 REST endpoints — request/response shapes, auth, error codes |
+| [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full reference for all REST endpoints — request/response shapes, auth, error codes |
 | [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | Full reference for all 250 MCP tools — parameters, return values, examples |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Getting started, common workflows, environment setup, recipes |
+| [WEB6 Getting Started Guide](WEB6-Getting-Started-Guide.md) | Quickstart, provider table, FAHRN/BRAID/Memory overview, OpenAI-compat setup, Prometheus/OTel, ONODE self-hosting |
+| [WEB6 Leela AI Integration Guide](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook for Leela AI — Bedrock swap, BRAID/caching, holonic document storage |
 
 ## Quick links
 

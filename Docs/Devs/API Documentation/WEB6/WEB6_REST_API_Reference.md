@@ -79,7 +79,7 @@ Unified AI completion. Routes to whichever provider/model best fits based on `pr
 }
 ```
 
-**`provider` values:** `auto`, `openai`, `anthropic`, `gemini`, `groq`, `mistral`, `cohere`, `xai`, `deepseek`, `ollama`, `openserv`, `azureopenai`, `awsbedrock`, `huggingface`
+**`provider` values:** `auto`, `openai`, `anthropic`, `gemini`, `groq`, `mistral`, `cohere`, `xai`, `deepseek`, `ollama`, `openserv`, `azureopenai`, `awsbedrock`, `huggingface`, `stabilityai`, `cerebras`, `togetherai`, `fireworksai`, `moonshotai`, `perplexity`, `lmstudio`, `bittensor`, `gaianet`, `leelaai`, `replicate`
 
 **`routing.priority` values:** `quality`, `latency`, `cost`, `balanced`
 
@@ -98,6 +98,50 @@ Unified AI completion. Routes to whichever provider/model best fits based on `pr
   }
 }
 ```
+
+---
+
+### POST `/v1/chat/completions`
+
+**OpenAI-compatible shim.** Accepts the standard OpenAI request envelope and returns a standard OpenAI response. Use this to point any OpenAI-compatible framework (LangChain, AutoGen, CrewAI, Semantic Kernel) at WEB6 by changing only the base URL and API key.
+
+**Request body:**
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "messages": [
+    { "role": "user", "content": "Explain quantum entanglement." }
+  ],
+  "temperature": 0.7,
+  "max_tokens": 1024,
+  "stream": false,
+  "tools": []
+}
+```
+
+The `model` field drives provider routing: `claude-*` → Anthropic, `gpt-*` / `o1-*` / `o3-*` → OpenAI, `gemini-*` → Google, `mistral*` → Mistral, `llama*` → Llama, `deepseek*` → DeepSeek, `auto` → WEB6 picks.
+
+**Response (non-streaming):**
+```json
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "created": 1754200000,
+  "model": "claude-sonnet-4-6",
+  "choices": [{
+    "index": 0,
+    "message": { "role": "assistant", "content": "Quantum entanglement is..." },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 42,
+    "completion_tokens": 318,
+    "total_tokens": 360
+  }
+}
+```
+
+**Streaming** — pass `"stream": true`. Returns `text/event-stream` with OpenAI-format chunks ending with `data: [DONE]`.
 
 ---
 
@@ -438,6 +482,51 @@ Record a memory item at a holon.
 **`retentionPolicy` values:** `Ephemeral`, `Session`, `Persistent`, `TimeLimited`
 
 For `TimeLimited`, also pass `"expiresUtc": "2026-12-31T00:00:00Z"`.
+
+---
+
+### POST `/v1/holonic-memory/holons/{holonId}/documents`
+
+Bulk document ingestion with semantic deduplication. Chunks the document, embeds each chunk, compares against existing holon items (cosine similarity ≥ 0.98 = duplicate), and stores only genuinely new chunks in a single holon save. Use this instead of looping `POST /memory` yourself.
+
+**Request body:**
+```json
+{
+  "content": "Full document text here...",
+  "documentName": "cbt-protocol-v3",
+  "chunkTokens": 400,
+  "overlapTokens": 50,
+  "tags": ["protocol", "CBT"],
+  "retentionPolicy": "Persistent",
+  "expiresUtc": null
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `content` | string | required | Full raw document text |
+| `documentName` | string | random 8-char id | Prefix for chunk fieldNames |
+| `chunkTokens` | int | 400 | Approximate tokens per chunk (4 chars ≈ 1 token) |
+| `overlapTokens` | int | 50 | Overlap tokens between consecutive chunks |
+| `tags` | string[] | [] | Applied to every chunk; documentName is auto-added |
+| `retentionPolicy` | enum | `Persistent` | `Ephemeral` / `Session` / `Persistent` / `TimeLimited` |
+| `expiresUtc` | datetime? | null | Required for `TimeLimited` policy |
+
+**Response:**
+```json
+{
+  "result": {
+    "documentName": "cbt-protocol-v3",
+    "totalChunks": 12,
+    "storedChunks": 10,
+    "deduplicatedChunks": 2,
+    "chunkFieldNames": ["doc-cbt-protocol-v3-chunk-001", "..."],
+    "errors": null
+  }
+}
+```
+
+`deduplicatedChunks` is the count of chunks skipped because a near-identical item already existed in the holon. `chunkFieldNames` includes the existing fieldName for those chunks (not a new entry).
 
 ---
 
@@ -826,7 +915,23 @@ Get a rich context block for an avatar — karma score, active quests, installed
 
 ---
 
-## Telemetry
+## Telemetry & Observability
+
+### GET `/metrics`
+
+Prometheus scrape endpoint. Returns metrics in the standard Prometheus text format. Scrape this with Prometheus, Grafana Agent, Datadog Agent, or any OpenMetrics-compatible collector.
+
+Available metrics: `web6_completion_requests_total`, `web6_fahrn_dispatches_total`, `web6_braid_graph_reuses_total`, `web6_cache_hits_total`, `web6_prompt_tokens`, `web6_completion_tokens`, `web6_request_latency_milliseconds`, `web6_estimated_cost_usd`, `web6_errors_total`.
+
+All metrics are labelled by `provider` and `model`. See the Getting Started Guide section 14 for the full metric table and PromQL examples.
+
+---
+
+### OpenTelemetry (OTLP)
+
+WEB6 exports distributed traces via OTLP. Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://your-collector:4317` to export to Jaeger, Grafana Tempo, Datadog, Honeycomb, or any OTLP-compatible backend. The service name in traces is `oasis-web6`. No other configuration required.
+
+---
 
 ### GET `/v1/telemetry/stream`
 
