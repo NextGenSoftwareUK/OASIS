@@ -35,6 +35,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
+
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public partial class NFTManager : COSMICManagerBase, INFTManager
@@ -71,6 +72,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
         }
 
+        //private static NFTManager _instance = null;
+
+        // public Guid AvatarId { get; set; }
+
+        //public static NFTManager Instance
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //            _instance = new NFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.Id); //TODO: Need to remove LoggedInAvatar ASAP! Not sure how to pass the avatarId to the instance prop?
+
+        //        return _instance;
+        //    }
+        //}
+
         public NFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
         {
 
@@ -80,5 +96,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
 
         }
+
     }
 }
