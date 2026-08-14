@@ -1,0 +1,463 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Google.Cloud.Storage.V1;
+using Microsoft.Extensions.DependencyModel;
+using Newtonsoft.Json;
+using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
+using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
+
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
+{
+    public abstract partial class STARNETManagerBase<T1, T2, T3, T4>
+    {
+        public virtual async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            T4 STARNETDNA = default;
+            string errorMessage = "Error occured in STARNETManagerBase.PublishAsync. Reason:";
+
+            OASISResult<T1> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, fullPathToPublishTo, launchTarget, edit, providerType);
+
+            if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
+            {
+                STARNETDNA = (T4)validateResult.Result.STARNETDNA;
+                string publishedFileName = string.Concat(STARNETDNA.Name, "_v", STARNETDNA.Version, ".", STARNETHolonFileExtention);
+
+                STARNETDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud);
+
+                if (generateBinary)
+                {
+                    STARNETDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
+                    STARNETDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
+                    STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), binaryProviderType);
+                }
+
+                WriteDNA(STARNETDNA, fullPathToSource);
+                OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = STARNETDNA, Status = STARNETHolonPublishStatus.Compressing });
+
+                if (generateBinary)
+                {
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(STARNETDNA.Name, "_v", STARNETDNA.Version));
+
+                    try
+                    {
+                        if (Directory.Exists(publishedPath))
+                            Directory.Delete(publishedPath, true);
+
+                        Directory.CreateDirectory(publishedPath);
+                        DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
+
+                        if (!embedRuntimes && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes"), true);
+
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates"), true);
+
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs"), true);
+
+                        OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, STARNETDNA.PublishedPath);
+
+                        if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                        {
+                            result.Message = compressedResult.Message;
+                            result.IsError = true;
+                            return result;
+                        }
+
+                        //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARNETDNA inside it...
+                        if (!string.IsNullOrEmpty(STARNETDNA.PublishedPath) && File.Exists(STARNETDNA.PublishedPath))
+                            STARNETDNA.FileSize = new FileInfo(STARNETDNA.PublishedPath).Length;
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to compress the {STARNETHolonUIName} files. Reason: {e}");
+                        return result;
+                    }
+                    finally
+                    {
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
+                    }
+                }
+
+                WriteDNA(STARNETDNA, fullPathToSource);
+                validateResult.Result.STARNETDNA = STARNETDNA;
+
+                if (registerOnSTARNET)
+                {
+                    if (uploadToCloud)
+                    {
+                        OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+
+                        if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloudAsync. Reason: {uploadToCloudResult.Message}");
+                    }
+
+                    if (binaryProviderType != ProviderType.None)
+                    {
+                        OASISResult<T1> uploadToOASISResult = await UploadToOASISAsync(avatarId, STARNETDNA, STARNETDNA.PublishedPath, registerOnSTARNET, uploadToCloud, binaryProviderType);
+
+                        if (uploadToOASISResult != null && uploadToOASISResult.Result != null && !uploadToOASISResult.IsError)
+                            result.Result = uploadToOASISResult.Result;
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
+                    }
+                    else
+                        STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
+                }
+
+                OASISResult<T1> finalResult = await FininalizePublishAsync(avatarId, validateResult.Result, edit, providerType);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(finalResult, result);
+                result.Result = finalResult.Result;
+            }
+            else
+            {
+                if (validateResult.Message.Contains(STARNETDNAFileName))
+                {
+                    result.Message = validateResult.Message;
+                    result.IsError = validateResult.IsError;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublishAsync. Reason: {validateResult.Message}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T1> Publish(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            T4 STARNETDNA = default;
+            string errorMessage = "Error occured in STARNETManagerBase.PublishAsync. Reason:";
+
+            OASISResult<T1> validateResult = BeginPublish(avatarId, fullPathToSource, fullPathToPublishTo, launchTarget, edit, providerType);
+
+            if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
+            {
+                STARNETDNA = (T4)validateResult.Result.STARNETDNA;
+                string publishedFileName = string.Concat(STARNETDNA.Name, "_v", STARNETDNA.Version, ".", STARNETHolonFileExtention);
+
+                STARNETDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud);
+
+                if (generateBinary)
+                {
+                    STARNETDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
+                    STARNETDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
+                    STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), binaryProviderType);
+                }
+
+                WriteDNA(STARNETDNA, fullPathToSource);
+                OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = STARNETDNA, Status = STARNETHolonPublishStatus.Compressing });
+
+                if (generateBinary)
+                {
+                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, STARNETDNA.PublishedPath);
+
+                    if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                    {
+                        result.Message = compressedResult.Message;
+                        result.IsError = true;
+                        return result;
+                    }
+                }
+
+                //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARNETDNA inside it...
+                if (!string.IsNullOrEmpty(STARNETDNA.PublishedPath) && File.Exists(STARNETDNA.PublishedPath))
+                    STARNETDNA.FileSize = new FileInfo(STARNETDNA.PublishedPath).Length;
+
+                WriteDNA(STARNETDNA, fullPathToSource);
+                validateResult.Result.STARNETDNA = STARNETDNA;
+
+                if (registerOnSTARNET)
+                {
+                    if (uploadToCloud)
+                    {
+                        OASISResult<bool> uploadToCloudResult = UploadToCloud(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+
+                        if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloud. Reason: {uploadToCloudResult.Message}");
+                    }
+
+                    if (binaryProviderType != ProviderType.None)
+                    {
+                        OASISResult<T1> uploadToOASISResult = UploadToOASIS(avatarId, STARNETDNA, STARNETDNA.PublishedPath, registerOnSTARNET, uploadToCloud, binaryProviderType);
+
+                        if (uploadToOASISResult != null && uploadToOASISResult.Result != null && !uploadToOASISResult.IsError)
+                            result.Result = uploadToOASISResult.Result;
+                        else
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASIS. Reason: {uploadToOASISResult.Message}");
+                    }
+                    else
+                        STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublish. Reason: {validateResult.Message}");
+
+
+                OASISResult<T1> finalResult = FininalizePublish(avatarId, validateResult.Result, edit, providerType);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(finalResult, result);
+                result.Result = finalResult.Result;
+            }
+
+            return result;
+        }
+
+        public OASISResult<bool> GenerateCompressedFile(string sourcePath, string destinationPath)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                if (File.Exists(destinationPath))
+                    File.Delete(destinationPath);
+
+                ZipFile.CreateFromDirectory(sourcePath, destinationPath);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, sourcePath + " could not be compressed to " + destinationPath + ". Reason: " + e.Message);
+            }
+
+            return result;
+        }
+
+        //TODO: Come back to this, was going to call this for publishing and installing to make sure the DNA hadn't been changed on the disk, but maybe we want to allow this? Not sure, needs more thought...
+        //private async OASISResult<bool> IsSTARNETDNAValidAsync(T4 STARNETDNA)
+        //{
+        //    OASISResult<ISTARNETHolon> STARNETHolonResult = await LoadSTARNETHolonAsync(STARNETDNA.STARNETHolonId);
+
+        //    if (STARNETHolonResult != null && STARNETHolonResult.Result != null && !STARNETHolonResult.IsError)
+        //    {
+        //        T4 originalDNA =  JsonSerializer.Deserialize<T4>(STARNETHolonResult.Result.MetaData["STARNETDNA"].ToString());
+
+        //        if (originalDNA != null)
+        //        {
+        //            if (originalDNA.GenesisType != STARNETDNA.GenesisType ||
+        //                originalDNA.STARNETHolonType != STARNETDNA.STARNETHolonType ||
+        //                originalDNA.CelestialBodyType != STARNETDNA.CelestialBodyType ||
+        //                originalDNA.CelestialBodyId != STARNETDNA.CelestialBodyId ||
+        //                originalDNA.CelestialBodyName != STARNETDNA.CelestialBodyName ||
+        //                originalDNA.CreatedByAvatarId != STARNETDNA.CreatedByAvatarId ||
+        //                originalDNA.CreatedByAvatarUsername != STARNETDNA.CreatedByAvatarUsername ||
+        //                originalDNA.CreatedOn != STARNETDNA.CreatedOn ||
+        //                originalDNA.Description != STARNETDNA.Description ||
+        //                originalDNA.IsActive != STARNETDNA.IsActive ||
+        //                originalDNA.LaunchTarget != STARNETDNA.LaunchTarget ||
+        //                originalDNA. != STARNETDNA.LaunchTarget ||
+
+        //        }
+        //    }
+        //}
+
+        public virtual async Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string userName = "Unknown";
+            string errorMessage = "Error occured in STARNETManagerBase.BeginPublishAsync. Reason:";
+
+            try
+            {
+                OASISResult<T4> readSTARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(fullPathToSource);
+
+                if (readSTARNETDNAResult != null && !readSTARNETDNAResult.IsError && readSTARNETDNAResult.Result != null)
+                {
+                    //OAPPDNA = readSTARNETDNAResult.Result;
+                    OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = readSTARNETDNAResult.Result, Status = STARNETHolonPublishStatus.Packaging });
+                    OASISResult<IAvatar> loadAvatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+
+                    if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
+                    {
+                        userName = loadAvatarResult.Result.Username;
+
+                        //Load latest version.
+                        OASISResult<T1> loadOAPPResult = await LoadAsync(avatarId, readSTARNETDNAResult.Result.Id);
+
+                        if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
+                        {
+                            if (loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId == avatarId)
+                            {
+                                OASISResult<bool> validateVersionResult = ValidateVersion(readSTARNETDNAResult.Result.Version, loadOAPPResult.Result.STARNETDNA.Version, fullPathToSource, loadOAPPResult.Result.STARNETDNA.PublishedOn == DateTime.MinValue, edit);
+
+                                if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
+                                {
+                                    //TODO: Maybe add check to make sure the DNA has not been tampered with?
+                                    loadOAPPResult.Result.STARNETDNA.Version = readSTARNETDNAResult.Result.Version; //Set the new version set in the DNA (JSON file).
+                                    T4 STARNETDNA = (T4)loadOAPPResult.Result.STARNETDNA; //Make sure it has not been tampered with by using the stored version.
+
+                                    if (!edit)
+                                    {
+                                        STARNETDNA.VersionSequence++;
+                                        STARNETDNA.NumberOfVersions++;
+                                    }
+
+                                    STARNETDNA.LaunchTarget = launchTarget;
+                                    result.Result = loadOAPPResult.Result;
+
+                                    if (string.IsNullOrEmpty(fullPathToPublishTo))
+                                        fullPathToPublishTo = Path.Combine(fullPathToSource, "Published");
+
+                                    if (!Directory.Exists(fullPathToPublishTo))
+                                        Directory.CreateDirectory(fullPathToPublishTo);
+
+                                    if (!edit)
+                                    {
+                                        STARNETDNA.PublishedOn = DateTime.Now;
+                                        STARNETDNA.PublishedByAvatarId = avatarId;
+                                        STARNETDNA.PublishedByAvatarUsername = userName;
+                                    }
+                                    else
+                                    {
+                                        STARNETDNA.ModifiedOn = DateTime.Now;
+                                        STARNETDNA.ModifiedByAvatarId = avatarId;
+                                        STARNETDNA.ModifiedByAvatarUsername = userName;
+                                    }
+
+                                    result.Result.STARNETDNA = STARNETDNA;
+                                }
+                                else
+                                {
+                                    if (validateVersionResult.Message.Contains(STARNETDNAFileName))
+                                    {
+                                        result.Message = validateVersionResult.Message;
+                                        result.IsError = validateVersionResult.IsError;
+                                    }
+                                    else
+                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ValidateVersion. Reason: {validateVersionResult.Message}");
+                                }
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The Permssion Denied! The beamed in avatar id {avatarId} does not match the avatar id {loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId} who created this {this.STARNETHolonUIName}.");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in LoadAsync. Reason: {loadOAPPResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in LoadAvatarAsync. Reason: {loadAvatarResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ReadDNAFromSourceOrInstallFolderAsync. Reason: {readSTARNETDNAResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.BeginPublishAsync. Reason: {e.Message}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T1> BeginPublish(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string userName = "Unknown";
+            string errorMessage = "Error occured in STARNETManagerBase.BeginPublishAsync. Reason:";
+
+            try
+            {
+                OASISResult<T4> readSTARNETDNAResult = ReadDNAFromSourceOrInstallFolder<T4>(fullPathToSource);
+
+                if (readSTARNETDNAResult != null && !readSTARNETDNAResult.IsError && readSTARNETDNAResult.Result != null)
+                {
+                    //OAPPDNA = readSTARNETDNAResult.Result;
+                    OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = readSTARNETDNAResult.Result, Status = STARNETHolonPublishStatus.Packaging });
+                    OASISResult<IAvatar> loadAvatarResult = AvatarManager.Instance.LoadAvatar(avatarId, false, true, providerType);
+
+                    if (loadAvatarResult != null && loadAvatarResult.Result != null && !loadAvatarResult.IsError)
+                    {
+                        userName = loadAvatarResult.Result.Username;
+
+                        //Load latest version.
+                        OASISResult<T1> loadOAPPResult = Load(avatarId, readSTARNETDNAResult.Result.Id);
+
+                        if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
+                        {
+                            if (loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId == avatarId)
+                            {
+                                OASISResult<bool> validateVersionResult = ValidateVersion(readSTARNETDNAResult.Result.Version, loadOAPPResult.Result.STARNETDNA.Version, fullPathToSource, loadOAPPResult.Result.STARNETDNA.PublishedOn == DateTime.MinValue, edit);
+
+                                if (validateVersionResult != null && validateVersionResult.Result && !validateVersionResult.IsError)
+                                {
+                                    //TODO: Maybe add check to make sure the DNA has not been tampered with?
+                                    loadOAPPResult.Result.STARNETDNA.Version = readSTARNETDNAResult.Result.Version; //Set the new version set in the DNA (JSON file).
+                                    T4 STARNETDNA = (T4)loadOAPPResult.Result.STARNETDNA; //Make sure it has not been tampered with by using the stored version.
+
+                                    if (!edit)
+                                    {
+                                        STARNETDNA.VersionSequence++;
+                                        STARNETDNA.NumberOfVersions++;
+                                    }
+
+                                    STARNETDNA.LaunchTarget = launchTarget;
+                                    result.Result = loadOAPPResult.Result;
+
+                                    if (string.IsNullOrEmpty(fullPathToPublishTo))
+                                        fullPathToPublishTo = Path.Combine(fullPathToSource, "Published");
+
+                                    if (!Directory.Exists(fullPathToPublishTo))
+                                        Directory.CreateDirectory(fullPathToPublishTo);
+
+                                    if (!edit)
+                                    {
+                                        STARNETDNA.PublishedOn = DateTime.Now;
+                                        STARNETDNA.PublishedByAvatarId = avatarId;
+                                        STARNETDNA.PublishedByAvatarUsername = userName;
+                                    }
+                                    else
+                                    {
+                                        STARNETDNA.ModifiedOn = DateTime.Now;
+                                        STARNETDNA.ModifiedByAvatarId = avatarId;
+                                        STARNETDNA.ModifiedByAvatarUsername = userName;
+                                    }
+
+                                    result.Result.STARNETDNA = STARNETDNA;
+                                }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ValidateVersion. Reason: {validateVersionResult.Message}");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The Permssion Denied! The beamed in avatar id {avatarId} does not match the avatar id {loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId} who created this {this.STARNETHolonUIName}.");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in Load. Reason: {loadOAPPResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in LoadAvatar. Reason: {loadAvatarResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ReadDNAFromSourceOrInstallFolder. Reason: {readSTARNETDNAResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.BeginPublish. Reason: {e.Message}");
+            }
+
+            return result;
+        }
+    }
+}
