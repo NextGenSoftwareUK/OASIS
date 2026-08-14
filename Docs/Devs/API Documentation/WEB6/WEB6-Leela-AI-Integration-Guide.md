@@ -189,55 +189,79 @@ Document Corpus Holon
 
 ### Migrating Documents to Holonic Memory
 
-#### Step 1 — Ingest a document
+The Holonic Memory API is under `/v1/holonic-memory/`. Documents and session notes are stored as **memory items** inside holons. The typical flow is: create a holon for the document corpus, then record each document chunk as a memory item in that holon.
+
+#### Step 1 — Create a corpus holon
 
 ```python
+# Create a holon to hold all Leela therapy protocol documents
 response = httpx.post(
-    "https://api.web6.oasisomniverse.one/v1/holons/documents",
-    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
-    json={
-        "content": document_text,
-        "title": "CBT Protocol v3",
-        "metadata": { "category": "protocol", "version": "3.0" },
-        "chunkStrategy": "semantic",     # or "paragraph" | "fixed"
-        "storageProviders": ["mongodb", "ipfs"],
-        "retentionPolicy": "permanent"
-    }
+    "https://api.web6.oasisomniverse.one/v1/holonic-memory/holons",
+    params={
+        "level": "Agent",       # HolonicMemoryLevel enum
+        "name": "Leela-Protocols",
+        "parentHolonId": "00000000-0000-0000-0000-000000000000"  # attach to user/org holon
+    },
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"}
 )
-document_holon_id = response.json()["holonId"]
+corpus_holon_id = response.json()["result"]["id"]
 ```
 
-#### Step 2 — Query with semantic search
+#### Step 2 — Store document chunks as memory items
 
 ```python
-results = httpx.post(
-    "https://api.web6.oasisomniverse.one/v1/holons/search",
-    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
-    json={
-        "query": "How should a therapist respond to a client expressing hopelessness?",
-        "topK": 5,
-        "includeContent": True
-    }
-)
-
-# Inject results into your existing LLM call as context — same as you do now with Bedrock
-context_chunks = [r["content"] for r in results.json()["results"]]
-```
-
-#### Step 3 — Store session notes as holons
-
-Instead of storing session transcripts in S3 and paying retrieval fees, store them as session holons:
-
-```python
-# After a Leela session ends
+# For each chunk of a document:
 httpx.post(
-    "https://api.web6.oasisomniverse.one/v1/holons/sessions",
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/memory",
     headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
     json={
-        "avatarId": leela_user_id,         # ties to user holon
+        "key": "cbt-protocol-v3-chunk-001",
+        "content": chunk_text,
+        "tags": ["protocol", "CBT", "cognitive-restructuring"],
+        "ttlSeconds": 0   # 0 = permanent
+    }
+)
+```
+
+#### Step 3 — Semantic search across the corpus
+
+```python
+results = httpx.get(
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/memory/search",
+    params={
+        "q": "How should a therapist respond to a client expressing hopelessness?",
+        "topK": 5
+    },
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"}
+)
+
+# Inject top results into your LLM call as context — same as you do with Bedrock KB
+context_chunks = [r["content"] for r in results.json()["result"]]
+```
+
+#### Step 4 — Store session notes as memory items
+
+```python
+# After a Leela session ends, create a session-level holon and record the transcript
+session_response = httpx.post(
+    "https://api.web6.oasisomniverse.one/v1/holonic-memory/holons",
+    params={
+        "level": "Session",
+        "name": f"leela-session-{session_id}",
+        "parentHolonId": user_agent_holon_id   # ties to user's agent holon
+    },
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"}
+)
+session_holon_id = session_response.json()["result"]["id"]
+
+httpx.post(
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{session_holon_id}/memory",
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
+    json={
+        "key": "transcript",
         "content": session_transcript,
-        "summary": session_summary,         # smaller embedding for fast retrieval
-        "retentionPolicy": { "ttl": "365d" }  # auto-expire after 1 year
+        "tags": ["session-note", "therapy"],
+        "ttlSeconds": 31536000   # auto-expire after 1 year
     }
 )
 ```

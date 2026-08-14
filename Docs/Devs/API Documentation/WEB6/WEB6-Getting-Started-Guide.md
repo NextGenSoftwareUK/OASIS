@@ -142,13 +142,25 @@ Authorization: Bearer <your-oasis-avatar-key>
 
 ### FAHRN via the JS client
 
+Use the FAHRN hero endpoint directly when you want to control dispatch mode:
+
+```js
+const { result } = await web6.fahrn.solve({
+  Problem: 'Your problem here',
+  TaskType: 'general',
+  Mode: 'Parallel',    // Serial | Parallel | Decomposed | Debate | Voting
+});
+```
+
+Or enable FAHRN enrichment inside a normal completion call (always uses Serial mode):
+
 ```js
 const { result } = await web6.completion.complete({
   Provider: 'auto',
   Model: 'auto',
   Messages: [{ Role: 'user', Content: 'Your problem here' }],
   UseFAHRN: true,
-  FAHRNMode: 'Parallel',    // Serial | Parallel | Decomposed | Debate | Voting
+  FahrnTaskType: 'general',
 });
 ```
 
@@ -199,7 +211,7 @@ External memory providers (Mem0, Zep, Letta, LangMem, Redis Vector) plug in alon
 ## 6. Embeddings & Semantic Cache
 
 ```bash
-POST https://api.web6.oasisomniverse.one/v1/embeddings
+POST https://api.web6.oasisomniverse.one/v1/embed
 Authorization: Bearer <your-oasis-avatar-key>
 
 {
@@ -231,18 +243,40 @@ for await (const chunk of stream) {
 
 ## 8. WebSocket Sessions
 
-For persistent multi-turn agent sessions with server-side state:
+For persistent multi-turn agent sessions with server-side state, connect to `/v1/ws/session` as a WebSocket. The avatar identity is taken from your JWT token. The server maintains conversation history for the lifetime of the connection.
 
+**Client → server messages:**
+```json
+{ "type": "message", "content": "Your user message here" }
+{ "type": "tool_result", "toolCallId": "...", "result": "..." }
+{ "type": "interrupt" }
+{ "type": "ping" }
+```
+
+**Server → client messages:**
+```json
+{ "type": "session_started", "sessionId": "..." }
+{ "type": "chunk", "delta": "token...", "provider": "anthropic", "model": "..." }
+{ "type": "done", "totalTokens": 512, "latencyMs": 0 }
+{ "type": "error", "message": "..." }
+{ "type": "pong" }
+```
+
+**Example (Node.js):**
 ```js
-const session = await web6.sessions.connect({ avatarId: 'your-avatar-id' });
+const ws = new WebSocket('wss://api.web6.oasisomniverse.one/v1/ws/session', {
+  headers: { Authorization: 'Bearer <your-oasis-avatar-key>' }
+});
 
-await session.send({ role: 'user', content: 'First message' });
-const reply1 = await session.receive();
+ws.on('open', () => {
+  ws.send(JSON.stringify({ type: 'message', content: 'Hello' }));
+});
 
-await session.send({ role: 'user', content: 'Follow-up question' });
-const reply2 = await session.receive();
-
-// State and memory survive reconnects — stored as a holon in BRAID
+ws.on('message', (data) => {
+  const msg = JSON.parse(data);
+  if (msg.type === 'chunk') process.stdout.write(msg.delta);
+  if (msg.type === 'done') console.log('\n[done]');
+});
 ```
 
 ---
