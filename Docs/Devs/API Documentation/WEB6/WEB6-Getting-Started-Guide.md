@@ -604,7 +604,52 @@ Plans are tied to your OASIS avatar and governed by the karma system — higher 
 
 ## 14. Observability
 
-Every completion request publishes a telemetry event to a server-side ring buffer (last 500 events). You can stream these in real time or fetch recent history:
+WEB6 ships three complementary observability layers.
+
+### Prometheus metrics — `GET /metrics`
+
+Standard Prometheus scrape endpoint. Pull-based; configure your Prometheus, Grafana Agent, or Datadog Agent to scrape it.
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'web6'
+    static_configs:
+      - targets: ['api.web6.oasisomniverse.one']
+    metrics_path: /metrics
+    scheme: https
+    bearer_token: <your-oasis-avatar-key>
+```
+
+Available metrics:
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `web6_completion_requests_total` | Counter | `provider`, `model`, `cached` | All completion requests |
+| `web6_fahrn_dispatches_total` | Counter | `mode` | FAHRN reasoning dispatches |
+| `web6_braid_graph_reuses_total` | Counter | — | Holonic BRAID plan reuses |
+| `web6_cache_hits_total` | Counter | — | Semantic cache hits (zero cost) |
+| `web6_prompt_tokens` | Histogram | `provider`, `model` | Prompt token distribution |
+| `web6_completion_tokens` | Histogram | `provider`, `model` | Completion token distribution |
+| `web6_request_latency_milliseconds` | Histogram | `provider`, `model` | End-to-end latency |
+| `web6_estimated_cost_usd` | Histogram | `provider`, `model` | USD cost per request |
+| `web6_errors_total` | Counter | `provider` | Request errors |
+
+### OpenTelemetry distributed tracing
+
+WEB6 exports OpenTelemetry spans via OTLP. Every HTTP request becomes a trace span with full request attributes. Compatible with **Jaeger**, **Grafana Tempo**, **Datadog**, **Honeycomb**, **Dynatrace**, **New Relic**.
+
+Set one environment variable on your ONODE to enable:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://your-collector:4317
+```
+
+No other configuration needed. The service name in traces is `oasis-web6`.
+
+### Real-time event stream (SSE) — `GET /v1/telemetry/stream`
+
+Server-Sent Events stream of per-request trace events for live dashboards and debugging:
 
 ```bash
 # Real-time SSE stream of telemetry events
