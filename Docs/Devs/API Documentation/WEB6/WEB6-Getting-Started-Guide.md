@@ -93,23 +93,33 @@ print(response["content"])
 
 ## 2. Supported Providers
 
-Pass any of these as `"provider"` to pin a specific backend, or use `"auto"` to let WEB6 decide:
+Pass any of these as `"provider"` to pin a specific backend, or use `"auto"` to let WEB6 decide. Values are matched case-insensitively against the `AIProviderType` enum.
 
-| Key | Provider | Models |
-|-----|----------|--------|
-| `openai` | OpenAI | GPT-5, GPT-4o, o3 |
-| `anthropic` | Anthropic | Claude Opus/Sonnet/Haiku |
-| `gemini` | Google | Gemini 2.5 Flash/Pro |
-| `groq` | Groq | Llama 3 (ultra-fast LPU) |
-| `mistral` | Mistral | Mixtral, Large, Codestral |
-| `ollama` | Ollama | Any local model |
-| `cohere` | Cohere | Command R+ |
-| `xai` | xAI | Grok 3/Vision |
-| `deepseek` | DeepSeek | R1, V3, Coder |
-| `openserv` | OpenServ | GPT-5 · Claude · Gemini · Grok · Qwen · DeepSeek via one SERV key |
-| `bedrock` | AWS Bedrock | Titan, Nova, Jurassic |
-| `huggingface` | HuggingFace | Open-source / fine-tuned |
-| `replicate` | Replicate | Image / Audio / Video |
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `OpenAI` | OpenAI | GPT-5, GPT-4o, o3 |
+| `Anthropic` | Anthropic | Claude Opus/Sonnet/Haiku |
+| `Gemini` | Google | Gemini 2.5 Flash/Pro |
+| `Groq` | Groq | Llama 3 — ultra-fast LPU inference |
+| `Mistral` | Mistral | Mixtral, Large, Codestral |
+| `Ollama` | Ollama | Any local model (set `OLLAMA_BASE_URL`) |
+| `Cohere` | Cohere | Command R+ |
+| `XAI` | xAI | Grok 3/Vision |
+| `DeepSeek` | DeepSeek | R1, V3, Coder |
+| `OpenServ` | OpenServ | One SERV key → GPT-5 · Claude · Gemini · Grok · Qwen · DeepSeek |
+| `AWSBedrock` | AWS Bedrock | Titan, Nova, Jurassic |
+| `AzureOpenAI` | Azure OpenAI | Enterprise GPT deployments |
+| `HuggingFace` | HuggingFace | Open-source / fine-tuned models |
+| `StabilityAI` | Stability AI | Image generation (SDXL) |
+| `Cerebras` | Cerebras | ~3000 tok/s, fastest inference (llama-3.3-70b) |
+| `TogetherAI` | Together AI | 100+ open models |
+| `FireworksAI` | Fireworks AI | Fast open model inference |
+| `MoonshotAI` | Moonshot (Kimi) | 128k context, strong on long docs |
+| `Perplexity` | Perplexity | Web-grounded answers with citations |
+| `LMStudio` | LM Studio | Local inference (set `LM_STUDIO_BASE_URL`) |
+| `Bittensor` | Bittensor | Decentralised inference via Corcel |
+| `GaiaNet` | GaiaNet | Community-run decentralised nodes |
+| `LeelaAI` | Leela AI | Spiritual intelligence / karmic-pattern reasoning |
 
 ---
 
@@ -210,15 +220,20 @@ External memory providers (Mem0, Zep, Letta, LangMem, Redis Vector) plug in alon
 
 ## 6. Embeddings & Semantic Cache
 
+The embeddings endpoint accepts a `texts` array (not a single `input` string):
+
 ```bash
 POST https://api.web6.oasisomniverse.one/v1/embed
 Authorization: Bearer <your-oasis-avatar-key>
 
 {
-  "input": "Your text here",
-  "model": "text-embedding-3-small"   // or auto
+  "texts": ["Your text here"],
+  "provider": "auto",
+  "model": "auto"
 }
 ```
+
+Providers: `"openai"`, `"cohere"`, `"huggingface"`, or `"auto"`.
 
 Semantic caching is on by default. Requests with ≥95% cosine similarity to a cached prompt return instantly at **zero provider cost**. Especially effective for repeated document Q&A and classification pipelines.
 
@@ -335,52 +350,63 @@ const { result } = await web6.completion.complete({
 
 ## 11. Plugging into Existing Agentic Flows
 
-WEB6 is a drop-in replacement. Replace your direct provider call with the WEB6 endpoint and gain routing, failover, caching and FAHRN — no other changes needed.
+WEB6's native completion endpoint is `POST /v1/complete`. This is **not** OpenAI's `/v1/chat/completions` path, so frameworks that hardcode that path (LangChain's `ChatOpenAI`, AutoGen, CrewAI) cannot use WEB6 as a drop-in base URL. Use the native REST or npm/Python client instead.
 
-### LangChain
+> **Note:** An OpenAI-compatible `/v1/chat/completions` shim is planned. Once shipped, LangChain/AutoGen/CrewAI will work as drop-ins. Watch the [release history](https://api.web6.oasisomniverse.one/swagger) for that update.
+
+### Direct REST (any language)
 
 ```python
-from langchain_openai import ChatOpenAI
+import httpx
 
-llm = ChatOpenAI(
-    openai_api_base="https://api.web6.oasisomniverse.one/v1",
-    openai_api_key="<your-oasis-avatar-key>",
-    model="auto"
+response = httpx.post(
+    "https://api.web6.oasisomniverse.one/v1/complete",
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
+    json={
+        "provider": "auto",
+        "model": "auto",
+        "messages": [{"role": "user", "content": "Your prompt here"}],
+        "routing": {"priority": "cost", "fallback": True}
+    }
+)
+print(response.json()["result"]["content"])
+```
+
+### npm client
+
+```js
+import { Web6Client } from '@oasisomniverse/web6-api';
+
+const web6 = new Web6Client({ baseUrl: 'https://api.web6.oasisomniverse.one' });
+web6.setToken('<your-oasis-jwt>');
+
+const { result } = await web6.completion.complete({
+  Provider: 'auto',
+  Model: 'auto',
+  Messages: [{ Role: 'user', Content: 'Your prompt here' }],
+  Routing: { Priority: 'cost', Fallback: true },
+});
+```
+
+### Python package
+
+```python
+from oasis_web6 import Web6Client
+
+client = Web6Client(base_url="https://api.web6.oasisomniverse.one", token="<your-oasis-jwt>")
+response = client.complete(
+    provider="auto",
+    model="auto",
+    messages=[{"role": "user", "content": "Your prompt here"}]
 )
 ```
 
-### AutoGen
-
-```python
-config_list = [{
-    "model": "auto",
-    "api_key": "<your-oasis-avatar-key>",
-    "base_url": "https://api.web6.oasisomniverse.one/v1"
-}]
-```
-
-### CrewAI
-
-```python
-from crewai import LLM
-
-llm = LLM(
-    model="openai/auto",
-    base_url="https://api.web6.oasisomniverse.one/v1",
-    api_key="<your-oasis-avatar-key>"
-)
-```
-
-### Semantic Kernel (C#)
+### Semantic Kernel (C#) — via custom HTTP client
 
 ```csharp
-var kernel = Kernel.CreateBuilder()
-    .AddOpenAIChatCompletion(
-        modelId: "auto",
-        endpoint: new Uri("https://api.web6.oasisomniverse.one/v1"),
-        apiKey: "<your-oasis-avatar-key>"
-    )
-    .Build();
+// Semantic Kernel supports custom HttpClient — point it at /v1/complete
+// and handle the WEB6 response shape in a custom IChatCompletionService.
+// Or use the WEB6 .NET SDK (NuGet: NextGenSoftware.OASIS.Web6.Client) directly.
 ```
 
 ---
@@ -501,19 +527,19 @@ Plans are tied to your OASIS avatar and governed by the karma system — higher 
 
 ## 14. Observability
 
-Every request produces OpenTelemetry traces and Prometheus metrics:
-
-- Provider chosen, model used, latency, token count, cost
-- FAHRN dispatch path (which agents were called, their scores)
-- BRAID hit/miss (was a cached reasoning plan reused?)
-- Per-avatar monthly spend tracking
-
-Real-time telemetry stream:
+Every completion request publishes a telemetry event to a server-side ring buffer (last 500 events). You can stream these in real time or fetch recent history:
 
 ```bash
+# Real-time SSE stream of telemetry events
 GET https://api.web6.oasisomniverse.one/v1/telemetry/stream
 Authorization: Bearer <your-oasis-avatar-key>
+
+# Last N events (default 50, max 500)
+GET https://api.web6.oasisomniverse.one/v1/telemetry/history?limit=50
+Authorization: Bearer <your-oasis-avatar-key>
 ```
+
+Each event is a JSON object containing: `provider`, `model`, `latencyMs`, `promptTokens`, `completionTokens`, `estimatedCostUSD`, `fahrnMode`, `braidGraphReused`, `cacheHit`, `loopDetected`, `avatarId`, `timestamp`.
 
 ---
 
