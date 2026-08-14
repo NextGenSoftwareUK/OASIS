@@ -59,16 +59,35 @@ response = httpx.post(
 
 No SDK changes, no LangChain refactoring. Same Claude Sonnet responses, no Bedrock middleman.
 
-**If you use LangChain today:**
+**If you use LangChain, AutoGen or CrewAI today:**
+
+WEB6 exposes a fully OpenAI-compatible `POST /v1/chat/completions` endpoint. Change only your base URL and API key — no other code changes needed.
 
 ```python
+# LangChain
 from langchain_openai import ChatOpenAI
 
-# Replace your Bedrock LLM with this — same interface, no other code changes
 llm = ChatOpenAI(
     openai_api_base="https://api.web6.oasisomniverse.one/v1",
     openai_api_key="<your-oasis-avatar-key>",
-    model="claude-sonnet-4-6"   # or "auto" to let WEB6 pick
+    model="claude-sonnet-4-6"   # or "auto" to let WEB6 pick cheapest
+)
+
+# AutoGen
+import autogen
+
+llm_config = {"config_list": [{
+    "model": "claude-sonnet-4-6",
+    "api_key": "<your-oasis-avatar-key>",
+    "base_url": "https://api.web6.oasisomniverse.one/v1",
+}]}
+
+# CrewAI
+from crewai import LLM
+llm = LLM(
+    model="openai/claude-sonnet-4-6",
+    base_url="https://api.web6.oasisomniverse.one/v1",
+    api_key="<your-oasis-avatar-key>"
 )
 ```
 

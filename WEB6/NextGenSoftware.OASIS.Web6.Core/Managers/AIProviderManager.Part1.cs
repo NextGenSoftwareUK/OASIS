@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             ApiKeys[AIProviderType.GaiaNet]     = Resolve("GAIANET_API_KEY",     null);
             ApiKeys[AIProviderType.Custom]      = Resolve("CUSTOM_AI_API_KEY",   null);
             ApiKeys[AIProviderType.LeelaAI]     = Resolve("LEELA_API_KEY",        dna?.LeelaAI);
+            ApiKeys[AIProviderType.Replicate]   = Resolve("REPLICATE_API_KEY",   null);
         }
 
         /// <summary>Returns the env var value if set and non-empty, otherwise the OASIS_DNA fallback.</summary>
@@ -190,6 +191,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 case AIProviderType.GaiaNet:
                 case AIProviderType.Custom:
                 case AIProviderType.LeelaAI:
+                case AIProviderType.Replicate:
                     return await CallOpenAICompatibleAsync(provider, request);
 
                 case AIProviderType.Anthropic:
@@ -242,6 +244,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 AIProviderType.LeelaAI    => (
                     $"{(Environment.GetEnvironmentVariable("LEELA_BASE_URL") ?? OASISDNA?.OASIS?.Web6?.LeelaAI?.BaseUrl ?? "https://namozyqyvwf62hqxpzujt7e5hq0njhge.lambda-url.eu-west-1.on.aws").TrimEnd('/')}/v1/chat/completions",
                     "leela"),
+                AIProviderType.Replicate  => ("https://api.replicate.com/v1/chat/completions", "meta/llama-4-scout-instruct"),
                 _ => ("https://api.openai.com/v1/chat/completions", "gpt-4o"),
             };
         }
