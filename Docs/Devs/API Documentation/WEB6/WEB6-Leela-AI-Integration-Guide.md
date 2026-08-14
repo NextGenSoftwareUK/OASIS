@@ -185,7 +185,7 @@ Document Corpus Holon
 
 4. **TTL retention policies.** Session holons can auto-expire after a set period. You only pay long-term storage for the content that actually needs it.
 
-5. **Compression at the holon level.** Holons store a summary embedding alongside the raw content. For RAG retrieval, you can search against the lightweight summary embedding first, then only fetch the full content of the top-K matches — drastically reducing the amount of raw text retrieved and fed into the context window.
+5. **Embedding-based retrieval.** Each memory item stores a pre-computed embedding vector alongside its raw content. Semantic search compares embeddings (cosine similarity) rather than scanning raw text, and only the top-K matching items' content is returned — limiting how much text is fed into the context window.
 
 ### Migrating Documents to Holonic Memory
 
@@ -209,16 +209,18 @@ corpus_holon_id = response.json()["result"]["id"]
 
 #### Step 2 — Store document chunks as memory items
 
+`HolonicMemoryItem` uses `fieldName` and `value` (not `key`/`content`). Retention is controlled by the `retentionPolicy` enum (`Persistent`, `TimeLimited`, `Ephemeral`) and an optional `expiresUtc` for time-limited items.
+
 ```python
 # For each chunk of a document:
 httpx.post(
     f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/memory",
     headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
     json={
-        "key": "cbt-protocol-v3-chunk-001",
-        "content": chunk_text,
+        "fieldName": "cbt-protocol-v3-chunk-001",
+        "value": chunk_text,
         "tags": ["protocol", "CBT", "cognitive-restructuring"],
-        "ttlSeconds": 0   # 0 = permanent
+        "retentionPolicy": "Persistent"   # Persistent | TimeLimited | Ephemeral
     }
 )
 ```
@@ -258,10 +260,11 @@ httpx.post(
     f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{session_holon_id}/memory",
     headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
     json={
-        "key": "transcript",
-        "content": session_transcript,
+        "fieldName": "transcript",
+        "value": session_transcript,
         "tags": ["session-note", "therapy"],
-        "ttlSeconds": 31536000   # auto-expire after 1 year
+        "retentionPolicy": "TimeLimited",
+        "expiresUtc": "2027-08-14T00:00:00Z"   # auto-expire after 1 year
     }
 )
 ```
@@ -295,11 +298,11 @@ Add `"UseHolonicBraid": true` and `"UseFAHRN": true` to your completion requests
 
 ### Phase 3 — Migrate document corpus (1–2 days)
 
-Run a one-time script to ingest your existing Bedrock Knowledge Base documents into Holonic Memory. Replace `retrieve_and_generate` calls with WEB6 `/v1/holons/search` + `/v1/complete`.
+Run a one-time script to ingest your existing Bedrock Knowledge Base documents into Holonic Memory using `POST /v1/holonic-memory/holons` + `POST /v1/holonic-memory/holons/{id}/memory`. Replace `retrieve_and_generate` calls with `GET /v1/holonic-memory/holons/{id}/memory/search` + `POST /v1/complete`.
 
 ### Phase 4 — Session memory (optional, 1 day)
 
-Post session transcripts to `/v1/holons/sessions` instead of S3. Future sessions automatically have access to past context.
+Create a Session-level holon per session via `POST /v1/holonic-memory/holons` and post transcripts as memory items to `POST /v1/holonic-memory/holons/{id}/memory`. Future sessions can query past context via the search endpoint.
 
 ---
 
@@ -365,8 +368,8 @@ OASISDNA settings for a Leela ONODE:
 Get your OASIS avatar key:
 
 1. Register at https://oportal.oasisomniverse.one (free)
-2. Your avatar key is returned on login — use it as `Bearer <key>` on every request
-3. For enterprise/self-hosted: generate keys via `POST /v1/auth/avatar` on your own ONODE
+2. Your JWT is returned on login — use it as `Bearer <token>` on every WEB6 request
+3. For self-hosted ONODE: use the WEB4 avatar login endpoint (`POST /api/Avatar/Authenticate`) on your ONODE to obtain a JWT, then use that token against the WEB6 endpoints on the same host
 
 The existing Leela API key (`sk_leela_...`) stored in the OASISDNA is already configured if you are running a WEB6 ONODE locally from the OASIS repo.
 
