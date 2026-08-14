@@ -196,7 +196,7 @@ Document Corpus Holon
 
 **Why this saves money:**
 
-1. **Semantic deduplication.** Content shared across documents (e.g. the same evidence summary cited in 20 protocols) is stored as one holon, linked from many parents. You pay storage once. With a flat vector store, you pay for every duplicate chunk.
+1. **Semantic deduplication.** The ingest pipeline embeds every chunk and compares it against all existing items before storing. Content shared across documents (e.g. the same evidence summary cited in 20 protocols) is stored as **one holon** — subsequent uploads that hit the same chunk skip storage and return the existing fieldName. With a flat vector store, you pay for every duplicate chunk.
 
 2. **Hierarchical retrieval.** A query about "CBT techniques" hits the Section Holon level — not every paragraph. Fewer embedding comparisons, lower retrieval cost.
 
@@ -226,23 +226,39 @@ response = httpx.post(
 corpus_holon_id = response.json()["result"]["id"]
 ```
 
-#### Step 2 — Store document chunks as memory items
+#### Step 2 — Ingest documents (auto-chunked, semantically deduplicated)
 
-`HolonicMemoryItem` uses `fieldName` and `value` (not `key`/`content`). Retention is controlled by the `retentionPolicy` enum (`Persistent`, `TimeLimited`, `Ephemeral`) and an optional `expiresUtc` for time-limited items.
+Use the bulk document endpoint — pass the full document text and WEB6 handles chunking and deduplication automatically:
+
+1. Splits the document with a sliding-window chunker (default 400 tokens/chunk, 50 token overlap)
+2. Embeds each chunk using the configured embedding provider
+3. Compares each chunk embedding against all existing items in the holon (cosine similarity ≥ 0.98 = duplicate)
+4. Stores only genuinely new chunks; skips duplicates and records the existing fieldName instead
+
+This means if 20 of your CBT protocols cite the same evidence paragraph, it is stored as **one holon** — not 20 copies.
 
 ```python
-# For each chunk of a document:
-httpx.post(
-    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/memory",
+# Ingest a full document in one call — WEB6 chunks, embeds, deduplicates, stores
+response = httpx.post(
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/documents",
     headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
     json={
-        "fieldName": "cbt-protocol-v3-chunk-001",
-        "value": chunk_text,
+        "content": full_document_text,          # the entire raw document
+        "documentName": "cbt-protocol-v3",      # prefix used in chunk fieldNames
+        "chunkTokens": 400,                     # ~1600 chars per chunk
+        "overlapTokens": 50,                    # overlap to preserve boundary context
         "tags": ["protocol", "CBT", "cognitive-restructuring"],
-        "retentionPolicy": "Persistent"   # Persistent | TimeLimited | Ephemeral
+        "retentionPolicy": "Persistent"
     }
 )
+
+ingest = response.json()["result"]
+print(f"{ingest['storedChunks']} new chunks stored, "
+      f"{ingest['deduplicatedChunks']} duplicates skipped, "
+      f"{ingest['totalChunks']} total")
 ```
+
+If you already have pre-chunked data, use `POST /v1/holonic-memory/holons/{id}/memory` directly with `fieldName` + `value` per chunk.
 
 #### Step 3 — Semantic search across the corpus
 
