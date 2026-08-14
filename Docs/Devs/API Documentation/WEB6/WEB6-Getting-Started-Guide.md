@@ -120,6 +120,7 @@ Pass any of these as `"provider"` to pin a specific backend, or use `"auto"` to 
 | `Bittensor` | Bittensor | Decentralised inference via Corcel |
 | `GaiaNet` | GaiaNet | Community-run decentralised nodes |
 | `LeelaAI` | Leela AI | Spiritual intelligence / karmic-pattern reasoning |
+| `Replicate` | Replicate | Open-source model marketplace — image, audio, video, language |
 
 ---
 
@@ -350,9 +351,93 @@ const { result } = await web6.completion.complete({
 
 ## 11. Plugging into Existing Agentic Flows
 
-WEB6's native completion endpoint is `POST /v1/complete`. This is **not** OpenAI's `/v1/chat/completions` path, so frameworks that hardcode that path (LangChain's `ChatOpenAI`, AutoGen, CrewAI) cannot use WEB6 as a drop-in base URL. Use the native REST or npm/Python client instead.
+WEB6 exposes **two completion endpoints**:
 
-> **Note:** An OpenAI-compatible `/v1/chat/completions` shim is planned. Once shipped, LangChain/AutoGen/CrewAI will work as drop-ins. Watch the [release history](https://api.web6.oasisomniverse.one/swagger) for that update.
+| Endpoint | Format | Use when |
+|----------|--------|----------|
+| `POST /v1/complete` | WEB6 native | New integrations, full feature access |
+| `POST /v1/chat/completions` | OpenAI-compatible | Drop-in swap for any existing OpenAI-based code |
+
+The OpenAI-compatible shim accepts the standard OpenAI request body and returns the standard OpenAI response envelope. Change only your base URL and API key — nothing else in your code needs to change.
+
+### LangChain (Python)
+
+```python
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    openai_api_base="https://api.web6.oasisomniverse.one/v1",
+    openai_api_key="<your-oasis-avatar-key>",
+    model="claude-sonnet-4-6"   # or "auto" to let WEB6 pick cheapest available
+)
+
+response = llm.invoke("Summarise the key points of the attached document.")
+print(response.content)
+```
+
+### LangChain (JS)
+
+```js
+import { ChatOpenAI } from '@langchain/openai';
+
+const llm = new ChatOpenAI({
+  configuration: { baseURL: 'https://api.web6.oasisomniverse.one/v1' },
+  apiKey: '<your-oasis-avatar-key>',
+  model: 'claude-sonnet-4-6',
+});
+```
+
+### AutoGen (Python)
+
+```python
+import autogen
+
+llm_config = {
+    "config_list": [{
+        "model": "claude-sonnet-4-6",
+        "api_key": "<your-oasis-avatar-key>",
+        "base_url": "https://api.web6.oasisomniverse.one/v1",
+    }]
+}
+
+assistant = autogen.AssistantAgent("assistant", llm_config=llm_config)
+user_proxy = autogen.UserProxyAgent("user_proxy", human_input_mode="NEVER")
+
+user_proxy.initiate_chat(assistant, message="Your task here")
+```
+
+### CrewAI
+
+```python
+from crewai import LLM, Agent, Task, Crew
+
+llm = LLM(
+    model="openai/claude-sonnet-4-6",
+    base_url="https://api.web6.oasisomniverse.one/v1",
+    api_key="<your-oasis-avatar-key>"
+)
+
+researcher = Agent(role="Researcher", goal="Find the answer", llm=llm)
+task = Task(description="Research and summarise topic X", agent=researcher)
+Crew(agents=[researcher], tasks=[task]).kickoff()
+```
+
+### Semantic Kernel (C#)
+
+```csharp
+using Microsoft.SemanticKernel;
+
+var kernel = Kernel.CreateBuilder()
+    .AddOpenAIChatCompletion(
+        modelId:  "claude-sonnet-4-6",
+        apiKey:   "<your-oasis-avatar-key>",
+        endpoint: new Uri("https://api.web6.oasisomniverse.one/v1")
+    )
+    .Build();
+
+var result = await kernel.InvokePromptAsync("Your prompt here");
+Console.WriteLine(result);
+```
 
 ### Direct REST (any language)
 
@@ -399,14 +484,6 @@ response = client.complete(
     model="auto",
     messages=[{"role": "user", "content": "Your prompt here"}]
 )
-```
-
-### Semantic Kernel (C#) — via custom HTTP client
-
-```csharp
-// Semantic Kernel supports custom HttpClient — point it at /v1/complete
-// and handle the WEB6 response shape in a custom IChatCompletionService.
-// Or use the WEB6 .NET SDK (NuGet: NextGenSoftware.OASIS.Web6.Client) directly.
 ```
 
 ---
