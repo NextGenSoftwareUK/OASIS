@@ -209,6 +209,59 @@ Session → Agent → User → Group → Neighbourhood → City → Country → 
 
 Higher holons accumulate shared intelligence from every session below them. Membrane rules govern what propagates and what stays private.
 
+### Full endpoint reference
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/holonic-memory/earth` | Get the planetary Earth holon |
+| `POST` | `/v1/holonic-memory/holons` | Get or create a holon at a given level |
+| `PUT` | `/v1/holonic-memory/holons/{id}/membrane-rule` | Set the membrane rule governing upward propagation |
+| `POST` | `/v1/holonic-memory/holons/{id}/memory` | Store a single memory item |
+| `POST` | `/v1/holonic-memory/holons/{id}/documents` | **Bulk ingest** — auto-chunk a document and store each chunk |
+| `GET` | `/v1/holonic-memory/holons/{id}/memory/search` | Semantic search across memory items |
+| `POST` | `/v1/holonic-memory/holons/{id}/propagate` | Propagate one hop up the hierarchy |
+| `POST` | `/v1/holonic-memory/holons/{id}/propagate-up` | Propagate N hops up (pass `levels=2147483647` for Earth) |
+
+### Bulk document ingest (RAG) with semantic deduplication
+
+POST your full document text to `/documents`. WEB6 auto-chunks it with a sliding-window splitter, embeds each chunk, checks for near-identical content already in the holon (cosine similarity ≥ 0.98), and stores only genuinely new chunks. Duplicate chunks are skipped and the existing fieldName is returned instead — so 10 documents sharing a common paragraph store that paragraph exactly once.
+
+```python
+# Ingest a full document — WEB6 chunks, embeds, deduplicates, and stores
+response = httpx.post(
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/documents",
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
+    json={
+        "content": full_document_text,
+        "documentName": "cbt-protocol-v3",
+        "chunkTokens": 400,        # ~1600 chars per chunk
+        "overlapTokens": 50,       # ~200 char overlap at boundaries
+        "tags": ["protocol", "CBT"],
+        "retentionPolicy": "Persistent"
+    }
+)
+
+result = response.json()["result"]
+print(f"{result['storedChunks']} new, {result['deduplicatedChunks']} deduplicated of {result['totalChunks']} total")
+# chunkFieldNames: ["doc-cbt-protocol-v3-chunk-001", ...] — includes existing fieldNames for deduped chunks
+```
+
+**Why this saves money over a flat vector store:**
+- Shared content (e.g. the same evidence paragraph cited in 20 protocols) is stored once, not 20 times
+- Embeddings are computed once per unique chunk, not per document
+- Storage grows with unique information, not with document count
+
+### Semantic search
+
+```bash
+GET https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{holonId}/memory/search?q=How+should+a+therapist+respond+to+hopelessness%3F&topK=5
+Authorization: Bearer <your-oasis-avatar-key>
+```
+
+Returns the top-K most semantically similar chunks using cosine similarity over stored embedding vectors. Falls back to keyword overlap when embeddings have not been computed.
+
+### Avatar context
+
 ```bash
 # Retrieve avatar context (identity + karma + memory summary) for any system
 GET https://api.web6.oasisomniverse.one/v1/context/avatar/{avatarId}
