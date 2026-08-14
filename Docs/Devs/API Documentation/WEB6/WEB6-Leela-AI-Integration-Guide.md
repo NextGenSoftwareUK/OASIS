@@ -407,4 +407,34 @@ The existing Leela API key (`sk_leela_...`) stored in the OASISDNA is already co
 
 Start with Phase 1 (endpoint swap) this week to capture immediate savings, then evaluate BRAID and Holonic Memory based on your actual usage patterns.
 
+---
+
+## Monitoring Costs with Prometheus + Grafana
+
+WEB6 exposes a Prometheus metrics endpoint at `GET /metrics`. Scrape it to build real-time cost dashboards in Grafana.
+
+Key metrics for Leela cost tracking:
+
+```promql
+# USD spent per provider in the last hour
+increase(web6_estimated_cost_usd_sum[1h])
+
+# Cache hit rate (% of requests served at zero cost)
+rate(web6_cache_hits_total[5m]) / rate(web6_completion_requests_total[5m])
+
+# Token usage by provider
+rate(web6_prompt_tokens_sum[5m])
+
+# P95 latency
+histogram_quantile(0.95, rate(web6_request_latency_milliseconds_bucket[5m]))
+```
+
+For distributed tracing (full request traces in Jaeger/Grafana Tempo):
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://your-collector:4317
+```
+
+---
+
 **Contact / support:** https://web6.oasisomniverse.one | Discord | david@oasisomniverse.one
