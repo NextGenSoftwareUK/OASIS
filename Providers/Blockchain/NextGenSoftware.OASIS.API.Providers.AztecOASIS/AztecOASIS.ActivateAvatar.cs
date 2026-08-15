@@ -464,6 +464,5 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
     }
 }

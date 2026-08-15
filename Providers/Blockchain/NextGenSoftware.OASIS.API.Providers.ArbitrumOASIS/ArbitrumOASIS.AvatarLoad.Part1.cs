@@ -198,40 +198,23 @@ public sealed partial class ArbitrumOASIS
                 return result;
             }
             
-            try
+            // The deployed contract has no getAllHolons function — enumerate via GetHolonsCount + GetHolonById.
+            uint holonCount = await _contractHandler.QueryAsync<GetHolonsCountFunction, uint>(new GetHolonsCountFunction());
+            var holons = new List<IHolon>();
+            for (uint i = 1; i <= holonCount; i++)
             {
-                // Real Arbitrum contract query - use contract handler with proper ABI
-                var getAllHolonsFunction = _contract.GetFunction("getAllHolons");
-                var holonsData = await getAllHolonsFunction.CallAsync<object[]>();
-                
-                if (holonsData != null && holonsData.Length > 0)
+                HolonInfo info = await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+                var holon = JsonConvert.DeserializeObject<Holon>(info.Info);
+                if (holon != null)
                 {
-                    var holons = new List<IHolon>();
-                    foreach (var holonData in holonsData)
-                    {
-                        // Parse Arbitrum contract data to Holon - real implementation
-                        var holon = ParseArbitrumToHolon(holonData);
-                        if (holon != null)
-                        {
-                            holons.Add(holon);
-                        }
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons from Arbitrum";
-                }
-                else
-                {
-                    result.Result = new List<IHolon>();
-                    result.IsError = false;
-                    result.Message = "No holons found on Arbitrum blockchain";
+                    if (type == HolonType.All || holon.HolonType == type)
+                        holons.Add(holon);
                 }
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error querying holons from Arbitrum contract: {ex.Message}", ex);
-            }
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons from Arbitrum";
         }
         catch (Exception ex)
         {
@@ -299,6 +282,8 @@ public sealed partial class ArbitrumOASIS
     public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
         var result = new OASISResult<IAvatar>();
+        string errorMessage = "Error in LoadAvatarByEmailAsync method in ArbitrumOASIS while loading an avatar by email. Reason: ";
+
         try
         {
             if (!IsProviderActivated)
@@ -306,50 +291,47 @@ public sealed partial class ArbitrumOASIS
                 var activateResult = await ActivateProviderAsync();
                 if (activateResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, activateResult.Message));
                     return result;
                 }
             }
 
-            // Real Arbitrum smart contract query for avatar by email
-            if (_contractHandler == null)
+            if (string.IsNullOrWhiteSpace(avatarEmail))
             {
-                OASISErrorHandling.HandleError(ref result, "Contract handler is not initialized");
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Email cannot be null or empty."));
                 return result;
             }
-            
-            try
+
+            // The Arbitrum contract stores avatars by entityId (hash of GUID) with no email index.
+            // Scan all stored avatars and filter by email from the serialised JSON payload.
+            var countFunction = new GetAvatarsCountFunction();
+            uint count = await _contractHandler.QueryAsync<GetAvatarsCountFunction, uint>(countFunction);
+
+            for (uint i = 1; i <= count; i++)
             {
-                var getAvatarByEmailFunction = _contract.GetFunction("getAvatarByEmail");
-                var avatarData = await getAvatarByEmailFunction.CallAsync<object>(avatarEmail);
-                
-                if (avatarData != null)
+                AvatarInfo info = await _contractHandler.QueryAsync<GetAvatarByIdFunction, AvatarInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+
+                var candidate = JsonConvert.DeserializeObject<Avatar>(info.Info);
+                if (candidate != null && string.Equals(candidate.Email, avatarEmail, StringComparison.OrdinalIgnoreCase))
                 {
-                    var avatar = ParseArbitrumToAvatar(avatarData);
-                    if (avatar != null)
-                    {
-                        result.Result = avatar;
-                        result.IsError = false;
-                        result.Message = "Avatar loaded successfully by email from Arbitrum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email on Arbitrum blockchain");
+                    result.Result = candidate;
+                    result.IsError = false;
+                    result.IsLoaded = true;
+                    result.Message = "Avatar loaded successfully by email from Arbitrum.";
+                    return result;
                 }
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Arbitrum: {ex.Message}", ex);
-            }
+
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar with email '{avatarEmail}' not found on Arbitrum blockchain."));
+        }
+        catch (RpcResponseException ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Arbitrum: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
         }
         return result;
     }
@@ -362,6 +344,8 @@ public sealed partial class ArbitrumOASIS
     public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
     {
         var result = new OASISResult<IAvatar>();
+        string errorMessage = "Error in LoadAvatarByProviderKeyAsync method in ArbitrumOASIS while loading an avatar by provider key. Reason: ";
+
         try
         {
             if (!IsProviderActivated)
@@ -369,37 +353,41 @@ public sealed partial class ArbitrumOASIS
                 var activateResult = await ActivateProviderAsync();
                 if (activateResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, activateResult.Message));
                     return result;
                 }
             }
 
-            // Query avatar by provider key from Arbitrum smart contract
-            // var avatarData = await _contractHandler.GetFunction("getAvatarByProviderKey").CallAsync<object>(providerKey);
-            var avatarData = new object(); // Placeholder
-            
-            if (avatarData != null)
+            if (string.IsNullOrWhiteSpace(providerKey))
             {
-                var avatar = ParseArbitrumToAvatar(avatarData);
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by provider key from Arbitrum";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
-                }
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Provider key cannot be null or empty."));
+                return result;
             }
-            else
+
+            int entityId = HashUtility.GetNumericHash(providerKey);
+            AvatarInfo avatarInfo = await _contractHandler.QueryAsync<GetAvatarByIdFunction, AvatarInfo>(new()
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key on Arbitrum blockchain");
+                Id = (uint)entityId
+            });
+
+            if (avatarInfo is null || string.IsNullOrEmpty(avatarInfo.Info))
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar with provider key '{providerKey}' not found on Arbitrum blockchain."));
+                return result;
             }
+
+            result.Result = JsonConvert.DeserializeObject<Avatar>(avatarInfo.Info);
+            result.IsError = false;
+            result.IsLoaded = true;
+            result.Message = "Avatar loaded successfully by provider key from Arbitrum.";
+        }
+        catch (RpcResponseException ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Arbitrum: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
         }
         return result;
     }

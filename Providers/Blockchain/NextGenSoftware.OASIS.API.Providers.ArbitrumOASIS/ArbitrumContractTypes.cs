@@ -349,6 +349,10 @@ public class GetHolonByIdyIdFunction : FunctionMessage
     public uint Id { get; set; }
 }
 
+public class GetHolonsCountFunction : FunctionMessage
+{
+}
+
 /// <summary>
 /// Lightweight Arbitrum provider using Web3CoreOASISBaseProvider and the generic Web3Core contract.
 /// Use this once the generic Web3CoreOASIS.sol contract is deployed to Arbitrum. Until then, use <see cref="ArbitrumOASIS"/> (live/deployed).

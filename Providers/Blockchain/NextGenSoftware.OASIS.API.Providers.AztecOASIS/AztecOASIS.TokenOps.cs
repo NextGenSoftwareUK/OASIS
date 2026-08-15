@@ -527,6 +527,5 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 
 
 
-        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
     }
 }

@@ -559,5 +559,4 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         }
 
     }
-    }
 }
