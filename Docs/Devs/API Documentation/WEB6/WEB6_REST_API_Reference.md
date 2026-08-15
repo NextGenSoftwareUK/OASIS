@@ -2,6 +2,7 @@
 
 **Base URL:** `https://api.web6.oasisomniverse.one`  
 **Swagger UI:** `https://api.web6.oasisomniverse.one/swagger`  
+**AsyncAPI spec:** `https://api.web6.oasisomniverse.one/asyncapi.json`  
 **Version:** 2.0.0  
 **Framework:** ASP.NET Core on .NET 10
 
@@ -1157,6 +1158,52 @@ MCP discovery document — lists the MCP server name, version, and capabilities 
 ### GET `/.well-known/agent.json`
 
 A2A agent card — describes this OASIS instance as an A2A-compatible agent (name, capabilities, task input/output schema, authentication requirements).
+
+---
+
+## Karma-Gated AI Tiers
+
+Every call to `POST /v1/complete` (and `POST /v1/chat/completions`) is evaluated against the requesting avatar's karma score when an `avatarId` is supplied. The tier determines which providers and models are accessible.
+
+| Tier | Karma range | Models included | Provider access |
+|---|---|---|---|
+| **Bronze** | 0 – 999 | Fast/cheap models (llama-3.1-8b, gemini-flash, gpt-4o-mini, etc.) | All providers except AWS Bedrock, Azure OpenAI |
+| **Silver** | 1,000 – 4,999 | + GPT-4o, Claude Sonnet, Gemini Pro, Mistral Large, Command R+, Llama-3.1-70B | All providers |
+| **Gold** | 5,000 – 9,999 | All models | All providers |
+| **Diamond** | 10,000+ | All models + priority routing | All providers |
+
+When the requested model or provider exceeds the avatar's tier, WEB6 automatically **downgrades** to the highest-tier model/provider available rather than returning an error. The response includes:
+- `karmaTier` — the avatar's current tier name
+- `karmaDowngradeNote` — human-readable explanation of what was downgraded and why
+
+If no `avatarId` is supplied the request is treated as **Bronze** tier (open access to base models).
+
+---
+
+## AsyncAPI Specification
+
+WEB6 exposes an AsyncAPI 2.6 specification describing all real-time streaming channels (SSE and WebSocket).
+
+### GET `/asyncapi.json`
+
+Returns the full AsyncAPI specification in JSON format.
+
+**Response:** `Content-Type: application/json` — AsyncAPI 2.6 document.
+
+### GET `/asyncapi.yaml`
+
+Returns the same specification in YAML format.
+
+**Response:** `Content-Type: text/yaml`
+
+**Channels described:**
+
+| Channel | Transport | Description |
+|---|---|---|
+| `/v1/complete/stream` | SSE | Streaming completion chunks; POST CompletionRequest with `stream: true` |
+| `/v1/telemetry/stream` | SSE | Real-time provider telemetry events (latency, tokens, errors) |
+| `/a2a/tasks/{taskId}/events` | SSE | A2A task lifecycle events (submitted → working → completed) |
+| `/v1/ws/session` | WebSocket (WSS) | Bidirectional persistent session chat with holonic memory |
 
 ---
 
