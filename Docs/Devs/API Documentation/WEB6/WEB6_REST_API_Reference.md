@@ -2,6 +2,7 @@
 
 **Base URL:** `https://api.web6.oasisomniverse.one`  
 **Swagger UI:** `https://api.web6.oasisomniverse.one/swagger`  
+**AsyncAPI spec:** `https://api.web6.oasisomniverse.one/asyncapi.json`  
 **Version:** 2.0.0  
 **Framework:** ASP.NET Core on .NET 10
 
@@ -79,7 +80,7 @@ Unified AI completion. Routes to whichever provider/model best fits based on `pr
 }
 ```
 
-**`provider` values:** `auto`, `openai`, `anthropic`, `gemini`, `groq`, `mistral`, `cohere`, `xai`, `deepseek`, `ollama`, `openserv`, `azureopenai`, `awsbedrock`, `huggingface`
+**`provider` values:** `auto`, `openai`, `anthropic`, `gemini`, `groq`, `mistral`, `cohere`, `xai`, `deepseek`, `ollama`, `openserv`, `azureopenai`, `awsbedrock`, `huggingface`, `stabilityai`, `cerebras`, `togetherai`, `fireworksai`, `moonshotai`, `perplexity`, `lmstudio`, `bittensor`, `gaianet`, `leelaai`, `replicate`
 
 **`routing.priority` values:** `quality`, `latency`, `cost`, `balanced`
 
@@ -98,6 +99,50 @@ Unified AI completion. Routes to whichever provider/model best fits based on `pr
   }
 }
 ```
+
+---
+
+### POST `/v1/chat/completions`
+
+**OpenAI-compatible shim.** Accepts the standard OpenAI request envelope and returns a standard OpenAI response. Use this to point any OpenAI-compatible framework (LangChain, AutoGen, CrewAI, Semantic Kernel) at WEB6 by changing only the base URL and API key.
+
+**Request body:**
+```json
+{
+  "model": "claude-sonnet-4-6",
+  "messages": [
+    { "role": "user", "content": "Explain quantum entanglement." }
+  ],
+  "temperature": 0.7,
+  "max_tokens": 1024,
+  "stream": false,
+  "tools": []
+}
+```
+
+The `model` field drives provider routing: `claude-*` → Anthropic, `gpt-*` / `o1-*` / `o3-*` → OpenAI, `gemini-*` → Google, `mistral*` → Mistral, `llama*` → Llama, `deepseek*` → DeepSeek, `auto` → WEB6 picks.
+
+**Response (non-streaming):**
+```json
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "created": 1754200000,
+  "model": "claude-sonnet-4-6",
+  "choices": [{
+    "index": 0,
+    "message": { "role": "assistant", "content": "Quantum entanglement is..." },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 42,
+    "completion_tokens": 318,
+    "total_tokens": 360
+  }
+}
+```
+
+**Streaming** — pass `"stream": true`. Returns `text/event-stream` with OpenAI-format chunks ending with `data: [DONE]`.
 
 ---
 
@@ -441,6 +486,51 @@ For `TimeLimited`, also pass `"expiresUtc": "2026-12-31T00:00:00Z"`.
 
 ---
 
+### POST `/v1/holonic-memory/holons/{holonId}/documents`
+
+Bulk document ingestion with semantic deduplication. Chunks the document, embeds each chunk, compares against existing holon items (cosine similarity ≥ 0.98 = duplicate), and stores only genuinely new chunks in a single holon save. Use this instead of looping `POST /memory` yourself.
+
+**Request body:**
+```json
+{
+  "content": "Full document text here...",
+  "documentName": "cbt-protocol-v3",
+  "chunkTokens": 400,
+  "overlapTokens": 50,
+  "tags": ["protocol", "CBT"],
+  "retentionPolicy": "Persistent",
+  "expiresUtc": null
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `content` | string | required | Full raw document text |
+| `documentName` | string | random 8-char id | Prefix for chunk fieldNames |
+| `chunkTokens` | int | 400 | Approximate tokens per chunk (4 chars ≈ 1 token) |
+| `overlapTokens` | int | 50 | Overlap tokens between consecutive chunks |
+| `tags` | string[] | [] | Applied to every chunk; documentName is auto-added |
+| `retentionPolicy` | enum | `Persistent` | `Ephemeral` / `Session` / `Persistent` / `TimeLimited` |
+| `expiresUtc` | datetime? | null | Required for `TimeLimited` policy |
+
+**Response:**
+```json
+{
+  "result": {
+    "documentName": "cbt-protocol-v3",
+    "totalChunks": 12,
+    "storedChunks": 10,
+    "deduplicatedChunks": 2,
+    "chunkFieldNames": ["doc-cbt-protocol-v3-chunk-001", "..."],
+    "errors": null
+  }
+}
+```
+
+`deduplicatedChunks` is the count of chunks skipped because a near-identical item already existed in the holon. `chunkFieldNames` includes the existing fieldName for those chunks (not a new entry).
+
+---
+
 ### POST `/v1/holonic-memory/holons/{childHolonId}/propagate`
 
 Propagate permitted items from a child holon to its parent (single hop).
@@ -663,6 +753,140 @@ Authenticate using a W3C Decentralised Identifier.
 }
 ```
 
+---
+
+## gRPC API
+
+WEB6 exposes a full gRPC surface alongside the REST API. The Protobuf definitions live in `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Protos/`. Default gRPC port is `5001` (HTTP/2). All services live under package `oasis.web6`.
+
+### Services & RPCs
+
+| Service | Package/file | Key RPCs |
+|---|---|---|
+| `AiService` | `ai.proto` | `Complete`, `Embed`, `GenerateImage`, `ClassifyTask`, `AnalyseSentiment`, `TrainTaskClassifier`, `ListOpenServModels`, `ListMLModels` |
+| `AgentsService` | `agents.proto` | `SendA2ATask`, `GetA2ATask`, `CancelA2ATask`, `RegisterOrchestrator`, `InvokeOrchestrator`, `RegisterReasoningAgent`, `Dispatch`, `GetSkill`, `EvolveSkill`, `GetBraidGraph`, `SaveBraidGraph` |
+| `MemoryService` | `memory.proto` | `GetEarthHolon`, `GetOrCreateHolon`, `SetMembraneRule`, `RecordMemory`, `PropagateUp`, `Propagate`, `SearchMemory`, `SearchExternalMemory`, `AddExternalMemory`, `DeleteExternalMemory`, `GetAvatarContext` |
+| `NetworkService` | `network.proto` | `FahrnSolve`, `FahrnBudgetEstimate`, `GetProviderStatus`, `GetMcpDiscovery`, `GetA2AAgentCard` |
+| `TelemetryService` | `telemetry.proto` | `GetTelemetryHistory`, `GetUsage` |
+| `IdentityService` | `identity.proto` | `CreateDid`, `ResolveDid`, `IssueVc`, `VerifyVc`, `UpsertKey`, `ListKeyProviders`, `DeleteKey` |
+
+### Quick example — gRPC completion (grpcurl)
+
+```bash
+grpcurl -d '{
+  "avatar_id": "00000000-0000-0000-0000-000000000000",
+  "provider": "auto",
+  "messages": [{ "role": "user", "content": "Explain holons in one sentence." }]
+}' -plaintext localhost:5001 oasis.web6.AiService/Complete
+```
+
+### Auth
+
+Pass your JWT as gRPC metadata:
+
+```
+Authorization: Bearer <token>
+```
+
+For avatar-scoped operations without a JWT, pass `avatarid: <guid>` as a metadata header (e.g. gRPC Telemetry usage endpoint).
+
+---
+
+## GraphQL API
+
+WEB6 exposes a HotChocolate GraphQL endpoint at `POST /graphql`. The schema covers all major WEB6 operations as typed queries and mutations — useful for exploratory clients and dashboards that want to fetch exactly the fields they need.
+
+**Endpoint:** `POST /graphql`
+**Playground:** `GET /graphql` (HotChocolate Banana Cake Pop UI)
+
+### Queries
+
+| Query | Description |
+|---|---|
+| `aiModels` | List all OpenServ AI models in the FAHRN catalogue |
+| `mlModels` | List ML.NET in-process models and their status |
+| `telemetry(limit)` / `telemetryHistory(limit)` | Recent telemetry events |
+| `agents` | All registered FAHRN reasoning agents |
+| `searchMemory(query, avatarId, limit)` | Search external memory providers |
+| `avatarContext(avatarId)` | Rich context block for an avatar |
+| `resolveDid(did)` | Resolve a W3C DID |
+| `externalMemoryProviders` | List configured external memory providers |
+| `fahrnBudgetEstimate(taskType, mode, agentCount)` | Cost/token estimate for a dispatch |
+| `holonicBraidGraph(taskType)` | Retrieve a cached Mermaid reasoning graph |
+| `earthHolon` | Get (or create) the root Earth holon |
+| `searchHolonMemory(holonId, query, topK, provider)` | Semantic search within a holon |
+| `storedKeyProviders(avatarId)` | List providers that have a stored key |
+| `classifyTask(text)` | ML.NET in-process task classification |
+| `analyseSentiment(text)` | ML.NET sentiment analysis |
+| `orchestratorAdapters` | List registered orchestrator adapters |
+| `agentSkill(agentId, category)` | Get a FAHRN agent's skill document |
+| `providerStatus(refresh)` | Live health + latency for all AI providers |
+| `usageSummary(avatarId)` | Token and spend summary for an avatar |
+| `mcpDiscovery` / `a2aAgentCard` | Discovery documents |
+| `a2aTask(id)` | Get an A2A task by ID |
+
+### Mutations
+
+| Mutation | Description |
+|---|---|
+| `complete(prompt, systemPrompt, provider, model, maxTokens, temperature, avatarId)` | AI completion |
+| `generateEmbeddings(inputs, provider, model, avatarId)` | Embed text |
+| `generateImage(prompt, provider, model, width, height, avatarId)` | Image generation |
+| `dispatchAgent(problem, taskType, avatarId)` | FAHRN dispatch |
+| `solveFahrn(problem, avatarId, returnReasoning)` | Full FAHRN solve pipeline |
+| `storeMemory(content, provider, avatarId)` | Store to external memory |
+| `deleteMemory(provider, id, avatarId)` | Delete from external memory |
+| `saveHolonicBraidGraph(taskType, mermaidDiagram, generatedByModel)` | Save a BRAID graph |
+| `getOrCreateHolon(level, name, parentHolonId)` | Create/retrieve a holon |
+| `setMembraneRule(holonId, ruleJson)` | Set propagation filter |
+| `recordHolonMemory(holonId, itemJson)` | Store a memory item |
+| `propagateHolonMemoryUp(childHolonId, levels)` | Propagate memory upward |
+| `propagateHolonMemory(childHolonId)` | One-hop propagation |
+| `upsertKey(avatarId, provider, apiKey)` | Store a provider API key |
+| `deleteKey(avatarId, provider)` | Remove a stored key |
+| `trainTaskClassifier(problems, labels)` | Train ML.NET classifier |
+| `registerOrchestratorAdapter(configJson)` | Register external agent |
+| `invokeOrchestrator(requestJson)` | Invoke a registered adapter |
+| `registerReasoningAgent(agentJson)` | Register a FAHRN agent |
+| `seedOpenServAgents` | Seed default OpenServ agents |
+| `evolveAgentSkill(agentId, category)` | Run SkillOpt evolution epoch |
+| `createDid(avatarId)` | Create a W3C DID |
+| `issueVc(subjectDid, issuerAvatarId, claimsJson)` | Issue a Verifiable Credential |
+| `verifyVc(issuerAvatarId, credentialJson)` | Verify a VC |
+| `sendA2ATask(problem, taskId)` | Submit an A2A task |
+| `cancelA2ATask(id)` | Cancel an A2A task |
+
+### Example query
+
+```graphql
+query {
+  telemetry(limit: 5) {
+    provider
+    model
+    latencyMs
+    estimatedCostUsd
+    braidGraphReused
+  }
+}
+```
+
+### Example mutation
+
+```graphql
+mutation {
+  complete(
+    prompt: "Explain holons in one sentence."
+    provider: "auto"
+    avatarId: "00000000-0000-0000-0000-000000000000"
+  ) {
+    content
+    provider
+    model
+    estimatedCostUsd
+  }
+}
+```
+
 **Response:**
 ```json
 {
@@ -826,7 +1050,23 @@ Get a rich context block for an avatar — karma score, active quests, installed
 
 ---
 
-## Telemetry
+## Telemetry & Observability
+
+### GET `/metrics`
+
+Prometheus scrape endpoint. Returns metrics in the standard Prometheus text format. Scrape this with Prometheus, Grafana Agent, Datadog Agent, or any OpenMetrics-compatible collector.
+
+Available metrics: `web6_completion_requests_total`, `web6_fahrn_dispatches_total`, `web6_braid_graph_reuses_total`, `web6_cache_hits_total`, `web6_prompt_tokens`, `web6_completion_tokens`, `web6_request_latency_milliseconds`, `web6_estimated_cost_usd`, `web6_errors_total`.
+
+All metrics are labelled by `provider` and `model`. See the Getting Started Guide section 14 for the full metric table and PromQL examples.
+
+---
+
+### OpenTelemetry (OTLP)
+
+WEB6 exports distributed traces via OTLP. Set `OTEL_EXPORTER_OTLP_ENDPOINT=http://your-collector:4317` to export to Jaeger, Grafana Tempo, Datadog, Honeycomb, or any OTLP-compatible backend. The service name in traces is `oasis-web6`. No other configuration required.
+
+---
 
 ### GET `/v1/telemetry/stream`
 
@@ -918,6 +1158,52 @@ MCP discovery document — lists the MCP server name, version, and capabilities 
 ### GET `/.well-known/agent.json`
 
 A2A agent card — describes this OASIS instance as an A2A-compatible agent (name, capabilities, task input/output schema, authentication requirements).
+
+---
+
+## Karma-Gated AI Tiers
+
+Every call to `POST /v1/complete` (and `POST /v1/chat/completions`) is evaluated against the requesting avatar's karma score when an `avatarId` is supplied. The tier determines which providers and models are accessible.
+
+| Tier | Karma range | Models included | Provider access |
+|---|---|---|---|
+| **Bronze** | 0 – 999 | Fast/cheap models (llama-3.1-8b, gemini-flash, gpt-4o-mini, etc.) | All providers except AWS Bedrock, Azure OpenAI |
+| **Silver** | 1,000 – 4,999 | + GPT-4o, Claude Sonnet, Gemini Pro, Mistral Large, Command R+, Llama-3.1-70B | All providers |
+| **Gold** | 5,000 – 9,999 | All models | All providers |
+| **Diamond** | 10,000+ | All models + priority routing | All providers |
+
+When the requested model or provider exceeds the avatar's tier, WEB6 automatically **downgrades** to the highest-tier model/provider available rather than returning an error. The response includes:
+- `karmaTier` — the avatar's current tier name
+- `karmaDowngradeNote` — human-readable explanation of what was downgraded and why
+
+If no `avatarId` is supplied the request is treated as **Bronze** tier (open access to base models).
+
+---
+
+## AsyncAPI Specification
+
+WEB6 exposes an AsyncAPI 2.6 specification describing all real-time streaming channels (SSE and WebSocket).
+
+### GET `/asyncapi.json`
+
+Returns the full AsyncAPI specification in JSON format.
+
+**Response:** `Content-Type: application/json` — AsyncAPI 2.6 document.
+
+### GET `/asyncapi.yaml`
+
+Returns the same specification in YAML format.
+
+**Response:** `Content-Type: text/yaml`
+
+**Channels described:**
+
+| Channel | Transport | Description |
+|---|---|---|
+| `/v1/complete/stream` | SSE | Streaming completion chunks; POST CompletionRequest with `stream: true` |
+| `/v1/telemetry/stream` | SSE | Real-time provider telemetry events (latency, tokens, errors) |
+| `/a2a/tasks/{taskId}/events` | SSE | A2A task lifecycle events (submitted → working → completed) |
+| `/v1/ws/session` | WebSocket (WSS) | Bidirectional persistent session chat with holonic memory |
 
 ---
 

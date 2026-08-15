@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.Web6.WebAPI.Observability;
 
 namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 {
@@ -23,13 +24,41 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         private const int MaxEvents = 500;
 
         /// <summary>
-        /// Publishes a new telemetry event (called internally by CompletionController, FAHRNManager, etc.).
+        /// Publishes a new telemetry event to the in-memory ring buffer and Prometheus metrics.
+        /// Called internally by CompletionController, FAHRNManager, etc.
         /// </summary>
         public static void Publish(TelemetryEvent evt)
         {
             _events.Enqueue(evt);
             while (_events.Count > MaxEvents)
                 _events.TryDequeue(out _);
+
+            // Prometheus metrics
+            string provider = evt.Provider ?? "unknown";
+            string model    = evt.Model    ?? "unknown";
+
+            Web6Metrics.CompletionRequests.WithLabels(provider, model, evt.CacheHit ? "true" : "false").Inc();
+
+            if (evt.CacheHit)
+                Web6Metrics.CacheHits.Inc();
+
+            if (evt.BraidGraphReused)
+                Web6Metrics.BraidGraphReuses.Inc();
+
+            if (!string.IsNullOrEmpty(evt.FahrnMode))
+                Web6Metrics.FahrnDispatches.WithLabels(evt.FahrnMode).Inc();
+
+            if (evt.PromptTokens > 0)
+                Web6Metrics.PromptTokens.WithLabels(provider, model).Observe(evt.PromptTokens);
+
+            if (evt.CompletionTokens > 0)
+                Web6Metrics.CompletionTokens.WithLabels(provider, model).Observe(evt.CompletionTokens);
+
+            if (evt.LatencyMs > 0)
+                Web6Metrics.RequestLatencyMs.WithLabels(provider, model).Observe(evt.LatencyMs);
+
+            if (evt.EstimatedCostUSD > 0)
+                Web6Metrics.EstimatedCostUSD.WithLabels(provider, model).Observe(evt.EstimatedCostUSD);
         }
 
         /// <summary>

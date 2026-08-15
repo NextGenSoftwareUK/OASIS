@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Web6.Core.Enums;
+using NextGenSoftware.OASIS.Web6.Core.Helpers;
 using NextGenSoftware.OASIS.Web6.Core.Models;
 
 namespace NextGenSoftware.OASIS.Web6.Core.Managers
@@ -387,6 +388,140 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             await Data.SaveHolonAsync(loadResult.Result, AvatarId, false);
 
             result.Result = before - dto.MemoryItems.Count;
+            return result;
+        }
+
+        // ── Document ingest with semantic deduplication ─────────────────────────────────────────────
+
+        /// <summary>
+        /// Chunks <paramref name="request.Content"/> and stores each chunk as a HolonicMemoryItem in
+        /// <paramref name="holonId"/>. Before storing a chunk it is embedded and compared against every
+        /// existing item in the holon — if cosine similarity ≥ <paramref name="dedupThreshold"/> (default 0.98)
+        /// the chunk is considered a duplicate and is skipped, with the existing fieldName recorded instead.
+        /// This means 10 documents that share a common paragraph store that paragraph exactly once.
+        /// </summary>
+        public async Task<OASISResult<DocumentIngestResponse>> IngestDocumentAsync(
+            Guid holonId,
+            DocumentIngestRequest request,
+            double dedupThreshold = 0.98)
+        {
+            var result = new OASISResult<DocumentIngestResponse>();
+
+            OASISResult<IHolon> loadResult = await Data.LoadHolonAsync(holonId, false);
+            if (loadResult.IsError || loadResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Holon {holonId} not found.");
+                return result;
+            }
+
+            string docName = string.IsNullOrWhiteSpace(request.DocumentName)
+                ? Guid.NewGuid().ToString("N")[..8]
+                : request.DocumentName;
+
+            List<string> chunks = DocumentChunker.Chunk(
+                request.Content,
+                request.ChunkTokens  > 0 ? request.ChunkTokens  : 400,
+                request.OverlapTokens > 0 ? request.OverlapTokens : 50);
+
+            if (chunks.Count == 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "Document produced no chunks.");
+                return result;
+            }
+
+            HolonicMemoryHolonDto dto = MapToDto(loadResult.Result);
+            var embManager = new EmbeddingManager(AvatarId, OASISDNA);
+
+            // Pre-build embedding index of items already in the holon (only those with embeddings)
+            var existingEmbedded = dto.MemoryItems
+                .Where(i => i.Embedding != null && i.Embedding.Length > 0)
+                .ToList();
+
+            int stored = 0, deduped = 0;
+            var chunkIds = new List<string>();
+            var errors   = new List<string>();
+            bool holonDirty = false;
+
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                string chunk = chunks[i];
+                string fieldName = $"doc-{docName}-chunk-{i + 1:D3}";
+
+                // Embed the chunk so we can deduplicate and enable future semantic search
+                float[] chunkEmbedding = null;
+                try
+                {
+                    OASISResult<EmbeddingResponse> embedResult = await embManager.EmbedAsync(
+                        new EmbeddingRequest { Provider = "auto", Model = "auto", Texts = new List<string> { chunk } });
+                    if (!embedResult.IsError && embedResult.Result?.Embeddings?.Count > 0)
+                        chunkEmbedding = embedResult.Result.Embeddings[0];
+                }
+                catch { /* embedding is best-effort; store without if it fails */ }
+
+                // Semantic deduplication: skip if an existing item is near-identical
+                if (chunkEmbedding != null)
+                {
+                    string dupFieldName = null;
+                    foreach (var existing in existingEmbedded)
+                    {
+                        if (existing.Embedding.Length != chunkEmbedding.Length) continue;
+                        double sim = CosineSimilarity(chunkEmbedding, existing.Embedding);
+                        if (sim >= dedupThreshold)
+                        {
+                            dupFieldName = existing.FieldName;
+                            break;
+                        }
+                    }
+
+                    if (dupFieldName != null)
+                    {
+                        chunkIds.Add(dupFieldName); // link to existing, not a new entry
+                        deduped++;
+                        continue;
+                    }
+                }
+
+                var item = new HolonicMemoryItem
+                {
+                    FieldName       = fieldName,
+                    Value           = chunk,
+                    Tags            = new List<string>(request.Tags ?? new List<string>()),
+                    RetentionPolicy = request.RetentionPolicy,
+                    ExpiresUtc      = request.ExpiresUtc,
+                    Embedding       = chunkEmbedding
+                };
+
+                if (!item.Tags.Contains(docName))
+                    item.Tags.Add(docName);
+
+                dto.MemoryItems.Add(item);
+                if (chunkEmbedding != null)
+                    existingEmbedded.Add(item); // include in dedup index for subsequent chunks
+                chunkIds.Add(fieldName);
+                stored++;
+                holonDirty = true;
+            }
+
+            if (holonDirty)
+            {
+                WriteDtoToMetaData(loadResult.Result, dto);
+                OASISResult<IHolon> saveResult = await Data.SaveHolonAsync(loadResult.Result, AvatarId, false);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon after ingest: {saveResult.Message}");
+                    return result;
+                }
+            }
+
+            result.Result = new DocumentIngestResponse
+            {
+                DocumentName    = docName,
+                TotalChunks     = chunks.Count,
+                StoredChunks    = stored,
+                DeduplicatedChunks = deduped,
+                ChunkFieldNames = chunkIds,
+                Errors          = errors.Count > 0 ? errors : null
+            };
             return result;
         }
 

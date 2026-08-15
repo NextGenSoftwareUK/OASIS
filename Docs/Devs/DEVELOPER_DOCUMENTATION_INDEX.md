@@ -54,9 +54,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Current Implementation Status](../CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
 
 ### **WEB6 OASIS AI API — The Intelligence Layer** *(Live July 2026)*
-- **[WEB6 REST API Reference](../../WEB6/Docs/WEB6_REST_API_REFERENCE.md)** - All 56 endpoints across 14 controllers
-- **[WEB6 MCP Tool Reference](../../WEB6/Docs/WEB6_MCP_TOOL_REFERENCE.md)** - All 30 WEB6 MCP tools (111 total across all layers)
-- **[WEB6 User Guide](../../WEB6/Docs/WEB6_USER_GUIDE.md)** - FAHRN, SkillOpt, Holonic Memory, DID/VC, Karma-Gated AI
+- **[WEB6 Getting Started Guide](./API%20Documentation/WEB6/WEB6-Getting-Started-Guide.md)** - **Start here** — quickstart, 26+ providers, OpenAI-compat drop-in, migration phases, cost savings
+- **[WEB6 REST API Reference](./API%20Documentation/WEB6/WEB6_REST_API_Reference.md)** - Full endpoint docs — REST, gRPC (6 services), GraphQL (HotChocolate)
+- **[WEB6 MCP Tool Reference](./API%20Documentation/WEB6/WEB6_MCP_Tool_Reference.md)** - All 250 MCP tools — parameters and return values
+- **[WEB6 User Guide](./API%20Documentation/WEB6/WEB6_User_Guide.md)** - FAHRN, SkillOpt, Holonic Memory, DID/VC, Karma-Gated AI, common workflows
+- **[WEB6 Leela AI Integration Guide](./API%20Documentation/WEB6/WEB6-Leela-AI-Integration-Guide.md)** - Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage
 - **[npm: @oasisomniverse/web6-api](https://www.npmjs.com/package/@oasisomniverse/web6-api)** - v2.0.0 JS/TS client (14 modules, 40 operations)
 - **Swagger UI**: `https://api.web6.oasisomniverse.one/swagger` — live interactive API explorer
 
