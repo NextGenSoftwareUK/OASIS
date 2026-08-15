@@ -96,10 +96,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             if (request.AvatarId != Guid.Empty)
                 avatarKarma = await FetchAvatarKarmaAsync(request.AvatarId, bearerToken);
 
-            // Apply karma gate to each candidate; replace provider/model if downgraded.
+            // Apply subscription + karma gate; replace provider/model if downgraded.
             AIProviderType gatedProvider = candidates.Count > 0 ? candidates[0] : AIProviderType.OpenAI;
             string gatedModel = request.Model;
-            KarmaGateResult gate = KarmaGateManager.Evaluate(avatarKarma, gatedProvider, request.Model);
+            KarmaGateResult gate = KarmaGateManager.Evaluate(request.SubscriptionPlan, avatarKarma, gatedProvider, request.Model);
             if (gate.IsDowngraded)
             {
                 gatedProvider = gate.DowngradedProvider;
@@ -127,15 +127,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                     sw.Stop();
                     response.LatencyMs  = sw.ElapsedMilliseconds;
                     response.FailedOver = i > 0;
+                    response.AccessTier   = gate.TierLabel;
+                    response.KarmaBoosted = gate.KarmaBoosted;
                     if (gate.IsDowngraded)
-                    {
-                        response.KarmaTier         = gate.TierName;
-                        response.KarmaDowngradeNote = gate.Reason;
-                    }
-                    else
-                    {
-                        response.KarmaTier = gate.TierName;
-                    }
+                        response.AccessDowngradeNote = gate.Reason;
                     result.Result = response;
                     request.Model = originalModel; // restore
                     return result;
