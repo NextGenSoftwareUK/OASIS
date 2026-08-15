@@ -323,19 +323,19 @@ Future sessions can query past holons semantically — without paying per-query 
 
 You do not need to rewrite your UI or agentic flow. The changes are all at the API call level.
 
-### Phase 1 — Drop-in endpoint swap (1 day)
+### Phase 1 — Drop-in endpoint swap (~5 minutes)
 
 Replace your Bedrock `invoke_model` calls with WEB6 `/v1/complete`. No frontend changes. Immediate Bedrock overhead savings.
 
-### Phase 2 — Enable BRAID and caching (1 day)
+### Phase 2 — Enable BRAID and caching (~5 minutes)
 
-Add `"UseHolonicBraid": true` and `"UseFAHRN": true` to your completion requests. WEB6 handles the rest. No change to prompt structure or response parsing.
+Add `"UseHolonicBraid": true` and `"UseFAHRN": true` to your completion requests — two JSON fields, nothing else changes. WEB6 handles the Generator/Solver split and caches reasoning plans automatically. No change to prompt structure or response parsing.
 
-### Phase 3 — Migrate document corpus (1–2 days)
+### Phase 3 — Migrate document corpus (hours, depending on corpus size)
 
 Run a one-time script to ingest your existing Bedrock Knowledge Base documents into Holonic Memory using `POST /v1/holonic-memory/holons` + `POST /v1/holonic-memory/holons/{id}/memory`. Replace `retrieve_and_generate` calls with `GET /v1/holonic-memory/holons/{id}/memory/search` + `POST /v1/complete`.
 
-### Phase 4 — Session memory (optional, 1 day)
+### Phase 4 — Session memory (optional, ~30 minutes)
 
 Create a Session-level holon per session via `POST /v1/holonic-memory/holons` and post transcripts as memory items to `POST /v1/holonic-memory/holons/{id}/memory`. Future sessions can query past context via the search endpoint.
 
@@ -415,11 +415,11 @@ The existing Leela API key (`sk_leela_...`) stored in the OASISDNA is already co
 | Goal | WEB6 Solution | Effort |
 |------|--------------|--------|
 | Remove Bedrock overhead on Sonnet | Change endpoint URL | 1 hour |
-| Reduce cost on repeated reasoning | Enable Holonic BRAID | 1 day |
+| Reduce cost on repeated reasoning | Enable Holonic BRAID | ~5 min |
 | Near-zero cost on repeated queries | Semantic caching (on by default) | Zero |
-| Cheap routing for non-Sonnet tasks | FAHRN cost mode | 1 day |
-| Replace Bedrock document storage | Holonic Memory ingestion | 1–2 days |
-| Full data sovereignty | Self-hosted ONODE | 1–2 days |
+| Cheap routing for non-Sonnet tasks | FAHRN cost mode | ~5 min |
+| Replace Bedrock document storage | Holonic Memory ingestion | Hours (corpus-size dependent) |
+| Full data sovereignty | Self-hosted ONODE | ~1–2 hours (Docker or binary) |
 
 Start with Phase 1 (endpoint swap) this week to capture immediate savings, then evaluate BRAID and Holonic Memory based on your actual usage patterns.
 
