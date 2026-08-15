@@ -52,6 +52,22 @@ For more docs, see the [Developer Documentation Index](./DEVELOPER_DOCUMENTATION
 
 ---
 
+## WEB6 AI API (quickstart — any language, any provider)
+
+WEB6 is a unified AI abstraction layer — one endpoint for 26+ AI providers with multi-agent reasoning, holonic memory, semantic caching, and OpenAI-compatible drop-in support.
+
+| Resource | Description |
+|----------|-------------|
+| **[WEB6 Getting Started Guide](./API%20Documentation/WEB6/WEB6-Getting-Started-Guide.md)** | Start here — REST/JS/Python quickstart, all providers, FAHRN/BRAID, migration guide, cost savings |
+| **[WEB6 REST API Reference](./API%20Documentation/WEB6/WEB6_REST_API_Reference.md)** | All endpoints — REST, gRPC, GraphQL |
+| **[WEB6 MCP Tool Reference](./API%20Documentation/WEB6/WEB6_MCP_Tool_Reference.md)** | All 250 MCP tools |
+| **[WEB6 User Guide](./API%20Documentation/WEB6/WEB6_User_Guide.md)** | Common workflows and recipes |
+| **[Holonic Braid Whitepaper](https://web6.oasisomniverse.one/holonic-braid-whitepaper.html)** | Deep technical detail |
+
+Hosted API: `https://api.web6.oasisomniverse.one` (free tier, no sign-up needed to evaluate)
+
+---
+
 ## OASIS Omniverse (OGames, Hub & HUD)
 
 For building and running the 10 OASIS OGames (ODOOM, OQuake, ODOOM3, ODOOM3-BFG, ODuke3D, OWolf3D, OQuake2, OQuake2-RTX, OQuake3, and more), use the Omniverse guides:

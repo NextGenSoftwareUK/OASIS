@@ -47,16 +47,18 @@ The WEB6 OASIS AI API is the Intelligence Layer that supercharges every applicat
 - **SkillOpt** - Self-evolving agent skills (Microsoft Research, arXiv:2605.23904) — +23.5% accuracy gain; builds a proprietary skill corpus asset over time
 - **Holonic Memory** - Fractal persistent memory (Session→Agent→User→Group→…→Earth) with semantic search, TTL, and multi-hop propagation
 - **Karma-Gated AI** - Bronze/Silver/Gold/Diamond access tiers; aligned incentives as recurring SaaS revenue
-- **20+ AI Providers** - OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, Replicate, StabilityAI, and more — one unified API
+- **26+ AI Providers** - OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, Replicate, Bittensor, GaiaNet, StabilityAI, and more — one unified API
 - **DID/Verifiable Credentials** - W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver
 - **BudgetGuard** - Per-dispatch cost and token caps enforced before any API call
 - **250 MCP tools** — the largest production MCP surface area of any AI platform
 - **REST API v2**: 56 endpoints · Swagger at `https://api.web6.oasisomniverse.one/swagger`
 - **npm**: `@oasisomniverse/web6-api` (v2.0.0 — 14 modules, 40 operations)
 
-[View WEB6 REST API Reference →](WEB6/WEB6_REST_API_Reference.md)
-[View WEB6 MCP Tool Reference →](WEB6/WEB6_MCP_Tool_Reference.md)
-[View WEB6 User Guide →](WEB6/WEB6_User_Guide.md)
+[**Start here → WEB6 Getting Started Guide**](WEB6/WEB6-Getting-Started-Guide.md)
+[WEB6 REST API Reference →](WEB6/WEB6_REST_API_Reference.md)
+[WEB6 MCP Tool Reference →](WEB6/WEB6_MCP_Tool_Reference.md)
+[WEB6 User Guide →](WEB6/WEB6_User_Guide.md)
+[WEB6 Leela AI Integration Guide →](WEB6/WEB6-Leela-AI-Integration-Guide.md)
 
 ### WEB7 — Symbiosis Layer *(Live — 7 MCP tools)*
 
