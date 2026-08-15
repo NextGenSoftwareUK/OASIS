@@ -137,8 +137,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by provider key from ChainLink network
-                OASISErrorHandling.HandleError(ref response, "ChainLink avatar loading by provider key not yet implemented");
+                var avatarData = await LoadAvatarFromChainLinkAsync($"providerKey:{providerKey}", version);
+                if (avatarData != null)
+                {
+                    response.Result = JsonSerializer.Deserialize<Avatar>(avatarData);
+                    response.IsError = false;
+                    response.IsLoaded = true;
+                    response.Message = "Avatar loaded successfully by provider key from ChainLink oracle";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Avatar with provider key '{providerKey}' not found on ChainLink oracle");
             }
             catch (Exception ex)
             {
@@ -158,8 +166,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by email from ChainLink network
-                OASISErrorHandling.HandleError(ref response, "ChainLink avatar loading by email not yet implemented");
+                var avatarData = await LoadAvatarFromChainLinkAsync($"email:{avatarEmail}", version);
+                if (avatarData != null)
+                {
+                    response.Result = JsonSerializer.Deserialize<Avatar>(avatarData);
+                    response.IsError = false;
+                    response.IsLoaded = true;
+                    response.Message = "Avatar loaded successfully by email from ChainLink oracle";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Avatar with email '{avatarEmail}' not found on ChainLink oracle");
             }
             catch (Exception ex)
             {
@@ -179,8 +195,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by username from ChainLink network
-                OASISErrorHandling.HandleError(ref response, "ChainLink avatar loading by username not yet implemented");
+                var avatarData = await LoadAvatarFromChainLinkAsync($"username:{avatarUsername}", version);
+                if (avatarData != null)
+                {
+                    response.Result = JsonSerializer.Deserialize<Avatar>(avatarData);
+                    response.IsError = false;
+                    response.IsLoaded = true;
+                    response.Message = "Avatar loaded successfully by username from ChainLink oracle";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Avatar with username '{avatarUsername}' not found on ChainLink oracle");
             }
             catch (Exception ex)
             {

@@ -47,22 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
     {
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByEmail is not supported by Optimism provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByEmail: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarByEmailAsync(email, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
@@ -377,22 +362,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsername is not supported by Optimism provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsername: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
@@ -405,12 +375,57 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsernameAsync is not supported by Optimism provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Search all user avatars and filter by username
+                var getUserAvatarsFunction = _contract.GetFunction("getUserAvatars");
+                var userAvatars = await getUserAvatarsFunction.CallAsync<List<string>>(_account.Address);
+
+                foreach (var avatarId in userAvatars)
+                {
+                    try
+                    {
+                        var getAvatarFunction = _contract.GetFunction("getAvatar");
+                        var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(avatarId);
+
+                        if (avatarData != null && string.Equals(avatarData.Username, avatarUsername, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = Guid.Parse(avatarId),
+                                Username = avatarData.Username,
+                                Email = avatarData.Email,
+                                FirstName = avatarData.FirstName,
+                                LastName = avatarData.LastName,
+                                AvatarType = new EnumValue<AvatarType>(Enum.Parse<AvatarType>(avatarData.AvatarType))
+                            };
+
+                            if (!string.IsNullOrEmpty(avatarData.Metadata))
+                            {
+                                try { avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata); }
+                                catch { }
+                            }
+
+                            response.Result = avatar;
+                            response.IsError = false;
+                            response.Message = "Avatar loaded successfully from Optimism by username";
+                            return response;
+                        }
+                    }
+                    catch { continue; }
+                }
+
+                OASISErrorHandling.HandleError(ref response, $"Avatar with username '{avatarUsername}' not found on Optimism");
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsernameAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsernameAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -418,22 +433,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKey is not supported by Optimism provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByProviderKey: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)

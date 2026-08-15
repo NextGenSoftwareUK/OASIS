@@ -496,6 +496,5 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             return result;
         }
 
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
     }
 }
