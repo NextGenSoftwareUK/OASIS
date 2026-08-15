@@ -150,14 +150,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public string GetBalanceForTelosAccount(string telosAccountName, string code, string symbol)
         {
-            // return EOSIOOASIS?.GetBalanceForEOSIOAccount(telosAccountName, code, symbol);
-            return "0.0000";
+            return EOSIOOASIS?.GetBalanceForEOSIOAccount(telosAccountName, code, symbol) ?? "0.0000";
         }
 
         public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            // return EOSIOOASIS?.GetBalanceForAvatar(avatarId, code, symbol);
-            return "0.0000";
+            return EOSIOOASIS?.GetBalanceForAvatar(avatarId, code, symbol) ?? "0.0000";
         }
 
         public List<string> GetTelosAccountNamesForAvatar(Guid avatarId)
