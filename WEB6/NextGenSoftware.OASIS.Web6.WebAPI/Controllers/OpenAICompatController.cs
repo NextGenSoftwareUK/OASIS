@@ -118,8 +118,9 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
                 return new EmptyResult();
             }
 
+            string bearer = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var manager = new AIProviderManager(AvatarId, OASISDNA);
-            var result = await manager.CompleteAsync(completion);
+            var result = await manager.CompleteAsync(completion, bearer);
 
             if (result.IsError || result.Result == null)
                 return StatusCode(500, new { error = new { message = "WEB6 completion failed", type = "server_error" } });

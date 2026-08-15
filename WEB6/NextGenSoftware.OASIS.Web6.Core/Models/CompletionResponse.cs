@@ -36,5 +36,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Tool calls the model wants to execute. Populated when FinishReason="tool_calls".</summary>
         public List<ToolCall> ToolCalls { get; set; }
+
+        /// <summary>Avatar's karma tier at request time: "Bronze" | "Silver" | "Gold" | "Diamond". Null when no AvatarId was supplied.</summary>
+        public string KarmaTier { get; set; }
+
+        /// <summary>Human-readable explanation when the requested provider/model was downgraded due to insufficient karma.</summary>
+        public string KarmaDowngradeNote { get; set; }
     }
 }
