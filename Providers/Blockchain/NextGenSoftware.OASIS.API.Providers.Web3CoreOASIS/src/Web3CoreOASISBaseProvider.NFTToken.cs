@@ -319,25 +319,25 @@ public partial class Web3CoreOASISBaseProvider
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey)>();
 
-        //TODO: Fix asap!
-        //try
-        //{
-        //    if (!IsProviderActivated)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-        //        return result;           }
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
 
-        //    var wallet = new Nethereum.HdWallet.Wallet(seedPhrase, null);
-        //    var account = wallet.GetAccount(0);
+            var wallet = new Nethereum.HdWallet.Wallet(seedPhrase, null);
+            var account = wallet.GetAccount(0);
 
-        //    result.Result = (account.Address, account.PrivateKey);
-        //    result.IsError = false;
-        //    result.Message = "Web3Core account restored successfully.";
-        //}
-        //catch (Exception ex)
-        //{
-        //    OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
-        //}
+            result.Result = (account.Address, account.PrivateKey);
+            result.IsError = false;
+            result.Message = "Web3Core account restored successfully.";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
+        }
         return result;
     }
 

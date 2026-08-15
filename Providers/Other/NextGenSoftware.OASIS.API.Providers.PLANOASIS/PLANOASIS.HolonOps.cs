@@ -51,22 +51,100 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var queryString = $"parentId={id}&type={type}&version={version}";
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/search?{queryString}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (holons != null)
+                    {
+                        result.Result = holons.Cast<IHolon>();
+                        result.IsError = false;
+                        result.Message = $"Successfully loaded {holons.Count} holons for parent {id} from PLAN";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from PLAN API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from PLAN: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var queryString = $"parentKey={Uri.EscapeDataString(providerKey)}&type={type}&version={version}";
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/search?{queryString}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (holons != null)
+                    {
+                        result.Result = holons.Cast<IHolon>();
+                        result.IsError = false;
+                        result.Message = $"Successfully loaded {holons.Count} holons for parent key '{providerKey}' from PLAN";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from PLAN API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent key from PLAN: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
