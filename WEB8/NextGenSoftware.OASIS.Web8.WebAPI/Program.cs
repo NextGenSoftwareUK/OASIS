@@ -142,6 +142,7 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.ApiKeyMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapControllers();
 app.MapGraphQL();
