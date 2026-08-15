@@ -92,6 +92,7 @@ app.UseRateLimiter();
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web10.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web10.WebAPI.Middleware.ApiKeyMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.Web10.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapGrpcService<SourceGrpcService>();
 app.MapGraphQL();
