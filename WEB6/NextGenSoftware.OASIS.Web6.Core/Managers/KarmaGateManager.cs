@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             // Provider check.
             if (SilverProviders.Contains(provider) && effectiveTier < AccessTier.Silver)
                 return KarmaGateResult.Downgraded(tierLabel, karmaBoost,
-                    $"Provider '{provider}' requires a Starter plan or higher (or 1,000+ karma on Free). Routing to an available provider.",
+                    $"Provider '{provider}' requires a Bronze plan or higher (or 1,000+ karma on Free). Routing to an available provider.",
                     AIProviderType.Groq, BronzeFallbackModel);
 
             // Model check.
@@ -114,13 +114,13 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 foreach (string sub in GoldModels)
                     if (ml.Contains(sub.ToLowerInvariant()) && effectiveTier < AccessTier.Gold)
                         return KarmaGateResult.Downgraded(tierLabel, karmaBoost,
-                            $"Model '{model}' requires a Pro plan or higher (or 1,000+ karma on Starter). Falling back to a Silver-tier model.",
+                            $"Model '{model}' requires a Silver plan or higher (or 1,000+ karma on Bronze). Falling back to a Silver-tier model.",
                             provider, SilverFallbackModel);
 
                 foreach (string sub in SilverModels)
                     if (ml.Contains(sub.ToLowerInvariant()) && effectiveTier < AccessTier.Silver)
                         return KarmaGateResult.Downgraded(tierLabel, karmaBoost,
-                            $"Model '{model}' requires a Starter plan or higher (or 1,000+ karma on Free). Falling back to a Bronze-tier model.",
+                            $"Model '{model}' requires a Bronze plan or higher (or 1,000+ karma on Free). Falling back to a Bronze-tier model.",
                             provider, BronzeFallbackModel);
             }
 
@@ -131,10 +131,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
         private static AccessTier PlanToBaseTier(SubscriptionPlan plan) => plan switch
         {
-            SubscriptionPlan.Starter    => AccessTier.Silver,
-            SubscriptionPlan.Pro        => AccessTier.Gold,
-            SubscriptionPlan.Enterprise => AccessTier.Diamond,
-            _                           => AccessTier.Bronze,  // Free
+            SubscriptionPlan.Bronze     => AccessTier.Silver,   // Bronze ($9)  → Silver-tier models
+            SubscriptionPlan.Silver     => AccessTier.Gold,     // Silver ($29) → Gold-tier models
+            SubscriptionPlan.Gold       => AccessTier.Diamond,  // Gold ($99)   → all models
+            SubscriptionPlan.Enterprise => AccessTier.Diamond,  // Enterprise   → all models + priority
+            _                           => AccessTier.Bronze,   // Free         → base models only
         };
 
         private static string TierLabel(AccessTier tier, bool boosted) =>

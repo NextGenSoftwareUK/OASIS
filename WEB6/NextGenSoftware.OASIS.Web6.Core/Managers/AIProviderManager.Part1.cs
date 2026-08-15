@@ -91,15 +91,26 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             List<AIProviderType> candidates = ResolveProviderCandidates(request);
 
-            // ── Karma gate ─────────────────────────────────────────────────────────
+            // ── Subscription + karma gate ──────────────────────────────────────────
             int avatarKarma = 0;
+            SubscriptionPlan effectivePlan = request.SubscriptionPlan; // caller may supply it directly
             if (request.AvatarId != Guid.Empty)
-                avatarKarma = await FetchAvatarKarmaAsync(request.AvatarId, bearerToken);
+            {
+                // Look up karma and active plan in parallel; both are non-fatal if unavailable.
+                var karmaTask = FetchAvatarKarmaAsync(request.AvatarId, bearerToken);
+                var planTask  = effectivePlan == SubscriptionPlan.Free
+                    ? FetchSubscriptionPlanAsync(request.AvatarId, bearerToken)
+                    : Task.FromResult(effectivePlan);
 
-            // Apply subscription + karma gate; replace provider/model if downgraded.
+                await Task.WhenAll(karmaTask, planTask);
+                avatarKarma   = karmaTask.Result;
+                effectivePlan = planTask.Result;
+            }
+
+            // Apply gate; replace provider/model if downgraded.
             AIProviderType gatedProvider = candidates.Count > 0 ? candidates[0] : AIProviderType.OpenAI;
             string gatedModel = request.Model;
-            KarmaGateResult gate = KarmaGateManager.Evaluate(request.SubscriptionPlan, avatarKarma, gatedProvider, request.Model);
+            KarmaGateResult gate = KarmaGateManager.Evaluate(effectivePlan, avatarKarma, gatedProvider, request.Model);
             if (gate.IsDowngraded)
             {
                 gatedProvider = gate.DowngradedProvider;
@@ -149,6 +160,49 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             request.Model = originalModel; // restore on error path too
             OASISErrorHandling.HandleError(ref result, $"Error calling AI provider(s). Reason: {lastException?.Message}", lastException);
             return result;
+        }
+
+        private async Task<SubscriptionPlan> FetchSubscriptionPlanAsync(Guid avatarId, string bearerToken)
+        {
+            try
+            {
+                string web4Base = Environment.GetEnvironmentVariable("WEB4_API_BASE_URL")
+                    ?? OASISDNA?.OASIS?.Web6?.Web4BaseUrl
+                    ?? "https://api.oasisomniverse.one";
+                using var req = new HttpRequestMessage(HttpMethod.Get, $"{web4Base}/api/subscription/subscriptions/me");
+                if (!string.IsNullOrEmpty(bearerToken))
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+                using HttpResponseMessage resp = await _httpClient.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return SubscriptionPlan.Free;
+
+                using JsonDocument doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+                // Response shape: { "result": [{ "planId": "silver", "status": "active", ... }] }
+                JsonElement root = doc.RootElement;
+                JsonElement arr = root.TryGetProperty("result", out var r) ? r : root;
+                if (arr.ValueKind == JsonValueKind.Array && arr.GetArrayLength() > 0)
+                {
+                    JsonElement first = arr[0];
+                    string planId = first.TryGetProperty("planId", out var p) ? p.GetString()
+                        : first.TryGetProperty("PlanId", out var P) ? P.GetString() : null;
+                    string status = first.TryGetProperty("status", out var s) ? s.GetString()
+                        : first.TryGetProperty("Status", out var S) ? S.GetString() : "active";
+
+                    if (status == "active" || status == "trialing")
+                        return planId?.ToLowerInvariant() switch
+                        {
+                            "bronze"     => SubscriptionPlan.Bronze,
+                            "silver"     => SubscriptionPlan.Silver,
+                            "gold"       => SubscriptionPlan.Gold,
+                            "enterprise" => SubscriptionPlan.Enterprise,
+                            _            => SubscriptionPlan.Free,
+                        };
+                }
+                return SubscriptionPlan.Free;
+            }
+            catch
+            {
+                return SubscriptionPlan.Free; // non-fatal; treat as Free
+            }
         }
 
         private async Task<int> FetchAvatarKarmaAsync(Guid avatarId, string bearerToken)

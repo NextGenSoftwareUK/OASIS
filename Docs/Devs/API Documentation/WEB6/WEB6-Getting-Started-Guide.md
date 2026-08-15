@@ -762,15 +762,15 @@ response = httpx.post(
 )
 ```
 
-### Phase 2 — Enable BRAID and caching (1 day)
+### Phase 2 — Enable BRAID and caching (~5 minutes)
 
-Add `"UseHolonicBraid": true` and `"UseFAHRN": true` to your completion requests. No other change needed. WEB6 handles the Generator/Solver split and caches reasoning plans automatically.
+Add `"UseHolonicBraid": true` and `"UseFAHRN": true` to your completion requests — two JSON fields, nothing else changes. WEB6 handles the Generator/Solver split and caches reasoning plans automatically.
 
-### Phase 3 — Migrate document storage to Holonic Memory (1–2 days)
+### Phase 3 — Migrate document storage to Holonic Memory (hours, depending on corpus size)
 
 Replace your vector store or knowledge base with Holonic Memory using `POST /v1/holonic-memory/holons/{id}/documents`. Replace retrieval calls with `GET /v1/holonic-memory/holons/{id}/memory/search`.
 
-### Phase 4 — Session memory (optional, 1 day)
+### Phase 4 — Session memory (optional, ~30 minutes)
 
 Create a Session-level holon per conversation and post transcripts as memory items. Future sessions query past context via the search endpoint — no per-query retrieval fees.
 
