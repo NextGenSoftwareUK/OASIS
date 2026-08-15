@@ -575,6 +575,5 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             return result;
         }
 
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
     }
 }

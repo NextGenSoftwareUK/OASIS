@@ -69,28 +69,30 @@ public sealed partial class ArbitrumOASIS
                 }
             }
 
-            // Query avatar by username from Arbitrum smart contract
-            // var avatarData = await _contractHandler.GetFunction("getAvatarByUsername").CallAsync<object>(avatarUsername);
-            var avatarData = new object(); // Placeholder
-            
-            if (avatarData != null)
+            // The deployed contract has no username index — scan all avatars and filter by username.
+            string errorMessage = "Error in LoadAvatarByUsernameAsync method in ArbitrumOASIS while loading an avatar by username. Reason: ";
+            if (string.IsNullOrWhiteSpace(avatarUsername))
             {
-                var avatar = ParseArbitrumToAvatar(avatarData);
-                if (avatar != null)
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Username cannot be null or empty."));
+                return result;
+            }
+
+            uint count = await _contractHandler.QueryAsync<GetAvatarsCountFunction, uint>(new GetAvatarsCountFunction());
+            for (uint i = 1; i <= count; i++)
+            {
+                AvatarInfo info = await _contractHandler.QueryAsync<GetAvatarByIdFunction, AvatarInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+                var candidate = JsonConvert.DeserializeObject<Avatar>(info.Info);
+                if (candidate != null && string.Equals(candidate.Username, avatarUsername, StringComparison.OrdinalIgnoreCase))
                 {
-                    result.Result = avatar;
+                    result.Result = candidate;
                     result.IsError = false;
-                    result.Message = "Avatar loaded successfully by username from Arbitrum";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
+                    result.IsLoaded = true;
+                    result.Message = "Avatar loaded successfully by username from Arbitrum.";
+                    return result;
                 }
             }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username on Arbitrum blockchain");
-            }
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Avatar with username '{avatarUsername}' not found on Arbitrum blockchain."));
         }
         catch (Exception ex)
         {

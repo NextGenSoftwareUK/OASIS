@@ -35,10 +35,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
                     return result;
                 }
 
-                // Miden API balance querying requires a live Miden node; return 0 until connected.
-                result.Result = 0m;
-                result.IsError = false;
-                result.Message = "Balance query not yet implemented - requires Miden API integration";
+                var balanceResult = await _midenService.GetAccountBalanceAsync(accountAddress);
+                result.Result = balanceResult.Result;
+                result.IsError = balanceResult.IsError;
+                result.Message = balanceResult.Message;
             }
             catch (Exception ex)
             {
@@ -54,8 +54,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
             var result = new OASISResult<(string, string, string)>();
             try
             {
-                result.IsError = true;
-                result.Message = "Account creation not yet implemented - requires Miden API integration";
+                var createResult = await _midenService.CreateAccountAsync();
+                result.Result = createResult.Result;
+                result.IsError = createResult.IsError;
+                result.Message = createResult.Message;
             }
             catch (Exception ex)
             {
@@ -68,10 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
 
         public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
         {
-            var result = new OASISResult<(string, string)>();
-            result.IsError = true;
-            result.Message = "Account restoration not yet implemented - requires Miden API integration";
-            return Task.FromResult(result);
+            return _midenService.RestoreAccountAsync(seedPhrase);
         }
 
         public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)

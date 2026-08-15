@@ -89,30 +89,20 @@ public sealed partial class ArbitrumOASIS
                 }
             }
 
-            // Query holons for parent from Arbitrum smart contract
-            var getHolonsForParentFunction = new GetHolonsForParentFunction { ParentId = id.ToString() };
-            var holonsData = await _contractHandler.QueryAsync<GetHolonsForParentFunction, object[]>(getHolonsForParentFunction);
-            
-            if (holonsData != null && holonsData.Length > 0)
+            // The deployed contract has no getHolonsForParent function — scan all holons and filter by ParentId.
+            uint holonCount = await _contractHandler.QueryAsync<GetHolonsCountFunction, uint>(new GetHolonsCountFunction());
+            var holons = new List<IHolon>();
+            for (uint i = 1; i <= holonCount; i++)
             {
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData)
-                {
-                    var holon = ParseArbitrumToHolon(holonData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons for parent from Arbitrum";
+                HolonInfo info = await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+                var holon = JsonConvert.DeserializeObject<Holon>(info.Info);
+                if (holon != null && holon.ParentHolonId == id && (type == HolonType.All || holon.HolonType == type))
+                    holons.Add(holon);
             }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "No holons found for parent on Arbitrum blockchain");
-            }
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons for parent from Arbitrum";
         }
         catch (Exception ex)
         {
@@ -136,30 +126,31 @@ public sealed partial class ArbitrumOASIS
                 }
             }
 
-            // Query holons for parent by provider key from Arbitrum smart contract
-            var getHolonsFunction = new GetHolonsForParentByProviderKeyFunction { ProviderKey = providerKey };
-            var holonsData = await _contractHandler.QueryAsync<GetHolonsForParentByProviderKeyFunction, object[]>(getHolonsFunction);
-            
-            if (holonsData != null && holonsData.Length > 0)
+            // The deployed contract has no getHolonsForParentByProviderKey function.
+            // Resolve the parent holon via hash-based entityId, then filter children by ParentHolonId.
+            uint parentEntityId = (uint)Math.Abs(HashUtility.GetNumericHash(providerKey));
+            HolonInfo parentInfo = await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new() { Id = parentEntityId });
+            if (parentInfo == null || string.IsNullOrEmpty(parentInfo.Info))
             {
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData)
-                {
-                    var holon = ParseArbitrumToHolon(holonData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from Arbitrum";
+                OASISErrorHandling.HandleError(ref result, $"Parent holon with provider key '{providerKey}' not found on Arbitrum blockchain.");
+                return result;
             }
-            else
+            var parentHolon = JsonConvert.DeserializeObject<Holon>(parentInfo.Info);
+            Guid parentId = parentHolon?.Id ?? Guid.Empty;
+
+            uint holonCountByKey = await _contractHandler.QueryAsync<GetHolonsCountFunction, uint>(new GetHolonsCountFunction());
+            var holonsByKey = new List<IHolon>();
+            for (uint i = 1; i <= holonCountByKey; i++)
             {
-                OASISErrorHandling.HandleError(ref result, "No holons found for parent by provider key on Arbitrum blockchain");
+                HolonInfo info = await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+                var holon = JsonConvert.DeserializeObject<Holon>(info.Info);
+                if (holon != null && holon.ParentHolonId == parentId && (type == HolonType.All || holon.HolonType == type))
+                    holonsByKey.Add(holon);
             }
+            result.Result = holonsByKey;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsByKey.Count} holons for parent by provider key from Arbitrum";
         }
         catch (Exception ex)
         {
@@ -232,30 +223,23 @@ public sealed partial class ArbitrumOASIS
                 }
             }
 
-            // Query holons by metadata from Arbitrum smart contract
-            var getHolonsByMetaDataFunction = new GetHolonsByMetaDataFunction { MetaKey = metaKey, MetaValue = metaValue };
-            var holonsData = await _contractHandler.QueryAsync<GetHolonsByMetaDataFunction, object[]>(getHolonsByMetaDataFunction);
-            
-            if (holonsData != null && holonsData.Length > 0)
+            // The deployed contract has no getHolonsByMetaData function — scan all holons and filter in memory.
+            uint holonCountMeta = await _contractHandler.QueryAsync<GetHolonsCountFunction, uint>(new GetHolonsCountFunction());
+            var holonsByMeta = new List<IHolon>();
+            for (uint i = 1; i <= holonCountMeta; i++)
             {
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData)
-                {
-                    var holon = ParseArbitrumToHolon(holonData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons by metadata from Arbitrum";
+                HolonInfo info = await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+                var holon = JsonConvert.DeserializeObject<Holon>(info.Info);
+                if (holon != null && holon.MetaData != null &&
+                    holon.MetaData.ContainsKey(metaKey) &&
+                    string.Equals(holon.MetaData[metaKey]?.ToString(), metaValue, StringComparison.OrdinalIgnoreCase) &&
+                    (type == HolonType.All || holon.HolonType == type))
+                    holonsByMeta.Add(holon);
             }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "No holons found by metadata on Arbitrum blockchain");
-            }
+            result.Result = holonsByMeta;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsByMeta.Count} holons by metadata from Arbitrum";
         }
         catch (Exception ex)
         {
@@ -284,31 +268,28 @@ public sealed partial class ArbitrumOASIS
                 }
             }
 
-            // Query holons by multiple metadata pairs from Arbitrum smart contract
-            var metaDataJson = JsonConvert.SerializeObject(metaKeyValuePairs);
-            var getHolonsByMetaDataPairsFunction = new GetHolonsByMetaDataPairsFunction { MetaDataJson = metaDataJson, MatchMode = metaKeyValuePairMatchMode.ToString() };
-            var holonsData = await _contractHandler.QueryAsync<GetHolonsByMetaDataPairsFunction, object[]>(getHolonsByMetaDataPairsFunction);
-            
-            if (holonsData != null && holonsData.Length > 0)
+            // The deployed contract has no getHolonsByMetaDataPairs function — scan all holons and filter in memory.
+            uint holonCountPairs = await _contractHandler.QueryAsync<GetHolonsCountFunction, uint>(new GetHolonsCountFunction());
+            var holonsByPairs = new List<IHolon>();
+            for (uint i = 1; i <= holonCountPairs; i++)
             {
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData)
-                {
-                    var holon = ParseArbitrumToHolon(holonData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons by metadata pairs from Arbitrum";
+                HolonInfo info = await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new() { Id = i });
+                if (info == null || string.IsNullOrEmpty(info.Info)) continue;
+                var holon = JsonConvert.DeserializeObject<Holon>(info.Info);
+                if (holon == null || holon.MetaData == null) continue;
+                if (type != HolonType.All && holon.HolonType != type) continue;
+
+                bool matches = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
+                    ? metaKeyValuePairs.All(kv => holon.MetaData.ContainsKey(kv.Key) &&
+                          string.Equals(holon.MetaData[kv.Key]?.ToString(), kv.Value, StringComparison.OrdinalIgnoreCase))
+                    : metaKeyValuePairs.Any(kv => holon.MetaData.ContainsKey(kv.Key) &&
+                          string.Equals(holon.MetaData[kv.Key]?.ToString(), kv.Value, StringComparison.OrdinalIgnoreCase));
+
+                if (matches) holonsByPairs.Add(holon);
             }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "No holons found by metadata pairs on Arbitrum blockchain");
-            }
+            result.Result = holonsByPairs;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsByPairs.Count} holons by metadata pairs from Arbitrum";
         }
         catch (Exception ex)
         {
