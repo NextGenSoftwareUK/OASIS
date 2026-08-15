@@ -653,6 +653,38 @@ List all configured and active external memory providers.
 
 ---
 
+#### `web6_memory_ingest_document`
+Chunk a document, embed each chunk, and store only semantically unique chunks into a holonic memory holon (bulk document ingest with semantic deduplication). Chunks with cosine similarity ≥ 0.98 against existing holon items are silently skipped.
+
+**Parameters:**
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `holonId` | string (GUID) | yes | Target holon to store chunks into |
+| `content` | string | yes | Full document text to ingest |
+| `documentName` | string | no | Human-readable label for this document |
+| `chunkTokens` | int | no | Target chunk size in tokens (default 400 ≈ 1600 chars) |
+| `overlapTokens` | int | no | Overlap between consecutive chunks (default 50 ≈ 200 chars) |
+| `tags` | string[] | no | Tags attached to every stored chunk |
+| `retentionPolicy` | string | no | `Persistent` (default), `SessionOnly`, `Expiring` |
+| `expiresUtc` | string | no | ISO 8601 expiry (for `Expiring` policy) |
+| `avatarId` | string (GUID) | no | Caller avatar for karma-gated access |
+
+**Returns:**
+```json
+{
+  "result": {
+    "documentName": "Q3 Report",
+    "totalChunks": 24,
+    "storedChunks": 18,
+    "deduplicatedChunks": 6,
+    "chunkFieldNames": ["chunk_0001", "chunk_0002", "..."],
+    "errors": []
+  }
+}
+```
+
+---
+
 ### Orchestrator Tools
 
 #### `web6_orchestrator_register`

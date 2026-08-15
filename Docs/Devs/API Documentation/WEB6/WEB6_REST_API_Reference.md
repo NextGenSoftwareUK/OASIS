@@ -752,6 +752,140 @@ Authenticate using a W3C Decentralised Identifier.
 }
 ```
 
+---
+
+## gRPC API
+
+WEB6 exposes a full gRPC surface alongside the REST API. The Protobuf definitions live in `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Protos/`. Default gRPC port is `5001` (HTTP/2). All services live under package `oasis.web6`.
+
+### Services & RPCs
+
+| Service | Package/file | Key RPCs |
+|---|---|---|
+| `AiService` | `ai.proto` | `Complete`, `Embed`, `GenerateImage`, `ClassifyTask`, `AnalyseSentiment`, `TrainTaskClassifier`, `ListOpenServModels`, `ListMLModels` |
+| `AgentsService` | `agents.proto` | `SendA2ATask`, `GetA2ATask`, `CancelA2ATask`, `RegisterOrchestrator`, `InvokeOrchestrator`, `RegisterReasoningAgent`, `Dispatch`, `GetSkill`, `EvolveSkill`, `GetBraidGraph`, `SaveBraidGraph` |
+| `MemoryService` | `memory.proto` | `GetEarthHolon`, `GetOrCreateHolon`, `SetMembraneRule`, `RecordMemory`, `PropagateUp`, `Propagate`, `SearchMemory`, `SearchExternalMemory`, `AddExternalMemory`, `DeleteExternalMemory`, `GetAvatarContext` |
+| `NetworkService` | `network.proto` | `FahrnSolve`, `FahrnBudgetEstimate`, `GetProviderStatus`, `GetMcpDiscovery`, `GetA2AAgentCard` |
+| `TelemetryService` | `telemetry.proto` | `GetTelemetryHistory`, `GetUsage` |
+| `IdentityService` | `identity.proto` | `CreateDid`, `ResolveDid`, `IssueVc`, `VerifyVc`, `UpsertKey`, `ListKeyProviders`, `DeleteKey` |
+
+### Quick example — gRPC completion (grpcurl)
+
+```bash
+grpcurl -d '{
+  "avatar_id": "00000000-0000-0000-0000-000000000000",
+  "provider": "auto",
+  "messages": [{ "role": "user", "content": "Explain holons in one sentence." }]
+}' -plaintext localhost:5001 oasis.web6.AiService/Complete
+```
+
+### Auth
+
+Pass your JWT as gRPC metadata:
+
+```
+Authorization: Bearer <token>
+```
+
+For avatar-scoped operations without a JWT, pass `avatarid: <guid>` as a metadata header (e.g. gRPC Telemetry usage endpoint).
+
+---
+
+## GraphQL API
+
+WEB6 exposes a HotChocolate GraphQL endpoint at `POST /graphql`. The schema covers all major WEB6 operations as typed queries and mutations — useful for exploratory clients and dashboards that want to fetch exactly the fields they need.
+
+**Endpoint:** `POST /graphql`
+**Playground:** `GET /graphql` (HotChocolate Banana Cake Pop UI)
+
+### Queries
+
+| Query | Description |
+|---|---|
+| `aiModels` | List all OpenServ AI models in the FAHRN catalogue |
+| `mlModels` | List ML.NET in-process models and their status |
+| `telemetry(limit)` / `telemetryHistory(limit)` | Recent telemetry events |
+| `agents` | All registered FAHRN reasoning agents |
+| `searchMemory(query, avatarId, limit)` | Search external memory providers |
+| `avatarContext(avatarId)` | Rich context block for an avatar |
+| `resolveDid(did)` | Resolve a W3C DID |
+| `externalMemoryProviders` | List configured external memory providers |
+| `fahrnBudgetEstimate(taskType, mode, agentCount)` | Cost/token estimate for a dispatch |
+| `holonicBraidGraph(taskType)` | Retrieve a cached Mermaid reasoning graph |
+| `earthHolon` | Get (or create) the root Earth holon |
+| `searchHolonMemory(holonId, query, topK, provider)` | Semantic search within a holon |
+| `storedKeyProviders(avatarId)` | List providers that have a stored key |
+| `classifyTask(text)` | ML.NET in-process task classification |
+| `analyseSentiment(text)` | ML.NET sentiment analysis |
+| `orchestratorAdapters` | List registered orchestrator adapters |
+| `agentSkill(agentId, category)` | Get a FAHRN agent's skill document |
+| `providerStatus(refresh)` | Live health + latency for all AI providers |
+| `usageSummary(avatarId)` | Token and spend summary for an avatar |
+| `mcpDiscovery` / `a2aAgentCard` | Discovery documents |
+| `a2aTask(id)` | Get an A2A task by ID |
+
+### Mutations
+
+| Mutation | Description |
+|---|---|
+| `complete(prompt, systemPrompt, provider, model, maxTokens, temperature, avatarId)` | AI completion |
+| `generateEmbeddings(inputs, provider, model, avatarId)` | Embed text |
+| `generateImage(prompt, provider, model, width, height, avatarId)` | Image generation |
+| `dispatchAgent(problem, taskType, avatarId)` | FAHRN dispatch |
+| `solveFahrn(problem, avatarId, returnReasoning)` | Full FAHRN solve pipeline |
+| `storeMemory(content, provider, avatarId)` | Store to external memory |
+| `deleteMemory(provider, id, avatarId)` | Delete from external memory |
+| `saveHolonicBraidGraph(taskType, mermaidDiagram, generatedByModel)` | Save a BRAID graph |
+| `getOrCreateHolon(level, name, parentHolonId)` | Create/retrieve a holon |
+| `setMembraneRule(holonId, ruleJson)` | Set propagation filter |
+| `recordHolonMemory(holonId, itemJson)` | Store a memory item |
+| `propagateHolonMemoryUp(childHolonId, levels)` | Propagate memory upward |
+| `propagateHolonMemory(childHolonId)` | One-hop propagation |
+| `upsertKey(avatarId, provider, apiKey)` | Store a provider API key |
+| `deleteKey(avatarId, provider)` | Remove a stored key |
+| `trainTaskClassifier(problems, labels)` | Train ML.NET classifier |
+| `registerOrchestratorAdapter(configJson)` | Register external agent |
+| `invokeOrchestrator(requestJson)` | Invoke a registered adapter |
+| `registerReasoningAgent(agentJson)` | Register a FAHRN agent |
+| `seedOpenServAgents` | Seed default OpenServ agents |
+| `evolveAgentSkill(agentId, category)` | Run SkillOpt evolution epoch |
+| `createDid(avatarId)` | Create a W3C DID |
+| `issueVc(subjectDid, issuerAvatarId, claimsJson)` | Issue a Verifiable Credential |
+| `verifyVc(issuerAvatarId, credentialJson)` | Verify a VC |
+| `sendA2ATask(problem, taskId)` | Submit an A2A task |
+| `cancelA2ATask(id)` | Cancel an A2A task |
+
+### Example query
+
+```graphql
+query {
+  telemetry(limit: 5) {
+    provider
+    model
+    latencyMs
+    estimatedCostUsd
+    braidGraphReused
+  }
+}
+```
+
+### Example mutation
+
+```graphql
+mutation {
+  complete(
+    prompt: "Explain holons in one sentence."
+    provider: "auto"
+    avatarId: "00000000-0000-0000-0000-000000000000"
+  ) {
+    content
+    provider
+    model
+    estimatedCostUsd
+  }
+}
+```
+
 **Response:**
 ```json
 {
