@@ -1,2512 +1,1138 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Net.Http;
-//using System.Net.Http.Json;
-//using System.Text;
-//using System.Text.Json;
-//using System.Threading.Tasks;
-//using NextGenSoftware.OASIS.API.Core;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-//using NextGenSoftware.OASIS.API.Core.Objects.Search;
-//using NextGenSoftware.OASIS.API.Core.Helpers;
-//using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
-//using NextGenSoftware.OASIS.API.Core.Holons;
-//using NextGenSoftware.OASIS.Common;
-//using NextGenSoftware.Utilities;
-//using NextGenSoftware.Utilities.ExtentionMethods;
-//using NextGenSoftware.OASIS.API.Core.Objects;
-//using System.Text.Json.Serialization;
-//using System.IO;
-
-//namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
-//{
-//    /// <summary>
-//    /// SOLID (Social Linked Data) Provider for OASIS
-//    /// Implements Tim Berners-Lee's decentralized web standard where users store data in "pods"
-//    /// </summary>
-//    public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISSuperStar
-//    {
-//        private readonly HttpClient _httpClient;
-//        private readonly string _podServerUrl;
-//        private readonly string _authToken;
-//        private bool _isActivated;
-
-//        /// <summary>
-//        /// Initializes a new instance of the SOLIDOASIS provider
-//        /// </summary>
-//        /// <param name="podServerUrl">URL of the SOLID pod server (e.g., https://solidcommunity.net, https://inrupt.net)</param>
-//        /// <param name="authToken">Authentication token for accessing the pod</param>
-//        public SOLIDOASIS(string podServerUrl = "https://solidcommunity.net", string authToken = "")
-//        {
-//            this.ProviderName = "SOLIDOASIS";
-//            this.ProviderDescription = "SOLID (Social Linked Data) Provider - Decentralized personal data storage";
-//            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
-//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-//            _podServerUrl = podServerUrl ?? throw new ArgumentNullException(nameof(podServerUrl));
-//            _authToken = authToken;
-//            _httpClient = new HttpClient
-//            {
-//                BaseAddress = new Uri(_podServerUrl)
-//            };
-
-//            if (!string.IsNullOrEmpty(_authToken))
-//            {
-//                _httpClient.DefaultRequestHeaders.Authorization = 
-//                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authToken);
-//            }
-//        }
-
-//        #region IOASISStorageProvider Implementation
-
-//        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-//        {
-//            var response = new OASISResult<bool>();
-
-//            try
-//            {
-//                if (_isActivated)
-//                {
-//                    response.Result = true;
-//                    response.Message = "SOLID provider is already activated";
-//                    return response;
-//                }
-
-//                // Test connection to SOLID pod server
-//                var testResponse = await _httpClient.GetAsync("/");
-//                if (testResponse.IsSuccessStatusCode)
-//                {
-//                    _isActivated = true;
-//                    response.Result = true;
-//                    response.Message = "SOLID provider activated successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to SOLID pod server: {testResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error activating SOLID provider: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<bool> ActivateProvider()
-//        {
-//            return ActivateProviderAsync().Result;
-//        }
-
-//        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-//        {
-//            var response = new OASISResult<bool>();
-
-//            try
-//            {
-//                _isActivated = false;
-//                _httpClient?.Dispose();
-//                response.Result = true;
-//                response.Message = "SOLID provider deactivated successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error deactivating SOLID provider: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<bool> DeActivateProvider()
-//        {
-//            return DeActivateProviderAsync().Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatar>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // SOLID pod data retrieval by WebID
-//                var webId = providerKey;
-//                var podUrl = $"{_podServerUrl}/profile/card";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatar(content);
-//                    response.IsError = false;
-//                    response.Message = "Avatar loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to retrieve SOLID pod data: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
-//        {
-//            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatar>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load avatar from SOLID pod by GUID
-//                var podUrl = $"{_podServerUrl}/profile/{id}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // Parse RDF/JSON-LD and deserialize complete Avatar object
-//                    var avatar = ParseRDFToAvatar(content);
-//                    if (avatar != null)
-//                    {
-//                        avatar.Id = id;
-//                        avatar.Version = version;
-//                        response.Result = avatar;
-//                        response.Message = "Avatar loaded from SOLID pod successfully";
-//                    }
-//                    else
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, "Failed to parse RDF content to Avatar");
-//                    }
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
-//        {
-//            return LoadAvatarAsync(id, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatar>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load avatar by email from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/email/{avatarEmail}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatar(content);
-//                    response.IsError = false;
-//                    response.Message = "Avatar loaded successfully from SOLID pod by email";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar by email from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
-//        {
-//            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatar>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load avatar by username from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/username/{avatarUsername}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatar(content);
-//                    response.IsError = false;
-//                    response.Message = "Avatar loaded successfully from SOLID pod by username";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar by username from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
-//        {
-//            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatarDetail>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load avatar detail from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/{id}/detail";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatarDetail(content);
-//                    response.IsError = false;
-//                    response.Message = "Avatar detail loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
-//        {
-//            return LoadAvatarDetailAsync(id, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatarDetail>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load avatar detail by email from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/email/{avatarEmail}/detail";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatarDetail(content);
-//                    response.IsError = false;
-//                    response.Message = "Avatar detail loaded successfully from SOLID pod by email";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail by email from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
-//        {
-//            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-//        {
-//            var response = new OASISResult<IAvatarDetail>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load avatar detail by username from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/username/{avatarUsername}/detail";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatarDetail(content);
-//                    response.IsError = false;
-//                    response.Message = "Avatar detail loaded successfully from SOLID pod by username";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail by username from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
-//        {
-//            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IAvatar>>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load all avatars from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profiles";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatars(content);
-//                    response.IsError = false;
-//                    response.Message = "All avatars loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load all avatars from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading all avatars from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-//        {
-//            return LoadAllAvatarsAsync(version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load all avatar details from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profiles/details";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatarDetails(content);
-//                    response.IsError = false;
-//                    response.Message = "All avatar details loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load all avatar details from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-//        {
-//            return LoadAllAvatarDetailsAsync(version).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-//        {
-//            var response = new OASISResult<IAvatar>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Save avatar to SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/{avatar.Id}";
-//                var rdfContent = ConvertAvatarToRDF(avatar);
-                
-//                var content = new StringContent(rdfContent, Encoding.UTF8, "application/ld+json");
-//                var httpResponse = await _httpClient.PutAsync(podUrl, content);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = avatar;
-//                    response.IsError = false;
-//                    response.Message = "Avatar saved to SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-//        {
-//            return SaveAvatarAsync(avatar).Result;
-//        }
-
-//        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-//        {
-//            var response = new OASISResult<IAvatarDetail>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Save avatar detail to SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/{avatarDetail.Id}/detail";
-//                var rdfContent = ConvertAvatarDetailToRDF(avatarDetail);
-                
-//                var content = new StringContent(rdfContent, Encoding.UTF8, "application/ld+json");
-//                var httpResponse = await _httpClient.PutAsync(podUrl, content);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = avatarDetail;
-//                    response.IsError = false;
-//                    response.Message = "Avatar detail saved to SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
-//        {
-//            return SaveAvatarDetailAsync(avatarDetail).Result;
-//        }
-
-//        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-//        {
-//            var response = new OASISResult<bool>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Delete avatar from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/{id}";
-                
-//                var httpResponse = await _httpClient.DeleteAsync(podUrl);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = true;
-//                    response.IsError = false;
-//                    response.Message = "Avatar deleted from SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-//        {
-//            return DeleteAvatarAsync(id, softDelete).Result;
-//        }
-
-//        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-//        {
-//            var response = new OASISResult<bool>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Delete avatar by provider key from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/{providerKey}";
-                
-//                var httpResponse = await _httpClient.DeleteAsync(podUrl);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = true;
-//                    response.IsError = false;
-//                    response.Message = "Avatar deleted from SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by provider key from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by provider key from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-//        {
-//            return DeleteAvatarAsync(providerKey, softDelete).Result;
-//        }
-
-//        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-//        {
-//            var response = new OASISResult<bool>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Delete avatar by email from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/email/{avatarEmail}";
-                
-//                var httpResponse = await _httpClient.DeleteAsync(podUrl);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = true;
-//                    response.IsError = false;
-//                    response.Message = "Avatar deleted from SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by email from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by email from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-//        {
-//            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-//        }
-
-//        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-//        {
-//            var response = new OASISResult<bool>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Delete avatar by username from SOLID pod
-//                var podUrl = $"{_podServerUrl}/profile/username/{avatarUsername}";
-                
-//                var httpResponse = await _httpClient.DeleteAsync(podUrl);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = true;
-//                    response.IsError = false;
-//                    response.Message = "Avatar deleted from SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by username from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by username from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-//        {
-//            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-//        }
-
-//        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            var response = new OASISResult<IHolon>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load holon from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holon/{id}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolon(content);
-//                    response.IsError = false;
-//                    response.Message = "Holon loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading holon from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            var response = new OASISResult<IHolon>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load holon by provider key from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holon/{providerKey}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolon(content);
-//                    response.IsError = false;
-//                    response.Message = "Holon loaded successfully from SOLID pod by provider key";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon by provider key from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading holon by provider key from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        //{
-//        //    throw new NotImplementedException();
-//        //}
-
-//        //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        //{
-//        //    throw new NotImplementedException();
-//        //}
-
-//        //public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        //{
-//        //    throw new NotImplementedException();
-//        //}
-
-//        //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        //{
-//        //    throw new NotImplementedException();
-//        //}
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load holons for parent from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holon/{id}/children";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "Holons for parent loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load holons for parent from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holon/{providerKey}/children";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "Holons for parent loaded successfully from SOLID pod by provider key";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
-//        {
-//            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        //{
-//        //    throw new NotImplementedException();
-//        //}
-
-//        //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        //{
-//        //    throw new NotImplementedException();
-//        //}
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load holons by metadata from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holon/metadata/{metaKey}/{metaValue}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "Holons by metadata loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons by metadata from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return Task.Run(() =>
-//            {
-//                var response = new OASISResult<IEnumerable<IHolon>>
-//                {
-//                    Result = Enumerable.Empty<IHolon>()
-//                };
-//                return response;
-//            });
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Load all holons from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holons";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "All holons loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to load all holons from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error loading all holons from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-//        {
-//            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-//        }
-
-//        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-//        {
-//            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-//        }
-
-//        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-//        {
-//            return Task.Run(async () =>
-//            {
-//                var response = new OASISResult<IHolon>();
-//                try
-//                {
-//                    if (!_isActivated)
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                        return response;
-//                    }
-
-//                    // Save holon to SOLID pod
-//                    var podUrl = $"{_podServerUrl}/holon/{holon.Id}";
-//                    var rdfContent = ConvertHolonToRDF(holon);
-                    
-//                    var content = new StringContent(rdfContent, Encoding.UTF8, "application/ld+json");
-//                    var httpResponse = await _httpClient.PutAsync(podUrl, content);
-                    
-//                    if (httpResponse.IsSuccessStatusCode)
-//                    {
-//                        response.Result = holon;
-//                        response.IsError = false;
-//                        response.Message = "Holon saved to SOLID pod successfully";
-//                    }
-//                    else
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon to SOLID pod: {httpResponse.StatusCode}");
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    response.Exception = ex;
-//                    OASISErrorHandling.HandleError(ref response, $"Error saving holon to SOLID: {ex.Message}");
-//                }
-//                return response;
-//            });
-//        }
-
-//        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-//        {
-//            return Task.Run(async () =>
-//            {
-//                var response = new OASISResult<IEnumerable<IHolon>>();
-//                try
-//                {
-//                    if (!_isActivated)
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                        return response;
-//                    }
-
-//                    // Save holons to SOLID pod
-//                    var podUrl = $"{_podServerUrl}/holons";
-//                    var rdfContent = ConvertHolonsToRDF(holons);
-                    
-//                    var content = new StringContent(rdfContent, Encoding.UTF8, "application/ld+json");
-//                    var httpResponse = await _httpClient.PutAsync(podUrl, content);
-                    
-//                    if (httpResponse.IsSuccessStatusCode)
-//                    {
-//                        response.Result = holons;
-//                        response.IsError = false;
-//                        response.Message = "Holons saved to SOLID pod successfully";
-//                    }
-//                    else
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, $"Failed to save holons to SOLID pod: {httpResponse.StatusCode}");
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    response.Exception = ex;
-//                    OASISErrorHandling.HandleError(ref response, $"Error saving holons to SOLID: {ex.Message}");
-//                }
-//                return response;
-//            });
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-//        {
-//            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-//        }
-
-//        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-//        {
-//            return Task.Run(async () =>
-//            {
-//                var response = new OASISResult<IHolon>();
-//                try
-//                {
-//                    if (!_isActivated)
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                        return response;
-//                    }
-
-//                    // Delete holon from SOLID pod
-//                    var podUrl = $"{_podServerUrl}/holon/{id}";
-                    
-//                    var httpResponse = await _httpClient.DeleteAsync(podUrl);
-                    
-//                    if (httpResponse.IsSuccessStatusCode)
-//                    {
-//                        // Return the full holon object that was deleted
-//                        response.Result = new Holon 
-//                        { 
-//                            Id = id,
-//                            Name = "Deleted Holon",
-//                            Description = "This holon was deleted from SOLID pod",
-//                            HolonType = HolonType.Holon,
-//                            CreatedDate = DateTime.UtcNow,
-//                            ModifiedDate = DateTime.UtcNow,
-//                            Version = 1,
-//                            IsActive = false
-//                        };
-//                        response.IsError = false;
-//                        response.Message = "Holon deleted from SOLID pod successfully";
-//                    }
-//                    else
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, $"Failed to delete holon from SOLID pod: {httpResponse.StatusCode}");
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    response.Exception = ex;
-//                    OASISErrorHandling.HandleError(ref response, $"Error deleting holon on SOLID: {ex.Message}");
-//                }
-//                return response;
-//            });
-//        }
-
-//        public override OASISResult<IHolon> DeleteHolon(Guid id)
-//        {
-//            return DeleteHolonAsync(id).Result;
-//        }
-
-//        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-//        {
-//            return Task.Run(async () =>
-//            {
-//                var response = new OASISResult<IHolon>();
-//                try
-//                {
-//                    if (!_isActivated)
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                        return response;
-//                    }
-
-//                    // Delete holon from SOLID pod
-//                    var podUrl = $"{_podServerUrl}/holon/{providerKey}";
-                    
-//                    var httpResponse = await _httpClient.DeleteAsync(podUrl);
-                    
-//                    if (httpResponse.IsSuccessStatusCode)
-//                    {
-//                        // Return the full holon object that was deleted
-//                        response.Result = new Holon 
-//                        { 
-//                            Id = Guid.NewGuid(),
-//                            Name = "Deleted Holon",
-//                            Description = "This holon was deleted from SOLID pod",
-//                            HolonType = HolonType.Holon,
-//                            CreatedDate = DateTime.UtcNow,
-//                            ModifiedDate = DateTime.UtcNow,
-//                            Version = 1,
-//                            IsActive = false
-//                        };
-//                        response.IsError = false;
-//                        response.Message = "Holon deleted from SOLID pod successfully";
-//                    }
-//                    else
-//                    {
-//                        OASISErrorHandling.HandleError(ref response, $"Failed to delete holon from SOLID pod: {httpResponse.StatusCode}");
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    response.Exception = ex;
-//                    OASISErrorHandling.HandleError(ref response, $"Error deleting holon on SOLID: {ex.Message}");
-//                }
-//                return response;
-//            });
-//        }
-
-//        public override OASISResult<IHolon> DeleteHolon(string providerKey)
-//        {
-//            return DeleteHolonAsync(providerKey).Result;
-//        }
-
-//        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-//        {
-//            var response = new OASISResult<ISearchResults>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Search SOLID pod
-//                var podUrl = $"{_podServerUrl}/search?q={Uri.EscapeDataString("")}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToSearchResults(content);
-//                    response.IsError = false;
-//                    response.Message = "Search completed successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to search SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error searching SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-//        {
-//            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-//        }
-
-//        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-//        {
-//            var response = new OASISResult<bool>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Import holons to SOLID pod
-//                var podUrl = $"{_podServerUrl}/import";
-//                var rdfContent = ConvertHolonsToRDF(holons);
-                
-//                var content = new StringContent(rdfContent, Encoding.UTF8, "application/ld+json");
-//                var httpResponse = await _httpClient.PostAsync(podUrl, content);
-                
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    response.Result = true;
-//                    response.IsError = false;
-//                    response.Message = "Holons imported to SOLID pod successfully";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to import holons to SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error importing holons to SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
-//        {
-//            return ImportAsync(holons).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Export all data for avatar from SOLID pod
-//                var podUrl = $"{_podServerUrl}/export/avatar/{avatarId}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "All data for avatar exported successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to export all data for avatar from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-//        {
-//            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Export all data for avatar by username from SOLID pod
-//                var podUrl = $"{_podServerUrl}/export/avatar/username/{avatarUsername}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "All data for avatar by username exported successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to export all data for avatar by username from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by username from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-//        {
-//            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Export all data for avatar by email from SOLID pod
-//                var podUrl = $"{_podServerUrl}/export/avatar/email/{avatarEmailAddress}";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "All data for avatar by email exported successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to export all data for avatar by email from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by email from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-//        {
-//            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-//        }
-
-//        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Export all data from SOLID pod
-//                var podUrl = $"{_podServerUrl}/export/all";
-                
-//                var httpResponse = await _httpClient.GetAsync(podUrl);
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = await httpResponse.Content.ReadAsStringAsync();
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "All data exported successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to export all data from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error exporting all data from SOLID: {ex.Message}");
-//            }
-//            return response;
-//        }
-
-//        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-//        {
-//            return ExportAllAsync(version).Result;
-//        }
-
-//        #endregion
-
-//        #region IOASISNET Implementation
-
-//        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-//        {
-//            var response = new OASISResult<IEnumerable<IAvatar>>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Get players near me from SOLID pod
-//                var podUrl = $"{_podServerUrl}/players/nearby";
-                
-//                var httpResponse = _httpClient.GetAsync(podUrl).Result;
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToAvatars(content);
-//                    response.IsError = false;
-//                    response.Message = "Players near me loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-//        {
-//            var response = new OASISResult<IEnumerable<IHolon>>();
-
-//            try
-//            {
-//                if (!_isActivated)
-//                {
-//                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
-//                    return response;
-//                }
-
-//                // Get holons near me from SOLID pod
-//                var podUrl = $"{_podServerUrl}/holons/nearby?type={Type}";
-                
-//                var httpResponse = _httpClient.GetAsync(podUrl).Result;
-//                if (httpResponse.IsSuccessStatusCode)
-//                {
-//                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-//                    // REAL SOLID implementation for parsing RDF/JSON-LD content
-//                    response.Result = ParseRDFToHolons(content);
-//                    response.IsError = false;
-//                    response.Message = "Holons near me loaded successfully from SOLID pod";
-//                }
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from SOLID pod: {httpResponse.StatusCode}");
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                response.Exception = ex;
-//                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from SOLID: {ex.Message}");
-//            }
-
-//            return response;
-//        }
-
-//        #endregion
-
-//        #region Private Helper Methods
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to Avatar object
-//        /// </summary>
-//        private IAvatar ParseRDFToAvatar(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                // Serialize the entire JSON object to ensure all properties are captured
-//                var jsonString = root.GetRawText();
-//                var avatar = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-
-//                return avatar as IAvatar;
-//            }
-//            catch (Exception)
-//            {
-//                return null;
-//            }
-//        }
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to AvatarDetail object
-//        /// </summary>
-//        private IAvatarDetail ParseRDFToAvatarDetail(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                // Serialize the entire JSON object to ensure all properties are captured
-//                var jsonString = root.GetRawText();
-//                var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-
-//                return avatarDetail;
-//            }
-//            catch (Exception)
-//            {
-//                return null;
-//            }
-//        }
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to collection of Avatar objects
-//        /// </summary>
-//        private IEnumerable<IAvatar> ParseRDFToAvatars(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                var avatars = new List<IAvatar>();
-
-//                // Support either an array at @graph or a plain array
-//                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in graph.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var avatar = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (avatar != null) avatars.Add(avatar as IAvatar);
-//                    }
-//                }
-//                else if (root.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in root.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var avatar = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (avatar != null) avatars.Add(avatar as IAvatar);
-//                    }
-//                }
-//                return avatars;
-//            }
-//            catch (Exception)
-//            {
-//                return new List<IAvatar>();
-//            }
-//        }
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to collection of AvatarDetail objects
-//        /// </summary>
-//        private IEnumerable<IAvatarDetail> ParseRDFToAvatarDetails(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                var avatarDetails = new List<IAvatarDetail>();
-
-//                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in graph.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (avatarDetail != null) avatarDetails.Add(avatarDetail);
-//                    }
-//                }
-//                else if (root.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in root.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (avatarDetail != null) avatarDetails.Add(avatarDetail);
-//                    }
-//                }
-//                return avatarDetails;
-//            }
-//            catch (Exception)
-//            {
-//                return new List<IAvatarDetail>();
-//            }
-//        }
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to Holon object
-//        /// </summary>
-//        private IHolon ParseRDFToHolon(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                // Serialize the entire JSON object to ensure all properties are captured
-//                var jsonString = root.GetRawText();
-//                var holon = JsonSerializer.Deserialize<Holon>(jsonString, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-
-//                return holon;
-//            }
-//            catch (Exception)
-//            {
-//                return null;
-//            }
-//        }
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to collection of Holon objects
-//        /// </summary>
-//        private IEnumerable<IHolon> ParseRDFToHolons(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                var holons = new List<IHolon>();
-
-//                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in graph.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var holon = JsonSerializer.Deserialize<Holon>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (holon != null) holons.Add(holon);
-//                    }
-//                }
-//                else if (root.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in root.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var holon = JsonSerializer.Deserialize<Holon>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (holon != null) holons.Add(holon);
-//                    }
-//                }
-//                return holons;
-//            }
-//            catch (Exception)
-//            {
-//                return new List<IHolon>();
-//            }
-//        }
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to collection of Player objects
-//        /// </summary>
-//        private IEnumerable<IPlayer> ParseRDFToPlayers(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                var players = new List<IPlayer>();
-
-//                // Treat players as AvatarDetail records in @graph
-//                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
-//                {
-//                    foreach (var item in graph.EnumerateArray())
-//                    {
-//                        var jsonString = item.GetRawText();
-//                        var player = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
-//                        { 
-//                            PropertyNameCaseInsensitive = true,
-//                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                        });
-//                        if (player != null) players.Add(player as IPlayer);
-//                    }
-//                }
-//                return players;
-//            }
-//            catch (Exception)
-//            {
-//                return new List<IPlayer>();
-//            }
-//        }
-
-
-//        /// <summary>
-//        /// Parse RDF/JSON-LD content to SearchResults object
-//        /// </summary>
-//        private ISearchResults ParseRDFToSearchResults(string rdfContent)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                using var doc = JsonDocument.Parse(rdfContent);
-//                var root = doc.RootElement;
-
-//                // Serialize the entire JSON object to ensure all properties are captured
-//                var jsonString = root.GetRawText();
-//                var searchResults = JsonSerializer.Deserialize<SearchResults>(jsonString, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-
-//                // If deserialization fails, create a basic SearchResults with parsed data
-//                if (searchResults == null)
-//                {
-//                    searchResults = new SearchResults();
-//                    // Populate avatars and holons from any @graph content
-//                    var avatars = ParseRDFToAvatars(rdfContent);
-//                    var holons = ParseRDFToHolons(rdfContent);
-//                    // Set basic properties if available
-//                    searchResults.SearchResultAvatars = avatars.ToList();
-//                    searchResults.SearchResultHolons = holons.ToList();
-//                    searchResults.NumberOfResults = avatars.Count() + holons.Count();
-//                }
-
-//                return searchResults;
-//            }
-//            catch (Exception)
-//            {
-//                return new SearchResults();
-//            }
-//        }
-
-//        /// <summary>
-//        /// Convert collection of Holon objects to RDF/JSON-LD format
-//        /// </summary>
-//        private string ConvertHolonsToRDF(IEnumerable<IHolon> holons)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                var items = new List<object>();
-//                foreach (var h in holons)
-//                {
-//                    // Serialize the entire holon object to ensure all properties are captured
-//                    var holonJson = JsonSerializer.Serialize(h, new JsonSerializerOptions 
-//                    { 
-//                        PropertyNameCaseInsensitive = true,
-//                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                    });
-                    
-//                    var holonData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonJson);
-                    
-//                    // Add SOLID context
-//                    holonData["@context"] = "https://www.w3.org/ns/solid/context";
-//                    holonData["@type"] = h.HolonType.ToString();
-                    
-//                    items.Add(holonData);
-//                }
-//                return JsonSerializer.Serialize(new { @graph = items });
-//            }
-//            catch (Exception)
-//            {
-//                return "{}";
-//            }
-//        }
-
-
-
-//        /// <summary>
-//        /// Convert OASIS AvatarDetail to RDF/JSON-LD format for SOLID pod storage
-//        /// </summary>
-//        private string ConvertAvatarDetailToRDF(IAvatarDetail avatarDetail)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                var avatarDetailJson = JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-                
-//                var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarDetailJson);
-                
-//                // Add SOLID context
-//                avatarDetailData["@context"] = "https://www.w3.org/ns/solid/context";
-//                avatarDetailData["@type"] = "Person";
-                
-//                return JsonSerializer.Serialize(avatarDetailData, new JsonSerializerOptions
-//                {
-//                    WriteIndented = true,
-//                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-//                });
-//            }
-//            catch (Exception)
-//            {
-//                // Fallback to basic JSON serialization
-//                return JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions
-//                {
-//                    WriteIndented = true,
-//                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-//                });
-//            }
-//        }
-
-//        #endregion
-
-//        #region IDisposable
-
-//        public void Dispose()
-//        {
-//            _httpClient?.Dispose();
-//        }
-
-//        #endregion
-
-//        #region IOASISSuperStar
-//        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
-//        {
-//            try
-//            {
-//                if (string.IsNullOrEmpty(outputFolder))
-//                    return false;
-
-//                string solidFolder = Path.Combine(outputFolder, "SOLID");
-//                if (!Directory.Exists(solidFolder))
-//                    Directory.CreateDirectory(solidFolder);
-
-//                if (!string.IsNullOrEmpty(nativeSource))
-//                {
-//                    File.WriteAllText(Path.Combine(solidFolder, "pod.ttl"), nativeSource);
-//                    return true;
-//                }
-
-//                if (celestialBody == null)
-//                    return true;
-
-//                var sb = new StringBuilder();
-//                sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
-//                sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
-//                sb.AppendLine("@prefix solid: <http://www.w3.org/ns/solid/terms#> .");
-//                sb.AppendLine("@prefix oapp: <https://oasis.genesis/oapp#> .");
-//                sb.AppendLine();
-//                sb.AppendLine($"oapp:{celestialBody.Name?.ToPascalCase() ?? "OAPP"} a solid:Application ;");
-//                sb.AppendLine($"    rdfs:label \"{celestialBody.Name ?? "OAPP"}\" ;");
-//                if (!string.IsNullOrWhiteSpace(celestialBody.Description))
-//                {
-//                    sb.AppendLine($"    rdfs:comment \"{celestialBody.Description}\" ;");
-//                }
-//                sb.AppendLine("    oapp:hasHolon (");
-
-//                var zomes = celestialBody.CelestialBodyCore?.Zomes;
-//                if (zomes != null)
-//                {
-//                    foreach (var zome in zomes)
-//                    {
-//                        if (zome?.Children == null) continue;
-
-//                        foreach (var holon in zome.Children)
-//                        {
-//                            if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
-
-//                            sb.AppendLine($"        oapp:{holon.Name.ToPascalCase()}");
-//                        }
-//                    }
-//                }
-
-//                sb.AppendLine("    ) .");
-
-//                File.WriteAllText(Path.Combine(solidFolder, "pod.ttl"), sb.ToString());
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
-//        #endregion
-
-//        #region IOASISBlockchainStorageProvider
-
-//        public OASISResult<string> SendTransaction(IWalletTransaction transation)
-//        {
-//            var response = new OASISResult<string>();
-//            OASISErrorHandling.HandleError(ref response, "SOLID provider doesn't support blockchain transactions");
-//            return response;
-//        }
-
-//        public Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transation)
-//        {
-//            return Task.Run(() => SendTransaction(transation));
-//        }
-
-//        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-//        {
-//            var response = new OASISResult<string>();
-//            OASISErrorHandling.HandleError(ref response, "SOLID provider doesn't support blockchain transactions");
-//            return response;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        #endregion
-
-//        #region IOASISNFTProvider
-
-//        public OASISResult<bool> SendNFT(IWalletTransaction transation)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        #endregion
-
-//        #region IOASISLocalStorageProvider
-
-//        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
-//        {
-//            var result = new OASISResult<string>();
-//            try
-//            {
-//                // Real SOLID implementation: Send transaction via SOLID protocol
-//                var transactionId = Guid.NewGuid().ToString();
-//                result.Result = transactionId;
-//                result.IsError = false;
-//                result.Message = "SOLID transaction sent successfully";
-//            }
-//            catch (Exception ex)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Error sending SOLID transaction: {ex.Message}", ex);
-//            }
-//            return result;
-//        }
-
-//        #endregion*/
-
-//        #region Private Helper Methods
-
-//        /// <summary>
-//        /// Convert Avatar to RDF/JSON-LD format for SOLID storage
-//        /// </summary>
-//        private string ConvertAvatarToRDF(IAvatar avatar)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                var avatarJson = JsonSerializer.Serialize(avatar, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-                
-//                var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarJson);
-                
-//                // Add SOLID context
-//                avatarData["@context"] = "https://www.w3.org/ns/solid/context";
-//                avatarData["@type"] = "Person";
-                
-//                return JsonSerializer.Serialize(avatarData, new JsonSerializerOptions
-//                {
-//                    WriteIndented = true,
-//                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-//                });
-//            }
-//            catch (Exception)
-//            {
-//                // Fallback to basic JSON serialization
-//                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
-//                {
-//                    WriteIndented = true,
-//                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-//                });
-//            }
-//        }
-
-//        /// <summary>
-//        /// Convert Holon to RDF/JSON-LD format for SOLID storage
-//        /// </summary>
-//        private string ConvertHolonToRDF(IHolon holon)
-//        {
-//            try
-//            {
-//                // Complete object serialization to ensure ALL properties are set
-//                var holonJson = JsonSerializer.Serialize(holon, new JsonSerializerOptions 
-//                { 
-//                    PropertyNameCaseInsensitive = true,
-//                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-//                });
-                
-//                var holonData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonJson);
-                
-//                // Add SOLID context
-//                holonData["@context"] = "https://www.w3.org/ns/solid/context";
-//                holonData["@type"] = holon.HolonType.ToString();
-                
-//                return JsonSerializer.Serialize(holonData, new JsonSerializerOptions
-//                {
-//                    WriteIndented = true,
-//                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-//                });
-//            }
-//            catch (Exception)
-//            {
-//                // Fallback to basic JSON serialization
-//                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
-//                {
-//                    WriteIndented = true,
-//                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-//                });
-//            }
-//        }
-
-//        #endregion
-
-
-
-
-//    }
-//}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+
+namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
+{
+    /// <summary>
+    /// SOLID (Social Linked Data) Provider for OASIS.
+    /// Implements Tim Berners-Lee's decentralized web standard where users store data in personal "pods"
+    /// via the Linked Data Platform (LDP) HTTP protocol using RDF/Turtle format.
+    /// </summary>
+    public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISSuperStar, IDisposable
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _podServerUrl;
+        private bool _isActivated;
+        private bool _disposed;
+
+        public SOLIDOASIS(string podServerUrl = "https://solidcommunity.net", string authToken = "")
+        {
+            this.ProviderName = "SOLIDOASIS";
+            this.ProviderDescription = "SOLID (Social Linked Data) Provider — decentralized personal data storage in LDP pods";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            _podServerUrl = (podServerUrl ?? "https://solidcommunity.net").TrimEnd('/');
+            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            _httpClient.DefaultRequestHeaders.Add("Accept", "text/turtle, application/ld+json;q=0.9, */*;q=0.8");
+
+            if (!string.IsNullOrEmpty(authToken))
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+        }
+
+        #region IOASISStorageProvider
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (_isActivated)
+                {
+                    result.Result = true;
+                    result.Message = "SOLID provider already activated";
+                    return result;
+                }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/");
+                if (response.IsSuccessStatusCode)
+                {
+                    _isActivated = true;
+                    IsProviderActivated = true;
+                    result.Result = true;
+                    result.Message = "SOLID provider activated successfully";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Failed to connect to SOLID pod server: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error activating SOLID provider: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                _isActivated = false;
+                IsProviderActivated = false;
+                result.Result = true;
+                result.Message = "SOLID provider deactivated";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deactivating SOLID provider: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/{id}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    var turtle = await response.Content.ReadAsStringAsync();
+                    result.Result = ParseRDFToAvatar(turtle);
+                    result.IsError = result.Result == null;
+                    result.Message = result.Result != null ? "Avatar loaded from SOLID pod" : "Failed to parse avatar RDF";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToAvatar(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToAvatar(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/by-username/{Uri.EscapeDataString(avatarUsername)}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToAvatar(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/{id}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToAvatarDetail(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/by-email/{Uri.EscapeDataString(avatarEmail)}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToAvatarDetail(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/by-username/{Uri.EscapeDataString(avatarUsername)}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToAvatarDetail(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatars/");
+                if (response.IsSuccessStatusCode)
+                {
+                    var turtle = await response.Content.ReadAsStringAsync();
+                    result.Result = ParseRDFToAvatars(turtle);
+                    result.Message = $"Loaded {result.Result?.Count() ?? 0} avatars from SOLID pod";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all avatars: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/avatar-details/");
+                if (response.IsSuccessStatusCode)
+                {
+                    var turtle = await response.Content.ReadAsStringAsync();
+                    result.Result = ParseRDFToAvatarDetails(turtle);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, "Avatar cannot be null"); return result; }
+                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
+                var turtle = ConvertAvatarToRDF(avatar);
+                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
+                var response = await _httpClient.PutAsync($"{_podServerUrl}/oasis/avatars/{avatar.Id}.ttl", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = avatar;
+                    result.Message = "Avatar saved to SOLID pod";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error saving avatar: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (avatarDetail == null) { OASISErrorHandling.HandleError(ref result, "AvatarDetail cannot be null"); return result; }
+                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
+                var turtle = ConvertAvatarDetailToRDF(avatarDetail);
+                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
+                var response = await _httpClient.PutAsync($"{_podServerUrl}/oasis/avatar-details/{avatarDetail.Id}.ttl", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = avatarDetail;
+                    result.Message = "AvatarDetail saved to SOLID pod";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error saving avatar detail: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (softDelete)
+                {
+                    var loadResult = await LoadAvatarAsync(id);
+                    if (!loadResult.IsError && loadResult.Result != null)
+                    {
+                        loadResult.Result.DeletedDate = DateTime.UtcNow;
+                        await SaveAvatarAsync(loadResult.Result);
+                        result.Result = true;
+                        result.Message = "Avatar soft-deleted in SOLID pod";
+                        return result;
+                    }
+                }
+                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/{id}.ttl");
+                result.Result = response.IsSuccessStatusCode;
+                result.IsError = !result.Result;
+                result.Message = result.Result ? "Avatar deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
+                result.Result = response.IsSuccessStatusCode;
+                result.IsError = !result.Result;
+                result.Message = result.Result ? "Avatar deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/by-username/{Uri.EscapeDataString(username)}.ttl");
+                result.Result = response.IsSuccessStatusCode;
+                result.IsError = !result.Result;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/by-email/{Uri.EscapeDataString(email)}.ttl");
+                result.Result = response.IsSuccessStatusCode;
+                result.IsError = !result.Result;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/{id}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolon(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolon(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/for-parent/{id}/?type={type}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/for-parent/by-key/{Uri.EscapeDataString(providerKey)}/?type={type}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by key: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
+            => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/search?metaKey={Uri.EscapeDataString(metaKey)}&metaValue={Uri.EscapeDataString(metaValue)}&type={type}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var body = JsonSerializer.Serialize(new { metaKeyValuePairs, matchMode = metaKeyValuePairMatchMode.ToString(), type = type.ToString(), version });
+                var content = new StringContent(body, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_podServerUrl}/oasis/holons/search-multi", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons by multi-metadata: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/holons/?type={type}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (holon == null) { OASISErrorHandling.HandleError(ref result, "Holon cannot be null"); return result; }
+                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+                var turtle = ConvertHolonToRDF(holon);
+                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
+                var response = await _httpClient.PutAsync($"{_podServerUrl}/oasis/holons/{holon.Id}.ttl", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = holon;
+                    result.Message = "Holon saved to SOLID pod";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error saving holon: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving holon: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (holons == null || !holons.Any()) { OASISErrorHandling.HandleError(ref result, "Holons cannot be null or empty"); return result; }
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    if (!saveResult.IsError && saveResult.Result != null)
+                        saved.Add(saveResult.Result);
+                    else if (!continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                        return result;
+                    }
+                }
+                result.Result = saved;
+                result.Message = $"Saved {saved.Count} holons to SOLID pod";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving holons: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/holons/{id}.ttl");
+                result.IsError = !response.IsSuccessStatusCode;
+                result.Message = response.IsSuccessStatusCode ? "Holon deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/holons/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
+                result.IsError = !response.IsSuccessStatusCode;
+                result.Message = response.IsSuccessStatusCode ? "Holon deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (searchParams == null) { OASISErrorHandling.HandleError(ref result, "SearchParams cannot be null"); return result; }
+                var body = JsonSerializer.Serialize(new { searchParams, version });
+                var content = new StringContent(body, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_podServerUrl}/oasis/search", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseSearchResults(await response.Content.ReadAsStringAsync());
+                    result.IsError = result.Result == null;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error searching SOLID pod: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                if (holons == null || !holons.Any()) { OASISErrorHandling.HandleError(ref result, "Holons cannot be null or empty"); return result; }
+                var turtle = ConvertHolonsToRDF(holons);
+                var content = new StringContent(turtle, Encoding.UTF8, "text/turtle");
+                var response = await _httpClient.PostAsync($"{_podServerUrl}/oasis/import", content);
+                result.Result = response.IsSuccessStatusCode;
+                result.IsError = !result.Result;
+                result.Message = result.Result ? $"Imported {holons.Count()} holons to SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error importing holons: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/avatar/{avatarId}?version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/avatar/username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/avatar/email/{Uri.EscapeDataString(avatarEmailAddress)}?version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var response = await _httpClient.GetAsync($"{_podServerUrl}/oasis/export/all?version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = ParseRDFToHolons(await response.Content.ReadAsStringAsync());
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"SOLID LDP error: {response.StatusCode}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error exporting all data: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
+
+        #endregion
+
+        #region IOASISNETProvider
+
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+                double centerLat = geoLat / 1e6d;
+                double centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null
+                        && avatar.MetaData.TryGetValue("Latitude", out var latObj)
+                        && avatar.MetaData.TryGetValue("Longitude", out var lngObj)
+                        && double.TryParse(latObj?.ToString(), out var lat)
+                        && double.TryParse(lngObj?.ToString(), out var lng)
+                        && HaversineDistanceMeters(centerLat, centerLng, lat, lng) <= radiusInMeters)
+                    {
+                        nearby.Add(avatar);
+                    }
+                }
+                result.Result = nearby;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me: {ex.Message}", ex); }
+            return result;
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
+                var holonsResult = LoadAllHolons(type);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+                double centerLat = geoLat / 1e6d;
+                double centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null
+                        && holon.MetaData.TryGetValue("Latitude", out var latObj)
+                        && holon.MetaData.TryGetValue("Longitude", out var lngObj)
+                        && double.TryParse(latObj?.ToString(), out var lat)
+                        && double.TryParse(lngObj?.ToString(), out var lng)
+                        && HaversineDistanceMeters(centerLat, centerLng, lat, lng) <= radiusInMeters)
+                    {
+                        nearby.Add(holon);
+                    }
+                }
+                result.Result = nearby;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error getting holons near me: {ex.Message}", ex); }
+            return result;
+        }
+
+        #endregion
+
+        #region IOASISSuperStar
+
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(outputFolder))
+                    return false;
+
+                string folder = System.IO.Path.Combine(outputFolder, "SOLID");
+                if (!System.IO.Directory.Exists(folder))
+                    System.IO.Directory.CreateDirectory(folder);
+
+                if (!string.IsNullOrEmpty(nativeSource))
+                {
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(folder, "app.ttl"), nativeSource);
+                    return true;
+                }
+
+                if (celestialBody == null)
+                    return true;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
+                sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
+                sb.AppendLine("@prefix schema: <https://schema.org/> .");
+                sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
+                sb.AppendLine();
+                sb.AppendLine($"<{_podServerUrl}/oasis/apps/{celestialBody.Id}>");
+                sb.AppendLine("    rdf:type schema:SoftwareApplication ;");
+                sb.AppendLine($"    rdfs:label \"{EscapeTtlString(celestialBody.Name ?? "OAPP")}\" ;");
+                if (!string.IsNullOrWhiteSpace(celestialBody.Description))
+                    sb.AppendLine($"    schema:description \"{EscapeTtlString(celestialBody.Description)}\" ;");
+                sb.AppendLine($"    oasis:id \"{celestialBody.Id}\" ;");
+
+                var zomes = celestialBody.CelestialBodyCore?.Zomes;
+                if (zomes != null)
+                {
+                    foreach (var zome in zomes)
+                    {
+                        if (zome?.Children == null) continue;
+                        foreach (var holon in zome.Children)
+                        {
+                            if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+                            sb.AppendLine($"    oasis:hasComponent <{_podServerUrl}/oasis/apps/{celestialBody.Id}/components/{holon.Id}> ;");
+                        }
+                    }
+                }
+
+                sb.AppendLine("    .");
+                sb.AppendLine();
+
+                if (zomes != null)
+                {
+                    foreach (var zome in zomes)
+                    {
+                        if (zome?.Children == null) continue;
+                        foreach (var holon in zome.Children)
+                        {
+                            if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+                            sb.AppendLine($"<{_podServerUrl}/oasis/apps/{celestialBody.Id}/components/{holon.Id}>");
+                            sb.AppendLine("    rdf:type oasis:Component ;");
+                            sb.AppendLine($"    rdfs:label \"{EscapeTtlString(holon.Name)}\" ;");
+                            sb.AppendLine($"    oasis:id \"{holon.Id}\" ;");
+                            if (!string.IsNullOrWhiteSpace(holon.Description))
+                                sb.AppendLine($"    schema:description \"{EscapeTtlString(holon.Description)}\" ;");
+                            sb.AppendLine("    .");
+                        }
+                    }
+                }
+
+                System.IO.File.WriteAllText(System.IO.Path.Combine(folder, "app.ttl"), sb.ToString());
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region RDF helpers
+
+        private IAvatar ParseRDFToAvatar(string turtle)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(turtle)) return null;
+                var avatar = new Avatar();
+                avatar.Id = ExtractTtlGuid(turtle, "oasis:id") ?? Guid.Empty;
+                avatar.Username = ExtractTtlString(turtle, "foaf:nick") ?? ExtractTtlString(turtle, "schema:name");
+                avatar.Email = ExtractTtlString(turtle, "schema:email");
+                avatar.FirstName = ExtractTtlString(turtle, "foaf:firstName") ?? ExtractTtlString(turtle, "schema:givenName");
+                avatar.LastName = ExtractTtlString(turtle, "foaf:familyName") ?? ExtractTtlString(turtle, "schema:familyName");
+                return avatar;
+            }
+            catch { return null; }
+        }
+
+        private IEnumerable<IAvatar> ParseRDFToAvatars(string turtle)
+        {
+            // SOLID LDP container responses list member resources; a real implementation would
+            // follow ldp:contains links. Here we parse any embedded avatar blocks.
+            var result = new List<IAvatar>();
+            if (string.IsNullOrWhiteSpace(turtle)) return result;
+            var avatar = ParseRDFToAvatar(turtle);
+            if (avatar != null) result.Add(avatar);
+            return result;
+        }
+
+        private IAvatarDetail ParseRDFToAvatarDetail(string turtle)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(turtle)) return null;
+                var detail = new AvatarDetail();
+                detail.Id = ExtractTtlGuid(turtle, "oasis:id") ?? Guid.Empty;
+                return detail;
+            }
+            catch { return null; }
+        }
+
+        private IEnumerable<IAvatarDetail> ParseRDFToAvatarDetails(string turtle)
+        {
+            var result = new List<IAvatarDetail>();
+            if (string.IsNullOrWhiteSpace(turtle)) return result;
+            var detail = ParseRDFToAvatarDetail(turtle);
+            if (detail != null) result.Add(detail);
+            return result;
+        }
+
+        private IHolon ParseRDFToHolon(string turtle)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(turtle)) return null;
+                var holon = new Holon();
+                holon.Id = ExtractTtlGuid(turtle, "oasis:id") ?? Guid.Empty;
+                holon.Name = ExtractTtlString(turtle, "rdfs:label") ?? ExtractTtlString(turtle, "schema:name");
+                holon.Description = ExtractTtlString(turtle, "schema:description");
+                return holon;
+            }
+            catch { return null; }
+        }
+
+        private IEnumerable<IHolon> ParseRDFToHolons(string turtle)
+        {
+            var result = new List<IHolon>();
+            if (string.IsNullOrWhiteSpace(turtle)) return result;
+            var holon = ParseRDFToHolon(turtle);
+            if (holon != null) result.Add(holon);
+            return result;
+        }
+
+        private ISearchResults ParseSearchResults(string response)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(response)) return null;
+                return new SearchResults { SearchResultHolons = ParseRDFToHolons(response).Cast<IHolon>().ToList() };
+            }
+            catch { return null; }
+        }
+
+        private string ConvertAvatarToRDF(IAvatar avatar)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
+            sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
+            sb.AppendLine("@prefix foaf: <http://xmlns.com/foaf/0.1/> .");
+            sb.AppendLine("@prefix schema: <https://schema.org/> .");
+            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
+            sb.AppendLine();
+            sb.AppendLine($"<{_podServerUrl}/oasis/avatars/{avatar.Id}>");
+            sb.AppendLine("    rdf:type foaf:Person ;");
+            sb.AppendLine($"    oasis:id \"{avatar.Id}\" ;");
+            if (!string.IsNullOrEmpty(avatar.Username)) sb.AppendLine($"    foaf:nick \"{EscapeTtlString(avatar.Username)}\" ;");
+            if (!string.IsNullOrEmpty(avatar.Email)) sb.AppendLine($"    schema:email \"{EscapeTtlString(avatar.Email)}\" ;");
+            if (!string.IsNullOrEmpty(avatar.FirstName)) sb.AppendLine($"    foaf:firstName \"{EscapeTtlString(avatar.FirstName)}\" ;");
+            if (!string.IsNullOrEmpty(avatar.LastName)) sb.AppendLine($"    foaf:familyName \"{EscapeTtlString(avatar.LastName)}\" ;");
+            sb.AppendLine("    .");
+            return sb.ToString();
+        }
+
+        private string ConvertAvatarDetailToRDF(IAvatarDetail detail)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
+            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
+            sb.AppendLine();
+            sb.AppendLine($"<{_podServerUrl}/oasis/avatar-details/{detail.Id}>");
+            sb.AppendLine("    rdf:type oasis:AvatarDetail ;");
+            sb.AppendLine($"    oasis:id \"{detail.Id}\" ;");
+            sb.AppendLine("    .");
+            return sb.ToString();
+        }
+
+        private string ConvertHolonToRDF(IHolon holon)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
+            sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
+            sb.AppendLine("@prefix schema: <https://schema.org/> .");
+            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
+            sb.AppendLine();
+            sb.AppendLine($"<{_podServerUrl}/oasis/holons/{holon.Id}>");
+            sb.AppendLine("    rdf:type oasis:Holon ;");
+            sb.AppendLine($"    oasis:id \"{holon.Id}\" ;");
+            if (!string.IsNullOrEmpty(holon.Name)) sb.AppendLine($"    rdfs:label \"{EscapeTtlString(holon.Name)}\" ;");
+            if (!string.IsNullOrEmpty(holon.Description)) sb.AppendLine($"    schema:description \"{EscapeTtlString(holon.Description)}\" ;");
+            sb.AppendLine("    .");
+            return sb.ToString();
+        }
+
+        private string ConvertHolonsToRDF(IEnumerable<IHolon> holons)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
+            sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
+            sb.AppendLine("@prefix schema: <https://schema.org/> .");
+            sb.AppendLine("@prefix oasis: <https://oasisomniverse.one/ns/> .");
+            sb.AppendLine();
+            foreach (var holon in holons)
+            {
+                sb.AppendLine($"<{_podServerUrl}/oasis/holons/{holon.Id}>");
+                sb.AppendLine("    rdf:type oasis:Holon ;");
+                sb.AppendLine($"    oasis:id \"{holon.Id}\" ;");
+                if (!string.IsNullOrEmpty(holon.Name)) sb.AppendLine($"    rdfs:label \"{EscapeTtlString(holon.Name)}\" ;");
+                if (!string.IsNullOrEmpty(holon.Description)) sb.AppendLine($"    schema:description \"{EscapeTtlString(holon.Description)}\" ;");
+                sb.AppendLine("    .");
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        private static Guid? ExtractTtlGuid(string turtle, string predicate)
+        {
+            var val = ExtractTtlString(turtle, predicate);
+            return val != null && Guid.TryParse(val, out var g) ? g : (Guid?)null;
+        }
+
+        private static string ExtractTtlString(string turtle, string predicate)
+        {
+            var marker = $"{predicate} \"";
+            var start = turtle.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (start < 0) return null;
+            start += marker.Length;
+            var end = turtle.IndexOf('"', start);
+            return end > start ? turtle.Substring(start, end - start) : null;
+        }
+
+        private static string EscapeTtlString(string value)
+            => value?.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") ?? "";
+
+        private static double HaversineDistanceMeters(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371000;
+            double dLat = ToRad(lat2 - lat1);
+            double dLon = ToRad(lon2 - lon1);
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                     + Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2))
+                     * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        }
+
+        private static double ToRad(double deg) => deg * Math.PI / 180.0;
+
+        #endregion
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _httpClient?.Dispose();
+                _disposed = true;
+            }
+        }
+    }
+}

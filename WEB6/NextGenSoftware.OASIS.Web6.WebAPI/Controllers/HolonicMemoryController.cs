@@ -78,6 +78,28 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Bulk document ingestion — auto-chunks a document and stores each chunk as a separate memory item.
+        ///
+        /// The document is split with a sliding-window chunker (configurable chunk size and overlap) so that
+        /// context is never lost at chunk boundaries. Each chunk becomes a <see cref="HolonicMemoryItem"/>
+        /// with an auto-generated fieldName (e.g. "doc-{documentName}-chunk-001") and the tags and
+        /// retention policy you specify. Use <see cref="SearchMemory"/> to query across chunks semantically.
+        ///
+        /// POST /v1/holonic-memory/holons/{holonId}/documents
+        /// </summary>
+        [HttpPost("holons/{holonId}/documents")]
+        [ProducesResponseType(typeof(DocumentIngestResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> IngestDocument(Guid holonId, [FromBody] DocumentIngestRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Content))
+                return BadRequest(new { error = "content is required" });
+
+            var manager = new HolonicMemoryManager(AvatarId, OASISDNA);
+            var result  = await manager.IngestDocumentAsync(holonId, request);
+            return result.IsError ? BadRequest(result) : Ok(result);
+        }
+
+        /// <summary>
         /// Semantic search across all memory items in a holon.
         /// Priority 16b — returns the top-K items most similar to the query string using cosine similarity
         /// over stored embedding vectors (falls back to keyword overlap when no embeddings are stored).

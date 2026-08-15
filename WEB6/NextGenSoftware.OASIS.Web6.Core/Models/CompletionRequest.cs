@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Web6.Core.Enums;
 
+
 namespace NextGenSoftware.OASIS.Web6.Core.Models
 {
     /// <summary>
@@ -22,6 +23,13 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Optional OASIS avatar id - when set, the request is grounded with WEB4 identity/karma and WEB5 holon/STARNET context.</summary>
         public Guid AvatarId { get; set; }
+
+        /// <summary>
+        /// OPORTAL subscription plan for this caller. Determines the base AI access tier.
+        /// Karma (when AvatarId is set) can boost the effective tier by one level above the plan baseline.
+        /// Defaults to Free when not supplied.
+        /// </summary>
+        public SubscriptionPlan SubscriptionPlan { get; set; } = SubscriptionPlan.Free;
 
         public double? Temperature { get; set; }
 

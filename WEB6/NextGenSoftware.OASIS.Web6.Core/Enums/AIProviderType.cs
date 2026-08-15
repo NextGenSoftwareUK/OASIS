@@ -60,6 +60,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Enums
 
         /// <summary>Leela AI — spiritual intelligence / karmic-pattern reasoning via AWS Lambda endpoint.
         /// Env: LEELA_API_KEY, LEELA_BASE_URL.</summary>
-        LeelaAI
+        LeelaAI,
+
+        /// <summary>Replicate — open-source model marketplace (image, audio, video, and language models).
+        /// OpenAI-compatible endpoint for language models. Env: REPLICATE_API_KEY.</summary>
+        Replicate
     }
 }
