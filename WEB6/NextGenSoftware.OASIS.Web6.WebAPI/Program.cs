@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
 using ModelContextProtocol.Server;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Prometheus;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
@@ -138,6 +141,29 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+// ── OpenTelemetry distributed tracing ─────────────────────────────────────────────────────────────
+// Instruments all ASP.NET Core HTTP requests as OTel spans. Export destination is driven by the
+// standard OTEL_EXPORTER_OTLP_ENDPOINT env var (default: http://localhost:4317).
+// Compatible with Jaeger, Grafana Tempo, Datadog, Honeycomb, Dynatrace, New Relic, etc.
+string otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? "http://localhost:4317";
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r
+        .AddService(
+            serviceName:    "oasis-web6",
+            serviceVersion: OASISBootLoader.WEB6APIVersion ?? "2.0"))
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation(opts =>
+        {
+            opts.RecordException = true;
+            // Skip Prometheus scrape and Swagger noise from traces
+            opts.Filter = ctx =>
+                !ctx.Request.Path.StartsWithSegments("/metrics") &&
+                !ctx.Request.Path.StartsWithSegments("/swagger");
+        });
+        tracing.AddOtlpExporter(opts => opts.Endpoint = new Uri(otlpEndpoint));
+    });
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -152,6 +178,10 @@ if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.
 
 app.UseCors("AllowAll");
 app.UseRateLimiter();
+
+// Prometheus scrape endpoint — GET /metrics
+// Pull-based: Prometheus / Grafana Agent / Datadog Agent scrapes this on a configurable interval.
+app.UseMetricServer("/metrics");
 
 // JwtMiddleware MUST be registered here. It was missing in the original Web6 Program.cs
 // (unlike Web4/Web5 which had it), causing every JWT to be silently ignored and all

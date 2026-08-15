@@ -143,8 +143,9 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
                 request.Tools = BuiltInTools.All;
 
             // --- Provider call ---
+            string completionBearer = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var manager = new AIProviderManager(request.AvatarId, OASISDNA);
-            var result  = await manager.CompleteAsync(request);
+            var result  = await manager.CompleteAsync(request, completionBearer);
 
             if (!result.IsError && result.Result != null)
             {

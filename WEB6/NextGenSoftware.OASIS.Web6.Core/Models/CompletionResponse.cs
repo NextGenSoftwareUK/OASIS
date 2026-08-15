@@ -36,5 +36,14 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Tool calls the model wants to execute. Populated when FinishReason="tool_calls".</summary>
         public List<ToolCall> ToolCalls { get; set; }
+
+        /// <summary>Effective access tier for this request: "Bronze" | "Silver" | "Gold" | "Diamond" (with optional " (karma boost)" suffix).</summary>
+        public string AccessTier { get; set; }
+
+        /// <summary>True when the avatar's karma score raised the effective tier above the subscription plan baseline.</summary>
+        public bool KarmaBoosted { get; set; }
+
+        /// <summary>Human-readable explanation when the requested provider/model was downgraded due to insufficient plan/karma tier.</summary>
+        public string AccessDowngradeNote { get; set; }
     }
 }
