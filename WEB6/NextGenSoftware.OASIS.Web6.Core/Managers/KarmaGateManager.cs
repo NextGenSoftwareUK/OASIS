@@ -1,35 +1,38 @@
-using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Web6.Core.Enums;
-using NextGenSoftware.OASIS.Web6.Core.Models;
 
 namespace NextGenSoftware.OASIS.Web6.Core.Managers
 {
     /// <summary>
-    /// Enforces karma-gated AI model access tiers.
-    /// Tier thresholds and model allow-lists are intentionally flat and easy to extend.
+    /// Enforces subscription-plan-based AI model access with a karma boost.
     ///
-    /// Tiers:
-    ///   Bronze  (0–999)      — fast/cheap models only; good for most tasks
-    ///   Silver  (1000–4999)  — mid-tier models; adds GPT-4o, Sonnet, Gemini Pro
-    ///   Gold    (5000–9999)  — all models, all providers
-    ///   Diamond (10000+)     — all models + priority routing label
+    /// Primary gate: OPORTAL subscription plan determines the base access tier.
+    /// Karma boost: sufficient karma raises the effective tier by one level above the plan baseline,
+    /// rewarding engaged community members without replacing the subscription model.
+    ///
+    /// Effective tier matrix:
+    ///
+    ///   Plan        Base tier    Karma boost (if karma >= KarmaBoostThreshold)
+    ///   ─────────   ─────────    ────────────────────────────────────────────
+    ///   Free        Bronze       → Silver
+    ///   Starter     Silver       → Gold
+    ///   Pro         Gold         → Diamond
+    ///   Enterprise  Diamond      (already max — karma gives priority label only)
     /// </summary>
     public static class KarmaGateManager
     {
-        // ── Tier thresholds ──────────────────────────────────────────────────────────
-
-        public const int SilverThreshold  =  1_000;
-        public const int GoldThreshold    =  5_000;
-        public const int DiamondThreshold = 10_000;
-
-        // ── Model tier requirements ──────────────────────────────────────────────────
+        // ── Karma boost threshold ─────────────────────────────────────────────────
 
         /// <summary>
-        /// Models that require at least Silver tier. Any model name containing one of these
-        /// substrings (case-insensitive) is restricted to Silver+.
+        /// Avatar karma score needed to receive a one-tier boost above the subscription plan baseline.
+        /// A reasonable default is 1,000 — achievable through normal OurWorld participation.
         /// </summary>
-        private static readonly string[] SilverRequiredModelSubstrings = new[]
+        public const int KarmaBoostThreshold = 1_000;
+
+        // ── Model tier requirements ──────────────────────────────────────────────
+
+        /// <summary>Models (substring match, case-insensitive) that require Silver tier or above.</summary>
+        private static readonly string[] SilverModels = new[]
         {
             "gpt-4o",
             "claude-sonnet",
@@ -45,11 +48,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             "mixtral-8x22b",
         };
 
-        /// <summary>
-        /// Models that require Gold tier. Any model name containing one of these substrings
-        /// (case-insensitive) requires Gold+.
-        /// </summary>
-        private static readonly string[] GoldRequiredModelSubstrings = new[]
+        /// <summary>Models (substring match, case-insensitive) that require Gold tier or above.</summary>
+        private static readonly string[] GoldModels = new[]
         {
             "gpt-5",
             "o1",
@@ -62,113 +62,120 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             "grok-3",
         };
 
-        // ── Provider tier requirements ───────────────────────────────────────────────
+        // ── Provider tier requirements ───────────────────────────────────────────
 
-        /// <summary>Providers that require at least Silver tier.</summary>
-        private static readonly HashSet<AIProviderType> SilverRequiredProviders = new HashSet<AIProviderType>
+        /// <summary>Providers that require at least Silver tier (e.g. enterprise-priced APIs).</summary>
+        private static readonly HashSet<AIProviderType> SilverProviders = new HashSet<AIProviderType>
         {
             AIProviderType.AWSBedrock,
             AIProviderType.AzureOpenAI,
         };
 
-        /// <summary>Providers that require Gold tier (advanced/enterprise).</summary>
-        private static readonly HashSet<AIProviderType> GoldRequiredProviders = new HashSet<AIProviderType>();
+        // ── Fallback models ──────────────────────────────────────────────────────
 
-        // ── Fallback models per tier ─────────────────────────────────────────────────
+        private const string BronzeFallbackModel = "llama-3.1-8b-instant";
+        private const string SilverFallbackModel = "gpt-4o-mini";
 
-        private static readonly string BronzeFallbackModel = "llama-3.1-8b-instant";
-        private static readonly string SilverFallbackModel = "gpt-4o-mini";
-
-        // ── Public API ───────────────────────────────────────────────────────────────
-
-        /// <summary>Returns the karma tier name for a given karma score.</summary>
-        public static string GetTierName(int karma) => karma switch
-        {
-            >= DiamondThreshold => "Diamond",
-            >= GoldThreshold    => "Gold",
-            >= SilverThreshold  => "Silver",
-            _                   => "Bronze",
-        };
+        // ── Public API ───────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Validates and optionally adjusts a completion request based on the avatar's karma tier.
-        /// Returns a <see cref="KarmaGateResult"/> describing whether access is allowed, was downgraded,
-        /// or is denied (which should result in a 403 response).
+        /// Resolves the effective access tier from the avatar's subscription plan and optional karma boost,
+        /// then validates the requested provider and model. Returns a <see cref="KarmaGateResult"/>
+        /// describing whether access is allowed as-is, downgraded, or boosted.
         /// </summary>
-        public static KarmaGateResult Evaluate(int karma, AIProviderType provider, string model)
+        public static KarmaGateResult Evaluate(
+            SubscriptionPlan plan,
+            int karma,
+            AIProviderType provider,
+            string model)
         {
-            string tier = GetTierName(karma);
+            // Resolve effective tier (plan baseline + optional karma boost).
+            AccessTier baseTier    = PlanToBaseTier(plan);
+            bool       karmaBoost  = karma >= KarmaBoostThreshold && baseTier < AccessTier.Diamond;
+            AccessTier effectiveTier = karmaBoost ? baseTier + 1 : baseTier;
 
-            // Gold and Diamond always pass through.
-            if (karma >= GoldThreshold)
-                return KarmaGateResult.Allowed(tier);
+            string tierLabel = TierLabel(effectiveTier, karmaBoost);
 
-            // ── Provider checks ────────────────────────────────────────────────────
+            // Enterprise/Diamond: always pass through.
+            if (effectiveTier >= AccessTier.Diamond)
+                return KarmaGateResult.Allowed(tierLabel, karmaBoost);
 
-            if (GoldRequiredProviders.Contains(provider) && karma < GoldThreshold)
-                return KarmaGateResult.Downgraded(tier,
-                    $"Provider '{provider}' requires Gold tier ({GoldThreshold}+ karma). Routing to Silver-tier provider.",
-                    AIProviderType.OpenAI, SilverFallbackModel);
-
-            if (SilverRequiredProviders.Contains(provider) && karma < SilverThreshold)
-                return KarmaGateResult.Downgraded(tier,
-                    $"Provider '{provider}' requires Silver tier ({SilverThreshold}+ karma). Routing to Bronze-tier provider.",
+            // Provider check.
+            if (SilverProviders.Contains(provider) && effectiveTier < AccessTier.Silver)
+                return KarmaGateResult.Downgraded(tierLabel, karmaBoost,
+                    $"Provider '{provider}' requires a Starter plan or higher (or 1,000+ karma on Free). Routing to an available provider.",
                     AIProviderType.Groq, BronzeFallbackModel);
 
-            // ── Model checks ──────────────────────────────────────────────────────
-
+            // Model check.
             if (!string.IsNullOrEmpty(model))
             {
-                string modelLower = model.ToLowerInvariant();
+                string ml = model.ToLowerInvariant();
 
-                // Gold-required models — downgrade if below Gold
-                foreach (string sub in GoldRequiredModelSubstrings)
-                {
-                    if (modelLower.Contains(sub.ToLowerInvariant()) && karma < GoldThreshold)
-                        return KarmaGateResult.Downgraded(tier,
-                            $"Model '{model}' requires Gold tier ({GoldThreshold}+ karma). Falling back to Silver-tier model.",
+                foreach (string sub in GoldModels)
+                    if (ml.Contains(sub.ToLowerInvariant()) && effectiveTier < AccessTier.Gold)
+                        return KarmaGateResult.Downgraded(tierLabel, karmaBoost,
+                            $"Model '{model}' requires a Pro plan or higher (or 1,000+ karma on Starter). Falling back to a Silver-tier model.",
                             provider, SilverFallbackModel);
-                }
 
-                // Silver-required models — downgrade if below Silver
-                foreach (string sub in SilverRequiredModelSubstrings)
-                {
-                    if (modelLower.Contains(sub.ToLowerInvariant()) && karma < SilverThreshold)
-                        return KarmaGateResult.Downgraded(tier,
-                            $"Model '{model}' requires Silver tier ({SilverThreshold}+ karma). Falling back to Bronze-tier model.",
+                foreach (string sub in SilverModels)
+                    if (ml.Contains(sub.ToLowerInvariant()) && effectiveTier < AccessTier.Silver)
+                        return KarmaGateResult.Downgraded(tierLabel, karmaBoost,
+                            $"Model '{model}' requires a Starter plan or higher (or 1,000+ karma on Free). Falling back to a Bronze-tier model.",
                             provider, BronzeFallbackModel);
-                }
             }
 
-            return KarmaGateResult.Allowed(tier);
+            return KarmaGateResult.Allowed(tierLabel, karmaBoost);
         }
+
+        // ── Helpers ──────────────────────────────────────────────────────────────
+
+        private static AccessTier PlanToBaseTier(SubscriptionPlan plan) => plan switch
+        {
+            SubscriptionPlan.Starter    => AccessTier.Silver,
+            SubscriptionPlan.Pro        => AccessTier.Gold,
+            SubscriptionPlan.Enterprise => AccessTier.Diamond,
+            _                           => AccessTier.Bronze,  // Free
+        };
+
+        private static string TierLabel(AccessTier tier, bool boosted) =>
+            (tier, boosted) switch
+            {
+                (AccessTier.Diamond, true)  => "Diamond (karma boost)",
+                (AccessTier.Gold,    true)  => "Gold (karma boost)",
+                (AccessTier.Silver,  true)  => "Silver (karma boost)",
+                (AccessTier.Diamond, false) => "Diamond",
+                (AccessTier.Gold,    false) => "Gold",
+                (AccessTier.Silver,  false) => "Silver",
+                _                           => "Bronze",
+            };
+
+        /// <summary>Internal tier ordering — not exposed in the public API.</summary>
+        private enum AccessTier { Bronze = 0, Silver = 1, Gold = 2, Diamond = 3 }
     }
 
-    /// <summary>Result of a karma gate evaluation.</summary>
+    /// <summary>Result of a subscription/karma gate evaluation.</summary>
     public class KarmaGateResult
     {
-        public bool IsAllowed    { get; private set; }
-        public bool IsDowngraded { get; private set; }
-        public string TierName   { get; private set; }
-        public string Reason     { get; private set; }
-
-        /// <summary>Provider to use after downgrade (only meaningful when IsDowngraded = true).</summary>
+        public bool IsAllowed     { get; private set; }
+        public bool IsDowngraded  { get; private set; }
+        public bool KarmaBoosted  { get; private set; }
+        public string TierLabel   { get; private set; }
+        public string Reason      { get; private set; }
         public AIProviderType DowngradedProvider { get; private set; }
-
-        /// <summary>Model to use after downgrade (only meaningful when IsDowngraded = true).</summary>
-        public string DowngradedModel { get; private set; }
+        public string DowngradedModel            { get; private set; }
 
         private KarmaGateResult() { }
 
-        public static KarmaGateResult Allowed(string tier) =>
-            new KarmaGateResult { IsAllowed = true, TierName = tier };
+        public static KarmaGateResult Allowed(string tierLabel, bool boosted) =>
+            new KarmaGateResult { IsAllowed = true, TierLabel = tierLabel, KarmaBoosted = boosted };
 
-        public static KarmaGateResult Downgraded(string tier, string reason, AIProviderType fallbackProvider, string fallbackModel) =>
+        public static KarmaGateResult Downgraded(string tierLabel, bool boosted, string reason, AIProviderType fallbackProvider, string fallbackModel) =>
             new KarmaGateResult
             {
                 IsAllowed        = true,
                 IsDowngraded     = true,
-                TierName         = tier,
+                KarmaBoosted     = boosted,
+                TierLabel        = tierLabel,
                 Reason           = reason,
                 DowngradedProvider = fallbackProvider,
                 DowngradedModel  = fallbackModel,
