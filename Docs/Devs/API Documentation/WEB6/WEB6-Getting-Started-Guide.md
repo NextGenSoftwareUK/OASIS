@@ -718,9 +718,156 @@ Each event is a JSON object containing: `provider`, `model`, `latencyMs`, `promp
 
 ---
 
+## 15. Authentication — Getting Your API Key
+
+Every WEB6 request requires a Bearer token tied to your OASIS avatar.
+
+1. Register at https://oportal.oasisomniverse.one (free — no credit card required)
+2. Your JWT is returned on login — use it as `Authorization: Bearer <token>` on every request
+3. For a self-hosted ONODE: use `POST /api/Avatar/Authenticate` on your ONODE to get a JWT, then use it against the WEB6 endpoints on the same host
+
+```bash
+# Register
+curl -X POST https://api.web4.oasisomniverse.one/api/Avatar/Register \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "yourname", "email": "you@example.com", "password": "..." }'
+
+# Authenticate — returns jwtToken
+curl -X POST https://api.web4.oasisomniverse.one/api/Avatar/Authenticate \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "yourname", "password": "..." }'
+```
+
+Use the returned `jwtToken` as your Bearer token on all WEB6 calls.
+
+---
+
+## 16. Migrating from an Existing AI Setup
+
+If you're already calling an AI provider directly (OpenAI, Anthropic, AWS Bedrock, Azure OpenAI, etc.), you don't need to rewrite your code. WEB6 is designed as a drop-in.
+
+### Phase 1 — Endpoint swap (1–2 hours)
+
+Replace your provider endpoint with WEB6's. If you use OpenAI's SDK or LangChain/AutoGen/CrewAI/Semantic Kernel, change only your base URL and API key — the OpenAI-compatible shim handles the rest.
+
+```python
+# Before — direct Anthropic
+response = anthropic.messages.create(model="claude-sonnet-4-6", messages=[...])
+
+# After — WEB6 (same model, adds BRAID + FAHRN + failover automatically)
+response = httpx.post(
+    "https://api.web6.oasisomniverse.one/v1/complete",
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
+    json={"provider": "anthropic", "model": "claude-sonnet-4-6", "messages": [...]}
+)
+```
+
+### Phase 2 — Enable BRAID and caching (1 day)
+
+Add `"UseHolonicBraid": true` and `"UseFAHRN": true` to your completion requests. No other change needed. WEB6 handles the Generator/Solver split and caches reasoning plans automatically.
+
+### Phase 3 — Migrate document storage to Holonic Memory (1–2 days)
+
+Replace your vector store or knowledge base with Holonic Memory using `POST /v1/holonic-memory/holons/{id}/documents`. Replace retrieval calls with `GET /v1/holonic-memory/holons/{id}/memory/search`.
+
+### Phase 4 — Session memory (optional, 1 day)
+
+Create a Session-level holon per conversation and post transcripts as memory items. Future sessions query past context via the search endpoint — no per-query retrieval fees.
+
+---
+
+## 17. Why WEB6 Reduces Costs
+
+These savings are cumulative. A typical AI workload that applies all four mechanisms can achieve 60–80% total cost reduction without any loss in response quality.
+
+| Mechanism | Typical Saving | When It Applies |
+|-----------|---------------|-----------------|
+| Remove provider middleman overhead | 15–20% | All requests (especially AWS Bedrock, Azure) |
+| Semantic caching (95%+ similarity = free) | 30–70% | Repeated / similar queries |
+| BRAID Generator/Solver split | Up to 74× PPD | Repeated reasoning patterns |
+| FAHRN cheap-model routing | 60–85% on eligible tasks | Classification, tagging, summarisation |
+
+FAHRN's composite scoring formula routes to the cheapest model that can do the job in `cost` priority mode — e.g. Groq (Llama 3) for intent classification instead of Claude, saving 80%+ on those calls while reserving Claude for tasks where it's genuinely better.
+
+---
+
+## 18. Holonic Memory vs Flat Vector Stores
+
+If you're using a vector database (Pinecone, Weaviate, pgvector) or a hosted knowledge base (AWS Bedrock KB, Azure AI Search), Holonic Memory provides several structural advantages:
+
+| Dimension | Flat vector store | Holonic Memory (WEB6) |
+|-----------|------------------|----------------------|
+| Duplicate content | Stored N times per document | Stored once, linked N times via semantic dedup |
+| Retrieval unit | Raw embedding comparison | Hierarchical — query hits the right level, not every chunk |
+| Storage backend | Locked to one vendor | 40+ providers via COSMIC ORM; switch without data migration |
+| Retention control | Manual TTL / lifecycle rules | Built-in per-holon TTL (`SessionOnly`, `Persistent`, `Expiring`) |
+| Session notes | Manual indexing | Auto-holonised, semantic search included |
+| Portability | Vendor lock-in | Open, portable, self-hostable |
+
+The deduplication benefit compounds with document count: 20 documents sharing a common paragraph store that paragraph as **one holon** — not 20 copies. Embeddings are computed once per unique chunk, not per document.
+
+### Example: storing session transcripts with auto-expiry
+
+```python
+# Create a session holon (tied to a user's agent holon)
+session = httpx.post(
+    "https://api.web6.oasisomniverse.one/v1/holonic-memory/holons",
+    params={"level": "Session", "name": f"session-{session_id}", "parentHolonId": user_holon_id},
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"}
+).json()["result"]
+
+# Store transcript with 1-year TTL — auto-expires without manual cleanup
+httpx.post(
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{session['id']}/memory",
+    headers={"Authorization": "Bearer <your-oasis-avatar-key>"},
+    json={
+        "fieldName": "transcript",
+        "value": session_transcript,
+        "tags": ["session-note"],
+        "retentionPolicy": "Expiring",
+        "expiresUtc": "2027-08-14T00:00:00Z"
+    }
+)
+```
+
+---
+
+## 19. Hosted API vs Self-Hosted ONODE
+
+### Hosted (recommended to start)
+
+`https://api.web6.oasisomniverse.one`
+
+- Free plan: ~1,000 requests/month, basic routing, shared BRAID library
+- Pro plan (coming soon): 100,000 requests/month, full FAHRN, full BRAID
+- Enterprise plan (coming soon): unlimited, private BRAID namespace, SLA, dedicated support
+- No infrastructure to manage; your data governed by OASIS membrane rules
+
+### Self-hosted ONODE (for data sovereignty or enterprise scale)
+
+If you need data to remain within your own infrastructure (GDPR, healthcare, enterprise compliance):
+
+```bash
+git clone https://github.com/NextGenSoftwareUK/OASIS
+cd OASIS/WEB6/NextGenSoftware.OASIS.Web6.WebAPI
+# Edit OASIS_DNA.json — add your API keys, point storage at your MongoDB
+dotnet run
+```
+
+Your ONODE runs at `http://localhost:5000`. All data stays on your servers. Configure your existing MongoDB/PostgreSQL for holon storage and your own AI provider keys.
+
+See [Section 12](#12-spinning-up-your-own-onode) for the full ONODE configuration reference.
+
+---
+
 ## Further Reading
 
-- Whitepaper: https://web6.oasisomniverse.one (READ THE WHITEPAPER button)
-- API Reference: https://api.web6.oasisomniverse.one/swagger
-- OASIS MCP Server: https://web6.oasisomniverse.one/#mcp
-- GitHub: https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-HoloAGI
+| Resource | Description |
+|----------|-------------|
+| [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full endpoint docs — request/response shapes, auth, gRPC and GraphQL |
+| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 250 MCP tools — parameters and return values |
+| [WEB6 User Guide](WEB6_User_Guide.md) | Common workflows, environment setup, recipes |
+| [WEB6 for Leela AI](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage |
+| [Holonic Braid Whitepaper](https://web6.oasisomniverse.one/holonic-braid-whitepaper.html) | Deep technical detail on BRAID, FAHRN, holonic memory |
+| [Swagger / Interactive API](https://api.web6.oasisomniverse.one/swagger) | Try every endpoint live |
+| [GitHub](https://github.com/NextGenSoftwareUK/OASIS) | Source code, issues, discussions |
