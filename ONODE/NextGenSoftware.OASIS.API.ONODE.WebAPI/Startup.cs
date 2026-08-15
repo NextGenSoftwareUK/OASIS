@@ -434,7 +434,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
+            app.UseMiddleware<SubscriptionMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
