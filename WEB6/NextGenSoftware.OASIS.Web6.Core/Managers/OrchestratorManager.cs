@@ -6,7 +6,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Confluent.Kafka;
+using MQTTnet;
+using MQTTnet.Client;
+using MQTTnet.Protocol;
+using RabbitMQ.Client;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -113,8 +119,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                     OrchestratorProtocolType.ACP => await InvokeAcpAsync(config, request),
                     OrchestratorProtocolType.ANP => await InvokeAnpAsync(config, request),
                     OrchestratorProtocolType.GraphQL => await InvokeGraphQLAsync(config, request),
-                    OrchestratorProtocolType.Kafka or OrchestratorProtocolType.AMQP or OrchestratorProtocolType.MQTT
-                        => await InvokeEventStreamAsync(config, request),
+                    OrchestratorProtocolType.Kafka => await InvokeKafkaAsync(config, request),
+                    OrchestratorProtocolType.AMQP => await InvokeAmqpAsync(config, request),
+                    OrchestratorProtocolType.MQTT => await InvokeMqttAsync(config, request),
                     OrchestratorProtocolType.GRPC => await InvokeJsonWebhookAsync(config, request, "input"), // gRPC stub — full impl requires .proto descriptor
                     _ => await InvokeJsonWebhookAsync(config, request, "input"),
                 };
@@ -367,20 +374,144 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             return raw;
         }
 
-        // ── Priority 21d — Event streaming (Kafka/AMQP/MQTT stub) ───────────────────
-        private async Task<string> InvokeEventStreamAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        // ── Priority 21d — Event streaming (Kafka/AMQP/MQTT) ────────────────────────
+
+        private async Task<string> InvokeKafkaAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
         {
-            // Fire-and-forget via generic HTTP POST to a webhook bridge
-            // Full Kafka/AMQP/MQTT clients require additional NuGet packages (Confluent.Kafka, RabbitMQ.Client, MQTTnet)
-            // For now, delegate to a configurable HTTP bridge: ExtraConfig["bridgeUrl"]
-            string bridgeUrl = config.ExtraConfig?.GetValueOrDefault("bridgeUrl") ?? config.EndpointUrl;
-            var payload = new { topic = config.ExtraConfig?.GetValueOrDefault("topic") ?? "oasis.web6", protocol = config.Protocol.ToString(), message = request.Input, parameters = request.Parameters };
-            using var req = new HttpRequestMessage(HttpMethod.Post, bridgeUrl);
+            if (string.IsNullOrWhiteSpace(config.EndpointUrl))
+                throw new InvalidOperationException($"Kafka adapter '{config.Name}': EndpointUrl (bootstrap servers) is required.");
+
+            string topic = config.ExtraConfig?.GetValueOrDefault("topic") ?? "oasis.web6.requests";
+            string correlationId = Guid.NewGuid().ToString();
+            string replyTopic = config.ExtraConfig?.GetValueOrDefault("replyTopic");
+
+            var producerConfig = new ProducerConfig { BootstrapServers = config.EndpointUrl };
             if (!string.IsNullOrEmpty(config.AuthToken))
-                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
-            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            using var resp = await _httpClient.SendAsync(req);
-            return await resp.Content.ReadAsStringAsync();
+            {
+                producerConfig.SaslMechanism = SaslMechanism.Plain;
+                producerConfig.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+                producerConfig.SaslPassword = config.AuthToken;
+                producerConfig.SaslUsername = config.ExtraConfig?.GetValueOrDefault("saslUsername") ?? "user";
+            }
+
+            string messageJson = JsonSerializer.Serialize(new { input = request.Input, parameters = request.Parameters, correlationId });
+
+            using (var producer = new ProducerBuilder<string, string>(producerConfig).Build())
+            {
+                var kafkaMessage = new Message<string, string>
+                {
+                    Key = correlationId,
+                    Value = messageJson,
+                    Headers = new Confluent.Kafka.Headers { { "correlationId", Encoding.UTF8.GetBytes(correlationId) } }
+                };
+                await producer.ProduceAsync(topic, kafkaMessage);
+            }
+
+            if (!string.IsNullOrWhiteSpace(replyTopic))
+            {
+                var consumerConfig = new ConsumerConfig
+                {
+                    BootstrapServers = config.EndpointUrl,
+                    GroupId = $"oasis-web6-reply-{correlationId}",
+                    AutoOffsetReset = AutoOffsetReset.Latest,
+                    EnableAutoCommit = false
+                };
+                if (!string.IsNullOrEmpty(config.AuthToken))
+                {
+                    consumerConfig.SaslMechanism = SaslMechanism.Plain;
+                    consumerConfig.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+                    consumerConfig.SaslPassword = config.AuthToken;
+                    consumerConfig.SaslUsername = config.ExtraConfig?.GetValueOrDefault("saslUsername") ?? "user";
+                }
+
+                using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+                consumer.Subscribe(replyTopic);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                try
+                {
+                    while (!cts.Token.IsCancellationRequested)
+                    {
+                        var cr = consumer.Consume(cts.Token);
+                        if (cr?.Message?.Headers != null)
+                        {
+                            var replyCorrelationHeader = cr.Message.Headers.FirstOrDefault(h => h.Key == "correlationId");
+                            if (replyCorrelationHeader != null && Encoding.UTF8.GetString(replyCorrelationHeader.GetValueBytes()) == correlationId)
+                                return cr.Message.Value;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw new InvalidOperationException($"Kafka adapter '{config.Name}': Timed out (30s) waiting for reply on topic '{replyTopic}' with correlationId '{correlationId}'.");
+                }
+                finally
+                {
+                    consumer.Close();
+                }
+            }
+
+            return JsonSerializer.Serialize(new { status = "published", correlationId, topic });
+        }
+
+        private async Task<string> InvokeAmqpAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(config.EndpointUrl))
+                throw new InvalidOperationException($"AMQP adapter '{config.Name}': EndpointUrl (broker URI) is required.");
+
+            string exchange = config.ExtraConfig?.GetValueOrDefault("exchange") ?? "";
+            string routingKey = config.ExtraConfig?.GetValueOrDefault("routingKey") ?? "oasis.web6";
+            string correlationId = Guid.NewGuid().ToString();
+            string messageJson = JsonSerializer.Serialize(new { input = request.Input, parameters = request.Parameters, correlationId });
+
+            var factory = new ConnectionFactory { Uri = new Uri(config.EndpointUrl) };
+            await using var connection = await factory.CreateConnectionAsync();
+            await using var channel = await connection.CreateChannelAsync();
+            var props = new RabbitMQ.Client.BasicProperties
+            {
+                CorrelationId = correlationId,
+                ContentType = "application/json"
+            };
+            await channel.BasicPublishAsync(exchange, routingKey, false, props, Encoding.UTF8.GetBytes(messageJson));
+
+            return JsonSerializer.Serialize(new { status = "published", correlationId, exchange, routingKey });
+        }
+
+        private async Task<string> InvokeMqttAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(config.EndpointUrl))
+                throw new InvalidOperationException($"MQTT adapter '{config.Name}': EndpointUrl (broker URI) is required.");
+
+            Uri brokerUri = new Uri(config.EndpointUrl);
+            bool useTls = brokerUri.Scheme.Equals("mqtts", StringComparison.OrdinalIgnoreCase);
+            int port = brokerUri.Port > 0 ? brokerUri.Port : (useTls ? 8883 : 1883);
+            string topic = config.ExtraConfig?.GetValueOrDefault("topic") ?? "oasis/web6/requests";
+            string messageJson = JsonSerializer.Serialize(new { input = request.Input, parameters = request.Parameters, correlationId = Guid.NewGuid().ToString() });
+
+            var factory = new MqttFactory();
+            using (IMqttClient mqttClient = factory.CreateMqttClient())
+            {
+                var optionsBuilder = new MqttClientOptionsBuilder()
+                    .WithTcpServer(brokerUri.Host, port);
+
+                if (useTls)
+                    optionsBuilder = optionsBuilder.WithTls();
+
+                if (!string.IsNullOrEmpty(config.AuthToken))
+                    optionsBuilder = optionsBuilder.WithCredentials(config.ExtraConfig?.GetValueOrDefault("mqttUsername") ?? "oasis", config.AuthToken);
+
+                await mqttClient.ConnectAsync(optionsBuilder.Build(), CancellationToken.None);
+
+                var mqttMessage = new MqttApplicationMessageBuilder()
+                    .WithTopic(topic)
+                    .WithPayload(Encoding.UTF8.GetBytes(messageJson))
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
+
+                await mqttClient.PublishAsync(mqttMessage, CancellationToken.None);
+                await mqttClient.DisconnectAsync();
+            }
+
+            return JsonSerializer.Serialize(new { status = "published", topic });
         }
 
         private static OrchestratorAdapterConfig MapToConfig(IHolon holon)

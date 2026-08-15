@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
         /// normalising the response shape. Automatically fails over to the next provider on error if
         /// request.Routing.Fallback is true.
         /// </summary>
-        public async Task<OASISResult<CompletionResponse>> CompleteAsync(CompletionRequest request)
+        public async Task<OASISResult<CompletionResponse>> CompleteAsync(CompletionRequest request, string bearerToken = null)
         {
             OASISResult<CompletionResponse> result = new OASISResult<CompletionResponse>();
 
@@ -90,6 +90,30 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             }
 
             List<AIProviderType> candidates = ResolveProviderCandidates(request);
+
+            // ── Karma gate ─────────────────────────────────────────────────────────
+            int avatarKarma = 0;
+            if (request.AvatarId != Guid.Empty)
+                avatarKarma = await FetchAvatarKarmaAsync(request.AvatarId, bearerToken);
+
+            // Apply karma gate to each candidate; replace provider/model if downgraded.
+            AIProviderType gatedProvider = candidates.Count > 0 ? candidates[0] : AIProviderType.OpenAI;
+            string gatedModel = request.Model;
+            KarmaGateResult gate = KarmaGateManager.Evaluate(avatarKarma, gatedProvider, request.Model);
+            if (gate.IsDowngraded)
+            {
+                gatedProvider = gate.DowngradedProvider;
+                gatedModel    = gate.DowngradedModel;
+                // Replace the candidate list with the downgraded provider first, retaining others as fallbacks.
+                candidates.Remove(gatedProvider);
+                candidates.Insert(0, gatedProvider);
+            }
+            // Mutate the request model field so CallProviderAsync uses the gated model.
+            string originalModel = request.Model;
+            if (gate.IsDowngraded && !string.IsNullOrEmpty(gatedModel))
+                request.Model = gatedModel;
+            // ───────────────────────────────────────────────────────────────────────
+
             Exception lastException = null;
 
             for (int i = 0; i < candidates.Count; i++)
@@ -101,9 +125,19 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 {
                     CompletionResponse response = await CallProviderAsync(provider, request);
                     sw.Stop();
-                    response.LatencyMs = sw.ElapsedMilliseconds;
+                    response.LatencyMs  = sw.ElapsedMilliseconds;
                     response.FailedOver = i > 0;
+                    if (gate.IsDowngraded)
+                    {
+                        response.KarmaTier         = gate.TierName;
+                        response.KarmaDowngradeNote = gate.Reason;
+                    }
+                    else
+                    {
+                        response.KarmaTier = gate.TierName;
+                    }
                     result.Result = response;
+                    request.Model = originalModel; // restore
                     return result;
                 }
                 catch (Exception ex)
@@ -113,13 +147,34 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                     if (!request.Routing.Fallback)
                         break;
 
-                    // Try the next candidate provider.
                     continue;
                 }
             }
 
+            request.Model = originalModel; // restore on error path too
             OASISErrorHandling.HandleError(ref result, $"Error calling AI provider(s). Reason: {lastException?.Message}", lastException);
             return result;
+        }
+
+        private async Task<int> FetchAvatarKarmaAsync(Guid avatarId, string bearerToken)
+        {
+            try
+            {
+                string web4Base = Environment.GetEnvironmentVariable("WEB4_API_BASE_URL")
+                    ?? OASISDNA?.OASIS?.Web6?.Web4BaseUrl
+                    ?? "https://api.oasisomniverse.one";
+                using var req = new HttpRequestMessage(HttpMethod.Get, $"{web4Base}/api/karma/{avatarId}");
+                if (!string.IsNullOrEmpty(bearerToken))
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+                using HttpResponseMessage resp = await _httpClient.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return 0;
+                using JsonDocument doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+                return doc.RootElement.TryGetProperty("karmaTotal", out JsonElement k) ? k.GetInt32() : 0;
+            }
+            catch
+            {
+                return 0; // karma lookup failure is non-fatal; treat as Bronze
+            }
         }
 
         private List<AIProviderType> ResolveProviderCandidates(CompletionRequest request)
