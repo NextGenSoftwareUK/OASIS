@@ -54,10 +54,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildren && saveChildrenOnProvider && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
+                    if (saveChildren && saveChildrenOnProvider && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0
+                        && (recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth)))
                     {
-                        //TODO: Need to add recursive code like HolonManager has...
-                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider);
+                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children, saveChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, saveChildrenOnProvider);
 
                         if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
                             holonResult.Result.Children = saveChildrenResult.Result.ToList();
@@ -113,10 +113,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildren && saveChildrenOnProvider && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
+                    if (saveChildren && saveChildrenOnProvider && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0
+                        && (recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth)))
                     {
-                        //TODO: Need to add recursive code like HolonManager has...
-                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
+                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children, saveChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, saveChildrenOnProvider);
 
                         if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
                             holonResult.Result.Children = saveChildrenResult.Result.ToList();

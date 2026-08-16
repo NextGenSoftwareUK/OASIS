@@ -9,11 +9,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
     public class AztecService : IAztecService
     {
         private readonly AztecAPIClient _apiClient;
-        private const string STABLECOIN_CONTRACT_ADDRESS = "stablecoin_contract_address"; // TODO: Set from config
+        private readonly string _stablecoinContractAddress;
 
-        public AztecService(AztecAPIClient apiClient)
+        public AztecService(AztecAPIClient apiClient, string stablecoinContractAddress = "")
         {
             _apiClient = apiClient;
+            _stablecoinContractAddress = stablecoinContractAddress ?? "";
         }
 
         public async Task<PrivateNote> CreatePrivateNoteAsync(decimal value, string ownerPublicKey, string metadata = null)
