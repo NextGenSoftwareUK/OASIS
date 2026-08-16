@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Telegram.Bot;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -35,6 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
         private IMongoCollection<TelegramAvatar> _telegramAvatars;
         private IMongoCollection<TelegramGroup> _telegramGroups;
         private IMongoCollection<Achievement> _achievements;
+        private IMongoCollection<BsonDocument> _oasisAvatars;
+        private IMongoCollection<BsonDocument> _oasisHolons;
 
         public TelegramOASISProvider(string botToken, string webhookUrl, string mongoConnectionString)
         {
@@ -125,6 +130,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
 
             var achievementGroupIndex = Builders<Achievement>.IndexKeys.Ascending(x => x.GroupId);
             _achievements.Indexes.CreateOne(new CreateIndexModel<Achievement>(achievementGroupIndex));
+
+            _oasisAvatars = _database.GetCollection<BsonDocument>("oasis_avatars");
+            _oasisHolons = _database.GetCollection<BsonDocument>("oasis_holons");
         }
 
         #endregion
@@ -430,17 +438,98 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
 
         #region Required OASIS Storage Provider Methods
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-            => Task.FromResult(new OASISResult<IAvatar> { IsError = true, Message = "TelegramOASIS does not support avatar loading. Use MongoDBOASIS." });
+        private static BsonDocument AvatarToBson(IAvatar avatar)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions { WriteIndented = false });
+            var doc = BsonDocument.Parse(json);
+            doc["_id"] = avatar.Id.ToString();
+            return doc;
+        }
 
-        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-            => Task.FromResult(new OASISResult<IAvatar> { IsError = true, Message = "TelegramOASIS does not support avatar saving. Use MongoDBOASIS." });
+        private static BsonDocument HolonToBson(IHolon holon)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions { WriteIndented = false });
+            var doc = BsonDocument.Parse(json);
+            doc["_id"] = holon.Id.ToString();
+            return doc;
+        }
 
-        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-            => Task.FromResult(new OASISResult<IEnumerable<IAvatar>> { IsError = true, Message = "TelegramOASIS does not support loading all avatars. Use MongoDBOASIS." });
+        private static IAvatar BsonToAvatar(BsonDocument doc)
+        {
+            var json = doc.ToJson(new MongoDB.Bson.IO.JsonWriterSettings { OutputMode = MongoDB.Bson.IO.JsonOutputMode.RelaxedExtendedJson });
+            return System.Text.Json.JsonSerializer.Deserialize<Avatar>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
 
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-            => Task.FromResult(new OASISResult<bool> { IsError = true, Message = "TelegramOASIS does not support avatar deletion. Use MongoDBOASIS." });
+        private static IHolon BsonToHolon(BsonDocument doc)
+        {
+            var json = doc.ToJson(new MongoDB.Bson.IO.JsonWriterSettings { OutputMode = MongoDB.Bson.IO.JsonOutputMode.RelaxedExtendedJson });
+            return System.Text.Json.JsonSerializer.Deserialize<Holon>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var doc = await _oasisAvatars.Find(Builders<BsonDocument>.Filter.Eq("_id", id.ToString())).FirstOrDefaultAsync();
+                if (doc == null) OASISErrorHandling.HandleError(ref result, $"Avatar {id} not found in TelegramOASIS.");
+                else { result.Result = BsonToAvatar(doc); result.IsError = false; }
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var doc = AvatarToBson(avatar);
+                await _oasisAvatars.ReplaceOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", avatar.Id.ToString()),
+                    doc, new ReplaceOptions { IsUpsert = true });
+                result.Result = avatar; result.IsError = false;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var docs = await _oasisAvatars.Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                result.Result = docs.Select(BsonToAvatar).ToList();
+                result.IsError = false;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all avatars: {ex.Message}", ex); }
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (softDelete)
+                {
+                    var doc = await _oasisAvatars.Find(Builders<BsonDocument>.Filter.Eq("_id", id.ToString())).FirstOrDefaultAsync();
+                    if (doc != null)
+                    {
+                        doc["DeletedDate"] = DateTime.UtcNow.ToString("o");
+                        await _oasisAvatars.ReplaceOneAsync(Builders<BsonDocument>.Filter.Eq("_id", id.ToString()), doc);
+                    }
+                }
+                else
+                {
+                    await _oasisAvatars.DeleteOneAsync(Builders<BsonDocument>.Filter.Eq("_id", id.ToString()));
+                }
+                result.Result = true; result.IsError = false;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
             => new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." };
@@ -448,20 +537,50 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
         public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
             => new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." };
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
-            => Task.FromResult(new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." });
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var doc = await _oasisAvatars.Find(Builders<BsonDocument>.Filter.Eq("Username", username)).FirstOrDefaultAsync();
+                if (doc == null) OASISErrorHandling.HandleError(ref result, $"Avatar with username '{username}' not found.");
+                else { result.Result = BsonToAvatar(doc); result.IsError = false; }
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
             => new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." };
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
-            => Task.FromResult(new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." });
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var doc = await _oasisAvatars.Find(Builders<BsonDocument>.Filter.Eq("Email", email)).FirstOrDefaultAsync();
+                if (doc == null) OASISErrorHandling.HandleError(ref result, $"Avatar with email '{email}' not found.");
+                else { result.Result = BsonToAvatar(doc); result.IsError = false; }
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
             => new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." };
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-            => Task.FromResult(new OASISResult<IAvatar> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." });
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var doc = await _oasisAvatars.Find(Builders<BsonDocument>.Filter.Eq("providerKey", providerKey)).FirstOrDefaultAsync();
+                if (doc == null) OASISErrorHandling.HandleError(ref result, $"Avatar with providerKey '{providerKey}' not found.");
+                else { result.Result = BsonToAvatar(doc); result.IsError = false; }
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
             => new OASISResult<IAvatarDetail> { IsError = true, Message = "Use MongoDBOASIS for avatar operations." };
@@ -523,8 +642,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
 
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => Task.FromResult(new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." });
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var doc = await _oasisHolons.Find(Builders<BsonDocument>.Filter.Eq("_id", id.ToString())).FirstOrDefaultAsync();
+                if (doc == null) OASISErrorHandling.HandleError(ref result, $"Holon {id} not found.");
+                else { result.Result = BsonToHolon(doc); result.IsError = false; }
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
@@ -547,14 +676,39 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "Use MongoDBOASIS for holon operations." });
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var filter = type == HolonType.All
+                    ? FilterDefinition<BsonDocument>.Empty
+                    : Builders<BsonDocument>.Filter.Eq("HolonType", type.ToString());
+                var docs = await _oasisHolons.Find(filter).ToListAsync();
+                result.Result = docs.Select(BsonToHolon).ToList();
+                result.IsError = false;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
 
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-            => Task.FromResult(new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." });
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var doc = HolonToBson(holon);
+                await _oasisHolons.ReplaceOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", holon.Id.ToString()),
+                    doc, new ReplaceOptions { IsUpsert = true });
+                result.Result = holon; result.IsError = false;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving holon: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
@@ -565,8 +719,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
         public override OASISResult<IHolon> DeleteHolon(Guid id)
             => new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-            => Task.FromResult(new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." });
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                await _oasisHolons.DeleteOneAsync(Builders<BsonDocument>.Filter.Eq("_id", id.ToString()));
+                result.IsError = false;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex); }
+            return result;
+        }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
             => new OASISResult<IHolon> { IsError = true, Message = "Use MongoDBOASIS for holon operations." };
