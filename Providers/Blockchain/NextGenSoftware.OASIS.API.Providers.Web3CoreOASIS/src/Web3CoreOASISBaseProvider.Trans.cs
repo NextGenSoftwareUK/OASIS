@@ -760,7 +760,7 @@ public partial class Web3CoreOASISBaseProvider
             {
                 PrivateKey = privateKey,
                 PublicKey = publicKey,
-                WalletAddressLegacy = publicKey //TODO: Generate proper ethereum address format if needed
+                WalletAddressLegacy = publicKey // GetPublicAddress() already returns the Ethereum checksummed address
             };
             result.IsError = false;
             result.Message = "Key pair generated successfully.";
