@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.ArweaveOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.ArweaveOASIS</AssemblyName>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.ArweaveOASIS</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB4 OASIS API Arweave OASIS Provider</Product>
+    <Title>WEB4 OASIS API Arweave OASIS Provider</Title>
+    <Summary>Arweave OASIS Provider — permanent decentralised storage for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Arweave — a permanent, decentralised storage network. Holons and avatars are stored as immutable Arweave transactions tagged with OASIS metadata and retrieved via GraphQL. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS API; Arweave; Decentralised; Permanent Storage; WEB4; Provider</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>

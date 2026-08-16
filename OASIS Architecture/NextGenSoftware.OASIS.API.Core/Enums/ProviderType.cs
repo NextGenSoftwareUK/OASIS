@@ -31,6 +31,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         SuiOASIS,
         AptosOASIS,
         OptimismOASIS,
+        AbstractOASIS,
+        BerrachainOASIS,
         BNBChainOASIS,
         FantomOASIS,
         StarknetOASIS,
@@ -59,11 +61,14 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         AWSOASIS,
         UrbitOASIS, //Other
         ThreeFoldOASIS,
+        ArweaveOASIS,
         PLANOASIS,
         HoloWebOASIS,
         SOLIDOASIS,
         ActivityPubOASIS,
         ScuttlebuttOASIS,
-        LocalFileOASIS
+        LocalFileOASIS,
+        FarcasterOASIS,
+        NostrOASIS
     }
 }
