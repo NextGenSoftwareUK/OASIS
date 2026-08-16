@@ -77,15 +77,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
+                // Resolve conflicting actions (e.g. two controllers sharing the same route prefix)
+                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
                 // Configure custom schema ID resolver to handle duplicate class names and generic types
-                c.CustomSchemaIds(type => 
+                c.CustomSchemaIds(type =>
                 {
                     // If the type is from the WebAPI Models namespace, use a different schema ID
                     if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
                     {
                         return $"{type.Name}WebAPI";
                     }
-                    
+
                     // Handle generic types to include the full generic parameter information
                     if (type.IsGenericType)
                     {
@@ -93,9 +96,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
                         return $"{genericTypeName}Of{genericArgs}";
                     }
-                    
-                    // For all other types, use the default behavior
-                    return type.Name;
+
+                    // Use fully-qualified name to prevent collisions between same-named types across providers
+                    return type.FullName?.Replace("+", ".") ?? type.Name;
                 });
                 
                 c.SwaggerDoc("v1", new OpenApiInfo
