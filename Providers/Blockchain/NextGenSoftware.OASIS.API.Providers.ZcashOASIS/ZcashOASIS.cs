@@ -39,8 +39,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         private readonly string _rpcUser;
         private readonly string _rpcPassword;
         private readonly string _network; // "mainnet" or "testnet"
+        private readonly string _burnAddress; // Shielded address to send tokens to when "burning"
 
-        public ZcashOASIS(string rpcUrl = null, string rpcUser = null, string rpcPassword = null, string network = "testnet")
+        public ZcashOASIS(string rpcUrl = null, string rpcUser = null, string rpcPassword = null, string network = "testnet", string burnAddress = null)
         {
             this.ProviderName = nameof(ZcashOASIS);
             this.ProviderDescription = "Zcash Blockchain Provider with Shielded Transaction Support";
@@ -57,6 +58,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             _network = network;
 
             _rpcClient = new ZcashRPCClient(_rpcUrl, _rpcUser, _rpcPassword);
+            // Unspendable shielded burn address (all-zero payment address in Sapling format)
+            _burnAddress = burnAddress ?? Environment.GetEnvironmentVariable("ZCASH_BURN_ADDRESS") ?? "zs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
         }
     }
 }
