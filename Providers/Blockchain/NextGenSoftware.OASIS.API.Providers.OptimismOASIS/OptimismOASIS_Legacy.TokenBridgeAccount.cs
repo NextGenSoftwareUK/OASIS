@@ -564,7 +564,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
 
                 // Resolve the recipient wallet address from the avatar's stored Optimism provider key
-                var keysResult = await KeyManager.GetProviderPublicKeysForAvatarByIdAsync(request.UnlockedByAvatarId, Core.Enums.ProviderType.OptimismOASIS);
+                var keysResult = KeyManager.GetProviderPublicKeysForAvatarById(request.UnlockedByAvatarId, Core.Enums.ProviderType.OptimismOASIS);
                 var unlockedToWalletAddress = keysResult?.Result?.FirstOrDefault() ?? "";
 
                 if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
