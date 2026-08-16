@@ -30,6 +30,8 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    [Route("api/avatar")]
+    [ApiController]
     public partial class AvatarProfileController : OASISControllerBase
     {
         private AvatarManager AvatarManager => Program.AvatarManager;
