@@ -486,13 +486,36 @@ public partial class Web3CoreOASISBaseProvider
         return result;
     }
 
-    public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        // For token transactions, we would need to interact with the token contract
-        // This is a placeholder that returns an error indicating token transactions need contract interaction
         OASISResult<ITransactionResponse> result = new();
-        OASISErrorHandling.HandleError(ref result, "Token transactions require contract interaction. Use SendTokenAsync methods instead.");
-        return Task.FromResult(result);
+        string errorMessage = "Error in SendTransactionByEmailAsync (token) in Web3CoreOASIS. Reason: ";
+        try
+        {
+            var fromAvatarResult = await LoadAvatarByEmailAsync(fromAvatarEmail);
+            var toAvatarResult = await LoadAvatarByEmailAsync(toAvatarEmail);
+            if (fromAvatarResult.IsError || fromAvatarResult.Result == null)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Could not load sender avatar: {fromAvatarResult.Message}")); return result; }
+            if (toAvatarResult.IsError || toAvatarResult.Result == null)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Could not load receiver avatar: {toAvatarResult.Message}")); return result; }
+
+            var privateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarResult.Result.Username, this.ProviderType.Value);
+            var toAddressResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarResult.Result.Username, this.ProviderType.Value);
+            if (privateKeysResult.IsError || privateKeysResult.Result == null || privateKeysResult.Result.Count == 0)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get sender private key")); return result; }
+            if (toAddressResult.IsError || toAddressResult.Result == null || toAddressResult.Result.Count == 0)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get receiver wallet address")); return result; }
+
+            result = await SendTokenAsync(new SendWeb3TokenRequest
+            {
+                FromWalletPrivateKey = privateKeysResult.Result[0],
+                ToWalletAddress = toAddressResult.Result[0],
+                FromTokenAddress = token,
+                Amount = amount
+            });
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex); }
+        return result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
@@ -570,13 +593,29 @@ public partial class Web3CoreOASISBaseProvider
         return result;
     }
 
-    public Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        // For token transactions, we would need to interact with the token contract
-        // This is a placeholder that returns an error indicating token transactions need contract interaction
         OASISResult<ITransactionResponse> result = new();
-        OASISErrorHandling.HandleError(ref result, "Token transactions require contract interaction. Use SendTokenAsync methods instead.");
-        return Task.FromResult(result);
+        string errorMessage = "Error in SendTransactionByIdAsync (token) in Web3CoreOASIS. Reason: ";
+        try
+        {
+            var privateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(fromAvatarId, this.ProviderType.Value);
+            var toAddressResult = KeyManager.Instance.GetProviderPublicKeysForAvatarById(toAvatarId, this.ProviderType.Value);
+            if (privateKeysResult.IsError || privateKeysResult.Result == null || privateKeysResult.Result.Count == 0)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get sender private key")); return result; }
+            if (toAddressResult.IsError || toAddressResult.Result == null || toAddressResult.Result.Count == 0)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get receiver wallet address")); return result; }
+
+            result = await SendTokenAsync(new SendWeb3TokenRequest
+            {
+                FromWalletPrivateKey = privateKeysResult.Result[0],
+                ToWalletAddress = toAddressResult.Result[0],
+                FromTokenAddress = token,
+                Amount = amount
+            });
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex); }
+        return result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -621,13 +660,29 @@ public partial class Web3CoreOASISBaseProvider
         return result;
     }
 
-    public Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        // For token transactions, we would need to interact with the token contract
-        // This is a placeholder that returns an error indicating token transactions need contract interaction
         OASISResult<ITransactionResponse> result = new();
-        OASISErrorHandling.HandleError(ref result, "Token transactions require contract interaction. Use SendTokenAsync methods instead.");
-        return Task.FromResult(result);
+        string errorMessage = "Error in SendTransactionByUsernameAsync (token) in Web3CoreOASIS. Reason: ";
+        try
+        {
+            var privateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, this.ProviderType.Value);
+            var toAddressResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, this.ProviderType.Value);
+            if (privateKeysResult.IsError || privateKeysResult.Result == null || privateKeysResult.Result.Count == 0)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get sender private key")); return result; }
+            if (toAddressResult.IsError || toAddressResult.Result == null || toAddressResult.Result.Count == 0)
+            { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get receiver wallet address")); return result; }
+
+            result = await SendTokenAsync(new SendWeb3TokenRequest
+            {
+                FromWalletPrivateKey = privateKeysResult.Result[0],
+                ToWalletAddress = toAddressResult.Result[0],
+                FromTokenAddress = token,
+                Amount = amount
+            });
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex); }
+        return result;
     }
 
     private async Task<OASISResult<ITransactionResponse>> SendTransactionBaseAsync(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)

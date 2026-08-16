@@ -198,14 +198,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
                     return result;
                 }
 
-                // Unlock token by releasing from bridge pool
-                // IUnlockWeb3TokenRequest doesn't have these properties directly
-                // For now, use placeholder values - these would need to come from the bridge service or be passed differently
-                var unlockedToWalletAddress = string.Empty; // Would need to be provided via bridge service
-                var amount = 0m; // Would need to be provided via bridge service
-                var fromWalletAddress = string.Empty; // Would need to be provided via bridge service
+                // Resolve the avatar's Miden wallet address via KeyManager
+                var keysResult = KeyManager.Instance.GetProviderPublicKeysForAvatarById(request.UnlockedByAvatarId, Core.Enums.ProviderType.MidenOASIS);
+                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Could not resolve Miden wallet address for avatar {request.UnlockedByAvatarId}");
+                    return result;
+                }
 
-                OASISErrorHandling.HandleError(ref result, "UnlockToken on Miden requires additional parameters that are not available in IUnlockWeb3TokenRequest interface. Use bridge service methods instead.");
+                var midenAddress = keysResult.Result[0];
+                var releaseResult = await ReleaseFromMidenAsync(midenAddress, 1m, request.TokenAddress);
+                if (releaseResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock token on Miden: {releaseResult.Message}", releaseResult.Exception);
+                    return result;
+                }
+
+                result.Result = new Web3NFTTransactionResponse { TransactionResult = releaseResult.Result };
+                result.IsError = false;
+                result.Message = "Token unlocked (released) from Miden bridge pool successfully";
                 return result;
             }
             catch (Exception ex)

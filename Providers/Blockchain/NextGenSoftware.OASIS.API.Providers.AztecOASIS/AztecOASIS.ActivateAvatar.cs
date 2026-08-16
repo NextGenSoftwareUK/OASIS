@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             {
                 _aztecService = new AztecService(_apiClient, _stablecoinContractAddress);
                 _bridgeService = new AztecBridgeService(_apiClient, _bridgeContractAddress, _operatorAccountAlias);
-                _aztecRepository = new AztecRepository();
+                _aztecRepository = new AztecRepository(_apiClient);
 
                 IsProviderActivated = true;
                 result.Result = true;
