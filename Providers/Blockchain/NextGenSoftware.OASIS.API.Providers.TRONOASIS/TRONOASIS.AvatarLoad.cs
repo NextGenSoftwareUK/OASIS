@@ -94,8 +94,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar from TRON blockchain using REAL TRON API
-                var accountInfo = await _tronClient.GetAccountInfoAsync(id.ToString());
+                // Resolve TRON wallet address from avatar ID via WalletManager
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(id, Core.Enums.ProviderType.TRONOASIS);
+                var tronAddress = walletResult?.Result?.WalletAddress;
+                if (string.IsNullOrEmpty(tronAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, $"No TRON wallet address registered for avatar {id}");
+                    return response;
+                }
+
+                var accountInfo = await _tronClient.GetAccountInfoAsync(tronAddress);
 
                 if (accountInfo != null)
                 {

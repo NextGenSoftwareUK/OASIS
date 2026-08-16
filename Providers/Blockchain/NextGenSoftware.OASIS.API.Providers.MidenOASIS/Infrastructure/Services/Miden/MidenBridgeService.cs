@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
                 var lockResult = await _midenService.LockOnMidenAsync(
                     senderAccountAddress ?? _bridgePoolAddress,
                     amount,
-                    "zcash_address_placeholder" // This would come from the bridge request
+                    senderAccountAddress // Destination address on the target chain
                 );
 
                 if (lockResult.IsError)

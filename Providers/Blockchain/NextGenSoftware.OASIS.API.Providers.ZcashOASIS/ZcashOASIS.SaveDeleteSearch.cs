@@ -175,19 +175,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     return result;
                 }
             }
-            // Zcash doesn't have native token minting like account-based chains
-            // Minting would require a custom asset or smart contract
-            // For now, we'll use a shielded transaction to simulate minting
-            var mintAddress = _rpcClient.GetNewAddressAsync("sapling").Result.Result ?? request.MintedByAvatarId.ToString();
-            
-            // In Zcash, "minting" would typically be done through mining or custom assets
-            // This is a placeholder that would need custom asset implementation
-            result.Result = new TransactionResponse
-            {
-                TransactionResult = "Zcash native token (ZEC) is minted through mining, not programmatically"
-            };
-            result.IsError = false;
-            result.Message = "Zcash uses proof-of-work mining for token creation. Custom assets would require additional implementation.";
+            // ZEC is minted exclusively through proof-of-work mining; programmatic minting is not supported.
+            // Zcash Sapling Asset Protocol (ZSA) is in development but not yet production-ready.
+            OASISErrorHandling.HandleError(ref result, "MintToken is not supported on Zcash. ZEC is minted through mining only. Custom shielded assets (ZSA) are not yet production-ready.");
             return result;
         }
 
@@ -208,9 +198,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     return result;
                 }
             }
-            // Zcash doesn't have native token burning
-            // Burning would require sending to a burn address or custom asset implementation
-            var burnAddress = "zcBurnAddress..."; // Zcash burn address (would be configured)
+            // Burn by sending to the configured unspendable shielded address
+            var burnAddress = _burnAddress;
             
             if (string.IsNullOrEmpty(request.TokenAddress))
             {
