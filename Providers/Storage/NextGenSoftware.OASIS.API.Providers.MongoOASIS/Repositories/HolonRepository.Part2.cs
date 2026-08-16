@@ -327,35 +327,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                //TODO: Cant remember why I was doing this?! lol
-                if (holon.Id == null)
+                // If the caller did not supply the MongoDB ObjectId (_id), look it up by HolonId
+                // so that ReplaceOne does not try to write _id: null (MongoDB rejects code 66).
+                if (string.IsNullOrEmpty(holon.Id))
                 {
                     Holon originalHolon = GetHolon(holon.HolonId);
-
                     if (originalHolon != null)
-                    {
                         holon.Id = originalHolon.Id;
-                        holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
-                        holon.CreatedDate = originalHolon.CreatedDate;
-                        holon.HolonType = originalHolon.HolonType;
-                        holon.ParentZome = originalHolon.ParentZome;
-                        holon.ParentZomeId = originalHolon.ParentZomeId;
-                        holon.ParentMoon = originalHolon.ParentMoon;
-                        holon.ParentPlanet = originalHolon.ParentPlanet;
-                        holon.ParentMoonId = originalHolon.ParentMoonId;
-                        holon.ParentPlanetId = originalHolon.ParentPlanetId;
-                        holon.Children = originalHolon.Children;
-                        holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
-                        holon.DeletedDate = originalHolon.DeletedDate;
-
-                        //TODO: SOMEONE PLEASE FINISH THIS ASAP!!!
-                    }
                 }
 
                 _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
                 result.Result = holon;
             }
-
             catch (Exception ex)
             {
                 result.IsError = true;
