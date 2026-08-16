@@ -165,7 +165,7 @@ public sealed partial class ArbitrumOASIS
             {
                 PrivateKey = privateKey,
                 PublicKey = publicKey,
-                WalletAddressLegacy = publicKey //TODO: Calculate properly.
+                WalletAddressLegacy = publicKey // GetPublicAddress() already returns the Ethereum checksummed address
             };
 
             result.IsError = false;

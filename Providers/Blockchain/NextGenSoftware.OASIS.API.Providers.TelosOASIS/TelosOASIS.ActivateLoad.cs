@@ -160,14 +160,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public List<string> GetTelosAccountNamesForAvatar(Guid avatarId)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            var result = KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS);
+            return result.IsError ? new List<string>() : result.Result ?? new List<string>();
         }
 
         public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result[0];
+            var result = KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS);
+            return result.IsError || result.Result == null || result.Result.Count == 0 ? "" : result.Result[0];
         }
 
         public GetAccountResponseDto GetTelosAccountForAvatar(Guid avatarId)
@@ -183,14 +183,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public Guid GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetAvatarIdForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
+            var result = KeyManager.GetAvatarIdForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS);
+            return result.IsError ? Guid.Empty : result.Result;
         }
 
         public IAvatar GetAvatarForTelosAccountName(string telosAccountName)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetAvatarForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
+            var result = KeyManager.GetAvatarForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS);
+            return result.IsError ? null : result.Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
