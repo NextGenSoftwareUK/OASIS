@@ -245,19 +245,51 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
+            // Try using the username as a provider key (IPFS path or contract reference)
+            var result = await LoadAvatarByProviderKeyAsync(username, version);
+            if (!result.IsError && result.Result != null)
+                return result;
+
+            // Fall back: search contract for avatar with matching username field
+            var fallback = new OASISResult<IAvatar>();
             try
             {
-                // Moralis Web3 API doesn't have a search endpoint for usernames
-                // Avatar storage should use Moralis Database (MongoDB) for this functionality
-                // Real Moralis implementation - search for avatar by username in IPFS or contract
-                return new OASISResult<IAvatar>(null) { Message = "Moralis Web3 API doesn't support username search. Use Moralis Database (MongoDB) for avatar storage." };
+                if (!string.IsNullOrEmpty(GetOASISContractAddress()))
+                {
+                    var contractRequest = new
+                    {
+                        address = GetOASISContractAddress(),
+                        function_name = "getAvatarByUsername",
+                        abi = GetOASISContractABI(),
+                        @params = new { username, version }
+                    };
+
+                    var contractResponse = await _httpClient.PostAsync(
+                        $"{_baseUrl}/{Uri.EscapeDataString(GetOASISContractAddress())}/function",
+                        new StringContent(JsonSerializer.Serialize(contractRequest), Encoding.UTF8, "application/json"));
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var contractContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<MoralisApiResult>(contractContent);
+                        if (!string.IsNullOrEmpty(contractResult?.result))
+                        {
+                            var avatar = JsonSerializer.Deserialize<Avatar>(contractResult.result);
+                            fallback.Result = avatar;
+                            fallback.IsError = false;
+                            fallback.Message = "Avatar loaded by username from Moralis contract";
+                            return fallback;
+                        }
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref fallback, $"Avatar with username '{username}' not found in Moralis IPFS or contract");
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<IAvatar>(null);
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex);
-                return result;
+                OASISErrorHandling.HandleError(ref fallback, $"Error loading avatar by username: {ex.Message}", ex);
             }
+            return fallback;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
@@ -360,29 +392,61 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                // Moralis Web3 API doesn't have an endpoint to get all avatars
-                // If using a contract address, we can get all NFTs from that contract
-                if (!string.IsNullOrEmpty(_contractAddress))
+                if (!IsProviderActivated)
                 {
-                    // REAL Moralis endpoint: GET /nft/{address}/owners?chain={chain}
-                    var response = await _httpClient.GetAsync($"{_baseUrl}/nft/{Uri.EscapeDataString(_contractAddress)}/owners?chain={_chain}");
-                    if (response.IsSuccessStatusCode)
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
                     {
-                        var jsonResponse = await response.Content.ReadAsStringAsync();
-                        // Parse NFT owners response - would need to convert to avatars
-                        return new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>()) { Message = "Moralis Web3 API returns NFT owners. Avatar conversion from NFT data needs implementation." };
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Moralis provider: {activateResult.Message}");
+                        return result;
                     }
                 }
-                return new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>()) { Message = "Moralis Web3 API doesn't support loading all avatars. Use Moralis Database (MongoDB) for avatar storage." };
+
+                if (string.IsNullOrEmpty(_contractAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "No contract address configured. Set a contract address to enumerate all avatars via Moralis NFT owner API.");
+                    return result;
+                }
+
+                // GET /nft/{address}/owners?chain={chain} — returns all NFT owners for the OASIS contract
+                var response = await _httpClient.GetAsync($"{_baseUrl}/nft/{Uri.EscapeDataString(_contractAddress)}/owners?chain={_chain}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Moralis NFT owner query failed: {response.StatusCode}");
+                    return result;
+                }
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var parsed = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
+
+                var avatars = new List<IAvatar>();
+                if (parsed.TryGetProperty("result", out var nftArray))
+                {
+                    foreach (var nft in nftArray.EnumerateArray())
+                    {
+                        // token_uri holds the IPFS path where avatar JSON was stored during SaveAvatarAsync
+                        var tokenUri = nft.TryGetProperty("token_uri", out var tu) ? tu.GetString() : null;
+                        if (!string.IsNullOrEmpty(tokenUri))
+                        {
+                            var avatarResult = await LoadAvatarByProviderKeyAsync(tokenUri, version);
+                            if (!avatarResult.IsError && avatarResult.Result != null)
+                                avatars.Add(avatarResult.Result);
+                        }
+                    }
+                }
+
+                result.Result = avatars;
+                result.IsError = false;
+                result.Message = $"Loaded {avatars.Count} avatars from Moralis NFT contract";
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>());
                 OASISErrorHandling.HandleError(ref result, $"Error loading all avatars: {ex.Message}", ex);
-                return result;
             }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
