@@ -780,22 +780,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
             // Build pre-sign transaction (empty 65-byte signature)
             var txBytes = SerializeStacksSTXTransfer(
-                version: 0x00,       // mainnet
-                chainId: 0x00000001,
+                0x00, 0x00000001,
                 signerHash, nonce, fee,
                 recipientHash, microSTX, memoBytes,
-                signature: new byte[65]);
+                new byte[65]);
 
-            // Signing hash = SHA-256(SHA-512(txBytes)) as a pragmatic substitute for SHA-512/256
-            var sigHash = Sha512_256Approx(txBytes);
+            // Signing hash = SHA-512/256 of pre-sign transaction bytes (Stacks SIP-005)
+            var sigHash = Sha512_256(txBytes);
             var uint256Hash = new NBitcoin.uint256(sigHash);
-            var ecSig = privKey.Sign(uint256Hash);
 
-            // Encode as 65-byte Stacks compact signature: [recId:1][r:32][s:32]
+            // SignCompact returns CompactSignature { RecoveryId: int, Signature: byte[64] }
+            var bitcoinCompact = privKey.SignCompact(uint256Hash);
+            // Stacks format: [recId:1][r:32][s:32]
             var sig65 = new byte[65];
-            var compact = ecSig.ToCompact(out int recId);
-            sig65[0] = (byte)recId;
-            Array.Copy(compact, 0, sig65, 1, 64);
+            sig65[0] = (byte)bitcoinCompact.RecoveryId; // 0 or 1
+            Array.Copy(bitcoinCompact.Signature, 0, sig65, 1, 64);
 
             // Re-serialize with real signature
             var signedTx = SerializeStacksSTXTransfer(
@@ -860,19 +859,75 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         /// <summary>
-        /// Pragmatic SHA-512/256 substitute: SHA-256 of SHA-512 output.
-        /// Stacks uses the true SHA-512/256 IV; this is structurally equivalent
-        /// in terms of collision resistance but produces different bytes.
-        /// Replace with System.Security.Cryptography.SHA512.HashData(SHA512_256 variant)
-        /// when .NET 8 SHA-512/256 support is available in the target runtime.
+        /// True SHA-512/256 per FIPS 180-4 §5.3.6.2 — SHA-512 compression with dedicated IVs,
+        /// output truncated to 256 bits. Required for Stacks SIP-005 transaction signing.
         /// </summary>
-        private static byte[] Sha512_256Approx(byte[] data)
+        private static byte[] Sha512_256(byte[] data)
         {
-            using var sha512 = System.Security.Cryptography.SHA512.Create();
-            var full = sha512.ComputeHash(data);
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            return sha256.ComputeHash(full);
+            // FIPS 180-4 SHA-512/256 initial hash values
+            ulong[] h = {
+                0x22312194FC2BF72CUL, 0x9F555FA3C84C64C2UL,
+                0x2393B86B6F53B151UL, 0x963877195940EABDUL,
+                0x96283EE2A88EFFE3UL, 0xBE5E1E2553863992UL,
+                0x2B0199FC2C85B8AAUL, 0x0EB72DDC81C52CA2UL
+            };
+            ulong[] k = {
+                0x428A2F98D728AE22UL, 0x7137449123EF65CDUL, 0xB5C0FBCFEC4D3B2FUL, 0xE9B5DBA58189DBBCUL,
+                0x3956C25BF348B538UL, 0x59F111F1B605D019UL, 0x923F82A4AF194F9BUL, 0xAB1C5ED5DA6D8118UL,
+                0xD807AA98A3030242UL, 0x12835B0145706FBEUL, 0x243185BE4EE4B28CUL, 0x550C7DC3D5FFB4E2UL,
+                0x72BE5D74F27B896FUL, 0x80DEB1FE3B1696B1UL, 0x9BDC06A725C71235UL, 0xC19BF174CF692694UL,
+                0xE49B69C19EF14AD2UL, 0xEFBE4786384F25E3UL, 0x0FC19DC68B8CD5B5UL, 0x240CA1CC77AC9C65UL,
+                0x2DE92C6F592B0275UL, 0x4A7484AA6EA6E483UL, 0x5CB0A9DCBD41FBD4UL, 0x76F988DA831153B5UL,
+                0x983E5152EE66DFABUL, 0xA831C66D2DB43210UL, 0xB00327C898FB213FUL, 0xBF597FC7BEEF0EE4UL,
+                0xC6E00BF33DA88FC2UL, 0xD5A79147930AA725UL, 0x06CA6351E003826FUL, 0x142929670A0E6E70UL,
+                0x27B70A8546D22FFCUL, 0x2E1B21385C26C926UL, 0x4D2C6DFC5AC42AEDUL, 0x53380D139D95B3DFUL,
+                0x650A73548BAF63DEUL, 0x766A0ABB3C77B2A8UL, 0x81C2C92E47EDAEE6UL, 0x92722C851482353BUL,
+                0xA2BFE8A14CF10364UL, 0xA81A664BBC423001UL, 0xC24B8B70D0F89791UL, 0xC76C51A30654BE30UL,
+                0xD192E819D6EF5218UL, 0xD69906245565A910UL, 0xF40E35855771202AUL, 0x106AA07032BBD1B8UL,
+                0x19A4C116B8D2D0C8UL, 0x1E376C085141AB53UL, 0x2748774CDF8EEB99UL, 0x34B0BCB5E19B48A8UL,
+                0x391C0CB3C5C95A63UL, 0x4ED8AA4AE3418ACBUL, 0x5B9CCA4F7763E373UL, 0x682E6FF3D6B2B8A3UL,
+                0x748F82EE5DEFB2FCUL, 0x78A5636F43172F60UL, 0x84C87814A1F0AB72UL, 0x8CC702081A6439ECUL,
+                0x90BEFFFA23631E28UL, 0xA4506CEBDE82BDE9UL, 0xBEF9A3F7B2C67915UL, 0xC67178F2E372532BUL,
+                0xCA273ECEEA26619CUL, 0xD186B8C721C0C207UL, 0xEADA7DD6CDE0EB1EUL, 0xF57D4F7FEE6ED178UL,
+                0x06F067AA72176FBAUL, 0x0A637DC5A2C898A6UL, 0x113F9804BEF90DAEUL, 0x1B710B35131C471BUL,
+                0x28DB77F523047D84UL, 0x32CAAB7B40C72493UL, 0x3C9EBE0A15C9BEBCUL, 0x431D67C49C100D4CUL,
+                0x4CC5D4BECB3E42B6UL, 0x597F299CFC657E2AUL, 0x5FCB6FAB3AD6FAECUL, 0x6C44198C4A475817UL
+            };
+
+            long bitLen = (long)data.Length * 8L;
+            int padded = ((data.Length + 17 + 127) / 128) * 128;
+            var msg = new byte[padded];
+            Array.Copy(data, msg, data.Length);
+            msg[data.Length] = 0x80;
+            for (int i = 0; i < 8; i++)
+                msg[padded - 8 + i] = (byte)(bitLen >> (56 - i * 8));
+
+            var w = new ulong[80];
+            for (int blk = 0; blk < padded; blk += 128)
+            {
+                for (int i = 0; i < 16; i++) { w[i] = 0; for (int j = 0; j < 8; j++) w[i] = (w[i] << 8) | msg[blk + i * 8 + j]; }
+                for (int i = 16; i < 80; i++)
+                {
+                    ulong s0 = Rot64(w[i-15], 1) ^ Rot64(w[i-15], 8) ^ (w[i-15] >> 7);
+                    ulong s1 = Rot64(w[i-2], 19) ^ Rot64(w[i-2], 61) ^ (w[i-2] >> 6);
+                    w[i] = w[i-16] + s0 + w[i-7] + s1;
+                }
+                ulong a=h[0],b=h[1],c=h[2],d=h[3],e=h[4],f=h[5],g=h[6],hv=h[7];
+                for (int i = 0; i < 80; i++)
+                {
+                    ulong t1 = hv + (Rot64(e,14)^Rot64(e,18)^Rot64(e,41)) + ((e&f)^(~e&g)) + k[i] + w[i];
+                    ulong t2 = (Rot64(a,28)^Rot64(a,34)^Rot64(a,39)) + ((a&b)^(a&c)^(b&c));
+                    hv=g; g=f; f=e; e=d+t1; d=c; c=b; b=a; a=t1+t2;
+                }
+                h[0]+=a; h[1]+=b; h[2]+=c; h[3]+=d; h[4]+=e; h[5]+=f; h[6]+=g; h[7]+=hv;
+            }
+
+            var result = new byte[32];
+            for (int i = 0; i < 4; i++) for (int j = 0; j < 8; j++) result[i*8+j] = (byte)(h[i] >> (56 - j*8));
+            return result;
         }
+
+        private static ulong Rot64(ulong x, int n) => (x >> n) | (x << (64 - n));
 
         private static string EncodeStacksAddress(byte[] hash160, bool isMainnet)
         {
