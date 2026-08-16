@@ -240,7 +240,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                         return response;
                     }
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAllHolons is not supported by Polkadot provider");
+                return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
             }
             catch (Exception ex)
             {
