@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Numerics;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -29,10 +30,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
     ///   Kind 1 event (text note)          = OASIS Holon
     ///   Kind 3 event (follow list)        = relationship data (not yet mapped)
     ///
-    /// NOTE: Publishing (writing) Nostr events requires ed25519 / secp256k1 signing.
-    /// Nostr uses secp256k1, which is not available in the BCL without a third-party library
-    /// such as NBitcoin. An optional nsecHex constructor parameter is accepted but publishing
-    /// will return IsError=true with guidance until a signing library is wired in.
+    /// Publishing (writing) Nostr events requires BIP-340 Schnorr / secp256k1 signing.
+    /// NostrOASIS implements this in pure managed C# (Bip340Schnorr helper class) — no
+    /// native libraries or third-party NuGet packages are needed for signing.
+    /// Provide nsecHex (64-char lowercase hex of the 32-byte private key scalar) to enable
+    /// PublishNoteAsync. Convert nsec1... bech32 keys with: nak decode &lt;nsec&gt; | jq -r .sec
     /// </summary>
     public class NostrOASIS : OASISStorageProviderBase, IOASISStorageProvider
     {
@@ -346,10 +348,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
         {
             var result = new OASISResult<T>();
             OASISErrorHandling.HandleError(ref result,
-                "NostrOASIS: Publishing events requires an ed25519 private key (nsec). " +
-                "Supply via constructor overload NostrOASIS(string[] relays, string nsecHex) to enable publishing. " +
-                "Note: Nostr uses secp256k1 (not P-256). Signing requires NBitcoin or a similar secp256k1 library " +
-                "which is not bundled with this provider. Add NBitcoin and re-implement PublishNoteAsync signing.");
+                "NostrOASIS: Writing events (avatars/holons) to Nostr requires a signed secp256k1 event. " +
+                "Supply your nsec (64-char hex of the 32-byte private key) via the constructor overload " +
+                "NostrOASIS(string[] relays, string nsecHex) and use PublishNoteAsync to publish kind-1 notes.");
             return result;
         }
 
@@ -713,11 +714,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
 
         /// <summary>
         /// Publishes a kind-1 (text note) Nostr event to all configured relays.
-        /// IMPORTANT: Nostr uses secp256k1 for signing, which is not in the .NET BCL.
-        /// This method returns IsError=true until a secp256k1 library (e.g. NBitcoin) is wired in.
-        /// Add NBitcoin as a NuGet reference and replace the signing placeholder below.
+        /// NIP-01 Schnorr / BIP-340 secp256k1 signing is performed in pure managed C#.
+        /// nsecHex must be a 64-character lowercase hex string (the 32-byte raw private key).
         /// </summary>
-        /// <param name="text">The note text to publish.</param>
         public async Task<OASISResult<string>> PublishNoteAsync(string text)
         {
             var result = new OASISResult<string>();
@@ -727,21 +726,73 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
                 OASISErrorHandling.HandleError(ref result,
                     "NostrOASIS: No nsec private key provided. " +
                     "Construct NostrOASIS with NostrOASIS(relays, nsecHex) to enable publishing.");
-                return await Task.FromResult(result);
+                return result;
             }
 
-            // NOTE: secp256k1 signing (required by Nostr NIP-01) cannot be performed with the
-            // built-in System.Security.Cryptography.ECDsa, which only supports NIST curves (P-256, P-384, P-521).
-            // To implement signing, add NBitcoin (or another secp256k1 library) and replace this block:
-            //
-            //   var privateKey = new NBitcoin.Key(Convert.FromHexString(_nsecHex));
-            //   // build NIP-01 canonical event JSON, SHA-256 hash it, sign with Schnorr
-            //   // then broadcast ["EVENT", signedEvent] to each relay
-            //
-            OASISErrorHandling.HandleError(ref result,
-                "NostrOASIS: secp256k1 signing requires NBitcoin or similar. " +
-                "Add NBitcoin NuGet package and implement secp256k1 Schnorr signing in PublishNoteAsync.");
-            return await Task.FromResult(result);
+            try
+            {
+                var privKeyBytes = Convert.FromHexString(_nsecHex);
+
+                // x-only public key (32 bytes) as NIP-01 pubkey
+                var pubKeyBytes = Bip340Schnorr.XOnlyPubKey(privKeyBytes);
+                var pubKeyHex = Convert.ToHexString(pubKeyBytes).ToLowerInvariant();
+
+                long createdAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+                // NIP-01 canonical event serialisation: [0, pubkey, created_at, kind, tags, content]
+                var canonical = JsonSerializer.Serialize(new object[]
+                {
+                    0, pubKeyHex, createdAt, 1, Array.Empty<object[]>(), text
+                });
+
+                // Event ID = SHA-256 of the canonical UTF-8 string
+                var idBytes = System.Security.Cryptography.SHA256.HashData(
+                    Encoding.UTF8.GetBytes(canonical));
+                var eventId = Convert.ToHexString(idBytes).ToLowerInvariant();
+
+                // BIP-340 Schnorr signature over the 32-byte event ID
+                var sigBytes = Bip340Schnorr.Sign(privKeyBytes, idBytes);
+                var sigHex = Convert.ToHexString(sigBytes).ToLowerInvariant();
+
+                var signedEvent = new
+                {
+                    id         = eventId,
+                    pubkey     = pubKeyHex,
+                    created_at = createdAt,
+                    kind       = 1,
+                    tags       = Array.Empty<object[]>(),
+                    content    = text,
+                    sig        = sigHex
+                };
+
+                var envelope = JsonSerializer.Serialize(new object[] { "EVENT", signedEvent });
+
+                var errors = new List<string>();
+                foreach (var relay in _relayUrls)
+                {
+                    try { await SendToRelayAsync(relay, envelope); }
+                    catch (Exception ex) { errors.Add($"{relay}: {ex.Message}"); }
+                }
+
+                if (errors.Count == _relayUrls.Length)
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        $"NostrOASIS: Failed to publish to any relay. {string.Join("; ", errors)}");
+                }
+                else
+                {
+                    result.Result  = eventId;
+                    result.IsError = false;
+                    result.Message = $"Nostr note published. EventId={eventId}" +
+                        (errors.Count > 0 ? $" (failed on {errors.Count} relay(s))" : "");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result,
+                    $"NostrOASIS.PublishNoteAsync: {ex.Message}", ex);
+            }
+            return result;
         }
 
         // ─── Private helpers ──────────────────────────────────────────────────────
@@ -806,5 +857,123 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
 
             return holon;
         }
+    }
+
+    /// <summary>
+    /// Pure-managed BIP-340 Schnorr signing over secp256k1, as required by Nostr NIP-01.
+    /// Reference: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+    /// Note: this is a reference implementation. For high-frequency production use, prefer
+    /// a constant-time native secp256k1 binding.
+    /// </summary>
+    internal static class Bip340Schnorr
+    {
+        // secp256k1 curve parameters
+        static readonly BigInteger P = ToBig("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
+        static readonly BigInteger N = ToBig("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141");
+        static readonly BigInteger Gx = ToBig("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798");
+        static readonly BigInteger Gy = ToBig("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8");
+
+        record Point(BigInteger X, BigInteger Y);
+        static readonly Point G = new(Gx, Gy);
+
+        static BigInteger Mod(BigInteger a, BigInteger m) { var r = a % m; return r < 0 ? r + m : r; }
+        static bool HasEvenY(Point p) => Mod(p.Y, BigInteger.One + BigInteger.One) == BigInteger.Zero;
+
+        static Point PointAdd(Point? p, Point? q)
+        {
+            if (p is null) return q!;
+            if (q is null) return p;
+            if (p.X == q.X && Mod(p.Y + q.Y, P) == BigInteger.Zero) return null!;
+            BigInteger lam;
+            if (p.X == q.X && p.Y == q.Y)
+                lam = Mod(3 * p.X % P * p.X % P * BigInteger.ModPow(2 * p.Y % P, P - 2, P), P);
+            else
+                lam = Mod((q.Y - p.Y) * BigInteger.ModPow(Mod(q.X - p.X, P), P - 2, P), P);
+            var x3 = Mod(lam * lam - p.X - q.X, P);
+            var y3 = Mod(lam * (p.X - x3) - p.Y, P);
+            return new(x3, y3);
+        }
+
+        static Point PointMul(Point p, BigInteger n)
+        {
+            Point? r = null;
+            while (n > BigInteger.Zero)
+            {
+                if (!n.IsEven) r = r is null ? p : PointAdd(r, p);
+                p = PointAdd(p, p);
+                n >>= 1;
+            }
+            return r!;
+        }
+
+        static byte[] TaggedHash(string tag, byte[] data)
+        {
+            var tagHash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(tag));
+            var payload = new byte[64 + data.Length];
+            Buffer.BlockCopy(tagHash, 0, payload, 0, 32);
+            Buffer.BlockCopy(tagHash, 0, payload, 32, 32);
+            Buffer.BlockCopy(data, 0, payload, 64, data.Length);
+            return System.Security.Cryptography.SHA256.HashData(payload);
+        }
+
+        public static byte[] XOnlyPubKey(byte[] seckey32)
+        {
+            var d0 = new BigInteger(seckey32, isUnsigned: true, isBigEndian: true);
+            return ToBytes32(PointMul(G, d0).X);
+        }
+
+        public static byte[] Sign(byte[] seckey32, byte[] msg32, byte[]? auxRand = null)
+        {
+            auxRand ??= new byte[32];
+            var d0 = new BigInteger(seckey32, isUnsigned: true, isBigEndian: true);
+            var pt = PointMul(G, d0);
+            var d = HasEvenY(pt) ? d0 : N - d0;
+            var px = ToBytes32(pt.X);
+
+            var a = TaggedHash("BIP0340/aux", auxRand);
+            var tBytes = XorBytes(ToBytes32(d), a);
+            var rand = TaggedHash("BIP0340/nonce", Concat(tBytes, px, msg32));
+            var k0 = Mod(new BigInteger(rand, isUnsigned: true, isBigEndian: true), N);
+            if (k0 == BigInteger.Zero) throw new InvalidOperationException("BIP-340: nonce is zero");
+
+            var rPt = PointMul(G, k0);
+            var k = HasEvenY(rPt) ? k0 : N - k0;
+            var rx = ToBytes32(rPt.X);
+            var eHash = TaggedHash("BIP0340/challenge", Concat(rx, px, msg32));
+            var e = Mod(new BigInteger(eHash, isUnsigned: true, isBigEndian: true), N);
+            var s = Mod(k + e * d, N);
+            return Concat(rx, ToBytes32(s));
+        }
+
+        static byte[] ToBytes32(BigInteger n)
+        {
+            var bytes = n.ToByteArray(isUnsigned: true, isBigEndian: true);
+            if (bytes.Length == 32) return bytes;
+            var result = new byte[32];
+            var start = 32 - bytes.Length;
+            if (start >= 0) Buffer.BlockCopy(bytes, 0, result, start, bytes.Length);
+            else Buffer.BlockCopy(bytes, -start, result, 0, 32);
+            return result;
+        }
+
+        static byte[] XorBytes(byte[] a, byte[] b)
+        {
+            var result = new byte[a.Length];
+            for (int i = 0; i < a.Length; i++) result[i] = (byte)(a[i] ^ b[i]);
+            return result;
+        }
+
+        static byte[] Concat(params byte[][] arrays)
+        {
+            var total = 0;
+            foreach (var a in arrays) total += a.Length;
+            var result = new byte[total];
+            int pos = 0;
+            foreach (var a in arrays) { Buffer.BlockCopy(a, 0, result, pos, a.Length); pos += a.Length; }
+            return result;
+        }
+
+        static BigInteger ToBig(string hex) =>
+            new BigInteger(Convert.FromHexString(hex), isUnsigned: true, isBigEndian: true);
     }
 }
