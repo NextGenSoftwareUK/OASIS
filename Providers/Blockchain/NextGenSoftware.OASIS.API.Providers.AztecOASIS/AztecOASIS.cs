@@ -40,13 +40,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         private readonly string _network;
         private readonly string _bridgeContractAddress;
         private readonly string _operatorAccountAlias;
+        private readonly string _stablecoinContractAddress;
 
         private IAztecService _aztecService;
         private IAztecBridgeService _bridgeService;
         private IAztecRepository _aztecRepository;
 
         public AztecOASIS(string apiBaseUrl = null, string apiKey = null, string network = "sandbox",
-            string bridgeContractAddress = "", string operatorAccountAlias = "oasis_operator")
+            string bridgeContractAddress = "", string operatorAccountAlias = "oasis_operator",
+            string stablecoinContractAddress = "")
         {
             ProviderName = nameof(AztecOASIS);
             ProviderDescription = "Aztec Privacy Provider";
@@ -62,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             _network = network ?? "sandbox";
             _bridgeContractAddress = bridgeContractAddress ?? "";
             _operatorAccountAlias = string.IsNullOrWhiteSpace(operatorAccountAlias) ? "oasis_operator" : operatorAccountAlias;
+            _stablecoinContractAddress = stablecoinContractAddress ?? "";
 
             _apiClient = new AztecAPIClient(_apiBaseUrl, _apiKey);
         }

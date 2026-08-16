@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             var result = new OASISResult<bool>();
             try
             {
-                _aztecService = new AztecService(_apiClient);
+                _aztecService = new AztecService(_apiClient, _stablecoinContractAddress);
                 _bridgeService = new AztecBridgeService(_apiClient, _bridgeContractAddress, _operatorAccountAlias);
                 _aztecRepository = new AztecRepository();
 

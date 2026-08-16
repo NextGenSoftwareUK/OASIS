@@ -101,20 +101,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         {
             TableRows rows = TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
 
-            //TODO: Come back to this...
-            //for (int i = 0; i < rows.rows.Count; i++)
-            //{
-            //    int orgNameBegins = rows.rows[i].ToString().IndexOf("org_name");
-            //    string orgName = rows.rows[i].ToString().Substring(orgNameBegins + 10, 12);
-            //}
+            if (rows?.rows == null)
+                return JsonConvert.SerializeObject(null);
 
-            string json = JsonConvert.SerializeObject(rows);
+            // Filter rows to find the organisation matching orgName
+            var matchingRows = rows.rows
+                .Where(row =>
+                {
+                    try
+                    {
+                        var json = row.ToString();
+                        var obj = Newtonsoft.Json.Linq.JObject.Parse(json);
+                        var name = obj["org_name"]?.ToString();
+                        return string.Equals(name, orgName, StringComparison.OrdinalIgnoreCase);
+                    }
+                    catch { return false; }
+                })
+                .ToList();
 
-
-
-            //rows.rows.Where(x => x.)
-
-            return JsonConvert.SerializeObject(rows);
+            return JsonConvert.SerializeObject(matchingRows.Count == 1 ? (object)matchingRows[0] : matchingRows);
         }
 
         public async Task<string> GetAllOrganisationsAsJSONAsync()

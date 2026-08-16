@@ -562,11 +562,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 }
 
                 var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-                var unlockedToWalletAddress = ""; // TODO: Get from locked token record using request.Web3TokenId
+
+                // Resolve the recipient wallet address from the avatar's stored Optimism provider key
+                var keysResult = await KeyManager.GetProviderPublicKeysForAvatarByIdAsync(request.UnlockedByAvatarId, Core.Enums.ProviderType.OptimismOASIS);
+                var unlockedToWalletAddress = keysResult?.Result?.FirstOrDefault() ?? "";
 
                 if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but not available");
+                    OASISErrorHandling.HandleError(ref result, $"No Optimism wallet address found for avatar {request.UnlockedByAvatarId}. Ensure the avatar has a registered Optimism provider key.");
                     return result;
                 }
 
