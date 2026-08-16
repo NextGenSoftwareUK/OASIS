@@ -32,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/avatar")]
     [ApiController]
+    [Produces("application/json")]
     public partial class AvatarProfileController : OASISControllerBase
     {
         private AvatarManager AvatarManager => Program.AvatarManager;
@@ -63,8 +64,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
 
-        /// <summary>
-        /// Get's the terms &amp; services agreement for creating an avatar and joining the OASIS.
-        /// </summary>
     }
 }
