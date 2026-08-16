@@ -48,7 +48,55 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync is not supported by Sui provider");
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "sui_queryObjects",
+                    @params = new object[]
+                    {
+                        new { StructType = "Holon" },
+                        new { DataType = "MoveObject", CreatedByAvatarId = id.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", httpContent);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var result) && result.TryGetProperty("data", out var dataArray))
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var item in dataArray.EnumerateArray())
+                        {
+                            var objectId = item.TryGetProperty("objectId", out var objId) ? objId.GetString() : null;
+                            if (!string.IsNullOrEmpty(objectId))
+                            {
+                                var holonResult = await LoadHolonAsync(objectId);
+                                if (!holonResult.IsError && holonResult.Result != null)
+                                    holons.Add(holonResult.Result);
+                            }
+                        }
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Exported {holons.Count} holons for avatar {id} from Sui blockchain";
+                    }
+                    else
+                    {
+                        response.Result = new List<IHolon>();
+                        response.IsError = false;
+                        response.Message = "No holons found for avatar on Sui blockchain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Sui: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
