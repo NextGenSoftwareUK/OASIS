@@ -34,7 +34,9 @@
   </PropertyGroup>
 <ItemGroup>
     <ProjectReference Include="..\..\..\..\NextGenSoftware-Libraries\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj" />
-  
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+
     <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
