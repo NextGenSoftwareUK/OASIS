@@ -74,6 +74,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             AvatarType avatarType = callerIsWizard && model.AvatarType != null
                 ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType)
                 : AvatarType.User;
+
+            // Diagnostic: log boot/DNA/provider state into the response so failures are self-explaining
+            var diagMessages = new System.Collections.Generic.List<string>();
+            diagMessages.Add($"[DIAG] IsOASISBooted={OASISBootLoader.OASISBootLoader.IsOASISBooted}");
+            diagMessages.Add($"[DIAG] OASISDNAPath={OASISBootLoader.OASISBootLoader.OASISDNAPath}");
+            diagMessages.Add($"[DIAG] DNA file exists: {System.IO.File.Exists(OASISBootLoader.OASISBootLoader.OASISDNAPath)}");
+            diagMessages.Add($"[DIAG] OASISDNA loaded: {OASISBootLoader.OASISBootLoader.OASISDNA != null}");
+            if (OASISBootLoader.OASISBootLoader.OASISDNA != null)
+            {
+                var sp = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS?.StorageProviders;
+                diagMessages.Add($"[DIAG] AutoFailOverEnabled={sp?.AutoFailOverEnabled} AutoFailOverProviders={sp?.AutoFailOverProviders}");
+                var mongoConn = sp?.MongoDBOASIS?.ConnectionString;
+                diagMessages.Add($"[DIAG] MongoDB ConnectionString set: {!string.IsNullOrEmpty(mongoConn)}");
+            }
+            var failOverList = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetProviderAutoFailOverList();
+            diagMessages.Add($"[DIAG] Active failover provider count: {failOverList?.Count ?? 0}");
+            if (failOverList != null)
+                foreach (var p in failOverList)
+                    diagMessages.Add($"[DIAG] Failover provider: {p.Name}");
+
             var result = await AvatarManager.RegisterAsync(
                 model.Title,
                 model.FirstName,
@@ -87,6 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 suppressVerificationEmail: callerIsWizard && model.SuppressVerificationEmail
             );
 
+            result.InnerMessages.InsertRange(0, diagMessages);
             return HttpResponseHelper.FormatResponse(result);
         }
 
