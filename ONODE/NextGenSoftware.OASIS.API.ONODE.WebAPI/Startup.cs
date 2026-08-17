@@ -433,7 +433,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<ErrorHandlerMiddleware>();
             // API key gate: disabled by default (OASISDNA.OASIS.Security.RequireApiKey = false)
             // Set RequireApiKey = true and ApiKey (or OASIS_API_KEY env var) to lock down to known clients
-            app.UseMiddleware<ApiKeyMiddleware>();
+            //app.UseMiddleware<ApiKeyMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();

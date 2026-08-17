@@ -25,7 +25,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, bool callerIsWizard = false, bool suppressVerificationEmail = false)
         {
             if (OASISDNA.OASIS.Email.SendVerificationEmail && !suppressVerificationEmail)
-                SendVerificationEmail(result.Result);
+            {
+                try
+                {
+                    SendVerificationEmail(result.Result);
+                }
+                catch (Exception emailEx)
+                {
+                    // Non-fatal: registration still succeeds if verification email fails to send
+                    result.InnerMessages.Add($"Warning: Failed to send verification email: {emailEx.Message}");
+                }
+            }
 
             string verificationToken = callerIsWizard ? result.Result.VerificationToken : null;
             result.Result = HideAuthDetails(result.Result);
