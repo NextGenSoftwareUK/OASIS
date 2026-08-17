@@ -660,6 +660,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public string Id { get; set; }
             public string Name { get; set; }
             public decimal PriceMonthly { get; set; }
+            public decimal Price => PriceMonthly;   // portal reads p.Price
+            public decimal Amount => PriceMonthly;  // portal reads p.amount
+            public string Interval { get; set; } = "month";
             public string Currency { get; set; }
             public string[] Features { get; set; }
             public bool IsContactSales { get; set; }
