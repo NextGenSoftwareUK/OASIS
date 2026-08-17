@@ -36,6 +36,10 @@ RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.jso
     cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json" \
        "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json"
 
+RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json" || \
+    cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" \
+       "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json"
+
 WORKDIR "/src/WEB7/NextGenSoftware.OASIS.Web7.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.Web7.WebAPI.csproj"
 RUN dotnet publish "NextGenSoftware.OASIS.Web7.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
