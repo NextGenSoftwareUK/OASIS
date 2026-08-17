@@ -395,22 +395,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (IOASISBlockchainStorageProvider provider in ProviderManager.Instance.GetAllBlockchainProviders())
             {
-                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {provider.ProviderType.Name} Wallet", $"Default wallet for chain {provider.ProviderType.Name}", provider.ProviderType.Value, isDefaultWallet: true);
-
-                if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                try
                 {
-                    if (!result.Result.ProviderWallets.ContainsKey(provider.ProviderType.Value) )
-                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+                    OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {provider.ProviderType.Name} Wallet", $"Default wallet for chain {provider.ProviderType.Name}", provider.ProviderType.Value, isDefaultWallet: true);
 
-                    if (result.Result.ProviderWallets[provider.ProviderType.Value] == null)
-                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+                    if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                    {
+                        if (!result.Result.ProviderWallets.ContainsKey(provider.ProviderType.Value))
+                            result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
 
-                    result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
+                        if (result.Result.ProviderWallets[provider.ProviderType.Value] == null)
+                            result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
+                        result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
+                    }
+                    else
+                    {
+                        string warnMsg = $"Warning: Could not create default wallet for provider {provider.ProviderType.Name}. Reason: {walletResult?.Message}. Skipping.";
+                        result.InnerMessages.Add(warnMsg);
+                        LoggingManager.Log(warnMsg, LogType.Warning);
+                    }
                 }
-                else
+                catch (Exception walletEx)
                 {
-                    // Non-fatal: skip providers with bad/missing API keys rather than failing the whole registration
-                    string warnMsg = $"Warning: Could not create default wallet for provider {provider.ProviderType.Name}. Reason: {walletResult?.Message}. Skipping.";
+                    // Non-fatal: skip providers that throw (e.g. invalid/missing API key) rather than failing the whole registration
+                    string warnMsg = $"Warning: Exception creating default wallet for provider {provider.ProviderType.Name}. Reason: {walletEx.Message}. Skipping.";
                     result.InnerMessages.Add(warnMsg);
                     LoggingManager.Log(warnMsg, LogType.Warning);
                 }
