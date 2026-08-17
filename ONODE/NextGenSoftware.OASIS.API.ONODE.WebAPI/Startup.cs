@@ -357,10 +357,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION));
-
             app.UseSwaggerUI(config =>
             {
+                config.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION);
+                config.ConfigObject.AdditionalItems["tagsSorter"] = "alpha";
                 config.ConfigObject.AdditionalItems["syntaxHighlight"] = new Dictionary<string, object>
                 {
                     ["activated"] = false
