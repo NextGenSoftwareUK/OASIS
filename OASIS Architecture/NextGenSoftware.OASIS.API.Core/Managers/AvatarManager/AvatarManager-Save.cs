@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
                     avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettings);
 
-                int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
+                int removingDays = OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? 7;
                 int removeQty = 0;
 
                 if (avatar.RefreshTokens != null)
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
                     avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettingsSync);
 
-                int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
+                int removingDays = OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? 7;
                 int removeQty = 0;
 
                 if (avatar.RefreshTokens != null)
