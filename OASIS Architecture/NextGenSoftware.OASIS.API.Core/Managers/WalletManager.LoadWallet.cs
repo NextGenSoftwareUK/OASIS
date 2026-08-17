@@ -331,15 +331,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    //if (providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocal || providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
-                    result = ((IOASISLocalStorageProvider)providerResult.Result).LoadProviderWalletsForAvatarById(id);
-                    //else
-                    //    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                    if (providerResult.Result is IOASISLocalStorageProvider localProvider1)
+                    {
+                        result = localProvider1.LoadProviderWalletsForAvatarById(id);
 
-                    if (result != null && result.Result != null && !result.IsError)
-                        result.Result = FilterWallets(result.Result, showOnlyDefault, showPrivateKeys, showSecretWords, providerTypeToShowWalletsFor);
+                        if (result != null && result.Result != null && !result.IsError)
+                            result.Result = FilterWallets(result.Result, showOnlyDefault, showPrivateKeys, showSecretWords, providerTypeToShowWalletsFor);
+                        else
+                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets calling LoadProviderWalletsForAvatarById. Reason: "), result.Message);
+                    }
                     else
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets calling LoadProviderWalletsForAvatarById. Reason: "), result.Message);
+                    {
+                        // Non-local providers don't store private keys; return empty wallets.
+                        result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
+                        result.Message = "Provider does not support local wallet storage.";
+                    }
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured setting the provider. Reason: ", providerResult.Message), providerResult.Message);
@@ -367,15 +373,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    //if (providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocal || providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
-                    result = ((IOASISLocalStorageProvider)providerResult.Result).LoadProviderWalletsForAvatarById(id);
-                    //else
-                    //    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                    if (providerResult.Result is IOASISLocalStorageProvider localProvider2)
+                    {
+                        result = localProvider2.LoadProviderWalletsForAvatarById(id);
 
-                    if (result != null && result.Result != null && !result.IsError)
-                        result.Result = FilterWallets(result.Result, showOnlyDefault, showPrivateKeys, showSecretWords, providerTypeToShowWalletsFor);
+                        if (result != null && result.Result != null && !result.IsError)
+                            result.Result = FilterWallets(result.Result, showOnlyDefault, showPrivateKeys, showSecretWords, providerTypeToShowWalletsFor);
+                        else
+                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets calling LoadProviderWalletsForAvatarById. Reason: "), result.Message);
+                    }
                     else
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets calling LoadProviderWalletsForAvatarById. Reason: "), result.Message);
+                    {
+                        // Non-local providers don't store private keys; return empty wallets.
+                        result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
+                        result.Message = "Provider does not support local wallet storage.";
+                    }
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured setting the provider. Reason: ", providerResult.Message), providerResult.Message);

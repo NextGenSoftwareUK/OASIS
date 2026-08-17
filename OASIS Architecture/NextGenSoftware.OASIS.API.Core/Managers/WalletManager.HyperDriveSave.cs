@@ -213,7 +213,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
                         //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
 
-                        var walletsTask = Task.Run(() => ((IOASISLocalStorageProvider)providerResult.Result).SaveProviderWalletsForAvatarById(id, wallets));
+                        if (providerResult.Result is IOASISLocalStorageProvider localStorageProviderSync)
+                        {
+                        var walletsTask = Task.Run(() => localStorageProviderSync.SaveProviderWalletsForAvatarById(id, wallets));
 
                         if (walletsTask.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)))
                         {
@@ -232,9 +234,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
+                        }
+                        else
+                        {
+                            // Non-local providers do not implement IOASISLocalStorageProvider; skip silently.
+                            result.Result = true;
+                            result.IsSaved = true;
+                        }
                     }
-                    //else
-                    //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"An error occured setting the provider {providerType}. Reason: ", providerResult.Message), providerResult.DetailedMessage);
@@ -288,25 +295,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         //TODO: The PrivateKeys are already encrypted but I want to add an extra layer of protection to encrypt the full wallet! ;-)
                         //TODO: Soon will also add a 3rd level of protection by quantum encrypting the keys/wallets... :)
 
-                        var walletsTask = ((IOASISLocalStorageProvider)providerResult.Result).SaveProviderWalletsForAvatarByIdAsync(id, wallets);
-
-                        if (await Task.WhenAny(walletsTask, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == walletsTask)
+                        if (providerResult.Result is IOASISLocalStorageProvider localStorageProvider)
                         {
-                            if (walletsTask.Result.IsError || !walletsTask.Result.Result)
-                            {
-                                if (string.IsNullOrEmpty(walletsTask.Result.Message))
-                                    walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
+                            var walletsTask = localStorageProvider.SaveProviderWalletsForAvatarByIdAsync(id, wallets);
 
-                                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
+                            if (await Task.WhenAny(walletsTask, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == walletsTask)
+                            {
+                                if (walletsTask.Result.IsError || !walletsTask.Result.Result)
+                                {
+                                    if (string.IsNullOrEmpty(walletsTask.Result.Message))
+                                        walletsTask.Result.Message = "Unknown error occured saving provider wallets.";
+
+                                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, walletsTask.Result.Message), walletsTask.Result.DetailedMessage);
+                                }
+                                else
+                                {
+                                    result.Result = true;
+                                    result.IsSaved = true;
+                                }
                             }
                             else
-                            {
-                                result.Result = true;
-                                result.IsSaved = true;
-                            }
+                                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "timeout occured saving provider wallets."));
+                        {
+                            // Non-local providers (e.g. MongoDBOASIS) do not implement IOASISLocalStorageProvider;
+                            // private keys are only persisted to local storage, so skip silently here.
+                            result.Result = true;
+                            result.IsSaved = true;
+                        }
                     //}
                    // else
                     //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
