@@ -381,7 +381,7 @@ public partial class SolanaOASIS
         try
         {
             OASISResult<CreateCollectionNftResult> createResult =
-                await _solanaService.CreateCollectionNftAsync(request.Title, request.Symbol, request.JSONMetaDataURL, request.InitialSize);
+                await _solanaService.CreateCollectionNftAsync(request.Title, request.Symbol, request.JSONMetaDataURL, request.InitialSize, request.FreezeMetadata == true);
 
             if (createResult.IsError || createResult.Result == null)
             {

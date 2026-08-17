@@ -82,7 +82,7 @@ public sealed partial class SolanaService
                     TokenStandard.NonFungible,
                     tokenMetadata,
                     isMasterEdition: true,
-                    isMutable: false);
+                    isMutable: mintNftRequest.FreezeMetadata != true);
 
                 if (!createNftResult.WasSuccessful)
                 {
@@ -361,7 +361,7 @@ public sealed partial class SolanaService
     }
 
     public async Task<OASISResult<CreateCollectionNftResult>> CreateCollectionNftAsync(
-        string name, string symbol, string metadataUri, ulong initialSize = 0)
+        string name, string symbol, string metadataUri, ulong initialSize = 0, bool freezeMetadata = false)
     {
         try
         {
@@ -388,7 +388,7 @@ public sealed partial class SolanaService
                     TokenStandard.NonFungible,
                     tokenMetadata,
                     isMasterEdition: true,
-                    isMutable: false);
+                    isMutable: !freezeMetadata);
 
                 if (!createResult.WasSuccessful)
                 {
