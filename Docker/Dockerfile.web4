@@ -27,7 +27,7 @@ RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.jso
        "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json"
 
 RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json" || \
-    cp "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/Default/OASIS_DNA.json" \
+    cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" \
        "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json"
 
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
