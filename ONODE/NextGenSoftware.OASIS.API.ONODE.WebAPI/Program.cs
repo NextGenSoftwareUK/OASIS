@@ -40,9 +40,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 // Normally code is simpler if you just pass the provider into the manager constructor like SearchManager does, it is just one instance that is disposed of again once the request has been serviced...
                 if (_avatarManager == null)
                 {
+                    Console.WriteLine($"[OASIS BOOT] IsOASISBooted={OASISBootLoader.OASISBootLoader.IsOASISBooted} IsOASISBooting={OASISBootLoader.OASISBootLoader.IsOASISBooting}");
+                    Console.WriteLine($"[OASIS BOOT] OASISDNAPath={OASISBootLoader.OASISBootLoader.OASISDNAPath}");
+                    Console.WriteLine($"[OASIS BOOT] DNA file exists at path: {System.IO.File.Exists(OASISBootLoader.OASISBootLoader.OASISDNAPath)}");
+                    Console.WriteLine($"[OASIS BOOT] CWD={System.IO.Directory.GetCurrentDirectory()} BaseDir={AppDomain.CurrentDomain.BaseDirectory}");
+
                     OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
-                    //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+                    Console.WriteLine($"[OASIS BOOT] GetAndActivateDefaultStorageProvider: IsError={result.IsError} Provider={result.Result?.ProviderType.Name ?? "null"} Message={result.Message}");
+                    Console.WriteLine($"[OASIS BOOT] OASISDNA loaded: {OASISBootLoader.OASISBootLoader.OASISDNA != null}");
+
+                    if (OASISBootLoader.OASISBootLoader.OASISDNA != null)
+                    {
+                        var providers = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS?.StorageProviders;
+                        Console.WriteLine($"[OASIS BOOT] AutoFailOverProviders={providers?.AutoFailOverProviders}");
+                        Console.WriteLine($"[OASIS BOOT] AutoFailOverEnabled={providers?.AutoFailOverEnabled}");
+                        var mongoConn = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS?.StorageProviders?.MongoDBOASIS?.ConnectionString;
+                        Console.WriteLine($"[OASIS BOOT] MongoDB ConnectionString set: {!string.IsNullOrEmpty(mongoConn)} (first 20 chars: {mongoConn?.Substring(0, Math.Min(20, mongoConn?.Length ?? 0))})");
+                    }
+
+                    var failOverList = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetProviderAutoFailOverList();
+                    Console.WriteLine($"[OASIS BOOT] Active AutoFailOverList count: {failOverList?.Count ?? 0}");
+                    if (failOverList != null)
+                        foreach (var p in failOverList)
+                            Console.WriteLine($"[OASIS BOOT]   Provider in list: {p.Name}");
+
                     if (result.IsError)
                         OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultStorageProvider(). Error details: ", result.Message));
 
