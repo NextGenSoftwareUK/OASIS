@@ -70,6 +70,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
             bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
+            // Only a Wizard caller may specify a non-User avatar type; all other registrations are forced to User
+            AvatarType avatarType = callerIsWizard && model.AvatarType != null
+                ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType)
+                : AvatarType.User;
             var result = await AvatarManager.RegisterAsync(
                 model.Title,
                 model.FirstName,
@@ -77,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 model.Email,
                 model.Password,
                 model.Username,
-                model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
+                avatarType,
                 OASISType.OASISAPIREST,
                 callerIsWizard: callerIsWizard,
                 suppressVerificationEmail: callerIsWizard && model.SuppressVerificationEmail
