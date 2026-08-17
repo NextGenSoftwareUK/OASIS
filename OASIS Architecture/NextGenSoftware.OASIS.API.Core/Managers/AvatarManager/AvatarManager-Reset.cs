@@ -480,32 +480,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
             ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
-            // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
-            OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
-
-            //CLIEngine.SupressConsoleLogging = false;
-
-            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
+            try
             {
-                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
-                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
+                OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
+
+                if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
                 {
-                    result.Result = true;
-                    OASISErrorHandling.HandleError(ref result, $"The avatar using email {email} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                    if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                    {
+                        result.Result = true;
+                        OASISErrorHandling.HandleError(ref result, $"The avatar using email {email} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                    }
+                    else
+                    {
+                        result.Result = true;
+                        OASISErrorHandling.HandleError(ref result, $"Sorry, the email {email} is already in use, please use another one.");
+                    }
                 }
                 else
-                {
-                    result.Result = true;
-                    OASISErrorHandling.HandleError(ref result, $"Sorry, the email {email} is already in use, please use another one.");
-                }
+                    result.Message = $"Email {email} not in use.";
+
+                if (result.Result && sendMail)
+                    SendAlreadyRegisteredEmail(email, result.Message);
             }
-            else
-                result.Message = $"Email {email} not in use.";
+            finally
+            {
+                ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
+            }
 
-            if (result.Result && sendMail)
-                SendAlreadyRegisteredEmail(email, result.Message);
-
-            ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
             return result;
         }
 
@@ -521,29 +524,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
             ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
-            // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
-            OASISResult<IAvatar> existingAvatarResult = LoadAvatar(username);
-
-            CLIEngine.SupressConsoleLogging = false;
-
-            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
+            try
             {
-                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
-                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
+                OASISResult<IAvatar> existingAvatarResult = LoadAvatar(username);
+
+                CLIEngine.SupressConsoleLogging = false;
+
+                if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
                 {
-                    result.Result = true;
-                    OASISErrorHandling.HandleError(ref result, $"The avatar using username {username} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                    if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                    {
+                        result.Result = true;
+                        OASISErrorHandling.HandleError(ref result, $"The avatar using username {username} was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
+                    }
+                    else
+                    {
+                        result.Result = true;
+                        OASISErrorHandling.HandleError(ref result, $"Sorry, the username {username} is already in use, please use another one.");
+                    }
                 }
                 else
-                {
-                    result.Result = true;
-                    OASISErrorHandling.HandleError(ref result, $"Sorry, the username {username} is already in use, please use another one.");
-                }
+                    result.Message = $"Username {username} not in use.";
             }
-            else
-                result.Message = $"Username {username} not in use.";
+            finally
+            {
+                CLIEngine.SupressConsoleLogging = false;
+                ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
+            }
 
-            isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
             return result;
         }
 
