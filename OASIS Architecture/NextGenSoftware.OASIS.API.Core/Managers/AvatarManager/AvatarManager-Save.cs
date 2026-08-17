@@ -75,11 +75,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
                     avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettings);
 
-                int removingDays = OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? 7;
-                int removeQty = 0;
-
-                if (avatar.RefreshTokens != null)
-                    removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                try
+                {
+                    int removingDays = OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? 7;
+                    if (avatar.RefreshTokens != null)
+                        avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                }
+                catch (Exception refreshEx)
+                {
+                    LoggingManager.Log($"Non-fatal: failed to prune refresh tokens for avatar {avatar.Id}: {refreshEx.Message}", LogType.Warning);
+                }
 
                 result = await SaveAvatarForProviderAsync(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -173,11 +178,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
                     avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettingsSync);
 
-                int removingDays = OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? 7;
-                int removeQty = 0;
-
-                if (avatar.RefreshTokens != null)
-                    removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                try
+                {
+                    int removingDays = OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? OASISDNAManager.OASISDNA?.OASIS?.Security?.RemoveOldRefreshTokensAfterXDays ?? 7;
+                    if (avatar.RefreshTokens != null)
+                        avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                }
+                catch (Exception refreshEx)
+                {
+                    LoggingManager.Log($"Non-fatal: failed to prune refresh tokens for avatar {avatar.Id}: {refreshEx.Message}", LogType.Warning);
+                }
 
                 result = SaveAvatarForProvider(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
