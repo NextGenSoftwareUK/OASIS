@@ -477,8 +477,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
             //TODO: May want to fine tune how we handle this in future?
-            //bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
-            //ProviderManager.Instance.IsAutoFailOverEnabled = false;
+            bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+            ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
             // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
             OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
@@ -505,6 +505,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result && sendMail)
                 SendAlreadyRegisteredEmail(email, result.Message);
 
+            ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
             return result;
         }
 
@@ -517,8 +518,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
             //TODO: May want to fine tune how we handle this in future?
-            //bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
-            //ProviderManager.Instance.IsAutoFailOverEnabled = false;
+            bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
+            ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
             // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
             OASISResult<IAvatar> existingAvatarResult = LoadAvatar(username);
@@ -542,6 +543,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
                 result.Message = $"Username {username} not in use.";
 
+            isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
             return result;
         }
 
