@@ -407,7 +407,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured creating default wallet for provider/chain {walletResult.Message}");
+                {
+                    // Non-fatal: skip providers with bad/missing API keys rather than failing the whole registration
+                    string warnMsg = $"Warning: Could not create default wallet for provider {provider.ProviderType.Name}. Reason: {walletResult?.Message}. Skipping.";
+                    result.InnerMessages.Add(warnMsg);
+                    LoggingManager.Log(warnMsg, LogType.Warning);
+                }
             }
 
             //TODO: Fix this properly later! For some reason was causing an error in Azure cloud but seemed fine everywhere else including AWS etc! Its to do with not being able to save the wallets locally, which is not what we want on a server anyway! lol
