@@ -103,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Checkout ─────────────────────────────────────────────────────────
 
+        [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpPost("checkout/session")]
         public async Task<ActionResult> CreateCheckoutSession([FromBody] CreateCheckoutSessionRequest request)
         {
@@ -118,23 +119,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (plan.IsContactSales)
                 return BadRequest(new { IsError = true, Message = "Enterprise plan requires contacting sales." });
 
-            // Free plan: provision immediately without Stripe
+            // Free/trial plan: provision immediately without Stripe
             if (plan.PriceMonthly == 0m)
             {
                 var userId = GetCurrentUserId();
-                if (!string.IsNullOrEmpty(userId))
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+
+                await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
                 {
-                    await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
-                    {
-                        UserId = userId,
-                        PlanId = "free",
-                        Status = "active",
-                        CurrentPeriodStart = DateTime.UtcNow,
-                        CurrentPeriodEnd = DateTime.UtcNow.AddYears(10)
-                    });
-                }
+                    UserId = userId,
+                    PlanId = plan.Id,
+                    Status = "active",
+                    CurrentPeriodStart = DateTime.UtcNow,
+                    CurrentPeriodEnd = DateTime.UtcNow.AddYears(10)
+                });
                 var successUrl = request.SuccessUrl ?? "/";
-                return Ok(new { IsError = false, Message = "Free plan activated.", SessionUrl = successUrl });
+                return Ok(new { IsError = false, Message = plan.Name + " plan activated.", SessionUrl = successUrl });
             }
 
             try
