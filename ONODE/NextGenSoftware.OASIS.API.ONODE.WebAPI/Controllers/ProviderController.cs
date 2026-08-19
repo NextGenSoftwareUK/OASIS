@@ -494,6 +494,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 case ProviderType.PinataOASIS:
                     dna.PinataOASIS.ConnectionString = connectionString;
                     break;
+                case ProviderType.ArweaveOASIS:
+                    dna.ArweaveOASIS.ConnectionString = connectionString;
+                    break;
                 case ProviderType.EthereumOASIS:
                     dna.EthereumOASIS.ConnectionString = connectionString;
                     break;
