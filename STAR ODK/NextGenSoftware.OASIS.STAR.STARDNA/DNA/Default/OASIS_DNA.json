@@ -163,7 +163,8 @@
                 "ConnectionString": ""
             },
             "LocalFileOASIS": { "FilePath": "wallets.json" },
-            "PinataOASIS": { "ConnectionString": "" }
+            "PinataOASIS": { "ConnectionString": "" },
+            "ArweaveOASIS": { "ConnectionString": "" }
         },
         "OASISSystemAccountId": "",
         "OASISAPIURL": "https://oasisweb4.one"
