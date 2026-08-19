@@ -126,6 +126,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>AWSOASIS</b> - Amazon Web Services Provider.</li>
 <li><b>IPFSOASIS</b> - IPFS Provider.</li>
 <li><b>PinataOASIS</b> - Pinata IPFS Provider.</li>
+<li><b>ArweaveOASIS</b> - Arweave Permanent Decentralised Storage Provider.</li>
 <li><b>HoloOASIS</b> - Holochain Provider.</li>
 <li><b>UrbitOASIS</b> - Urbit Provider.</li>
 <li><b>ThreeFoldOASIS</b> - ThreeFold Provider.</li>

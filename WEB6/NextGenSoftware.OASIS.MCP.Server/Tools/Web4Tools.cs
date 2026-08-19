@@ -166,7 +166,7 @@ namespace NextGenSoftware.OASIS.MCP.Server.Tools
 
         // ── NFT ─────────────────────────────────────────────────────────────
 
-        [McpServerTool(Name = "web4_nft_mint"), Description("WEB4: mints a new Web4 NFT. mintRequestJson fields: Title, Description, Price, NumberToMint, OnChainProvider (e.g. 'Solana'), OffChainProvider (e.g. 'IPFSOASIS'), NFTStandardType (e.g. 'Metaplex'), StoreNFTMetaDataOnChain.")]
+        [McpServerTool(Name = "web4_nft_mint"), Description("WEB4: mints a new Web4 NFT. mintRequestJson fields: Title, Description, Price, NumberToMint, OnChainProvider (e.g. 'Solana'), OffChainProvider (e.g. 'IPFSOASIS', 'PinataOASIS', 'ArweaveOASIS'), NFTStandardType (e.g. 'Metaplex'), StoreNFTMetaDataOnChain.")]
         public static async Task<string> NftMint(string avatarId, string mintRequestJson)
         {
             MintWeb4NFTRequest? request = JsonSerializer.Deserialize<MintWeb4NFTRequest>(mintRequestJson);
