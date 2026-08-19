@@ -1317,7 +1317,7 @@ The whole point of opening up this codebase to the public is we wish to empower 
 (b) publicly distribute, sublicense, resell, or otherwise make the Software available to third parties, whether in original or modified form;
 (c) offer the Software, or any product or service whose core functionality is substantially derived from or dependent on the Software, to third parties as a hosted service, SaaS product, managed offering, or API — regardless of whether a fee is charged.
 
-3. Commercial License Required. Any use described in Section 2, or any use where the Software (or a service built on it) is offered to customers, users, or the public as a product in its own right, requires a separate commercial license from [You/Company Name]. See the Commercial License Terms below.
+3. Commercial License Required. Any use described in Section 2, or any use where the Software (or a service built on it) is offered to customers, users, or the public as a product in its own right, requires a separate commercial license from NextGen World Ltd. See the Commercial License Terms below.
 
 4. No Modification Without License. Modification of the Software in any form is prohibited absent a commercial license under Section 3, which will separately define what modification rights, if any, are granted.
 
