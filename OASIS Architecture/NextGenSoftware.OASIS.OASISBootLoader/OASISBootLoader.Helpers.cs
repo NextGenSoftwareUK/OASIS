@@ -239,6 +239,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("PinataOASIS", e);
         }
 
+        private static void ArweaveOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("ArweaveOASIS", e);
+        }
+
         private static void Neo4jOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("Neo4jOASIS", e);

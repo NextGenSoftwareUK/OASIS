@@ -52,7 +52,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public CargoOASISSettings CargoOASIS { get; set; }
         public LocalFileOASISSettings LocalFileOASIS { get; set; }
         public PinataOASISSettings PinataOASIS { get; set; }
-        
+        public ArweaveOASISSettings ArweaveOASIS { get; set; }
+
         // Missing Blockchain Providers
         public BitcoinOASISProviderSettings BitcoinOASIS { get; set; }
         public CardanoOASISProviderSettings CardanoOASIS { get; set; }
@@ -99,6 +100,12 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class PinataOASISSettings : ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
+    }
+
+    public class ArweaveOASISSettings : ProviderSettingsBase
+    {
+        // ConnectionString format: "wallet=/path/to/wallet.json&gateway=https://arweave.net"
+        // Or with embedded JWK:   "walletjson=<base64>&gateway=https://arweave.net"
     }
 
     public class CargoOASISSettings : ProviderSettingsBase
