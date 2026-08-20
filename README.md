@@ -3,7 +3,7 @@
 
 # OASIS - The Universal Web4/Web5 Infrastructure
 
-[![License: HoloSource v1.0](https://img.shields.io/badge/License-HoloSource%201.0-blueviolet.svg)](./LICENSE)
+[![License: HoloSource v1.1](https://img.shields.io/badge/License-HoloSource%201.1-blueviolet.svg)](./LICENSE)
 [![Trademark Protected](https://img.shields.io/badge/Trademark-Protected-orange.svg)](#trademarks)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
@@ -1299,7 +1299,7 @@ We welcome contributions! Please see our [Contributing Guide](./Docs/CONTRIBUTIN
 
 ## 📄 License
 
-This project is licensed under the **HoloSource License 1.0** — see the [LICENSE](./LICENSE) file for full terms.
+This project is licensed under the **HoloSource License 1.1** — see the [LICENSE](./LICENSE) file for full terms.
 
 This is a **source-available** license, not an open-source license. The source code is visible and freely usable for personal, educational, and internal business purposes. Commercial use — including SaaS products, hosted services, and public-facing applications built on OASIS — requires a separate commercial license.
 
