@@ -1,177 +1,354 @@
 HOLOSOURCE LICENSE
-Version 1.0, August 2026
+Version 1.1, August 2026
 
-Copyright (c) 2019-2026 NextGenSoftware UK / David Ellams
-All rights reserved.
+Copyright (c) 2019-2026 NextGen World Ltd (registered in England and Wales,
+company number 11737102) and David Ellams. All rights reserved.
+
+"NextGen" and "the Licensor" refer collectively to NextGen World Ltd and
+David Ellams throughout this document.
+
+────────────────────────────────────────────────────────────────────────────
 
 PREAMBLE
 
-The OASIS API (Open Advanced Secure Interoperable Scalable-System) is the
-core infrastructure layer that powers Our World — one of the most ambitious
-open-world projects ever undertaken, designed to help empower humanity to
-take responsibility for our planet. This license exists to keep the source
-visible and available for learning, research, and internal use, while
-ensuring that the vision behind this work is not commercially exploited
-without the permission of the original authors.
+The OASIS API (Open Advanced Secure Interoperable Scalable-System) and all
+associated technologies including HoloNET, STAR ODK, STARNET, Web6 and
+related works (together "the Software") are the original intellectual
+property of NextGen World Ltd and David Ellams, created over more than
+fifteen years.
 
-This is not an open-source license as defined by the Open Source Initiative.
-It is a source-available license with a commercial use restriction and a
-dual-licensing model.
+This licence exists to keep the source visible and available for learning,
+research, evaluation and Internal Use, while ensuring that no individual or
+organisation commercially exploits or externally deploys this technology
+without entering into a commercial relationship with NextGen.
+
+This is not an open-source licence as defined by the Open Source Initiative.
+It is a source-available licence with an external deployment restriction and
+a dual-licensing model.
 
 ────────────────────────────────────────────────────────────────────────────
 
 SECTION 1 — DEFINITIONS
 
-"Software" means the OASIS API source code, documentation, configuration,
-and all files contained in this repository.
+"Software" means the source code, object code, documentation, configuration
+and all files in any repository to which this licence is applied.
 
-"Licensor" means NextGenSoftware UK / David Ellams.
+"Licensor" means NextGen World Ltd (company number 11737102) and David
+Ellams, collectively.
 
 "You" (or "Your") means the individual or legal entity exercising rights
-under this License.
+under this licence.
 
 "Internal Use" means use of the Software solely within Your own organisation
-for private, internal purposes, where no part of the Software's functionality
-is made available, directly or indirectly, to any third party outside Your
-organisation.
+for private, internal purposes, where:
+  (a) no part of the Software's functionality is made accessible, directly
+      or indirectly, to any External Party; and
+  (b) the use is carried out by Your Authorised Personnel only.
 
-"Commercial Use" means any use of the Software, or a product or service
-whose core functionality is substantially derived from or dependent on the
-Software, that is made available to third parties — whether for a fee or
-free of charge — including but not limited to SaaS products, hosted services,
-managed offerings, commercial APIs, and publicly distributed applications.
+"Authorised Personnel" means Your employees, contractors, professional
+advisers, and the employees and contractors of Your affiliates and of
+infrastructure or service providers acting on Your behalf, in each case
+subject to confidentiality obligations no less protective than those in
+this licence and solely for the purpose of supporting Your Internal Use.
 
-"Derivative Work" means any work that modifies, adapts, translates, or is
-based on all or part of the Software.
+"External Party" means any individual or entity that is not You or Your
+Authorised Personnel acting on Your behalf.
+
+"External Deployment and Commercial Use" means any use of the Software,
+or of a product or service that incorporates, embeds or substantively
+relies upon the Software, where that product or service is made accessible
+to, or used on behalf of, an External Party — whether or not a fee is
+charged — including but not limited to:
+  (a) software-as-a-service products, hosted services, managed offerings
+      or commercial APIs accessible to External Parties;
+  (b) products or applications distributed to External Parties;
+  (c) consulting, implementation or integration services delivered to
+      External Parties using the Software as a material component; and
+  (d) any other arrangement under which an External Party directly or
+      indirectly benefits from the Software's capabilities.
+
+A product or service "substantively relies upon" the Software where the
+Software provides or enables a material feature, function or capability of
+that product or service, regardless of the extent of any modification,
+abstraction or wrapping applied.
+
+"Contribution" means any material — including source code, documentation
+or configuration — intentionally and explicitly submitted by You to the
+Licensor for potential incorporation into the Software, for example by way
+of a pull request or formal patch submission. Raising a GitHub issue,
+posting a comment or participating in a discussion does not constitute a
+Contribution.
+
+"Third-Party Components" means any software, libraries or other materials
+not authored by the Licensor that are incorporated into or distributed
+alongside the Software.
 
 ────────────────────────────────────────────────────────────────────────────
 
-SECTION 2 — PERMITTED USE (NO LICENSE REQUIRED)
+SECTION 2 — PERMITTED USE (NO LICENCE REQUIRED)
 
-Subject to the conditions in Section 4, You are granted a non-exclusive,
-non-transferable, non-sublicensable right to:
+Subject to the conditions in Section 4, the Licensor grants You a
+non-exclusive, non-transferable, non-sublicensable right to:
 
-  (a) Download, read, and run the Software for private, personal, or
-      educational purposes.
+  (a) download, read and run the Software for private, personal or
+      educational purposes;
 
-  (b) Use the Software within Your organisation for Internal Use,
-      including use within a for-profit organisation, provided that no
-      part of the Software's functionality is exposed to third parties.
+  (b) use the Software for Internal Use, including within a for-profit
+      organisation, provided no functionality is accessible to any
+      External Party;
 
-  (c) Study, evaluate, or audit the Software for research purposes.
+  (c) create modifications and derivative works of the Software strictly
+      for Your own Internal Use, provided those modifications are not
+      distributed, published or made accessible to any External Party;
 
-  (d) Make contributions back to the original repository under the terms
-      of Section 5.
+  (d) study, evaluate or audit the Software for research purposes; and
+
+  (e) make Contributions to the original repository in accordance with
+      Section 5.
 
 ────────────────────────────────────────────────────────────────────────────
 
-SECTION 3 — PROHIBITED USE (LICENSE REQUIRED)
+SECTION 3 — PROHIBITED WITHOUT A COMMERCIAL LICENCE
 
 Except as expressly permitted under Section 2, no individual or entity may,
-without a separate written Commercial License from the Licensor:
+without a separate written Commercial Licence from the Licensor:
 
-  (a) Modify, adapt, translate, or create Derivative Works of the Software
-      for distribution or public use.
+  (a) engage in any External Deployment and Commercial Use of the Software;
 
-  (b) Publicly distribute, sublicense, resell, or otherwise make the
-      Software available to third parties, whether in original or
-      modified form.
+  (b) publicly distribute, sublicense, resell or otherwise make the
+      Software available to External Parties, whether in original or
+      modified form; or
 
-  (c) Offer the Software, or any product or service whose core
-      functionality is substantially derived from or dependent on the
-      Software, to third parties as a hosted service, SaaS product,
-      managed offering, or commercial API — regardless of whether a fee
-      is charged.
+  (c) sub-license any rights granted under this licence to any third party.
 
-  (d) Bundle or ship the Software as part of a commercial product or
-      service offered to the public.
+To determine whether Your intended use requires a Commercial Licence, apply
+this test:
+
+  Can I answer YES to: "An External Party will directly or indirectly use,
+  benefit from, or access the Software's capabilities as a result of this
+  activity"?
+
+  If YES — a Commercial Licence is required.
+  If NO — Section 2 Permitted Use applies.
+
+Quick reference:
+
+  Experiment with the Software?                    ✅ Free
+  Evaluate it for internal adoption?               ✅ Free
+  Use it inside my organisation?                   ✅ Free
+  Modify it for internal use?                      ✅ Free
+  Contribute improvements back?                    ✅ Free
+  Publicly redistribute a modified version?        ❌ Commercial Licence required
+  Build a SaaS product accessible externally?      ❌ Commercial Licence required
+  Offer consulting services using the Software?    ❌ Commercial Licence required
+  Distribute in a commercial product?              ❌ Commercial Licence required
 
 ────────────────────────────────────────────────────────────────────────────
 
 SECTION 4 — CONDITIONS
 
-Any permitted use under Section 2 is conditional on the following:
+Any use permitted under Section 2 is conditional upon:
 
-  (a) You must retain this license file and all copyright notices in any
-      copy of the Software you make or use.
+  (a) retaining this licence file and all copyright notices in any copy
+      of the Software You make or use;
 
-  (b) You must not remove, alter, or obscure any attribution, copyright
+  (b) not removing, altering or obscuring any attribution, copyright
       notice, or reference to the Licensor in the Software or its
-      documentation.
+      documentation;
 
-  (c) You must not misrepresent the origin of the Software. Modified
-      versions used internally must be clearly marked as modified.
+  (c) not misrepresenting the origin of the Software — internally modified
+      versions must be clearly marked as modified and must not be
+      represented as the original Software;
 
-  (d) You must not use the name "OASIS", "Our World", "NextGenSoftware",
-      "HoloSource", or "STAR ODK" to endorse or promote products derived
-      from this Software without prior written permission.
+  (d) not using the Licensor's names, trademarks, logos or branding except
+      for truthful attribution as expressly permitted under Section 8; and
+
+  (e) ensuring that Your Authorised Personnel are aware of and comply with
+      the terms of this licence.
 
 ────────────────────────────────────────────────────────────────────────────
 
 SECTION 5 — CONTRIBUTIONS
 
-By submitting a contribution (pull request, patch, issue, or otherwise) to
-this repository, You agree that:
+5.1 By submitting a Contribution to any repository governed by this licence,
+You represent and warrant that:
 
-  (a) Your contribution is Your original work and You have the right to
-      submit it.
+  (a) the Contribution is Your original work and You have full legal right
+      and authority to submit it under these terms;
 
-  (b) You grant the Licensor a perpetual, worldwide, irrevocable,
-      royalty-free license to use, reproduce, modify, distribute, and
-      sublicense Your contribution as part of the Software under any
-      license the Licensor chooses, including commercial licenses.
+  (b) the Contribution does not infringe the intellectual property rights
+      of any third party; and
 
-  (c) You waive any moral rights to the extent permitted by law.
+  (c) You are not aware of any claim, lien or encumbrance that would
+      affect the rights granted herein.
 
-  (d) Your contribution does not grant You any additional rights beyond
-      those in Section 2.
+5.2 In submitting a Contribution You grant the Licensor a perpetual,
+worldwide, irrevocable, royalty-free licence to use, reproduce, modify,
+distribute, sublicense and exploit Your Contribution as part of the
+Software under any licence the Licensor chooses, including commercial
+licences, without further obligation to You.
+
+5.3 Submitting a Contribution does not grant You any rights beyond those
+set out in Section 2, nor does it create any obligation on the Licensor to
+accept, use or retain any Contribution.
+
+5.4 For the avoidance of doubt, participating in GitHub issues, discussions,
+pull request comments or any other communication channel does not constitute
+a Contribution and does not transfer any rights to the Licensor.
 
 ────────────────────────────────────────────────────────────────────────────
 
-SECTION 6 — COMMERCIAL LICENSING
+SECTION 6 — THIRD-PARTY COMPONENTS
 
-To obtain a Commercial License that permits uses described in Section 3,
-please contact:
+The Software may incorporate or be distributed alongside Third-Party
+Components. Those components remain governed exclusively by their own
+respective licences. This licence does not modify, override or extend the
+rights or obligations applicable to any Third-Party Component.
 
-  NextGenSoftware UK
-  David Ellams
+You are responsible for ensuring Your use of any Third-Party Component
+complies with its applicable licence. The Licensor makes no representation
+that the use of Third-Party Components is free of further obligations.
+
+────────────────────────────────────────────────────────────────────────────
+
+SECTION 7 — RESERVATION OF RIGHTS
+
+All rights not expressly granted by this licence are reserved by the
+Licensor. No rights arise by implication, estoppel or otherwise. The
+Licensor retains all copyright, patent, trade secret and other intellectual
+property rights in and to the Software.
+
+────────────────────────────────────────────────────────────────────────────
+
+SECTION 8 — TRADEMARKS AND BRANDING
+
+This licence does not grant any right to use the trademarks, service marks,
+trade names, logos or other brand identifiers of the Licensor, including
+without limitation "OASIS", "Our World", "NextGen World", "NextGenSoftware",
+"HoloNET", "HoloSource", "STAR", "STAR ODK", "STARNET", "ONET", "COSMIC"
+and associated logos and marks ("NextGen Marks").
+
+You may use NextGen Marks solely for truthful, factual attribution — for
+example to accurately state that Your internal deployment is built upon the
+OASIS API. Such use must not suggest endorsement, sponsorship or affiliation
+with the Licensor unless You hold a separate written agreement permitting it.
+
+────────────────────────────────────────────────────────────────────────────
+
+SECTION 9 — TERMINATION
+
+9.1 Your rights under this licence terminate automatically and without
+notice upon any material breach of its terms.
+
+9.2 Notwithstanding Section 9.1, if Your breach is capable of remedy, Your
+rights will not terminate if You cure the breach fully within thirty (30)
+days of becoming aware of it (or of receiving written notice from the
+Licensor, whichever is earlier), provided the breach was not wilful.
+
+9.3 The following breaches are deemed wilful and incapable of remedy for
+the purposes of Section 9.2 and result in immediate termination:
+
+  (a) any External Deployment and Commercial Use without a Commercial
+      Licence; and
+
+  (b) any deliberate unauthorised distribution of the Software to
+      External Parties.
+
+9.4 Upon termination You must immediately cease all use of the Software
+and destroy or delete all copies in Your possession or control.
+
+9.5 Sections 4, 5, 7, 8, 9, 10, 11 and 12 survive termination.
+
+────────────────────────────────────────────────────────────────────────────
+
+SECTION 10 — COMMERCIAL LICENSING
+
+To obtain a Commercial Licence permitting External Deployment and
+Commercial Use, please contact:
+
+  NextGen World Ltd
+  Company number: 11737102
   david.ellams@nextgenworld.co.uk
   https://www.oasisomniverse.one
 
-Commercial licenses are available and will be considered in the spirit of
+Commercial licences are available and will be considered in the spirit of
 the Our World mission: to empower people to take responsibility for our
-planet. Licenses that align with this mission will be prioritised.
+planet.
 
 ────────────────────────────────────────────────────────────────────────────
 
-SECTION 7 — TERMINATION
+SECTION 11 — DISCLAIMER OF WARRANTIES
 
-Your rights under this License terminate automatically and without notice if
-You breach any of its terms. Upon termination, You must destroy all copies
-of the Software in Your possession or control. Sections 4, 5, 7, 8, and 9
-survive termination.
-
-────────────────────────────────────────────────────────────────────────────
-
-SECTION 8 — DISCLAIMER OF WARRANTIES
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. THE LICENSOR MAKES
-NO WARRANTY THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS OR OPERATE
-ERROR-FREE.
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. THE LICENSOR
+MAKES NO WARRANTY THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS, OPERATE
+WITHOUT INTERRUPTION OR BE FREE FROM ERRORS OR DEFECTS.
 
 ────────────────────────────────────────────────────────────────────────────
 
-SECTION 9 — LIMITATION OF LIABILITY
+SECTION 12 — LIMITATION OF LIABILITY
 
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE
-LICENSOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING BUT NOT LIMITED TO LOSS OF DATA, LOSS OF
-PROFITS, OR BUSINESS INTERRUPTION) ARISING OUT OF OR IN CONNECTION WITH
-THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-OF SUCH DAMAGES.
+12.1 TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
+THE LICENSOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+CONSEQUENTIAL OR PUNITIVE DAMAGES (INCLUDING LOSS OF DATA, LOSS OF PROFITS,
+LOSS OF GOODWILL OR BUSINESS INTERRUPTION) ARISING OUT OF OR RELATING TO
+THIS LICENCE OR THE USE OR INABILITY TO USE THE SOFTWARE, HOWEVER CAUSED
+AND UNDER ANY THEORY OF LIABILITY, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+12.2 THE LICENSOR'S AGGREGATE LIABILITY TO YOU FOR ALL CLAIMS ARISING UNDER
+OR IN CONNECTION WITH THIS LICENCE (INCLUDING CLAIMS IN CONTRACT, TORT OR
+OTHERWISE) SHALL NOT EXCEED ONE HUNDRED POUNDS STERLING (£100) IN RESPECT
+OF USE PERMITTED UNDER SECTION 2. EXTERNAL DEPLOYMENT AND COMMERCIAL USE
+IS GOVERNED EXCLUSIVELY BY THE APPLICABLE COMMERCIAL LICENCE AGREEMENT,
+WHICH CARRIES ITS OWN SEPARATELY NEGOTIATED LIABILITY PROVISIONS.
 
 ────────────────────────────────────────────────────────────────────────────
 
-END OF HOLOSOURCE LICENSE 1.0
+SECTION 13 — GENERAL
+
+13.1 Governing Law and Jurisdiction. This licence is governed by the laws
+of England and Wales. Any dispute arising out of or in connection with this
+licence shall be subject to the exclusive jurisdiction of the courts of
+England and Wales.
+
+13.2 Severability. If any provision of this licence is found by a court of
+competent jurisdiction to be invalid, illegal or unenforceable, that
+provision shall be modified to the minimum extent necessary to make it
+enforceable, or severed if modification is not possible. The remaining
+provisions shall continue in full force and effect.
+
+13.3 No Waiver. Failure or delay by the Licensor in exercising any right
+under this licence shall not constitute a waiver of that right. No waiver
+of any breach shall be deemed a waiver of any subsequent breach.
+
+13.4 Assignment. You may not assign or transfer any rights or obligations
+under this licence without the Licensor's prior written consent. The
+Licensor may assign this licence freely, including in connection with a
+merger, acquisition or sale of substantially all of its assets.
+
+13.5 Entire Agreement. This licence constitutes the entire agreement between
+the parties with respect to the Software and supersedes all prior
+representations, agreements and understandings relating to the same subject
+matter, except that any existing written Commercial Licence Agreement shall
+continue to govern commercial use as agreed therein.
+
+13.6 Notices. Notices to the Licensor should be sent to
+david.ellams@nextgenworld.co.uk. Notices from the Licensor may be delivered
+by any reasonable means including email to an address associated with Your
+use of the Software.
+
+13.7 Licence Versioning. The Licensor may publish updated versions of the
+HoloSource Licence from time to time. Each repository will state which
+version applies to it. A newer version does not automatically replace an
+older version applied to a specific repository unless the Licensor expressly
+updates that repository's licence file.
+
+13.8 Interpretation. The headings in this licence are for convenience only
+and shall not affect its interpretation. "Including" and similar expressions
+are not words of limitation.
+
+────────────────────────────────────────────────────────────────────────────
+
+END OF HOLOSOURCE LICENSE 1.1
