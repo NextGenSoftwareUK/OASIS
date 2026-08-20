@@ -263,7 +263,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     case NFTOffChainMetaType.IPFS:
                         {
                             Guid imageId = Guid.NewGuid();
-                            //_ipfs.SaveStream(new MemoryStream(request.Image), imageId.ToString(), new Ipfs.CoreApi.AddFileOptions() { Progress = new Progress<>} );
                             OASISResult<IFileSystemNode> ipfsResult = await IPFS.SaveStreamAsync(new MemoryStream(mergedRequest.Image), imageId.ToString());
 
                             if (ipfsResult != null && ipfsResult.Result != null && !ipfsResult.IsError)
@@ -271,6 +270,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             else
                             {
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the image to IPFS. Reason: {ipfsResult.Message}");
+                                return result;
+                            }
+                        }
+                        break;
+
+                    case NFTOffChainMetaType.Arweave:
+                        {
+                            OASISResult<string> arweaveResult = await Arweave.UploadDataToArweaveAsync(mergedRequest.Image, "image/png",
+                                new System.Collections.Generic.Dictionary<string, string> { { "OASIS-NFT-Type", "Image" } });
+
+                            if (arweaveResult != null && arweaveResult.Result != null && !arweaveResult.IsError)
+                                mergedRequest.ImageUrl = Arweave.GetTransactionUrl(arweaveResult.Result);
+                            else
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the image to Arweave. Reason: {arweaveResult.Message}");
                                 return result;
                             }
                         }
@@ -332,6 +346,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             else
                             {
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to IPFS. Reason: {ipfsResult.Message}");
+                                return result;
+                            }
+                        }
+                        break;
+
+                    case NFTOffChainMetaType.Arweave:
+                        {
+                            OASISResult<string> arweaveResult = await Arweave.UploadJsonToArweaveAsync(json, "NFTMetaData",
+                                new System.Collections.Generic.Dictionary<string, string> { { "OASIS-NFT-Type", "Metadata" } });
+
+                            if (arweaveResult != null && arweaveResult.Result != null && !arweaveResult.IsError)
+                                mergedRequest.JSONMetaDataURL = Arweave.GetTransactionUrl(arweaveResult.Result);
+                            else
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to Arweave. Reason: {arweaveResult.Message}");
                                 return result;
                             }
                         }
