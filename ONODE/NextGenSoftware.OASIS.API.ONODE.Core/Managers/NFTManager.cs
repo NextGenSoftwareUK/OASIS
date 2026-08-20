@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.Providers.ArweaveOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.Logging;
@@ -43,6 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private const int FORMAT_SUCCESS_MESSAGE_COL_WIDTH = 34;
         IPFSOASIS _ipfs = new IPFSOASIS();
         PinataOASIS _pinata = new PinataOASIS();
+        ArweaveOASIS _arweave = new ArweaveOASIS();
 
         public IPFSOASIS IPFS
         {
@@ -69,6 +71,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     _pinata.ActivateProvider();
 
                 return _pinata;
+            }
+        }
+
+        public ArweaveOASIS Arweave
+        {
+            get
+            {
+                if (_arweave == null)
+                    _arweave = new ArweaveOASIS(OASISDNA);
+
+                if (!_arweave.IsProviderActivated)
+                    _arweave.ActivateProvider();
+
+                return _arweave;
             }
         }
 
