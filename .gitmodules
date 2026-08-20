@@ -1,3 +1,9 @@
 [submodule "HoloNET-ORM"]
 	path = HoloNET-ORM
 	url = https://github.com/NextGenSoftwareUK/HoloNET-ORM.git
+[submodule "STAR ODK"]
+	path = STAR ODK
+	url = https://github.com/NextGenSoftwareUK/OASIS-STAR.git
+[submodule "WEB6"]
+	path = WEB6
+	url = https://github.com/NextGenSoftwareUK/OASIS-WEB6.git
