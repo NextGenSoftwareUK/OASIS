@@ -26,6 +26,34 @@ a dual-licensing model.
 
 ────────────────────────────────────────────────────────────────────────────
 
+SCOPE OF THIS LICENCE
+
+This licence governs only the source code, documentation and other files
+contained in repositories to which it is applied. It does not govern or
+restrict:
+
+  (a) calling or consuming any publicly hosted OASIS API endpoint, service
+      or infrastructure operated by the Licensor;
+
+  (b) using any OASIS SDK, client library or tool obtained as a compiled
+      package (for example via NuGet) from the Licensor's official
+      distribution channels; or
+
+  (c) building applications, products or services that integrate with or
+      call the OASIS APIs, SDKs or tools as an end-user or subscriber.
+
+Those activities are governed solely by the applicable subscription plan or
+service agreement with the Licensor. Commercial use of the OASIS API and
+related SDKs in your own products and services is expressly permitted under
+the appropriate subscription tier, which includes a free tier. You do not
+need a Commercial Licence under this document merely because your
+application calls OASIS APIs or references OASIS NuGet packages.
+
+This licence applies when you copy, fork, modify, or redistribute the
+source code itself.
+
+────────────────────────────────────────────────────────────────────────────
+
 SECTION 1 — DEFINITIONS
 
 "Software" means the source code, object code, documentation, configuration
