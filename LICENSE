@@ -1,20 +1,19 @@
-HOLOSOURCE LICENSE
+﻿HOLOSOURCE LICENSE
 Version 1.1, August 2026
 
 Copyright (c) 2019-2026 NextGen World Ltd (registered in England and Wales,
-company number 11737102) and David Ellams. All rights reserved.
+company number 11737102). All rights reserved.
 
-"NextGen" and "the Licensor" refer collectively to NextGen World Ltd and
-David Ellams throughout this document.
+"NextGen" and "the Licensor" refer to NextGen World Ltd throughout this document.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 PREAMBLE
 
 The OASIS API (Open Advanced Secure Interoperable Scalable-System) and all
 associated technologies including HoloNET, STAR ODK, STARNET, Web6 and
 related works (together "the Software") are the original intellectual
-property of NextGen World Ltd and David Ellams, created over more than
+property of NextGen World Ltd, created over more than
 fifteen years.
 
 This licence exists to keep the source visible and available for learning,
@@ -26,9 +25,9 @@ This is not an open-source licence as defined by the Open Source Initiative.
 It is a source-available licence with an external deployment restriction and
 a dual-licensing model.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 1 — DEFINITIONS
+SECTION 1 â€” DEFINITIONS
 
 "Software" means the source code, object code, documentation, configuration
 and all files in any repository to which this licence is applied.
@@ -57,8 +56,8 @@ Authorised Personnel acting on Your behalf.
 "External Deployment and Commercial Use" means any use of the Software,
 or of a product or service that incorporates, embeds or substantively
 relies upon the Software, where that product or service is made accessible
-to, or used on behalf of, an External Party — whether or not a fee is
-charged — including but not limited to:
+to, or used on behalf of, an External Party â€” whether or not a fee is
+charged â€” including but not limited to:
   (a) software-as-a-service products, hosted services, managed offerings
       or commercial APIs accessible to External Parties;
   (b) products or applications distributed to External Parties;
@@ -72,8 +71,8 @@ Software provides or enables a material feature, function or capability of
 that product or service, regardless of the extent of any modification,
 abstraction or wrapping applied.
 
-"Contribution" means any material — including source code, documentation
-or configuration — intentionally and explicitly submitted by You to the
+"Contribution" means any material â€” including source code, documentation
+or configuration â€” intentionally and explicitly submitted by You to the
 Licensor for potential incorporation into the Software, for example by way
 of a pull request or formal patch submission. Raising a GitHub issue,
 posting a comment or participating in a discussion does not constitute a
@@ -83,9 +82,9 @@ Contribution.
 not authored by the Licensor that are incorporated into or distributed
 alongside the Software.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 2 — PERMITTED USE (NO LICENCE REQUIRED)
+SECTION 2 â€” PERMITTED USE (NO LICENCE REQUIRED)
 
 Subject to the conditions in Section 4, the Licensor grants You a
 non-exclusive, non-transferable, non-sublicensable right to:
@@ -106,9 +105,9 @@ non-exclusive, non-transferable, non-sublicensable right to:
   (e) make Contributions to the original repository in accordance with
       Section 5.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 3 — PROHIBITED WITHOUT A COMMERCIAL LICENCE
+SECTION 3 â€” PROHIBITED WITHOUT A COMMERCIAL LICENCE
 
 Except as expressly permitted under Section 2, no individual or entity may,
 without a separate written Commercial Licence from the Licensor:
@@ -128,24 +127,24 @@ this test:
   benefit from, or access the Software's capabilities as a result of this
   activity"?
 
-  If YES — a Commercial Licence is required.
-  If NO — Section 2 Permitted Use applies.
+  If YES â€” a Commercial Licence is required.
+  If NO â€” Section 2 Permitted Use applies.
 
 Quick reference:
 
-  Experiment with the Software?                    ✅ Free
-  Evaluate it for internal adoption?               ✅ Free
-  Use it inside my organisation?                   ✅ Free
-  Modify it for internal use?                      ✅ Free
-  Contribute improvements back?                    ✅ Free
-  Publicly redistribute a modified version?        ❌ Commercial Licence required
-  Build a SaaS product accessible externally?      ❌ Commercial Licence required
-  Offer consulting services using the Software?    ❌ Commercial Licence required
-  Distribute in a commercial product?              ❌ Commercial Licence required
+  Experiment with the Software?                    âœ… Free
+  Evaluate it for internal adoption?               âœ… Free
+  Use it inside my organisation?                   âœ… Free
+  Modify it for internal use?                      âœ… Free
+  Contribute improvements back?                    âœ… Free
+  Publicly redistribute a modified version?        âŒ Commercial Licence required
+  Build a SaaS product accessible externally?      âŒ Commercial Licence required
+  Offer consulting services using the Software?    âŒ Commercial Licence required
+  Distribute in a commercial product?              âŒ Commercial Licence required
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 4 — CONDITIONS
+SECTION 4 â€” CONDITIONS
 
 Any use permitted under Section 2 is conditional upon:
 
@@ -156,7 +155,7 @@ Any use permitted under Section 2 is conditional upon:
       notice, or reference to the Licensor in the Software or its
       documentation;
 
-  (c) not misrepresenting the origin of the Software — internally modified
+  (c) not misrepresenting the origin of the Software â€” internally modified
       versions must be clearly marked as modified and must not be
       represented as the original Software;
 
@@ -166,9 +165,9 @@ Any use permitted under Section 2 is conditional upon:
   (e) ensuring that Your Authorised Personnel are aware of and comply with
       the terms of this licence.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 5 — CONTRIBUTIONS
+SECTION 5 â€” CONTRIBUTIONS
 
 5.1 By submitting a Contribution to any repository governed by this licence,
 You represent and warrant that:
@@ -196,9 +195,9 @@ accept, use or retain any Contribution.
 pull request comments or any other communication channel does not constitute
 a Contribution and does not transfer any rights to the Licensor.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 6 — THIRD-PARTY COMPONENTS
+SECTION 6 â€” THIRD-PARTY COMPONENTS
 
 The Software may incorporate or be distributed alongside Third-Party
 Components. Those components remain governed exclusively by their own
@@ -209,18 +208,18 @@ You are responsible for ensuring Your use of any Third-Party Component
 complies with its applicable licence. The Licensor makes no representation
 that the use of Third-Party Components is free of further obligations.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 7 — RESERVATION OF RIGHTS
+SECTION 7 â€” RESERVATION OF RIGHTS
 
 All rights not expressly granted by this licence are reserved by the
 Licensor. No rights arise by implication, estoppel or otherwise. The
 Licensor retains all copyright, patent, trade secret and other intellectual
 property rights in and to the Software.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 8 — TRADEMARKS AND BRANDING
+SECTION 8 â€” TRADEMARKS AND BRANDING
 
 This licence does not grant any right to use the trademarks, service marks,
 trade names, logos or other brand identifiers of the Licensor, including
@@ -228,14 +227,14 @@ without limitation "OASIS", "Our World", "NextGen World", "NextGenSoftware",
 "HoloNET", "HoloSource", "STAR", "STAR ODK", "STARNET", "ONET", "COSMIC"
 and associated logos and marks ("NextGen Marks").
 
-You may use NextGen Marks solely for truthful, factual attribution — for
+You may use NextGen Marks solely for truthful, factual attribution â€” for
 example to accurately state that Your internal deployment is built upon the
 OASIS API. Such use must not suggest endorsement, sponsorship or affiliation
 with the Licensor unless You hold a separate written agreement permitting it.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 9 — TERMINATION
+SECTION 9 â€” TERMINATION
 
 9.1 Your rights under this licence terminate automatically and without
 notice upon any material breach of its terms.
@@ -259,9 +258,9 @@ and destroy or delete all copies in Your possession or control.
 
 9.5 Sections 4, 5, 7, 8, 9, 10, 11 and 12 survive termination.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 10 — COMMERCIAL LICENSING
+SECTION 10 â€” COMMERCIAL LICENSING
 
 To obtain a Commercial Licence permitting External Deployment and
 Commercial Use, please contact:
@@ -275,9 +274,9 @@ Commercial licences are available and will be considered in the spirit of
 the Our World mission: to empower people to take responsibility for our
 planet.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 11 — DISCLAIMER OF WARRANTIES
+SECTION 11 â€” DISCLAIMER OF WARRANTIES
 
 THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -285,9 +284,9 @@ FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. THE LICENSOR
 MAKES NO WARRANTY THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS, OPERATE
 WITHOUT INTERRUPTION OR BE FREE FROM ERRORS OR DEFECTS.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 12 — LIMITATION OF LIABILITY
+SECTION 12 â€” LIMITATION OF LIABILITY
 
 12.1 TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL
 THE LICENSOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
@@ -299,14 +298,14 @@ SUCH DAMAGES.
 
 12.2 THE LICENSOR'S AGGREGATE LIABILITY TO YOU FOR ALL CLAIMS ARISING UNDER
 OR IN CONNECTION WITH THIS LICENCE (INCLUDING CLAIMS IN CONTRACT, TORT OR
-OTHERWISE) SHALL NOT EXCEED ONE HUNDRED POUNDS STERLING (£100) IN RESPECT
+OTHERWISE) SHALL NOT EXCEED ONE HUNDRED POUNDS STERLING (Â£100) IN RESPECT
 OF USE PERMITTED UNDER SECTION 2. EXTERNAL DEPLOYMENT AND COMMERCIAL USE
 IS GOVERNED EXCLUSIVELY BY THE APPLICABLE COMMERCIAL LICENCE AGREEMENT,
 WHICH CARRIES ITS OWN SEPARATELY NEGOTIATED LIABILITY PROVISIONS.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-SECTION 13 — GENERAL
+SECTION 13 â€” GENERAL
 
 13.1 Governing Law and Jurisdiction. This licence is governed by the laws
 of England and Wales. Any dispute arising out of or in connection with this
@@ -349,6 +348,7 @@ updates that repository's licence file.
 and shall not affect its interpretation. "Including" and similar expressions
 are not words of limitation.
 
-────────────────────────────────────────────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 END OF HOLOSOURCE LICENSE 1.1
+
