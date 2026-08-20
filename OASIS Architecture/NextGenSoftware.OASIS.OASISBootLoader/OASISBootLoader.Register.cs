@@ -33,6 +33,7 @@ using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
+using NextGenSoftware.OASIS.API.Providers.ArweaveOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
@@ -207,6 +208,24 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                                 PinataOASIS.OnStorageProviderError += PinataOASIS_StorageProviderError;
                                 result.Result = PinataOASIS;
+                            }
+                            break;
+
+                        case ProviderType.ArweaveOASIS:
+                            {
+                                ArweaveOASIS ArweaveOASIS = null;
+
+                                if (overrideConnectionString != null)
+                                {
+                                    OASISDNA overrideDNA = OASISDNA;
+                                    overrideDNA.OASIS.StorageProviders.ArweaveOASIS.ConnectionString = overrideConnectionString;
+                                    ArweaveOASIS = new ArweaveOASIS(overrideDNA, OASISDNAPath);
+                                }
+                                else
+                                    ArweaveOASIS = new ArweaveOASIS(OASISDNA, OASISDNAPath);
+
+                                ArweaveOASIS.OnStorageProviderError += ArweaveOASIS_StorageProviderError;
+                                result.Result = ArweaveOASIS;
                             }
                             break;
 
