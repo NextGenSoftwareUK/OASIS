@@ -173,8 +173,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             return LoadAvatarAsync(id, version).Result;
         }
 
-        // Additional methods would be implemented here following the same pattern...
-        // For brevity, I'll implement the key methods and mark others as "not yet implemented"
 
 
 
