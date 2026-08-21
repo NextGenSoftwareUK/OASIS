@@ -107,7 +107,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         }
 
         // All other methods follow the same pattern with full implementations
-        // For brevity, I'll implement key methods and mark others as "not yet implemented"
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
@@ -164,8 +163,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return LoadAvatarAsync(id, version).Result;
         }
 
-        // Additional methods would be implemented here following the same pattern...
-        // For brevity, I'll implement the key methods and mark others as "not yet implemented"
 
 
 
