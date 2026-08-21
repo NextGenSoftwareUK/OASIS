@@ -13,3 +13,9 @@
 [submodule "ONODE/NextGenSoftware.OASIS.API.ONODE.Core"]
 	path = ONODE/NextGenSoftware.OASIS.API.ONODE.Core
 	url = https://github.com/NextGenSoftwareUK/OASIS-ONODE-Core.git
+[submodule "ONODE/ONODEManager"]
+	path = ONODE/ONODEManager
+	url = https://github.com/NextGenSoftwareUK/ONODEManager.git
+[submodule "OASIS Omniverse/OGEngineClient"]
+	path = OASIS Omniverse/OGEngineClient
+	url = https://github.com/NextGenSoftwareUK/OGEngineClient.git
