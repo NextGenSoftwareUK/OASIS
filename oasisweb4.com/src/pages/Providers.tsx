@@ -1,11 +1,18 @@
 import { Card, CardContent, CardHeader, Grid, Typography } from '@mui/material';
 
 const providers = {
-  blockchains: ['Ethereum', 'Solana', 'Polygon', 'Arbitrum', 'Base', 'Avalanche', 'BNB Chain', 'Fantom', 'Cardano', 'Polkadot', 'Bitcoin', 'NEAR', 'Sui', 'Aptos', 'Cosmos', 'EOSIO', 'Telos', 'SEEDS'],
-  clouds: ['AWS', 'Azure', 'Google Cloud', 'IBM Cloud', 'Oracle Cloud'],
-  databases: ['MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Neo4j'],
-  storage: ['IPFS', 'Filecoin', 'Arweave', 'AWS S3'],
-  other: ['Holochain', 'SOLID', 'ActivityPub', 'XMPP']
+  blockchains: [
+    'Ethereum', 'Solana', 'Polygon', 'Arbitrum', 'Optimism', 'Base', 'Avalanche',
+    'BNB Chain', 'Fantom', 'Cardano', 'Polkadot', 'Bitcoin', 'NEAR', 'Sui', 'Aptos',
+    'Cosmos', 'EOSIO', 'Telos', 'SEEDS', 'TON', 'Rootstock (RSK)', 'Telos',
+    'Hedera Hashgraph', 'MultiversX (Elrond)', 'TRON', 'XRP Ledger', 'Stacks (BlockStack)',
+    'Zcash', 'Miden', 'Aztec', 'Starknet', 'Radix', 'Monad', 'ChainLink', 'Loom',
+    'Stellar', 'zkSync', 'Scroll', 'Linea', 'Abstract', 'Berachain', 'Telegram',
+  ],
+  clouds: ['AWS', 'Azure Cosmos DB', 'Azure Storage', 'Google Cloud', 'Oracle DB', 'SQL Server'],
+  databases: ['MongoDB', 'Neo4j', 'SQLite', 'Local File'],
+  storage: ['IPFS', 'Pinata (IPFS pinning)', 'Arweave (permanent)', 'ThreeFold', 'Moralis'],
+  decentralised: ['Holochain', 'HoloWeb', 'Urbit', 'SOLID', 'ActivityPub', 'Scuttlebutt', 'Farcaster', 'Nostr', 'PLAN'],
 };
 
 export default function Providers() {
