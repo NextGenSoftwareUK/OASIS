@@ -133,8 +133,8 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>SOLIDOASIS</b> - SOLID (Social Linked Data) Provider.</li>
 <li><b>ActivityPubOASIS</b> - ActivityPub Provider.</li>
 <li><b>EthereumOASIS</b> - Ethereum Provider.</li>
-<li><b>ArbitrumOASIS</b> - Arbitrum Provider.</li>
-<li><b>OptimismOASIS</b> - Optimism Provider.</li>
+<li><b>ArbitrumOASIS</b> - Arbitrum (Ethereum L2) Provider.</li>
+<li><b>OptimismOASIS</b> - Optimism (Ethereum L2) Provider.</li>
 <li><b>PolygonOASIS</b> - Polygon Provider.</li>
 <li><b>BaseOASIS</b> - Base (Coinbase L2) Provider.</li>
 <li><b>AvalancheOASIS</b> - Avalanche Provider.</li>
@@ -144,21 +144,44 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>CardanoOASIS</b> - Cardano Provider.</li>
 <li><b>PolkadotOASIS</b> - Polkadot Provider.</li>
 <li><b>BitcoinOASIS</b> - Bitcoin Provider.</li>
-<li><b>NEAROASIS</b> - NEAR Provider.</li>
+<li><b>NEAROASIS</b> - NEAR Protocol Provider.</li>
 <li><b>SuiOASIS</b> - Sui Provider.</li>
 <li><b>AptosOASIS</b> - Aptos Provider.</li>
 <li><b>CosmosBlockChainOASIS</b> - Cosmos SDK/IBC Provider.</li>
 <li><b>EOSIOOASIS</b> - EOSIO Provider.</li>
 <li><b>TelosOASIS</b> - Telos Provider.</li>
 <li><b>SEEDSOASIS</b> - SEEDS Provider.</li>
-<li><b>TONSOASIS</b> - TON Provider.</li>
+<li><b>TONOASIS</b> - TON Provider.</li>
 <li><b>ZcashOASIS</b> - Zcash Provider.</li>
 <li><b>MidenOASIS</b> - Miden Provider.</li>
 <li><b>AztecOASIS</b> - Aztec Provider.</li>
 <li><b>MonadOASIS</b> - Monad Provider.</li>
 <li><b>RadixOASIS</b> - Radix Provider.</li>
 <li><b>StarknetOASIS</b> - Starknet Provider.</li>
+<li><b>RootstockOASIS</b> - Rootstock (RSK) Bitcoin L2 Provider.</li>
+<li><b>HashgraphOASIS</b> - Hedera Hashgraph Provider.</li>
+<li><b>ElrondOASIS</b> - MultiversX (formerly Elrond) Provider.</li>
+<li><b>TRONOASIS</b> - TRON Provider.</li>
+<li><b>XRPLOASIS</b> - XRP Ledger Provider.</li>
+<li><b>BlockStackOASIS</b> - Stacks (formerly BlockStack) Provider.</li>
+<li><b>ChainLinkOASIS</b> - Chainlink Provider.</li>
+<li><b>LoomOASIS</b> - Loom Network Provider.</li>
+<li><b>StellarOASIS</b> - Stellar Provider.</li>
+<li><b>ZkSyncOASIS</b> - zkSync Provider.</li>
+<li><b>ScrollOASIS</b> - Scroll Provider.</li>
+<li><b>LineaOASIS</b> - Linea (Consensys L2) Provider.</li>
+<li><b>AbstractOASIS</b> - Abstract (Consumer L2) Provider.</li>
+<li><b>BerrachainOASIS</b> - Berachain (Proof-of-Liquidity L1) Provider.</li>
 <li><b>TelegramOASIS</b> - Telegram Provider.</li>
+<li><b>MoralisOASIS</b> - Moralis Web3 API Provider.</li>
+<li><b>SQLServerDBOASIS</b> - SQL Server Provider (Relational Database).</li>
+<li><b>OracleDBOASIS</b> - Oracle DB Provider (Relational Database).</li>
+<li><b>AzureStorageOASIS</b> - Azure Blob Storage Provider.</li>
+<li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider.</li>
+<li><b>HoloWebOASIS</b> - HoloWeb Provider.</li>
+<li><b>ScuttlebuttOASIS</b> - Scuttlebutt (SSB) Provider.</li>
+<li><b>FarcasterOASIS</b> - Farcaster Decentralised Social Provider.</li>
+<li><b>NostrOASIS</b> - Nostr Decentralised Social Provider.</li>
 
 </ul>
 
