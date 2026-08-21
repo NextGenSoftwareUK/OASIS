@@ -7,3 +7,9 @@
 [submodule "WEB6"]
 	path = WEB6
 	url = https://github.com/NextGenSoftwareUK/OASIS-WEB6.git
+[submodule "OASIS Architecture/NextGenSoftware.OASIS.API.Core"]
+	path = OASIS Architecture/NextGenSoftware.OASIS.API.Core
+	url = https://github.com/NextGenSoftwareUK/OASIS-API-Core.git
+[submodule "ONODE/NextGenSoftware.OASIS.API.ONODE.Core"]
+	path = ONODE/NextGenSoftware.OASIS.API.ONODE.Core
+	url = https://github.com/NextGenSoftwareUK/OASIS-ONODE-Core.git
