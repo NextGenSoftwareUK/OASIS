@@ -1,6 +1,6 @@
 # OASIS Provider Inventory & Roadmap
 
-_Last updated: 2026-08-16_
+_Last updated: 2026-08-21_
 
 ---
 
@@ -45,6 +45,8 @@ _Last updated: 2026-08-16_
 | TON | TONOASIS |
 | Monad | MonadOASIS |
 | ChainLink | ChainLinkOASIS |
+| Loom Network | LoomOASIS |
+| Stellar | StellarOASIS |
 
 ### Storage / Database
 
@@ -59,8 +61,12 @@ _Last updated: 2026-08-16_
 | Local File | LocalFileOASIS |
 | IPFS | IPFSOASIS |
 | Pinata (IPFS pinning) | PinataOASIS |
+| Arweave (permanent storage) | ArweaveOASIS |
 | SOLID (Tim Berners-Lee) | SOLIDOASIS |
 | ThreeFold | ThreeFoldOASIS |
+| Azure Storage | AzureStorageOASIS |
+| SQL Server | SQLServerDBOASIS |
+| Oracle DB | OracleDBOASIS |
 
 ### Decentralised Social / Network
 
@@ -68,12 +74,17 @@ _Last updated: 2026-08-16_
 |---|---|
 | ActivityPub | ActivityPubOASIS |
 | Holochain | HoloOASIS / HoloOASIS.Desktop / HoloOASIS.Unity |
+| HoloWeb | HoloWebOASIS |
 | Scuttlebutt | ScuttlebuttOASIS |
+| Urbit | UrbitOASIS |
 | SEEDS | SEEDSOASIS |
 | Telegram | TelegramOASIS |
+| Farcaster | FarcasterOASIS |
+| Nostr | NostrOASIS |
 | Orion Protocol (DEX) | OrionProtocolOASIS |
 | Tor / Onion | ONION-Protocol |
 | Moralis | MoralisOASIS |
+| PLAN | PLANOASIS |
 
 ### Spatial / Gaming / Other
 
@@ -95,12 +106,7 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 
 ### Tier 1 — Implement First (highest reach, immediate value)
 
-#### 1. Arweave
-- **What:** Permanent, pay-once decentralised storage — data stored on Arweave is guaranteed to exist forever
-- **Why:** Core to OASIS's promise that avatars and holons cannot be lost or deleted. The only network that genuinely delivers permanent storage. Used by Solana NFT metadata, Mirror.xyz, and thousands of dApps. SDK: `ArweaveNet` (.NET NuGet), REST API at `https://arweave.net`
-- **OASIS fit:** Avatar/holon permanent backup; NFT metadata permanence; "your data lives forever" marketing hook
-
-#### 2. Abstract
+#### 1. Abstract ~~(was: 2)~~
 - **What:** EVM L2 purpose-built for consumer apps and gaming (launched 2024, Ethereum-settled)
 - **Why:** The fastest-growing consumer crypto chain; built explicitly for the use case OASIS targets. Has a large NFT and gaming community. Fully EVM-compatible so it extends `Web3CoreOASISBaseProvider` with minimal new code
 - **OASIS fit:** Consumer gaming avatars, NFT minting, in-game item provenance
