@@ -163,6 +163,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NostrOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\NextGenSoftware.OASIS.API.Providers.NostrOASIS.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F01234567890}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.LensOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.LensOASIS\NextGenSoftware.OASIS.API.Providers.LensOASIS.csproj", "{C3D4E5F6-A7B8-9012-CDEF-012345678901}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
