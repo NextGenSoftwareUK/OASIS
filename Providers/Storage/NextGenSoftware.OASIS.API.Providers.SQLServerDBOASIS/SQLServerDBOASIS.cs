@@ -1,0 +1,670 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+
+namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS
+{
+    /// <summary>
+    /// OASIS provider for Microsoft SQL Server (and Azure SQL).
+    ///
+    /// Uses ADO.NET (Microsoft.Data.SqlClient) with two tables:
+    ///   OASISAvatars  — Id, Username, Email, IsDeleted, DataJson (NVARCHAR(MAX))
+    ///   OASISHolons   — Id, ParentHolonId, HolonType, IsDeleted, DataJson (NVARCHAR(MAX))
+    ///
+    /// The DataJson column holds the full JSON-serialised OASIS object, so every
+    /// interface method can round-trip the complete object without a generated ORM model.
+    /// Indexed columns (Id, Username, Email, ParentHolonId) serve fast key lookups.
+    ///
+    /// Compatible with SQL Server 2016+ and Azure SQL Database / Azure SQL Managed Instance.
+    /// Pass a standard SQL Server connection string (e.g. from appsettings.json or environment).
+    /// </summary>
+    public class SQLServerDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    {
+        private readonly string _connectionString;
+
+        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        private const string CreateAvatarsTable = @"
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='OASISAvatars' AND xtype='U')
+CREATE TABLE OASISAvatars (
+    Id          UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    Username    NVARCHAR(256)    NOT NULL DEFAULT '',
+    Email       NVARCHAR(256)    NOT NULL DEFAULT '',
+    IsDeleted   BIT              NOT NULL DEFAULT 0,
+    CreatedDate DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
+    ModifiedDate DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    DataJson    NVARCHAR(MAX)    NOT NULL
+);
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISAvatars_Username')
+    CREATE INDEX IX_OASISAvatars_Username ON OASISAvatars(Username);
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISAvatars_Email')
+    CREATE INDEX IX_OASISAvatars_Email ON OASISAvatars(Email);";
+
+        private const string CreateAvatarDetailsTable = @"
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='OASISAvatarDetails' AND xtype='U')
+CREATE TABLE OASISAvatarDetails (
+    Id          UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    Username    NVARCHAR(256)    NOT NULL DEFAULT '',
+    Email       NVARCHAR(256)    NOT NULL DEFAULT '',
+    DataJson    NVARCHAR(MAX)    NOT NULL
+);";
+
+        private const string CreateHolonsTable = @"
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='OASISHolons' AND xtype='U')
+CREATE TABLE OASISHolons (
+    Id             UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    ParentHolonId  UNIQUEIDENTIFIER NULL,
+    HolonType      INT              NOT NULL DEFAULT 0,
+    IsDeleted      BIT              NOT NULL DEFAULT 0,
+    CreatedDate    DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
+    ModifiedDate   DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
+    DataJson       NVARCHAR(MAX)    NOT NULL
+);
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_ParentHolonId')
+    CREATE INDEX IX_OASISHolons_ParentHolonId ON OASISHolons(ParentHolonId);
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_HolonType')
+    CREATE INDEX IX_OASISHolons_HolonType ON OASISHolons(HolonType);";
+
+        public SQLServerDBOASIS(string connectionString)
+        {
+            _connectionString = connectionString;
+            ProviderName = "SQLServerDBOASIS";
+            ProviderDescription = "Microsoft SQL Server provider (ADO.NET, JSON blob storage per row)";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SQLServerDBOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+        }
+
+        // ─── Activation ───────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                foreach (string ddl in new[] { CreateAvatarsTable, CreateAvatarDetailsTable, CreateHolonsTable })
+                {
+                    await using var cmd = new SqlCommand(ddl, conn);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "SQLServerDBOASIS activated — tables created/verified.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error activating provider — {ex.Message}");
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SQLServerDBOASIS deactivated." });
+
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+
+        // ─── ADO helpers ──────────────────────────────────────────────────────────
+
+        private SqlConnection OpenConnection() => new SqlConnection(_connectionString);
+
+        private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
+
+        private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
+
+        // ─── Avatar saving ────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
+                if (avatar.ProviderUniqueStorageKey == null)
+                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SQLServerDBOASIS] = avatar.Id.ToString();
+
+                const string sql = @"
+MERGE OASISAvatars AS target
+USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
+WHEN MATCHED THEN
+    UPDATE SET Username=@Username, Email=@Email, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
+WHEN NOT MATCHED THEN
+    INSERT (Id,Username,Email,IsDeleted,DataJson) VALUES (@Id,@Username,@Email,@IsDeleted,@DataJson);";
+
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Id", avatar.Id);
+                cmd.Parameters.AddWithValue("@Username", (object?)avatar.Username ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Email", (object?)avatar.Email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@IsDeleted", avatar.IsDeleted);
+                cmd.Parameters.AddWithValue("@DataJson", Serialize(avatar));
+                await cmd.ExecuteNonQueryAsync();
+
+                result.Result = avatar;
+                result.IsError = false;
+                result.Message = $"SQLServerDBOASIS: Avatar '{avatar.Username}' saved.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving avatar '{avatar.Username}': {ex.Message}");
+            }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
+
+        // ─── Avatar loading ───────────────────────────────────────────────────────
+
+        private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value)
+        {
+            string sql = $"SELECT DataJson FROM OASISAvatars WHERE {column}=@val AND IsDeleted=0";
+            await using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@val", value);
+            var scalar = await cmd.ExecuteScalarAsync();
+            if (scalar == null || scalar == DBNull.Value) return null;
+            return Deserialize<Avatar>(scalar.ToString()!);
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var avatar = await LoadAvatarByColumnAsync("Id", id);
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar found with ID '{id}'."); return result; }
+                result.Result = avatar; result.IsError = false; result.Message = $"SQLServerDBOASIS: Avatar loaded for ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var avatar = await LoadAvatarByColumnAsync("Username", username);
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar found with username '{username}'."); return result; }
+                result.Result = avatar; result.IsError = false; result.Message = $"SQLServerDBOASIS: Avatar loaded for username '{username}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0) => LoadAvatarByUsernameAsync(username, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadAvatarAsync(id, version);
+            var result = new OASISResult<IAvatar>();
+            OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var avatars = new List<IAvatar>();
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatars WHERE IsDeleted=0", conn);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var avatar = Deserialize<Avatar>(reader.GetString(0));
+                    if (avatar != null) avatars.Add(avatar);
+                }
+                result.Result = avatars; result.IsError = false; result.Message = $"SQLServerDBOASIS: Loaded {avatars.Count} avatar(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading all avatars: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
+
+        // ─── Avatar deletion ──────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                string sql = softDelete
+                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=@Id"
+                    : "DELETE FROM OASISAvatars WHERE Id=@Id";
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                int rows = await cmd.ExecuteNonQueryAsync();
+                result.Result = rows > 0; result.IsError = !result.Result;
+                result.Message = result.Result
+                    ? $"SQLServerDBOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted."
+                    : $"SQLServerDBOASIS: No avatar found with ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                string sql = softDelete
+                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Username=@Username"
+                    : "DELETE FROM OASISAvatars WHERE Username=@Username";
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                int rows = await cmd.ExecuteNonQueryAsync();
+                result.Result = rows > 0; result.IsError = !result.Result;
+                result.Message = result.Result
+                    ? $"SQLServerDBOASIS: Avatar '{username}' {(softDelete ? "soft" : "hard")}-deleted."
+                    : $"SQLServerDBOASIS: No avatar found with username '{username}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar by username '{username}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                string sql = softDelete
+                    ? "UPDATE OASISAvatars SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Email=@Email"
+                    : "DELETE FROM OASISAvatars WHERE Email=@Email";
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Email", email);
+                int rows = await cmd.ExecuteNonQueryAsync();
+                result.Result = rows > 0; result.IsError = !result.Result;
+                result.Message = result.Result
+                    ? $"SQLServerDBOASIS: Avatar with email '{email}' {(softDelete ? "soft" : "hard")}-deleted."
+                    : $"SQLServerDBOASIS: No avatar found with email '{email}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting avatar by email '{email}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
+
+        // ─── AvatarDetail ─────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
+                const string sql = @"
+MERGE OASISAvatarDetails AS target
+USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
+WHEN MATCHED THEN UPDATE SET Username=@Username, Email=@Email, DataJson=@DataJson
+WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,@Email,@DataJson);";
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Id", avatarDetail.Id);
+                cmd.Parameters.AddWithValue("@Username", (object?)avatarDetail.Username ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Email", (object?)avatarDetail.Email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@DataJson", Serialize(avatarDetail));
+                await cmd.ExecuteNonQueryAsync();
+                result.Result = avatarDetail; result.IsError = false; result.Message = "SQLServerDBOASIS: AvatarDetail saved.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving avatar detail: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails WHERE Id=@Id", conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                var scalar = await cmd.ExecuteScalarAsync();
+                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for ID '{id}'."); return result; }
+                result.Result = Deserialize<AvatarDetail>(scalar.ToString()!); result.IsError = false; result.Message = $"SQLServerDBOASIS: AvatarDetail loaded for ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails WHERE Username=@Username", conn);
+                cmd.Parameters.AddWithValue("@Username", username);
+                var scalar = await cmd.ExecuteScalarAsync();
+                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for username '{username}'."); return result; }
+                result.Result = Deserialize<AvatarDetail>(scalar.ToString()!); result.IsError = false; result.Message = $"SQLServerDBOASIS: AvatarDetail loaded for username '{username}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) => LoadAvatarDetailByUsernameAsync(username, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails WHERE Email=@Email", conn);
+                cmd.Parameters.AddWithValue("@Email", email);
+                var scalar = await cmd.ExecuteScalarAsync();
+                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for email '{email}'."); return result; }
+                result.Result = Deserialize<AvatarDetail>(scalar.ToString()!); result.IsError = false; result.Message = $"SQLServerDBOASIS: AvatarDetail loaded for email '{email}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                var details = new List<IAvatarDetail>();
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails", conn);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var detail = Deserialize<AvatarDetail>(reader.GetString(0));
+                    if (detail != null) details.Add(detail);
+                }
+                result.Result = details; result.IsError = false; result.Message = $"SQLServerDBOASIS: Loaded {details.Count} avatar detail(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading all avatar details: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
+
+        // ─── Holon saving ─────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+                if (holon.ProviderUniqueStorageKey == null)
+                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SQLServerDBOASIS] = holon.Id.ToString();
+
+                const string sql = @"
+MERGE OASISHolons AS target
+USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
+WHEN MATCHED THEN
+    UPDATE SET ParentHolonId=@ParentHolonId, HolonType=@HolonType, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
+WHEN NOT MATCHED THEN
+    INSERT (Id,ParentHolonId,HolonType,IsDeleted,DataJson) VALUES (@Id,@ParentHolonId,@HolonType,@IsDeleted,@DataJson);";
+
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Id", holon.Id);
+                cmd.Parameters.AddWithValue("@ParentHolonId", holon.ParentHolonId == Guid.Empty ? (object)DBNull.Value : holon.ParentHolonId);
+                cmd.Parameters.AddWithValue("@HolonType", (int)holon.HolonType);
+                cmd.Parameters.AddWithValue("@IsDeleted", holon.IsDeleted);
+                cmd.Parameters.AddWithValue("@DataJson", Serialize(holon));
+                await cmd.ExecuteNonQueryAsync();
+
+                result.Result = holon; result.IsError = false; result.Message = $"SQLServerDBOASIS: Holon '{holon.Name}' saved.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>(); var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (r.IsError) errors.Add(r.Message); else saved.Add(r.Result!);
+            }
+            result.Result = saved; result.IsError = errors.Count > 0;
+            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"SQLServerDBOASIS: {saved.Count} holon(s) saved.";
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        // ─── Holon loading ────────────────────────────────────────────────────────
+
+        private async Task<Holon?> LoadHolonByColumnAsync(string column, object value)
+        {
+            string sql = $"SELECT DataJson FROM OASISHolons WHERE {column}=@val AND IsDeleted=0";
+            await using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@val", value);
+            var scalar = await cmd.ExecuteScalarAsync();
+            if (scalar == null || scalar == DBNull.Value) return null;
+            return Deserialize<Holon>(scalar.ToString()!);
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holon = await LoadHolonByColumnAsync("Id", id);
+                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No holon found with ID '{id}'."); return result; }
+                result.Result = holon; result.IsError = false; result.Message = $"SQLServerDBOASIS: Holon loaded for ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading holon '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            var result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var holons = new List<IHolon>();
+                string sql = holonType == HolonType.All
+                    ? "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0"
+                    : "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND HolonType=@HolonType";
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(sql, conn);
+                if (holonType != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)holonType);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var holon = Deserialize<Holon>(reader.GetString(0));
+                    if (holon != null) holons.Add(holon);
+                }
+                result.Result = holons; result.IsError = false; result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading all holons: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var holons = new List<IHolon>();
+                string sql = holonType == HolonType.All
+                    ? "SELECT DataJson FROM OASISHolons WHERE ParentHolonId=@ParentHolonId AND IsDeleted=0"
+                    : "SELECT DataJson FROM OASISHolons WHERE ParentHolonId=@ParentHolonId AND IsDeleted=0 AND HolonType=@HolonType";
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ParentHolonId", id);
+                if (holonType != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)holonType);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var holon = Deserialize<Holon>(reader.GetString(0));
+                    if (holon != null) holons.Add(holon);
+                }
+                result.Result = holons; result.IsError = false; result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider);
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+
+        // ─── Holon deletion ───────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                string sql = softDelete
+                    ? "UPDATE OASISHolons SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=@Id"
+                    : "DELETE FROM OASISHolons WHERE Id=@Id";
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                int rows = await cmd.ExecuteNonQueryAsync();
+                result.Result = rows > 0; result.IsError = !result.Result;
+                result.Message = result.Result ? $"SQLServerDBOASIS: Holon '{id}' {(softDelete ? "soft" : "hard")}-deleted." : $"SQLServerDBOASIS: No holon found with ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error deleting holon '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true) => DeleteHolonAsync(id, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteHolonAsync(id, softDelete);
+            var result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true) => DeleteHolonAsync(providerKey, softDelete).Result;
+
+        // ─── Search ───────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                // Use SQL Server's JSON_VALUE to search name/description without deserialising in .NET
+                const string sql = @"
+SELECT DataJson FROM OASISHolons WHERE IsDeleted=0
+AND (JSON_VALUE(DataJson,'$.name') LIKE @Query OR JSON_VALUE(DataJson,'$.description') LIKE @Query)";
+                var holons = new List<IHolon>();
+                await using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Query", $"%{searchParams.SearchQuery}%");
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var holon = Deserialize<Holon>(reader.GetString(0));
+                    if (holon != null) holons.Add(holon);
+                }
+                result.Result = new SearchResults { Holons = holons };
+                result.IsError = false;
+                result.Message = $"SQLServerDBOASIS: Found {holons.Count} holon(s) matching '{searchParams.SearchQuery}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error during search: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+    }
+}
