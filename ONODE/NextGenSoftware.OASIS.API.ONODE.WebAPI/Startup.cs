@@ -184,6 +184,10 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>NostrOASIS</b> - Nostr Decentralised Social Protocol Provider (BIP-340 Schnorr signing, WebSocket relay).</li>
 <li><b>LensOASIS</b> - Lens Protocol v2 Decentralised Social Graph Provider (Polygon/Lens Network, GraphQL).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
+<li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
+<li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
+<li><b>SQLServerDBOASIS</b> - Microsoft SQL Server Provider (ADO.NET, MERGE upserts, JSON_VALUE search).</li>
+<li><b>OracleDBOASIS</b> - Oracle Database Provider (Oracle.ManagedDataAccess.Core, CLOB JSON, Oracle MERGE).</li>
 
 </ul>
 

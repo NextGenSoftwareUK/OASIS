@@ -82,6 +82,10 @@ _Last updated: 2026-08-21_
 | Farcaster | FarcasterOASIS |
 | Nostr | NostrOASIS |
 | Lens Protocol | LensOASIS |
+| Stellar | StellarOASIS |
+| Azure Blob Storage | AzureStorageOASIS |
+| SQL Server | SQLServerDBOASIS |
+| Oracle Database | OracleDBOASIS |
 | Orion Protocol (DEX) | OrionProtocolOASIS |
 | Tor / Onion | ONION-Protocol |
 | Moralis | MoralisOASIS |
@@ -203,6 +207,10 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 5 | Nostr | Social/Identity | Low (WebSocket relays) | High | **Done** |
 | 6 | Lens Protocol | Social Graph | Low (GraphQL) | Medium | **Done** |
 | 6a | Urbit | P2P OS | Low (HTTP airlock) | Medium | **Done** |
+| 6b | Stellar | Blockchain | Low (Horizon REST) | High | **Done** |
+| 6c | Azure Blob Storage | Cloud | Low (Azure.Storage.Blobs) | High | **Done** |
+| 6d | SQL Server | Storage/DB | Low (ADO.NET) | High | **Done** |
+| 6e | Oracle Database | Storage/DB | Low (ADO.NET) | High | **Done** |
 | 7 | World ID | Identity | Medium (ZK proofs) | High | Soon |
 | 8 | Story Protocol | IP / NFT | Medium | Medium | Next quarter |
 | 9 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next quarter |

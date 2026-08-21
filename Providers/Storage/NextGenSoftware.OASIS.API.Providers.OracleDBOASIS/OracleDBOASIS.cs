@@ -1,0 +1,644 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Oracle.ManagedDataAccess.Client;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+
+namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS
+{
+    /// <summary>
+    /// OASIS provider for Oracle Database (12c+ / Autonomous Database).
+    ///
+    /// Uses Oracle.ManagedDataAccess.Core (ADO.NET) with three tables:
+    ///   OASIS_AVATARS        — ID (RAW 16), USERNAME, EMAIL, IS_DELETED, DATA_JSON (CLOB)
+    ///   OASIS_AVATAR_DETAILS — ID (RAW 16), USERNAME, EMAIL, DATA_JSON (CLOB)
+    ///   OASIS_HOLONS         — ID (RAW 16), PARENT_HOLON_ID, HOLON_TYPE, IS_DELETED, DATA_JSON (CLOB)
+    ///
+    /// The DATA_JSON CLOB column holds the full JSON-serialised OASIS object so every
+    /// interface method round-trips the complete object without a generated ORM model.
+    /// Indexed columns (ID, USERNAME, EMAIL, PARENT_HOLON_ID) serve fast key lookups.
+    ///
+    /// Pass a standard Oracle connection string, e.g.:
+    ///   "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=myhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=myservice)));User Id=myuser;Password=mypassword;"
+    /// For Oracle Autonomous Database use the wallet-based connection string from the OCI console.
+    /// </summary>
+    public class OracleDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    {
+        private readonly string _connectionString;
+
+        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        public OracleDBOASIS(string connectionString)
+        {
+            _connectionString = connectionString;
+            ProviderName = "OracleDBOASIS";
+            ProviderDescription = "Oracle Database provider (ADO.NET, JSON blob storage per row via CLOB)";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OracleDBOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+        }
+
+        // ─── Activation ───────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+
+                // Create tables only if they do not exist (PL/SQL anonymous block)
+                string[] ddlBlocks = new[]
+                {
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_AVATARS (
+    ID           RAW(16)        DEFAULT SYS_GUID() NOT NULL PRIMARY KEY,
+    USERNAME     VARCHAR2(256)  DEFAULT '''' NOT NULL,
+    EMAIL        VARCHAR2(256)  DEFAULT '''' NOT NULL,
+    IS_DELETED   NUMBER(1)      DEFAULT 0 NOT NULL,
+    CREATED_DATE TIMESTAMP      DEFAULT SYSTIMESTAMP NOT NULL,
+    MODIFIED_DATE TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
+    DATA_JSON    CLOB           NOT NULL
+  )';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX IDX_OASIS_AVT_USERNAME ON OASIS_AVATARS(USERNAME)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX IDX_OASIS_AVT_EMAIL ON OASIS_AVATARS(EMAIL)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_AVATAR_DETAILS (
+    ID        RAW(16)       DEFAULT SYS_GUID() NOT NULL PRIMARY KEY,
+    USERNAME  VARCHAR2(256) DEFAULT '''' NOT NULL,
+    EMAIL     VARCHAR2(256) DEFAULT '''' NOT NULL,
+    DATA_JSON CLOB          NOT NULL
+  )';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_HOLONS (
+    ID              RAW(16)       DEFAULT SYS_GUID() NOT NULL PRIMARY KEY,
+    PARENT_HOLON_ID RAW(16)       NULL,
+    HOLON_TYPE      NUMBER(10)    DEFAULT 0 NOT NULL,
+    IS_DELETED      NUMBER(1)     DEFAULT 0 NOT NULL,
+    CREATED_DATE    TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
+    MODIFIED_DATE   TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
+    DATA_JSON       CLOB          NOT NULL
+  )';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX IDX_OASIS_HLN_PARENT ON OASIS_HOLONS(PARENT_HOLON_ID)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
+
+                    @"BEGIN
+  EXECUTE IMMEDIATE 'CREATE INDEX IDX_OASIS_HLN_TYPE ON OASIS_HOLONS(HOLON_TYPE)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
+                };
+
+                foreach (string block in ddlBlocks)
+                {
+                    await using var cmd = new OracleCommand(block, conn);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "OracleDBOASIS activated — tables created/verified.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error activating provider — {ex.Message}");
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "OracleDBOASIS deactivated." });
+
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+
+        // ─── ADO helpers ──────────────────────────────────────────────────────────
+
+        private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
+        private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
+
+        // Oracle stores GUIDs as RAW(16); convert to/from byte arrays.
+        private static byte[] GuidToRaw(Guid id) => id.ToByteArray();
+        private static Guid RawToGuid(byte[] raw) => new Guid(raw);
+
+        // ─── Avatar saving ────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
+                if (avatar.ProviderUniqueStorageKey == null)
+                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = avatar.Id.ToString();
+
+                const string sql = @"
+MERGE INTO OASIS_AVATARS tgt
+USING (SELECT :Id AS ID FROM DUAL) src ON (tgt.ID = src.ID)
+WHEN MATCHED THEN
+  UPDATE SET tgt.USERNAME=:Username, tgt.EMAIL=:Email, tgt.IS_DELETED=:IsDeleted,
+             tgt.MODIFIED_DATE=SYSTIMESTAMP, tgt.DATA_JSON=:DataJson
+WHEN NOT MATCHED THEN
+  INSERT (ID,USERNAME,EMAIL,IS_DELETED,DATA_JSON)
+  VALUES (:Id,:Username,:Email,:IsDeleted,:DataJson)";
+
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(avatar.Id);
+                cmd.Parameters.Add("Username", OracleDbType.Varchar2).Value = avatar.Username ?? "";
+                cmd.Parameters.Add("Email", OracleDbType.Varchar2).Value = avatar.Email ?? "";
+                cmd.Parameters.Add("IsDeleted", OracleDbType.Int32).Value = avatar.IsDeleted ? 1 : 0;
+                cmd.Parameters.Add("DataJson", OracleDbType.Clob).Value = Serialize(avatar);
+                await cmd.ExecuteNonQueryAsync();
+
+                result.Result = avatar; result.IsError = false;
+                result.Message = $"OracleDBOASIS: Avatar '{avatar.Username}' saved.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar '{avatar.Username}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
+
+        // ─── Avatar loading ───────────────────────────────────────────────────────
+
+        private async Task<Avatar?> LoadAvatarByColumnAsync(string column, OracleDbType type, object value)
+        {
+            string sql = $"SELECT DATA_JSON FROM OASIS_AVATARS WHERE {column}=:val AND IS_DELETED=0 AND ROWNUM=1";
+            await using var conn = new OracleConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new OracleCommand(sql, conn);
+            cmd.Parameters.Add("val", type).Value = value;
+            var scalar = await cmd.ExecuteScalarAsync();
+            if (scalar == null || scalar == DBNull.Value) return null;
+            return Deserialize<Avatar>(scalar.ToString()!);
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var avatar = await LoadAvatarByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id));
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar found with ID '{id}'."); return result; }
+                result.Result = avatar; result.IsError = false; result.Message = $"OracleDBOASIS: Avatar loaded for ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var avatar = await LoadAvatarByColumnAsync("USERNAME", OracleDbType.Varchar2, username);
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar found with username '{username}'."); return result; }
+                result.Result = avatar; result.IsError = false; result.Message = $"OracleDBOASIS: Avatar loaded for username '{username}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0) => LoadAvatarByUsernameAsync(username, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadAvatarAsync(id, version);
+            var result = new OASISResult<IAvatar>();
+            OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var avatars = new List<IAvatar>();
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand("SELECT DATA_JSON FROM OASIS_AVATARS WHERE IS_DELETED=0", conn);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var avatar = Deserialize<Avatar>(reader.GetString(0));
+                    if (avatar != null) avatars.Add(avatar);
+                }
+                result.Result = avatars; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {avatars.Count} avatar(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading all avatars: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
+
+        // ─── Avatar deletion ──────────────────────────────────────────────────────
+
+        private async Task<OASISResult<bool>> DeleteAvatarByColumnAsync(string column, OracleDbType type, object value, bool softDelete, string label)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                string sql = softDelete
+                    ? $"UPDATE OASIS_AVATARS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE {column}=:val"
+                    : $"DELETE FROM OASIS_AVATARS WHERE {column}=:val";
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("val", type).Value = value;
+                int rows = await cmd.ExecuteNonQueryAsync();
+                result.Result = rows > 0; result.IsError = !result.Result;
+                result.Message = result.Result
+                    ? $"OracleDBOASIS: Avatar '{label}' {(softDelete ? "soft" : "hard")}-deleted."
+                    : $"OracleDBOASIS: No avatar found with {column}='{label}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error deleting avatar '{label}': {ex.Message}"); }
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => await DeleteAvatarByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id), softDelete, id.ToString());
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+            => await DeleteAvatarByColumnAsync("USERNAME", OracleDbType.Varchar2, username, softDelete, username);
+        public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+            => await DeleteAvatarByColumnAsync("EMAIL", OracleDbType.Varchar2, email, softDelete, email);
+        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
+
+        // ─── AvatarDetail ─────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
+                const string sql = @"
+MERGE INTO OASIS_AVATAR_DETAILS tgt
+USING (SELECT :Id AS ID FROM DUAL) src ON (tgt.ID = src.ID)
+WHEN MATCHED THEN UPDATE SET tgt.USERNAME=:Username, tgt.EMAIL=:Email, tgt.DATA_JSON=:DataJson
+WHEN NOT MATCHED THEN INSERT (ID,USERNAME,EMAIL,DATA_JSON) VALUES (:Id,:Username,:Email,:DataJson)";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(avatarDetail.Id);
+                cmd.Parameters.Add("Username", OracleDbType.Varchar2).Value = avatarDetail.Username ?? "";
+                cmd.Parameters.Add("Email", OracleDbType.Varchar2).Value = avatarDetail.Email ?? "";
+                cmd.Parameters.Add("DataJson", OracleDbType.Clob).Value = Serialize(avatarDetail);
+                await cmd.ExecuteNonQueryAsync();
+                result.Result = avatarDetail; result.IsError = false; result.Message = "OracleDBOASIS: AvatarDetail saved.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving avatar detail: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
+
+        private async Task<AvatarDetail?> LoadAvatarDetailByColumnAsync(string column, OracleDbType type, object value)
+        {
+            string sql = $"SELECT DATA_JSON FROM OASIS_AVATAR_DETAILS WHERE {column}=:val AND ROWNUM=1";
+            await using var conn = new OracleConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new OracleCommand(sql, conn);
+            cmd.Parameters.Add("val", type).Value = value;
+            var scalar = await cmd.ExecuteScalarAsync();
+            if (scalar == null || scalar == DBNull.Value) return null;
+            return Deserialize<AvatarDetail>(scalar.ToString()!);
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var detail = await LoadAvatarDetailByColumnAsync("ID", OracleDbType.Raw, GuidToRaw(id));
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for ID '{id}'."); return result; }
+                result.Result = detail; result.IsError = false; result.Message = $"OracleDBOASIS: AvatarDetail loaded for ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var detail = await LoadAvatarDetailByColumnAsync("USERNAME", OracleDbType.Varchar2, username);
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for username '{username}'."); return result; }
+                result.Result = detail; result.IsError = false; result.Message = $"OracleDBOASIS: AvatarDetail loaded for username '{username}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) => LoadAvatarDetailByUsernameAsync(username, version).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var detail = await LoadAvatarDetailByColumnAsync("EMAIL", OracleDbType.Varchar2, email);
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No avatar detail found for email '{email}'."); return result; }
+                result.Result = detail; result.IsError = false; result.Message = $"OracleDBOASIS: AvatarDetail loaded for email '{email}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                var details = new List<IAvatarDetail>();
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand("SELECT DATA_JSON FROM OASIS_AVATAR_DETAILS", conn);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var detail = Deserialize<AvatarDetail>(reader.GetString(0));
+                    if (detail != null) details.Add(detail);
+                }
+                result.Result = details; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {details.Count} avatar detail(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading all avatar details: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
+
+        // ─── Holon saving ─────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
+                if (holon.ProviderUniqueStorageKey == null)
+                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OracleDBOASIS] = holon.Id.ToString();
+
+                const string sql = @"
+MERGE INTO OASIS_HOLONS tgt
+USING (SELECT :Id AS ID FROM DUAL) src ON (tgt.ID = src.ID)
+WHEN MATCHED THEN
+  UPDATE SET tgt.PARENT_HOLON_ID=:ParentHolonId, tgt.HOLON_TYPE=:HolonType,
+             tgt.IS_DELETED=:IsDeleted, tgt.MODIFIED_DATE=SYSTIMESTAMP, tgt.DATA_JSON=:DataJson
+WHEN NOT MATCHED THEN
+  INSERT (ID,PARENT_HOLON_ID,HOLON_TYPE,IS_DELETED,DATA_JSON)
+  VALUES (:Id,:ParentHolonId,:HolonType,:IsDeleted,:DataJson)";
+
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(holon.Id);
+                cmd.Parameters.Add("ParentHolonId", OracleDbType.Raw).Value =
+                    holon.ParentHolonId == Guid.Empty ? (object)DBNull.Value : GuidToRaw(holon.ParentHolonId);
+                cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holon.HolonType;
+                cmd.Parameters.Add("IsDeleted", OracleDbType.Int32).Value = holon.IsDeleted ? 1 : 0;
+                cmd.Parameters.Add("DataJson", OracleDbType.Clob).Value = Serialize(holon);
+                await cmd.ExecuteNonQueryAsync();
+
+                result.Result = holon; result.IsError = false; result.Message = $"OracleDBOASIS: Holon '{holon.Name}' saved.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>(); var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (r.IsError) errors.Add(r.Message); else saved.Add(r.Result!);
+            }
+            result.Result = saved; result.IsError = errors.Count > 0;
+            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"OracleDBOASIS: {saved.Count} holon(s) saved.";
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        // ─── Holon loading ────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand("SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id AND IS_DELETED=0 AND ROWNUM=1", conn);
+                cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(id);
+                var scalar = await cmd.ExecuteScalarAsync();
+                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: No holon found with ID '{id}'."); return result; }
+                result.Result = Deserialize<Holon>(scalar.ToString()!); result.IsError = false; result.Message = $"OracleDBOASIS: Holon loaded for ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading holon '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            var result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var holons = new List<IHolon>();
+                string sql = holonType == HolonType.All
+                    ? "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0"
+                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND HOLON_TYPE=:HolonType";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                if (holonType != HolonType.All) cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holonType;
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var holon = Deserialize<Holon>(reader.GetString(0));
+                    if (holon != null) holons.Add(holon);
+                }
+                result.Result = holons; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {holons.Count} holon(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading all holons: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var holons = new List<IHolon>();
+                string sql = holonType == HolonType.All
+                    ? "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0"
+                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0 AND HOLON_TYPE=:HolonType";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
+                if (holonType != HolonType.All) cmd.Parameters.Add("HolonType", OracleDbType.Int32).Value = (int)holonType;
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var holon = Deserialize<Holon>(reader.GetString(0));
+                    if (holon != null) holons.Add(holon);
+                }
+                result.Result = holons; result.IsError = false; result.Message = $"OracleDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider);
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+
+        // ─── Holon deletion ───────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                string sql = softDelete
+                    ? "UPDATE OASIS_HOLONS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE ID=:Id"
+                    : "DELETE FROM OASIS_HOLONS WHERE ID=:Id";
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("Id", OracleDbType.Raw).Value = GuidToRaw(id);
+                int rows = await cmd.ExecuteNonQueryAsync();
+                result.Result = rows > 0; result.IsError = !result.Result;
+                result.Message = result.Result
+                    ? $"OracleDBOASIS: Holon '{id}' {(softDelete ? "soft" : "hard")}-deleted."
+                    : $"OracleDBOASIS: No holon found with ID '{id}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error deleting holon '{id}': {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true) => DeleteHolonAsync(id, softDelete).Result;
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteHolonAsync(id, softDelete);
+            var result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true) => DeleteHolonAsync(providerKey, softDelete).Result;
+
+        // ─── Search ───────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                // Use Oracle JSON_VALUE to search name/description in-database
+                const string sql = @"
+SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0
+AND (JSON_VALUE(DATA_JSON, '$.name') LIKE :Query
+  OR JSON_VALUE(DATA_JSON, '$.description') LIKE :Query)";
+                var holons = new List<IHolon>();
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add("Query", OracleDbType.Varchar2).Value = $"%{searchParams.SearchQuery}%";
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var holon = Deserialize<Holon>(reader.GetString(0));
+                    if (holon != null) holons.Add(holon);
+                }
+                result.Result = new SearchResults { Holons = holons };
+                result.IsError = false;
+                result.Message = $"OracleDBOASIS: Found {holons.Count} holon(s) matching '{searchParams.SearchQuery}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Error during search: {ex.Message}"); }
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+    }
+}
