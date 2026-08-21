@@ -81,6 +81,7 @@ _Last updated: 2026-08-21_
 | Telegram | TelegramOASIS |
 | Farcaster | FarcasterOASIS |
 | Nostr | NostrOASIS |
+| Lens Protocol | LensOASIS |
 | Orion Protocol (DEX) | OrionProtocolOASIS |
 | Tor / Onion | ONION-Protocol |
 | Moralis | MoralisOASIS |
@@ -198,9 +199,10 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 1 | Arweave | Storage | Low (REST API) | High | **NOW** |
 | 2 | Abstract | EVM L2 | Very Low (extends Web3Core) | Very High | **NOW** |
 | 3 | Berachain | EVM L1 | Very Low (extends Web3Core) | Very High | **NOW** |
-| 4 | Farcaster | Social | Medium (gRPC/HTTP) | High | Soon |
-| 5 | Nostr | Social/Identity | Low (WebSocket relays) | High | Soon |
-| 6 | Lens Protocol | Social Graph | Low (GraphQL) | Medium | Soon |
+| 4 | Farcaster | Social | Medium (gRPC/HTTP) | High | **Done** |
+| 5 | Nostr | Social/Identity | Low (WebSocket relays) | High | **Done** |
+| 6 | Lens Protocol | Social Graph | Low (GraphQL) | Medium | **Done** |
+| 6a | Urbit | P2P OS | Low (HTTP airlock) | Medium | **Done** |
 | 7 | World ID | Identity | Medium (ZK proofs) | High | Soon |
 | 8 | Story Protocol | IP / NFT | Medium | Medium | Next quarter |
 | 9 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next quarter |
