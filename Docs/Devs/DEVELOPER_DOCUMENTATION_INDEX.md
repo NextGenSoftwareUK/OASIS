@@ -1,4 +1,4 @@
-# OASIS & STARNET Developer Documentation Index
+﻿# OASIS & STARNET Developer Documentation Index
 
 ## 📋 **Complete Developer Documentation Guide**
 
@@ -6,11 +6,61 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 
 ## 🏗️ **Architecture Overview**
 
+### **OASIS Omniverse — OGames, Hub & HUD**
+
+> All Omniverse-specific docs live under [`OASIS Omniverse/Docs/`](../../OASIS%20Omniverse/Docs/). The **[OASIS Omniverse README](../../OASIS%20Omniverse/README.md)** is the entry-point index for everything game-integration related. The **[OASIS Omniverse Developer Documentation Index](../../OASIS%20Omniverse/Docs/DEVELOPER_DOCUMENTATION_INDEX.md)** lists every doc in that folder.
+
+**Getting started & build**
+- **[Getting Started — Windows](../../OASIS%20Omniverse/Docs/GettingStarted_Windows.md)** — Prerequisites, clone, build all 10 OGames on Windows
+- **[Getting Started — Linux](../../OASIS%20Omniverse/Docs/GettingStarted_Linux.md)** — Linux build
+- **[Getting Started — macOS](../../OASIS%20Omniverse/Docs/GettingStarted_Mac.md)** — macOS build
+- **[Developer Onboarding](../../OASIS%20Omniverse/Docs/DEVELOPER_ONBOARDING.md)** — Repos, tools, build/run scripts, `oasisstar.json` quick ref
+- **[Quick Start](../../OASIS%20Omniverse/Docs/QUICKSTART.md)** — Minimal build + run checklist
+
+**Architecture & integration**
+- **[OGEngine Overview](../../OASIS%20Omniverse/Docs/OGEngine_Overview.md)** — WEB4/WEB5 APIs, OGEngineClient, GeoHotSpots, quest handoff
+- **[OGEngine Vision & Roadmap](../../OASIS%20Omniverse/Docs/OGENGINE_VISION_AND_ROADMAP.md)** — Phases, integration status for all 10 OGames, cross-game teleport/spawn/quest/GeoHotSpot progress
+- **[Architecture](../../OASIS%20Omniverse/Docs/ARCHITECTURE.md)** — Client-centric design, layers, porting checklist
+- **[Integration Guide](../../OASIS%20Omniverse/Docs/INTEGRATION_GUIDE.md)** — Cross-game items, quests, API usage, phases, troubleshooting
+- **[STAR Integration Audit](../../OASIS%20Omniverse/Docs/STAR_INTEGRATION_AUDIT.md)** — Integration audit (sync vs C implementation across all 10 games)
+- **[Cross-Game Powerup & Weapon Map](../../OASIS%20Omniverse/Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md)** — Canonical item IDs and cross-game mappings
+
+**Hub & HUD overlay (Unity)**
+- **[HUD User Guide](../../OASIS%20Omniverse/Docs/OMNIVERSE_HUD_USER_GUIDE.md)** — Player guide: all 9 Control Center tabs, hotkeys, preset system, toast notifications, runtime status strip, Return to Hub, Quest Tracker mini-HUD
+- **[HUD Developer Guide](../../OASIS%20Omniverse/Docs/OMNIVERSE_HUD_DEVELOPER_GUIDE.md)** — `SharedHudOverlay.cs` architecture, class relationships, tab data flow, toast system, panel layout persistence, Win32 hotkey detection, preset internals, extension guide
+
+**Quests & story**
+- **[STAR Quest System — Developer Guide](../../OASIS%20Omniverse/Docs/STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, OGEngineClient, `ogengine_*`, extending games
+- **[STAR Games — User Guide](../../OASIS%20Omniverse/Docs/STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for all 10 OGames
+- **[ODOOM Quest List + STAR](../../OASIS%20Omniverse/Docs/ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
+- **[Phase 2 Quest System](../../OASIS%20Omniverse/Docs/PHASE2_QUEST_SYSTEM.md)** — Quest system design
+
+**OGEngine Editor (UDB + companion editors)**
+- **[OGEditor Integration Roadmap](../../OASIS%20Omniverse/Docs/OGEDITOR_INTEGRATION_ROADMAP.md)** — Editor suite roadmap and status
+- **[OGEditor Plugin Guide](../../OASIS%20Omniverse/Docs/OGEDITOR_PLUGIN_GUIDE.md)** — Writing plugins for UDB, TrenchBroom, DarkRadiant, NetRadiant, Mapster32
+- **[OGEditor Portal System](../../OASIS%20Omniverse/Docs/OGEDITOR_PORTAL_SYSTEM.md)** — Portal entity placement, sidecar format, cross-game links
+- **[OGEditor Asset Catalog](../../OASIS%20Omniverse/Docs/OGEDITOR_ASSET_CATALOG.md)** — 140-asset cross-game catalog, `OGEditorClient.dll` C ABI
+- **[OGEditor Map Format SDK](../../OASIS%20Omniverse/Docs/OGEDITOR_MAPFORMAT_SDK.md)** — `oasis_{map}.json` sidecar format, bidirectional entity conversion
+
+**Native library & build**
+- **[ODOOM / UZDoom Build Sync](../../OASIS%20Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md)** — ODOOM build sync, copy step, `ogengine.dll` / `libstar_api.so` deploy
+- **[STAR API Native Transport Architecture](../../OASIS%20Omniverse/Docs/STAR_API_Native_Transport_Architecture.md)** — `star_transport` native vs remote, NativeAOT size/performance
+- **[Best Ports & Editors](../../OASIS%20Omniverse/Docs/BEST_PORTS_AND_EDITORS.md)** — Recommended engine forks and editor choices per OGame
+
 ### **System Architecture**
-- **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
+- **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture (WEB4–WEB10)
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
-- **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration
+- **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 + WEB6 integration
 - **[Current Implementation Status](../CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
+
+### **WEB6 OASIS AI API — The Intelligence Layer** *(Live July 2026)*
+- **[WEB6 Getting Started Guide](./API%20Documentation/WEB6/WEB6-Getting-Started-Guide.md)** - **Start here** — quickstart, 26+ providers, OpenAI-compat drop-in, migration phases, cost savings
+- **[WEB6 REST API Reference](./API%20Documentation/WEB6/WEB6_REST_API_Reference.md)** - Full endpoint docs — REST, gRPC (6 services), GraphQL (HotChocolate)
+- **[WEB6 MCP Tool Reference](./API%20Documentation/WEB6/WEB6_MCP_Tool_Reference.md)** - All 250 MCP tools — parameters and return values
+- **[WEB6 User Guide](./API%20Documentation/WEB6/WEB6_User_Guide.md)** - FAHRN, SkillOpt, Holonic Memory, DID/VC, Karma-Gated AI, common workflows
+- **[WEB6 Leela AI Integration Guide](./API%20Documentation/WEB6/WEB6-Leela-AI-Integration-Guide.md)** - Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage
+- **[npm: @oasisomniverse/web6-api](https://www.npmjs.com/package/@oasisomniverse/web6-api)** - v2.0.0 JS/TS client (14 modules, 40 operations)
+- **Swagger UI**: `https://api.web6.oasisomniverse.one/swagger` — live interactive API explorer
 
 ### **Core Managers & Systems**
 - **[OASIS Managers Complete Guide](./OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)
@@ -39,6 +89,12 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
   - Legacy (v1): Auto-Replication, Auto-Failover
   - OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Intelligent Selection (latency-first), Predictive Failover, Enhanced Replication Rules (provider/data-type/schedule/cost/permissions), Advanced Analytics, Subscription-aware quotas & alerts, Mode switch with v2→v1 fallback
   - Docs: [README HyperDrive section](../../README.md), [HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)
+  - **HyperDrive Client** (desktop tray app): [Architecture & Reference Manual](./OASIS-HyperDrive-Client.md)
+- **ONODE Manager**: Cross-platform desktop tray app for managing OASIS Web4–Web10 node services *(Alpha)*
+  - Avalonia UI 11.3 / .NET 10, real-time LiveCharts2 metrics, Velopack auto-update, SQLite 24h history
+  - Remote control via OPORTAL using the CommandHolon bridge pattern (~6s round-trip)
+  - Docs: [Architecture & Operations Manual](./API%20Documentation/ONODE-Manager-Architecture.md)
+  - Download (Alpha): [GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0)
 - **ONET (OASIS Network)**: Revolutionary decentralized networking layer with intelligent discovery, routing, consensus, and security
   - Multi-Protocol Discovery: DHT (Kademlia), mDNS, blockchain, and bootstrap discovery
   - Intelligent Routing: Dijkstra, A*, BFS algorithms with adaptive load balancing
@@ -66,6 +122,8 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)** - Complete HyperDrive documentation
 - **Features**: 100% uptime, auto-failover, auto-load balancing, auto-replication
 - **Benefits**: Impossible to shutdown, intelligent routing, geographic optimization
+- **[OASIS HyperDrive Client — Design Spec](./OASIS-HyperDrive-Client-Design-Spec.md)** - Cross-platform system-tray desktop client design specification (Avalonia UI, .NET 10)
+- **[OASIS HyperDrive Client — Implementation Reference](./OASIS-HyperDrive-Client-Implementation.md)** - Full implementation reference: solution layout, services, key decisions, build & test
 
 ### **OASIS COSMIC ORM**
 - **[OASIS COSMIC ORM Documentation](../OASIS_COSMIC_ORM_DOCUMENTATION.md)** - Complete COSMIC ORM guide
@@ -90,8 +148,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - Solana Superteam UK: AR World Phygital game with geo-cached Solana NFTs
 
 ### **STAR CLI - Revolutionary Interoperable Low/No Code Generator**
-- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI guide
+- **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - **Hub doc**: users & devs, Light/templating, `IOASISSuperStar` / NativeCodeGenesis, STARNET store, non-interactive & AI/MCP scripting (links out to detail docs)
+- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI command tables and reference
 - **[STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md)** - Quick start tutorial
+- **[STAR CLI: Non-interactive & JSON](./STAR_CLI_NonInteractive.md)** - `--non-interactive`, `--json`, scripted create, exit codes, contributor patterns
+- **[STAR CLI: AI session handoff](./STAR_CLI_SessionHandoff.md)** - File map and build command when context is lost
 - **Features**: Interoperable Low/No Code Generator, OASIS Omniverse unification, asset/app store backend
 - **Benefits**: Create entire metaverses with minimal coding, unify all platforms, power Our World game
 
@@ -145,6 +206,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[STAR OAPP Builder](./API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
 
 ### **STAR CLI & DNA System**
+- **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - Architecture hub (Light, templates, providers, automation)
 - **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference
 - **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
 - **[Dependency Management Guide](./DEPENDENCY_MANAGEMENT_GUIDE.md)** - Advanced dependency management
@@ -163,6 +225,10 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Version Control](./STARNET_VERSION_CONTROL_GUIDE.md)** - Versioning system
 
 ## 🚀 **Getting Started Guides**
+
+### **By platform (installer + manual setup)**
+- **STAR CLI:** [Windows](./STAR_CLI_GettingStarted_Windows.md) · [Linux](./STAR_CLI_GettingStarted_Linux.md) · [macOS](./STAR_CLI_GettingStarted_Mac.md) — Install via installer or git clone; run and verify STAR CLI.
+- **OASIS development:** [Windows](./OASIS_Development_GettingStarted_Windows.md) · [Linux](./OASIS_Development_GettingStarted_Linux.md) · [macOS](./OASIS_Development_GettingStarted_Mac.md) — Clone, build solution, run tests, project structure.
 
 ### **Quick Start**
 - **[OASIS Quick Start Guide](./OASIS_Quick_Start_Guide.md)** - Get started with OASIS
@@ -330,5 +396,3 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **Social**: [Social & Community](#social--community)
 
 ---
-
-*This documentation index is regularly updated. For the latest version, visit [docs.oasisplatform.world](https://docs.oasisplatform.world)*

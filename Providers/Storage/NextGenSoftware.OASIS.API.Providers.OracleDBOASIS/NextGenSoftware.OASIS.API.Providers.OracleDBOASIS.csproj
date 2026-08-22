@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.OracleDBOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.OracleDBOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.OracleDBOASIS</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB4 OASIS API Oracle Database OASIS Provider</Product>
+    <Title>WEB4 OASIS API Oracle Database OASIS Provider</Title>
+    <Summary>Oracle Database OASIS Provider — enterprise-grade relational database storage for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Oracle Database — the world's most widely used enterprise RDBMS. Stores OASIS holons and avatars using Oracle.ManagedDataAccess.Core with indexed lookup columns and full JSON serialisation via CLOB. Compatible with Oracle Database 12c+ and Oracle Autonomous Database. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS API; Oracle; Database; WEB4; Provider</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.6.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>

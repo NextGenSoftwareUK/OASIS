@@ -1,0 +1,24 @@
+[submodule "HoloNET-ORM"]
+	path = HoloNET-ORM
+	url = https://github.com/NextGenSoftwareUK/HoloNET-ORM.git
+[submodule "STAR ODK"]
+	path = STAR ODK
+	url = https://github.com/NextGenSoftwareUK/STAR-ODK.git
+[submodule "WEB6"]
+	path = WEB6
+	url = https://github.com/NextGenSoftwareUK/OASIS-WEB6.git
+[submodule "OASIS Architecture/NextGenSoftware.OASIS.API.Core"]
+	path = OASIS Architecture/NextGenSoftware.OASIS.API.Core
+	url = https://github.com/NextGenSoftwareUK/OASIS-API-Core.git
+[submodule "ONODE/NextGenSoftware.OASIS.API.ONODE.Core"]
+	path = ONODE/NextGenSoftware.OASIS.API.ONODE.Core
+	url = https://github.com/NextGenSoftwareUK/OASIS-ONODE-Core.git
+[submodule "ONODE/ONODEManager"]
+	path = ONODE/ONODEManager
+	url = https://github.com/NextGenSoftwareUK/ONODEManager.git
+[submodule "OASIS Omniverse/OGEngineClient"]
+	path = OASIS Omniverse/OGEngineClient
+	url = https://github.com/NextGenSoftwareUK/OGEngineClient.git
+[submodule "OASIS Omniverse/OASIS Hub"]
+	path = OASIS Omniverse/OASIS Hub
+	url = https://github.com/NextGenSoftwareUK/OASIS-Omniverse-Hub.git

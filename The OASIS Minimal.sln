@@ -17,6 +17,178 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.Commo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.OASISBootLoader", "OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj", "{8A231530-46FC-49CC-8550-1E95769F1CAB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AptosOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AptosOASIS\NextGenSoftware.OASIS.API.Providers.AptosOASIS.csproj", "{4695DF94-19D1-439A-8D69-1AF2552C13F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj", "{351BDC6D-C239-48D3-A65A-F71CA0B13DFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AvalancheOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj", "{3EE7430B-1ABE-42FA-B891-4C525DC37A27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AztecOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AztecOASIS\NextGenSoftware.OASIS.API.Providers.AztecOASIS.csproj", "{00D4F376-D22D-4C5E-B2AC-73CE84DA0604}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AbstractOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AbstractOASIS\NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BNBChainOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj", "{85598ED0-0EEB-48AD-88BF-4BFE3112E35E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BaseOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj", "{58621FA8-8931-46B5-81F7-FEA77BE70CAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BerrachainOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerrachainOASIS\NextGenSoftware.OASIS.API.Providers.BerrachainOASIS.csproj", "{B9C8D7E6-F5A4-3210-FEDC-BA9876543210}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BitcoinOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj", "{869160BE-F8E8-4133-8527-392807A473BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{B3E3AA5E-1FCB-4573-A7CA-F056FA397199}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CardanoOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj", "{CB0A3840-4022-45BC-91DC-6A3A42F6CC09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj", "{A6652272-3A4B-4600-AF4C-1F6FBF060D3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{10F54311-5FB2-45DF-ADEF-D49502ED8886}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj", "{9B5A204C-36EB-400D-9C20-E6CBF4D2D4D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ElrondOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj", "{8343FD50-DF1E-4350-B1AF-0019AD938C09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj", "{D2508C09-E07B-4F6B-B4B7-5C6A45EA2560}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.FantomOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj", "{D62BE1D3-5B60-45DE-8A6F-94CCDF5CC18A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj", "{14DE9374-EF7E-4B72-94A6-2DFA3E8C4B97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.LineaOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.LineaOASIS\NextGenSoftware.OASIS.API.Providers.LineaOASIS.csproj", "{2653E592-7188-4A22-9A47-BE1764142B0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MidenOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MidenOASIS\NextGenSoftware.OASIS.API.Providers.MidenOASIS.csproj", "{7AE4486A-E0DE-4007-8D7D-D4C394523450}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MonadOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MonadOASIS\NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj", "{78AEF7E9-9656-4EBC-9238-08B0CAEACBBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MoralisOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MoralisOASIS\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.csproj", "{8218C986-BC12-4EB9-91BB-5DBA1B42B3BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NEAROASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj", "{EC108953-9956-4E67-A004-643BCA6E2D4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.OptimismOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj", "{8D9F4A5E-861F-443B-AAE1-82AD663A77A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PolkadotOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj", "{372E15D9-81ED-410F-AAED-28D8CBAC432C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PolygonOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj", "{76FB77A0-39B4-4F29-8FE3-723B147B647A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.RadixOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj", "{C1B37BD4-476E-4967-A1AF-8AF7B3F88D6F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.RootstockOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj", "{72714263-C395-4833-ABD5-A09576FB1F0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj", "{6942ABD2-8951-4963-AEC5-699A8659DAB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ScrollOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ScrollOASIS\NextGenSoftware.OASIS.API.Providers.ScrollOASIS.csproj", "{EBA7AE49-0715-45F3-BD87-E16EACF4215F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.StarknetOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StarknetOASIS\NextGenSoftware.OASIS.API.Providers.StarknetOASIS.csproj", "{B6581D06-E854-4E42-9CB4-F7DD63A9BBF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SuiOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj", "{2A337E5B-9CC8-4C59-8F6C-45C508D9D9C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.TONOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj", "{D24E08F4-D27B-4320-9B88-9964EC9F62C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.TRONOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj", "{DA52C891-FF5C-40B4-A4C4-F68679AB2AE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.TelosOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj", "{CA1F4718-CC45-45F4-B582-8F9495B239A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "{B8CEF449-D68D-413F-8F28-6014721A06A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.XRPLOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.XRPLOASIS\NextGenSoftware.OASIS.API.Providers.XRPLOASIS.csproj", "{7C32A214-BB4D-4694-8CD8-66AF5F096452}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ZcashOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZcashOASIS\NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj", "{22484D02-6496-4BA9-AA48-0D840B793584}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS\NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.csproj", "{F29D0F3F-ABEF-447A-83DE-945F6AC4452D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AWSOASIS", "Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj", "{220A1490-FFC3-4FF5-BFCB-F964C1D2B6D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS", "Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj", "{7B0E86B6-FBE9-4EE3-A9F4-C6BF3EA78C9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS", "Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj", "{5FA5EBA1-6086-44D6-958F-7E5E4C765183}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GOMapOASIS", "Providers\Maps\NextGenSoftware.OASIS.API.Providers.GOMapOASIS\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.csproj", "{B31BD60B-850F-4F9A-8201-F531354D80EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MapboxOASIS", "Providers\Maps\NextGenSoftware.OASIS.API.Providers.MapboxOASIS\NextGenSoftware.OASIS.API.Providers.MapboxOASIS.csproj", "{A63A5C38-8188-49F1-A08D-077C88DF148C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS", "Providers\Maps\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.csproj", "{06DCF082-9D8B-43A7-9FA9-686EE3E50C6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj", "{C44F72D6-AE0B-4BEF-A00B-DFF5A11D8195}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj", "{26AA0580-BFAC-4747-A7B8-47961FE3B596}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj", "{A43DE536-6EC2-4531-B6A4-D15B9B0DD575}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj", "{3F8F022B-4A90-4CB6-8826-D7A765167F4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloWebOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.csproj", "{E38E265B-2CBB-47C2-BF1F-E221F28B78EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloWeb", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloWeb\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.csproj", "{D1354980-AEBB-47F4-86A3-1B92A8DED586}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj", "{99A83D10-5ECD-4B4C-B4DB-8E24968E5883}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PinataOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj", "{FF927362-CD9B-49F1-9D64-8C87C52EA1A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLIDOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj", "{CFB328DB-DF07-4938-A944-CC56FFE5567F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{7AB26C01-D9F7-428A-AB54-DEE9F97720DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.TelegramOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\NextGenSoftware.OASIS.API.Providers.TelegramOASIS.csproj", "{44718B1B-9049-4194-B9E4-F002BCBF7631}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj", "{23FD6029-CD01-4ED6-9ED3-7FD446067D8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane", "Providers\Other\NextGenSoftware.OASIS.API.Core.ARC.Membrane\NextGenSoftware.OASIS.API.Core.ARC.Membrane.csproj", "{BE88EC6F-1F76-404F-B736-C19435659564}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server", "Providers\Other\NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj", "{132FD210-4EF0-4EDA-89A4-736052138C8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CargoOASIS", "Providers\Other\NextGenSoftware.OASIS.API.Providers.CargoOASIS\NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj", "{FFB3D2B0-5ECA-425A-8568-43A7F5C08D3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ONION-Protocol", "Providers\Other\NextGenSoftware.OASIS.API.Providers.ONION-Protocol\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.csproj", "{B9F7EE9C-F16A-4985-8989-72E2AEF518C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS", "Providers\Other\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj", "{8079E102-914C-4C64-9EB7-F1B3F3EF7615}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PLANOASIS", "Providers\Other\NextGenSoftware.OASIS.API.Providers.PLANOASIS\NextGenSoftware.OASIS.API.Providers.PLANOASIS.csproj", "{5A585149-BFDF-47EB-B26A-9D502AF94BDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS", "Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj", "{7D44F0EB-1D47-43A9-B3BA-E93A01FA2438}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj", "{CC92AFA0-795D-422A-938A-FF6917DF0DA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MongoOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj", "{812D3349-34AB-4F3C-A583-24D2713C75DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj", "{EFE4BEFD-1F93-4107-BE0C-E574A6687069}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj", "{8B7F21B1-6743-4942-9E84-97E94B3613CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj", "{FDC36527-1FD6-4F33-B141-9D0F4BB7F24E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj", "{8153FC15-20A9-419B-B256-EB3CBEA653B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ArweaveOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj", "{6D0EDC36-6844-4A80-853D-5FDDA35304CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.FarcasterOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.FarcasterOASIS\NextGenSoftware.OASIS.API.Providers.FarcasterOASIS.csproj", "{A1D2E3F4-B5C6-7890-ABCD-EF0123456789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NostrOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.NostrOASIS\NextGenSoftware.OASIS.API.Providers.NostrOASIS.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F01234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.LensOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.LensOASIS\NextGenSoftware.OASIS.API.Providers.LensOASIS.csproj", "{C3D4E5F6-A7B8-9012-CDEF-012345678901}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.UrbitOASIS", "Providers\Other\NextGenSoftware.OASIS.API.Providers.UrbitOASIS\NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj", "{D4E5F6A7-B8C9-0123-DEF0-123456789012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.StellarOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.StellarOASIS\NextGenSoftware.OASIS.API.Providers.StellarOASIS.csproj", "{E5F6A7B8-C9D0-1234-EF01-234567890123}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS", "Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS\NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.csproj", "{F6A7B8C9-D0E1-2345-F012-345678901234}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj", "{A7B8C9D0-E1F2-3456-0123-456789012345}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.OracleDBOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj", "{B8C9D0E1-F2A3-4567-1234-567890123456}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.LoomOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.LoomOASIS\NextGenSoftware.OASIS.API.Providers.LoomOASIS.csproj", "{C9D0E1F2-A3B4-5678-2345-678901234567}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS\NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.csproj", "{D0E1F2A3-B4C5-6789-3456-789012345678}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MatrixOASIS", "Providers\Social\NextGenSoftware.OASIS.API.Providers.MatrixOASIS\NextGenSoftware.OASIS.API.Providers.MatrixOASIS.csproj", "{E1F2A3B4-C5D6-7890-4567-890123456789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.FilecoinOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS\NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj", "{F2A3B4C5-D6E7-8901-5678-901234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AlgorandOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.csproj", "{A3B4C5D6-E7F8-9012-6789-012345678901}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CeramicOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CeramicOASIS\NextGenSoftware.OASIS.API.Providers.CeramicOASIS.csproj", "{B4C5D6E7-F8A9-0123-7890-123456789012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BasechainOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BasechainOASIS\NextGenSoftware.OASIS.API.Providers.BasechainOASIS.csproj", "{C5D6E7F8-A9B0-1234-8901-234567890123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +222,58 @@ Global
 		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-012345678901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-012345678901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-012345678901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-012345678901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4E5F6A7-B8C9-0123-DEF0-123456789012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E5F6A7-B8C9-0123-DEF0-123456789012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E5F6A7-B8C9-0123-DEF0-123456789012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E5F6A7-B8C9-0123-DEF0-123456789012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5F6A7B8-C9D0-1234-EF01-234567890123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5F6A7B8-C9D0-1234-EF01-234567890123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5F6A7B8-C9D0-1234-EF01-234567890123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5F6A7B8-C9D0-1234-EF01-234567890123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6A7B8C9-D0E1-2345-F012-345678901234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6A7B8C9-D0E1-2345-F012-345678901234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6A7B8C9-D0E1-2345-F012-345678901234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6A7B8C9-D0E1-2345-F012-345678901234}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7B8C9D0-E1F2-3456-0123-456789012345}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7B8C9D0-E1F2-3456-0123-456789012345}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7B8C9D0-E1F2-3456-0123-456789012345}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7B8C9D0-E1F2-3456-0123-456789012345}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8C9D0E1-F2A3-4567-1234-567890123456}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8C9D0E1-F2A3-4567-1234-567890123456}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8C9D0E1-F2A3-4567-1234-567890123456}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8C9D0E1-F2A3-4567-1234-567890123456}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9D0E1F2-A3B4-5678-2345-678901234567}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9D0E1F2-A3B4-5678-2345-678901234567}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9D0E1F2-A3B4-5678-2345-678901234567}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9D0E1F2-A3B4-5678-2345-678901234567}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0E1F2A3-B4C5-6789-3456-789012345678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0E1F2A3-B4C5-6789-3456-789012345678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0E1F2A3-B4C5-6789-3456-789012345678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0E1F2A3-B4C5-6789-3456-789012345678}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1F2A3B4-C5D6-7890-4567-890123456789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1F2A3B4-C5D6-7890-4567-890123456789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1F2A3B4-C5D6-7890-4567-890123456789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1F2A3B4-C5D6-7890-4567-890123456789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2A3B4C5-D6E7-8901-5678-901234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2A3B4C5-D6E7-8901-5678-901234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2A3B4C5-D6E7-8901-5678-901234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2A3B4C5-D6E7-8901-5678-901234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3B4C5D6-E7F8-9012-6789-012345678901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3B4C5D6-E7F8-9012-6789-012345678901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3B4C5D6-E7F8-9012-6789-012345678901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3B4C5D6-E7F8-9012-6789-012345678901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4C5D6E7-F8A9-0123-7890-123456789012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4C5D6E7-F8A9-0123-7890-123456789012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4C5D6E7-F8A9-0123-7890-123456789012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4C5D6E7-F8A9-0123-7890-123456789012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5D6E7F8-A9B0-1234-8901-234567890123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5D6E7F8-A9B0-1234-8901-234567890123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5D6E7F8-A9B0-1234-8901-234567890123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5D6E7F8-A9B0-1234-8901-234567890123}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{52E2AFB2-C569-4840-966E-38436B535D9F} = {08C4C7CB-9692-4671-8967-7D03747B5472}

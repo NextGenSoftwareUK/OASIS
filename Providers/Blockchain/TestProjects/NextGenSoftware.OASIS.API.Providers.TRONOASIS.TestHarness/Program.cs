@@ -45,9 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.TestHarness
 			var exportAll = await tron.ExportAllAsync();
 			Console.WriteLine($"ExportAll: {(exportAll.IsError ? exportAll.Message : $"Count: {exportAll.Result?.Count() ?? 0}")}");
 
-			// Test network operations (not supported)
-			var playersNearMe = tron.GetPlayersNearMe();
-			Console.WriteLine($"GetPlayersNearMe: {(playersNearMe.IsError ? playersNearMe.Message : $"Count: {playersNearMe.Result?.Count() ?? 0}")}");
+			// Network operations (GetPlayersNearMe not on this provider)
 
 			tron.DeActivateProvider();
 			Console.WriteLine("TRON TestHarness completed!");
