@@ -1,6 +1,6 @@
 # OASIS Provider Inventory & Roadmap
 
-_Last updated: 2026-08-21_
+_Last updated: 2026-08-22_
 
 ---
 
@@ -46,6 +46,10 @@ _Last updated: 2026-08-21_
 | Monad | MonadOASIS |
 | ChainLink | ChainLinkOASIS |
 | Loom (video messaging) | LoomOASIS | **Done** |
+| Algorand | AlgorandOASIS | **Done** |
+| Filecoin | FilecoinOASIS | **Done** |
+| Ceramic / ComposeDB | CeramicOASIS | **Done** |
+| Basechain (Loom Network EVM) | BasechainOASIS | **Done** |
 | Stellar | StellarOASIS |
 
 ### Storage / Database
@@ -79,9 +83,11 @@ _Last updated: 2026-08-21_
 | Urbit | UrbitOASIS |
 | SEEDS | SEEDSOASIS |
 | Telegram | TelegramOASIS |
-| Farcaster | FarcasterOASIS |
-| Nostr | NostrOASIS |
-| Lens Protocol | LensOASIS |
+| Farcaster | FarcasterOASIS | **Done** |
+| Nostr | NostrOASIS | **Done** |
+| Lens Protocol | LensOASIS | **Done** |
+| BlueSky | BlueSkyOASIS | **Done** |
+| Matrix | MatrixOASIS | **Done** |
 | Stellar | StellarOASIS |
 | Azure Blob Storage | AzureStorageOASIS |
 | SQL Server | SQLServerDBOASIS |
@@ -215,12 +221,20 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 8 | Story Protocol | IP / NFT | Medium | Medium | Next quarter |
 | 9 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next quarter |
 | 10 | Celestia | DA Layer | Medium | Medium | Next quarter |
-| 11 | Filecoin | Storage | Medium (Lotus RPC) | Medium | Backlog |
+| 11 | Filecoin | Storage | Medium (Lotus RPC) | Medium | **Done** |
+| 11a | Algorand | Blockchain | Medium (Algod REST) | Medium | **Done** |
+| 11b | Ceramic/ComposeDB | Data | Medium (HTTP API) | Medium | **Done** |
+| 11c | Basechain (Loom) | EVM Sidechain | Low (Ethereum RPC) | Medium | **Done** |
+| 11d | BlueSky | Social | Low (AT Protocol XRPC) | High | **Done** |
+| 11e | Matrix | Messaging | Low (Client-Server v3) | High | **Done** |
 | 12 | Lit Protocol | Encryption | Medium (REST) | Medium | Backlog |
-| 13 | Ceramic/ComposeDB | Data | Medium (GraphQL) | Medium | Backlog |
-| 14 | The Graph | Indexing | Low (GraphQL) | High | Backlog |
-| 15 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | Backlog |
-| 16 | Discord | Social/Network | Low (REST bot) | Very High | Backlog |
+| 13 | The Graph | Indexing | Low (GraphQL) | High | Next |
+| 14 | Discord | Social/Network | Low (REST bot) | Very High | Next |
+| 15 | World ID | Identity | Medium (ZK proofs) | High | Soon |
+| 16 | Story Protocol | IP / NFT | Medium | Medium | Next quarter |
+| 17 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next quarter |
+| 18 | Celestia | DA Layer | Medium | Medium | Next quarter |
+| 19 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | Backlog |
 
 ---
 
