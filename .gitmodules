@@ -19,3 +19,6 @@
 [submodule "OASIS Omniverse/OGEngineClient"]
 	path = OASIS Omniverse/OGEngineClient
 	url = https://github.com/NextGenSoftwareUK/OGEngineClient.git
+[submodule "OASIS Omniverse/OASIS Hub"]
+	path = OASIS Omniverse/OASIS Hub
+	url = https://github.com/NextGenSoftwareUK/OASIS-Omniverse-Hub.git
