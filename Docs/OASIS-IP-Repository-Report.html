@@ -15,7 +15,6 @@
     --text:      #dce8f5;
     --text-dim:  #7a9abf;
     --text-faint:#3d5878;
-    --red-dim:   rgba(220,80,60,0.10);
   }
 
   @media (prefers-color-scheme: light) {
@@ -62,10 +61,8 @@
     min-height: 100vh;
   }
 
-  /* ── Layout ── */
   .page { max-width: 960px; margin: 0 auto; padding: 3rem 2rem 5rem; }
 
-  /* ── Header ── */
   .header {
     border-bottom: 1px solid var(--border);
     padding-bottom: 2.5rem;
@@ -96,10 +93,7 @@
     letter-spacing: -0.02em;
   }
 
-  h1 em {
-    font-style: normal;
-    color: var(--gold);
-  }
+  h1 em { font-style: normal; color: var(--gold); }
 
   .meta {
     font-size: 0.82rem;
@@ -108,7 +102,6 @@
     text-align: right;
   }
 
-  /* ── Stats row ── */
   .stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -140,14 +133,8 @@
   .stat-number.teal { color: var(--teal); }
   .stat-number.text { color: var(--text); }
 
-  .stat-label {
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    letter-spacing: 0.04em;
-    font-weight: 500;
-  }
+  .stat-label { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 0.04em; font-weight: 500; }
 
-  /* ── Section headings ── */
   .section { margin-bottom: 3rem; }
 
   .section-header {
@@ -199,8 +186,7 @@
     line-height: 1.6;
   }
 
-  /* ── Repo cards ── */
-  .repo-list { display: flex; flex-direction: column; gap: 1px; }
+  .repo-list { display: flex; flex-direction: column; gap: 6px; }
 
   .repo-card {
     background: var(--surface);
@@ -214,8 +200,6 @@
     transition: border-color 0.15s;
   }
 
-  .repo-card + .repo-card { margin-top: 6px; }
-
   .repo-card.public:hover  { border-color: var(--teal); }
   .repo-card.private:hover { border-color: var(--gold); }
 
@@ -225,15 +209,18 @@
     font-weight: 700;
     color: var(--text);
     margin-bottom: 0.25rem;
+    text-decoration: none;
   }
 
   .repo-name .org { color: var(--text-faint); font-weight: 400; }
 
-  .repo-desc {
-    font-size: 0.82rem;
-    color: var(--text-dim);
-    line-height: 1.55;
+  .repo-name a {
+    color: inherit;
+    text-decoration: none;
   }
+  .repo-name a:hover { text-decoration: underline; }
+
+  .repo-desc { font-size: 0.82rem; color: var(--text-dim); line-height: 1.55; }
 
   .repo-role {
     font-size: 0.72rem;
@@ -249,7 +236,6 @@
   .repo-role.public  { background: var(--teal-dim); color: var(--teal); }
   .repo-role.private { background: var(--gold-dim); color: var(--gold); }
 
-  /* ── Architecture diagram ── */
   .arch {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -268,22 +254,14 @@
     margin-bottom: 1.5rem;
   }
 
-  .arch-diagram {
-    display: grid;
-    grid-template-rows: auto auto auto auto;
-    gap: 0;
-  }
-
   .arch-layer {
     padding: 1rem 1.4rem;
     border-radius: 8px;
-    position: relative;
   }
 
   .arch-layer.consumers {
     background: var(--surface2);
     border: 1px solid var(--border);
-    margin-bottom: 0;
     text-align: center;
     font-size: 0.82rem;
     color: var(--text-dim);
@@ -300,7 +278,6 @@
   .arch-layer.public-layer {
     background: var(--teal-dim);
     border: 1px solid rgba(52,196,176,0.25);
-    margin-bottom: 0;
   }
 
   .arch-layer.private-layer {
@@ -320,26 +297,15 @@
   .arch-layer.public-layer .arch-layer-label  { color: var(--teal); }
   .arch-layer.private-layer .arch-layer-label { color: var(--gold); }
 
-  .arch-items {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    line-height: 1.7;
-  }
+  .arch-items { font-size: 0.8rem; color: var(--text-dim); line-height: 1.7; }
+  .arch-note  { font-size: 0.75rem; color: var(--text-faint); margin-top: 0.5rem; font-style: italic; }
 
-  .arch-note {
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin-top: 0.5rem;
-    font-style: italic;
-  }
+  .arch-diagram { display: flex; flex-direction: column; gap: 0; }
 
-  /* ── Distribution table ── */
   .dist-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.84rem;
-    overflow-x: auto;
-    display: block;
   }
 
   .dist-table th {
@@ -362,12 +328,7 @@
     vertical-align: top;
   }
 
-  .dist-table td:first-child {
-    color: var(--text);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
+  .dist-table td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
   .dist-table tr:last-child td { border-bottom: none; }
 
   code {
@@ -380,7 +341,6 @@
     color: var(--teal);
   }
 
-  /* ── Summary ── */
   .summary {
     background: var(--gold-glow);
     border: 1px solid rgba(232,168,32,0.2);
@@ -388,15 +348,9 @@
     padding: 1.75rem 2rem;
   }
 
-  .summary p {
-    font-size: 0.9rem;
-    color: var(--text-dim);
-    line-height: 1.75;
-  }
-
+  .summary p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.75; }
   .summary strong { color: var(--text); }
 
-  /* ── Footer ── */
   .footer {
     margin-top: 3.5rem;
     padding-top: 1.5rem;
@@ -409,7 +363,6 @@
     gap: 0.5rem;
   }
 
-  /* ── Responsive ── */
   @media (max-width: 600px) {
     .header { grid-template-columns: 1fr; }
     .meta { text-align: left; }
@@ -436,15 +389,15 @@
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-number teal">6</span>
+      <span class="stat-number teal">5</span>
       <span class="stat-label">Public repositories</span>
     </div>
     <div class="stat">
-      <span class="stat-number gold">8</span>
+      <span class="stat-number gold">11</span>
       <span class="stat-label">Private repositories</span>
     </div>
     <div class="stat">
-      <span class="stat-number text">57%</span>
+      <span class="stat-number text">69%</span>
       <span class="stat-label">Core IP kept private</span>
     </div>
   </div>
@@ -461,43 +414,36 @@
     <div class="repo-list">
       <div class="repo-card public">
         <div>
-          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS</div>
-          <div class="repo-desc">Main monorepo — WEB4 OASIS API, 33+ storage/blockchain/social providers, WebAPI, Swagger docs, Docker configs, Railway deploy pipelines.</div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank" rel="noopener">OASIS</a></div>
+          <div class="repo-desc">Main monorepo — WEB4 OASIS API, 40+ storage/blockchain/social/AI providers, WebAPI, Swagger docs, Docker configs, Railway deploy pipelines. The community entry point for the entire platform.</div>
         </div>
         <span class="repo-role public">Community entry point</span>
       </div>
       <div class="repo-card public">
         <div>
-          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> holochain-client-csharp</div>
-          <div class="repo-desc">HoloNET Client, ORM, HyperNET — the only production-grade .NET Holochain client. Handles WebSocket connections, zome calls, and ORM mapping to Rust structs.</div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> <a href="https://github.com/NextGenSoftwareUK/holochain-client-csharp" target="_blank" rel="noopener">holochain-client-csharp</a></div>
+          <div class="repo-desc">HoloNET Client — the only production-grade .NET/Unity Holochain client. Full WebSocket zome call layer with async/event hybrid model, conductor management, and admin interface.</div>
         </div>
         <span class="repo-role public">NuGet flagship</span>
       </div>
       <div class="repo-card public">
         <div>
-          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-Manager</div>
-          <div class="repo-desc">Desktop WPF application showcasing every HoloNET Client and ORM capability with reusable UI components developers can reference and adapt.</div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> <a href="https://github.com/NextGenSoftwareUK/HoloNET-Manager" target="_blank" rel="noopener">HoloNET-Manager</a></div>
+          <div class="repo-desc">Desktop WPF reference implementation showcasing every HoloNET Client capability with reusable UI components developers can reference and adapt for their own applications.</div>
         </div>
         <span class="repo-role public">Developer showcase</span>
       </div>
       <div class="repo-card public">
         <div>
-          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-ORM</div>
-          <div class="repo-desc">Object Relational Mapping for Holochain. Extend HoloNETEntryBaseClass to get Load, Save and Delete mapped directly onto Rust zome structs.</div>
-        </div>
-        <span class="repo-role public">Published NuGet</span>
-      </div>
-      <div class="repo-card public">
-        <div>
-          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> NextGenSoftware-Libraries</div>
-          <div class="repo-desc">Shared utility libraries — WebSocket extensions, logging, core helpers — foundational dependency for all OASIS projects and referenced by HoloNET.</div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> <a href="https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries" target="_blank" rel="noopener">NextGenSoftware-Libraries</a></div>
+          <div class="repo-desc">Shared utility libraries — WebSocket extensions (including overloads required by HoloNET), logging, and core helpers. Foundational dependency for all OASIS projects.</div>
         </div>
         <span class="repo-role public">Shared foundation</span>
       </div>
       <div class="repo-card public">
         <div>
-          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> UltimateDoomBuilder</div>
-          <div class="repo-desc">OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games. Open toolchain to drive game developer adoption.</div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> <a href="https://github.com/NextGenSoftwareUK/UltimateDoomBuilder" target="_blank" rel="noopener">UltimateDoomBuilder</a></div>
+          <div class="repo-desc">OGEditor SDK — full-featured level and world editor toolchain for OGEngine-based games (OQuake, ODOOM and others). Open toolchain to drive game developer adoption.</div>
         </div>
         <span class="repo-role public">Dev toolchain</span>
       </div>
@@ -511,64 +457,85 @@
       <h2>Competitive Moat</h2>
     </div>
     <p class="section-desc">
-      Proprietary IP consumed by the public tier as private NuGet packages, private git submodules, or compiled binaries distributed via OPORTAL. Source never exposed publicly.
+      Proprietary IP consumed by the public tier as private NuGet packages, private git submodules, or compiled binaries via OPORTAL. Source is never exposed publicly.
     </p>
     <div class="repo-list">
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-API-Core</div>
-          <div class="repo-desc">Core OASIS API interfaces, base classes, and provider contracts — the foundation every provider implements. Controls the entire provider ecosystem.</div>
+          <div class="repo-desc">Core OASIS API interfaces, base classes and provider contracts. Contains the COSMIC ORM (universal data abstraction across 40+ Web2/Web3 providers), the HyperDrive backend (auto-failover, auto-replication, auto-load-balancing), and the STARNET holon graph — all deeply integrated as the unified WEB4 engine. The majority of the platform's core IP lives here.</div>
         </div>
         <span class="repo-role private">Core IP</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-ONODE-Core</div>
-          <div class="repo-desc">ONODE (OASIS Network Operating Node) core — supervisor contracts, orchestration logic, and node management interfaces. Powers all deployed OASIS nodes.</div>
+          <div class="repo-desc">Core backend for the WEB5 STAR API and STARNET application layer, plus complementary WEB4 components that sit above the API.Core foundation. Powers the metaverse and OAPP ecosystem.</div>
         </div>
-        <span class="repo-role private">Infrastructure IP</span>
+        <span class="repo-role private">WEB5 platform IP</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> STAR-ODK</div>
-          <div class="repo-desc">WEB5 STAR API, ODK runtime, STAR CLI, COSMIC simulation engine, STARDNA — the complete WEB5 layer for building decentralised applications and games.</div>
+          <div class="repo-desc">WEB5 STAR API, ODK runtime, STAR CLI, COSMIC simulation engine, STARDNA — the complete low-code/no-code metaverse and OAPP development platform.</div>
         </div>
         <span class="repo-role private">Flagship platform</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-WEB6</div>
-          <div class="repo-desc">WEB6 AI layer — MCP server, holonic AI orchestration (FAHRN), multi-provider AI routing, semantic cache, gRPC/GraphQL APIs. Next-generation AI platform IP.</div>
+          <div class="repo-desc">WEB6 AI layer — FAHRN multi-agent orchestration (5 dispatch modes, ML.NET classifier), Holonic BRAID shared reasoning graph, SkillOpt self-evolving skills, 250 MCP tools, DID/VC identity, 20+ AI providers, gRPC/GraphQL APIs. Primary revenue growth engine.</div>
         </div>
         <span class="repo-role private">AI platform IP</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> ONODEManager</div>
-          <div class="repo-desc">ONODE Manager (Avalonia cross-platform desktop app), ONODE Service (background REST supervisor), ONODE Client (typed .NET client library).</div>
+          <div class="repo-desc">ONODE Manager (Avalonia cross-platform desktop app), ONODE Service (background REST supervisor), ONODE Client (typed .NET client library). Governs node deployment and management.</div>
         </div>
         <span class="repo-role private">Operational tooling</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OGEngineClient</div>
-          <div class="repo-desc">Native AOT .NET HTTP client for the WEB4 &amp; WEB5 APIs plus P/Invoke interop bridge into OGEngine native games (OQuake, ODOOM). Bridges OASIS directly into the game runtime.</div>
+          <div class="repo-desc">Native AOT .NET HTTP client for both the WEB4 OASIS API and WEB5 STAR API, plus P/Invoke interop bridge exposing OASIS/STAR functionality directly into OGEngine native games (OQuake, ODOOM and others).</div>
         </div>
         <span class="repo-role private">Game engine bridge</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HyperDrive</div>
-          <div class="repo-desc">Peer-to-peer lag-free networking for Unity and Unreal games built on HoloNET. Near-unlimited concurrent players with no cloud game server required — eliminates traditional server costs.</div>
+          <div class="repo-desc">HyperDrive desktop client — like Google Drive, Dropbox or OneDrive but spanning the entire Web2 + Web3 ecosystem. Manages files, data, NFTs, GeoNFTs and digital assets across every provider the OASIS supports. The first unified personal cloud for the whole internet.</div>
         </div>
-        <span class="repo-role private">Disruptive tech IP</span>
+        <span class="repo-role private">Consumer product IP</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-ORM</div>
+          <div class="repo-desc">Object Relational Mapping layer for Holochain — extend HoloNETEntryBaseClass to get Load, Save and Delete mapped directly onto Rust zome structs. Kept private to protect the ORM implementation.</div>
+        </div>
+        <span class="repo-role private">Holochain ORM</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-HyperNET</div>
+          <div class="repo-desc">Peer-to-peer lag-free multiplayer networking for Unity and Unreal games, built on HoloNET. Near-unlimited concurrent players with no cloud game server required — eliminates traditional server costs entirely.</div>
+        </div>
+        <span class="repo-role private">Multiplayer tech IP</span>
       </div>
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OIDE</div>
-          <div class="repo-desc">OASIS Integrated Development Environment — full IDE for building OAPPs and WEB5/WEB6 experiences. Creates deep developer lock-in and ecosystem stickiness.</div>
+          <div class="repo-desc">OASIS Integrated Development Environment — full IDE for building OAPPs and WEB5/WEB6 experiences. Creates deep developer ecosystem stickiness.</div>
         </div>
         <span class="repo-role private">Developer toolchain</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> Our-World</div>
+          <div class="repo-desc">Our World — the flagship OASIS location-based AR/XR game and metaverse. The original proof-of-concept that grew into the OASIS platform and serves as its primary real-world showcase.</div>
+        </div>
+        <span class="repo-role private">Flagship product</span>
       </div>
     </div>
   </section>
@@ -578,18 +545,18 @@
     <div class="arch-title">How the tiers interact</div>
     <div class="arch-diagram">
       <div class="arch-layer consumers">
-        <strong>Public consumers</strong> — community developers, third-party integrators, game studios
+        <strong>Public consumers</strong> — community developers, third-party integrators, game studios, enterprises
       </div>
-      <div class="arch-arrow">↓ NuGet packages · dotnet tool · OPORTAL downloads</div>
+      <div class="arch-arrow">↓ NuGet packages &nbsp;·&nbsp; dotnet tool &nbsp;·&nbsp; OPORTAL downloads</div>
       <div class="arch-layer public-layer">
         <div class="arch-layer-label">Public tier</div>
-        <div class="arch-items">OASIS monorepo · holochain-client-csharp · HoloNET-Manager · HoloNET-ORM · NextGenSoftware-Libraries · UltimateDoomBuilder</div>
+        <div class="arch-items">OASIS monorepo &nbsp;·&nbsp; holochain-client-csharp (HoloNET Client) &nbsp;·&nbsp; HoloNET-Manager &nbsp;·&nbsp; NextGenSoftware-Libraries &nbsp;·&nbsp; UltimateDoomBuilder (OGEditor)</div>
       </div>
-      <div class="arch-arrow">↓ private submodules · compiled NuGet packages</div>
+      <div class="arch-arrow">↓ private submodules &nbsp;·&nbsp; compiled NuGet packages &nbsp;·&nbsp; scoped PAT at build time only</div>
       <div class="arch-layer private-layer">
         <div class="arch-layer-label">Private core — source never exposed</div>
-        <div class="arch-items">OASIS-API-Core · OASIS-ONODE-Core · STAR-ODK · OASIS-WEB6 · ONODEManager · OGEngineClient · HyperDrive · OIDE</div>
-        <div class="arch-note">Injected into Railway Docker builds via scoped PAT at build time only. No source present in any public artifact.</div>
+        <div class="arch-items">OASIS-API-Core &nbsp;·&nbsp; OASIS-ONODE-Core &nbsp;·&nbsp; STAR-ODK &nbsp;·&nbsp; OASIS-WEB6 &nbsp;·&nbsp; ONODEManager &nbsp;·&nbsp; OGEngineClient<br>HyperDrive &nbsp;·&nbsp; HoloNET-ORM &nbsp;·&nbsp; HoloNET-HyperNET &nbsp;·&nbsp; OIDE &nbsp;·&nbsp; Our-World</div>
+        <div class="arch-note">Injected into Railway Docker builds via a scoped GitHub PAT at build time only. No private source is ever present in any public build artifact or NuGet package.</div>
       </div>
     </div>
   </div>
@@ -617,11 +584,11 @@
             <td><code>dotnet tool install -g NextGenSoftware.OASIS.STAR.CLI</code></td>
           </tr>
           <tr>
-            <td>Desktop apps (ONODE Manager, HoloNET Manager, OIDE, HyperDrive)</td>
+            <td>Desktop apps (ONODE Manager, HoloNET Manager, OIDE, HyperDrive Client)</td>
             <td>OPORTAL — <code>oportal.oasisomniverse.one/downloads/</code></td>
           </tr>
           <tr>
-            <td>Games (OQuake, ODOOM)</td>
+            <td>Games (OQuake, ODOOM, Our World)</td>
             <td>OPORTAL downloads + game storefronts</td>
           </tr>
           <tr>
@@ -636,7 +603,10 @@
   <!-- SUMMARY -->
   <div class="summary">
     <p>
-      The two-tier structure means the platform is <strong>open enough to attract a developer ecosystem</strong> while keeping every piece of strategic IP — the STAR WEB5 engine, the WEB6 AI orchestration layer, the node infrastructure, the game engine bridge, and the IDE — firmly under proprietary control. Community developers depend on and build trust in the public surface; the private core is what they cannot replicate without years of dedicated engineering effort. This structure directly protects defensibility while maximising adoption velocity.
+      The two-tier structure means the platform is <strong>open enough to attract a developer ecosystem</strong> while keeping every piece of strategic IP firmly under proprietary control — including the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, the IDE, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+    </p>
+    <p style="margin-top:1rem;">
+      As the platform matures — with an established commercial user base and paying subscribers — we plan to <strong>selectively open-source additional components</strong> where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.
     </p>
   </div>
 

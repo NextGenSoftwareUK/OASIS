@@ -10,9 +10,9 @@ The OASIS Omniverse platform is structured across two tiers of GitHub repositori
 
 | | Count |
 |---|---|
-| Public repositories | 6 |
-| Private repositories | 8 |
-| Private as % of total | 57% |
+| Public repositories | 5 |
+| Private repositories | 11 |
+| Private as % of total | 69% |
 
 ---
 
@@ -22,12 +22,11 @@ These repositories are intentionally public. They drive developer adoption, NuGe
 
 | Repository | What it contains | Role |
 |---|---|---|
-| **NextGenSoftwareUK/OASIS** | Main monorepo — WEB4 OASIS API, 33+ storage/blockchain/social providers, WebAPI, Swagger, Docker, Railway deploy configs | Public face of the platform; community entry point |
-| **NextGenSoftwareUK/holochain-client-csharp** | HoloNET Client, ORM, HyperNET — the only production-grade .NET Holochain client | Community flagship; drives NuGet adoption |
-| **NextGenSoftwareUK/HoloNET-Manager** | Desktop WPF reference implementation showcasing every HoloNET Client & ORM capability | Developer showcase; reusable UI components |
-| **NextGenSoftwareUK/HoloNET-ORM** | Object Relational Mapping layer for Holochain | Published NuGet package; referenced as submodule |
-| **NextGenSoftwareUK/NextGenSoftware-Libraries** | Shared utility libraries (WebSockets, logging, core helpers) | Foundational dependency for all OASIS projects |
-| **NextGenSoftwareUK/UltimateDoomBuilder** | OGEditor SDK — level/world editor toolchain for OGEngine games | Open toolchain; drives game developer adoption |
+| **[NextGenSoftwareUK/OASIS](https://github.com/NextGenSoftwareUK/OASIS)** | Main monorepo — WEB4 OASIS API, 40+ storage/blockchain/social/AI providers, WebAPI, Swagger, Docker, Railway deploy configs | Public face of the platform; community entry point |
+| **[NextGenSoftwareUK/holochain-client-csharp](https://github.com/NextGenSoftwareUK/holochain-client-csharp)** | HoloNET Client — the only production-grade .NET/Unity Holochain client. Full WebSocket zome call layer with async/event hybrid model | Community flagship; drives NuGet adoption |
+| **[NextGenSoftwareUK/HoloNET-Manager](https://github.com/NextGenSoftwareUK/HoloNET-Manager)** | Desktop WPF reference implementation showcasing every HoloNET Client and ORM capability with reusable UI components developers can reference and adapt | Developer showcase; reusable component library |
+| **[NextGenSoftwareUK/NextGenSoftware-Libraries](https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries)** | Shared utility libraries — WebSocket extensions (including the ConnectAsync overload required by HoloNET), logging, core helpers | Foundational dependency for all OASIS projects |
+| **[NextGenSoftwareUK/UltimateDoomBuilder](https://github.com/NextGenSoftwareUK/UltimateDoomBuilder)** | OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games (OQuake, ODOOM and others) | Open toolchain to drive game developer adoption |
 
 ---
 
@@ -37,14 +36,17 @@ These repositories contain proprietary IP and are never exposed publicly. They a
 
 | Repository | What it contains | Why private |
 |---|---|---|
-| **NextGenSoftwareUK/OASIS-API-Core** | Core OASIS API interfaces, base classes, and provider contracts — the foundation every provider implements | Proprietary interface design; controls the entire provider ecosystem |
-| **NextGenSoftwareUK/OASIS-ONODE-Core** | ONODE (OASIS Network Operating Node) core — supervisor, orchestration, and node management contracts | Core infrastructure IP; powers all deployed OASIS nodes |
-| **NextGenSoftwareUK/STAR-ODK** | WEB5 STAR API, ODK runtime, STAR CLI, COSMIC engine, STARDNA — the full WEB5 layer | Flagship proprietary platform; STAR is a core commercial differentiator |
-| **NextGenSoftwareUK/OASIS-WEB6** | WEB6 AI layer — MCP server, holonic AI orchestration, FAHRN, multi-provider AI routing, gRPC/GraphQL APIs | Next-generation AI platform IP; cutting-edge multi-agent architecture |
-| **NextGenSoftwareUK/ONODEManager** | ONODE Manager (Avalonia desktop app), ONODE Service (background REST supervisor), ONODE Client (typed .NET client) | Operational tooling IP; governs node deployment and management |
-| **NextGenSoftwareUK/OGEngineClient** | Native AOT .NET HTTP client for WEB4 & WEB5 APIs + P/Invoke interop bridge into OGEngine native games (OQuake, ODOOM) | Game engine integration layer; bridges OASIS platform into proprietary game runtime |
-| **NextGenSoftwareUK/HyperDrive** | Peer-to-peer lag-free networking for Unity/Unreal games built on HoloNET — near-unlimited concurrent players, no cloud server | Disruptive multiplayer tech IP; eliminates traditional game server costs |
-| **NextGenSoftwareUK/OIDE** | OASIS Integrated Development Environment — full IDE for building OAPPs and WEB5/WEB6 experiences | Proprietary developer toolchain; creates lock-in and ecosystem stickiness |
+| **[NextGenSoftwareUK/OASIS-API-Core](https://github.com/NextGenSoftwareUK/OASIS-API-Core)** | Core OASIS API interfaces, base classes and provider contracts. Contains the COSMIC ORM (universal data abstraction across 40+ Web2/Web3 providers), the full HyperDrive backend (auto-failover, auto-replication, auto-load-balancing), and the STARNET holon graph — all deeply integrated as the unified WEB4 engine | The single most critical piece of IP; the entire provider ecosystem and 100% uptime system lives here |
+| **[NextGenSoftwareUK/OASIS-ONODE-Core](https://github.com/NextGenSoftwareUK/OASIS-ONODE-Core)** | Core backend for the WEB5 STAR API and STARNET application layer, plus complementary WEB4 components that sit above the API.Core foundation | WEB5 platform IP; powers the metaverse and OAPP ecosystem |
+| **[NextGenSoftwareUK/STAR-ODK](https://github.com/NextGenSoftwareUK/STAR-ODK)** | WEB5 STAR API, ODK runtime, STAR CLI, COSMIC simulation engine, STARDNA — the complete low-code/no-code metaverse and OAPP development platform | Flagship proprietary platform; core commercial differentiator |
+| **[NextGenSoftwareUK/OASIS-WEB6](https://github.com/NextGenSoftwareUK/OASIS-WEB6)** | WEB6 AI layer — FAHRN multi-agent orchestration (5 dispatch modes, ML.NET classifier), Holonic BRAID shared reasoning graph, SkillOpt self-evolving skills, 250 MCP tools, DID/VC identity, 20+ AI providers, gRPC/GraphQL APIs | Next-generation AI platform IP; primary revenue growth engine |
+| **[NextGenSoftwareUK/ONODEManager](https://github.com/NextGenSoftwareUK/ONODEManager)** | ONODE Manager (Avalonia cross-platform desktop app), ONODE Service (background REST supervisor), ONODE Client (typed .NET client library) | Operational tooling IP; governs node deployment and management |
+| **[NextGenSoftwareUK/OGEngineClient](https://github.com/NextGenSoftwareUK/OGEngineClient)** | Native AOT .NET HTTP client for both the WEB4 OASIS API and WEB5 STAR API, plus P/Invoke interop bridge that exposes OASIS/STAR functionality directly into OGEngine native games (OQuake, ODOOM and others) | Game engine integration layer; bridges the entire OASIS platform into proprietary native game runtimes |
+| **[NextGenSoftwareUK/HyperDrive](https://github.com/NextGenSoftwareUK/HyperDrive)** | HyperDrive desktop client — like Google Drive, Dropbox or OneDrive but spanning the entire Web2 + Web3 ecosystem. Manages not just files and data but also NFTs, GeoNFTs and digital assets across every provider the OASIS supports | Disruptive consumer product IP; the first unified Web2+Web3 personal storage client |
+| **[NextGenSoftwareUK/HoloNET-ORM](https://github.com/NextGenSoftwareUK/HoloNET-ORM)** | Object Relational Mapping layer for Holochain — extend HoloNETEntryBaseClass to get Load, Save and Delete mapped directly onto Rust zome structs | Core Holochain developer tooling; kept private to protect the ORM implementation |
+| **[NextGenSoftwareUK/HoloNET-HyperNET](https://github.com/NextGenSoftwareUK/HoloNET-HyperNET)** | Peer-to-peer lag-free multiplayer networking for Unity and Unreal games, built on HoloNET. Near-unlimited concurrent players with no cloud game server required | Disruptive multiplayer tech IP; eliminates traditional game server costs entirely |
+| **[NextGenSoftwareUK/OIDE](https://github.com/NextGenSoftwareUK/OIDE)** | OASIS Integrated Development Environment — full IDE for building OAPPs and WEB5/WEB6 experiences | Proprietary developer toolchain; creates deep ecosystem stickiness |
+| **[NextGenSoftwareUK/Our-World](https://github.com/NextGenSoftwareUK/Our-World)** | Our World — the flagship OASIS location-based AR/XR game and metaverse that demonstrates the full OASIS platform stack and serves as its primary showcase | Flagship product IP; the original proof-of-concept that became the OASIS platform |
 
 ---
 
@@ -54,22 +56,22 @@ These repositories contain proprietary IP and are never exposed publicly. They a
 PUBLIC CONSUMERS
      │
      ▼
-┌─────────────────────────────────────────────────────┐
-│  NextGenSoftwareUK/OASIS  (public monorepo)          │
-│  33+ Providers · WebAPI · NuGet packages             │
-│  holochain-client-csharp · HoloNET-ORM               │
-└────────────────────┬────────────────────────────────┘
-                     │  private submodules / NuGet
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│  PRIVATE CORE                                        │
-│  OASIS-API-Core · OASIS-ONODE-Core                  │
-│  STAR-ODK · OASIS-WEB6 · ONODEManager               │
-│  OGEngineClient · HyperDrive · OIDE                  │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  PUBLIC TIER                                                 │
+│  OASIS monorepo · holochain-client-csharp (HoloNET Client)  │
+│  HoloNET-Manager · NextGenSoftware-Libraries · UltimateDoomBuilder │
+└─────────────────────┬───────────────────────────────────────┘
+                      │  private submodules · NuGet packages · compiled binaries
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PRIVATE CORE — source never exposed                         │
+│  OASIS-API-Core · OASIS-ONODE-Core · STAR-ODK · OASIS-WEB6  │
+│  ONODEManager · OGEngineClient · HyperDrive · HoloNET-ORM   │
+│  HoloNET-HyperNET · OIDE · Our-World                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-The public tier has zero access to private source — it consumes only compiled outputs (NuGet packages, versioned binaries via OPORTAL). Private repos are injected into the Docker build pipeline at Railway using a scoped PAT and are never present in any public build artifact.
+Private repos are injected into the Railway Docker build pipeline via a scoped GitHub PAT at build time only. No private source is ever present in any public build artifact or NuGet package.
 
 ---
 
@@ -77,17 +79,19 @@ The public tier has zero access to private source — it consumes only compiled 
 
 | Asset type | Channel |
 |---|---|
-| .NET libraries (API.Core, ONODE.Core, HoloNET etc.) | NuGet — `NextGenSoftware.*` packages |
+| .NET libraries (OASIS-API-Core, ONODE-Core, HoloNET etc.) | NuGet — `NextGenSoftware.*` packages |
 | STAR CLI | `dotnet tool install -g NextGenSoftware.OASIS.STAR.CLI` |
-| Desktop apps (ONODE Manager, HoloNET Manager, OIDE, HyperDrive) | OPORTAL downloads — `oportal.oasisomniverse.one/downloads/` |
-| Games (OQuake, ODOOM) | OPORTAL downloads + storefronts |
+| Desktop apps (ONODE Manager, HoloNET Manager, OIDE, HyperDrive Client) | OPORTAL — `oportal.oasisomniverse.one/downloads/` |
+| Games (OQuake, ODOOM, Our World) | OPORTAL downloads + game storefronts |
 | WEB4–WEB10 APIs | Railway-hosted, auto-deployed from master |
 
 ---
 
 ## Summary
 
-The two-tier structure means the platform is **open enough to attract a developer ecosystem** while keeping every piece of strategic IP — the STAR WEB5 engine, the WEB6 AI layer, the node infrastructure, the game engine bridge, and the IDE — firmly under proprietary control. Consumers depend on the public surface; the private core is what they cannot replicate without years of engineering effort.
+The two-tier structure means the platform is **open enough to attract a developer ecosystem** while keeping every piece of strategic IP firmly under proprietary control — including the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+
+As the platform matures — with an established commercial user base and paying subscribers — we plan to selectively open-source additional components where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.
 
 ---
 
