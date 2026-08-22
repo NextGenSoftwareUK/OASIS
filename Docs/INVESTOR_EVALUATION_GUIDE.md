@@ -13,6 +13,8 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 
 **Investment thesis**: WEB4/WEB5 provide the user base and ecosystem moat. WEB6 is the revenue engine — every AI API call, every karma-gated model upgrade, every enterprise subscription routes through WEB6. The combination of real identity (WEB4 avatar), real ecosystem data (WEB5 holons), and unified AI (WEB6 FAHRN) creates a competitive moat no generic AI proxy can replicate.
 
+> 📄 **See also**: [OASIS IP & Repository Structure Report](OASIS-IP-Repository-Report.md) — a full breakdown of public vs private repositories demonstrating the technical moat. An [HTML version](OASIS-IP-Repository-Report.html) is also available for sharing with stakeholders.
+
 ---
 
 ## Core Architecture: WEB4 vs WEB5 Separation
