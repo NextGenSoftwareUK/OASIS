@@ -183,6 +183,12 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>FarcasterOASIS</b> - Farcaster Decentralised Social Provider.</li>
 <li><b>NostrOASIS</b> - Nostr Decentralised Social Protocol Provider (BIP-340 Schnorr signing, WebSocket relay).</li>
 <li><b>LensOASIS</b> - Lens Protocol v2 Decentralised Social Graph Provider (Polygon/Lens Network, GraphQL).</li>
+<li><b>BlueSkyOASIS</b> - BlueSky / AT Protocol Decentralised Social Provider (XRPC REST, DIDs, AT-URIs; posts → Holons, profiles → Avatars).</li>
+<li><b>MatrixOASIS</b> - Matrix Client-Server API v3 Decentralised Messaging Provider (room events → Holons, @user:server → Avatars, 3PID email lookup).</li>
+<li><b>FilecoinOASIS</b> - Filecoin Lotus JSON-RPC Provider (storage deals, CIDs → Holons, addresses → Avatars; Glif.io public node).</li>
+<li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer via Algonode.io; transactions → Holons, accounts → Avatars, ASA support).</li>
+<li><b>CeramicOASIS</b> - Ceramic Network Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
+<li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars, raw-tx broadcast).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
 <li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
 <li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
