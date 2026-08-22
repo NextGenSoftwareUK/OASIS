@@ -10,15 +10,18 @@ The OASIS Omniverse platform is structured across two tiers of GitHub repositori
 
 | | Count |
 |---|---|
-| Public repositories | 5 |
-| Private repositories | 11 |
-| Private as % of total | 69% |
+| Public GitHub repositories | 15 |
+| Private GitHub repositories | 11 |
+| Public NPM packages | 14 |
+| Private as % of GitHub total | 42% |
 
 ---
 
 ## Public Repositories — Open Ecosystem
 
-These repositories are intentionally public. They drive developer adoption, NuGet downloads, community contributions, and ecosystem trust. Consumers of the platform build on these without needing access to the proprietary core.
+These repositories are intentionally public. They drive developer adoption, NuGet and NPM downloads, community contributions, and ecosystem trust. Consumers of the platform build on these without needing access to the proprietary core.
+
+### Foundation & .NET Libraries
 
 | Repository | What it contains | Role |
 |---|---|---|
@@ -26,7 +29,43 @@ These repositories are intentionally public. They drive developer adoption, NuGe
 | **[NextGenSoftwareUK/holochain-client-csharp](https://github.com/NextGenSoftwareUK/holochain-client-csharp)** | HoloNET Client — the only production-grade .NET/Unity Holochain client. Full WebSocket zome call layer with async/event hybrid model | Community flagship; drives NuGet adoption |
 | **[NextGenSoftwareUK/HoloNET-Manager](https://github.com/NextGenSoftwareUK/HoloNET-Manager)** | Desktop WPF reference implementation showcasing every HoloNET Client and HoloNET ORM capability with reusable UI components developers can reference and adapt | Developer showcase; reusable component library |
 | **[NextGenSoftwareUK/NextGenSoftware-Libraries](https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries)** | Shared utility libraries — WebSocket extensions (including the ConnectAsync overload required by HoloNET), logging, core helpers | Foundational dependency for all OASIS projects |
-| **[NextGenSoftwareUK/UltimateDoomBuilder](https://github.com/NextGenSoftwareUK/UltimateDoomBuilder)** | OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games (OQuake, ODOOM and others) | Open toolchain to drive game developer adoption |
+
+### JavaScript / TypeScript API Packages
+
+One public GitHub repo and NPM package per API tier — giving JS/TS developers a typed client for every layer of the OASIS without exposing the server-side implementation.
+
+| Repository | NPM Package | What it contains |
+|---|---|---|
+| **[OASIS-API-Javascipt-Package-WEB4](https://github.com/NextGenSoftwareUK/OASIS-API-Javascipt-Package-WEB4)** | `@oasisomniverse/web4-api` | Typed JS client for the WEB4 OASIS API — avatars, holons, providers, inventory |
+| **[OASIS-API-Javascript-Package-WEB5](https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB5)** | `@oasisomniverse/web5-api` | Typed JS client for the WEB5 STAR API — OAPPs, metaverse, STARDNA |
+| **[OASIS-API-Javascript-Package-WEB6](https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB6)** | `@oasisomniverse/web6-api` | Typed JS client for the WEB6 AI API — FAHRN agents, Holonic BRAID, MCP tools |
+| **[OASIS-API-Javascript-Package-WEB7](https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB7)** | `@oasisomniverse/web7-api` | Typed JS client for the WEB7 Symbiotic Layer |
+| **[OASIS-API-Javascript-Package-WEB8](https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB8)** | `@oasisomniverse/web8-api` | Typed JS client for the WEB8 Inter-Galactic Layer |
+| **[OASIS-API-Javascript-Package-WEB9](https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB9)** | `@oasisomniverse/web9-api` | Typed JS client for the WEB9 Singularity Layer |
+| **[OASIS-API-Javascript-Package-WEB10](https://github.com/NextGenSoftwareUK/OASIS-API-Javascript-Package-WEB10)** | `@oasisomniverse/web10-api` | Typed JS client for the WEB10 The Source |
+
+### WebUI Framework SDKs (NPM only)
+
+Drop-in SDKs for the most popular JS frameworks — connect to the full OASIS platform in minutes from any frontend stack.
+
+| NPM Package | Framework |
+|---|---|
+| `@oasisomniverse/js` | Vanilla JS / TypeScript |
+| `@oasisomniverse/react` | React |
+| `@oasisomniverse/angular` | Angular |
+| `@oasisomniverse/vue` | Vue |
+| `@oasisomniverse/svelte` | Svelte |
+| `@oasisomniverse/nextjs` | Next.js |
+| `@oasisomniverse/mcp-server` | MCP server — expose the full OASIS as an AI tool |
+
+### Games & Tooling
+
+| Repository | What it contains | Role |
+|---|---|---|
+| **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** | OGEngine-powered DOOM reimagining — full OASIS SSO, shared inventory and cross-game quests via STAR | Flagship open game; demonstrates OASIS cross-game capabilities |
+| **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** | OGEngine-powered Quake reimagining — shares avatars, weapons and inventory with ODOOM through STAR | Second flagship open game; proves cross-game SSO at scale |
+| **[NextGenSoftwareUK/ODOOM-Editor](https://github.com/NextGenSoftwareUK/ODOOM-Editor)** | Level editor for ODOOM built on UltimateDoomBuilder / OGEditor SDK | Open editing toolchain for the ODOOM community |
+| **[NextGenSoftwareUK/UltimateDoomBuilder](https://github.com/NextGenSoftwareUK/UltimateDoomBuilder)** | OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games | Open toolchain to drive game developer adoption |
 
 ---
 
@@ -89,7 +128,7 @@ Private repos are injected into the Railway Docker build pipeline via a scoped G
 
 ## Summary
 
-The two-tier structure means the platform is **open enough to attract a developer ecosystem** while keeping every piece of strategic IP firmly under proprietary control — including the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 15 public GitHub repos, 14 NPM packages spanning every major JS framework, and open-source games with a thriving modding community — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
 
 As the platform matures — with an established commercial user base and paying subscribers — we plan to selectively open-source additional components where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.
 
