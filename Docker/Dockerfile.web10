@@ -32,6 +32,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 WORKDIR /src
 COPY . .
 
+ARG GITHUB_PAT
+RUN git config url."https://${GITHUB_PAT}@github.com/".insteadOf "https://github.com/" \
+    && git submodule update --init --recursive \
+    && git config --unset url."https://${GITHUB_PAT}@github.com/".insteadOf
+
 RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" || \
     cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json" \
        "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json"
