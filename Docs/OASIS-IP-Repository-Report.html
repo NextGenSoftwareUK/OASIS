@@ -463,7 +463,7 @@
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-API-Core</div>
-          <div class="repo-desc">Core OASIS API interfaces, base classes and provider contracts. Contains the COSMIC ORM (universal data abstraction across 40+ Web2/Web3 providers), the HyperDrive backend (auto-failover, auto-replication, auto-load-balancing), and the STARNET holon graph — all deeply integrated as the unified WEB4 engine. The majority of the platform's core IP lives here.</div>
+          <div class="repo-desc">Core OASIS API interfaces, base classes and provider contracts. Contains the <strong>COSMIC ORM</strong> — a universal data abstraction layer across 40+ Web2 and Web3 providers that lets developers migrate from traditional databases to decentralised storage with minimal code changes. Existing models can be reused as-is; swapping from Entity Framework or NHibernate is a matter of a few lines — with the same codebase then spanning SQL, NoSQL, IPFS, Holochain, Solana, Ethereum and 36+ more without rewriting business logic. Also contains the full HyperDrive backend (auto-failover, auto-replication, auto-load-balancing across every provider) and the STARNET holon graph — all deeply integrated as the unified WEB4 engine.</div>
         </div>
         <span class="repo-role private">Core IP</span>
       </div>
@@ -512,7 +512,8 @@
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-ORM</div>
-          <div class="repo-desc">Object Relational Mapping layer for Holochain — extend HoloNETEntryBaseClass to get Load, Save and Delete mapped directly onto Rust zome structs. Kept private to protect the ORM implementation.</div>
+          <div class="repo-desc" style="font-style:italic;color:var(--gold);margin-bottom:.4rem;font-size:.8rem;">The easiest Web2→Holochain migration path in existence.</div>
+          <div class="repo-desc"> Extend <code>HoloNETEntryBaseClass</code> and get Load, Save, and Delete mapped directly onto Rust zome structs — no manual zome call wiring, no serialisation boilerplate. Developers already using Entity Framework or NHibernate can reuse their existing model classes almost unchanged and swap in HoloNET ORM in a handful of lines. The migration path to fully decentralised, agent-centric storage becomes a refactor, not a rewrite. Kept private because this leverage is exactly what drives mass adoption — and what competitors cannot easily replicate.</div>
         </div>
         <span class="repo-role private">Holochain ORM</span>
       </div>
