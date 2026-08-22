@@ -23,9 +23,20 @@ WORKDIR /src
 COPY . .
 
 ARG GITHUB_PAT
-RUN git config url."https://${GITHUB_PAT}@github.com/".insteadOf "https://github.com/" \
-    && git submodule update --init --recursive \
-    && git config --unset url."https://${GITHUB_PAT}@github.com/".insteadOf
+RUN rm -rf "OASIS Architecture/NextGenSoftware.OASIS.API.Core" \
+           "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" \
+           "ONODE/ONODEManager" \
+           "STAR ODK" \
+           "WEB6" \
+           "OASIS Omniverse/OGEngineClient" \
+           "HoloNET-ORM" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OASIS-API-Core.git" "OASIS Architecture/NextGenSoftware.OASIS.API.Core" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OASIS-ONODE-Core.git" "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/ONODEManager.git" "ONODE/ONODEManager" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/STAR-ODK.git" "STAR ODK" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OASIS-WEB6.git" "WEB6" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OGEngineClient.git" "OASIS Omniverse/OGEngineClient" \
+    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/HoloNET-ORM.git" "HoloNET-ORM"
 
 RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" || \
     cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json" \
