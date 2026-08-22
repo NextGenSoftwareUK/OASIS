@@ -11,9 +11,9 @@ The OASIS Omniverse platform is structured across two tiers of GitHub repositori
 | | Count |
 |---|---|
 | Public GitHub repositories | 43 |
-| Private GitHub repositories | 11 |
+| Private GitHub repositories | 12 |
 | Public NPM packages | 14 |
-| Private as % of GitHub total | 20% |
+| Private as % of GitHub total | 22% |
 
 ---
 
@@ -127,6 +127,7 @@ These repositories contain proprietary IP and are never exposed publicly. They a
 | **[NextGenSoftwareUK/HoloNET-ORM](https://github.com/NextGenSoftwareUK/HoloNET-ORM)** | **The easiest on-ramp from Web2 to Holochain that exists.** Extend `HoloNETEntryBaseClass` and get Load, Save, and Delete mapped directly onto Rust zome structs — no manual zome call wiring, no serialisation boilerplate. Developers already using an ORM like Entity Framework or NHibernate can reuse their existing model classes almost unchanged and swap in HoloNET ORM in a handful of lines. The migration path to fully decentralised, agent-centric storage becomes a refactor, not a rewrite. Kept private because this is exactly the kind of leverage that drives mass adoption — and that competitors cannot easily replicate | The lowest-friction Web2→Holochain migration path in existence; core developer acquisition moat |
 | **[NextGenSoftwareUK/HoloNET-HyperNET](https://github.com/NextGenSoftwareUK/HoloNET-HyperNET)** | Peer-to-peer lag-free multiplayer networking for Unity and Unreal games, built on HoloNET. Near-unlimited concurrent players with no cloud game server required | Disruptive multiplayer tech IP; eliminates traditional game server costs entirely |
 | **[NextGenSoftwareUK/OIDE](https://github.com/NextGenSoftwareUK/OIDE)** | OASIS Integrated Development Environment — full IDE for building OAPPs and WEB5/WEB6 experiences | Proprietary developer toolchain; creates deep ecosystem stickiness |
+| **[NextGenSoftwareUK/OASIS-Omniverse-Hub](https://github.com/NextGenSoftwareUK/OASIS-Omniverse-Hub)** | OASIS Omniverse HUB — the Unity-based Omniverse OS and Kernel. The persistent cross-game space players teleport through between all connected OGames. Contains `OmniverseKernel.cs`, the portal rendering system, the shared cross-game HUD, login screen, and the Web4/Web5 gateway client. The beating heart of the entire OASIS Omniverse. | Core of the OASIS Omniverse itself — the most strategically sensitive IP in the platform |
 | **[NextGenSoftwareUK/Our-World](https://github.com/NextGenSoftwareUK/Our-World)** | Our World — the flagship OASIS location-based AR/XR game and metaverse that demonstrates the full OASIS platform stack and serves as its primary showcase | Flagship product IP; the original proof-of-concept that became the OASIS platform |
 
 ---
