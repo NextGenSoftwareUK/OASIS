@@ -10,10 +10,10 @@ The OASIS Omniverse platform is structured across two tiers of GitHub repositori
 
 | | Count |
 |---|---|
-| Public GitHub repositories | 15 |
+| Public GitHub repositories | 23 |
 | Private GitHub repositories | 11 |
 | Public NPM packages | 14 |
-| Private as % of GitHub total | 42% |
+| Private as % of GitHub total | 32% |
 
 ---
 
@@ -29,6 +29,19 @@ These repositories are intentionally public. They drive developer adoption, NuGe
 | **[NextGenSoftwareUK/holochain-client-csharp](https://github.com/NextGenSoftwareUK/holochain-client-csharp)** | HoloNET Client — the only production-grade .NET/Unity Holochain client. Full WebSocket zome call layer with async/event hybrid model | Community flagship; drives NuGet adoption |
 | **[NextGenSoftwareUK/HoloNET-Manager](https://github.com/NextGenSoftwareUK/HoloNET-Manager)** | Desktop WPF reference implementation showcasing every HoloNET Client and HoloNET ORM capability with reusable UI components developers can reference and adapt | Developer showcase; reusable component library |
 | **[NextGenSoftwareUK/NextGenSoftware-Libraries](https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries)** | Shared utility libraries — WebSocket extensions (including the ConnectAsync overload required by HoloNET), logging, core helpers | Foundational dependency for all OASIS projects |
+
+### Portals & UI Component Libraries
+
+| Repository | What it contains | Role |
+|---|---|---|
+| **[NextGenSoftwareUK/OPORTAL-React](https://github.com/NextGenSoftwareUK/OPORTAL-React)** | React implementation of the OPORTAL — the main gateway into the OASIS ecosystem | Public React portal |
+| **[NextGenSoftwareUK/OASIS-JS-UI-Component-Library](https://github.com/NextGenSoftwareUK/OASIS-JS-UI-Component-Library)** | Vanilla JS OASIS UI component library | Reusable UI components |
+| **[NextGenSoftwareUK/OASIS-React-UI-Component-Library](https://github.com/NextGenSoftwareUK/OASIS-React-UI-Component-Library)** | React OASIS UI component library | Reusable UI components |
+| **[NextGenSoftwareUK/OASIS-Angular-UI-Component-Library](https://github.com/NextGenSoftwareUK/OASIS-Angular-UI-Component-Library)** | Angular OASIS UI component library | Reusable UI components |
+| **[NextGenSoftwareUK/OASIS-Vue-UI-Component-Library](https://github.com/NextGenSoftwareUK/OASIS-Vue-UI-Component-Library)** | Vue OASIS UI component library | Reusable UI components |
+| **[NextGenSoftwareUK/OASIS-Svelte-UI-Component-Library](https://github.com/NextGenSoftwareUK/OASIS-Svelte-UI-Component-Library)** | Svelte OASIS UI component library | Reusable UI components |
+| **[NextGenSoftwareUK/OASIS-NextJS-UI-Component-Library](https://github.com/NextGenSoftwareUK/OASIS-NextJS-UI-Component-Library)** | Next.js OASIS UI component library | Reusable UI components |
+| **[NextGenSoftwareUK/OASIS-API-Unity-Package](https://github.com/NextGenSoftwareUK/OASIS-API-Unity-Package)** | Unity SDK for the OASIS API — integrate Unity games into the full OASIS ecosystem | Unity developer adoption |
 
 ### JavaScript / TypeScript API Packages
 
@@ -60,12 +73,16 @@ Drop-in SDKs for the most popular JS frameworks — connect to the full OASIS pl
 
 ### Games & Tooling
 
+The OASIS Omniverse currently has **23 OGames** powered by OGEngine — 3 live and 20 in active development. Every quest, item and avatar cross-connects between all of them. Games with their own public GitHub repos:
+
 | Repository | What it contains | Role |
 |---|---|---|
 | **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** | OGEngine-powered DOOM reimagining — full OASIS SSO, shared inventory and cross-game quests via STAR | Flagship open game; demonstrates OASIS cross-game capabilities |
 | **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** | OGEngine-powered Quake reimagining — shares avatars, weapons and inventory with ODOOM through STAR | Second flagship open game; proves cross-game SSO at scale |
 | **[NextGenSoftwareUK/ODOOM-Editor](https://github.com/NextGenSoftwareUK/ODOOM-Editor)** | Level editor for ODOOM built on UltimateDoomBuilder / OGEditor SDK | Open editing toolchain for the ODOOM community |
 | **[NextGenSoftwareUK/UltimateDoomBuilder](https://github.com/NextGenSoftwareUK/UltimateDoomBuilder)** | OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games | Open toolchain to drive game developer adoption |
+
+**In active development (public repos incoming):** ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OHeretic, OHexen, OQuake2, OQuake2-RTX, OQuake3, OShadowWarrior, OShadowWarriorRT, OBlood, OExhumed, OStrife, ODoom64, OHexenII, ORtCW, OHalfLife, OMinecraft — all integrated with shared cross-game inventory, avatar SSO, karma and quests via OGEngine and the STAR API.
 
 ---
 
@@ -128,7 +145,7 @@ Private repos are injected into the Railway Docker build pipeline via a scoped G
 
 ## Summary
 
-The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 15 public GitHub repos, 14 NPM packages spanning every major JS framework, and open-source games with a thriving modding community — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 23 public GitHub repos, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, a Unity SDK, open-source games with a growing modding community, and 20 more OGames in active development — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
 
 As the platform matures — with an established commercial user base and paying subscribers — we plan to selectively open-source additional components where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.
 
