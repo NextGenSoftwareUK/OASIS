@@ -189,6 +189,11 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer via Algonode.io; transactions → Holons, accounts → Avatars, ASA support).</li>
 <li><b>CeramicOASIS</b> - Ceramic Network Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
 <li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars, raw-tx broadcast).</li>
+<li><b>DiscordOASIS</b> - Discord REST API v10 Provider (guild members → Avatars, channel messages → Holons; bot-token auth, 800M+ user reach).</li>
+<li><b>TheGraphOASIS</b> - The Graph Protocol Indexing Provider (GraphQL subgraph; blockchain entities → Holons, indexers → Avatars; configurable subgraph URL).</li>
+<li><b>WorldIDOASIS</b> - World ID (Worldcoin) Proof-of-Humanity Provider (ZK verification → Avatars; nullifier_hash as anonymous unique key; Sybil resistance for OASIS karma).</li>
+<li><b>LitProtocolOASIS</b> - Lit Protocol Decentralised Access Control Provider (threshold encryption; encrypted holons with token/NFT/karma-gated conditions; wallet addresses → Avatars).</li>
+<li><b>StoryProtocolOASIS</b> - Story Protocol Programmable IP Blockchain Provider (Story Network EVM L1; IP Assets → Holons, creators → Avatars; license attachment and royalty support).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
 <li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
 <li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>

@@ -88,6 +88,11 @@ _Last updated: 2026-08-22_
 | Lens Protocol | LensOASIS | **Done** |
 | BlueSky | BlueSkyOASIS | **Done** |
 | Matrix | MatrixOASIS | **Done** |
+| Discord | DiscordOASIS | **Done** |
+| The Graph | TheGraphOASIS | **Done** |
+| World ID | WorldIDOASIS | **Done** |
+| Lit Protocol | LitProtocolOASIS | **Done** |
+| Story Protocol | StoryProtocolOASIS | **Done** |
 | Stellar | StellarOASIS |
 | Azure Blob Storage | AzureStorageOASIS |
 | SQL Server | SQLServerDBOASIS |
@@ -228,13 +233,14 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 11d | BlueSky | Social | Low (AT Protocol XRPC) | High | **Done** |
 | 11e | Matrix | Messaging | Low (Client-Server v3) | High | **Done** |
 | 12 | Lit Protocol | Encryption | Medium (REST) | Medium | Backlog |
-| 13 | The Graph | Indexing | Low (GraphQL) | High | Next |
-| 14 | Discord | Social/Network | Low (REST bot) | Very High | Next |
-| 15 | World ID | Identity | Medium (ZK proofs) | High | Soon |
-| 16 | Story Protocol | IP / NFT | Medium | Medium | Next quarter |
-| 17 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next quarter |
-| 18 | Celestia | DA Layer | Medium | Medium | Next quarter |
-| 19 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | Backlog |
+| 13 | The Graph | Indexing | Low (GraphQL) | High | **Done** |
+| 14 | Discord | Social/Network | Low (REST bot) | Very High | **Done** |
+| 15 | World ID | Identity | Medium (ZK proofs) | High | **Done** |
+| 16 | Story Protocol | IP / NFT | Medium | Medium | **Done** |
+| 17 | Lit Protocol | Encryption | Medium (REST) | Medium | **Done** |
+| 18 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next |
+| 19 | Celestia | DA Layer | Medium | Medium | Next quarter |
+| 20 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | Backlog |
 
 ---
 
