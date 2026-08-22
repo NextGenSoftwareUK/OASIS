@@ -95,4 +95,4 @@ As the platform matures — with an established commercial user base and paying 
 
 ---
 
-*NextGen Software Ltd · davidellams@hotmail.com · oasisomniverse.one*
+*NextGen Software Ltd · david.ellams@oasisomniverse.one · oasisomniverse.one*
