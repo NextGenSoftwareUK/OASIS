@@ -10,10 +10,10 @@ The OASIS Omniverse platform is structured across two tiers of GitHub repositori
 
 | | Count |
 |---|---|
-| Public GitHub repositories | 23 |
+| Public GitHub repositories | 43 |
 | Private GitHub repositories | 11 |
 | Public NPM packages | 14 |
-| Private as % of GitHub total | 32% |
+| Private as % of GitHub total | 20% |
 
 ---
 
@@ -82,7 +82,32 @@ The OASIS Omniverse currently has **23 OGames** powered by OGEngine — 3 live a
 | **[NextGenSoftwareUK/ODOOM-Editor](https://github.com/NextGenSoftwareUK/ODOOM-Editor)** | Level editor for ODOOM built on UltimateDoomBuilder / OGEditor SDK | Open editing toolchain for the ODOOM community |
 | **[NextGenSoftwareUK/UltimateDoomBuilder](https://github.com/NextGenSoftwareUK/UltimateDoomBuilder)** | OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games | Open toolchain to drive game developer adoption |
 
-**In active development (public repos incoming):** ODOOM3, ODOOM3-BFG, ODuke3D, ODuke3D-RT, OWolf3D, OHeretic, OHexen, OQuake2, OQuake2-RTX, OQuake3, OShadowWarrior, OShadowWarriorRT, OBlood, OExhumed, OStrife, ODoom64, OHexenII, ORtCW, OHalfLife, OMinecraft — all integrated with shared cross-game inventory, avatar SSO, karma and quests via OGEngine and the STAR API.
+All 20 in-development OGames also have their own public GitHub repos under `NextGenSoftwareUK/`:
+
+| Repository | Game |
+|---|---|
+| **[ODOOM3](https://github.com/NextGenSoftwareUK/ODOOM3)** | Atmospheric UAC horror — DOOM 3 in the Omniverse |
+| **[ODOOM3-BFG](https://github.com/NextGenSoftwareUK/ODOOM3-BFG)** | DOOM 3 BFG Edition variant |
+| **[ODuke3D](https://github.com/NextGenSoftwareUK/ODuke3D)** | Duke Nukem 3D in the Omniverse |
+| **[ODuke3D-RT](https://github.com/NextGenSoftwareUK/ODuke3D-RT)** | Duke Nukem 3D with ray tracing |
+| **[OWolf3D](https://github.com/NextGenSoftwareUK/OWolf3D)** | Wolfenstein 3D — the granddaddy of FPS joins the Omniverse |
+| **[OHeretic](https://github.com/NextGenSoftwareUK/OHeretic)** | Heretic — Corvus enters the Omniverse |
+| **[OHexen](https://github.com/NextGenSoftwareUK/OHexen)** | Hexen — three warrior classes, one Omniverse |
+| **[OQuake2](https://github.com/NextGenSoftwareUK/OQuake2)** | Quake II — the Strogg invasion meets the Omniverse |
+| **[OQuake2-RTX](https://github.com/NextGenSoftwareUK/OQuake2-RTX)** | Quake II with full path-traced ray tracing |
+| **[OQuake3](https://github.com/NextGenSoftwareUK/OQuake3)** | Quake III Arena — arena-speed combat in the Omniverse |
+| **[OShadowWarrior](https://github.com/NextGenSoftwareUK/OShadowWarrior)** | Shadow Warrior — Lo Wang joins the Omniverse |
+| **[OShadowWarriorRT](https://github.com/NextGenSoftwareUK/OShadowWarriorRT)** | Shadow Warrior with ray tracing |
+| **[OBlood](https://github.com/NextGenSoftwareUK/OBlood)** | Blood — Caleb's cult-slaughtering rampage in the Omniverse |
+| **[OExhumed](https://github.com/NextGenSoftwareUK/OExhumed)** | Exhumed / Powerslave in the Omniverse |
+| **[OStrife](https://github.com/NextGenSoftwareUK/OStrife)** | Strife — FPS/RPG hybrid joins the Omniverse |
+| **[ODoom64](https://github.com/NextGenSoftwareUK/ODoom64)** | DOOM 64 — the N64's darkest DOOM in the Omniverse |
+| **[OHexenII](https://github.com/NextGenSoftwareUK/OHexenII)** | Hexen II — four hero classes join the Omniverse |
+| **[ORtCW](https://github.com/NextGenSoftwareUK/ORtCW)** | Return to Castle Wolfenstein in the Omniverse |
+| **[OHalfLife](https://github.com/NextGenSoftwareUK/OHalfLife)** | Half-Life — Vvardenfell opens to the Omniverse via OpenMW |
+| **[OMinecraft](https://github.com/NextGenSoftwareUK/OMinecraft)** | Minecraft — infinite sandbox meets the Omniverse via Fabric mod |
+
+All 20 integrate shared cross-game inventory, avatar SSO, karma and quests via OGEngine and the STAR API.
 
 ---
 
@@ -145,7 +170,7 @@ Private repos are injected into the Railway Docker build pipeline via a scoped G
 
 ## Summary
 
-The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 23 public GitHub repos, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, a Unity SDK, open-source games with a growing modding community, and 20 more OGames in active development — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 43 public GitHub repos including 23 OGames, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, and a Unity SDK — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
 
 As the platform matures — with an established commercial user base and paying subscribers — we plan to selectively open-source additional components where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.
 
