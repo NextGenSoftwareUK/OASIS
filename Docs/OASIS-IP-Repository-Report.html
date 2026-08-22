@@ -1,0 +1,648 @@
+<title>OASIS IP Structure</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap">
+
+<style>
+  :root {
+    --bg:        #08101f;
+    --surface:   #0e1a2e;
+    --surface2:  #132038;
+    --border:    #1c2f4a;
+    --gold:      #e8a820;
+    --gold-dim:  rgba(232,168,32,0.12);
+    --gold-glow: rgba(232,168,32,0.06);
+    --teal:      #34c4b0;
+    --teal-dim:  rgba(52,196,176,0.12);
+    --text:      #dce8f5;
+    --text-dim:  #7a9abf;
+    --text-faint:#3d5878;
+    --red-dim:   rgba(220,80,60,0.10);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg:        #f0f5fb;
+      --surface:   #ffffff;
+      --surface2:  #e8f0fa;
+      --border:    #c8d9ee;
+      --gold:      #b87d08;
+      --gold-dim:  rgba(184,125,8,0.10);
+      --gold-glow: rgba(184,125,8,0.04);
+      --teal:      #1a9585;
+      --teal-dim:  rgba(26,149,133,0.10);
+      --text:      #0e1a2e;
+      --text-dim:  #3d6080;
+      --text-faint:#9ab5cc;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg:        #f0f5fb;
+    --surface:   #ffffff;
+    --surface2:  #e8f0fa;
+    --border:    #c8d9ee;
+    --gold:      #b87d08;
+    --gold-dim:  rgba(184,125,8,0.10);
+    --gold-glow: rgba(184,125,8,0.04);
+    --teal:      #1a9585;
+    --teal-dim:  rgba(26,149,133,0.10);
+    --text:      #0e1a2e;
+    --text-dim:  #3d6080;
+    --text-faint:#9ab5cc;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 960px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+  /* ── Header ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2.5rem;
+    margin-bottom: 3rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 1rem;
+  }
+
+  .eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.1;
+    text-wrap: balance;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--gold);
+  }
+
+  .meta {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    text-align: right;
+  }
+
+  /* ── Stats row ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-number.gold { color: var(--gold); }
+  .stat-number.teal { color: var(--teal); }
+  .stat-number.text { color: var(--text); }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  /* ── Section headings ── */
+  .section { margin-bottom: 3rem; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+  }
+
+  .tier-badge.public  { background: var(--teal-dim); color: var(--teal); }
+  .tier-badge.private { background: var(--gold-dim); color: var(--gold); }
+
+  .tier-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tier-badge.public::before  { background: var(--teal); }
+  .tier-badge.private::before { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-desc {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+    max-width: 660px;
+    line-height: 1.6;
+  }
+
+  /* ── Repo cards ── */
+  .repo-list { display: flex; flex-direction: column; gap: 1px; }
+
+  .repo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem 2rem;
+    align-items: start;
+    transition: border-color 0.15s;
+  }
+
+  .repo-card + .repo-card { margin-top: 6px; }
+
+  .repo-card.public:hover  { border-color: var(--teal); }
+  .repo-card.private:hover { border-color: var(--gold); }
+
+  .repo-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .repo-name .org { color: var(--text-faint); font-weight: 400; }
+
+  .repo-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  .repo-role {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    align-self: start;
+    margin-top: 2px;
+  }
+
+  .repo-role.public  { background: var(--teal-dim); color: var(--teal); }
+  .repo-role.private { background: var(--gold-dim); color: var(--gold); }
+
+  /* ── Architecture diagram ── */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .arch-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 1.5rem;
+  }
+
+  .arch-diagram {
+    display: grid;
+    grid-template-rows: auto auto auto auto;
+    gap: 0;
+  }
+
+  .arch-layer {
+    padding: 1rem 1.4rem;
+    border-radius: 8px;
+    position: relative;
+  }
+
+  .arch-layer.consumers {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    margin-bottom: 0;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 1.1rem;
+    padding: 0.35rem 0;
+    line-height: 1;
+  }
+
+  .arch-layer.public-layer {
+    background: var(--teal-dim);
+    border: 1px solid rgba(52,196,176,0.25);
+    margin-bottom: 0;
+  }
+
+  .arch-layer.private-layer {
+    background: var(--gold-glow);
+    border: 1px solid rgba(232,168,32,0.22);
+  }
+
+  .arch-layer-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .arch-layer.public-layer .arch-layer-label  { color: var(--teal); }
+  .arch-layer.private-layer .arch-layer-label { color: var(--gold); }
+
+  .arch-items {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .arch-note {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* ── Distribution table ── */
+  .dist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    overflow-x: auto;
+    display: block;
+  }
+
+  .dist-table th {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .dist-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+
+  .dist-table td:first-child {
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .dist-table tr:last-child td { border-bottom: none; }
+
+  code {
+    font-family: 'SFMono-Regular', 'Consolas', monospace;
+    font-size: 0.8em;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    color: var(--teal);
+  }
+
+  /* ── Summary ── */
+  .summary {
+    background: var(--gold-glow);
+    border: 1px solid rgba(232,168,32,0.2);
+    border-radius: 10px;
+    padding: 1.75rem 2rem;
+  }
+
+  .summary p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.75;
+  }
+
+  .summary strong { color: var(--text); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .header { grid-template-columns: 1fr; }
+    .meta { text-align: left; }
+    .stats { grid-template-columns: 1fr; }
+    .repo-card { grid-template-columns: 1fr; }
+    .repo-role { width: fit-content; }
+    .footer { flex-direction: column; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="header">
+    <div>
+      <div class="eyebrow">NextGen Software Ltd · Confidential</div>
+      <h1>OASIS <em>IP</em> &amp;<br>Repository Structure</h1>
+    </div>
+    <div class="meta">
+      August 2026<br>
+      Prepared for: Team &amp; Investors<br>
+      oasisomniverse.one
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-number teal">6</span>
+      <span class="stat-label">Public repositories</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number gold">8</span>
+      <span class="stat-label">Private repositories</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number text">57%</span>
+      <span class="stat-label">Core IP kept private</span>
+    </div>
+  </div>
+
+  <!-- PUBLIC -->
+  <section class="section">
+    <div class="section-header">
+      <span class="tier-badge public">Public Tier</span>
+      <h2>Open Ecosystem</h2>
+    </div>
+    <p class="section-desc">
+      Intentionally public to drive developer adoption, NuGet downloads, community contributions, and ecosystem trust. Consumers build on these without needing access to the proprietary core.
+    </p>
+    <div class="repo-list">
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS</div>
+          <div class="repo-desc">Main monorepo — WEB4 OASIS API, 33+ storage/blockchain/social providers, WebAPI, Swagger docs, Docker configs, Railway deploy pipelines.</div>
+        </div>
+        <span class="repo-role public">Community entry point</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> holochain-client-csharp</div>
+          <div class="repo-desc">HoloNET Client, ORM, HyperNET — the only production-grade .NET Holochain client. Handles WebSocket connections, zome calls, and ORM mapping to Rust structs.</div>
+        </div>
+        <span class="repo-role public">NuGet flagship</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-Manager</div>
+          <div class="repo-desc">Desktop WPF application showcasing every HoloNET Client and ORM capability with reusable UI components developers can reference and adapt.</div>
+        </div>
+        <span class="repo-role public">Developer showcase</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HoloNET-ORM</div>
+          <div class="repo-desc">Object Relational Mapping for Holochain. Extend HoloNETEntryBaseClass to get Load, Save and Delete mapped directly onto Rust zome structs.</div>
+        </div>
+        <span class="repo-role public">Published NuGet</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> NextGenSoftware-Libraries</div>
+          <div class="repo-desc">Shared utility libraries — WebSocket extensions, logging, core helpers — foundational dependency for all OASIS projects and referenced by HoloNET.</div>
+        </div>
+        <span class="repo-role public">Shared foundation</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> UltimateDoomBuilder</div>
+          <div class="repo-desc">OGEditor SDK — a full-featured level and world editor toolchain for OGEngine-based games. Open toolchain to drive game developer adoption.</div>
+        </div>
+        <span class="repo-role public">Dev toolchain</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVATE -->
+  <section class="section">
+    <div class="section-header">
+      <span class="tier-badge private">Private Tier</span>
+      <h2>Competitive Moat</h2>
+    </div>
+    <p class="section-desc">
+      Proprietary IP consumed by the public tier as private NuGet packages, private git submodules, or compiled binaries distributed via OPORTAL. Source never exposed publicly.
+    </p>
+    <div class="repo-list">
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-API-Core</div>
+          <div class="repo-desc">Core OASIS API interfaces, base classes, and provider contracts — the foundation every provider implements. Controls the entire provider ecosystem.</div>
+        </div>
+        <span class="repo-role private">Core IP</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-ONODE-Core</div>
+          <div class="repo-desc">ONODE (OASIS Network Operating Node) core — supervisor contracts, orchestration logic, and node management interfaces. Powers all deployed OASIS nodes.</div>
+        </div>
+        <span class="repo-role private">Infrastructure IP</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> STAR-ODK</div>
+          <div class="repo-desc">WEB5 STAR API, ODK runtime, STAR CLI, COSMIC simulation engine, STARDNA — the complete WEB5 layer for building decentralised applications and games.</div>
+        </div>
+        <span class="repo-role private">Flagship platform</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-WEB6</div>
+          <div class="repo-desc">WEB6 AI layer — MCP server, holonic AI orchestration (FAHRN), multi-provider AI routing, semantic cache, gRPC/GraphQL APIs. Next-generation AI platform IP.</div>
+        </div>
+        <span class="repo-role private">AI platform IP</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> ONODEManager</div>
+          <div class="repo-desc">ONODE Manager (Avalonia cross-platform desktop app), ONODE Service (background REST supervisor), ONODE Client (typed .NET client library).</div>
+        </div>
+        <span class="repo-role private">Operational tooling</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OGEngineClient</div>
+          <div class="repo-desc">Native AOT .NET HTTP client for the WEB4 &amp; WEB5 APIs plus P/Invoke interop bridge into OGEngine native games (OQuake, ODOOM). Bridges OASIS directly into the game runtime.</div>
+        </div>
+        <span class="repo-role private">Game engine bridge</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> HyperDrive</div>
+          <div class="repo-desc">Peer-to-peer lag-free networking for Unity and Unreal games built on HoloNET. Near-unlimited concurrent players with no cloud game server required — eliminates traditional server costs.</div>
+        </div>
+        <span class="repo-role private">Disruptive tech IP</span>
+      </div>
+      <div class="repo-card private">
+        <div>
+          <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OIDE</div>
+          <div class="repo-desc">OASIS Integrated Development Environment — full IDE for building OAPPs and WEB5/WEB6 experiences. Creates deep developer lock-in and ecosystem stickiness.</div>
+        </div>
+        <span class="repo-role private">Developer toolchain</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <div class="arch">
+    <div class="arch-title">How the tiers interact</div>
+    <div class="arch-diagram">
+      <div class="arch-layer consumers">
+        <strong>Public consumers</strong> — community developers, third-party integrators, game studios
+      </div>
+      <div class="arch-arrow">↓ NuGet packages · dotnet tool · OPORTAL downloads</div>
+      <div class="arch-layer public-layer">
+        <div class="arch-layer-label">Public tier</div>
+        <div class="arch-items">OASIS monorepo · holochain-client-csharp · HoloNET-Manager · HoloNET-ORM · NextGenSoftware-Libraries · UltimateDoomBuilder</div>
+      </div>
+      <div class="arch-arrow">↓ private submodules · compiled NuGet packages</div>
+      <div class="arch-layer private-layer">
+        <div class="arch-layer-label">Private core — source never exposed</div>
+        <div class="arch-items">OASIS-API-Core · OASIS-ONODE-Core · STAR-ODK · OASIS-WEB6 · ONODEManager · OGEngineClient · HyperDrive · OIDE</div>
+        <div class="arch-note">Injected into Railway Docker builds via scoped PAT at build time only. No source present in any public artifact.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISTRIBUTION -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Distribution Channels</h2>
+    </div>
+    <div style="overflow-x:auto; border: 1px solid var(--border); border-radius: 8px;">
+      <table class="dist-table">
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Channel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>.NET libraries (API.Core, ONODE.Core, HoloNET etc.)</td>
+            <td>NuGet — <code>NextGenSoftware.*</code> packages</td>
+          </tr>
+          <tr>
+            <td>STAR CLI</td>
+            <td><code>dotnet tool install -g NextGenSoftware.OASIS.STAR.CLI</code></td>
+          </tr>
+          <tr>
+            <td>Desktop apps (ONODE Manager, HoloNET Manager, OIDE, HyperDrive)</td>
+            <td>OPORTAL — <code>oportal.oasisomniverse.one/downloads/</code></td>
+          </tr>
+          <tr>
+            <td>Games (OQuake, ODOOM)</td>
+            <td>OPORTAL downloads + game storefronts</td>
+          </tr>
+          <tr>
+            <td>WEB4–WEB10 APIs</td>
+            <td>Railway-hosted, auto-deployed from master branch</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <p>
+      The two-tier structure means the platform is <strong>open enough to attract a developer ecosystem</strong> while keeping every piece of strategic IP — the STAR WEB5 engine, the WEB6 AI orchestration layer, the node infrastructure, the game engine bridge, and the IDE — firmly under proprietary control. Community developers depend on and build trust in the public surface; the private core is what they cannot replicate without years of dedicated engineering effort. This structure directly protects defensibility while maximising adoption velocity.
+    </p>
+  </div>
+
+  <footer class="footer">
+    <span>NextGen Software Ltd · davidellams@hotmail.com</span>
+    <span>oasisomniverse.one · August 2026 · Confidential</span>
+  </footer>
+
+</div>
