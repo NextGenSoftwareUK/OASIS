@@ -45,7 +45,7 @@ _Last updated: 2026-08-21_
 | TON | TONOASIS |
 | Monad | MonadOASIS |
 | ChainLink | ChainLinkOASIS |
-| Loom Network | LoomOASIS |
+| Loom (video messaging) | LoomOASIS | **Done** |
 | Stellar | StellarOASIS |
 
 ### Storage / Database

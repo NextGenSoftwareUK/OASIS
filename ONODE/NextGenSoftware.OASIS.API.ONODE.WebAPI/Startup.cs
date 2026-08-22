@@ -165,7 +165,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>XRPLOASIS</b> - XRP Ledger Provider.</li>
 <li><b>BlockStackOASIS</b> - Stacks (formerly BlockStack) Provider.</li>
 <li><b>ChainLinkOASIS</b> - Chainlink Provider.</li>
-<li><b>LoomOASIS</b> - Loom Network Provider.</li>
+<li><b>LoomOASIS</b> - Loom Video Messaging Provider (workspace users → Avatars, videos → Holons; two-step upload flow).</li>
 <li><b>StellarOASIS</b> - Stellar Provider.</li>
 <li><b>ZkSyncOASIS</b> - zkSync Provider.</li>
 <li><b>ScrollOASIS</b> - Scroll Provider.</li>
