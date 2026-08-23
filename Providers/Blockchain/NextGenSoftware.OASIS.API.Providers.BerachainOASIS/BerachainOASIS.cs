@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BerachainOASIS
         {
             ProviderName = "BerachainOASIS";
             ProviderDescription = "Berachain EVM L1 Provider — Proof-of-Liquidity Blockchain";
-            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BerrachainOASIS);
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BerachainOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
