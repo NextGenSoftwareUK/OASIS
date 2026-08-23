@@ -115,20 +115,20 @@ _Last updated: 2026-08-22_
 | Azure Blob Storage | AzureStorageOASIS | **Done** |
 | SQL Server | SQLServerDBOASIS | **Done** |
 | Oracle Database | OracleDBOASIS | **Done** |
-| Orion Protocol (DEX) | OrionProtocolOASIS |
-| Tor / Onion | ONION-Protocol |
+| Orion Protocol (DEX) | OrionProtocolOASIS | **Done** |
+| Tor / Onion | ONION-Protocol (OnionOASIS) | **Done** |
 | Moralis | MoralisOASIS | **Done** |
-| PLAN | PLANOASIS |
+| PLAN | PLANOASIS | **Done** |
 
 ### Spatial / Gaming / Other
 
 | Provider | Project |
 |---|---|
-| GO Map | GOMapOASIS |
-| Mapbox | MapboxOASIS |
-| WRLD 3D | WRLD3DOASIS |
-| Cargo (NFT) | CargoOASIS |
-| PLAN | PLANOASIS |
+| GO Map | GOMapOASIS | **Done** |
+| Mapbox | MapboxOASIS | **Done** |
+| WRLD 3D | WRLD3DOASIS | **Done** |
+| Cargo (NFT) | CargoOASIS | **Done** |
+| PLAN | PLANOASIS | **Done** |
 
 ---
 
