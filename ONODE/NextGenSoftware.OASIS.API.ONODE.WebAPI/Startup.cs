@@ -194,6 +194,18 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>WorldIDOASIS</b> - World ID (Worldcoin) Proof-of-Humanity Provider (ZK verification → Avatars; nullifier_hash as anonymous unique key; Sybil resistance for OASIS karma).</li>
 <li><b>LitProtocolOASIS</b> - Lit Protocol Decentralised Access Control Provider (threshold encryption; encrypted holons with token/NFT/karma-gated conditions; wallet addresses → Avatars).</li>
 <li><b>StoryProtocolOASIS</b> - Story Protocol Programmable IP Blockchain Provider (Story Network EVM L1; IP Assets → Holons, creators → Avatars; license attachment and royalty support).</li>
+<li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC via evm-rpc.sei-apis.com; transactions → Holons, addresses → Avatars).</li>
+<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval; base64-encoded holons stored as DA blobs).</li>
+<li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons, pubkeys → Avatars).</li>
+<li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons, wallet addresses → Avatars).</li>
+<li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars, domains/subdomains → Holons).</li>
+<li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons, wallet balances → Avatars).</li>
+<li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects, CID as providerKey).</li>
+<li><b>SafeOASIS</b> - Gnosis Safe Multisig Provider (Safe Transaction REST API; multisig txs → Holons, safe addresses → Avatars).</li>
+<li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (REST API; SQL SELECT/INSERT for holons stored as table rows).</li>
+<li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons, content topics map to parent keys).</li>
+<li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons, asset IDs as providerKey).</li>
+<li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
 <li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
 <li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
