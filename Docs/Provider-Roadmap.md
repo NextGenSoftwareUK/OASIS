@@ -93,6 +93,18 @@ _Last updated: 2026-08-22_
 | World ID | WorldIDOASIS | **Done** |
 | Lit Protocol | LitProtocolOASIS | **Done** |
 | Story Protocol | StoryProtocolOASIS | **Done** |
+| Sei Network | SeiOASIS | **Done** |
+| Celestia | CelestiaOASIS | **Done** |
+| Eclipse | EclipseOASIS | **Done** |
+| Push Protocol | PushProtocolOASIS | **Done** |
+| ENS | ENSOASIS | **Done** |
+| Alchemy | AlchemyOASIS | **Done** |
+| Infura | InfuraOASIS | **Done** |
+| Safe (Gnosis) | SafeOASIS | **Done** |
+| Tableland | TablelandOASIS | **Done** |
+| Waku | WakuOASIS | **Done** |
+| Livepeer | LivepeerOASIS | **Done** |
+| Akash | AkashOASIS | **Done** |
 | Stellar | StellarOASIS |
 | Azure Blob Storage | AzureStorageOASIS |
 | SQL Server | SQLServerDBOASIS |
