@@ -108,7 +108,11 @@ _Last updated: 2026-08-22_
 | Abstract | AbstractOASIS | **Done** |
 | Berachain | BerachainOASIS | **Done** |
 | Stellar | StellarOASIS | **Done** |
-| Azure Blob Storage | AzureStorageOASIS |
+| zkSync | ZkSyncOASIS | **Done** |
+| Scroll | ScrollOASIS | **Done** |
+| Linea | LineaOASIS | **Done** |
+| Monad | MonadOASIS | **Done** |
+| Azure Blob Storage | AzureStorageOASIS | **Done** |
 | SQL Server | SQLServerDBOASIS |
 | Oracle Database | OracleDBOASIS |
 | Orion Protocol (DEX) | OrionProtocolOASIS |
