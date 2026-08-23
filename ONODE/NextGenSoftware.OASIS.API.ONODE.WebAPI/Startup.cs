@@ -178,6 +178,12 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>OracleDBOASIS</b> - Oracle DB Provider (Relational Database).</li>
 <li><b>AzureStorageOASIS</b> - Azure Blob Storage Provider.</li>
 <li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider.</li>
+<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider.</li>
+<li><b>OnionOASIS</b> - Tor / Onion Protocol Privacy Provider.</li>
+<li><b>GOMapOASIS</b> - GO Map Unity AR Provider.</li>
+<li><b>MapboxOASIS</b> - Mapbox Geospatial Provider.</li>
+<li><b>WRLD3DOASIS</b> - WRLD 3D Metaverse Provider.</li>
+<li><b>CargoOASIS</b> - Cargo NFT Marketplace Provider.</li>
 <li><b>HoloWebOASIS</b> - HoloWeb Provider.</li>
 <li><b>ScuttlebuttOASIS</b> - Scuttlebutt (SSB) Provider.</li>
 <li><b>FarcasterOASIS</b> - Farcaster Decentralised Social Provider.</li>
@@ -219,6 +225,13 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
 <li><b>SQLServerDBOASIS</b> - Microsoft SQL Server Provider (ADO.NET, MERGE upserts, JSON_VALUE search).</li>
 <li><b>OracleDBOASIS</b> - Oracle Database Provider (Oracle.ManagedDataAccess.Core, CLOB JSON, Oracle MERGE).</li>
+<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider (read-only: order-book and swap quotes via Orion REST API).</li>
+<li><b>OnionOASIS</b> - Tor / Onion Protocol Provider (routes all OASIS storage calls through a SOCKS5 Tor proxy to an onion-hosted OASIS backend).</li>
+<li><b>GOMapOASIS</b> - GO Map Unity Provider (spatial / AR mapping integration for Unity apps).</li>
+<li><b>MapboxOASIS</b> - Mapbox Provider (geospatial tiles, geocoding, directions via Mapbox REST API).</li>
+<li><b>WRLD3DOASIS</b> - WRLD3D Provider (3D world / metaverse geospatial layer integration).</li>
+<li><b>CargoOASIS</b> - Cargo NFT Provider (NFT marketplace and minting via Cargo API).</li>
+<li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider — decentralised identity mesh.</li>
 
 </ul>
 
