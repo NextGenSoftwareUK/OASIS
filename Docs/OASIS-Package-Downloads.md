@@ -68,3 +68,39 @@ Published under [@oasisomniverse](https://www.npmjs.com/org/oasisomniverse) — 
 | @oasisomniverse/mcp-server | — *(newly published)* |
 
 **Total: 9,089** across 13 active packages.
+
+---
+
+## NuGet Delta — In Repo But Not Yet Published
+
+25 packages exist in the csproj files but are not yet published to NuGet. Publish these to bring the total from 103 → 128.
+
+| Package | Notes |
+|---|---|
+| `NextGenSoftware.OASIS.API.ONODE.WebAPI` | |
+| `NextGenSoftware.OASIS.API.Providers.AbstractOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.AlgorandOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.ArweaveOASIS` | |
+| `NextGenSoftware.OASIS.API.Providers.BasechainOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.BerachainOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.BerrachainOASIS` | ⚠️ Likely typo duplicate of BerachainOASIS — verify before publishing |
+| `NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.CeramicOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.FilecoinOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.LoomOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.MatrixOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.OracleDBOASIS` | |
+| `NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS` | ⚠️ Scaffold template — confirm if this should be published |
+| `NextGenSoftware.OASIS.API.Providers.SeiOASIS` | New provider |
+| `NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS` | |
+| `NextGenSoftware.OASIS.MCP.Server` | |
+| `NextGenSoftware.OASIS.STAR.WebAPI` | |
+| `NextGenSoftware.OASIS.Web6.WebAPI` | |
+| `NextGenSoftware.OASIS.Web7.WebAPI` | |
+| `NextGenSoftware.OASIS.Web8.WebAPI` | |
+| `NextGenSoftware.OASIS.Web9.WebAPI` | |
+| `NextGenSoftware.OASIS.Web10.WebAPI` | |
+| `NextGenSoftware.OGEngine.Client` | |
+| `OGEditorSDK` | |
+
+> **Note:** The HoloNET, CLI.Engine, Logging etc. packages on NuGet but not in this repo live in the separate `NextGenSoftware-Libraries` and `holochain-client-csharp` repos — expected.
