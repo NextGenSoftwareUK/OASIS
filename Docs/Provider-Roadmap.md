@@ -69,8 +69,8 @@ _Last updated: 2026-08-22_
 | SOLID (Tim Berners-Lee) | SOLIDOASIS |
 | ThreeFold | ThreeFoldOASIS |
 | Azure Storage | AzureStorageOASIS |
-| SQL Server | SQLServerDBOASIS |
-| Oracle DB | OracleDBOASIS |
+| SQL Server | SQLServerDBOASIS | **Done** |
+| Oracle DB | OracleDBOASIS | **Done** |
 
 ### Decentralised Social / Network
 
@@ -113,11 +113,11 @@ _Last updated: 2026-08-22_
 | Linea | LineaOASIS | **Done** |
 | Monad | MonadOASIS | **Done** |
 | Azure Blob Storage | AzureStorageOASIS | **Done** |
-| SQL Server | SQLServerDBOASIS |
-| Oracle Database | OracleDBOASIS |
+| SQL Server | SQLServerDBOASIS | **Done** |
+| Oracle Database | OracleDBOASIS | **Done** |
 | Orion Protocol (DEX) | OrionProtocolOASIS |
 | Tor / Onion | ONION-Protocol |
-| Moralis | MoralisOASIS |
+| Moralis | MoralisOASIS | **Done** |
 | PLAN | PLANOASIS |
 
 ### Spatial / Gaming / Other
