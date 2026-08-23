@@ -6,15 +6,14 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Abstract OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Abstract OASIS Provider</Title>
-	  <Summary>Abstract OASIS Provider -- EVM L2 consumer and gaming blockchain for OASIS holons and avatars. https://oasisomniverse.one</Summary>
-	  <Description>Connects the OASIS to Abstract -- a consumer and gaming-focused EVM L2 blockchain. Stores OASIS holons, avatars, and NFTs on Abstract Mainnet. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+	  <Summary>Abstract OASIS Provider — Consumer EVM L2 blockchain for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Abstract — a consumer-focused EVM L2 purpose-built for gaming and NFT apps (Ethereum-settled). Stores OASIS holons, avatars, and NFTs on Abstract Mainnet. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
-	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider</PackageTags>
+	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Abstract; EVM; Blockchain; Gaming; NFT</PackageTags>
 	  <PackageReleaseNotes>- Initial release of AbstractOASIS provider.
-- Connects OASIS to the Abstract EVM L2 consumer and gaming blockchain.
-- Stores OASIS holons, avatars, and NFTs on Abstract Mainnet (chain ID 2741).
+- Connects OASIS to the Abstract EVM L2 (chain ID 2741).
 - Delegates all logic to the shared Web3CoreOASISBaseProvider.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
@@ -22,7 +21,6 @@
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Version>2.0.1</Version>
-
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
@@ -45,8 +43,6 @@
     <PackageReference Include="Nethereum.RPC" Version="4.25.0" />
     <PackageReference Include="Nethereum.Signer" Version="4.25.0" />
     <PackageReference Include="Nethereum.Web3" Version="4.25.0" />
-
-    <!-- Override: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0 -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   </ItemGroup>
 
