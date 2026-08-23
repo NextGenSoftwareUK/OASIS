@@ -104,7 +104,7 @@
 
   .stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
@@ -123,7 +123,7 @@
 
   .stat-number {
     font-family: 'Syne', sans-serif;
-    font-size: 2.4rem;
+    font-size: 1.9rem;
     font-weight: 800;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -402,7 +402,7 @@
   @media (max-width: 600px) {
     .header { grid-template-columns: 1fr; }
     .meta { text-align: left; }
-    .stats { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
     .repo-card { grid-template-columns: 1fr; }
     .repo-role { width: fit-content; }
     .footer { flex-direction: column; }
@@ -439,6 +439,10 @@
     <div class="stat">
       <span class="stat-number text">14</span>
       <span class="stat-label">Public NPM packages</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number teal">295k</span>
+      <span class="stat-label">NuGet downloads</span>
     </div>
   </div>
 
