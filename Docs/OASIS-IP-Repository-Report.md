@@ -15,6 +15,7 @@ The OASIS Omniverse platform is structured across two tiers of GitHub repositori
 | Public NuGet packages | 103 |
 | NuGet total downloads | 295,992 |
 | Public NPM packages | 14 |
+| NPM total downloads | 9,089 |
 | Private as % of GitHub total | 22% |
 
 ---
