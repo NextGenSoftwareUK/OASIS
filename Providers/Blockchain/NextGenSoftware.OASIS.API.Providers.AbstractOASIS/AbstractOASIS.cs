@@ -7,14 +7,14 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS
 {
     /// <summary>
-    /// OASIS provider for the Abstract EVM L2 blockchain (chain ID 2741 mainnet, 11124 testnet).
-    /// Mainnet RPC: https://api.mainnet.abs.xyz
-    /// Testnet RPC: https://api.testnet.abs.xyz
-    /// Explorer:    https://abscan.org
+    /// OASIS provider for Abstract — a consumer-focused EVM L2 purpose-built for gaming and NFTs.
+    /// Chain ID:   2741 (mainnet)
+    /// RPC:        https://api.mainnet.abs.xyz
+    /// Explorer:   https://abscan.org
     /// Native token: ETH
     ///
+    /// Abstract is Ethereum-settled and ZK-proven (built on ZKsync's ZK stack).
     /// All storage, NFT, and network logic is delegated to Web3CoreOASISBaseProvider.
-    /// ProviderType.AbstractOASIS is defined in NextGenSoftware.OASIS.API.Core.Enums.ProviderType.
     /// </summary>
     public sealed class AbstractOASIS : Web3CoreOASISBaseProvider,
         IOASISDBStorageProvider,
@@ -23,12 +23,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS
         IOASISBlockchainStorageProvider,
         IOASISNFTProvider
     {
-        /// <summary>
-        /// Initializes a new instance of the AbstractOASIS provider.
-        /// </summary>
-        /// <param name="hostUri">RPC endpoint. Defaults to Abstract mainnet.</param>
-        /// <param name="chainPrivateKey">Private key for signing transactions.</param>
-        /// <param name="contractAddress">Deployed OASIS smart contract address.</param>
         public AbstractOASIS(
             string hostUri = "https://api.mainnet.abs.xyz",
             string chainPrivateKey = "",
@@ -36,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS
             : base(hostUri, chainPrivateKey, contractAddress)
         {
             ProviderName = "AbstractOASIS";
-            ProviderDescription = "Abstract EVM L2 Provider — Consumer & Gaming Blockchain";
+            ProviderDescription = "Abstract EVM L2 Provider — Consumer Gaming & NFT Chain (Ethereum-settled, ZK-proven)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AbstractOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
