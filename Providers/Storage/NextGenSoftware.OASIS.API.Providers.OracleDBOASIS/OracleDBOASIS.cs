@@ -609,9 +609,30 @@ WHEN NOT MATCHED THEN
 
         // ─── Search ───────────────────────────────────────────────────────────────
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-            => Task.FromResult(NotImpl<ISearchResults>("OracleDBOASIS: SearchAsync not implemented — use LoadHolonsByMetaData for field queries."));
-
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                string? query = searchParams.SearchGroups?
+                    .OfType<NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup>()
+                    .FirstOrDefault()?.SearchQuery;
+                string sql = string.IsNullOrEmpty(query)
+                    ? "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0"
+                    : "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND (JSON_VALUE(DATA_JSON,'$.name') LIKE :Q OR JSON_VALUE(DATA_JSON,'$.description') LIKE :Q)";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                if (!string.IsNullOrEmpty(query)) cmd.Parameters.Add(":Q", OracleDbType.Varchar2).Value = $"%{query}%";
+                var holons = new List<IHolon>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
+                result.IsError = false; result.Message = $"OracleDBOASIS: Found {holons.Count} holon(s).";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
