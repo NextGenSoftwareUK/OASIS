@@ -3,21 +3,22 @@
   <PropertyGroup>
 	  <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.AbstractOASIS</PackageId>
-	  <Company>NextGen Software Ltd</Company>
+	  <Company>NextGen World Ltd</Company>
 	  <Product>WEB4 OASIS API Abstract OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Abstract OASIS Provider</Title>
 	  <Summary>Abstract OASIS Provider — Consumer EVM L2 blockchain for OASIS holons and avatars. https://oasisomniverse.one</Summary>
 	  <Description>Connects the OASIS to Abstract — a consumer-focused EVM L2 purpose-built for gaming and NFT apps (Ethereum-settled). Stores OASIS holons, avatars, and NFTs on Abstract Mainnet. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
-	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <Authors>David Ellams (NextGen World Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Abstract; EVM; Blockchain; Gaming; NFT</PackageTags>
 	  <PackageReleaseNotes>- Initial release of AbstractOASIS provider.
 - Connects OASIS to the Abstract EVM L2 (chain ID 2741).
 - Delegates all logic to the shared Web3CoreOASISBaseProvider.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+	  <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Version>2.0.1</Version>
