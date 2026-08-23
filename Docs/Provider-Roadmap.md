@@ -105,7 +105,9 @@ _Last updated: 2026-08-22_
 | Waku | WakuOASIS | **Done** |
 | Livepeer | LivepeerOASIS | **Done** |
 | Akash | AkashOASIS | **Done** |
-| Stellar | StellarOASIS |
+| Abstract | AbstractOASIS | **Done** |
+| Berachain | BerachainOASIS | **Done** |
+| Stellar | StellarOASIS | **Done** |
 | Azure Blob Storage | AzureStorageOASIS |
 | SQL Server | SQLServerDBOASIS |
 | Oracle Database | OracleDBOASIS |

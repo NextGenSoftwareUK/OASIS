@@ -206,6 +206,9 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons, content topics map to parent keys).</li>
 <li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons, asset IDs as providerKey).</li>
 <li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
+<li><b>AbstractOASIS</b> - Abstract EVM L2 Provider (chain ID 2741; consumer gaming and NFT L2, Ethereum-settled, ZK-proven; transactions → Holons, addresses → Avatars).</li>
+<li><b>BerachainOASIS</b> - Berachain EVM L1 Provider (chain ID 80094; Proof-of-Liquidity consensus; transactions → Holons, addresses → Avatars).</li>
+<li><b>StellarOASIS</b> - Stellar Horizon REST API Provider (transactions → Holons via memo_text, account IDs → Avatars; XLM balance included).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
 <li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
 <li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
