@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
@@ -697,40 +698,192 @@ WHEN NOT MATCHED THEN
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "OracleDBOASIS: Dictionary MetaData search not supported — use the single-key overload."); return await Task.FromResult(r); }
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                string joiner = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
+                var conditions = metaKeyValuePairs.Keys.Select((k, i) => $"JSON_VALUE(DATA_JSON,'$.metaData.{k}')=:v{i}").ToList();
+                string sql = $"SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND ({string.Join(joiner, conditions)})";
+                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                int idx = 0;
+                foreach (var v in metaKeyValuePairs.Values) cmd.Parameters.Add($":v{idx++}", OracleDbType.Varchar2).Value = v;
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                var holons = new List<IHolon>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                result.Result = holons; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "OracleDBOASIS: Use SaveHolonsAsync for bulk import."); return await Task.FromResult(r); }
+        {
+            var result = new OASISResult<bool>();
+            try { var r = await SaveHolonsAsync(holons); result.IsError = r.IsError; result.Result = !r.IsError; result.Message = r.Message; }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
-        private static OASISResult<T> NotImpl<T>(string msg) { var r = new OASISResult<T>(); OASISErrorHandling.HandleError(ref r, msg); return r; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            if (!Guid.TryParse(providerKey, out var id)) { var r2 = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r2, $"OracleDBOASIS: Invalid Guid providerKey '{providerKey}'."); return r2; }
+            return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadHolonsForParentAsync(string) not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadHolonsForParent(string) not implemented.");
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadHolonsForParentAsync(Guid) not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadHolonsForParent(Guid) not implemented.");
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE PARENT_HOLON_ID=:ParentId AND IS_DELETED=0";
+                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add(":ParentId", OracleDbType.Raw).Value = GuidToRaw(id);
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                var holons = new List<IHolon>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                result.Result = holons; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadAllHolonsAsync not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadAllHolons not implemented.");
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0";
+                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                var holons = new List<IHolon>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                result.Result = holons; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(NotImpl<IHolon>("OracleDBOASIS: DeleteHolonAsync(Guid) not implemented."));
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => NotImpl<IHolon>("OracleDBOASIS: DeleteHolon(Guid) not implemented.");
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => Task.FromResult(NotImpl<IHolon>("OracleDBOASIS: DeleteHolonAsync(string) not implemented."));
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) => NotImpl<IHolon>("OracleDBOASIS: DeleteHolon(string) not implemented.");
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var loaded = await LoadHolonAsync(id);
+                if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Holon {id} not found."); return result; }
+                const string sql = "UPDATE OASIS_HOLONS SET IS_DELETED=1, MODIFIED_DATE=SYSTIMESTAMP WHERE ID=:Id";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add(":Id", OracleDbType.Raw).Value = GuidToRaw(id);
+                await cmd.ExecuteNonQueryAsync();
+                result.Result = loaded.Result; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            if (!Guid.TryParse(providerKey, out var id)) { var r2 = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r2, $"OracleDBOASIS: Invalid Guid providerKey '{providerKey}'."); return r2; }
+            return await DeleteHolonAsync(id);
+        }
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: SaveHolonsAsync not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: SaveHolons not implemented.");
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            try
+            {
+                foreach (var holon in holons)
+                {
+                    var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    if (!r.IsError && r.Result != null) saved.Add(r.Result);
+                    else if (!continueOnError) { result.IsError = true; result.Message = r.Message; return result; }
+                }
+                result.Result = saved; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadHolonsByMetaDataAsync(string,string) not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: LoadHolonsByMetaData(string,string) not implemented.");
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                string sql = $"SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.metaData.{metaKey}')=:MetaValue";
+                if (type != HolonType.All) sql += " AND JSON_VALUE(DATA_JSON,'$.holonType')=:HType";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add(":MetaValue", OracleDbType.Varchar2).Value = metaValue;
+                if (type != HolonType.All) cmd.Parameters.Add(":HType", OracleDbType.Varchar2).Value = type.ToString();
+                var holons = new List<IHolon>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                result.Result = holons; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: ExportAllAsync not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: ExportAll not implemented.");
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: ExportAllDataForAvatarByIdAsync not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: ExportAllDataForAvatarById not implemented.");
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) => Task.FromResult(NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: ExportAllDataForAvatarByUsernameAsync not implemented."));
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => NotImpl<IEnumerable<IHolon>>("OracleDBOASIS: ExportAllDataForAvatarByUsername not implemented.");
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                const string sql = "SELECT DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.avatarId')=:AvatarId";
+                await using var conn = new OracleConnection(_connectionString);
+                await conn.OpenAsync();
+                await using var cmd = new OracleCommand(sql, conn);
+                cmd.Parameters.Add(":AvatarId", OracleDbType.Varchar2).Value = avatarId.ToString();
+                var holons = new List<IHolon>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                result.Result = holons; result.IsError = false;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError || avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"OracleDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 }
