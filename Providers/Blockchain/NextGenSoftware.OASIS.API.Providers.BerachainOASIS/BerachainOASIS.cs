@@ -4,34 +4,34 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS
+namespace NextGenSoftware.OASIS.API.Providers.BerachainOASIS
 {
     /// <summary>
-    /// OASIS provider for Abstract — a consumer-focused EVM L2 purpose-built for gaming and NFTs.
-    /// Chain ID:   2741 (mainnet)
-    /// RPC:        https://api.mainnet.abs.xyz
-    /// Explorer:   https://abscan.org
-    /// Native token: ETH
+    /// OASIS provider for Berachain — an EVM-compatible L1 with Proof-of-Liquidity (PoL) consensus.
+    /// Chain ID:   80094 (mainnet)
+    /// RPC:        https://rpc.berachain.com
+    /// Explorer:   https://berascan.com
+    /// Native token: BERA
     ///
-    /// Abstract is Ethereum-settled and ZK-proven (built on ZKsync's ZK stack).
+    /// PoL ties validator rewards to liquidity provision, making DeFi-native to the consensus layer.
     /// All storage, NFT, and network logic is delegated to Web3CoreOASISBaseProvider.
     /// </summary>
-    public sealed class AbstractOASIS : Web3CoreOASISBaseProvider,
+    public sealed class BerachainOASIS : Web3CoreOASISBaseProvider,
         IOASISDBStorageProvider,
         IOASISNETProvider,
         IOASISSuperStar,
         IOASISBlockchainStorageProvider,
         IOASISNFTProvider
     {
-        public AbstractOASIS(
-            string hostUri = "https://api.mainnet.abs.xyz",
+        public BerachainOASIS(
+            string hostUri = "https://rpc.berachain.com",
             string chainPrivateKey = "",
             string contractAddress = "")
             : base(hostUri, chainPrivateKey, contractAddress)
         {
-            ProviderName = "AbstractOASIS";
-            ProviderDescription = "Abstract EVM L2 Provider — Consumer Gaming & NFT Chain (Ethereum-settled, ZK-proven)";
-            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AbstractOASIS);
+            ProviderName = "BerachainOASIS";
+            ProviderDescription = "Berachain EVM L1 Provider — Proof-of-Liquidity Blockchain";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BerrachainOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
