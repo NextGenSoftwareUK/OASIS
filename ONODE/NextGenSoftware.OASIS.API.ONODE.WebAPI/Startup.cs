@@ -171,7 +171,7 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>ScrollOASIS</b> - Scroll Provider.</li>
 <li><b>LineaOASIS</b> - Linea (Consensys L2) Provider.</li>
 <li><b>AbstractOASIS</b> - Abstract (Consumer L2) Provider.</li>
-<li><b>BerrachainOASIS</b> - Berachain (Proof-of-Liquidity L1) Provider.</li>
+<li><b>BerachainOASIS</b> - Berachain (Proof-of-Liquidity L1) Provider.</li>
 <li><b>TelegramOASIS</b> - Telegram Provider.</li>
 <li><b>MoralisOASIS</b> - Moralis Web3 API Provider.</li>
 <li><b>SQLServerDBOASIS</b> - SQL Server Provider (Relational Database).</li>

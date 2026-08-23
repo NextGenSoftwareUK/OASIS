@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BaseOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BaseOASIS\NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj", "{58621FA8-8931-46B5-81F7-FEA77BE70CAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BerrachainOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BerrachainOASIS\NextGenSoftware.OASIS.API.Providers.BerrachainOASIS.csproj", "{B9C8D7E6-F5A4-3210-FEDC-BA9876543210}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BitcoinOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS\NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj", "{869160BE-F8E8-4133-8527-392807A473BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{B3E3AA5E-1FCB-4573-A7CA-F056FA397199}"
