@@ -10,6 +10,7 @@ const providers = {
     'Stellar', 'zkSync', 'Scroll', 'Linea', 'Abstract', 'Berachain', 'Telegram',
     'Story Protocol (Story Chain EVM)', 'Sei Network', 'Celestia (DA blobs)',
     'Eclipse (SVM L2)', 'Alchemy', 'Infura', 'Safe (Gnosis Multisig)',
+    'Abstract (consumer gaming L2)', 'Berachain (Proof-of-Liquidity)', 'Stellar',
   ],
   clouds: ['AWS', 'Azure Cosmos DB', 'Azure Storage', 'Google Cloud', 'Oracle DB', 'SQL Server'],
   databases: ['MongoDB', 'Neo4j', 'SQLite', 'Local File'],
