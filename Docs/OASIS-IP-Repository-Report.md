@@ -1,6 +1,6 @@
 # OASIS Omniverse — IP & Repository Structure Report
 
-**NextGen Software Ltd** | Prepared for: Team & Investors | August 2026
+**NextGen World Ltd** | Prepared for: Team & Investors | August 2026
 
 ---
 
@@ -180,4 +180,4 @@ As the platform matures — with an established commercial user base and paying 
 
 ---
 
-*NextGen Software Ltd · david.ellams@oasisomniverse.one · oasisomniverse.one*
+*NextGen World Ltd · david.ellams@oasisomniverse.one · oasisomniverse.one*
