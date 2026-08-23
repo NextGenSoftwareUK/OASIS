@@ -17,7 +17,8 @@
 - Delegates all logic to the shared Web3CoreOASISBaseProvider.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+	  <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Version>2.0.1</Version>
@@ -26,6 +27,13 @@
 
   <ItemGroup>
     <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
     </None>
