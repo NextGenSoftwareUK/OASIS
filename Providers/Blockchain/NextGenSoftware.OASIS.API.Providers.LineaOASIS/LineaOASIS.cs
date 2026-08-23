@@ -1,34 +1,44 @@
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.LineaOASIS;
-
-/// <summary>
-/// Linea provider - EVM-compatible L2 on Ethereum
-/// </summary>
-public sealed class LineaOASIS : Web3CoreOASISBaseProvider,
-    IOASISDBStorageProvider,
-    IOASISNETProvider,
-    IOASISSuperStar,
-    IOASISBlockchainStorageProvider,
-    IOASISNFTProvider
+namespace NextGenSoftware.OASIS.API.Providers.LineaOASIS
 {
-    public LineaOASIS(
-        string hostUri = "https://rpc.linea.build",
-        string chainPrivateKey = "",
-        string contractAddress = "")
-        : base(hostUri, chainPrivateKey, contractAddress)
+    /// <summary>
+    /// OASIS provider for Linea — a ConsenSys zkEVM L2 with deep MetaMask integration.
+    /// Chain ID:   59144 (mainnet)
+    /// RPC:        https://rpc.linea.build
+    /// Explorer:   https://lineascan.build
+    /// Native token: ETH
+    ///
+    /// Linea is developed by ConsenSys and is natively integrated with MetaMask,
+    /// giving it immediate access to MetaMask's 30M+ user base.
+    /// All storage, NFT, and network logic is delegated to Web3CoreOASISBaseProvider.
+    /// </summary>
+    public sealed class LineaOASIS : Web3CoreOASISBaseProvider,
+        IOASISDBStorageProvider,
+        IOASISNETProvider,
+        IOASISSuperStar,
+        IOASISBlockchainStorageProvider,
+        IOASISNFTProvider
     {
-        ProviderName = "LineaOASIS";
-        ProviderDescription = "Linea EVM-compatible L2 provider for OASIS";
-        ProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.LineaOASIS);
-        ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
-        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.NFT));
-        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
-        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        public LineaOASIS(
+            string hostUri = "https://rpc.linea.build",
+            string chainPrivateKey = "",
+            string contractAddress = "")
+            : base(hostUri, chainPrivateKey, contractAddress)
+        {
+            ProviderName = "LineaOASIS";
+            ProviderDescription = "Linea zkEVM L2 Provider — ConsenSys / MetaMask-Integrated ZK Rollup";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LineaOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        }
     }
 }
-

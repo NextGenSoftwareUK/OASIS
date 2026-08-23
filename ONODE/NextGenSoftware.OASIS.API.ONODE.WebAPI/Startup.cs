@@ -209,6 +209,11 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>AbstractOASIS</b> - Abstract EVM L2 Provider (chain ID 2741; consumer gaming and NFT L2, Ethereum-settled, ZK-proven; transactions → Holons, addresses → Avatars).</li>
 <li><b>BerachainOASIS</b> - Berachain EVM L1 Provider (chain ID 80094; Proof-of-Liquidity consensus; transactions → Holons, addresses → Avatars).</li>
 <li><b>StellarOASIS</b> - Stellar Horizon REST API Provider (transactions → Holons via memo_text, account IDs → Avatars; XLM balance included).</li>
+<li><b>zkSyncOASIS</b> - zkSync Era EVM L2 Provider (chain ID 324; ZK rollup with native account abstraction; transactions → Holons, addresses → Avatars).</li>
+<li><b>ScrollOASIS</b> - Scroll zkEVM L2 Provider (chain ID 534352; bytecode-level EVM equivalence; transactions → Holons, addresses → Avatars).</li>
+<li><b>LineaOASIS</b> - Linea zkEVM L2 Provider (chain ID 59144; ConsenSys / MetaMask-integrated ZK rollup; transactions → Holons, addresses → Avatars).</li>
+<li><b>MonadOASIS</b> - Monad EVM L1 Provider (chain ID 41454; 10,000+ TPS parallel execution; transactions → Holons, addresses → Avatars).</li>
+<li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (Azure.Storage.Blobs SDK; holons and avatars stored as JSON blobs; prefix-based parent queries).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
 <li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
 <li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>

@@ -21,811 +21,378 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
 {
     /// <summary>
     /// OASIS provider for Microsoft Azure Blob Storage.
-    ///
-    /// Distinct from AzureCosmosDBOASIS (Cosmos DB document database).
-    /// This provider targets Azure Blob Storage — massively scalable object storage
-    /// with 11 nines of durability and global replication.
-    ///
-    /// Storage layout:
-    ///   Container "oasis-avatars"   → one blob per avatar, name = avatar.Id.ToString()
-    ///   Container "oasis-holons"    → one blob per holon,  name = holon.Id.ToString()
-    ///   Each blob is UTF-8 JSON of the full OASIS object.
-    ///   Blob metadata tags carry indexed fields (Username, Email, ProviderKey)
-    ///   for lookup without deserialising every blob.
-    ///
-    /// Pass the Azure Storage connection string to the constructor.
-    /// Obtain it from the Azure portal: Storage account → Access keys → Connection string.
+    /// Holons are stored as JSON blobs in a configurable container.
+    /// The blob name (providerKey) is the holon's OASIS ID (GUID) or a caller-supplied key.
+    /// Avatars are stored in a separate "avatars" container, keyed by avatar ID or username.
+    /// SDK: Azure.Storage.Blobs v12
     /// </summary>
-    public class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider
+    public class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
-        private readonly string _connectionString;
-        private BlobServiceClient? _serviceClient;
-        private BlobContainerClient? _avatarContainer;
-        private BlobContainerClient? _holonContainer;
+        private readonly BlobServiceClient _serviceClient;
+        private readonly string _holonContainer;
+        private readonly string _avatarContainer;
+        private bool _isActivated;
 
-        private const string AvatarContainerName = "oasis-avatars";
-        private const string HolonContainerName = "oasis-holons";
-
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        public AzureStorageOASIS(
+            string connectionString,
+            string holonContainer = "oasis-holons",
+            string avatarContainer = "oasis-avatars")
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        public AzureStorageOASIS(string connectionString)
-        {
-            _connectionString = connectionString;
+            _serviceClient = new BlobServiceClient(connectionString);
+            _holonContainer = holonContainer;
+            _avatarContainer = avatarContainer;
 
             ProviderName = "AzureStorageOASIS";
-            ProviderDescription = "Microsoft Azure Blob Storage provider (object storage, distinct from AzureCosmosDBOASIS)";
+            ProviderDescription = "Azure Blob Storage Provider — JSON holons and avatars as blobs";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AzureStorageOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
-
-        // ─── Activation ───────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
             try
             {
-                _serviceClient = new BlobServiceClient(_connectionString);
-                _avatarContainer = _serviceClient.GetBlobContainerClient(AvatarContainerName);
-                _holonContainer = _serviceClient.GetBlobContainerClient(HolonContainerName);
-
-                await _avatarContainer.CreateIfNotExistsAsync(PublicAccessType.None);
-                await _holonContainer.CreateIfNotExistsAsync(PublicAccessType.None);
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS activated. Containers '{AvatarContainerName}' and '{HolonContainerName}' ready.";
+                var holons = _serviceClient.GetBlobContainerClient(_holonContainer);
+                await holons.CreateIfNotExistsAsync(PublicAccessType.None);
+                var avatars = _serviceClient.GetBlobContainerClient(_avatarContainer);
+                await avatars.CreateIfNotExistsAsync(PublicAccessType.None);
+                _isActivated = true; result.Result = true; result.Message = "AzureStorageOASIS activated.";
             }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error activating provider — {ex.Message}");
-            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
-
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            _serviceClient = null;
-            _avatarContainer = null;
-            _holonContainer = null;
-            return await Task.FromResult(new OASISResult<bool>
-            {
-                Result = true, IsError = false, Message = "AzureStorageOASIS deactivated."
-            });
-        }
-
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; return new OASISResult<bool>(true); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        // ─── Container guard ──────────────────────────────────────────────────────
+        // ─── Helpers ─────────────────────────────────────────────────────────────
 
-        private OASISResult<T> NotActivated<T>()
+        private static string HolonKey(IHolon holon)
         {
-            var r = new OASISResult<T>();
-            OASISErrorHandling.HandleError(ref r,
-                "AzureStorageOASIS: Provider is not activated. Call ActivateProvider() first.");
-            return r;
+            var customKey = (holon as Holon)?.CustomKey;
+            return !string.IsNullOrEmpty(customKey) ? customKey : holon.Id.ToString();
         }
 
-        // ─── Blob helpers ─────────────────────────────────────────────────────────
-
-        private async Task UploadJsonAsync(BlobContainerClient container, string blobName, object obj,
-            Dictionary<string, string>? tags = null)
+        private static async Task<string> ReadBlobAsync(BlobClient blob)
         {
-            string json = JsonSerializer.Serialize(obj, _jsonOpts);
-            byte[] bytes = Encoding.UTF8.GetBytes(json);
-            using var stream = new MemoryStream(bytes);
-
-            var client = container.GetBlobClient(blobName);
-            await client.UploadAsync(stream, overwrite: true);
-
-            if (tags != null && tags.Count > 0)
-                await client.SetTagsAsync(tags);
+            var download = await blob.DownloadContentAsync();
+            return download.Value.Content.ToString();
         }
 
-        private async Task<T?> DownloadJsonAsync<T>(BlobContainerClient container, string blobName)
-        {
-            var client = container.GetBlobClient(blobName);
-            if (!await client.ExistsAsync()) return default;
+        private static T? Deserialise<T>(string json) =>
+            JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            var download = await client.DownloadContentAsync();
-            string json = download.Value.Content.ToString();
-            return JsonSerializer.Deserialize<T>(json, _jsonOpts);
-        }
+        private static string Serialise<T>(T obj) =>
+            JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = false });
 
-        private async Task<string?> FindBlobByTagAsync(BlobContainerClient container, string tagKey, string tagValue)
-        {
-            string filter = $"\"{tagKey}\" = '{tagValue}'";
-            await foreach (var item in _serviceClient!.FindBlobsByTagsAsync(filter))
-            {
-                if (item.BlobContainerName == container.Name)
-                    return item.BlobName;
-            }
-            return null;
-        }
-
-        // ─── Avatar saving ────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            if (_avatarContainer == null) return NotActivated<IAvatar>();
-            try
-            {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-
-                string blobName = avatar.Id.ToString();
-                var tags = new Dictionary<string, string>
-                {
-                    ["Username"] = avatar.Username ?? "",
-                    ["Email"] = avatar.Email ?? "",
-                    ["IsDeleted"] = avatar.IsDeleted.ToString()
-                };
-
-                if (avatar.ProviderUniqueStorageKey == null)
-                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = blobName;
-
-                await UploadJsonAsync(_avatarContainer, blobName, avatar, tags);
-
-                result.Result = avatar;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Avatar '{avatar.Username}' saved (blob: {blobName}).";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error saving avatar '{avatar.Username}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-            => SaveAvatarAsync(avatar).Result;
-
-        // ─── Avatar loading ───────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            if (_avatarContainer == null) return NotActivated<IAvatar>();
-            try
-            {
-                var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, id.ToString());
-                if (avatar == null)
-                {
-                    OASISErrorHandling.HandleError(ref result,
-                        $"AzureStorageOASIS: No avatar found with ID '{id}'.");
-                    return result;
-                }
-                result.Result = avatar;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Avatar loaded for ID '{id}'.";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error loading avatar by ID '{id}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
-            => LoadAvatarAsync(id, version).Result;
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            if (_avatarContainer == null) return NotActivated<IAvatar>();
-            try
-            {
-                string? blobName = await FindBlobByTagAsync(_avatarContainer, "Username", username);
-                if (blobName == null)
-                {
-                    OASISErrorHandling.HandleError(ref result,
-                        $"AzureStorageOASIS: No avatar found with username '{username}'.");
-                    return result;
-                }
-                var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, blobName);
-                result.Result = avatar;
-                result.IsError = avatar == null;
-                result.Message = avatar != null
-                    ? $"AzureStorageOASIS: Avatar loaded for username '{username}'."
-                    : $"AzureStorageOASIS: Blob '{blobName}' found by tag but could not be deserialised.";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error loading avatar by username '{username}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
-            => LoadAvatarByUsernameAsync(username, version).Result;
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            // providerKey = blob name (avatar GUID)
-            var result = new OASISResult<IAvatar>();
-            if (_avatarContainer == null) return NotActivated<IAvatar>();
-            try
-            {
-                var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, providerKey);
-                if (avatar == null)
-                {
-                    OASISErrorHandling.HandleError(ref result,
-                        $"AzureStorageOASIS: No avatar found with provider key '{providerKey}'.");
-                    return result;
-                }
-                result.Result = avatar;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Avatar loaded for provider key '{providerKey}'.";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error loading avatar by provider key '{providerKey}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
-            => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            if (_avatarContainer == null) return NotActivated<IEnumerable<IAvatar>>();
-            try
-            {
-                var avatars = new List<IAvatar>();
-                await foreach (var blobItem in _avatarContainer.GetBlobsAsync())
-                {
-                    var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, blobItem.Name);
-                    if (avatar != null) avatars.Add(avatar);
-                }
-                result.Result = avatars;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Loaded {avatars.Count} avatar(s).";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error loading all avatars: {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-            => LoadAllAvatarsAsync(version).Result;
-
-        // ─── Avatar deletion ──────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            if (_avatarContainer == null) return NotActivated<bool>();
-            try
-            {
-                if (softDelete)
-                {
-                    var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.IsDeleted = true;
-                        await SaveAvatarAsync(avatar);
-                        result.Result = true;
-                        result.IsError = false;
-                        result.Message = $"AzureStorageOASIS: Avatar '{id}' soft-deleted.";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No avatar found with ID '{id}' to delete.");
-                    }
-                }
-                else
-                {
-                    var client = _avatarContainer.GetBlobClient(id.ToString());
-                    await client.DeleteIfExistsAsync();
-                    result.Result = true;
-                    result.IsError = false;
-                    result.Message = $"AzureStorageOASIS: Avatar '{id}' hard-deleted.";
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error deleting avatar '{id}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-            => DeleteAvatarAsync(id, softDelete).Result;
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            if (_avatarContainer == null) return NotActivated<bool>();
-            try
-            {
-                string? blobName = await FindBlobByTagAsync(_avatarContainer, "Username", username);
-                if (blobName == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No avatar found with username '{username}'.");
-                    return result;
-                }
-                if (Guid.TryParse(blobName, out Guid id))
-                    return await DeleteAvatarAsync(id, softDelete);
-
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Blob name '{blobName}' is not a valid GUID.");
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error deleting avatar by username '{username}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
-            => DeleteAvatarByUsernameAsync(username, softDelete).Result;
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            if (_avatarContainer == null) return NotActivated<bool>();
-            try
-            {
-                string? blobName = await FindBlobByTagAsync(_avatarContainer, "Email", email);
-                if (blobName == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No avatar found with email '{email}'.");
-                    return result;
-                }
-                if (Guid.TryParse(blobName, out Guid id))
-                    return await DeleteAvatarAsync(id, softDelete);
-
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Blob name '{blobName}' is not a valid GUID.");
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error deleting avatar by email '{email}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
-            => DeleteAvatarByEmailAsync(email, softDelete).Result;
-
-        // ─── AvatarDetail ─────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            if (_avatarContainer == null) return NotActivated<IAvatarDetail>();
-            try
-            {
-                var detail = await DownloadJsonAsync<AvatarDetail>(_avatarContainer, $"detail-{id}");
-                if (detail == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No avatar detail found for ID '{id}'.");
-                    return result;
-                }
-                result.Result = detail;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: AvatarDetail loaded for ID '{id}'.";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading avatar detail for '{id}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
-            => LoadAvatarDetailAsync(id, version).Result;
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            if (_avatarContainer == null) return NotActivated<IAvatarDetail>();
-            try
-            {
-                string? blobName = await FindBlobByTagAsync(_avatarContainer, "Username", username);
-                if (blobName == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No avatar found with username '{username}' to load detail.");
-                    return result;
-                }
-                // Avatar detail is stored as detail-<id>
-                var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, blobName);
-                if (avatar == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Could not load avatar for username '{username}'.");
-                    return result;
-                }
-                return await LoadAvatarDetailAsync(avatar.Id, version);
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading avatar detail by username '{username}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
-            => LoadAvatarDetailByUsernameAsync(username, version).Result;
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            if (_avatarContainer == null) return NotActivated<IAvatarDetail>();
-            try
-            {
-                string? blobName = await FindBlobByTagAsync(_avatarContainer, "Email", email);
-                if (blobName == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No avatar found with email '{email}' to load detail.");
-                    return result;
-                }
-                var avatar = await DownloadJsonAsync<Avatar>(_avatarContainer, blobName);
-                if (avatar == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Could not load avatar for email '{email}'.");
-                    return result;
-                }
-                return await LoadAvatarDetailAsync(avatar.Id, version);
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading avatar detail by email '{email}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
-            => LoadAvatarDetailByEmailAsync(email, version).Result;
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            if (_avatarContainer == null) return NotActivated<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                var details = new List<IAvatarDetail>();
-                await foreach (var blobItem in _avatarContainer.GetBlobsAsync(prefix: "detail-"))
-                {
-                    var detail = await DownloadJsonAsync<AvatarDetail>(_avatarContainer, blobItem.Name);
-                    if (detail != null) details.Add(detail);
-                }
-                result.Result = details;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Loaded {details.Count} avatar detail(s).";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading all avatar details: {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-            => LoadAllAvatarDetailsAsync(version).Result;
-
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            if (_avatarContainer == null) return NotActivated<IAvatarDetail>();
-            try
-            {
-                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                string blobName = $"detail-{avatarDetail.Id}";
-                var tags = new Dictionary<string, string>
-                {
-                    ["Username"] = avatarDetail.Username ?? "",
-                    ["Email"] = avatarDetail.Email ?? ""
-                };
-                await UploadJsonAsync(_avatarContainer, blobName, avatarDetail, tags);
-                result.Result = avatarDetail;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: AvatarDetail saved (blob: {blobName}).";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error saving avatar detail: {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
-            => SaveAvatarDetailAsync(avatarDetail).Result;
-
-        // ─── Holon saving ─────────────────────────────────────────────────────────
+        // ─── Holons ──────────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IHolon>();
-            if (_holonContainer == null) return NotActivated<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-
-                string blobName = holon.Id.ToString();
-                var tags = new Dictionary<string, string>
+                var key = HolonKey(holon);
+                var json = Serialise(new
                 {
-                    ["HolonType"] = holon.HolonType.ToString(),
-                    ["IsDeleted"] = holon.IsDeleted.ToString()
-                };
-
-                if (holon.ProviderUniqueStorageKey == null)
-                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = blobName;
-
-                await UploadJsonAsync(_holonContainer, blobName, holon, tags);
-
-                result.Result = holon;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Holon '{holon.Name}' saved (blob: {blobName}).";
+                    id = holon.Id, name = holon.Name, description = holon.Description,
+                    holonType = holon.HolonType.ToString(),
+                    customKey = (holon as Holon)?.CustomKey,
+                    metaData = holon.MetaData
+                });
+                var container = _serviceClient.GetBlobContainerClient(_holonContainer);
+                var blob = container.GetBlobClient(key);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                await blob.UploadAsync(stream, overwrite: true);
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
+                result.Result = holon; result.Message = $"AzureStorageOASIS: Saved holon blob '{key}'.";
             }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,
-                    $"AzureStorageOASIS: Error saving holon '{holon.Name}': {ex.Message}");
-            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
-
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
-            var errors = new List<string>();
-            foreach (var holon in holons)
+            foreach (var h in holons)
             {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (r.IsError) errors.Add(r.Message);
-                else saved.Add(r.Result!);
+                var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (!r.IsError && r.Result != null) saved.Add(r.Result);
             }
-            result.Result = saved;
-            result.IsError = errors.Count > 0;
-            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"AzureStorageOASIS: {saved.Count} holon(s) saved.";
-            return result;
+            result.Result = saved; return result;
         }
-
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-
-        // ─── Holon loading ────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            if (_holonContainer == null) return NotActivated<IHolon>();
-            try
-            {
-                var holon = await DownloadJsonAsync<Holon>(_holonContainer, id.ToString());
-                if (holon == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No holon found with ID '{id}'.");
-                    return result;
-                }
-                result.Result = holon;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Holon loaded for ID '{id}'.";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading holon '{id}': {ex.Message}");
-            }
-            return result;
-        }
-
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            // providerKey = blob name (holon GUID)
-            if (Guid.TryParse(providerKey, out Guid id))
-                return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            try
+            {
+                var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
+                if (!await blob.ExistsAsync()) { OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Blob '{providerKey}' not found."); return result; }
+                var json = await ReadBlobAsync(blob);
+                var doc = JsonDocument.Parse(json);
+                var holon = new Holon();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
+                holon.Name = doc.RootElement.TryGetProperty("name", out var n) ? n.GetString() : "";
+                holon.Description = doc.RootElement.TryGetProperty("description", out var d) ? d.GetString() : "";
+                if (doc.RootElement.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var guid)) holon.Id = guid;
+                result.Result = holon;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
-
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => await LoadHolonAsync(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            if (_holonContainer == null) return NotActivated<IEnumerable<IHolon>>();
+            var holons = new List<IHolon>();
             try
             {
-                var holons = new List<IHolon>();
-                await foreach (var blobItem in _holonContainer.GetBlobsAsync())
+                var container = _serviceClient.GetBlobContainerClient(_holonContainer);
+                await foreach (var item in container.GetBlobsAsync())
                 {
-                    var holon = await DownloadJsonAsync<Holon>(_holonContainer, blobItem.Name);
-                    if (holon != null && (holonType == HolonType.All || holon.HolonType == holonType))
-                        holons.Add(holon);
+                    var r = await LoadHolonAsync(item.Name, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                    if (!r.IsError && r.Result != null) holons.Add(r.Result);
                 }
                 result.Result = holons;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Loaded {holons.Count} holon(s).";
             }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading all holons: {ex.Message}");
-            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-            => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            // providerKey = blob name prefix (e.g. "avatarId/")
             var result = new OASISResult<IEnumerable<IHolon>>();
-            if (_holonContainer == null) return NotActivated<IEnumerable<IHolon>>();
+            var holons = new List<IHolon>();
             try
             {
-                var holons = new List<IHolon>();
-                string parentIdStr = id.ToString();
-                await foreach (var blobItem in _holonContainer.GetBlobsAsync())
+                var container = _serviceClient.GetBlobContainerClient(_holonContainer);
+                await foreach (var item in container.GetBlobsAsync(prefix: providerKey))
                 {
-                    var holon = await DownloadJsonAsync<Holon>(_holonContainer, blobItem.Name);
-                    if (holon != null && holon.ParentHolonId == id &&
-                        (holonType == HolonType.All || holon.HolonType == holonType))
-                        holons.Add(holon);
+                    var r = await LoadHolonAsync(item.Name, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                    if (!r.IsError && r.Result != null) holons.Add(r.Result);
                 }
                 result.Result = holons;
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error loading holons for parent '{id}': {ex.Message}");
-            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-            => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => await LoadHolonsForParentAsync(id.ToString(), type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            if (Guid.TryParse(providerKey, out Guid id))
-                return await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider);
-
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: providerKey '{providerKey}' is not a valid GUID.");
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-            => LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
-
-        // ─── Holon deletion ───────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            if (_holonContainer == null) return NotActivated<bool>();
+            var result = new OASISResult<IHolon>();
             try
             {
-                if (softDelete)
-                {
-                    var holon = await DownloadJsonAsync<Holon>(_holonContainer, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.IsDeleted = true;
-                        await SaveHolonAsync(holon);
-                        result.Result = true;
-                        result.IsError = false;
-                        result.Message = $"AzureStorageOASIS: Holon '{id}' soft-deleted.";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: No holon found with ID '{id}' to delete.");
-                    }
-                }
-                else
-                {
-                    var client = _holonContainer.GetBlobClient(id.ToString());
-                    await client.DeleteIfExistsAsync();
-                    result.Result = true;
-                    result.IsError = false;
-                    result.Message = $"AzureStorageOASIS: Holon '{id}' hard-deleted.";
-                }
+                var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(id.ToString());
+                await blob.DeleteIfExistsAsync();
+                result.Result = new Holon { Id = id };
+                result.Message = $"AzureStorageOASIS: Deleted holon blob '{id}'.";
             }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error deleting holon '{id}': {ex.Message}");
-            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
-            => DeleteHolonAsync(id, softDelete).Result;
-
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            if (Guid.TryParse(providerKey, out Guid id))
-                return await DeleteHolonAsync(id, softDelete);
-
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
+                await blob.DeleteIfExistsAsync();
+                result.Result = new Holon { CustomKey = providerKey };
+                result.Message = $"AzureStorageOASIS: Deleted holon blob '{providerKey}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
-            => DeleteHolonAsync(providerKey, softDelete).Result;
-
-        // ─── Search ───────────────────────────────────────────────────────────────
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: MetaData search not supported — use LoadAllHolons and filter client-side."); return await Task.FromResult(r); }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: MetaData search not supported."); return await Task.FromResult(r); }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            if (_holonContainer == null) return NotActivated<ISearchResults>();
-            try
-            {
-                string query = searchParams.SearchQuery?.ToLowerInvariant() ?? string.Empty;
-                var matched = new List<IHolon>();
-
-                await foreach (var blobItem in _holonContainer.GetBlobsAsync())
-                {
-                    var holon = await DownloadJsonAsync<Holon>(_holonContainer, blobItem.Name);
-                    if (holon != null &&
-                        ((holon.Name?.ToLowerInvariant().Contains(query) == true) ||
-                         (holon.Description?.ToLowerInvariant().Contains(query) == true)))
-                    {
-                        matched.Add(holon);
-                    }
-                }
-
-                result.Result = new SearchResults { Holons = matched };
-                result.IsError = false;
-                result.Message = $"AzureStorageOASIS: Found {matched.Count} holon(s) matching '{searchParams.SearchQuery}'.";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Error during search: {ex.Message}");
-            }
-            return result;
-        }
-
+        { var r = new OASISResult<ISearchResults>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Full-text search not supported."); return await Task.FromResult(r); }
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+
+        // ─── Avatars ──────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+            => await LoadAvatarByProviderKeyAsync(id.ToString(), version);
+        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var blob = _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(providerKey);
+                if (!await blob.ExistsAsync()) { OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Avatar blob '{providerKey}' not found."); return result; }
+                var json = await ReadBlobAsync(blob);
+                var doc = JsonDocument.Parse(json);
+                var avatar = new Avatar();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
+                avatar.Username = doc.RootElement.TryGetProperty("username", out var u) ? u.GetString() : "";
+                avatar.Email = doc.RootElement.TryGetProperty("email", out var e) ? e.GetString() : "";
+                if (doc.RootElement.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var guid)) avatar.Id = guid;
+                result.Result = avatar;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => await LoadAvatarByProviderKeyAsync($"username:{avatarUsername}", version);
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => await LoadAvatarByProviderKeyAsync($"email:{avatarEmail}", version);
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            var avatars = new List<IAvatar>();
+            try
+            {
+                var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
+                await foreach (var item in container.GetBlobsAsync())
+                {
+                    var r = await LoadAvatarByProviderKeyAsync(item.Name, version);
+                    if (!r.IsError && r.Result != null) avatars.Add(r.Result);
+                }
+                result.Result = avatars;
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var key = avatar.Id != Guid.Empty ? avatar.Id.ToString() : $"username:{avatar.Username}";
+                var json = Serialise(new { id = avatar.Id, username = avatar.Username, email = avatar.Email });
+                var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
+                var blob = container.GetBlobClient(key);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                await blob.UploadAsync(stream, overwrite: true);
+                // also index by username and email for lookup
+                if (!string.IsNullOrEmpty(avatar.Username))
+                {
+                    var uBlob = container.GetBlobClient($"username:{avatar.Username}");
+                    using var us = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                    await uBlob.UploadAsync(us, overwrite: true);
+                }
+                if (!string.IsNullOrEmpty(avatar.Email))
+                {
+                    var eBlob = container.GetBlobClient($"email:{avatar.Email}");
+                    using var es = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                    await eBlob.UploadAsync(es, overwrite: true);
+                }
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
+                result.Result = avatar; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
+            }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
+        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar) => SaveAvatarDetailAsync(avatar).Result;
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try { await _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(id.ToString()).DeleteIfExistsAsync(); result.Result = true; }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try { await _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(providerKey).DeleteIfExistsAsync(); result.Result = true; }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            return result;
+        }
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+            => await DeleteAvatarAsync($"email:{avatarEmail}", softDelete);
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+            => await DeleteAvatarAsync($"username:{avatarUsername}", softDelete);
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
+
+        // ─── Import / Export ──────────────────────────────────────────────────────
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Use SaveHolonsAsync for bulk import."); return await Task.FromResult(r); }
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => await LoadHolonsForParentAsync(avatarId, version: version);
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => await LoadHolonsForParentAsync($"username:{avatarUsername}", version: version);
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+            => await LoadHolonsForParentAsync($"email:{avatarEmailAddress}", version: version);
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => await LoadAllHolonsAsync(version: version);
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
+
+        // ─── IOASISNETProvider ────────────────────────────────────────────────────
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        { var r = new OASISResult<IEnumerable<IAvatar>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Geolocation not supported."); return r; }
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Geolocation not supported."); return r; }
     }
 }
