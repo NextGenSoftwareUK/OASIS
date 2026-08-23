@@ -222,32 +222,45 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 6c | Azure Blob Storage | Cloud | Low (Azure.Storage.Blobs) | High | **Done** |
 | 6d | SQL Server | Storage/DB | Low (ADO.NET) | High | **Done** |
 | 6e | Oracle Database | Storage/DB | Low (ADO.NET) | High | **Done** |
-| 7 | World ID | Identity | Medium (ZK proofs) | High | Soon |
-| 8 | Story Protocol | IP / NFT | Medium | Medium | Next quarter |
-| 9 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next quarter |
-| 10 | Celestia | DA Layer | Medium | Medium | Next quarter |
-| 11 | Filecoin | Storage | Medium (Lotus RPC) | Medium | **Done** |
-| 11a | Algorand | Blockchain | Medium (Algod REST) | Medium | **Done** |
-| 11b | Ceramic/ComposeDB | Data | Medium (HTTP API) | Medium | **Done** |
-| 11c | Basechain (Loom) | EVM Sidechain | Low (Ethereum RPC) | Medium | **Done** |
-| 11d | BlueSky | Social | Low (AT Protocol XRPC) | High | **Done** |
-| 11e | Matrix | Messaging | Low (Client-Server v3) | High | **Done** |
-| 12 | Lit Protocol | Encryption | Medium (REST) | Medium | Backlog |
-| 13 | The Graph | Indexing | Low (GraphQL) | High | **Done** |
-| 14 | Discord | Social/Network | Low (REST bot) | Very High | **Done** |
-| 15 | World ID | Identity | Medium (ZK proofs) | High | **Done** |
-| 16 | Story Protocol | IP / NFT | Medium | Medium | **Done** |
-| 17 | Lit Protocol | Encryption | Medium (REST) | Medium | **Done** |
-| 18 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | Next |
-| 19 | Celestia | DA Layer | Medium | Medium | Next quarter |
-| 20 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | Backlog |
+| 7 | World ID | Identity | Medium (ZK proofs) | High | **Done** |
+| 8 | Story Protocol | IP / NFT | Medium | Medium | **Done** |
+| 9 | Lit Protocol | Encryption | Medium (REST) | Medium | **Done** |
+| 10 | The Graph | Indexing | Low (GraphQL) | High | **Done** |
+| 11 | Discord | Social/Network | Low (REST bot) | Very High | **Done** |
+| 11a | Filecoin | Storage | Medium (Lotus RPC) | Medium | **Done** |
+| 11b | Algorand | Blockchain | Medium (Algod REST) | Medium | **Done** |
+| 11c | Ceramic/ComposeDB | Data | Medium (HTTP API) | Medium | **Done** |
+| 11d | Basechain (Loom) | EVM Sidechain | Low (Ethereum RPC) | Medium | **Done** |
+| 11e | BlueSky | Social | Low (AT Protocol XRPC) | High | **Done** |
+| 11f | Matrix | Messaging | Low (Client-Server v3) | High | **Done** |
+| 12 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | **Next** |
+| 13 | Celestia | DA Layer | Medium (REST blob submission) | Medium | **Next** |
+| 14 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | **Next** |
+| 15 | Polkadot / Substrate | Parachain | Medium (Substrate RPC) | High | **Next** |
+| 16 | Sui | L1 (Move VM) | Medium (Sui JSON-RPC) | High | **Next** |
+| 17 | Aptos | L1 (Move VM) | Medium (REST API) | Medium | **Next** |
+| 18 | Chainlink | Oracle Network | Low (on-chain read / CCIP) | High | **Next** |
+| 19 | Push Protocol | Web3 Notifications | Low (REST) | High | **Next** |
+| 20 | Lens Protocol v2 | Social Graph | Low (GraphQL) | High | **Next** |
+| 21 | Nostr (relay mesh) | Decentralised Social | Low (WebSocket) | High | **Next** |
+| 22 | Arweave | Permanent Storage | Low (REST to arweave.net) | High | **Next** |
+| 23 | Perplexity / OpenAI | AI Search / LLM | Low (REST) | Very High | Soon |
+| 24 | ENS | Name Service | Low (Ethereum RPC / REST) | Very High | Soon |
+| 25 | Alchemy / Infura | RPC Gateway | Very Low (drop-in) | High | Soon |
+| 26 | Safe (Gnosis Safe) | Multisig | Low (REST API) | Medium | Soon |
+| 27 | Tableland | SQL on Chain | Low (REST) | Medium | Soon |
+| 28 | Waku | P2P Messaging | Medium (Waku v2 JSON-RPC) | Medium | Next quarter |
+| 29 | Livepeer | Video / Transcoding | Low (REST) | Medium | Next quarter |
+| 30 | Akash Network | Decentralised Compute | Medium | Medium | Next quarter |
 
 ---
 
 ## Implementation Notes
 
-**Very Low effort (EVM extensions):** Abstract, Berachain, Sei all extend `Web3CoreOASISBaseProvider` — they need a new `.csproj`, a constructor with the correct RPC URL and chain ID, and any chain-specific differences in gas/token naming. Roughly 200 lines each.
+**Very Low effort (EVM extensions):** Sei, Abstract, Berachain all extend `Web3CoreOASISBaseProvider` — new `.csproj`, constructor with correct RPC URL + chain ID, chain-specific gas/token naming. ~200 lines each.
 
-**Low effort (REST/GraphQL):** Arweave (REST to `arweave.net`), Nostr (WebSocket to public relays), Lens (GraphQL to `api.lens.dev`), The Graph (GraphQL). These are self-contained HTTP/WebSocket clients with no binary serialisation complexity.
+**Low effort (REST/GraphQL):** Arweave (REST to `arweave.net`), Nostr (WebSocket to public relays), Lens v2 (GraphQL to `api.lens.dev`), Push Protocol (REST), ENS (Ethereum RPC + REST resolver), Alchemy/Infura (drop-in RPC gateway), Tableland (REST), Livepeer (REST), Perplexity/OpenAI (REST). All self-contained HTTP/WebSocket clients with no binary serialisation complexity.
 
-**Medium effort:** Farcaster (Hubble gRPC API + Farcaster-specific data model), World ID (ZK proof verification flow), Celestia (DA blob submission), Filecoin (storage deal lifecycle), Lit Protocol (threshold encryption key shares).
+**Medium effort:** Eclipse (Solana-compatible SVM L2 — reuses SolanaOASIS patterns), Polkadot/Substrate (custom RPC + SCALE codec), Sui/Aptos (Move VM JSON-RPC with BCS), Celestia (DA blob submission REST), Chainlink (on-chain read + CCIP cross-chain), Safe (multisig signing flow), Waku (v2 JSON-RPC peer messaging), Akash Network (deployment lifecycle).
+
+**Recommended priority order for next sprint:** Sei (trivial EVM extension) → Arweave (pure REST permanent storage) → Nostr (WebSocket, very high community demand) → ENS (identity layer used by most existing Ethereum providers) → Push Protocol (Web3 notifications, high OASIS UX value) → Lens v2 (social graph, complements Farcaster + Discord).
