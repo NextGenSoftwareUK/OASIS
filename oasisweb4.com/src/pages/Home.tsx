@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Typography, Card, CardContent, CardActions } from '@mui/material';
+﻿import { Box, Button, Grid, Typography, Card, CardContent, CardActions } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { AccountBalanceWallet, Code, Cloud, Security } from '@mui/icons-material';
 import { Helmet } from 'react-helmet-async';
@@ -35,7 +35,7 @@ export default function Home() {
               <AccountBalanceWallet sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
               <Typography variant="h5" gutterBottom>Universal Wallet</Typography>
               <Typography color="text.secondary">
-                Manage all your Web2 and Web3 assets across 50+ blockchain networks with one unified interface.
+                Manage all your Web2 and Web3 assets across 100+ blockchain networks with one unified interface.
               </Typography>
             </CardContent>
             <CardActions>
