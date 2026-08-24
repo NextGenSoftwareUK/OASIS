@@ -7,11 +7,34 @@
     <AssemblyName>OGEditorSDK</AssemblyName>
     <Version>1.0.0</Version>
     <Description>OGEditorSDK — generic OASIS Omniverse editor plugin module. Plug into any map editor (UDB, TrenchBroom, NetRadiant, DarkRadiant, Mapster32, or any web editor via REST). Provides the OGAsset catalog, map sidecar, STAR API client, entity conversion tables, and cross-game portal/quest binding shared by all OGEngine editors. Mirror of STARAPIClient — but for creators/editors rather than for playing games.</Description>
-    <Authors>NextGen Software Ltd</Authors>
+    <Authors>NextGen World Ltd</Authors>
+    <Company>NextGen World Ltd</Company>
+    <Product>OGEditorSDK</Product>
+    <Title>OGEditorSDK</Title>
+    <Summary>OASIS Omniverse editor plugin module for map editors, STAR API, and cross-game portals.</Summary>
     <PackageId>OGEditorSDK</PackageId>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-STAR-CMS-RVM</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageTags>oasis;oasisomniverse;ogeditor;oasismapeditor;nextgensoftware;unity;unrealengine;web3;metaverse;game;open-source</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-STAR-CMS-RVM</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2024</Copyright>
+    <PackageReleaseNotes>Initial release of OGEditorSDK — OASIS Omniverse editor plugin providing OGAsset catalog, map sidecar, STAR API client, entity conversion tables, and cross-game portal/quest binding for all OGEngine-compatible editors.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>disable</Nullable>
     <LangVersion>8.0</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <!-- No external dependencies — pure .NET Standard 2.0 for maximum compatibility across all editor hosts -->
 
