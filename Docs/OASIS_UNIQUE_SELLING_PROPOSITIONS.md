@@ -12,7 +12,13 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ### WEB6-USP-1: FAHRN — The Only Identity-Grounded Multi-Agent Orchestrator
 
-**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across 20+ providers in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **20+ AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+
+**AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
+
+**Agent Orchestration Framework Adapters** (6): MCP (Model Context Protocol), A2A (Agent-to-Agent), LangChain, AutoGen, CrewAI, Semantic Kernel — WEB6 exposes all 250 MCP tools and 56 REST endpoints natively to any of these frameworks.
+
+**Protocols**: MCP (250 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
 
 **Why no competitor can replicate it**:
 - OpenAI, Anthropic, and Google sell single-provider model access — they have structural incentives not to route to competitors
@@ -407,14 +413,14 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **Investment Value**: Development cost reduction, market reach expansion.
 
-### 10. Comprehensive Provider Ecosystem — 95 Providers, Unmatched Moat
+### 10. Comprehensive Provider Ecosystem — 102 Providers, Unmatched Moat
 **Innovation**: The world's largest unified Web2 + Web3 provider ecosystem under a single hot-swappable interface.
 
 **Technical Details**:
-- **95 fully implemented providers** across 10 categories (as of 2026-08-24)
+- **102 fully implemented providers** across 7 categories (as of 2026-08-24)
 - **43 blockchains**: Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Optimism, Avalanche, Base, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TRON, XRP Ledger, TON, Stellar, Monad, Fantom, zkSync, Scroll, Linea, Starknet, Aztec, Miden, Zcash, Radix, Rootstock, Telos, EOSIO, Stacks, Hedera, MultiversX, ChainLink, Loom, Algorand, Filecoin, Ceramic, Basechain, Abstract, Berachain
 - **17 storage/database/cloud**: MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, SOLID, ThreeFold, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, Moralis, Tableland, Local File
-- **22 decentralised social/network**: Farcaster, Nostr, Lens, BlueSky, Matrix, Discord, ActivityPub, Holochain, HoloWeb, Scuttlebutt, Urbit, Telegram, SEEDS, Push Protocol, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Celestia, Eclipse
+- **29 decentralised social/network**: Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Holochain, HoloWeb, Scuttlebutt, Urbit, Telegram, SEEDS, Push Protocol, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Celestia, Eclipse, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO
 - **4 Web3 API/indexing**: The Graph, ENS, Alchemy, Infura
 - **4 spatial/AR/gaming**: GO Map (Unity AR), Mapbox, WRLD 3D, Cargo
 - **3 identity/encryption/IP**: World ID, Lit Protocol, Story Protocol
@@ -426,14 +432,14 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 | Platform | Providers | Capability |
 |---|---|---|
-| **OASIS** | **95** | Read + Write + Identity + Social + Spatial + AI |
+| **OASIS** | **102** | Read + Write + Identity + Social + Spatial + AI |
 | Moralis | ~15 | Read-only Web3 data |
 | Alchemy | ~10 | EVM RPC only |
 | Infura | ~8 | EVM RPC only |
 | The Graph | ~50 | Indexing only (no write) |
 | Chainlink | ~20 | Oracle data only |
 
-No competitor provides read + write + identity + social + spatial across 95 providers under one unified interface.
+No competitor provides read + write + identity + social + spatial across 102 providers under one unified interface.
 
 **Investment Value**: Vendor independence, cost optimization, deepest moat in Web3 infrastructure — apps built on OASIS cannot be disrupted by any single provider shutting down or changing pricing.
 
