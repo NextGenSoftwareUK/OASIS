@@ -142,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
                     ?? _configuration["STRIPE_SECRET_KEY"]
-                    ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe?.SecretKey;
+                    ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.SecretKey;
                 if (string.IsNullOrWhiteSpace(secretKey))
                     return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
@@ -195,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
                 ?? _configuration["STRIPE_WEBHOOK_SECRET"]
-                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe?.WebhookSecret;
+                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.WebhookSecret;
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Webhook secret not configured.");
 
@@ -628,7 +628,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         private string GetStripePriceId(string planId)
         {
-            var stripe = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe;
+            var stripe = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe;
             return planId.ToLower() switch
             {
                 "bronze"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_BRONZE")     ?? _configuration["STRIPE_PRICE_BRONZE"]     ?? stripe?.PriceBronze,
