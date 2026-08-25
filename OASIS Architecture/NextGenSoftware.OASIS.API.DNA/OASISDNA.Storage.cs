@@ -286,6 +286,14 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string SecretKey { get; set; } = "";
         public string PublishableKey { get; set; } = "";
         public string WebhookSecret { get; set; } = "";
+        /// <summary>
+        /// Stripe Price IDs for each plan. Set these in Railway env vars (STRIPE_PRICE_BRONZE etc.)
+        /// or here for local dev. Get the IDs from Stripe Dashboard → Products → your plan → Price ID.
+        /// </summary>
+        public string PriceBronze { get; set; } = "";
+        public string PriceSilver { get; set; } = "";
+        public string PriceGold { get; set; } = "";
+        public string PriceEnterprise { get; set; } = "";
     }
 
     public class DataPermissionsConfig
