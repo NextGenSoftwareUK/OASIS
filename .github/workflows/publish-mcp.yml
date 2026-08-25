@@ -38,6 +38,13 @@ jobs:
         with:
           path: OASIS
 
+      - name: Checkout OASIS-WEB6
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/OASIS-WEB6
+          path: OASIS-WEB6
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
@@ -55,10 +62,9 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Publish single-file binary
-        working-directory: OASIS
         run: >
           dotnet publish
-          WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          OASIS-WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
           -c Release
           -r ${{ matrix.rid }}
           -p:PublishSingleFile=true
@@ -68,11 +74,10 @@ jobs:
 
       - name: Rename binary
         shell: bash
-        working-directory: OASIS
         run: |
           src="publish/${{ matrix.rid }}/NextGenSoftware.OASIS.MCP.Server"
           [ -f "${src}.exe" ] && src="${src}.exe"
-          cp "$src" "../${{ matrix.artifact }}"
+          cp "$src" "${{ matrix.artifact }}"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -150,6 +155,13 @@ jobs:
         with:
           path: OASIS
 
+      - name: Checkout OASIS-WEB6
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/OASIS-WEB6
+          path: OASIS-WEB6
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
@@ -167,13 +179,12 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Pack MCP Server
-        working-directory: OASIS
         run: >
           dotnet pack
-          WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          OASIS-WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
           -c Release
           -p:Version=${{ inputs.version }}
-          -o nupkgs
+          -o OASIS/nupkgs
 
       - name: Get NuGet token via Trusted Publishing
         id: get-token
@@ -186,9 +197,8 @@ jobs:
 
       - name: Push to NuGet.org
         shell: pwsh
-        working-directory: OASIS
         run: |
-          dotnet nuget push nupkgs\*.nupkg `
+          dotnet nuget push OASIS\nupkgs\*.nupkg `
             --source https://api.nuget.org/v3/index.json `
             --api-key ${{ steps.get-token.outputs.NUGET_TOKEN }} `
             --skip-duplicate
@@ -199,10 +209,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout OASIS
+      - name: Checkout OASIS-WEB6
         uses: actions/checkout@v4
         with:
-          path: OASIS
+          repository: NextGenSoftwareUK/OASIS-WEB6
+          path: OASIS-WEB6
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - uses: actions/setup-node@v4
         with:
@@ -211,10 +223,10 @@ jobs:
 
       - name: Set version
         run: npm version ${{ inputs.version }} --no-git-tag-version
-        working-directory: OASIS/WEB6/npm
+        working-directory: OASIS-WEB6/npm
 
       - name: Publish to npm
         run: npm publish --access public
-        working-directory: OASIS/WEB6/npm
+        working-directory: OASIS-WEB6/npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
