@@ -21,6 +21,9 @@ const providers: Record<string, string[]> = {
     'Waku (P2P messaging)', 'Livepeer (video)', 'Akash (compute)',
     'Tor / Onion', 'Orion Protocol (DEX aggregator)', 'PLAN',
     'Push Protocol', 'Celestia (DA layer)', 'Eclipse (SVM L2)',
+    'Lens v2', 'Privy (embedded wallets)', 'LayerZero (cross-chain)',
+    'Gitcoin Passport (identity scoring)', 'Polybase (decentralised DB)',
+    'Sui zkLogin (social login)', 'ZKsync SSO (smart account SSO)',
   ],
   'Web3 API / Indexing / RPC': [
     'The Graph (GraphQL subgraph indexing)', 'ENS (Ethereum Name Service)',
