@@ -132,6 +132,13 @@ _Last updated: 2026-08-23_
 | Tor / Onion | ONION-Protocol (OnionOASIS) | **Done** |
 | Moralis | MoralisOASIS | **Done** |
 | PLAN | PLANOASIS | **Done** |
+| Privy | PrivyOASIS | **Done** |
+| LayerZero | LayerZeroOASIS | **Done** |
+| Gitcoin Passport | GitcoinPassportOASIS | **Done** |
+| Polybase | PolybaseOASIS | **Done** |
+| Lens v2 | LensV2OASIS | **Done** |
+| Sui zkLogin | SuiZkLoginOASIS | **Done** |
+| ZKsync SSO | ZkSyncSSOOASIS | **Done** |
 
 ### Spatial / Gaming / Other
 
