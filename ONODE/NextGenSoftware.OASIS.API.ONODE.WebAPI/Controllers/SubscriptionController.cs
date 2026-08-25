@@ -149,7 +149,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 StripeConfiguration.ApiKey = secretKey;
 
                 var avatarId = GetCurrentUserId() ?? request.AvatarId ?? "anonymous";
-                var priceId = await GetOrCreateStripePriceAsync(plan);
+                var priceId = GetStripePriceId(plan.Id);
+                if (string.IsNullOrWhiteSpace(priceId))
+                    return StatusCode(500, new { IsError = true, Message = $"No Stripe Price ID configured for plan '{plan.Id}'. Set STRIPE_PRICE_{plan.Id.ToUpper()} environment variable." });
 
                 var options = new Stripe.Checkout.SessionCreateOptions
                 {
@@ -618,41 +620,65 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _ => 0m
         };
 
-        private async Task<string> GetOrCreateStripePriceAsync(PlanDto plan)
+        /// <summary>
+        /// Looks up the Stripe Price ID for a plan from env vars or OASISDNA config.
+        /// Env vars take priority: STRIPE_PRICE_BRONZE, STRIPE_PRICE_SILVER, STRIPE_PRICE_GOLD, STRIPE_PRICE_ENTERPRISE.
+        /// Set these in Railway (production) or OASISDNA.json Stripe section (local dev).
+        /// Get Price IDs from: Stripe Dashboard → Products → your plan → Pricing → copy price_xxx.
+        /// </summary>
+        private string GetStripePriceId(string planId)
         {
-            var priceService = new PriceService();
-            var prices = await priceService.ListAsync(new PriceListOptions { Active = true, Limit = 100 });
-            var existing = prices.Data.FirstOrDefault(p =>
-                p.UnitAmount == (long)(plan.PriceMonthly * 100) &&
-                p.Currency == plan.Currency.ToLower() &&
-                p.Recurring?.Interval == "month" &&
-                p.Metadata.ContainsKey("plan_id") && p.Metadata["plan_id"] == plan.Id);
-            if (existing != null) return existing.Id;
-
-            var productService = new ProductService();
-            var product = await productService.CreateAsync(new ProductCreateOptions
+            var stripe = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe;
+            return planId.ToLower() switch
             {
-                Name = $"OASIS {plan.Name} Plan",
-                Description = string.Join(", ", plan.Features),
-                Metadata = new Dictionary<string, string> { { "plan_id", plan.Id } }
-            });
-
-            var price = await priceService.CreateAsync(new PriceCreateOptions
-            {
-                Product = product.Id,
-                UnitAmount = (long)(plan.PriceMonthly * 100),
-                Currency = plan.Currency.ToLower(),
-                Recurring = new PriceRecurringOptions { Interval = "month" },
-                Metadata = new Dictionary<string, string>
-                {
-                    { "plan_id", plan.Id },
-                    { "max_requests", plan.MaxRequestsPerMonth.ToString() },
-                    { "max_storage_gb", plan.MaxStorageGB.ToString() }
-                }
-            });
-
-            return price.Id;
+                "bronze"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_BRONZE")     ?? _configuration["STRIPE_PRICE_BRONZE"]     ?? stripe?.PriceBronze,
+                "silver"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_SILVER")     ?? _configuration["STRIPE_PRICE_SILVER"]     ?? stripe?.PriceSilver,
+                "gold"       => Environment.GetEnvironmentVariable("STRIPE_PRICE_GOLD")       ?? _configuration["STRIPE_PRICE_GOLD"]       ?? stripe?.PriceGold,
+                "enterprise" => Environment.GetEnvironmentVariable("STRIPE_PRICE_ENTERPRISE") ?? _configuration["STRIPE_PRICE_ENTERPRISE"] ?? stripe?.PriceEnterprise,
+                _            => null
+            };
         }
+
+        // ── OLD: auto-create Stripe Products/Prices on first checkout ──────────
+        // Replaced by GetStripePriceId() above. Kept for reference — the new approach
+        // requires Price IDs to be set explicitly in config, giving full control over
+        // the Stripe product catalogue (no accidental duplicates, matches NFT Founders pattern).
+        //
+        // private async Task<string> GetOrCreateStripePriceAsync(PlanDto plan)
+        // {
+        //     var priceService = new PriceService();
+        //     var prices = await priceService.ListAsync(new PriceListOptions { Active = true, Limit = 100 });
+        //     var existing = prices.Data.FirstOrDefault(p =>
+        //         p.UnitAmount == (long)(plan.PriceMonthly * 100) &&
+        //         p.Currency == plan.Currency.ToLower() &&
+        //         p.Recurring?.Interval == "month" &&
+        //         p.Metadata.ContainsKey("plan_id") && p.Metadata["plan_id"] == plan.Id);
+        //     if (existing != null) return existing.Id;
+        //
+        //     var productService = new ProductService();
+        //     var product = await productService.CreateAsync(new ProductCreateOptions
+        //     {
+        //         Name = $"OASIS {plan.Name} Plan",
+        //         Description = string.Join(", ", plan.Features),
+        //         Metadata = new Dictionary<string, string> { { "plan_id", plan.Id } }
+        //     });
+        //
+        //     var price = await priceService.CreateAsync(new PriceCreateOptions
+        //     {
+        //         Product = product.Id,
+        //         UnitAmount = (long)(plan.PriceMonthly * 100),
+        //         Currency = plan.Currency.ToLower(),
+        //         Recurring = new PriceRecurringOptions { Interval = "month" },
+        //         Metadata = new Dictionary<string, string>
+        //         {
+        //             { "plan_id", plan.Id },
+        //             { "max_requests", plan.MaxRequestsPerMonth.ToString() },
+        //             { "max_storage_gb", plan.MaxStorageGB.ToString() }
+        //         }
+        //     });
+        //
+        //     return price.Id;
+        // }
 
         // ── DTOs / inner types ───────────────────────────────────────────────
 
