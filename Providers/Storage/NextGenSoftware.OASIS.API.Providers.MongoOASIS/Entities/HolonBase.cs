@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string Description { get; set; }
         //  public string ProviderUniqueStorageKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
         public HolonType HolonType { get; set; }
+        public string CustomHolonType { get; set; }
       //  public ProviderType CreatedProviderType { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
         public EnumValue<OASISType> CreatedOASISType { get; set; }
