@@ -32,12 +32,6 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ReplicationRulesConfig ReplicationRules { get; set; } = new ReplicationRulesConfig();
         public FailoverRulesConfig FailoverRules { get; set; } = new FailoverRulesConfig();
         public SubscriptionConfig SubscriptionConfig { get; set; } = new SubscriptionConfig();
-        /// <summary>
-        /// Stripe payment integration keys. Environment variables (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY,
-        /// STRIPE_WEBHOOK_SECRET) always take priority and override these values at runtime. Set keys here
-        /// for local development; leave blank in production and use Railway env vars instead.
-        /// </summary>
-        public StripeSettings Stripe { get; set; } = new StripeSettings();
         public DataPermissionsConfig DataPermissions { get; set; } = new DataPermissionsConfig();
         public IntelligentModeConfig IntelligentMode { get; set; } = new IntelligentModeConfig();
         

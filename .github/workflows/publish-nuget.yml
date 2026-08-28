@@ -15,17 +15,24 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
+      - name: Checkout OASIS-WEB6
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/OASIS-WEB6
+          path: OASIS-WEB6
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: ../NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          path: ../holochain-client-csharp
+          path: holochain-client-csharp
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
@@ -34,10 +41,15 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Pack all packages
+      - name: Pack OASIS2 packages
         shell: pwsh
         working-directory: OASIS2
         run: .\publish-nuget.ps1 -SkipPush
+
+      - name: Pack OASIS-WEB6 packages
+        shell: pwsh
+        working-directory: OASIS2
+        run: .\publish-nuget.ps1 -SkipPush -Root ..\OASIS-WEB6 -NupkgOutput .\nupkgs
 
       - name: Push all packages to NuGet.org
         shell: pwsh

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
@@ -733,7 +734,7 @@ WHEN NOT MATCHED THEN
             {
                 var conditions = metaKeyValuePairs.Select((kvp, i) =>
                     $"JSON_VALUE(DataJson,'$.metaData.{kvp.Key}') = @v{i}").ToList();
-                string join = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Or ? " OR " : " AND ";
+                string join = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
                 string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND ({string.Join(join, conditions)})";
                 if (type != HolonType.All) sql += " AND HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
