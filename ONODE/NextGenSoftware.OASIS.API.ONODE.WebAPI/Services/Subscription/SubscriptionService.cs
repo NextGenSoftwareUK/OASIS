@@ -92,7 +92,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var settings = RecordToDict(record);
             try
             {
-                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription", settings);
+                var result = await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription", settings);
+                if (result.IsError)
+                    _logger.LogError("SaveSettingsAsync failed for user {UserId}: {Message}", record.UserId, result.Message);
+                else
+                    _logger.LogInformation("Subscription saved for user {UserId} plan {PlanId}", record.UserId, record.PlanId);
             }
             catch (Exception ex)
             {
