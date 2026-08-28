@@ -719,6 +719,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
+            oasisHolon.CustomHolonType = holon.CustomHolonType;
             oasisHolon.CreatedOASISType = holon.CreatedOASISType;
             // oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
             oasisHolon.CreatedProviderType = holon.CreatedProviderType;
@@ -833,6 +834,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.CreatedOASISType = holon.CreatedOASISType;
             mongoHolon.CreatedProviderType = holon.CreatedProviderType;
             mongoHolon.HolonType = holon.HolonType;
+            mongoHolon.CustomHolonType = holon.CustomHolonType;
             mongoHolon.Name = holon.Name;
             mongoHolon.Description = holon.Description;
             mongoHolon.IsChanged = holon.IsChanged;
