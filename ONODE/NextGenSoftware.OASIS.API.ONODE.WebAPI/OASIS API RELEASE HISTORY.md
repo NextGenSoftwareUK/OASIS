@@ -1061,7 +1061,7 @@ Going forward we are likely to keep the changelog more brief and will summarise 
 
 Way too many changes to list here, there were numerous internal releases between v3.3.3 and v4.4.4, some of these changes are listed below:
 
-- Over 50+ providers for web2 and web3 now completed including Optimism, BNBChain, Bitcoin, Avalanche, Cardano, Bitcoin, Blockstack, Cosmos,  Elrond, EOSIO, Ethereum,  Fantom, Hashgrapth, Moralis,  Near, Polygon,  Rootstock, Solana, Telos, Sui, Tron, AWS,  Azure, GoogleCloud, GO, Mapbox, WRLD3D, ActivityPub, SOLID, IPFS, Pinata, Scuttlebug, Threefold, ONION, Orion, SEEDS, Neo4j,  SQLite,  MongoDB & more!
+- Over 100+ providers for web2 and web3 now completed including Optimism, BNBChain, Bitcoin, Avalanche, Cardano, Bitcoin, Blockstack, Cosmos,  Elrond, EOSIO, Ethereum,  Fantom, Hashgrapth, Moralis,  Near, Polygon,  Rootstock, Solana, Telos, Sui, Tron, AWS,  Azure, GoogleCloud, GO, Mapbox, WRLD3D, ActivityPub, SOLID, IPFS, Pinata, Scuttlebug, Threefold, ONION, Orion, SEEDS, Neo4j,  SQLite,  MongoDB & more!
 - New OASIS HyperDrive v2 which now includes auto load balancing,  AI Predictive Failover, Analytics, AI powered Smart Mode & more!
 - New bespoke P2P ONET which merges all of web2, web3, OASIS HyperDrive,  HoloNET (Holochain) and also networking protocols such as http, tcp, websockets, QUIC, gRPC & more into a fully unified API and network of networks, an abstraction layer over everything. 
 - Data API upgrade/overhaul.
