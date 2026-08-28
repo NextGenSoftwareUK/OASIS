@@ -1,4 +1,4 @@
-{
+﻿{
     "OASIS": {
         "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
         "Logging": {
@@ -415,7 +415,17 @@
             [],
             "QuotaNotifications":
             []
-        },
+    ,
+      "Stripe": {
+        "SecretKey": "",
+        "PublishableKey": "",
+        "WebhookSecret": "",
+        "PriceBronze": "",
+        "PriceSilver": "",
+        "PriceGold": "",
+        "PriceEnterprise": ""
+      }
+    },
         "DataPermissions":
         {
             "AvatarPermissions":

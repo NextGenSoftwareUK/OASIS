@@ -274,19 +274,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string BillingCycle { get; set; } = "Monthly";
         public List<UsageAlertConfig> UsageAlerts { get; set; } = new List<UsageAlertConfig>();
         public List<QuotaNotificationConfig> QuotaNotifications { get; set; } = new List<QuotaNotificationConfig>();
+        // Payment provider config for this subscription tier
+        public StripeSettings Stripe { get; set; } = new StripeSettings();
     }
 
-    /// <summary>
-    /// Stripe API keys used for subscription billing.
-    /// Environment variables (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET) always win.
-    /// These fields act as local-dev fallbacks only — never commit real keys here.
-    /// </summary>
-    public class StripeSettings
-    {
-        public string SecretKey { get; set; } = "";
-        public string PublishableKey { get; set; } = "";
-        public string WebhookSecret { get; set; } = "";
-    }
+    // StripeSettings defined in OASISDNA.Payments.cs
 
     public class DataPermissionsConfig
     {

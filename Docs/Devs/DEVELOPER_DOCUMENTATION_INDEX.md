@@ -104,7 +104,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
   - Docs: [ONET Documentation](../ONET_DOCUMENTATION.md)
 - **OASIS COSMIC ORM**: Universal data abstraction layer for all Web2/Web3 providers
 - **OASIS NFT System**: Revolutionary NFT system with cross-chain support
-- **OASIS Universal Wallet System**: Unified digital asset management across 50+ blockchain networks
+- **OASIS Universal Wallet System**: Unified digital asset management across 100+ blockchain networks
 - **STAR CLI**: Revolutionary Interoperable Low/No Code Generator for all metaverses, games, apps, and platforms
 - **Our World**: Groundbreaking AR geo-location game that encourages environmental stewardship and community service
 - **One World**: Benevolent MMORPG with optional VR, similar to Minecraft and Pax Dei with cross-platform asset sharing

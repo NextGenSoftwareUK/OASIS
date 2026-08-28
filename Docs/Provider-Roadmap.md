@@ -1,6 +1,6 @@
 # OASIS Provider Inventory & Roadmap
 
-_Last updated: 2026-08-22_
+_Last updated: 2026-08-23_
 
 ---
 
@@ -8,81 +8,85 @@ _Last updated: 2026-08-22_
 
 ### Blockchain / L1 / L2
 
-| Provider | Project |
-|---|---|
-| Ethereum | EthereumOASIS |
-| Bitcoin | BitcoinOASIS |
-| Solana | SOLANAOASIS |
-| BNB Chain | BNBChainOASIS |
-| Polygon | PolygonOASIS |
-| Arbitrum | ArbitrumOASIS |
-| Optimism | OptimismOASIS |
-| Avalanche | AvalancheOASIS |
-| Base | BaseOASIS |
-| Cardano | CardanoOASIS |
-| Polkadot | PolkadotOASIS |
-| NEAR | NEAROASIS |
-| Cosmos | CosmosBlockChainOASIS |
-| TRON | TRONOASIS |
-| XRP Ledger | XRPLOASIS |
-| EOS | EOSIOOASIS |
-| Sui | SuiOASIS |
-| Aptos | AptosOASIS |
-| Hedera Hashgraph | HashgraphOASIS |
-| MultiversX (Elrond) | ElrondOASIS |
-| Fantom | FantomOASIS |
-| zkSync | ZkSyncOASIS |
-| Scroll | ScrollOASIS |
-| Linea | LineaOASIS |
-| Rootstock (RSK) | RootstockOASIS |
-| Telos | TelosOASIS |
-| Stacks (BlockStack) | BlockStackOASIS |
-| Zcash | ZcashOASIS |
-| Miden | MidenOASIS |
-| Aztec | AztecOASIS |
-| Starknet | StarknetOASIS |
-| Radix | RadixOASIS |
-| TON | TONOASIS |
-| Monad | MonadOASIS |
-| ChainLink | ChainLinkOASIS |
+| Provider | Project | Status |
+|---|---|---|
+| Ethereum | EthereumOASIS | **Done** |
+| Bitcoin | BitcoinOASIS | **Done** |
+| Solana | SOLANAOASIS | **Done** |
+| BNB Chain | BNBChainOASIS | **Done** |
+| Polygon | PolygonOASIS | **Done** |
+| Arbitrum | ArbitrumOASIS | **Done** |
+| Optimism | OptimismOASIS | **Done** |
+| Avalanche | AvalancheOASIS | **Done** |
+| Base | BaseOASIS | **Done** |
+| Cardano | CardanoOASIS | **Done** |
+| Polkadot | PolkadotOASIS | **Done** |
+| NEAR | NEAROASIS | **Done** |
+| Cosmos | CosmosBlockChainOASIS | **Done** |
+| TRON | TRONOASIS | **Done** |
+| XRP Ledger | XRPLOASIS | **Done** |
+| EOS | EOSIOOASIS | **Done** |
+| Sui | SuiOASIS | **Done** |
+| Aptos | AptosOASIS | **Done** |
+| Hedera Hashgraph | HashgraphOASIS | **Done** |
+| MultiversX (Elrond) | ElrondOASIS | **Done** |
+| Fantom | FantomOASIS | **Done** |
+| zkSync | ZkSyncOASIS | **Done** |
+| Scroll | ScrollOASIS | **Done** |
+| Linea | LineaOASIS | **Done** |
+| Rootstock (RSK) | RootstockOASIS | **Done** |
+| Telos | TelosOASIS | **Done** |
+| Stacks (BlockStack) | BlockStackOASIS | **Done** |
+| Zcash | ZcashOASIS | **Done** |
+| Miden | MidenOASIS | **Done** |
+| Aztec | AztecOASIS | **Done** |
+| Starknet | StarknetOASIS | **Done** |
+| Radix | RadixOASIS | **Done** |
+| TON | TONOASIS | **Done** |
+| Monad | MonadOASIS | **Done** |
+| ChainLink | ChainLinkOASIS | **Done** |
 | Loom (video messaging) | LoomOASIS | **Done** |
 | Algorand | AlgorandOASIS | **Done** |
 | Filecoin | FilecoinOASIS | **Done** |
 | Ceramic / ComposeDB | CeramicOASIS | **Done** |
 | Basechain (Loom Network EVM) | BasechainOASIS | **Done** |
-| Stellar | StellarOASIS |
+| Stellar | StellarOASIS | **Done** |
+| Abstract | AbstractOASIS | **Done** |
+| Berachain | BerachainOASIS | **Done** |
+| Sei Network | SeiOASIS | **Done** |
 
 ### Storage / Database
 
-| Provider | Project |
-|---|---|
-| MongoDB | MongoOASIS |
-| Neo4j | Neo4jOASIS / Neo4jOASIS2 / Neo4jOASIS.Aura |
-| Azure Cosmos DB | AzureCosmosDBOASIS |
-| AWS | AWSOASIS |
-| Google Cloud | GoogleCloudOASIS |
-| SQLite | SQLLiteDBOASIS |
-| Local File | LocalFileOASIS |
-| IPFS | IPFSOASIS |
-| Pinata (IPFS pinning) | PinataOASIS |
-| Arweave (permanent storage) | ArweaveOASIS |
-| SOLID (Tim Berners-Lee) | SOLIDOASIS |
-| ThreeFold | ThreeFoldOASIS |
-| Azure Storage | AzureStorageOASIS |
+| Provider | Project | Status |
+|---|---|---|
+| MongoDB | MongoOASIS | **Done** |
+| Neo4j | Neo4jOASIS / Neo4jOASIS2 / Neo4jOASIS.Aura | **Done** |
+| Azure Cosmos DB | AzureCosmosDBOASIS | **Done** |
+| AWS | AWSOASIS | **Done** |
+| Google Cloud | GoogleCloudOASIS | **Done** |
+| SQLite | SQLLiteDBOASIS | **Done** |
+| Local File | LocalFileOASIS | **Done** |
+| IPFS | IPFSOASIS | **Done** |
+| Pinata (IPFS pinning) | PinataOASIS | **Done** |
+| Arweave (permanent storage) | ArweaveOASIS | **Done** |
+| SOLID (Tim Berners-Lee) | SOLIDOASIS | **Done** |
+| ThreeFold | ThreeFoldOASIS | **Done** |
+| Azure Blob Storage | AzureStorageOASIS | **Done** |
 | SQL Server | SQLServerDBOASIS | **Done** |
 | Oracle DB | OracleDBOASIS | **Done** |
+| Moralis (Web3 data API) | MoralisOASIS | **Done** |
 
 ### Decentralised Social / Network
 
-| Provider | Project |
-|---|---|
-| ActivityPub | ActivityPubOASIS |
-| Holochain | HoloOASIS / HoloOASIS.Desktop / HoloOASIS.Unity |
-| HoloWeb | HoloWebOASIS |
-| Scuttlebutt | ScuttlebuttOASIS |
-| Urbit | UrbitOASIS |
-| SEEDS | SEEDSOASIS |
-| Telegram | TelegramOASIS |
+| Provider | Project | Status |
+|---|---|---|
+| ActivityPub | ActivityPubOASIS | **Done** |
+| Holochain | HoloOASIS / HoloOASIS.Desktop / HoloOASIS.Unity | **Done** |
+| HoloWeb | HoloWebOASIS | **Done** |
+| Scuttlebutt | ScuttlebuttOASIS | **Done** |
+| Urbit | UrbitOASIS | **Done** |
+| SEEDS | SEEDSOASIS | **Done** |
+| Telegram | TelegramOASIS | **Done** |
 | Farcaster | FarcasterOASIS | **Done** |
 | Nostr | NostrOASIS | **Done** |
 | Lens Protocol | LensOASIS | **Done** |
@@ -93,11 +97,20 @@ _Last updated: 2026-08-22_
 | World ID | WorldIDOASIS | **Done** |
 | Lit Protocol | LitProtocolOASIS | **Done** |
 | Story Protocol | StoryProtocolOASIS | **Done** |
-| Sei Network | SeiOASIS | **Done** |
 | Celestia | CelestiaOASIS | **Done** |
 | Eclipse | EclipseOASIS | **Done** |
 | Push Protocol | PushProtocolOASIS | **Done** |
 | ENS | ENSOASIS | **Done** |
+| Alchemy | AlchemyOASIS | **Done** |
+| Infura | InfuraOASIS | **Done** |
+| Safe (Gnosis) | SafeOASIS | **Done** |
+| Tableland | TablelandOASIS | **Done** |
+| Waku | WakuOASIS | **Done** |
+| Livepeer | LivepeerOASIS | **Done** |
+| Akash Network | AkashOASIS | **Done** |
+| Tor / Onion | OnionOASIS (ONION-Protocol) | **Done** |
+| Orion Protocol (DEX) | OrionProtocolOASIS | **Done** |
+| PLAN | PLANOASIS | **Done** |
 | Alchemy | AlchemyOASIS | **Done** |
 | Infura | InfuraOASIS | **Done** |
 | Safe (Gnosis) | SafeOASIS | **Done** |
@@ -119,16 +132,22 @@ _Last updated: 2026-08-22_
 | Tor / Onion | ONION-Protocol (OnionOASIS) | **Done** |
 | Moralis | MoralisOASIS | **Done** |
 | PLAN | PLANOASIS | **Done** |
+| Privy | PrivyOASIS | **Done** |
+| LayerZero | LayerZeroOASIS | **Done** |
+| Gitcoin Passport | GitcoinPassportOASIS | **Done** |
+| Polybase | PolybaseOASIS | **Done** |
+| Lens v2 | LensV2OASIS | **Done** |
+| Sui zkLogin | SuiZkLoginOASIS | **Done** |
+| ZKsync SSO | ZkSyncSSOOASIS | **Done** |
 
 ### Spatial / Gaming / Other
 
-| Provider | Project |
-|---|---|
-| GO Map | GOMapOASIS | **Done** |
-| Mapbox | MapboxOASIS | **Done** |
-| WRLD 3D | WRLD3DOASIS | **Done** |
-| Cargo (NFT) | CargoOASIS | **Done** |
-| PLAN | PLANOASIS | **Done** |
+| Provider | Project | Status |
+|---|---|---|
+| GO Map (Unity AR) | GOMapOASIS | **Done** |
+| Mapbox (geospatial) | MapboxOASIS | **Done** |
+| WRLD 3D (metaverse) | WRLD3DOASIS | **Done** |
+| Cargo (NFT marketplace) | CargoOASIS | **Done** |
 
 ---
 
@@ -138,17 +157,15 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 
 ---
 
-### Tier 1 — Implement First (highest reach, immediate value)
+### Tier 1 — ✅ All Done
 
-#### 1. Abstract ~~(was: 2)~~
+#### 1. Abstract — **Done**
 - **What:** EVM L2 purpose-built for consumer apps and gaming (launched 2024, Ethereum-settled)
-- **Why:** The fastest-growing consumer crypto chain; built explicitly for the use case OASIS targets. Has a large NFT and gaming community. Fully EVM-compatible so it extends `Web3CoreOASISBaseProvider` with minimal new code
 - **OASIS fit:** Consumer gaming avatars, NFT minting, in-game item provenance
 
-#### 3. Berachain
+#### 2. Berachain — **Done**
 - **What:** EVM-compatible L1 with Proof-of-Liquidity consensus (mainnet launched early 2025)
-- **Why:** One of the most anticipated chain launches of 2025, with a massive engaged community. EVM-compatible — easy to implement via Nethereum
-- **OASIS fit:** DeFi-adjacent avatars and holons; would attract the Berachain community to OASIS
+- **OASIS fit:** DeFi-adjacent avatars and holons
 
 #### 4. Farcaster
 - **What:** Decentralised social protocol built on Ethereum (~500k+ active users, growing fast)
@@ -251,25 +268,31 @@ Ranked by: user reach, ecosystem activity (as of mid-2026), and strategic fit wi
 | 11d | Basechain (Loom) | EVM Sidechain | Low (Ethereum RPC) | Medium | **Done** |
 | 11e | BlueSky | Social | Low (AT Protocol XRPC) | High | **Done** |
 | 11f | Matrix | Messaging | Low (Client-Server v3) | High | **Done** |
-| 12 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | **Next** |
-| 13 | Celestia | DA Layer | Medium (REST blob submission) | Medium | **Next** |
-| 14 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | **Next** |
-| 15 | Polkadot / Substrate | Parachain | Medium (Substrate RPC) | High | **Next** |
-| 16 | Sui | L1 (Move VM) | Medium (Sui JSON-RPC) | High | **Next** |
-| 17 | Aptos | L1 (Move VM) | Medium (REST API) | Medium | **Next** |
-| 18 | Chainlink | Oracle Network | Low (on-chain read / CCIP) | High | **Next** |
-| 19 | Push Protocol | Web3 Notifications | Low (REST) | High | **Next** |
-| 20 | Lens Protocol v2 | Social Graph | Low (GraphQL) | High | **Next** |
-| 21 | Nostr (relay mesh) | Decentralised Social | Low (WebSocket) | High | **Next** |
-| 22 | Arweave | Permanent Storage | Low (REST to arweave.net) | High | **Next** |
-| 23 | Perplexity / OpenAI | AI Search / LLM | Low (REST) | Very High | Soon |
-| 24 | ENS | Name Service | Low (Ethereum RPC / REST) | Very High | Soon |
-| 25 | Alchemy / Infura | RPC Gateway | Very Low (drop-in) | High | Soon |
-| 26 | Safe (Gnosis Safe) | Multisig | Low (REST API) | Medium | Soon |
-| 27 | Tableland | SQL on Chain | Low (REST) | Medium | Soon |
-| 28 | Waku | P2P Messaging | Medium (Waku v2 JSON-RPC) | Medium | Next quarter |
-| 29 | Livepeer | Video / Transcoding | Low (REST) | Medium | Next quarter |
-| 30 | Akash Network | Decentralised Compute | Medium | Medium | Next quarter |
+| 12 | Sei | EVM L1 | Very Low (extends Web3Core) | Medium | **Done** |
+| 13 | Celestia | DA Layer | Medium (REST blob submission) | Medium | **Done** |
+| 14 | Eclipse | SVM L2 | Low (Solana-compatible) | Low-Medium | **Done** |
+| 15 | Polkadot / Substrate | Parachain | Medium (Substrate RPC) | High | **Done** |
+| 16 | Sui | L1 (Move VM) | Medium (Sui JSON-RPC) | High | **Done** |
+| 17 | Aptos | L1 (Move VM) | Medium (REST API) | Medium | **Done** |
+| 18 | Chainlink | Oracle Network | Low (on-chain read / CCIP) | High | **Done** |
+| 19 | Push Protocol | Web3 Notifications | Low (REST) | High | **Done** |
+| 20 | Lens Protocol v2 | Social Graph | Low (GraphQL) | High | **Done** |
+| 21 | Nostr (relay mesh) | Decentralised Social | Low (WebSocket) | High | **Done** |
+| 22 | Arweave | Permanent Storage | Low (REST to arweave.net) | High | **Done** |
+| 23 | ENS | Name Service | Low (Ethereum RPC / REST) | Very High | **Done** |
+| 24 | Alchemy / Infura | RPC Gateway | Very Low (drop-in) | High | **Done** |
+| 25 | Safe (Gnosis Safe) | Multisig | Low (REST API) | Medium | **Done** |
+| 26 | Tableland | SQL on Chain | Low (REST) | Medium | **Done** |
+| 27 | Waku | P2P Messaging | Medium (Waku v2 JSON-RPC) | Medium | **Done** |
+| 28 | Livepeer | Video / Transcoding | Low (REST) | Medium | **Done** |
+| 29 | Akash Network | Decentralised Compute | Medium | Medium | **Done** |
+| 30 | Tor / Onion | P2P Network | Low (Tor proxy) | Medium | **Done** |
+| 31 | Orion Protocol | DEX Aggregator | Low (REST) | Medium | **Done** |
+| 32 | PLAN | Decentralised | Low | Low | **Done** |
+| 33 | GO Map | Unity AR | Low | Medium | **Done** |
+| 34 | Mapbox | Geospatial | Low (REST) | High | **Done** |
+| 35 | WRLD 3D | Metaverse | Low | Medium | **Done** |
+| 36 | Cargo | NFT Marketplace | Low (REST) | Medium | **Done** |
 
 ---
 
