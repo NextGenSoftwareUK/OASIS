@@ -89,7 +89,7 @@
     <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
-    <PackageReference Include="Stripe.net" Version="45.0.0" />
+    <PackageReference Include="Stripe.net" Version="46.3.0" />
     <PackageReference Include="Telegram.Bot" Version="22.4.0" />
 	  <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
   </ItemGroup>
