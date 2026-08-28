@@ -32,11 +32,12 @@ param(
     [string]$ApiKey = $env:NUGET_API_KEY,
     [switch]$SkipPush,
     [string]$Filter = "",
-    [string]$NupkgOutput = "$PSScriptRoot\nupkgs"
+    [string]$NupkgOutput = "$PSScriptRoot\nupkgs",
+    [string]$Root = $PSScriptRoot
 )
 
 $ErrorActionPreference = 'Stop'
-$root = $PSScriptRoot
+$root = $Root
 
 # ---------------------------------------------------------------------------
 # Validate
