@@ -209,7 +209,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             try
             {
-                var stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret);
+                var stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false);
                 await HandleStripeEventAsync(stripeEvent);
                 return Ok();
             }
