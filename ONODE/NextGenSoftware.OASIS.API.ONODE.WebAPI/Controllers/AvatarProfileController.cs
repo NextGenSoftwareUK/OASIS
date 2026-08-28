@@ -611,10 +611,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
             if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.Description)) existingAvatar.Description = avatar.Description;
+            if (!string.IsNullOrEmpty(avatar.DID)) existingAvatar.DID = avatar.DID;
+            if (!string.IsNullOrEmpty(avatar.DIDPublicKey)) existingAvatar.DIDPublicKey = avatar.DIDPublicKey;
+            if (avatar.AcceptTerms.HasValue) existingAvatar.AcceptTerms = avatar.AcceptTerms.Value;
+            if (avatar.IsActive.HasValue) existingAvatar.IsActive = avatar.IsActive.Value;
             if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
+            }
+            if (avatar.MetaData != null && avatar.MetaData.Count > 0)
+            {
+                if (existingAvatar.MetaData == null)
+                    existingAvatar.MetaData = new Dictionary<string, object>();
+                foreach (var kvp in avatar.MetaData)
+                    existingAvatar.MetaData[kvp.Key] = kvp.Value;
             }
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
@@ -655,10 +667,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
             if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.Description)) existingAvatar.Description = avatar.Description;
+            if (!string.IsNullOrEmpty(avatar.DID)) existingAvatar.DID = avatar.DID;
+            if (!string.IsNullOrEmpty(avatar.DIDPublicKey)) existingAvatar.DIDPublicKey = avatar.DIDPublicKey;
+            if (avatar.AcceptTerms.HasValue) existingAvatar.AcceptTerms = avatar.AcceptTerms.Value;
+            if (avatar.IsActive.HasValue) existingAvatar.IsActive = avatar.IsActive.Value;
             if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
+            }
+            if (avatar.MetaData != null && avatar.MetaData.Count > 0)
+            {
+                if (existingAvatar.MetaData == null)
+                    existingAvatar.MetaData = new Dictionary<string, object>();
+                foreach (var kvp in avatar.MetaData)
+                    existingAvatar.MetaData[kvp.Key] = kvp.Value;
             }
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
@@ -699,10 +723,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
             if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.Description)) existingAvatar.Description = avatar.Description;
+            if (!string.IsNullOrEmpty(avatar.DID)) existingAvatar.DID = avatar.DID;
+            if (!string.IsNullOrEmpty(avatar.DIDPublicKey)) existingAvatar.DIDPublicKey = avatar.DIDPublicKey;
+            if (avatar.AcceptTerms.HasValue) existingAvatar.AcceptTerms = avatar.AcceptTerms.Value;
+            if (avatar.IsActive.HasValue) existingAvatar.IsActive = avatar.IsActive.Value;
             if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
+            }
+            if (avatar.MetaData != null && avatar.MetaData.Count > 0)
+            {
+                if (existingAvatar.MetaData == null)
+                    existingAvatar.MetaData = new Dictionary<string, object>();
+                foreach (var kvp in avatar.MetaData)
+                    existingAvatar.MetaData[kvp.Key] = kvp.Value;
             }
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
