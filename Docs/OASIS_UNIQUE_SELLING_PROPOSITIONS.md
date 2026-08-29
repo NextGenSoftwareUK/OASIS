@@ -12,7 +12,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ### WEB6-USP-1: FAHRN — The Only Identity-Grounded Multi-Agent Orchestrator
 
-**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **20+ AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **97 AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
 
 **AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
 
@@ -54,7 +54,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **What makes it unique**:
 - **Not a vector database**: It is a hierarchical holon graph where each level has configurable membrane rules governing what propagates — far more expressive than flat embedding stores
-- **External provider integration**: Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector all auto-registered from env vars — OASIS orchestrates across all of them
+- **External provider integration**: Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate all auto-registered from env vars — OASIS orchestrates across all of them
 - **Semantic search**: Cosine similarity search across stored embeddings within any holon
 - **Multi-hop propagation**: Permitted patterns flow from individual sessions all the way to the Earth holon — enabling genuine collective intelligence at planetary scale
 - **WebSocket persistence**: Agent sessions maintain full server-side state across connection lifetime
