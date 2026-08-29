@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_108 fully implemented providers across 7 categories — last updated: 2026-08-29_
+_116 fully implemented providers across 7 categories — last updated: 2026-08-29_
 
 ---
 
@@ -10,13 +10,13 @@ _108 fully implemented providers across 7 categories — last updated: 2026-08-2
 |---|---|---|
 | Blockchain / L1 / L2 | 43 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei… |
 | Decentralised Social / Network | 29 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO… |
-| Storage / Database / Cloud | 23 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN… |
+| Storage / Database / Cloud | 31 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN, CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna… |
 | Spatial / Gaming / AR | 4 | GO Map (Unity AR), Mapbox, WRLD 3D, Cargo (NFT) |
 | Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
 | Identity / Encryption / IP | 3 | World ID, Lit Protocol, Story Protocol |
 | Infrastructure / On-Chain | 5 | Push Protocol, Celestia, Eclipse, Safe (Gnosis), Sei Network |
 
-**Total: 108 providers** (43 + 29 + 23 + 4 + 4 + 3 + 5 - 3 = 108; note Holochain/HoloWeb counted in Social/Network)
+**Total: 116 providers** (43 + 29 + 31 + 4 + 4 + 3 + 5 - 3 = 116; note Holochain/HoloWeb counted in Social/Network)
 
 ---
 
