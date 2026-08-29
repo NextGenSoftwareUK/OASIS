@@ -8,7 +8,7 @@
 
 ## What is WEB6?
 
-WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 97 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
+WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 107 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
 
 On top of routing, WEB6 adds:
 
