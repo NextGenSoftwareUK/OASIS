@@ -8,7 +8,7 @@
 
 ## What is WEB6?
 
-WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 15+ AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
+WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 97 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
 
 On top of routing, WEB6 adds:
 
@@ -268,7 +268,7 @@ GET https://api.web6.oasisomniverse.one/v1/context/avatar/{avatarId}
 Authorization: Bearer <your-oasis-avatar-key>
 ```
 
-External memory providers (Mem0, Zep, Letta, LangMem, Redis Vector) plug in alongside Holonic Memory via the same interface.
+External memory providers (Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate) plug in alongside Holonic Memory via the same interface.
 
 ---
 
