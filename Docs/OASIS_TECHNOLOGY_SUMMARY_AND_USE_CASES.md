@@ -61,7 +61,7 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
   - SkillOpt self-evolving agent skills (+23.5% avg accuracy gain, Microsoft Research method arXiv:2605.23904)
   - Holonic memory hierarchy (Session → Earth) with semantic search and multi-hop propagation
   - DID/Verifiable Credentials, karma-gated model tiers, BudgetGuard cost caps
-  - 250 MCP tools, 56 REST endpoints, ACP/ANP/gRPC/GraphQL/AsyncAPI protocols
+  - 250 MCP tools, 56 REST endpoints, 17 orchestrator protocols (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook)
 
 #### **Layer 4: WEB7 Symbiosis** - The Bio-Signal Layer
 - **Purpose**: Bridge bio-signal and neural interface data to the AI layer

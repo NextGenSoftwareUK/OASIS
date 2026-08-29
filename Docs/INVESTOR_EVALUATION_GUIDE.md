@@ -358,7 +358,7 @@ These layers are vision-stage but their MCP tool surface is already live, ensuri
 ### 6. Advanced AI/ML Capabilities (WEB6)
 **Innovation**: Full AI abstraction and aggregation layer — not just ML over data, but multi-agent orchestration, self-evolving skills, and grounded-in-identity intelligence
 
-- FAHRN multi-mode agent dispatch across 20+ providers
+- FAHRN multi-mode agent dispatch across 97 providers (17 orchestrator protocols: MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook)
 - SkillOpt self-evolving skills (+23.5% avg gain, Microsoft Research method)
 - Holonic BRAID 74× performance-per-dollar reasoning graph sharing
 - ML.NET in-process task classification at microsecond latency

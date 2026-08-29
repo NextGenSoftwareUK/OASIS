@@ -17,6 +17,7 @@ On top of routing, WEB6 adds:
 - **Holonic Memory** — a fractal hierarchy (session → agent → user → group → city → Earth) that compounds intelligence across every interaction
 - **Semantic caching** — returns cached results for 95%+ similar prompts at zero provider cost
 - **MCP server** — every FAHRN agent, memory provider and protocol adapter exposed as an MCP tool, auto-discovered by Claude Code, Cursor and any MCP-compatible host
+- **17 orchestrator protocols** — MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK / Swarm, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — all via `POST /v1/orchestrators/invoke`
 
 ---
 

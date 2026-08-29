@@ -16,7 +16,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
 
-**Agent Orchestration Framework Adapters** (6): MCP (Model Context Protocol), A2A (Agent-to-Agent), LangChain, AutoGen, CrewAI, Semantic Kernel — WEB6 exposes all 250 MCP tools and 56 REST endpoints natively to any of these frameworks.
+**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 250 MCP tools and 56 REST endpoints natively to any of these frameworks.
 
 **Protocols**: MCP (250 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
 
@@ -86,7 +86,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 - Claude.ai integration alone gives access to millions of active Claude users who can interact with the entire OASIS ecosystem through natural language
 - The npm package (`@oasisomniverse/web6-api`) — v2.0, 14 modules, 40 operations — extends reach to the entire JavaScript ecosystem
 - 56 REST endpoints for traditional API integration
-- ACP, ANP, gRPC, GraphQL, AsyncAPI/Kafka — all exposed from a single endpoint
+- ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, gRPC, GraphQL, Kafka, AMQP, MQTT — all exposed from a single endpoint
 
 **Investment value**: Distribution through IDE integrations costs nothing per user and compounds with every new MCP-compatible tool that ships.
 
