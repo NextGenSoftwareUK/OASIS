@@ -585,7 +585,7 @@ Items with stored embeddings are ranked by cosine similarity. Items without embe
 
 ## External Memory Providers
 
-Integrates with Mem0, Zep, Letta, LangMem, and Graphiti. Providers are auto-registered on startup when their env vars are present (e.g. `MEM0_API_KEY`, `ZEP_API_KEY`).
+Integrates with Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, and Weaviate. Providers are auto-registered on startup when their env vars are present (e.g. `MEM0_API_KEY`, `ZEP_API_KEY`, `QDRANT_URL`, `WEAVIATE_URL`).
 
 ### GET `/v1/memory/external/providers`
 
@@ -675,7 +675,7 @@ Register an orchestrator adapter.
 }
 ```
 
-**`protocol` values:** `MCP`, `A2A`, `ACP`, `ANP`, `GRPC`, `GraphQL`, `Kafka`, `AMQP`, `MQTT`, `HTTP`
+**`protocol` values:** `MCP`, `A2A`, `ACP`, `ANP`, `LangGraph`, `OpenAIAgents`, `Nostr`, `GRPC`, `GraphQL`, `Kafka`, `AMQP`, `MQTT`, `LangChain`, `AutoGen`, `CrewAI`, `SemanticKernel`, `Webhook`
 
 ---
 
