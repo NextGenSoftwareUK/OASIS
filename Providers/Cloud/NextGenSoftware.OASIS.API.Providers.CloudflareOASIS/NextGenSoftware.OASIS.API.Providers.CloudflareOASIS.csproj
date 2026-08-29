@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.CloudflareOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.CloudflareOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.CloudflareOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API Cloudflare OASIS Provider</Product>
+    <Title>WEB4 OASIS API Cloudflare OASIS Provider</Title>
+    <Summary>Cloudflare Workers KV OASIS Provider — edge-native key-value storage for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Cloudflare Workers KV via the Cloudflare REST API. Stores OASIS holons and avatars as JSON values in a KV namespace. No Cloudflare SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; Cloudflare; KV; Edge; Cloud; WEB4; Provider</PackageTags>
+    <PackageReleaseNotes>- Initial release of Cloudflare KV OASIS provider.
+- Uses Cloudflare REST API — no Cloudflare SDK dependency.
+- Stores avatars under key oasis_avatars:{id} and holons under oasis_holons:{id}.
+- Supports API token and API key + email authentication.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>
