@@ -414,7 +414,7 @@ List all installed OAPPs for an avatar.
 ### AI Completion & Embeddings
 
 #### `web6_complete`
-Unified AI completion — routes to 97 providers with auto failover.
+Unified AI completion — routes to 107 providers with auto failover.
 
 **Parameters:**
 | Name | Type | Required | Description |
