@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.GUNOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.GUNOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.GUNOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API GUN OASIS Provider</Product>
+    <Title>WEB4 OASIS API GUN OASIS Provider</Title>
+    <Summary>GUN OASIS Provider — decentralised real-time graph database for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to GUN via the GUN relay server HTTP API. GUN is a decentralised, real-time, offline-first graph database with peer-to-peer sync. Requires a running GUN relay server (gun npm package). No GUN SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; GUN; Decentralised; P2P; Graph; Real-time; WEB4; WEB5; Provider</PackageTags>
+    <PackageReleaseNotes>- Initial release of GUN OASIS provider.
+- Requires GUN relay server (npm install gun &amp;&amp; node -e "require('gun')({web:require('http').createServer().listen(8765)})").
+- Uses GUN HTTP REST API — no Node.js SDK dependency from .NET.
+- Stores OASIS holons and avatars as GUN graph nodes with soul-based addressing.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>
