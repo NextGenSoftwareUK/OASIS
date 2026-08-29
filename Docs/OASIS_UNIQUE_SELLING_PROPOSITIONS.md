@@ -413,13 +413,13 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **Investment Value**: Development cost reduction, market reach expansion.
 
-### 10. Comprehensive Provider Ecosystem — 108 Providers, Unmatched Moat
+### 10. Comprehensive Provider Ecosystem — 116 Providers, Unmatched Moat
 **Innovation**: The world's largest unified Web2 + Web3 provider ecosystem under a single hot-swappable interface.
 
 **Technical Details**:
-- **108 fully implemented providers** across 7 categories (as of 2026-08-24)
+- **116 fully implemented providers** across 7 categories (as of 2026-08-24)
 - **43 blockchains**: Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Optimism, Avalanche, Base, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TRON, XRP Ledger, TON, Stellar, Monad, Fantom, zkSync, Scroll, Linea, Starknet, Aztec, Miden, Zcash, Radix, Rootstock, Telos, EOSIO, Stacks, Hedera, MultiversX, ChainLink, Loom, Algorand, Filecoin, Ceramic, Basechain, Abstract, Berachain
-- **23 storage/database/cloud**: MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, SOLID, ThreeFold, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, Moralis, Tableland, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB (IPFS), GUN (P2P)
+- **31 storage/database/cloud**: MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, SOLID, ThreeFold, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, Moralis, Tableland, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB (IPFS), GUN (P2P), CockroachDB, Neon, SurrealDB, RavenDB, Cassandra/ScyllaDB, Cloudflare D1, Convex, Fauna
 - **29 decentralised social/network**: Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Holochain, HoloWeb, Scuttlebutt, Urbit, Telegram, SEEDS, Push Protocol, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Celestia, Eclipse, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO
 - **4 Web3 API/indexing**: The Graph, ENS, Alchemy, Infura
 - **4 spatial/AR/gaming**: GO Map (Unity AR), Mapbox, WRLD 3D, Cargo
@@ -439,7 +439,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 | The Graph | ~50 | Indexing only (no write) |
 | Chainlink | ~20 | Oracle data only |
 
-No competitor provides read + write + identity + social + spatial across 108 providers under one unified interface.
+No competitor provides read + write + identity + social + spatial across 116 providers under one unified interface.
 
 **Investment Value**: Vendor independence, cost optimization, deepest moat in Web3 infrastructure — apps built on OASIS cannot be disrupted by any single provider shutting down or changing pricing.
 
