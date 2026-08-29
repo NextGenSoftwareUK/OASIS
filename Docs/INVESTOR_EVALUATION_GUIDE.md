@@ -7,7 +7,7 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 **Where we are today (August 2026):**
 - **WEB4** — The foundation: universal data aggregation, COSMIC ORM (**102 providers**), HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P networking. Live in production.
 - **WEB5** — The application layer: STAR ODK low-code metaverse generator, STARNET holon graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
-- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, **250 MCP tools**, **56 REST endpoints**, **20+ AI providers** (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more), **6 orchestrator adapters** (MCP, A2A, LangChain, AutoGen, CrewAI, Semantic Kernel), DID/Verifiable Credentials, karma-gated model tiers. **Fully shipped as of August 2026. This is the primary revenue growth driver.**
+- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, **250 MCP tools**, **56 REST endpoints**, **97 AI providers** (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, EXO, SambaNova, Cerebras, OpenRouter, Together AI, Fireworks AI, Perplexity, HuggingFace, Azure OpenAI, AWS Bedrock, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS, ElevenLabs, Runway ML, Black Forest Labs, and 60+ more), **17 orchestrator protocols** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook), DID/Verifiable Credentials, karma-gated model tiers. **Fully shipped as of August 2026. This is the primary revenue growth driver.**
 - **WEB7** — The symbiosis layer: bio-signal and neural interface integration bridging human consciousness to the OASIS AI layer. Architecture complete, implementation in progress.
 - **WEB8–WEB10** — The galactic mesh, singularity, and source layers — long-horizon vision stages.
 
@@ -284,7 +284,7 @@ WEB6 is the AI abstraction and aggregation layer built on top of WEB4 and WEB5. 
 ### WEB6.3 — Holonic Memory Hierarchy
 **Revolutionary Innovation**: Fractal persistent memory from Session → Agent → User → Group → Neighbourhood → District → City → County → Country → Continent → Earth:
 
-- **External Memory Providers**: Auto-registered from environment variables — Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector
+- **External Memory Providers**: Auto-registered from environment variables — Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate
 - **Membrane Rules**: Each holon controls what propagates upward — privacy is structural, not a policy
 - **Semantic Search**: Cosine similarity over stored embedding vectors for retrieval-augmented generation
 - **Multi-Hop Propagation**: Permitted patterns propagate from Session holons all the way to the Earth holon, enabling true collective intelligence with privacy preserved at each level
