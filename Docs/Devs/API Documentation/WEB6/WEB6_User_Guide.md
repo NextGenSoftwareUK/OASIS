@@ -350,7 +350,9 @@ curl /v1/auth/did/did:key:z6Mk...
 
 ### 10. Agent protocols — connecting external agents
 
-Register an external agent (LangChain, AutoGen, CrewAI, etc.) as an orchestrator adapter:
+WEB6 supports **17 orchestrator protocols** via `OrchestratorManager`: `MCP`, `A2A`, `ACP`, `ANP`, `LangGraph`, `OpenAIAgents` (Swarm handoff), `Nostr` (NIP-90 DVMs), `LangChain`, `AutoGen`, `CrewAI`, `SemanticKernel`, `GRPC`, `GraphQL`, `Kafka`, `AMQP`, `MQTT`, `Webhook`. Set `"protocol"` in the registration payload to select the adapter.
+
+Register an external agent (LangChain, AutoGen, CrewAI, LangGraph, etc.) as an orchestrator adapter:
 
 ```bash
 curl -X POST /v1/orchestrators \
