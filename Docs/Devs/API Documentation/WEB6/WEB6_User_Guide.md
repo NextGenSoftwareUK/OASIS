@@ -12,7 +12,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse. It give
 - **FAHRN multi-agent orchestration** — automatically route problems to a network of specialised AI agents, running them in parallel, having them debate, vote, or decompose the problem into subtasks.
 - **Holonic BRAID shared memory** — agents across sessions share a growing library of Mermaid reasoning graphs. Over time, the network gets better at your specific problem types.
 - **Fractal holonic memory** — structured, hierarchical memory from session level all the way up to a shared planetary Earth holon, with consent-governed membrane rules controlling what propagates upward.
-- **External memory** — plug in Mem0, Zep, Letta, LangMem, or Graphiti as memory backends. WEB6 searches them all and injects the relevant context into your prompts automatically.
+- **External memory** — plug in Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, or Weaviate as memory backends. WEB6 searches them all and injects the relevant context into your prompts automatically.
 - **250 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
 
 ---
@@ -350,7 +350,9 @@ curl /v1/auth/did/did:key:z6Mk...
 
 ### 10. Agent protocols — connecting external agents
 
-Register an external agent (LangChain, AutoGen, CrewAI, etc.) as an orchestrator adapter:
+WEB6 supports **17 orchestrator protocols** via `OrchestratorManager`: `MCP`, `A2A`, `ACP`, `ANP`, `LangGraph`, `OpenAIAgents` (Swarm handoff), `Nostr` (NIP-90 DVMs), `LangChain`, `AutoGen`, `CrewAI`, `SemanticKernel`, `GRPC`, `GraphQL`, `Kafka`, `AMQP`, `MQTT`, `Webhook`. Set `"protocol"` in the registration payload to select the adapter.
+
+Register an external agent (LangChain, AutoGen, CrewAI, LangGraph, etc.) as an orchestrator adapter:
 
 ```bash
 curl -X POST /v1/orchestrators \

@@ -8,9 +8,9 @@
 **OASIS (Open Advanced Sensory Immersion System)** is the universal interoperability and intelligence infrastructure for the internet — WEB4 through WEB10. It unifies every blockchain, database, cloud provider, AI model and protocol behind one API, with a single avatar identity and karma reputation system that travels across every app, game and world built on top of it.
 
 **As of July 2026**, the full WEB4–WEB6 stack is live in production:
-- **WEB4**: Universal data aggregation, 40+ storage providers, COSMIC ORM, HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P
+- **WEB4**: Universal data aggregation, 50+ storage providers, COSMIC ORM, HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P
 - **WEB5**: STAR ODK metaverse generator, STARNET holon graph, OAPPs, quests, missions, cross-world assets  
-- **WEB6**: ONE API. EVERY AI. FAHRN multi-agent orchestration, 20+ AI providers, Holonic BRAID memory, SkillOpt self-evolving skills, DID/VC identity, 250 MCP tools — **the AI intelligence layer is fully shipped and commercially live**
+- **WEB6**: ONE API. EVERY AI. FAHRN multi-agent orchestration, 107 AI providers, Holonic BRAID memory, SkillOpt self-evolving skills, DID/VC identity, 250 MCP tools — **the AI intelligence layer is fully shipped and commercially live**
 - **WEB7**: Bio-signal symbiosis architecture complete, 7 MCP tools live, implementation in progress
 - **WEB8–WEB10**: Architecture defined, MCP tools live, long-horizon vision layers
 
@@ -55,13 +55,13 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 - **Purpose**: Unified AI abstraction and orchestration across every provider
 - **Core Innovation**: FAHRN (Fractal Adaptive Holonic Reasoning Network) + Holonic BRAID + SkillOpt
 - **Key Features**:
-  - Routes completions across 20+ AI providers (OpenAI, Anthropic, Google, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, OpenServ, Replicate, StabilityAI)
+  - Routes completions across 107 AI providers — core cloud LLMs (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI, DeepSeek), fast inference (Cerebras, SambaNova, Together AI, Fireworks AI), aggregator gateways (OpenRouter, OpenServ), Chinese/APAC (Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS), enterprise (AWS Bedrock, Azure OpenAI, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI), image gen (StabilityAI, Black Forest Labs, Ideogram, Leonardo AI), video gen (Runway ML, Luma AI, Pika Labs, Kling AI, Hailuo AI, Vidu, Wan Video), voice/speech (ElevenLabs, AssemblyAI, Deepgram, PlayHT), self-hosted/local (Ollama, LM Studio, vLLM, TGI, Jan, Llamafile, GPT4All, ComfyUI, EXO), decentralised (Bittensor, GaiaNet, AI Horde)
   - Five dispatch modes: Serial, Parallel, Decomposed, Debate, Voting — auto-selected by ML.NET classifier
   - Holonic BRAID shared reasoning-graph memory (74× PPD gain demonstrated)
   - SkillOpt self-evolving agent skills (+23.5% avg accuracy gain, Microsoft Research method arXiv:2605.23904)
   - Holonic memory hierarchy (Session → Earth) with semantic search and multi-hop propagation
   - DID/Verifiable Credentials, karma-gated model tiers, BudgetGuard cost caps
-  - 250 MCP tools, 56 REST endpoints, ACP/ANP/gRPC/GraphQL/AsyncAPI protocols
+  - 250 MCP tools, 56 REST endpoints, 17 orchestrator protocols (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook)
 
 #### **Layer 4: WEB7 Symbiosis** - The Bio-Signal Layer
 - **Purpose**: Bridge bio-signal and neural interface data to the AI layer
@@ -72,7 +72,7 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 - **100+ Supported Providers** across all categories:
   - **Blockchain**: Ethereum, Solana, Polygon, Bitcoin, Cardano, Polkadot, Cosmos, Fantom, NEAR, Avalanche, BNB Chain, Arbitrum, Optimism, Base, Sui, Aptos, EOSIO, Telos, Hashgraph, TRON, and 20+ more
   - **Cloud**: AWS, Azure, Google Cloud, Azure Cosmos DB
-  - **Storage**: MongoDB, Neo4j, SQLite, Local File
+  - **Storage**: MongoDB, Neo4j, SQLite, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN, Local File
   - **Network**: Holochain, IPFS, ActivityPub, Scuttlebutt, SOLID, ThreeFold, Pinata
   - **Maps**: Mapbox, WRLD3D, GO Map
   - **Specialized**: Cargo, Orion Protocol, PLAN, SEEDS, Apollo Server
@@ -170,7 +170,7 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 **OASIS WEB6 Solution**:
 - Holonic memory hierarchy (Session → Agent → User → Group → ... → Earth) stores and propagates insights upward according to membrane rules
 - Group holons accumulate team-level knowledge; the Earth holon accumulates planetary knowledge
-- External provider integration (Mem0, Zep, Letta, LangMem, Graphiti) unifies all existing memory stores
+- External provider integration (Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate) unifies all existing memory stores
 - Semantic search retrieves relevant memories by cosine similarity for RAG pipelines
 
 **Use Case Example**: A global consulting firm's FAHRN agents store every client insight as a Session holon. Permitted patterns propagate up to a Group holon (practice area) and Country holon. When a new analyst starts a project, semantic search over the Group holon surfaces relevant prior work — without exposing confidential client specifics (membrane rules enforce this).

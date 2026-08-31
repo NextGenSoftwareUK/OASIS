@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_102 fully implemented providers across 7 categories — last updated: 2026-08-24_
+_132 fully implemented providers across 7 categories — last updated: 2026-08-30_
 
 ---
 
@@ -10,13 +10,13 @@ _102 fully implemented providers across 7 categories — last updated: 2026-08-2
 |---|---|---|
 | Blockchain / L1 / L2 | 43 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei… |
 | Decentralised Social / Network | 29 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO… |
-| Storage / Database / Cloud | 17 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File… |
+| Storage / Database / Cloud | 47 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN, CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna, Qdrant, Weaviate, InfluxDB, TimescaleDB, Elasticsearch, DynamoDB, Couchbase, Upstash, ScyllaDB, Litestream, MinIO, Cloudinary, PouchDB, Meilisearch, Typesense, ClickHouse… |
 | Spatial / Gaming / AR | 4 | GO Map (Unity AR), Mapbox, WRLD 3D, Cargo (NFT) |
 | Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
 | Identity / Encryption / IP | 3 | World ID, Lit Protocol, Story Protocol |
-| Infrastructure / On-Chain | 5 | Push Protocol, Celestia, Eclipse, Safe (Gnosis), Sei Network |
+| Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 102 providers** (43 + 29 + 17 + 4 + 4 + 3 + 5 - 3 = 102; note Holochain/HoloWeb counted in Social/Network)
+**Total: 132 providers** (43 + 29 + 47 + 4 + 4 + 3 + 2 = 132)
 
 ---
 
@@ -70,7 +70,7 @@ _102 fully implemented providers across 7 categories — last updated: 2026-08-2
 | Abstract | AbstractOASIS |
 | Berachain | BerachainOASIS |
 
-### Storage / Database / Cloud (17)
+### Storage / Database / Cloud (47)
 
 | Provider | ProviderType |
 |---|---|
@@ -91,6 +91,40 @@ _102 fully implemented providers across 7 categories — last updated: 2026-08-2
 | Google Cloud | GoogleCloudOASIS |
 | Moralis (Web3 data API) | MoralisOASIS |
 | Tableland (on-chain SQL) | TablelandOASIS |
+| PostgreSQL | PostgreSQLOASIS |
+| Firebase | FirebaseOASIS |
+| Supabase | SupabaseOASIS |
+| Cloudflare KV | CloudflareKVOASIS |
+| PocketBase | PocketBaseOASIS |
+| Turso | TursoOASIS |
+| Appwrite | AppwriteOASIS |
+| PlanetScale | PlanetScaleOASIS |
+| OrbitDB | OrbitDBOASIS |
+| GUN | GUNOASIS |
+| CockroachDB | CockroachDBOASIS |
+| Neon | NeonOASIS |
+| SurrealDB | SurrealDBOASIS |
+| RavenDB | RavenDBOASIS |
+| Cassandra | CassandraOASIS |
+| Cloudflare D1 | CloudflareD1OASIS |
+| Convex | ConvexOASIS |
+| Fauna | FaunaOASIS |
+| Qdrant | QdrantOASIS |
+| Weaviate | WeaviateOASIS |
+| InfluxDB | InfluxDBOASIS |
+| TimescaleDB | TimescaleDBOASIS |
+| Elasticsearch | ElasticsearchOASIS |
+| DynamoDB | DynamoDBOASIS |
+| Couchbase | CouchbaseOASIS |
+| Upstash | UpstashOASIS |
+| ScyllaDB | ScyllaDBOASIS |
+| Litestream | LitestreamOASIS |
+| MinIO | MinIOOASIS |
+| Cloudinary | CloudinaryOASIS |
+| PouchDB | PouchDBOASIS |
+| Meilisearch | MeilisearchOASIS |
+| Typesense | TypesenseOASIS |
+| ClickHouse | ClickHouseOASIS |
 
 ### Decentralised Social / Network (29)
 
@@ -163,11 +197,11 @@ _102 fully implemented providers across 7 categories — last updated: 2026-08-2
 
 ## Competitive Moat
 
-No competitor — Web3 or traditional — comes close to 95 implemented providers under a single unified interface:
+No competitor — Web3 or traditional — comes close to 132 implemented providers under a single unified interface:
 
 | Platform | Providers |
 |---|---|
-| **OASIS** | **95+** |
+| **OASIS** | **132** |
 | Moralis | ~15 (read-only Web3 data) |
 | Alchemy | ~10 (EVM chains only) |
 | Infura | ~8 (EVM chains only) |

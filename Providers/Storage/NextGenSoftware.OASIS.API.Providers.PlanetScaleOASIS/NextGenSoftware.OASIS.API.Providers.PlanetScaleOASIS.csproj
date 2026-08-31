@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API PlanetScale OASIS Provider</Product>
+    <Title>WEB4 OASIS API PlanetScale OASIS Provider</Title>
+    <Summary>PlanetScale OASIS Provider — serverless MySQL-compatible database for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to PlanetScale (serverless MySQL) using MySqlConnector ADO.NET. Stores OASIS holons and avatars with indexed lookup columns and full JSON blob storage. Compatible with PlanetScale cloud and any MySQL 8+ instance. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; PlanetScale; MySQL; Database; WEB4; Provider</PackageTags>
+    <PackageReleaseNotes>- Initial release of PlanetScale OASIS provider.
+- Uses MySqlConnector ADO.NET with upsert (INSERT ... ON DUPLICATE KEY UPDATE) and JSON blob storage.
+- Compatible with PlanetScale, AWS Aurora MySQL, Google Cloud SQL MySQL, Azure Database for MySQL.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>
