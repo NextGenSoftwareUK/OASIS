@@ -12,11 +12,11 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ### WEB6-USP-1: FAHRN — The Only Identity-Grounded Multi-Agent Orchestrator
 
-**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **20+ AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **97 AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
 
 **AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
 
-**Agent Orchestration Framework Adapters** (6): MCP (Model Context Protocol), A2A (Agent-to-Agent), LangChain, AutoGen, CrewAI, Semantic Kernel — WEB6 exposes all 250 MCP tools and 56 REST endpoints natively to any of these frameworks.
+**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 250 MCP tools and 56 REST endpoints natively to any of these frameworks.
 
 **Protocols**: MCP (250 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
 
@@ -54,7 +54,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **What makes it unique**:
 - **Not a vector database**: It is a hierarchical holon graph where each level has configurable membrane rules governing what propagates — far more expressive than flat embedding stores
-- **External provider integration**: Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector all auto-registered from env vars — OASIS orchestrates across all of them
+- **External provider integration**: Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate all auto-registered from env vars — OASIS orchestrates across all of them
 - **Semantic search**: Cosine similarity search across stored embeddings within any holon
 - **Multi-hop propagation**: Permitted patterns flow from individual sessions all the way to the Earth holon — enabling genuine collective intelligence at planetary scale
 - **WebSocket persistence**: Agent sessions maintain full server-side state across connection lifetime
@@ -86,7 +86,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 - Claude.ai integration alone gives access to millions of active Claude users who can interact with the entire OASIS ecosystem through natural language
 - The npm package (`@oasisomniverse/web6-api`) — v2.0, 14 modules, 40 operations — extends reach to the entire JavaScript ecosystem
 - 56 REST endpoints for traditional API integration
-- ACP, ANP, gRPC, GraphQL, AsyncAPI/Kafka — all exposed from a single endpoint
+- ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, gRPC, GraphQL, Kafka, AMQP, MQTT — all exposed from a single endpoint
 
 **Investment value**: Distribution through IDE integrations costs nothing per user and compounds with every new MCP-compatible tool that ships.
 
@@ -413,13 +413,13 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **Investment Value**: Development cost reduction, market reach expansion.
 
-### 10. Comprehensive Provider Ecosystem — 102 Providers, Unmatched Moat
+### 10. Comprehensive Provider Ecosystem — 132 Providers, Unmatched Moat
 **Innovation**: The world's largest unified Web2 + Web3 provider ecosystem under a single hot-swappable interface.
 
 **Technical Details**:
-- **102 fully implemented providers** across 7 categories (as of 2026-08-24)
+- **132 fully implemented providers** across 7 categories (as of 2026-08-30)
 - **43 blockchains**: Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Optimism, Avalanche, Base, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TRON, XRP Ledger, TON, Stellar, Monad, Fantom, zkSync, Scroll, Linea, Starknet, Aztec, Miden, Zcash, Radix, Rootstock, Telos, EOSIO, Stacks, Hedera, MultiversX, ChainLink, Loom, Algorand, Filecoin, Ceramic, Basechain, Abstract, Berachain
-- **17 storage/database/cloud**: MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, SOLID, ThreeFold, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, Moralis, Tableland, Local File
+- **47 storage/database/cloud**: MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, SOLID, ThreeFold, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, Moralis, Tableland, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB (IPFS), GUN (P2P), CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna, Qdrant, Weaviate, InfluxDB, TimescaleDB, Elasticsearch, DynamoDB, Couchbase, Upstash, ScyllaDB, Litestream, MinIO, Cloudinary, PouchDB, Meilisearch, Typesense, ClickHouse
 - **29 decentralised social/network**: Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Holochain, HoloWeb, Scuttlebutt, Urbit, Telegram, SEEDS, Push Protocol, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Celestia, Eclipse, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO
 - **4 Web3 API/indexing**: The Graph, ENS, Alchemy, Infura
 - **4 spatial/AR/gaming**: GO Map (Unity AR), Mapbox, WRLD 3D, Cargo
@@ -432,14 +432,14 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 | Platform | Providers | Capability |
 |---|---|---|
-| **OASIS** | **102** | Read + Write + Identity + Social + Spatial + AI |
+| **OASIS** | **132** | Read + Write + Identity + Social + Spatial + AI |
 | Moralis | ~15 | Read-only Web3 data |
 | Alchemy | ~10 | EVM RPC only |
 | Infura | ~8 | EVM RPC only |
 | The Graph | ~50 | Indexing only (no write) |
 | Chainlink | ~20 | Oracle data only |
 
-No competitor provides read + write + identity + social + spatial across 102 providers under one unified interface.
+No competitor provides read + write + identity + social + spatial across 132 providers under one unified interface.
 
 **Investment Value**: Vendor independence, cost optimization, deepest moat in Web3 infrastructure — apps built on OASIS cannot be disrupted by any single provider shutting down or changing pricing.
 

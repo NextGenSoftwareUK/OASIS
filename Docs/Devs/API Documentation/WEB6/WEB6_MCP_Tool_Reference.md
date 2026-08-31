@@ -414,7 +414,7 @@ List all installed OAPPs for an avatar.
 ### AI Completion & Embeddings
 
 #### `web6_complete`
-Unified AI completion — routes to 15+ providers with auto failover.
+Unified AI completion — routes to 107 providers with auto failover.
 
 **Parameters:**
 | Name | Type | Required | Description |
@@ -649,7 +649,7 @@ List all configured and active external memory providers.
 
 **Parameters:** none
 
-**Returns:** Array of provider name strings.
+**Returns:** Array of provider name strings. Auto-registered providers (from env vars): Mem0 (`MEM0_API_KEY`), Zep (`ZEP_API_KEY`), Letta (`LETTA_BASE_URL`), LangMem (`LANGMEM_API_KEY`), Graphiti (`GRAPHITI_BASE_URL`), Qdrant (`QDRANT_URL`), Weaviate (`WEAVIATE_URL`).
 
 ---
 
@@ -707,6 +707,8 @@ List all registered orchestrator adapters.
 Invoke a registered adapter with a problem.
 
 **Parameters:** `request` (OrchestratorInvokeRequest — `adapterId`, `problem`, `avatarId`), `avatarId` (string, optional)
+
+**Supported `protocol` values:** `MCP`, `A2A`, `ACP`, `ANP`, `LangGraph`, `OpenAIAgents`, `Nostr`, `LangChain`, `AutoGen`, `CrewAI`, `SemanticKernel`, `GRPC`, `GraphQL`, `Kafka`, `AMQP`, `MQTT`, `Webhook`
 
 ---
 

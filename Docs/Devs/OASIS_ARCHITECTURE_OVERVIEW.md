@@ -18,7 +18,7 @@ The OASIS (Open Advanced Secure Interoperable System) is a revolutionary WEB4–
 │  │ • SkillOpt Self-Evolving Skills (+23.5% accuracy)          │ │
 │  │ • Holonic Memory (fractal Session→Earth hierarchy)         │ │
 │  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
-│  │ • 20+ AI Providers Unified (OpenAI, Anthropic, Gemini…)   │ │
+│  │ • 107 AI Providers Unified (OpenAI, Anthropic, Gemini…)    │ │
 │  │ • DID/Verifiable Credentials (W3C standard)               │ │
 │  │ • 250 MCP tools · 56 REST Endpoints · v2.0                │ │
 │  └─────────────────────────────────────────────────────────────┘ │
@@ -219,7 +219,7 @@ The WEB6 OASIS AI API is the unified AI orchestration and intelligence layer. It
 - **Semantic Search**: Cosine similarity over all stored memories
 - **Multi-Hop Propagation**: Knowledge flows up and down the holon tree
 - **TTL Support**: Auto-expiry for time-sensitive memories
-- **External Providers**: Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector
+- **External Providers**: Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate
 
 #### 4. Karma-Gated AI
 **Innovation**: Model access and token budgets tied to the OASIS karma system.
@@ -229,10 +229,13 @@ The WEB6 OASIS AI API is the unified AI orchestration and intelligence layer. It
 - **Revenue Model**: Karma tier upgrades become a recurring SaaS revenue stream
 - **Aligned Incentives**: Users earn karma through positive actions, unlocking better AI capabilities
 
-#### 5. AI Provider Unification (20+ Providers)
-OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure OpenAI, OpenServ, Replicate, StabilityAI, and more — all behind a single unified API.
+#### 5. AI Provider Unification (107 Providers)
+OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, DeepSeek, Ollama, EXO, SambaNova, Cerebras, OpenRouter, Together AI, Fireworks AI, Perplexity, HuggingFace, AWS Bedrock, Azure OpenAI, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI, OpenServ, Replicate, StabilityAI, Black Forest Labs, Runway ML, ElevenLabs, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS, and 57 more — all behind a single unified API with automatic failover and cost/latency/quality routing.
 
-#### 6. DID / Verifiable Credentials
+#### 6. Agent Protocol Abstraction (17 Protocols)
+The `OrchestratorManager` normalises agent communication across: **MCP** (Streamable HTTP), **A2A** (Agent Card + task lifecycle), **ACP** (BeeAI/IBM), **ANP** (DID-based decentralised discovery), **LangGraph** (stateful graph-based workflows), **OpenAI Agents SDK / Swarm** (structured agent-handoff protocol), **Nostr NIP-90** (decentralised Data Vending Machine job requests), **LangChain**, **AutoGen**, **CrewAI**, **SemanticKernel**, **gRPC**, **GraphQL**, **Kafka**, **AMQP**, **MQTT**, **Webhook** — all behind a single `InvokeAsync` interface. New protocols are adapters, not rewrites.
+
+#### 7. DID / Verifiable Credentials
 **Standards**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade identity and compliance built into the AI layer.
 
 #### 7. MCP Server & REST API
