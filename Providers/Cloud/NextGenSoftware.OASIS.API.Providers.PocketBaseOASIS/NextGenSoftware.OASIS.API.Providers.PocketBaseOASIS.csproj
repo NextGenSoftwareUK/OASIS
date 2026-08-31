@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API PocketBase OASIS Provider</Product>
+    <Title>WEB4 OASIS API PocketBase OASIS Provider</Title>
+    <Summary>PocketBase OASIS Provider — self-hosted open-source backend with REST API for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to PocketBase via its REST API. PocketBase is a self-hosted, single-file open-source backend with realtime subscriptions, authentication, and file storage. No PocketBase SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; PocketBase; Self-Hosted; Cloud; WEB4; Provider</PackageTags>
+    <PackageReleaseNotes>- Initial release of PocketBase OASIS provider.
+- Uses PocketBase REST API — no PocketBase SDK dependency.
+- Collections: oasis_avatars, oasis_avatar_details, oasis_holons.
+- Supports superuser token and user token authentication.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>

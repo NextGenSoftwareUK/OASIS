@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.TursoOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.TursoOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.TursoOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API Turso OASIS Provider</Product>
+    <Title>WEB4 OASIS API Turso OASIS Provider</Title>
+    <Summary>Turso (libSQL) OASIS Provider — edge SQLite database via HTTP API for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Turso (libSQL) via the libSQL HTTP pipeline API. Turso is an edge-native SQLite-compatible database. No SDK required — uses System.Net.Http with JSON pipeline requests. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; Turso; libSQL; SQLite; Edge; WEB4; Provider</PackageTags>
+    <PackageReleaseNotes>- Initial release of Turso (libSQL) OASIS provider.
+- Uses libSQL HTTP pipeline API — no Turso/libSQL SDK dependency.
+- Tables: oasis_avatars, oasis_avatar_details, oasis_holons (auto-created on first use).
+- Compatible with Turso cloud and any self-hosted sqld instance.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+</Project>
