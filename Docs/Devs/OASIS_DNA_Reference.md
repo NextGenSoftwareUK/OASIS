@@ -418,6 +418,62 @@ WEB6 is the unified AI gateway — the intelligence layer that routes requests a
 
 ---
 
+## Payments
+
+WEB6 enforces access control through a two-axis model: **Karma tier** (earned reputation — Free / Bronze / Silver / Gold / Diamond) and **API quota** (request counts per billing cycle). `SubscriptionConfig` (above) covers the WEB4/OPORTAL Stripe integration; this section documents the WEB6-specific karma-gating and quota rules.
+
+### Karma Tiers
+
+| Tier | Min Karma | AI Providers Unlocked | Rate Limit (req/min) | Notes |
+|---|---|---|---|---|
+| Free | 0 | Free-tier providers only (Ollama, LM Studio, local Llama etc.) | 10 | No cost; capped to providers that have no per-call cost |
+| Bronze | 100 | + OpenAI GPT-4o-mini, Anthropic Haiku, Groq, Mistral | 60 | Requires `PlanType = Bronze` in SubscriptionConfig |
+| Silver | 500 | + GPT-4o, Claude Sonnet, Gemini 1.5 Pro, Cohere | 300 | |
+| Gold | 2 000 | + o1-preview, Claude Opus, Gemini Ultra, xAI Grok | 1 000 | |
+| Diamond | 10 000 | All 97 providers including Bittensor native subnets, Nostr DVMs | Unlimited | |
+
+> Tier gating is enforced in `AIProviderManager` via `KarmaGateMiddleware`. The karma threshold values above are the live production defaults and can be overridden in `Web6.KarmaGates` in OASIS_DNA.json (not yet wired; middleware reads these constants directly).
+
+### WEB6 Quota Fields (under `Web6.Quota` — not yet in DNA schema, enforced in middleware)
+
+| Field | Default | Description |
+|---|---|---|
+| `FreeRequestsPerDay` | `50` | Hard cap for Free-tier avatars per 24-hour rolling window |
+| `BronzeRequestsPerDay` | `500` | Bronze plan daily cap (combined across all providers) |
+| `SilverRequestsPerDay` | `5 000` | Silver plan daily cap |
+| `GoldRequestsPerDay` | `50 000` | Gold plan daily cap |
+| `DiamondRequestsPerDay` | `Unlimited` | No cap |
+| `OverageAction` | `Block` | What happens when quota is exhausted: `Block` = 429 response; `PayAsYouGo` = charge per request if `PayAsYouGoEnabled` is true |
+
+### Stripe Env Vars Required for WEB6 Checkout
+
+These must be set in Railway (or local `.env`) — never commit real values:
+
+```
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_BRONZE=price_...
+STRIPE_PRICE_SILVER=price_...
+STRIPE_PRICE_GOLD=price_...
+STRIPE_PRICE_DIAMOND=price_...
+```
+
+Checkout flow: `POST /v1/billing/checkout` → SubscriptionService creates a Stripe Checkout session → user completes payment → Stripe fires `checkout.session.completed` webhook → `SubscriptionMiddleware` upgrades `PlanType` and writes updated karma tier to avatar record.
+
+### Pay-As-You-Go Overage Rates (WEB6 AI calls)
+
+| Tier | Per request above quota |
+|---|---|
+| Bronze | $0.002 |
+| Silver | $0.001 |
+| Gold | $0.0005 |
+| Diamond | $0.0002 |
+
+> Rates are not yet wired to the live Stripe meter API. `CostPerRequest` fields exist in `SubscriptionConfig` but are currently `0.0`. To enable metered billing, set `PayAsYouGoEnabled: true` in SubscriptionConfig and configure Stripe Meter in the Dashboard, then update the price IDs above to the metered price IDs.
+
+---
+
 ## Summary: Things That Need Attention
 
 | Priority | Issue |
