@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.KeyDBOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.KeyDBOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.KeyDBOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API KeyDB OASIS Provider</Product>
+    <Title>WEB4 OASIS API KeyDB OASIS Provider</Title>
+    <Description>KeyDB OASIS Provider — multithreaded Redis-compatible key-value store for OASIS holons and avatars via StackExchange.Redis. https://oasisomniverse.one</Description>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; KeyDB; Redis; Key-Value; WEB4; Provider</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
+  </ItemGroup>
+</Project>
