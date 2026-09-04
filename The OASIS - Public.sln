@@ -680,6 +680,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj", "{3A76BE1A-E57C-413F-B452-B75DCD058EBF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.ONODE.Client", "ONODE\ONODEManager\NextGenSoftware.OASIS.ONODE.Client\NextGenSoftware.OASIS.ONODE.Client.csproj", "{84709194-3E0B-5146-A1C8-4FF4F1B82FA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.ONODE.Manager", "ONODE\ONODEManager\NextGenSoftware.OASIS.ONODE.Manager\NextGenSoftware.OASIS.ONODE.Manager.csproj", "{E1F17111-D3F7-595D-83FC-1CD10014221D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.ONODE.Service", "ONODE\ONODEManager\NextGenSoftware.OASIS.ONODE.Service\NextGenSoftware.OASIS.ONODE.Service.csproj", "{0090BFB9-AA4B-5D1F-A78A-BE9ED7CA901C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -693,6 +699,18 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0090BFB9-AA4B-5D1F-A78A-BE9ED7CA901C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0090BFB9-AA4B-5D1F-A78A-BE9ED7CA901C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0090BFB9-AA4B-5D1F-A78A-BE9ED7CA901C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0090BFB9-AA4B-5D1F-A78A-BE9ED7CA901C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1F17111-D3F7-595D-83FC-1CD10014221D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1F17111-D3F7-595D-83FC-1CD10014221D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1F17111-D3F7-595D-83FC-1CD10014221D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1F17111-D3F7-595D-83FC-1CD10014221D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84709194-3E0B-5146-A1C8-4FF4F1B82FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84709194-3E0B-5146-A1C8-4FF4F1B82FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84709194-3E0B-5146-A1C8-4FF4F1B82FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84709194-3E0B-5146-A1C8-4FF4F1B82FA1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8131B22-06EC-424A-B689-9411C8176BE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A8131B22-06EC-424A-B689-9411C8176BE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8131B22-06EC-424A-B689-9411C8176BE8}.Debug|x64.ActiveCfg = Debug|Any CPU
