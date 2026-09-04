@@ -34,18 +34,24 @@ This is the same model as OpenRouter, except:
 These are now live in WEB6:
 
 ### Venice.ai
-- **Privacy-preserving** — zero logging policy, no data retention
-- **Uncensored** — models respond without mainstream AI guardrails
-- **Models:** llama-3.3-70b and others
-- **Cost:** ~$0.50/M input · ~$0.50/M output
+**Privacy-preserving** (zero logging, no data retention) and **uncensored** — models respond without mainstream AI guardrails.
+
+| Model | Context | Input $/M | Output $/M |
+|---|---|---|---|
+| `llama-3.3-70b` | 131K | $0.70 | $2.80 |
+| `dolphin-2.9.2-qwen2-72b` | 32K | $0.70 | $2.80 |
+| `qwen-2.5-qwq-32b` (reasoning) | 32K | $0.50 | $2.00 |
 
 ### OrcaRouter.ai
-- **Uncensored/jailbroken models** — no refusals, no mainstream restrictions
-- **Privacy-focused** gateway
-- **Models:** llama-3.3-70b-instruct and others
-- **Cost:** ~$0.40–0.60/M input · ~$0.40–0.60/M output
+**Uncensored/jailbroken models**, privacy-focused gateway — no refusals, no mainstream restrictions.
+
+| Model | Context | Input $/M | Output $/M |
+|---|---|---|---|
+| `meta-llama/llama-3.3-70b-instruct` | 131K | $0.59 | $0.79 |
 
 > To make Venice or OrcaRouter Leela's default, one config change is all that's needed. Every request then routes there unless overridden per-call.
+
+> **Verify before committing to tier pricing:** these figures are WEB6's current catalogue values. Confirm against your Venice/OrcaRouter dashboards once the API keys are live, since both providers adjust rates periodically.
 
 ---
 
@@ -53,19 +59,25 @@ These are now live in WEB6:
 
 WEB6 passes through provider costs at **exactly** what they charge — no markup. You pay only what the underlying model costs.
 
-| Tier | Example Models | Input $/M | Output $/M |
+| Tier | Model | Input $/M | Output $/M |
 |---|---|---|---|
-| **Free (local)** | Ollama, vLLM, Jan, GPT4All | **$0** | **$0** |
-| **Low cost** | Venice llama-3.3-70b | ~$0.50 | ~$0.50 |
-| **Low cost** | OrcaRouter llama-3.3-70b | ~$0.50 | ~$0.50 |
+| **Free (local)** | Ollama / vLLM / Jan / GPT4All | **$0** | **$0** |
+| **Uncensored** | OrcaRouter llama-3.3-70b | $0.59 | $0.79 |
+| **Uncensored** | Venice qwen-2.5-qwq-32b | $0.50 | $2.00 |
+| **Uncensored** | Venice llama-3.3-70b | $0.70 | $2.80 |
+| **Low cost** | DeepSeek Chat | $0.14 | $0.28 |
+| **Low cost** | GPT-4o mini | $0.15 | $0.60 |
 | **Low cost** | Groq llama-3.3-70b | $0.59 | $0.79 |
-| **Mid tier** | GPT-4o mini | $0.15 | $0.60 |
+| **Mid tier** | Gemini 2.5 Pro | $1.25 | $10.00 |
+| **Mid tier** | Mistral Large | $2.00 | $6.00 |
 | **Mid tier** | GPT-4o | $2.50 | $10.00 |
-| **Premium** | Claude Sonnet 4 | $3.00 | $15.00 |
+| **Premium** | Claude Sonnet | $3.00 | $15.00 |
+| **Premium** | Grok-3 | $3.00 | $15.00 |
 | **Premium** | Claude Opus | $15.00 | $75.00 |
-| **Premium** | GPT-5, o3 | TBC | TBC |
 
-> **For Leela's use case:** Venice.ai or OrcaRouter on llama-3.3-70b gives uncensored, privacy-first responses at approximately **$0.50/M tokens** — among the cheapest capable models available anywhere.
+**Live pricing:** `GET /v1/models` returns every model with `inputPerMillionUSD`, `outputPerMillionUSD`, context window, and required plan — the same shape OpenRouter publishes, always current. Filter by tier with `?plan=Bronze`.
+
+> **For Leela:** OrcaRouter's llama-3.3-70b at **$0.59 in / $0.79 out per million** is the cheapest uncensored option. Venice costs slightly more on output but adds a strict zero-logging guarantee. Both are a fraction of Claude Opus ($15/$75).
 
 ---
 
@@ -140,6 +152,24 @@ Authorization: Bearer <your-web6-key>
 ```
 
 4. **That's it.** Response is normalised — same shape regardless of which provider handled it.
+
+### Discovering what's available
+
+```bash
+# Every model with live per-million pricing, context window and required plan
+GET /v1/models
+
+# Only models reachable on the Bronze plan
+GET /v1/models?plan=Bronze
+
+# All 98 providers with capabilities and tier
+GET /v1/providers
+
+# Live health probe of every provider
+GET /v1/providers?live=true
+```
+
+These endpoints are the authoritative, always-current answer to "what models do you provide and what do they cost" — this document is a snapshot.
 
 ---
 
