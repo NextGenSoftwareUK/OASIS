@@ -809,11 +809,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("create-web4-nft-collection")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFTCollection>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync([FromBody] API.Core.Interfaces.NFT.Requests.ICreateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync([FromBody] Models.NFT.CreateWeb4NFTCollectionApiRequest request, ProviderType providerType = ProviderType.Default)
         {
+            // Bound to a concrete model - this parameter used to be the ICreateWeb4NFTCollectionRequest
+            // INTERFACE, which ASP.NET Core cannot instantiate, so every call died in model binding and
+            // surfaced as the generic "Oooops. Sorry something broke" 500.
             if (request == null)
-                return new OASISResult<IWeb4NFTCollection> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for the Web4 NFT collection (e.g. Name, Description)." };
-            return await NFTManager.CreateWeb4NFTCollectionAsync(request, providerType);
+                return new OASISResult<IWeb4NFTCollection> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for the Web4 NFT collection (e.g. Title, Description)." };
+
+            if (string.IsNullOrWhiteSpace(request.Title))
+                return new OASISResult<IWeb4NFTCollection> { IsError = true, Message = "The Title field is required. Please provide a non-empty Title for the collection." };
+
+            var createRequest = new API.Core.Objects.NFT.Requests.CreateWeb4NFTCollectionRequest
+            {
+                Title = request.Title,
+                Description = request.Description,
+                // Fall back to the authenticated avatar so callers don't have to repeat their own id.
+                CreatedBy = request.CreatedBy != Guid.Empty ? request.CreatedBy : (Avatar?.Id ?? Guid.Empty),
+                Image = request.Image,
+                ImageUrl = request.ImageUrl,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                MetaData = request.MetaData ?? new Dictionary<string, string>(),
+                Web4NFTIds = request.Web4NFTIds ?? new List<string>(),
+                Web4NFTs = new List<API.Core.Interfaces.NFT.IWeb4NFT>(),
+                Tags = request.Tags ?? new List<string>()
+            };
+
+            return await NFTManager.CreateWeb4NFTCollectionAsync(createRequest, providerType);
         }
 
         /// <summary>
