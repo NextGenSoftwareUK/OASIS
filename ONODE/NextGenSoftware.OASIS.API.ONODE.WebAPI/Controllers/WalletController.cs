@@ -108,15 +108,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = null;
-                try
-                {
-                    result = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+                // This used to be wrapped in a bare `catch { }`. With test data disabled (the production
+                // default) a failed load left `result` null and the endpoint returned literal `{}` - which is
+                // how a successfully created wallet appeared to silently vanish. Let it surface instead: the
+                // outer catch turns it into a proper error response.
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result =
+                    await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
@@ -541,8 +538,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> GetPortfolioValueAsync(Guid avatarId)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            // NOT IMPLEMENTED: there is no on-chain balance/price aggregation behind this yet. It previously
+            // returned hardcoded figures (totalValue 15420.50 etc.) as IsLoaded=true with a success message,
+            // so a brand-new empty wallet reported a five-figure portfolio. Sample data is now only returned
+            // when the operator explicitly opts in, and is labelled as sample data.
+            if (!UseTestDataWhenLiveDataNotAvailable)
+                return NotImplementedResult<object>("Portfolio valuation");
+
             return new OASISResult<object>
             {
                 Result = new
@@ -560,7 +562,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }
                 },
                 IsLoaded = true,
-                Message = "Portfolio value retrieved successfully"
+                Message = "SAMPLE DATA - not a real on-chain valuation (UseTestDataWhenLiveDataNotAvailable is enabled)."
             };
         }
 
@@ -638,8 +640,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> GetWalletAnalyticsAsync(Guid avatarId, Guid walletId)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            // NOT IMPLEMENTED - see GetPortfolioValueAsync. This reported 45 transactions for wallets that
+            // had never transacted.
+            if (!UseTestDataWhenLiveDataNotAvailable)
+                return NotImplementedResult<object>("Wallet analytics");
+
             return new OASISResult<object>
             {
                 Result = new
@@ -664,7 +669,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }
                 },
                 IsLoaded = true,
-                Message = "Wallet analytics retrieved successfully"
+                Message = "SAMPLE DATA - not real wallet analytics (UseTestDataWhenLiveDataNotAvailable is enabled)."
             };
         }
 
@@ -719,8 +724,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<List<object>>> GetWalletTokensAsync(Guid avatarId, Guid walletId)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            // NOT IMPLEMENTED - see GetPortfolioValueAsync. This reported 2.5 ETH on empty wallets.
+            if (!UseTestDataWhenLiveDataNotAvailable)
+                return NotImplementedResult<List<object>>("Wallet token balances");
+
             return new OASISResult<List<object>>
             {
                 Result = new List<object>
@@ -730,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     new { symbol = "USDT", name = "Tether", amount = "500", value = 500, usdValue = 500, chain = "ethereum" }
                 },
                 IsLoaded = true,
-                Message = "Wallet tokens retrieved successfully"
+                Message = "SAMPLE DATA - not real token balances (UseTestDataWhenLiveDataNotAvailable is enabled)."
             };
         }
 
