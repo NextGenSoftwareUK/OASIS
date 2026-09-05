@@ -79,28 +79,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── Record envelope ──────────────────────────────────────────────────────
-        // SurrealDB records must have a SurrealDB Thing id. We use the OASIS GUID as the record id.
+        // SurrealDB records need a record id. SurrealDb.Net 1.0 models this as
+        // StringRecordId ("table:id"); the pre-1.0 previews called it Thing. We use the OASIS GUID as the record id.
 
-        private class AvatarRecord
+        private class AvatarRecord : SurrealDb.Net.Models.Record
         {
-            public string? Id { get; set; }
             public string? Username { get; set; }
             public string? Email { get; set; }
             public bool IsDeleted { get; set; }
             public string? DataJson { get; set; }
         }
 
-        private class DetailRecord
+        private class DetailRecord : SurrealDb.Net.Models.Record
         {
-            public string? Id { get; set; }
             public string? Username { get; set; }
             public string? Email { get; set; }
             public string? DataJson { get; set; }
         }
 
-        private class HolonRecord
+        private class HolonRecord : SurrealDb.Net.Models.Record
         {
-            public string? Id { get; set; }
             public string? ParentHolonId { get; set; }
             public int HolonType { get; set; }
             public bool IsDeleted { get; set; }
@@ -138,8 +136,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SurrealDBOASIS] = avatar.Id.ToString();
                 await using var client = await GetClientAsync();
-                var rec = new AvatarRecord { Id = avatar.Id.ToString(), Username = avatar.Username, Email = avatar.Email, IsDeleted = avatar.IsDeleted, DataJson = Ser(avatar) };
-                await client.Upsert(new Thing("oasis_avatars", avatar.Id.ToString()), rec);
+                var rec = new AvatarRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_avatars", avatar.Id.ToString()), Username = avatar.Username, Email = avatar.Email, IsDeleted = avatar.IsDeleted, DataJson = Ser(avatar) };
+                await client.Upsert(rec);
                 result.Result = avatar; result.IsError = false; result.Message = $"SurrealDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Error saving avatar: {ex.Message}"); }
@@ -156,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<AvatarRecord>(new Thing("oasis_avatars", id.ToString()));
+                var rec = await client.Select<AvatarRecord>(new StringRecordId($"oasis_avatars:{id.ToString()}"));
                 if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(rec.DataJson);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Failed to deserialise avatar '{id}'."); return result; }
@@ -237,12 +235,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 if (softDelete)
                 {
-                    var rec = await client.Select<AvatarRecord>(new Thing("oasis_avatars", id.ToString()));
+                    var rec = await client.Select<AvatarRecord>(new StringRecordId($"oasis_avatars:{id.ToString()}"));
                     if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Avatar '{id}' not found."); return result; }
                     var av = Des<Avatar>(rec.DataJson); if (av != null) { av.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(av); }
-                    else { rec.IsDeleted = true; await client.Upsert(new Thing("oasis_avatars", id.ToString()), rec); }
+                    else { rec.IsDeleted = true; await client.Upsert(rec); }
                 }
-                else { await client.Delete(new Thing("oasis_avatars", id.ToString())); }
+                else { await client.Delete(new StringRecordId($"oasis_avatars:{id.ToString()}")); }
                 result.Result = true; result.IsError = false; result.Message = $"SurrealDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -266,8 +264,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 await using var client = await GetClientAsync();
-                var rec = new DetailRecord { Id = d.Id.ToString(), Username = d.Username, Email = d.Email, DataJson = Ser(d) };
-                await client.Upsert(new Thing("oasis_avatar_details", d.Id.ToString()), rec);
+                var rec = new DetailRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_avatar_details", d.Id.ToString()), Username = d.Username, Email = d.Email, DataJson = Ser(d) };
+                await client.Upsert(rec);
                 result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -282,7 +280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<DetailRecord>(new Thing("oasis_avatar_details", id.ToString()));
+                var rec = await client.Select<DetailRecord>(new StringRecordId($"oasis_avatar_details:{id.ToString()}"));
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded.";
@@ -348,8 +346,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SurrealDBOASIS] = holon.Id.ToString();
                 await using var client = await GetClientAsync();
-                var rec = new HolonRecord { Id = holon.Id.ToString(), ParentHolonId = holon.ParentHolonId.ToString(), HolonType = (int)holon.HolonType, IsDeleted = holon.IsDeleted, DataJson = Ser(holon) };
-                await client.Upsert(new Thing("oasis_holons", holon.Id.ToString()), rec);
+                var rec = new HolonRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_holons", holon.Id.ToString()), ParentHolonId = holon.ParentHolonId.ToString(), HolonType = (int)holon.HolonType, IsDeleted = holon.IsDeleted, DataJson = Ser(holon) };
+                await client.Upsert(rec);
                 result.Result = holon; result.IsError = false; result.Message = $"SurrealDBOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -377,7 +375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<HolonRecord>(new Thing("oasis_holons", id.ToString()));
+                var rec = await client.Select<HolonRecord>(new StringRecordId($"oasis_holons:{id.ToString()}"));
                 if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No holon for ID '{id}'."); return result; }
                 var holon = Des<Holon>(rec.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = holon; result.IsError = false; result.Message = "SurrealDBOASIS: Holon loaded.";
