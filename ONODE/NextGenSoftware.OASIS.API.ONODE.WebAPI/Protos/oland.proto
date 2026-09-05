@@ -1,0 +1,26 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service OLandService {
+  rpc GetOlandPrice(GetOlandPriceRequest) returns (JsonResponse);
+  rpc PurchaseOland(OlandJsonBodyRequest) returns (JsonResponse);
+  rpc LoadAllOlands(OLandEmptyRequest) returns (JsonResponse);
+  rpc LoadOland(OlandByIdRequest) returns (JsonResponse);
+  rpc DeleteOland(DeleteOlandRequest) returns (OASISGrpcResponse);
+  rpc SaveOland(OlandJsonBodyRequest) returns (OASISGrpcResponse);
+  rpc UpdateOland(OlandJsonBodyRequest) returns (OASISGrpcResponse);
+  rpc CreateOlandUnit(OlandJsonBodyRequest) returns (StringResponse);
+  rpc UpdateOlandUnit(UpdateOlandUnitRequest) returns (StringResponse);
+  rpc DeleteOlandUnit(OlandByIdRequest) returns (OASISGrpcResponse);
+  rpc GetOlandUnit(OlandByIdRequest) returns (JsonResponse);
+  rpc GetAllOlandUnits(OLandEmptyRequest) returns (JsonResponse);
+}
+
+message OLandEmptyRequest {}
+message GetOlandPriceRequest { int32 count = 1; string coupon_code = 2; }
+message OlandByIdRequest { string id = 1; }
+message DeleteOlandRequest { string oland_id = 1; string avatar_id = 2; }
+message OlandJsonBodyRequest { string json = 1; }
+message UpdateOlandUnitRequest { string json = 1; string id = 2; }

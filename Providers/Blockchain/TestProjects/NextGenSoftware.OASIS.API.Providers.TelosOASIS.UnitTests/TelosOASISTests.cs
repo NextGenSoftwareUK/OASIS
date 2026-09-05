@@ -1,7 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
@@ -14,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new TelosOASIS();
+            _provider = new TelosOASIS("https://telos.caleos.io", "account", "1", "pk");
         }
 
         [TestMethod]
@@ -24,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.ActivateProviderAsync();
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(result.IsError);
         }
 
         [TestMethod]
@@ -34,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.DeActivateProviderAsync();
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(result.IsError);
         }
 
         [TestMethod]
@@ -53,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.SaveAvatarAsync(avatar);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -64,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAllAvatarsAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -75,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -86,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -97,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarByProviderKeyAsync("testkey");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -108,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -126,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.SaveHolonAsync(holon);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -137,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAllHolonsAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -148,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadHolonAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -159,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadHolonsForParentAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -170,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.DeleteHolonAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -188,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.SaveAvatarDetailAsync(avatarDetail);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -199,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -210,7 +214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -221,7 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -232,7 +236,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = _provider.GetPlayersNearMe();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported by Telos provider"));
         }
 
@@ -243,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = _provider.GetHolonsNearMe(HolonType.All);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported by Telos provider"));
         }
 
@@ -257,7 +261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.SendTransactionAsync(transaction);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -265,13 +269,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
         public async Task SendNFT_ShouldReturnNotSupported()
         {
             // Arrange
-            var nftTransaction = new NFTWalletTransactionRequest();
+            var nftTransaction = new SendWeb3NFTRequest();
 
             // Act
             var result = await _provider.SendNFTAsync(nftTransaction);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -279,13 +283,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
         public async Task MintNFT_ShouldReturnNotSupported()
         {
             // Arrange
-            var mintRequest = new MintNFTTransactionRequest();
+            var mintRequest = new MintWeb3NFTRequest();
 
             // Act
             var result = await _provider.MintNFTAsync(mintRequest);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -296,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadNFTAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -307,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadNFTAsync("testhash");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -318,7 +322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAllNFTsForAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -329,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.LoadAllGeoNFTsForAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -337,13 +341,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
         public async Task PlaceGeoNFT_ShouldReturnNotSupported()
         {
             // Arrange
-            var placeRequest = new PlaceGeoSpatialNFTRequest();
+            var placeRequest = new PlaceWeb4GeoSpatialNFTRequest();
 
             // Act
             var result = await _provider.PlaceGeoNFTAsync(placeRequest);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -351,13 +355,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
         public async Task MintAndPlaceGeoNFT_ShouldReturnNotSupported()
         {
             // Arrange
-            var mintAndPlaceRequest = new MintAndPlaceGeoSpatialNFTRequest();
+            var mintAndPlaceRequest = new MintAndPlaceWeb4GeoSpatialNFTRequest();
 
             // Act
             var result = await _provider.MintAndPlaceGeoNFTAsync(mintAndPlaceRequest);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -371,7 +375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = _provider.Search(searchParams);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -385,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.ImportAsync(holons);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -396,7 +400,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.ExportAllAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -407,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -418,7 +422,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
 
@@ -429,7 +433,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Telos provider"));
         }
     }

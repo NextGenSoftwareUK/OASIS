@@ -1,25 +1,40 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        private string VERSION
+        {
+            get
+            {
+                return $"WEB 4 OASIS API v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}";
+            }
+        }
+
         // Helper method to get a unique display name for types, including generic types
         private static string GetTypeDisplayName(Type type)
         {
@@ -30,9 +45,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
             return $"{genericTypeName}Of{genericArgs}";
         }
-        private const string VERSION = "WEB 4 OASIS API v4.1.0";
-        //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -52,21 +65,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddMvc();
 
             // services.AddDbContext<DataContext>();
-            //services.AddCors(); //Needed twice? It is below too...
-            services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            services.AddCors();
+            // Add exception filter with configuration
+            services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                    x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+                    x.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true));
+                });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
+                // Resolve conflicting actions (e.g. two controllers sharing the same route prefix)
+                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
                 // Configure custom schema ID resolver to handle duplicate class names and generic types
-                c.CustomSchemaIds(type => 
+                c.CustomSchemaIds(type =>
                 {
                     // If the type is from the WebAPI Models namespace, use a different schema ID
                     if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
                     {
                         return $"{type.Name}WebAPI";
                     }
-                    
+
                     // Handle generic types to include the full generic parameter information
                     if (type.IsGenericType)
                     {
@@ -74,9 +97,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
                         return $"{genericTypeName}Of{genericArgs}";
                     }
-                    
-                    // For all other types, use the default behavior
-                    return type.Name;
+
+                    // Use fully-qualified name to prevent collisions between same-named types across providers
+                    return type.FullName?.Replace("+", ".") ?? type.Name;
                 });
                 
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -104,14 +127,15 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>AWSOASIS</b> - Amazon Web Services Provider.</li>
 <li><b>IPFSOASIS</b> - IPFS Provider.</li>
 <li><b>PinataOASIS</b> - Pinata IPFS Provider.</li>
+<li><b>ArweaveOASIS</b> - Arweave Permanent Decentralised Storage Provider.</li>
 <li><b>HoloOASIS</b> - Holochain Provider.</li>
 <li><b>UrbitOASIS</b> - Urbit Provider.</li>
 <li><b>ThreeFoldOASIS</b> - ThreeFold Provider.</li>
 <li><b>SOLIDOASIS</b> - SOLID (Social Linked Data) Provider.</li>
 <li><b>ActivityPubOASIS</b> - ActivityPub Provider.</li>
 <li><b>EthereumOASIS</b> - Ethereum Provider.</li>
-<li><b>ArbitrumOASIS</b> - Arbitrum Provider.</li>
-<li><b>OptimismOASIS</b> - Optimism Provider.</li>
+<li><b>ArbitrumOASIS</b> - Arbitrum (Ethereum L2) Provider.</li>
+<li><b>OptimismOASIS</b> - Optimism (Ethereum L2) Provider.</li>
 <li><b>PolygonOASIS</b> - Polygon Provider.</li>
 <li><b>BaseOASIS</b> - Base (Coinbase L2) Provider.</li>
 <li><b>AvalancheOASIS</b> - Avalanche Provider.</li>
@@ -121,21 +145,94 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>CardanoOASIS</b> - Cardano Provider.</li>
 <li><b>PolkadotOASIS</b> - Polkadot Provider.</li>
 <li><b>BitcoinOASIS</b> - Bitcoin Provider.</li>
-<li><b>NEAROASIS</b> - NEAR Provider.</li>
+<li><b>NEAROASIS</b> - NEAR Protocol Provider.</li>
 <li><b>SuiOASIS</b> - Sui Provider.</li>
 <li><b>AptosOASIS</b> - Aptos Provider.</li>
 <li><b>CosmosBlockChainOASIS</b> - Cosmos SDK/IBC Provider.</li>
 <li><b>EOSIOOASIS</b> - EOSIO Provider.</li>
 <li><b>TelosOASIS</b> - Telos Provider.</li>
 <li><b>SEEDSOASIS</b> - SEEDS Provider.</li>
-<li><b>TONSOASIS</b> - TON Provider.</li>
+<li><b>TONOASIS</b> - TON Provider.</li>
 <li><b>ZcashOASIS</b> - Zcash Provider.</li>
 <li><b>MidenOASIS</b> - Miden Provider.</li>
 <li><b>AztecOASIS</b> - Aztec Provider.</li>
 <li><b>MonadOASIS</b> - Monad Provider.</li>
 <li><b>RadixOASIS</b> - Radix Provider.</li>
 <li><b>StarknetOASIS</b> - Starknet Provider.</li>
+<li><b>RootstockOASIS</b> - Rootstock (RSK) Bitcoin L2 Provider.</li>
+<li><b>HashgraphOASIS</b> - Hedera Hashgraph Provider.</li>
+<li><b>ElrondOASIS</b> - MultiversX (formerly Elrond) Provider.</li>
+<li><b>TRONOASIS</b> - TRON Provider.</li>
+<li><b>XRPLOASIS</b> - XRP Ledger Provider.</li>
+<li><b>BlockStackOASIS</b> - Stacks (formerly BlockStack) Provider.</li>
+<li><b>ChainLinkOASIS</b> - Chainlink Provider.</li>
+<li><b>LoomOASIS</b> - Loom Video Messaging Provider (workspace users → Avatars, videos → Holons; two-step upload flow).</li>
+<li><b>StellarOASIS</b> - Stellar Provider.</li>
+<li><b>ZkSyncOASIS</b> - zkSync Provider.</li>
+<li><b>ScrollOASIS</b> - Scroll Provider.</li>
+<li><b>LineaOASIS</b> - Linea (Consensys L2) Provider.</li>
+<li><b>AbstractOASIS</b> - Abstract (Consumer L2) Provider.</li>
+<li><b>BerachainOASIS</b> - Berachain (Proof-of-Liquidity L1) Provider.</li>
 <li><b>TelegramOASIS</b> - Telegram Provider.</li>
+<li><b>MoralisOASIS</b> - Moralis Web3 API Provider.</li>
+<li><b>SQLServerDBOASIS</b> - SQL Server Provider (Relational Database).</li>
+<li><b>OracleDBOASIS</b> - Oracle DB Provider (Relational Database).</li>
+<li><b>AzureStorageOASIS</b> - Azure Blob Storage Provider.</li>
+<li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider.</li>
+<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider.</li>
+<li><b>OnionOASIS</b> - Tor / Onion Protocol Privacy Provider.</li>
+<li><b>GOMapOASIS</b> - GO Map Unity AR Provider.</li>
+<li><b>MapboxOASIS</b> - Mapbox Geospatial Provider.</li>
+<li><b>WRLD3DOASIS</b> - WRLD 3D Metaverse Provider.</li>
+<li><b>CargoOASIS</b> - Cargo NFT Marketplace Provider.</li>
+<li><b>HoloWebOASIS</b> - HoloWeb Provider.</li>
+<li><b>ScuttlebuttOASIS</b> - Scuttlebutt (SSB) Provider.</li>
+<li><b>FarcasterOASIS</b> - Farcaster Decentralised Social Provider.</li>
+<li><b>NostrOASIS</b> - Nostr Decentralised Social Protocol Provider (BIP-340 Schnorr signing, WebSocket relay).</li>
+<li><b>LensOASIS</b> - Lens Protocol v2 Decentralised Social Graph Provider (Polygon/Lens Network, GraphQL).</li>
+<li><b>BlueSkyOASIS</b> - BlueSky / AT Protocol Decentralised Social Provider (XRPC REST, DIDs, AT-URIs; posts → Holons, profiles → Avatars).</li>
+<li><b>MatrixOASIS</b> - Matrix Client-Server API v3 Decentralised Messaging Provider (room events → Holons, @user:server → Avatars, 3PID email lookup).</li>
+<li><b>FilecoinOASIS</b> - Filecoin Lotus JSON-RPC Provider (storage deals, CIDs → Holons, addresses → Avatars; Glif.io public node).</li>
+<li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer via Algonode.io; transactions → Holons, accounts → Avatars, ASA support).</li>
+<li><b>CeramicOASIS</b> - Ceramic Network Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
+<li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars, raw-tx broadcast).</li>
+<li><b>DiscordOASIS</b> - Discord REST API v10 Provider (guild members → Avatars, channel messages → Holons; bot-token auth, 800M+ user reach).</li>
+<li><b>TheGraphOASIS</b> - The Graph Protocol Indexing Provider (GraphQL subgraph; blockchain entities → Holons, indexers → Avatars; configurable subgraph URL).</li>
+<li><b>WorldIDOASIS</b> - World ID (Worldcoin) Proof-of-Humanity Provider (ZK verification → Avatars; nullifier_hash as anonymous unique key; Sybil resistance for OASIS karma).</li>
+<li><b>LitProtocolOASIS</b> - Lit Protocol Decentralised Access Control Provider (threshold encryption; encrypted holons with token/NFT/karma-gated conditions; wallet addresses → Avatars).</li>
+<li><b>StoryProtocolOASIS</b> - Story Protocol Programmable IP Blockchain Provider (Story Network EVM L1; IP Assets → Holons, creators → Avatars; license attachment and royalty support).</li>
+<li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC via evm-rpc.sei-apis.com; transactions → Holons, addresses → Avatars).</li>
+<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval; base64-encoded holons stored as DA blobs).</li>
+<li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons, pubkeys → Avatars).</li>
+<li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons, wallet addresses → Avatars).</li>
+<li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars, domains/subdomains → Holons).</li>
+<li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons, wallet balances → Avatars).</li>
+<li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects, CID as providerKey).</li>
+<li><b>SafeOASIS</b> - Gnosis Safe Multisig Provider (Safe Transaction REST API; multisig txs → Holons, safe addresses → Avatars).</li>
+<li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (REST API; SQL SELECT/INSERT for holons stored as table rows).</li>
+<li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons, content topics map to parent keys).</li>
+<li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons, asset IDs as providerKey).</li>
+<li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
+<li><b>AbstractOASIS</b> - Abstract EVM L2 Provider (chain ID 2741; consumer gaming and NFT L2, Ethereum-settled, ZK-proven; transactions → Holons, addresses → Avatars).</li>
+<li><b>BerachainOASIS</b> - Berachain EVM L1 Provider (chain ID 80094; Proof-of-Liquidity consensus; transactions → Holons, addresses → Avatars).</li>
+<li><b>StellarOASIS</b> - Stellar Horizon REST API Provider (transactions → Holons via memo_text, account IDs → Avatars; XLM balance included).</li>
+<li><b>zkSyncOASIS</b> - zkSync Era EVM L2 Provider (chain ID 324; ZK rollup with native account abstraction; transactions → Holons, addresses → Avatars).</li>
+<li><b>ScrollOASIS</b> - Scroll zkEVM L2 Provider (chain ID 534352; bytecode-level EVM equivalence; transactions → Holons, addresses → Avatars).</li>
+<li><b>LineaOASIS</b> - Linea zkEVM L2 Provider (chain ID 59144; ConsenSys / MetaMask-integrated ZK rollup; transactions → Holons, addresses → Avatars).</li>
+<li><b>MonadOASIS</b> - Monad EVM L1 Provider (chain ID 41454; 10,000+ TPS parallel execution; transactions → Holons, addresses → Avatars).</li>
+<li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (Azure.Storage.Blobs SDK; holons and avatars stored as JSON blobs; prefix-based parent queries).</li>
+<li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
+<li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
+<li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
+<li><b>SQLServerDBOASIS</b> - Microsoft SQL Server Provider (ADO.NET, MERGE upserts, JSON_VALUE search).</li>
+<li><b>OracleDBOASIS</b> - Oracle Database Provider (Oracle.ManagedDataAccess.Core, CLOB JSON, Oracle MERGE).</li>
+<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider (read-only: order-book and swap quotes via Orion REST API).</li>
+<li><b>OnionOASIS</b> - Tor / Onion Protocol Provider (routes all OASIS storage calls through a SOCKS5 Tor proxy to an onion-hosted OASIS backend).</li>
+<li><b>GOMapOASIS</b> - GO Map Unity Provider (spatial / AR mapping integration for Unity apps).</li>
+<li><b>MapboxOASIS</b> - Mapbox Provider (geospatial tiles, geocoding, directions via Mapbox REST API).</li>
+<li><b>WRLD3DOASIS</b> - WRLD3D Provider (3D world / metaverse geospatial layer integration).</li>
+<li><b>CargoOASIS</b> - Cargo NFT Provider (NFT marketplace and minting via Cargo API).</li>
+<li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider — decentralised identity mesh.</li>
 
 </ul>
 
@@ -234,6 +331,49 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
+            services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+
+            // Per-IP rate limiting — config driven via OASISDNA.OASIS.Security.RateLimiting
+            // Config is read per-request so hot-changes to OASISDNA take effect without restart
+            services.AddRateLimiter(options =>
+            {
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                {
+                    var cfg = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.RateLimiting;
+
+                    // OASISDNA not yet loaded (first request) or feature disabled — pass through
+                    if (cfg == null || !cfg.Enabled)
+                        return RateLimitPartition.GetNoLimiter("no-limit");
+
+                    var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetSlidingWindowLimiter(clientIp,
+                        _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit      = cfg.RequestsPerWindow,
+                            Window           = TimeSpan.FromSeconds(cfg.WindowSeconds),
+                            SegmentsPerWindow = cfg.WindowSegments,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit       = cfg.QueueLimit
+                        });
+                });
+
+                options.OnRejected = async (ctx, token) =>
+                {
+                    ctx.HttpContext.Response.StatusCode = 429;
+                    ctx.HttpContext.Response.ContentType = "application/json";
+                    await ctx.HttpContext.Response.WriteAsync(
+                        "{\"IsError\":true,\"Message\":\"Too many requests. Please slow down and try again later.\"}", token);
+                };
+            });
+            services.AddAuthentication("OASIS")
+                .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, Middleware.OASISAuthHandler>("OASIS", null);
+            services.AddGrpc();
+
+            services.AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddMutationType<Mutation>()
+                .AddType<GraphQL.Types.AvatarType>()
+                .AddType<GraphQL.Types.HolonType>();
 
             //services.AddCors(options =>
             //{
@@ -257,6 +397,22 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Wire up the DID challenge nonce store based on OASISDNA config
+            var didStoreCfg = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Security?.DIDChallengeStore;
+            if (didStoreCfg?.Provider?.Equals("Redis", StringComparison.OrdinalIgnoreCase) == true
+                && !string.IsNullOrWhiteSpace(didStoreCfg.RedisConnectionString))
+            {
+                DIDChallengeStore.SetProvider(new RedisDIDChallengeStore(
+                    didStoreCfg.RedisConnectionString,
+                    didStoreCfg.RedisKeyPrefix ?? "oasis:did:challenge:",
+                    didStoreCfg.NonceTtlSeconds > 0 ? didStoreCfg.NonceTtlSeconds : DIDChallengeStore.NonceTtlSeconds));
+                LoggingManager.Log("DID challenge store: Redis", LogType.Info);
+            }
+            else
+            {
+                LoggingManager.Log("DID challenge store: InMemory (single-node)", LogType.Info);
+            }
+
             LoggingManager.Log("Starting up The OASIS... (REST API)", LogType.Info);
             LoggingManager.Log("Test Debug", LogType.Debug);
             LoggingManager.Log("Test Info", LogType.Info);
@@ -276,10 +432,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION));
-
             app.UseSwaggerUI(config =>
             {
+                config.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION);
+                config.ConfigObject.AdditionalItems["tagsSorter"] = "alpha";
                 config.ConfigObject.AdditionalItems["syntaxHighlight"] = new Dictionary<string, object>
                 {
                     ["activated"] = false
@@ -287,33 +443,118 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             });
 
 
-            app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+                app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // Skip HTTPS redirect in Testing/Development — no local TLS cert, and Railway terminates TLS externally
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase)
+                && !env.IsDevelopment())
+                app.UseHttpsRedirection();
+
+            // WebSocket support — used by OPORTAL in local mode for real-time state push
+            app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
+
+            // WebSocket endpoint: GET /ws/onode/{nodeId}
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/ws/onode", out var remainder)
+                    && context.WebSockets.IsWebSocketRequest)
+                {
+                    var nodeId = remainder.Value?.TrimStart('/') ?? "";
+                    if (string.IsNullOrEmpty(nodeId)) { context.Response.StatusCode = 400; return; }
+
+                    var ws = await context.WebSockets.AcceptWebSocketAsync();
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs.ONODEWebSocketHub.Register(nodeId, ws);
+
+                    // Keep alive — read until client closes
+                    var buffer = new byte[128];
+                    while (ws.State == System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        try
+                        {
+                            var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+                            if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Close)
+                            {
+                                await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,
+                                    "Closed by client", CancellationToken.None);
+                            }
+                        }
+                        catch { break; }
+                    }
+                    return;
+                }
+                await next();
+            });
 
             app.UseRouting();
             //app.UseSession();
 
-            // global cors policy
+            // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
             app.UseCors(x => x
-                .SetIsOriginAllowed(origin => true)
+                .AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials());
+                .AllowAnyHeader());
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
 
-            app.UseAuthorization();
+            // Rate limiting: per-IP sliding window, config via OASISDNA.OASIS.Security.RateLimiting
+            app.UseRateLimiter();
 
+            app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
+            // API key gate: disabled by default (OASISDNA.OASIS.Security.RequireApiKey = false)
+            // Set RequireApiKey = true and ApiKey (or OASIS_API_KEY env var) to lock down to known clients
+            //app.UseMiddleware<ApiKeyMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
-            app.UseMiddleware<SubscriptionMiddleware>();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGraphQL();
+                endpoints.MapControllers();
+                endpoints.MapGrpcService<AvatarGrpcService>();
+                endpoints.MapGrpcService<KarmaGrpcService>();
+                endpoints.MapGrpcService<DataGrpcService>();
+                endpoints.MapGrpcService<SocialGrpcService>();
+                endpoints.MapGrpcService<ClanGrpcService>();
+                endpoints.MapGrpcService<ChatGrpcService>();
+                endpoints.MapGrpcService<MessagingGrpcService>();
+                endpoints.MapGrpcService<FilesGrpcService>();
+                endpoints.MapGrpcService<GiftsGrpcService>();
+                endpoints.MapGrpcService<EggsGrpcService>();
+                endpoints.MapGrpcService<VideoGrpcService>();
+                endpoints.MapGrpcService<StatsGrpcService>();
+                endpoints.MapGrpcService<SettingsGrpcService>();
+                endpoints.MapGrpcService<HyperDriveGrpcService>();
+                endpoints.MapGrpcService<BridgeGrpcService>();
+                endpoints.MapGrpcService<WalletGrpcService>();
+                endpoints.MapGrpcService<CompetitionGrpcService>();
+                endpoints.MapGrpcService<SeedsGrpcService>();
+                endpoints.MapGrpcService<SearchGrpcService>();
+                endpoints.MapGrpcService<ONETGrpcService>();
+                endpoints.MapGrpcService<ONODEGrpcService>();
+                endpoints.MapGrpcService<ProviderGrpcService>();
+                endpoints.MapGrpcService<KeysGrpcService>();
+                endpoints.MapGrpcService<EOSIOGrpcService>();
+                endpoints.MapGrpcService<HolochainGrpcService>();
+                endpoints.MapGrpcService<MapGrpcService>();
+                endpoints.MapGrpcService<OLandGrpcService>();
+                endpoints.MapGrpcService<ShareGrpcService>();
+                endpoints.MapGrpcService<SolanaGrpcService>();
+                endpoints.MapGrpcService<NftGrpcService>();
+                endpoints.MapGrpcService<SubscriptionGrpcService>();
+                endpoints.MapGet("/", context =>
+                {
+                    context.Response.Redirect("/swagger");
+                    return Task.CompletedTask;
+                });
+            });
 
             //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 

@@ -1,34 +1,39 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+	  <TargetFramework>net10.0</TargetFramework>
+	  <PackageId>NextGenSoftware.OASIS.API.Providers.MonadOASIS</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API Monad OASIS Provider</Product>
+	  <Title>WEB4 OASIS API Monad OASIS Provider</Title>
+	  <Summary>Monad OASIS Provider — High-performance EVM L1 for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Monad — a high-performance EVM-compatible L1 with 10,000+ TPS via parallel execution and MonadBFT consensus (chain ID 41454). Stores OASIS holons, avatars, and NFTs on Monad Mainnet. Part of the OASIS HOT-Swappable Provider Architecture.</Description>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; WEB4; Provider; Monad; EVM; Blockchain; High Performance</PackageTags>
+	  <PackageReleaseNotes>- Initial release of MonadOASIS provider.</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>2.0.1</Version>
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg"><PackagePath>\</PackagePath><Pack>True</Pack></None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <PackageId>NextGenSoftware.OASIS.API.Providers.MonadOASIS</PackageId>
-    <Company>NextGen Software Ltd</Company>
-    <Product>WEB4 OASIS API Monad OASIS Provider</Product>
-    <Title>WEB4 OASIS API Monad OASIS Provider</Title>
-    <Summary>Monad adaptor for the WEB4 OASIS multi-provider architecture.</Summary>
-    <Description>Monad adaptor for the WEB4 OASIS multi-provider architecture.</Description>
-    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-    <PackageIcon>OASISLogo128.jpg</PackageIcon>
-    <Authors>NextGen Software Ltd</Authors>
-    <PackageTags>OASIS API; Monad; Provider; WEB3</PackageTags>
-    <PackageReleaseNotes>Initial Monad provider packaging.</PackageReleaseNotes>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>1.0.0</Version>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Nethereum.HdWallet" Version="4.25.0" />
+    <PackageReference Include="Nethereum.RPC" Version="4.25.0" />
+    <PackageReference Include="Nethereum.Signer" Version="4.25.0" />
+    <PackageReference Include="Nethereum.Web3" Version="4.25.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
 </Project>
-
-

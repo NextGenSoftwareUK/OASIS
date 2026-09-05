@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service KeysService {
+  rpc GetProviderUniqueStorageKey (GetProviderUniqueStorageKeyRequest) returns (StringResponse);
+  rpc GetProviderPublicKeys (GetProviderPublicKeysRequest) returns (StringListResponse);
+  rpc ClearKeyCache (KeysEmptyRequest) returns (OASISGrpcResponse);
+  rpc LinkProviderPublicKey (LinkProviderPublicKeyRequest) returns (OASISGrpcResponse);
+  rpc LinkProviderPrivateKey (LinkProviderPrivateKeyRequest) returns (OASISGrpcResponse);
+  rpc GenerateKeyPairAndLink (GenerateKeyPairAndLinkRequest) returns (OASISGrpcResponse);
+}
+
+message KeysEmptyRequest {}
+message GetProviderUniqueStorageKeyRequest {
+  string avatar_id = 1;
+  string provider_type = 2;
+}
+message GetProviderPublicKeysRequest {
+  string avatar_id = 1;
+  string provider_type = 2;
+}
+message LinkProviderPublicKeyRequest {
+  string wallet_id = 1;
+  string avatar_id = 2;
+  string provider_type = 3;
+  string provider_key = 4;
+  string wallet_address = 5;
+}
+message LinkProviderPrivateKeyRequest {
+  string wallet_id = 1;
+  string avatar_id = 2;
+  string provider_type = 3;
+  string provider_private_key = 4;
+}
+message GenerateKeyPairAndLinkRequest {
+  string avatar_id = 1;
+  string provider_type = 2;
+}
+
+
+

@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.Web7.WebAPI.Grpc";
+
+package oasis.web7;
+
+import "google/protobuf/timestamp.proto";
+
+// ──────────────────────────────────────────────
+// Shared messages
+// ──────────────────────────────────────────────
+
+message IntentionStateProto {
+  double focus             = 1;
+  double emotional_valence = 2;
+  double arousal           = 3;
+  double cognitive_load    = 4;
+  map<string, double> features = 5;
+  google.protobuf.Timestamp computed_utc = 6;
+}
+
+// ──────────────────────────────────────────────
+// CollectiveConsciousness service
+// ──────────────────────────────────────────────
+
+service CollectiveConsciousnessService {
+  rpc CreateSpace      (CreateSpaceRequest)       returns (CreateSpaceResponse);
+  rpc JoinSpace        (JoinSpaceRequest)          returns (JoinSpaceResponse);
+  rpc GetAggregateField(GetAggregateFieldRequest)  returns (GetAggregateFieldResponse);
+}
+
+message CreateSpaceRequest {
+  string avatar_id = 1;
+  string name      = 2;
+}
+
+message CreateSpaceResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  CollectiveConsciousnessSpaceProto space = 3;
+}
+
+message JoinSpaceRequest {
+  string avatar_id  = 1;
+  string space_id   = 2;
+  string session_id = 3;
+}
+
+message JoinSpaceResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  bool   result   = 3;
+}
+
+message GetAggregateFieldRequest {
+  string avatar_id = 1;
+  string space_id  = 2;
+}
+
+message GetAggregateFieldResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  CollectiveConsciousnessSpaceProto space = 3;
+}
+
+message CollectiveConsciousnessSpaceProto {
+  string id   = 1;
+  string name = 2;
+  repeated string participant_session_ids = 3;
+  IntentionStateProto aggregate_state     = 4;
+  google.protobuf.Timestamp created_utc   = 5;
+}
+
+// ──────────────────────────────────────────────
+// Symbiosis service
+// ──────────────────────────────────────────────
+
+service SymbiosisService {
+  rpc StartSession   (StartSessionRequest)    returns (StartSessionResponse);
+  rpc GetSession     (GetSessionRequest)      returns (GetSessionResponse);
+  rpc SubmitSignals  (SubmitSignalsRequest)   returns (SubmitSignalsResponse);
+  rpc EndSession     (EndSessionRequest)      returns (EndSessionResponse);
+}
+
+message StartSessionRequest {
+  string avatar_id       = 1;
+  bool   consent_granted = 2;
+  string retention       = 3; // RetentionMode enum as string
+}
+
+message StartSessionResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  SymbiosisSessionProto session = 3;
+}
+
+message GetSessionRequest {
+  string avatar_id  = 1;
+  string session_id = 2;
+}
+
+message GetSessionResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  SymbiosisSessionProto session = 3;
+}
+
+message BioSignalSampleProto {
+  string signal_type    = 1; // BioSignalType enum as string
+  string channel        = 2;
+  double sample_rate_hz = 3;
+  repeated double values = 4;
+  google.protobuf.Timestamp captured_utc = 5;
+}
+
+message SubmitSignalsRequest {
+  string avatar_id  = 1;
+  string session_id = 2;
+  repeated BioSignalSampleProto samples = 3;
+}
+
+message SubmitSignalsResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  IntentionStateProto intention_state = 3;
+}
+
+message EndSessionRequest {
+  string avatar_id  = 1;
+  string session_id = 2;
+}
+
+message EndSessionResponse {
+  bool   is_error = 1;
+  string message  = 2;
+  bool   result   = 3;
+}
+
+message SymbiosisSessionProto {
+  string id              = 1;
+  string avatar_id       = 2;
+  bool   consent_granted = 3;
+  bool   is_active       = 4;
+  string retention       = 5; // RetentionMode enum as string
+  google.protobuf.Timestamp started_utc = 6;
+  google.protobuf.Timestamp ended_utc   = 7; // zero value = not ended
+  IntentionStateProto last_intention_state = 8;
+  repeated string audit_log = 9;
+}

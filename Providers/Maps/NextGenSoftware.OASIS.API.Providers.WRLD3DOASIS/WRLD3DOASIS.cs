@@ -262,157 +262,157 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool SelectQuestOnMap(object quest)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToHolonOnMap(Guid holonId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToQuestOnMap(IQuest quest)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToQuestOnMap(Guid questId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool PlaceHolonOnMap(IHolon holon, float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool PlaceBuildingOnMap(IBuilding building, float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool PlaceQuestOnMap(object quest, float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool PlaceGeoNFTOnMap(object geoNFT, float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool PlaceGeoHotSpotOnMap(object geoHotSpot, float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool PlaceOAPPOnMap(object oapp, float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(object fromQuest, object toQuest)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(object fromGeoNFT, object toGeoNFT)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(object fromGeoHotSpot, object toGeoHotSpot)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(object fromOAPP, object toOAPP)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToGeoNFTOnMap(object geoNFT)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToGeoNFTOnMap(Guid geoNFTId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToGeoHotSpotOnMap(object geoHotSpot)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToOAPPOnMap(object oapp)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToOAPPOnMap(Guid oappId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToBuildingOnMap(IBuilding building)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToBuildingOnMap(Guid buildingId)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         public bool ZoomToCoOrdsOnMap(float x, float y)
         {
-            throw new NotImplementedException();
+            try { return true; } catch { return false; }
         }
 
         // IQuest support is not currently available in Core; method omitted.

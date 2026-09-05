@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net10.0</TargetFramework>
+	  <PackageId>NextGenSoftware.OASIS.API.Providers.BerachainOASIS</PackageId>
+	  <Company>NextGen World Ltd</Company>
+	  <Product>WEB4 OASIS API Berachain OASIS Provider</Product>
+	  <Title>WEB4 OASIS API Berachain OASIS Provider</Title>
+	  <Summary>Berachain OASIS Provider — Proof-of-Liquidity EVM L1 blockchain for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Berachain — an EVM-compatible L1 with Proof-of-Liquidity consensus (mainnet 2025). Stores OASIS holons, avatars, and NFTs on Berachain Mainnet. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen World Ltd)</Authors>
+	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Berachain; EVM; Blockchain; DeFi</PackageTags>
+	  <PackageReleaseNotes>- Initial release of BerachainOASIS provider.
+- Connects OASIS to the Berachain EVM L1 (chain ID 80094).
+- Delegates all logic to the shared Web3CoreOASISBaseProvider.</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>2.0.1</Version>
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nethereum.HdWallet" Version="4.25.0" />
+    <PackageReference Include="Nethereum.RPC" Version="4.25.0" />
+    <PackageReference Include="Nethereum.Signer" Version="4.25.0" />
+    <PackageReference Include="Nethereum.Web3" Version="4.25.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>
