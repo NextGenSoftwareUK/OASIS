@@ -29,7 +29,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Every project must be in a solution
-        run: python3 scripts/check_solution_coverage.py
+        run: python3 Scripts/check_solution_coverage.py
 
       - name: Solutions must parse
         run: |
