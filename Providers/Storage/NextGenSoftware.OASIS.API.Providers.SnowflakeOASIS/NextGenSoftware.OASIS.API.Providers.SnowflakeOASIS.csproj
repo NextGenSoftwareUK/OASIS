@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS</AssemblyName>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS</PackageId>
+    <Company>NextGen World Ltd</Company>
+    <Product>WEB4 OASIS API Snowflake OASIS Provider</Product>
+    <Title>WEB4 OASIS API Snowflake OASIS Provider</Title>
+    <Description>Snowflake OASIS Provider - cloud data warehouse for OASIS holons and avatars via the Snowflake ADO.NET connector. https://oasisomniverse.one</Description>
+    <Authors>David Ellams (NextGen World Ltd)</Authors>
+    <PackageTags>OASIS API; Snowflake; Data Warehouse; OLAP; Analytics; Cloud; WEB4; Provider</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright (c) NextGen World Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>2.0.0</Version>
+    <Nullable>enable</Nullable>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.1" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <PackageReference Include="Snowflake.Data" Version="4.1.0" />
+  </ItemGroup>
+</Project>
