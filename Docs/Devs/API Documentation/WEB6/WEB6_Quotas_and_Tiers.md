@@ -183,8 +183,13 @@ Costs resolve in three steps, so a stale price guide corrects itself from real u
 ```
 
 A learned rate is only used once it has **5 observations** for that key; until then the
-published rate applies. Learned rates are system-wide, persist through the OASIS Data API,
-and survive restarts.
+published rate applies. Learned rates are system-wide and persist through the OASIS Data
+API, so they survive restarts and reach other instances.
+
+The table hangs off an operator avatar rather than an end user. Set `WEB6_SYSTEM_AVATAR_ID`
+to choose which; otherwise a fixed namespace id is used. It is loaded once at startup —
+that load is also what arms saving, so without it the tracker would keep everything in
+memory only.
 
 Inspect what has been learned: `GET /v1/admin/config/observed-costs`
 Reset to published defaults: `DELETE /v1/admin/config/observed-costs`
@@ -196,9 +201,13 @@ Providers that report a charge — in a response header (`x-cost`, `x-total-cost
 feed an exponential moving average.
 
 - **Token-billed calls:** the reported charge divided by tokens used gives a blended
-  per-1k rate, recorded per (provider, model). Learning is wired into the shared
-  OpenAI-compatible call path, so all ~90 OpenAI-compatible providers are covered by one
-  hook. Values above $1/1k are rejected as implausible.
+  per-1k rate, recorded per (provider, model). Values above $1/1k are rejected as
+  implausible. Coverage: the shared OpenAI-compatible path (all ~90 providers routed
+  through it) plus the dedicated paths for Anthropic, Gemini, Cohere, Google Vertex,
+  IBM WatsonX, Baidu ERNIE and HyperCLOVA X.
+  Providers whose response carries no usage block — AWS Bedrock (SDK, not raw HTTP),
+  Azure OpenAI, HuggingFace, Snowflake Cortex, AlephAlpha, Tencent Hunyuan, Spark —
+  cannot yield a per-1k rate and always use their published or fallback rate.
 - **Unit-priced calls:** the reported charge is recorded per (tag, provider) by the
   `MeteredEndpoint` filter. Controllers can also set `HttpContext.Items["Web6-Observed-Cost"]`
   explicitly. Values outside $0–$100 are rejected.
