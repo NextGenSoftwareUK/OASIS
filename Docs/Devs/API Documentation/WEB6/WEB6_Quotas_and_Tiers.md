@@ -172,37 +172,86 @@ pre-flight before the action and records the call afterwards — **only on 2xx**
 
 ---
 
-## 7. Per-Call Unit Costs
+## 7. Cost Resolution
 
-`UsageMeteringManager.GetUnitCost` — USD charged against monthly spend for one call to a
-unit-priced endpoint.
+Costs resolve in three steps, so a stale price guide corrects itself from real usage:
 
-> **These figures are internal estimates, not confirmed provider rates.**
-> They were set as conservative defaults and have not been calibrated against real
-> invoices. They feed monthly-budget enforcement and cost reporting, so they must be
-> replaced with measured values before being relied on for billing or tier pricing.
-> See "Open items" below.
+```
+1. Learned rate   (ObservedCostTracker — from what providers actually charged)
+2. Published rate (per-provider, sourced from the provider's price list)
+3. Fallback       (tag-level or per-provider default)
+```
 
-| Tag | USD/call | Basis |
-|---|---|---|
-| `video` | 0.50 | Runway Gen-3 / Luma / Kling |
-| `fahrn`, `reasoning`, `a2a` | 0.05 | Multi-model fan-out |
-| `images` | 0.04 | Flux Pro / Ideogram / Leonardo |
-| `graphrag` | 0.02 | Multi-step retrieval + synthesis |
-| `finetuning` | 0.02 | Job submission (training billed separately by provider) |
-| `speech` | 0.015 | ElevenLabs TTS / Deepgram STT |
-| `batch`, `documents` | 0.010 | |
-| `search` | 0.005 | Web-grounded, per query |
-| `rerank`, `extraction`, `prompt`, `code` | 0.002 | |
-| `classification`, `guardrails`, *default* | 0.001 | |
-| `memory` | 0.0005 | Embedding-backed recall |
-| `embeddings` | 0.0001 | |
-| `moderation` | 0.0 | Free on most providers |
+A learned rate is only used once it has **5 observations** for that key; until then the
+published rate applies. Learned rates are system-wide, persist through the OASIS Data API,
+and survive restarts.
 
-Token-billed models use the per-model table in `UsageMeteringManager._pricing`
-(35 entries) with a per-provider fallback of $0.005/1k for unlisted models.
+Inspect what has been learned: `GET /v1/admin/config/observed-costs`
+Reset to published defaults: `DELETE /v1/admin/config/observed-costs`
 
----
+### How learning works
+
+Providers that report a charge — in a response header (`x-cost`, `x-total-cost`,
+`openrouter-cost`, …) or a JSON field (`cost`, `usage.total_cost`, `credits_used`, …) —
+feed an exponential moving average.
+
+- **Token-billed calls:** the reported charge divided by tokens used gives a blended
+  per-1k rate, recorded per (provider, model). Learning is wired into the shared
+  OpenAI-compatible call path, so all ~90 OpenAI-compatible providers are covered by one
+  hook. Values above $1/1k are rejected as implausible.
+- **Unit-priced calls:** the reported charge is recorded per (tag, provider) by the
+  `MeteredEndpoint` filter. Controllers can also set `HttpContext.Items["Web6-Observed-Cost"]`
+  explicitly. Values outside $0–$100 are rejected.
+
+Providers that report nothing keep using the published rate indefinitely — that is the
+common case, which is why the published tables still matter.
+
+### Published unit rates (per call)
+
+| Tag | Provider | USD | Source |
+|---|---|---|---|
+| video | Runway ML | 0.25 | Gen-3 Turbo, 5 credits/s @ $0.01, 5s clip |
+| video | Kling AI | 0.31 | v2.5 Turbo, 5s |
+| video | Hailuo | 0.30 | 5s equivalent |
+| video | Luma AI | 0.60 | Ray 2 Flash 720p, 5s |
+| images | Leonardo | 0.02 | per image |
+| images | Stability AI | 0.03 | per image |
+| images | Black Forest Labs | 0.04 | FLUX 1.1 [pro], 4 credits @ $0.01 |
+| images | Ideogram | 0.08 | per image |
+| speech | Deepgram | 0.0043 | Nova-3 batch STT, per minute |
+| speech | AssemblyAI | 0.0062 | per minute |
+| speech | PlayHT | 0.05 | per request |
+| speech | ElevenLabs | 0.10 | TTS v2/v3, per 1k characters |
+
+Video and speech price by usage (clip length, character count), so these represent a
+typical call — exactly the case the learner corrects.
+
+### Tag-level fallbacks
+
+Used when no provider-specific rate applies. Mid-market figures covering several providers.
+
+| Tag | USD | Tag | USD |
+|---|---|---|---|
+| video | 0.31 | search | 0.005 |
+| fahrn / reasoning / a2a | 0.05 | rerank / extraction / prompt / code | 0.002 |
+| images | 0.04 | classification / guardrails | 0.001 |
+| speech | 0.05 | memory | 0.0005 |
+| graphrag / finetuning | 0.02 | embeddings | 0.0001 |
+| batch / documents | 0.010 | moderation | 0.0 |
+
+### Token pricing coverage
+
+`UsageMeteringManager._pricing` holds **46 model rates across 28 providers**, including
+OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI, DeepSeek, Cerebras, Together,
+Perplexity, Venice, OrcaRouter, OpenRouter, DeepInfra, Fireworks, SambaNova, Hyperbolic,
+AWS Bedrock, Azure OpenAI and Google Vertex, plus explicit $0 entries for every local
+runtime.
+
+**The remaining providers have no published rate** and fall back to a coarse per-provider
+figure ($0.005/1k default, $0.010 Anthropic, $0.005 OpenAI, $0.002 Gemini, $0.001 Groq).
+Those are the entries the learner is there to fix: any of them that reports a cost will
+converge on its true rate within 5 calls. Ones that never report a cost keep the fallback
+and should be filled in by hand as their price lists are checked.
 
 ## 8. Quota Alerts
 
@@ -253,15 +302,16 @@ Completion endpoints also return `X-Cache` (HIT or MISS) and `X-Cache-Age`.
 
 ## Open items
 
-1. **Unit costs in section 7 are uncalibrated estimates.** They drive budget enforcement
-   and cost reporting. Replace with measured per-call costs from real provider invoices.
-2. **Venice.ai and OrcaRouter token rates** in `_pricing` are likewise unconfirmed —
-   verify against their dashboards once API keys are live.
+1. **Providers without a published token rate** sit on the coarse per-provider fallback
+   until the learner gathers 5 observations — and only ever learn if that provider reports
+   a cost. Check `GET /v1/admin/config/observed-costs` after real traffic to see which
+   have converged; fill the rest in by hand from their price lists.
+2. **Video and speech unit rates represent a typical call** (5-second clip, 1k characters,
+   1 minute of audio). Actual charges scale with usage, so these are starting points the
+   learner refines.
 3. **Free tier is 20 calls/day.** Endpoints that were previously unmetered now enforce
-   this. Any client relying on them will start seeing 429s; partners intended to have
-   free unlimited access need `Enterprise` plan claims.
-
----
+   this. Any client relying on them will start seeing 429s; partners intended to have free
+   unlimited access need `Enterprise` plan claims.
 
 *Generated from source. Re-verify with `GET /v1/models`, `GET /v1/providers` and
 `GET /v1/usage` against a running instance.*
