@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             return _bucket;
         }
 
-        private async Task<ICollection> GetCollectionAsync(string name)
+        private async Task<ICouchbaseCollection> GetCollectionAsync(string name)
         {
             var bucket = await GetBucketAsync();
             var scope = await bucket.DefaultScopeAsync();
@@ -84,7 +84,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             var options = new QueryOptions();
             if (args != null) foreach (var kv in args) options.Parameter(kv.Key, kv.Value);
             var result = await _cluster.QueryAsync<T>(query, options);
-            return await result.Rows.ToListAsync();
+            var rows = new List<T>();
+            await foreach (var row in result.Rows)
+                rows.Add(row);
+            return rows;
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

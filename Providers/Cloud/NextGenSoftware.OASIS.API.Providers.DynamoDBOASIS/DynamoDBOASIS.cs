@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             ProviderName = "DynamoDBOASIS";
             ProviderDescription = "AWS DynamoDB provider (AWSSDK.DynamoDBv2 — serverless NoSQL for OASIS holons and avatars)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DynamoDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageCloud);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
