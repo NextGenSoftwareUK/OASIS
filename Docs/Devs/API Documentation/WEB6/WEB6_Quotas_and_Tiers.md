@@ -130,7 +130,8 @@ pre-flight before the action and records the call afterwards — **only on 2xx**
 |---|---|
 | `POST /v1/complete` | Inline quota + `RecordUsageAsync` |
 | `POST /v1/complete/stream` | Same; tokens taken from the terminal SSE chunk |
-| `POST /v1/chat/completions` | Filter enforces quota; controller records tokens (`RecordUsage = false` to avoid double counting) |
+| `POST /v1/chat/completions` | Filter enforces quota; controller records tokens on both the streaming and non-streaming branches (`RecordUsage = false` to avoid double counting) |
+| `GET /v1/ws/session` | Quota re-checked and tokens recorded **per message**, not per connection — a long-lived session cannot outrun its limit. Filter is quota-only (`RecordUsage = false`) |
 
 ### Unit-priced (billed per call)
 
@@ -156,7 +157,6 @@ pre-flight before the action and records the call afterwards — **only on 2xx**
 | Prompt | `prompt` |
 | Memory / Holonic Memory | `memory` |
 | Code | `code` |
-| WebSocket session | `chat` |
 
 **24 controllers metered.**
 
