@@ -1,17 +1,25 @@
 ﻿// ═══════════════════════════════════════════════════════════════════════════════
-// ██████  URGENT REVIEW REQUIRED  -  CODE LOST IN A FILE-SPLIT REFACTOR  ██████
+// ██████  REVIEWED  -  VERDICT RECORDED PER METHOD BELOW  ██████
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-//  THE 2 METHOD(S) BELOW WERE **DELETED** BY A "SPLIT INTO PARTIAL CLASS FILES"
-//  COMMIT AND WERE NEVER RE-ADDED. THEY ARE RESTORED HERE **COMMENTED OUT**, SO
-//  NOTHING CHANGES AT RUNTIME UNTIL EACH ONE HAS BEEN REVIEWED.
+//  THE METHOD(S) BELOW WERE DELETED BY A "SPLIT INTO PARTIAL CLASS FILES" COMMIT.
+//  EACH HAS BEEN CHECKED AGAINST WHAT THE CODEBASE PROVIDES TODAY, AND CARRIES A
+//  VERDICT: LINE NAMING ITS REPLACEMENT.
 //
-//  >>> ACTION REQUIRED - DECIDE PER METHOD: <<<
-//        (A) UNCOMMENT AND KEEP  - the behaviour is still wanted
-//        (B) DELETE THE BLOCK    - genuinely superseded or redundant
+//  EVERY ONE IS SUPERSEDED. THE VERDICTS ARE HERE SO THEY CAN BE CHECKED BEFORE
+//  THE FILE IS DELETED, RATHER THAN HAVING TO BE TAKEN ON TRUST.
 //
-//  NONE OF THESE ARE CALLED ANYWHERE TODAY, SO THE BUILD IS GREEN EITHER WAY.
-//  DO NOT LEAVE THIS FILE UNREVIEWED.
+//  >>> TO CONFIRM A VERDICT: <<<
+//        grep -rn "<ReplacementName>" --include=*.cs .
+//        the named replacement should be present and in use.
+//
+//  ONE VERDICT WAS INITIALLY WRONG: the two NFTManager collection methods were
+//  recorded as having no replacement. They were renamed by the OASIS* -> Web4*
+//  migration. Treat the rest as reviewed but verifiable, not infallible.
+//
+//  EVERYTHING IS STILL COMMENTED OUT, SO NOTHING CHANGES AT RUNTIME EITHER WAY.
+//  FULL AUDIT: Docs/FILE_SPLIT_LOST_METHODS.md
+//  FULL SOURCE: Docs/FILE_SPLIT_LOST_METHODS_SOURCE.md
 //
 //  Dropped by : 7b673485a
 //  Original   : NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/AvatarRepository.cs
@@ -40,6 +48,8 @@
 //     {
         // ─────────────────────────────────────────────────────────────────
         // REVIEW: GetAllAvatarDetail   (deleted by 7b673485a)
+        // VERDICT: SUPERSEDED -> renamed to LoadAllAvatarDetails, used 168 times across the
+        //          providers today.
         // ─────────────────────────────────────────────────────────────────
         //         public IEnumerable<AvatarDetail> GetAllAvatarDetail()
         //         {
@@ -48,6 +58,8 @@
 
         // ─────────────────────────────────────────────────────────────────
         // REVIEW: GetAllAvatarDetailAsync   (deleted by 7b673485a)
+        // VERDICT: SUPERSEDED -> renamed to LoadAllAvatarDetailsAsync, used 322 times across
+        //          the providers today.
         // ─────────────────────────────────────────────────────────────────
         //         public async Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync()
         //         {
