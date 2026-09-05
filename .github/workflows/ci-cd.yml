@@ -29,6 +29,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -73,6 +79,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -120,6 +132,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -158,6 +176,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -233,6 +257,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -268,6 +298,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -316,6 +352,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -352,6 +394,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
@@ -389,6 +437,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them. Set the SUBMODULES_PAT secret to a token with read access
+        # to them and they are checked out; without it this falls back to the
+        # previous behaviour rather than failing the checkout outright.
+        submodules: ${{ secrets.SUBMODULES_PAT != '' && 'recursive' || '' }}
+        token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
