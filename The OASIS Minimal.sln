@@ -115,8 +115,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloWebOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.csproj", "{E38E265B-2CBB-47C2-BF1F-E221F28B78EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloWeb", "Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloWeb\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.csproj", "{D1354980-AEBB-47F4-86A3-1B92A8DED586}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj", "{99A83D10-5ECD-4B4C-B4DB-8E24968E5883}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PinataOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj", "{FF927362-CD9B-49F1-9D64-8C87C52EA1A2}"
