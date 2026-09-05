@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             ProviderName = "WeaviateOASIS";
             ProviderDescription = "Weaviate AI-native vector database provider (REST/GraphQL — semantic search over OASIS holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WeaviateOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageCloud);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
