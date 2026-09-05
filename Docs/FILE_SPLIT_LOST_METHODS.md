@@ -192,6 +192,26 @@ the manager: `NftController` could create and update a collection but had no
 way to read one back by id, making collections write-only over HTTP. Added as
 `load-web4-nft-collection/{id}` and `load-web4-geo-nft-collection/{id}`.
 
+### The review files are back, annotated
+
+I removed the eight `*.LOST_METHODS_REVIEW.cs` files after reaching these
+verdicts, which took away the chance to check the reasoning before the code
+went. They are restored, each `REVIEW:` block now carrying a `VERDICT:` line
+naming its replacement and the evidence — reference counts, or the generic
+operation it maps onto.
+
+They are still 100% comments, so nothing changes at runtime and the build is
+unaffected either way. Delete them once you are satisfied.
+
+To confirm any single verdict:
+
+```bash
+grep -rn "<ReplacementName>" --include=*.cs .
+```
+
+Treat the verdicts as checkable rather than final. One of them — the NFTManager
+collection pair — was initially wrong.
+
 ### Why this keeps happening
 
 The wider pattern matters more than these 98. Splitting a large file into
