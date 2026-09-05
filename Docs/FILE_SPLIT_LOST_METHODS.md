@@ -159,7 +159,8 @@ Every one of the 98 was checked against what the codebase provides today. The
 question was never "is this referenced" (none are) but "was the capability
 replaced, or genuinely dropped".
 
-**96 are superseded and can be deleted. 2 are a real gap.**
+**All 98 are superseded.** An earlier pass recorded 2 as a real gap; that was
+wrong and is corrected below.
 
 | Commit | Count | Verdict | Evidence |
 |---|---|---|---|
@@ -168,15 +169,28 @@ replaced, or genuinely dropped".
 | `f2b2cebf2` | 11 | **Delete** | All suffixed `New` — parallel implementations alongside the canonical ones, which are live and in use: `GetAvailableProviders` 9 refs, `SelectOptimalProviderForLoadBalancing` 11, `GetProviderConfiguration` 4, `GetSwitchStatus` 4, `AddToAutoFailOverList` 4. |
 | `88817e70b` | 1 | **Delete** | `CalculateHealthFromMetrics` — the async form `CalculateHealthFromMetricsAsync` exists today, alongside four other health calculators. |
 | `7b673485a` | 2 | **Delete** | `GetAllAvatarDetail`/`Async` was renamed, not dropped. The current name is `LoadAllAvatarDetails`/`Async`, used 168 and 322 times across the providers. |
-| `88817e70b` | **2** | **Genuine gap** | `GetOASISNFTCollectionAsync` and `GetOASISGeoNFTCollectionAsync` on `NFTManager`. No equivalent exists anywhere under any name — these are the only two of the 98 whose capability is actually absent. |
+| `88817e70b` | 2 | **Delete** | `GetOASISNFTCollectionAsync` / `GetOASISGeoNFTCollectionAsync` were **renamed**, not dropped: the `OASIS*` → `Web4*` migration made them `LoadWeb4NFTCollectionAsync` / `LoadWeb4GeoNFTCollectionAsync`, which exist today alongside a full Create/Update/Add/Remove surface. |
 
-### The two worth a decision
+### Correction — the two that looked like a gap
 
-`GetOASISNFTCollectionAsync` / `GetOASISGeoNFTCollectionAsync` returned an
-avatar's NFTs as a collection. Nothing replaced them. Whether to restore them
-depends on whether anything wants to consume NFT collections — the WEB4 API
-exposes `load-all-nfts-for-avatar`, which may already cover the need at the
-API layer. Bodies are in `FILE_SPLIT_LOST_METHODS_SOURCE.md` if wanted.
+An earlier pass recorded `GetOASISNFTCollectionAsync` and
+`GetOASISGeoNFTCollectionAsync` as the only two of the 98 with no replacement.
+That was wrong.
+
+They were renamed. The `OASIS*` → `Web4*` migration turned them into
+`LoadWeb4NFTCollectionAsync` and `LoadWeb4GeoNFTCollectionAsync`, which exist
+today next to `Create`, `Update`, `Add…To` and `Remove…From` equivalents. The
+search that missed this looked for the old names instead of the concept — the
+same failure this whole audit is about.
+
+They could not have been restored as-is regardless: the bodies reference
+`IOASISNFTCollection`, `IOASISGeoNFTCollection` and `OASISGeoNFTCollection`,
+none of which are declared anywhere any more.
+
+One real gap did surface from the check, but at the API layer rather than in
+the manager: `NftController` could create and update a collection but had no
+way to read one back by id, making collections write-only over HTTP. Added as
+`load-web4-nft-collection/{id}` and `load-web4-geo-nft-collection/{id}`.
 
 ### Why this keeps happening
 
