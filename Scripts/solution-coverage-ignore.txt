@@ -1,0 +1,53 @@
+# Projects that deliberately live outside the solutions.
+# Matched as a substring against each project's path relative to the repo root.
+# Checked by scripts/check_solution_coverage.py
+
+# Archived code kept for reference, not built.
+Archived/
+
+# Vendored third-party build variants targeting .NET Framework 2.0-4.5. A modern
+# SDK-only machine has no reference assemblies for these, so they cannot build.
+WebSocket4Net.Net20.csproj
+WebSocket4Net.Net35.csproj
+WebSocket4Net.Net40.csproj
+WebSocket4Net.Net45.csproj
+
+# Vendored Spectre.Console sub-projects pinned to C# 7.3; they cannot accept the
+# nullable setting the modern SDK applies.
+Spectre.Console.ImageSharp.csproj
+Spectre.Console.Testing.csproj
+
+# Vendored third-party doc project.
+doc/Documentation.csproj
+
+# Vendored EOS client library pinned to C# 7.3.
+EOSNewYork.EOSCore.csproj
+
+# DemoQuestSeed's dependencies (StarQuestObjective and friends) live inside the
+# OGEngineClient submodule, so it only builds from in there.
+DemoQuestSeed.csproj
+
+# Duplicate project names - a solution cannot hold two projects with the same name.
+# In each of these the real implementation is in a solution and these empty shells
+# are kept on disk only. See Docs/REMOVED_AND_MOVED_PROJECTS.md.
+Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloWeb/
+ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/
+ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.TestHarness/
+ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/
+ONODE/NextGenSoftware.OASIS.API.ONODE.Core.TestHarness/
+
+# Scratch worktrees.
+.claude/
+
+# Submodules carry their own solutions - the parent solution deliberately does not
+# build them. Each submodule's CI is responsible for its own coverage.
+HoloNET-ORM/
+ONODE/ONODEManager/
+OASIS Omniverse/OGEngineClient/
+OASIS Omniverse/OASIS Hub/
+
+# Pre-split monolithic copy of ArweaveOASIS. The current implementation is the
+# split partial-class version under Providers/Network (5 files, ~2160 lines);
+# this single 1403-line file is the superseded original, kept on disk only.
+Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/
