@@ -67,7 +67,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddDbContext<DataContext>();
             services.AddCors();
             // Add exception filter with configuration
-            services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
+            services.AddControllers(x =>
+            {
+                x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration));
+                // Flags responses that carry fabricated data, so callers are not
+                // left unable to tell test data from live data.
+                x.Filters.Add(new Filters.TestDataResponseFilter());
+            })
                 .AddJsonOptions(x =>
                 {
                     x.JsonSerializerOptions.IgnoreNullValues = true;
