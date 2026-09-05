@@ -2,9 +2,9 @@ name: OASIS CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, Development ]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [ main, master, Development ]
 
 env:
   DOTNET_VERSION: '10.0.x'

@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -186,6 +187,98 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             GetAndActivateProvider(providerType, setGlobally);
             return GetKarmaAkashicRecordsForAvatar(avatarId);
+        }
+
+        /// <summary>
+        /// Get's a paged activity feed for an avatar, newest first.
+        /// </summary>
+        /// <remarks>
+        /// The feed is projected from the avatar's Karma Akashic Records, which already
+        /// serve as the OASIS activity log -- there is no separate event store to read.
+        /// Each record is flattened into an <see cref="ActivityFeedEntry"/> so clients do
+        /// not have to unpack the <c>EnumValue&lt;T&gt;</c> wrappers on the raw record.
+        /// </remarks>
+        /// <param name="avatarId">Avatar to load the feed for. Defaults to the signed-in avatar.</param>
+        /// <param name="limit">Maximum entries to return. Clamped to 1-200.</param>
+        /// <param name="offset">Number of entries to skip, for paging.</param>
+        /// <returns>OASIS result containing the activity feed entries, newest first.</returns>
+        /// <response code="200">Activity feed retrieved successfully</response>
+        /// <response code="400">Error loading the avatar or its records</response>
+        [Authorize]
+        [HttpGet("activity")]
+        public OASISResult<IEnumerable<ActivityFeedEntry>> GetActivityFeed([FromQuery] Guid? avatarId = null, [FromQuery] int limit = 50, [FromQuery] int offset = 0)
+        {
+            // Clamp paging so a caller cannot ask for the whole history in one go.
+            if (limit < 1) limit = 1;
+            if (limit > 200) limit = 200;
+            if (offset < 0) offset = 0;
+
+            Guid targetAvatarId = avatarId ?? AvatarId;
+
+            if (targetAvatarId == Guid.Empty)
+                return new OASISResult<IEnumerable<ActivityFeedEntry>>
+                {
+                    IsError = true,
+                    Message = "No avatar to load a feed for. Pass ?avatarId= or call this as a signed-in avatar."
+                };
+
+            OASISResult<IAvatarDetail> avatarResult = Program.AvatarManager.LoadAvatarDetail(targetAvatarId);
+
+            if (avatarResult.IsError || avatarResult.Result == null)
+                return new OASISResult<IEnumerable<ActivityFeedEntry>>
+                {
+                    IsError = true,
+                    Message = $"Error loading avatar detail. Reason: {avatarResult.Message}"
+                };
+
+            IEnumerable<IKarmaAkashicRecord> records = avatarResult.Result.KarmaAkashicRecords;
+
+            if (records == null)
+                return new OASISResult<IEnumerable<ActivityFeedEntry>>(new List<ActivityFeedEntry>())
+                {
+                    Message = "No activity yet."
+                };
+
+            List<ActivityFeedEntry> entries = records
+                .Where(record => record != null)
+                .OrderByDescending(record => record.Date)
+                .Skip(offset)
+                .Take(limit)
+                .Select(ToActivityFeedEntry)
+                .ToList();
+
+            return new OASISResult<IEnumerable<ActivityFeedEntry>>(entries)
+            {
+                Message = $"{entries.Count} activity entries retrieved successfully."
+            };
+        }
+
+        /// <summary>
+        /// Flattens a Karma Akashic Record into a feed entry, unwrapping its EnumValue fields.
+        /// </summary>
+        private static ActivityFeedEntry ToActivityFeedEntry(IKarmaAkashicRecord record)
+        {
+            bool isPositive = record.KarmaEarntOrLost?.Value == KarmaEarntOrLost.Earnt;
+
+            // A record carries either a positive or a negative karma type, never both.
+            string activityType = isPositive
+                ? record.KarmaTypePositive?.Name
+                : record.KarmaTypeNegative?.Name;
+
+            return new ActivityFeedEntry
+            {
+                AvatarId = record.AvatarId,
+                Date = record.Date,
+                ActivityType = activityType,
+                SourceTitle = record.KarmaSourceTitle,
+                SourceDescription = record.KarmaSourceDesc,
+                SourceType = record.KarmaSource?.Name,
+                Karma = record.Karma,
+                TotalKarma = record.TotalKarma,
+                IsPositive = isPositive,
+                Provider = record.Provider?.Name,
+                WebLink = record.WebLink
+            };
         }
 
         /// <summary>

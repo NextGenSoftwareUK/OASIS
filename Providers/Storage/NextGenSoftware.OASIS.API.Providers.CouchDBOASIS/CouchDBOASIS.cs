@@ -31,6 +31,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
     /// </summary>
     public class CouchDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
+        /// <summary>
+        /// When true this provider stores a new record per save and links to the previous
+        /// version (blockchain-style) instead of updating in place.
+        /// </summary>
+        public bool IsVersionControlEnabled { get; set; }
+
         private readonly HttpClient _http;
         private readonly string _baseUrl;
 
@@ -467,7 +473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
             try
@@ -494,16 +500,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
-            => DeleteHolonAsync(id, softDelete).GetAwaiter().GetResult();
+        public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true)
+            => DeleteHolonSoftAsync(id, softDelete).GetAwaiter().GetResult();
 
         // ─── Search ─────────────────────────────────────────────────────────────
 
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-            => new OASISResult<ISearchResults> { Message = "Search not yet implemented for CouchDBOASIS.", IsWarning = true };
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-            => Task.FromResult(Search(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version));
 
         // ─── Internal HTTP helpers ───────────────────────────────────────────────
 
@@ -633,5 +635,483 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             }
             return list;
         }
+
+        // ─── Remaining IOASISStorageProvider surface ─────────────────────────────
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+            => LoadAvatarByProviderKeyAsync(providerKey, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            if (Guid.TryParse(providerKey, out var id))
+                return await LoadAvatarAsync(id, version);
+
+            var all = await LoadAllAvatarsAsync(version);
+            if (all.IsError || all.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, all.Message);
+                return result;
+            }
+
+            foreach (var avatar in all.Result)
+            {
+                if (avatar.ProviderUniqueStorageKey != null
+                    && avatar.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var key)
+                    && key == providerKey)
+                {
+                    result.Result = avatar;
+                    return result;
+                }
+            }
+
+            OASISErrorHandling.HandleError(ref result, $"Avatar with provider key '{providerKey}' not found.");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+            => DeleteAvatarAsync(providerKey, softDelete).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            var avatar = await LoadAvatarByProviderKeyAsync(providerKey);
+            if (avatar.IsError || avatar.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, avatar.Message);
+                return result;
+            }
+            return await DeleteAvatarAsync(avatar.Result.Id, softDelete);
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            if (Guid.TryParse(providerKey, out var id))
+                return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+
+            var all = await LoadAllHolonsAsync();
+            if (all.IsError || all.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, all.Message);
+                return result;
+            }
+
+            foreach (var holon in all.Result)
+            {
+                if (holon.ProviderUniqueStorageKey != null
+                    && holon.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var key)
+                    && key == providerKey)
+                {
+                    result.Result = holon;
+                    return result;
+                }
+            }
+
+            OASISErrorHandling.HandleError(ref result, $"Holon with provider key '{providerKey}' not found.");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            if (Guid.TryParse(providerKey, out var id))
+                return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+
+            var parent = await LoadHolonAsync(providerKey);
+            if (parent.IsError || parent.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, parent.Message);
+                return result;
+            }
+            return await LoadHolonsForParentAsync(parent.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
+            => DeleteHolonAsync(id).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var result = new OASISResult<IHolon>();
+            var loaded = await LoadHolonAsync(id);
+            if (loaded.IsError || loaded.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, loaded.Message);
+                return result;
+            }
+
+            var deleted = await DeleteHolonSoftAsync(id, true);
+            if (deleted.IsError)
+                OASISErrorHandling.HandleError(ref result, deleted.Message);
+            else
+                result.Result = loaded.Result;
+
+            return result;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
+            => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var result = new OASISResult<IHolon>();
+            var holon = await LoadHolonAsync(providerKey);
+            if (holon.IsError || holon.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, holon.Message);
+                return result;
+            }
+            return await DeleteHolonAsync(holon.Result.Id);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError || all.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, all.Message);
+                return result;
+            }
+
+            var matches = new List<IHolon>();
+            foreach (var holon in all.Result)
+            {
+                if (holon.MetaData != null
+                    && holon.MetaData.TryGetValue(metaKey, out var value)
+                    && value?.ToString() == metaValue)
+                    matches.Add(holon);
+            }
+
+            result.Result = matches;
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError || all.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, all.Message);
+                return result;
+            }
+
+            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+            {
+                result.Result = new List<IHolon>(all.Result);
+                return result;
+            }
+
+            var matches = new List<IHolon>();
+            foreach (var holon in all.Result)
+            {
+                if (holon.MetaData == null) continue;
+
+                var matched = 0;
+                foreach (var pair in metaKeyValuePairs)
+                {
+                    if (holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value)
+                        matched++;
+                }
+
+                var isMatch = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
+                    ? matched == metaKeyValuePairs.Count
+                    : matched > 0;
+
+                if (isMatch) matches.Add(holon);
+            }
+
+            result.Result = matches;
+            return result;
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+            => ImportAsync(holons).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var result = new OASISResult<bool>();
+            var saved = await SaveHolonsAsync(holons);
+            if (saved.IsError)
+                OASISErrorHandling.HandleError(ref result, saved.Message);
+            else
+                result.Result = true;
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+            => ExportAllAsync(version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+            => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var all = await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
+            if (all.IsError || all.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, all.Message);
+                return result;
+            }
+
+            var owned = new List<IHolon>();
+            foreach (var holon in all.Result)
+            {
+                if (holon.CreatedByAvatarId == avatarId)
+                    owned.Add(holon);
+            }
+
+            result.Result = owned;
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+            => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            if (avatar.IsError || avatar.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, avatar.Message);
+                return result;
+            }
+            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+            => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+            if (avatar.IsError || avatar.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, avatar.Message);
+                return result;
+            }
+            return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+        }
+
+        // ─── Search ──────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            var searchResults = new SearchResults();
+
+            try
+            {
+                var groups = searchParams?.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantAvatars = groups.Count == 0 || groups.Exists(g => g.SearchAvatars);
+                var wantHolons = groups.Count == 0 || groups.Exists(g => g.SearchHolons);
+
+                var matchedAvatars = new Dictionary<Guid, IAvatar>();
+                var matchedHolons = new Dictionary<Guid, IHolon>();
+
+                // ── Avatars ──────────────────────────────────────────────────
+                if (wantAvatars)
+                {
+                    var avatars = await LoadAllAvatarsAsync(version);
+                    if (avatars.IsError && !continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, avatars.Message);
+                        return result;
+                    }
+
+                    foreach (var avatar in avatars.Result ?? new List<IAvatar>())
+                    {
+                        if (avatar == null) continue;
+                        if (searchParams != null && searchParams.SearchOnlyForCurrentAvatar
+                            && searchParams.AvatarId != Guid.Empty && avatar.Id != searchParams.AvatarId)
+                            continue;
+
+                        if (groups.Count == 0 || AvatarMatchesAnyGroup(avatar, groups))
+                            matchedAvatars[avatar.Id] = avatar;
+                    }
+                }
+
+                // ── Holons ───────────────────────────────────────────────────
+                if (wantHolons)
+                {
+                    var holons = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
+                    if (holons.IsError && !continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, holons.Message);
+                        return result;
+                    }
+
+                    foreach (var holon in holons.Result ?? new List<IHolon>())
+                    {
+                        if (holon == null) continue;
+
+                        if (searchParams != null)
+                        {
+                            if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty
+                                && holon.CreatedByAvatarId != searchParams.AvatarId)
+                                continue;
+
+                            if (searchParams.ParentId != Guid.Empty && holon.ParentHolonId != searchParams.ParentId)
+                                continue;
+
+                            if (!MetaDataMatches(holon, searchParams.FilterByMetaData, searchParams.MetaKeyValuePairMatchMode))
+                                continue;
+                        }
+
+                        if (groups.Count == 0 || HolonMatchesAnyGroup(holon, groups))
+                            matchedHolons[holon.Id] = holon;
+                    }
+                }
+
+                searchResults.SearchResultAvatars = new List<IAvatar>(matchedAvatars.Values);
+                searchResults.SearchResultHolons = new List<IHolon>(matchedHolons.Values);
+                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
+
+                result.Result = searchResults;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"CouchDBOASIS: SearchAsync failed: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
+
+        private static bool Contains(string source, string query)
+            => !string.IsNullOrEmpty(source) && source.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+
+        private static bool MetaDataMatches(IHolon holon, Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode)
+        {
+            if (filter == null || filter.Count == 0) return true;
+            if (holon.MetaData == null) return false;
+
+            var matched = 0;
+            foreach (var pair in filter)
+            {
+                if (holon.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value)
+                    matched++;
+            }
+
+            return mode == MetaKeyValuePairMatchMode.All ? matched == filter.Count : matched > 0;
+        }
+
+        private static bool AvatarMatchesAnyGroup(IAvatar avatar, List<ISearchGroupBase> groups)
+        {
+            foreach (var group in groups)
+            {
+                if (!group.SearchAvatars) continue;
+
+                var text = group as ISearchTextGroup;
+                var query = text?.SearchQuery;
+                if (string.IsNullOrWhiteSpace(query)) return true;
+
+                var p = group.AvatarSearchParams;
+
+                // No field flags set - match the natural identity fields.
+                if (p == null)
+                {
+                    if (Contains(avatar.Username, query) || Contains(avatar.Email, query)
+                        || Contains(avatar.FirstName, query) || Contains(avatar.LastName, query))
+                        return true;
+                    continue;
+                }
+
+                if (p.Username && Contains(avatar.Username, query)) return true;
+                if (p.Email && Contains(avatar.Email, query)) return true;
+                if (p.FirstName && Contains(avatar.FirstName, query)) return true;
+                if (p.LastName && Contains(avatar.LastName, query)) return true;
+                if (p.Title && Contains(avatar.Title, query)) return true;
+                if (p.AvatarId && Contains(avatar.Id.ToString(), query)) return true;
+                if (text != null && text.SearchIds && Contains(avatar.Id.ToString(), query)) return true;
+
+                if (text != null && text.SearchProviderKeys && avatar.ProviderUniqueStorageKey != null)
+                {
+                    foreach (var key in avatar.ProviderUniqueStorageKey.Values)
+                        if (Contains(key, query)) return true;
+                }
+
+                // Flags present but none of them matched a searchable field - fall
+                // back to identity fields so a query is never silently dropped.
+                if (!p.Username && !p.Email && !p.FirstName && !p.LastName && !p.Title && !p.AvatarId)
+                {
+                    if (Contains(avatar.Username, query) || Contains(avatar.Email, query))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HolonMatchesAnyGroup(IHolon holon, List<ISearchGroupBase> groups)
+        {
+            foreach (var group in groups)
+            {
+                if (!group.SearchHolons) continue;
+
+                if (group.HolonType != HolonType.All && holon.HolonType != group.HolonType)
+                    continue;
+
+                var text = group as ISearchTextGroup;
+                var query = text?.SearchQuery;
+                if (string.IsNullOrWhiteSpace(query)) return true;
+
+                var p = group.HolonSearchParams;
+
+                if (p == null)
+                {
+                    if (Contains(holon.Name, query) || Contains(holon.Description, query))
+                        return true;
+                    continue;
+                }
+
+                if (p.Name && Contains(holon.Name, query)) return true;
+                if (p.Description && Contains(holon.Description, query)) return true;
+                if (text != null && text.SearchIds && Contains(holon.Id.ToString(), query)) return true;
+
+                if (p.MetaData && holon.MetaData != null)
+                {
+                    foreach (var kvp in holon.MetaData)
+                        if (Contains(kvp.Key, query) || Contains(kvp.Value?.ToString(), query)) return true;
+                }
+
+                if ((p.ProviderUniqueStorageKey || (text != null && text.SearchProviderKeys))
+                    && holon.ProviderUniqueStorageKey != null)
+                {
+                    foreach (var key in holon.ProviderUniqueStorageKey.Values)
+                        if (Contains(key, query)) return true;
+                }
+
+                if (!p.Name && !p.Description && !p.MetaData && !p.ProviderUniqueStorageKey)
+                {
+                    if (Contains(holon.Name, query) || Contains(holon.Description, query))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
     }
 }
