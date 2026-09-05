@@ -11,6 +11,37 @@ env:
   NODE_VERSION: '18.x'
 
 jobs:
+  # Guards against the failure mode that let ~200 projects accumulate 1000+ compile
+  # errors unnoticed: a .csproj that is in no .sln is never built by anything, so it
+  # rots silently. This job fails the pipeline on both conditions - a project missing
+  # from the solutions, and any error in the full production build.
+  solution-integrity:
+    name: Solution Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Every project must be in a solution
+        run: python3 scripts/check_solution_coverage.py
+
+      - name: Solutions must parse
+        run: |
+          for sln in "The OASIS - NoTests.sln" "The OASIS.sln"; do
+            echo "::group::$sln"
+            dotnet sln "$sln" list > /dev/null
+            echo "::endgroup::"
+          done
+
+      - name: Full production build must have zero errors
+        run: dotnet build "The OASIS - NoTests.sln" --configuration Release -warnaserror:none
+
   # Build and Test OASIS Architecture Projects
   test-oasis-architecture:
     name: Test OASIS Architecture
