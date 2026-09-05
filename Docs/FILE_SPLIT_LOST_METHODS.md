@@ -151,6 +151,44 @@ Full recovered source for each is in the companion file `FILE_SPLIT_LOST_METHODS
 
 ---
 
+---
+
+## Review outcome — 2026-09-05
+
+Every one of the 98 was checked against what the codebase provides today. The
+question was never "is this referenced" (none are) but "was the capability
+replaced, or genuinely dropped".
+
+**96 are superseded and can be deleted. 2 are a real gap.**
+
+| Commit | Count | Verdict | Evidence |
+|---|---|---|---|
+| `b51741f46` | 60 | **Delete** | Every method is a `*RuntimeTemplate*` wrapper. `RuntimeTemplate` appears **0 times** in the codebase, and each one maps 1:1 onto a generic operation on `STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, STARNETDNA>` — `CreateRuntimeTemplate`→`Create`, `ListInstalledRuntimeTemplates`→`ListInstalled`, and so on. This is exactly what the commit said it was doing: replacing per-type wrappers with the generic base. |
+| `3fdf511ee` | 22 | **Delete** | Per-type DNA helpers (`WriteOAPPDNA`, `WriteRuntimeDNA`, `ReadOAPPTemplateDNAFrom…`) replaced by the generic `WriteDNA`/`WriteDNAAsync` and `ReadOAPPSystemHolonDNAFromPublishedFile` on the base. All old names have 0 references. Note `WriteOAPPSystemHolonDNA` already exists on the base, so 2 of these were effectively re-added. |
+| `f2b2cebf2` | 11 | **Delete** | All suffixed `New` — parallel implementations alongside the canonical ones, which are live and in use: `GetAvailableProviders` 9 refs, `SelectOptimalProviderForLoadBalancing` 11, `GetProviderConfiguration` 4, `GetSwitchStatus` 4, `AddToAutoFailOverList` 4. |
+| `88817e70b` | 1 | **Delete** | `CalculateHealthFromMetrics` — the async form `CalculateHealthFromMetricsAsync` exists today, alongside four other health calculators. |
+| `7b673485a` | 2 | **Delete** | `GetAllAvatarDetail`/`Async` was renamed, not dropped. The current name is `LoadAllAvatarDetails`/`Async`, used 168 and 322 times across the providers. |
+| `88817e70b` | **2** | **Genuine gap** | `GetOASISNFTCollectionAsync` and `GetOASISGeoNFTCollectionAsync` on `NFTManager`. No equivalent exists anywhere under any name — these are the only two of the 98 whose capability is actually absent. |
+
+### The two worth a decision
+
+`GetOASISNFTCollectionAsync` / `GetOASISGeoNFTCollectionAsync` returned an
+avatar's NFTs as a collection. Nothing replaced them. Whether to restore them
+depends on whether anything wants to consume NFT collections — the WEB4 API
+exposes `load-all-nfts-for-avatar`, which may already cover the need at the
+API layer. Bodies are in `FILE_SPLIT_LOST_METHODS_SOURCE.md` if wanted.
+
+### Why this keeps happening
+
+The wider pattern matters more than these 98. Splitting a large file into
+partial classes drops members silently: the build still succeeds, because
+nothing referenced them. That is the same class of failure as the endpoint
+drift found the same week — wrong things that do not announce themselves.
+
+A cheap guard: before and after any split commit, compare the set of member
+names in the affected type. Any name present before and absent after is either
+a deliberate deletion or an accident, and the diff makes you say which.
+
 ## Restoring
 
 ```bash
