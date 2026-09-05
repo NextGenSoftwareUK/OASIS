@@ -158,3 +158,7 @@ git show <commit>^:<original file> | grep -n -A40 '<MethodName>'
 ```
 
 Then paste into the matching partial class file. The companion source file already has each body extracted.
+
+## Related
+
+- `REMOVED_AND_MOVED_PROJECTS.md` — project-level removals and relocations (including OPORTAL)
