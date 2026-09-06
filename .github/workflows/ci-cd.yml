@@ -31,6 +31,13 @@ jobs:
       - name: Every project must be in a solution
         run: python3 Scripts/check_solution_coverage.py
 
+      - name: Submodule pointers must match the branch rule
+        # master pins each submodule at its main; Development pins each at its Development.
+        # Master deploys to Azure, so a pointer off main would ship unreleased code.
+        run: |
+          git submodule foreach --quiet 'git fetch origin --quiet || true'
+          python3 Scripts/check_submodule_branches.py
+
       - name: Solutions must parse
         run: |
           for sln in "The OASIS - NoTests.sln" "The OASIS.sln"; do
