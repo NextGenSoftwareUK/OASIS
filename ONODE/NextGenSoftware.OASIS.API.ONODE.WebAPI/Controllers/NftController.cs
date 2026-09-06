@@ -817,6 +817,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Loads a Web4 NFT collection by its id.
+        /// </summary>
+        /// <param name="id">The collection id.</param>
+        /// <param name="loadChildNFTs">Whether to load the NFTs belonging to the collection.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the collection or error information.</returns>
+        /// <remarks>
+        /// The API could create and update collections but not read one back by id,
+        /// so a collection was write-only over HTTP. This closes that gap.
+        /// </remarks>
+        [Authorize]
+        [HttpGet]
+        [Route("load-web4-nft-collection/{id}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFTCollection>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFTCollection>> LoadWeb4NFTCollectionAsync(Guid id, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
+        {
+            if (id == Guid.Empty)
+                return new OASISResult<IWeb4NFTCollection> { IsError = true, Message = "A collection id is required." };
+
+            return await NFTManager.LoadWeb4NFTCollectionAsync(id, loadChildNFTs, providerType);
+        }
+
+        /// <summary>
+        /// Loads a Web4 geo-NFT collection by its id.
+        /// </summary>
+        /// <param name="id">The collection id.</param>
+        /// <param name="loadChildGeoNFTs">Whether to load the geo-NFTs belonging to the collection.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the collection or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("load-web4-geo-nft-collection/{id}")]
+        [ProducesResponseType(typeof(OASISResult<API.Core.Objects.NFT.IWeb4GeoNFTCollection>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<API.Core.Objects.NFT.IWeb4GeoNFTCollection>> LoadWeb4GeoNFTCollectionAsync(Guid id, bool loadChildGeoNFTs = true, ProviderType providerType = ProviderType.Default)
+        {
+            if (id == Guid.Empty)
+                return new OASISResult<API.Core.Objects.NFT.IWeb4GeoNFTCollection> { IsError = true, Message = "A collection id is required." };
+
+            return await NFTManager.LoadWeb4GeoNFTCollectionAsync(id, loadChildGeoNFTs, providerType);
+        }
+
+        /// <summary>
         /// Creates an on-chain collection NFT (Metaplex standard) and sets its collection size.
         /// Required for Phantom wallet to display minted NFTs under the Collections tab via the Helius DAS API.
         /// </summary>

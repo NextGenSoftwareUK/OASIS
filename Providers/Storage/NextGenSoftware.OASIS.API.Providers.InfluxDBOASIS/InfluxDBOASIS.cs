@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using InfluxDB.Client;
 using InfluxDB.Client.Api.Domain;
+using InfluxDB.Client.Core.Flux.Domain;
 using InfluxDB.Client.Writes;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -72,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
 
         private async Task WritePointAsync(PointData point)
         {
-            using var write = GetClient().GetWriteApiAsync();
+            var write = GetClient().GetWriteApiAsync();
             await write.WritePointAsync(point, _bucket, _org);
         }
 
@@ -116,7 +117,7 @@ from(bucket: ""{bucket}"")
                     var orgs = GetClient().GetOrganizationsApi();
                     var org = (await orgs.FindOrganizationsAsync(org: _org)).FirstOrDefault();
                     if (org == null) throw new Exception($"InfluxDB: Organisation '{_org}' not found.");
-                    await buckets.CreateBucketAsync(new BucketRetentionRules(), _bucket, org);
+                    await buckets.CreateBucketAsync(_bucket, new BucketRetentionRules(), org.Id);
                 }
                 result.Result = true; result.IsError = false; result.Message = $"InfluxDBOASIS activated — bucket '{_bucket}' ready.";
             }

@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_150 fully implemented providers across 7 categories — last updated: 2026-09-04_
+_161 fully implemented providers across 7 categories — last updated: 2026-09-04_
 
 ---
 
@@ -10,13 +10,13 @@ _150 fully implemented providers across 7 categories — last updated: 2026-09-0
 |---|---|---|
 | Blockchain / L1 / L2 | 43 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei… |
 | Decentralised Social / Network | 29 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO… |
-| Storage / Database / Cloud | 65 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN, CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna, Qdrant, Weaviate, InfluxDB, TimescaleDB, Elasticsearch, DynamoDB, Couchbase, Upstash, ScyllaDB, Litestream, MinIO, Cloudinary, PouchDB, Meilisearch, Typesense, ClickHouse, Redis, Memcached, KeyDB, OpenSearch, Algolia, Solr, ArangoDB, QuestDB, CouchDB, Xata, Pinecone, Milvus, Chroma, LanceDB, pgvector, Marqo, Zilliz, ArcadeDB… |
+| Storage / Database / Cloud | 76 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN, CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna, Qdrant, Weaviate, InfluxDB, TimescaleDB, Elasticsearch, DynamoDB, Couchbase, Upstash, ScyllaDB, Litestream, MinIO, Cloudinary, PouchDB, Meilisearch, Typesense, ClickHouse, Redis, Memcached, KeyDB, OpenSearch, Algolia, Solr, ArangoDB, QuestDB, CouchDB, Xata, Pinecone, Milvus, Chroma, LanceDB, pgvector, Marqo, Zilliz, ArcadeDB, DuckDB, MotherDuck, Snowflake, BigQuery, Redshift, Databricks, Apache Druid, Apache Pinot, Dragonfly, ValKey, Garnet… |
 | Spatial / Gaming / AR | 4 | GO Map (Unity AR), Mapbox, WRLD 3D, Cargo (NFT) |
 | Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
 | Identity / Encryption / IP | 3 | World ID, Lit Protocol, Story Protocol |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 150 providers** (43 + 29 + 65 + 4 + 4 + 3 + 2 = 150)
+**Total: 161 providers** (43 + 29 + 76 + 4 + 4 + 3 + 2 = 161)
 
 ---
 
@@ -70,7 +70,7 @@ _150 fully implemented providers across 7 categories — last updated: 2026-09-0
 | Abstract | AbstractOASIS |
 | Berachain | BerachainOASIS |
 
-### Storage / Database / Cloud (65)
+### Storage / Database / Cloud (76)
 
 | Provider | ProviderType |
 |---|---|
@@ -143,6 +143,17 @@ _150 fully implemented providers across 7 categories — last updated: 2026-09-0
 | Marqo | MarqoOASIS |
 | Zilliz | ZillizOASIS |
 | ArcadeDB | ArcadeDBOASIS |
+| DuckDB | DuckDBOASIS |
+| MotherDuck | MotherDuckOASIS |
+| Snowflake | SnowflakeOASIS |
+| BigQuery | BigQueryOASIS |
+| Redshift | RedshiftOASIS |
+| Databricks | DatabricksOASIS |
+| Apache Druid | DruidOASIS |
+| Apache Pinot | PinotOASIS |
+| Dragonfly | DragonflyOASIS |
+| ValKey | ValKeyOASIS |
+| Garnet | GarnetOASIS |
 
 ### Decentralised Social / Network (29)
 

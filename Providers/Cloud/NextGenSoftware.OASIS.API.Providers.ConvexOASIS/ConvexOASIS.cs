@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS
             ProviderName = "ConvexOASIS";
             ProviderDescription = "Convex provider (reactive serverless backend via HTTP Actions API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ConvexOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageCloud);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
