@@ -80,6 +80,22 @@ def resolve(ref, path):
     return git("rev-parse", f"{ref}:{path}")
 
 
+def is_initialised(path):
+    """True if `path` is really the submodule's own working tree.
+
+    Git run inside an empty submodule directory walks up and silently answers from the
+    superproject, so a plain "--git-dir succeeded" test passes for an uninitialised
+    submodule and every subsequent query then compares against the wrong repository.
+    Comparing the reported toplevel against the path itself is what actually settles it.
+    """
+    import os
+
+    top = git("rev-parse", "--show-toplevel", cwd=path)
+    if not top:
+        return False
+    return os.path.realpath(top) == os.path.realpath(path)
+
+
 def submodule_branch_head(path, branch):
     """Tip of `branch` in the submodule, preferring the remote ref."""
     for ref in (f"origin/{branch}", branch):
@@ -119,6 +135,16 @@ def main():
             print(f"  FAIL  {path}\n        not recorded in this commit")
             continue
 
+        # An uninitialised submodule cannot be checked, and must not be silently
+        # mis-reported: git run inside an empty submodule directory walks up and answers
+        # from the superproject, comparing the pointer against the wrong repository.
+        if not is_initialised(path):
+            failures.append((path, "not initialised"))
+            print(f"  FAIL  {path}")
+            print("        submodule not initialised - run 'git submodule update --init'"
+                  " (CI: checkout with submodules: recursive)")
+            continue
+
         target, ref_used = submodule_branch_head(path, expected_branch)
         if target is None:
             failures.append((path, f"submodule has no '{expected_branch}' branch"))
@@ -144,7 +170,14 @@ def main():
 
     print()
     if failures:
-        print(f"{len(failures)} submodule pointer(s) violate the rule for '{branch}'.\n")
+        uninit = [q for q, d in failures if d == "not initialised"]
+        if uninit:
+            print(f"{len(uninit)} submodule(s) were not initialised, so the rule "
+                  "could not be checked for them. Initialise them and re-run.")
+        other = [f for f in failures if f[1] != "not initialised"]
+        if not other:
+            return 1
+        print(f"{len(other)} submodule pointer(s) violate the rule for '{branch}'.")
         print("To fix, for each submodule listed:")
         print(f"  1. make sure the work is on the submodule's '{expected_branch}' branch")
         print(f"  2. in the submodule:  git checkout {expected_branch} && git pull")
