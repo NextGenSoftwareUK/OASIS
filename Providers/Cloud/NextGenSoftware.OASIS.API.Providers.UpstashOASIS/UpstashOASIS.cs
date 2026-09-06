@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
             ProviderName = "UpstashOASIS";
             ProviderDescription = "Upstash serverless Redis provider (REST API — edge-compatible key-value store for OASIS holons and avatars)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.UpstashOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageCloud);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
