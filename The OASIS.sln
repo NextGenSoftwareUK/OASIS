@@ -686,7 +686,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AlchemyOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.AlchemyOASIS\NextGenSoftware.OASIS.API.Providers.AlchemyOASIS.csproj", "{52B3A3F6-775C-4F7A-8466-4A70A414A728}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ArweaveOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj", "{1C1D405B-CA8E-4917-9657-F79D80A7C9AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ArweaveOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS\NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj", "{1C1D405B-CA8E-4917-9657-F79D80A7C9AE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CelestiaOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS\NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.csproj", "{9A75C5E4-5DAF-4420-9AE8-7AAD003CA1C4}"
 EndProject
