@@ -95,6 +95,39 @@ inside the target, after the files are created.
 
 ---
 
+## ArweaveOASIS — three copies resolved (2026-09-06)
+
+The provider existed in three folders. Diffed before deciding:
+
+| Copy | Content | Outcome |
+|---|---|---|
+| `Providers/Network/` | 5 files, 2158 lines, 80 members — the split partial-class version with real transaction signing (`BuildTransactionAsync`, `SignTransaction`, `PostTransactionAsync`, `DeepHash`) | **kept, moved to `Providers/Storage/`** |
+| `Providers/Storage/` | 1 file, 1403 lines, 64 members — the pre-split monolith | deleted |
+| `Providers/Blockchain/` | 0 `.cs` files — empty shell with only a csproj | deleted |
+
+The split version is a strict superset. All 8 members that existed only in the
+monolith have equivalents in it:
+
+| Monolith | Split version |
+|---|---|
+| `DeactivateProvider`/`Async` | `DeActivateProvider`/`Async` — the monolith had the wrong casing and would not have satisfied the base class |
+| `ToBase64Url` | `Base64UrlEncode` |
+| `UploadJsonAsync` | `UploadJsonToArweaveAsync` |
+| `GraphQlAsync` | GraphQL moved into `ArweaveService.cs` |
+| `FindLatestTxIdAsync`, `FindAllTxIdsForTypeAsync` | `QueryByTagsAsync` |
+| `EnsureActivatedAsync` | `Init` |
+
+Arweave is permanent storage and the docs count it under Storage, so `Providers/Storage`
+is the correct home. The move also fixed a live problem: the three Arweave test projects
+already sat in `Providers/Storage/TestProjects/` and referenced `..\..\ArweaveOASIS`,
+so they had been testing the superseded monolith while the solution built the Network
+copy. They now resolve to the live implementation.
+
+`OASISBootLoader` and `ONODE.Core` both referenced the old Network path and were
+repointed.
+
+---
+
 ## Related
 
 - `FILE_SPLIT_LOST_METHODS.md` — methods deleted by partial-class split refactors
