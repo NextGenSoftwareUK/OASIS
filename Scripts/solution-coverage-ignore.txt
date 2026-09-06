@@ -51,3 +51,9 @@ OASIS Omniverse/OASIS Hub/
 # split partial-class version under Providers/Network (5 files, ~2160 lines);
 # this single 1403-line file is the superseded original, kept on disk only.
 Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/
+
+# Placeholder providers - their only source file is entirely commented out, so there
+# is no class to construct or test. Left on disk; no test projects generated for them.
+Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/
