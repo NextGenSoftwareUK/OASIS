@@ -64,6 +64,28 @@ def submodule_paths():
     return paths
 
 
+def declared_branch(path):
+    """The branch = value .gitmodules records for `path`, or None if unset."""
+    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.branch$")
+    if not raw:
+        return None
+    for line in raw.splitlines():
+        m = re.match(r"^submodule\.(.*)\.branch\s+(\S+)$", line)
+        if m and m.group(1) == submodule_name_for(path):
+            return m.group(2)
+    return None
+
+
+def submodule_name_for(path):
+    """The .gitmodules section name whose path is `path`."""
+    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.path$")
+    for line in (raw or "").splitlines():
+        m = re.match(r"^submodule\.(.*)\.path\s+(.*)$", line)
+        if m and m.group(2) == path:
+            return m.group(1)
+    return None
+
+
 def current_branch():
     name = git("rev-parse", "--abbrev-ref", "HEAD")
     if name and name != "HEAD":
@@ -153,6 +175,14 @@ def main():
 
         if pinned == target:
             print(f"  ok    {path}  -> {pinned[:9]} ({ref_used})")
+            declared = declared_branch(path)
+            if declared is not None and declared != expected_branch:
+                # The pointer is right today, but .gitmodules would send
+                # "git submodule update --remote" to the wrong branch tomorrow.
+                failures.append((path, "declared branch"))
+                print(f"  FAIL  {path}")
+                print(f"        .gitmodules says branch = {declared}, expected "
+                      f"{expected_branch} - 'git submodule update --remote' would drift")
         else:
             # Say whether the pin is merely behind, or off the branch entirely.
             on_branch = subprocess.run(
