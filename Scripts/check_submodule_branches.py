@@ -50,9 +50,36 @@ def git(*args, cwd=None):
         return None
 
 
-def submodule_paths():
+# .gitmodules content for the ref under test, written to a temp file so `git config -f`
+# can read it. Checking origin/master from a Development working tree must not consult
+# Development's .gitmodules - that reported every submodule as mis-declared.
+_GITMODULES_CACHE = {}
+
+
+def gitmodules_file(ref):
+    """Path to a .gitmodules readable by `git config -f`, for the given ref."""
+    if ref in ("HEAD", None):
+        return ".gitmodules"
+    if ref in _GITMODULES_CACHE:
+        return _GITMODULES_CACHE[ref]
+
+    import tempfile
+
+    content = git("show", f"{ref}:.gitmodules")
+    if content is None:
+        _GITMODULES_CACHE[ref] = ".gitmodules"
+        return ".gitmodules"
+
+    fh = tempfile.NamedTemporaryFile("w", suffix=".gitmodules", delete=False, encoding="utf-8")
+    fh.write(content + "\n")
+    fh.close()
+    _GITMODULES_CACHE[ref] = fh.name
+    return fh.name
+
+
+def submodule_paths(ref="HEAD"):
     """Paths from .gitmodules, in declaration order. Handles paths containing spaces."""
-    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.path$")
+    raw = git("config", "-f", gitmodules_file(ref), "--get-regexp", r"^submodule\..*\.path$")
     if not raw:
         return []
     paths = []
@@ -64,21 +91,21 @@ def submodule_paths():
     return paths
 
 
-def declared_branch(path):
+def declared_branch(path, ref="HEAD"):
     """The branch = value .gitmodules records for `path`, or None if unset."""
-    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.branch$")
+    raw = git("config", "-f", gitmodules_file(ref), "--get-regexp", r"^submodule\..*\.branch$")
     if not raw:
         return None
     for line in raw.splitlines():
         m = re.match(r"^submodule\.(.*)\.branch\s+(\S+)$", line)
-        if m and m.group(1) == submodule_name_for(path):
+        if m and m.group(1) == submodule_name_for(path, ref):
             return m.group(2)
     return None
 
 
-def submodule_name_for(path):
+def submodule_name_for(path, ref="HEAD"):
     """The .gitmodules section name whose path is `path`."""
-    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.path$")
+    raw = git("config", "-f", gitmodules_file(ref), "--get-regexp", r"^submodule\..*\.path$")
     for line in (raw or "").splitlines():
         m = re.match(r"^submodule\.(.*)\.path\s+(.*)$", line)
         if m and m.group(2) == path:
@@ -142,7 +169,7 @@ def main():
         return 0
 
     expected_branch = BRANCH_RULE[branch]
-    paths = submodule_paths()
+    paths = submodule_paths(ref)
     if not paths:
         print("No submodules found in .gitmodules.")
         return 0
@@ -175,7 +202,7 @@ def main():
 
         if pinned == target:
             print(f"  ok    {path}  -> {pinned[:9]} ({ref_used})")
-            declared = declared_branch(path)
+            declared = declared_branch(path, ref)
             if declared is not None and declared != expected_branch:
                 # The pointer is right today, but .gitmodules would send
                 # "git submodule update --remote" to the wrong branch tomorrow.
