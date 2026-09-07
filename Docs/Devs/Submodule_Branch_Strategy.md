@@ -97,6 +97,9 @@ For each of `master` and `Development` it runs `git submodule update --remote`, 
 pointer moved, opens a PR. It opens a PR rather than pushing, because a pointer bump on
 `master` is a release and should be reviewed as one. The branch check runs on that PR.
 
+It uses only `actions/checkout` and the `gh` CLI preinstalled on GitHub-hosted runners —
+no third-party action is given write access to this repository.
+
 > **Setup note:** the workflow prefers a `SUBMODULE_SYNC_TOKEN` secret and falls back to
 > `GITHUB_TOKEN`. PRs created with `GITHUB_TOKEN` do **not** trigger workflow runs, so with
 > the fallback the branch check will not run on the sync PR. Add a repo-scoped PAT as
