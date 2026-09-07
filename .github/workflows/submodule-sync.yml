@@ -1,0 +1,111 @@
+name: Submodule Sync
+
+# Keeps each branch's submodule pointers on the branch tips the rule requires:
+#   master      -> each submodule's main
+#   Development -> each submodule's Development
+#
+# Without this the pointers only move when someone remembers to bump them, so they go
+# stale silently. That is how dev.api.web6 ended up running older code than production
+# while both branches' pointers were still technically valid.
+#
+# This opens a PR rather than pushing: a pointer bump on master is a release, and should
+# be reviewed like one. check_submodule_branches.py runs on the PR as usual.
+
+on:
+  schedule:
+    # 07:00 UTC every Monday - before the working week, after any weekend merges.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to sync (blank = both)'
+        required: false
+        type: choice
+        options: ['', 'master', 'Development']
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Sync ${{ matrix.branch }} submodule pointers
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [master, Development]
+
+    steps:
+      - name: Skip if a single branch was requested and this is not it
+        id: gate
+        run: |
+          requested='${{ github.event.inputs.branch }}'
+          if [ -n "$requested" ] && [ "$requested" != '${{ matrix.branch }}' ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip == 'false'
+        with:
+          ref: ${{ matrix.branch }}
+          submodules: recursive
+          # A token with repo scope so the PR can trigger CI. GITHUB_TOKEN-created PRs
+          # do not fire workflow runs, which would leave the branch check unverified.
+          token: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Move each pointer to the branch tip declared in .gitmodules
+        if: steps.gate.outputs.skip == 'false'
+        id: bump
+        run: |
+          # --remote uses the branch = value in .gitmodules, which is why that file differs
+          # per branch: main on master, Development on Development.
+          git submodule update --remote --recursive
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "All submodule pointers already at their branch tips."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Pointers that moved:"
+            git diff --submodule=short | grep -E '^(Submodule|[+-]Subproject)' || true
+            {
+              echo 'summary<<PTREOF'
+              git diff --submodule=short | grep -E '^Submodule' || true
+              echo 'PTREOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify the result still satisfies the branch rule
+        if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
+        run: python3 Scripts/check_submodule_branches.py
+
+      - name: Open a pull request
+        if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          base: ${{ matrix.branch }}
+          branch: submodule-sync/${{ matrix.branch }}
+          delete-branch: true
+          commit-message: |
+            chore(submodules): bump ${{ matrix.branch }} pointers to their branch tips
+
+            Automated by .github/workflows/submodule-sync.yml.
+          title: 'chore(submodules): sync ${{ matrix.branch }} pointers'
+          body: |
+            Moves each submodule pointer on `${{ matrix.branch }}` to the tip of the branch
+            `.gitmodules` declares for it — `main` on master, `Development` on Development.
+
+            ```
+            ${{ steps.bump.outputs.summary }}
+            ```
+
+            **Review before merging.** On `master` this is a release: whatever landed on a
+            submodule's `main` since the last sync ships with it.
+
+            `Scripts/check_submodule_branches.py` runs on this PR and must pass.
