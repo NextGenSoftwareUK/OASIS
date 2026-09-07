@@ -8,8 +8,11 @@ name: Submodule Sync
 # stale silently. That is how dev.api.web6 ended up running older code than production
 # while both branches' pointers were still technically valid.
 #
-# This opens a PR rather than pushing: a pointer bump on master is a release, and should
-# be reviewed like one. check_submodule_branches.py runs on the PR as usual.
+# Opens a PR rather than pushing: a pointer bump on master is a release, and should be
+# reviewed like one. check_submodule_branches.py runs on the PR as usual.
+#
+# Uses only actions/checkout and the gh CLI preinstalled on GitHub-hosted runners, so no
+# third-party action gets write access to this repository.
 
 on:
   schedule:
@@ -18,11 +21,14 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to sync (blank = both)'
-        required: false
+        description: 'Branch to sync'
+        required: true
         type: choice
-        options: ['', 'master', 'Development']
-        default: ''
+        options:
+          - both
+          - master
+          - Development
+        default: both
 
 permissions:
   contents: write
@@ -30,7 +36,7 @@ permissions:
 
 jobs:
   sync:
-    name: Sync ${{ matrix.branch }} submodule pointers
+    name: Sync ${{ matrix.branch }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -38,14 +44,15 @@ jobs:
         branch: [master, Development]
 
     steps:
-      - name: Skip if a single branch was requested and this is not it
+      - name: Decide whether this branch was requested
         id: gate
         run: |
-          requested='${{ github.event.inputs.branch }}'
-          if [ -n "$requested" ] && [ "$requested" != '${{ matrix.branch }}' ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
+          requested='${{ github.event.inputs.branch || 'both' }}'
+          if [ "$requested" = "both" ] || [ "$requested" = '${{ matrix.branch }}' ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true"  >> "$GITHUB_OUTPUT"
+            echo "Skipping ${{ matrix.branch }} - run requested '$requested'."
           fi
 
       - uses: actions/checkout@v4
@@ -53,59 +60,69 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
           submodules: recursive
-          # A token with repo scope so the PR can trigger CI. GITHUB_TOKEN-created PRs
-          # do not fire workflow runs, which would leave the branch check unverified.
-          token: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          # A PR created with GITHUB_TOKEN does not trigger workflow runs, which would
+          # leave the branch check unverified on exactly the PRs that need it. Set a
+          # repo-scoped PAT as SUBMODULE_SYNC_TOKEN to get CI on these PRs.
+          token: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Move each pointer to the branch tip declared in .gitmodules
         if: steps.gate.outputs.skip == 'false'
         id: bump
         run: |
-          # --remote uses the branch = value in .gitmodules, which is why that file differs
-          # per branch: main on master, Development on Development.
+          set -euo pipefail
+
+          # --remote follows the branch = value in .gitmodules, which is why that file
+          # differs per branch: main on master, Development on Development.
           git submodule update --remote --recursive
 
           if git diff --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "All submodule pointers already at their branch tips."
+            echo "All submodule pointers are already at their branch tips."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "Pointers that moved:"
-            git diff --submodule=short | grep -E '^(Submodule|[+-]Subproject)' || true
-            {
-              echo 'summary<<PTREOF'
-              git diff --submodule=short | grep -E '^Submodule' || true
-              echo 'PTREOF'
-            } >> "$GITHUB_OUTPUT"
+            git diff --submodule=short | grep '^Submodule' || true
           fi
 
       - name: Verify the result still satisfies the branch rule
         if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
         run: python3 Scripts/check_submodule_branches.py
 
-      - name: Open a pull request
+      - name: Open or update the pull request
         if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
-          base: ${{ matrix.branch }}
-          branch: submodule-sync/${{ matrix.branch }}
-          delete-branch: true
-          commit-message: |
-            chore(submodules): bump ${{ matrix.branch }} pointers to their branch tips
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          TARGET: ${{ matrix.branch }}
+        run: |
+          set -euo pipefail
+          SYNC_BRANCH="submodule-sync/${TARGET}"
 
-            Automated by .github/workflows/submodule-sync.yml.
-          title: 'chore(submodules): sync ${{ matrix.branch }} pointers'
-          body: |
-            Moves each submodule pointer on `${{ matrix.branch }}` to the tip of the branch
-            `.gitmodules` declares for it — `main` on master, `Development` on Development.
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-            ```
-            ${{ steps.bump.outputs.summary }}
-            ```
+          git checkout -B "$SYNC_BRANCH"
+          git commit -am "chore(submodules): bump ${TARGET} pointers to their branch tips"
+          git push --force origin "$SYNC_BRANCH"
 
-            **Review before merging.** On `master` this is a release: whatever landed on a
-            submodule's `main` since the last sync ships with it.
+          # Build the body in a file - avoids heredoc indentation problems inside YAML.
+          {
+            printf 'Moves each submodule pointer to the tip of the branch `.gitmodules`'
+            printf ' declares for it: `main` on master, `Development` on Development.\n\n'
+            printf '**Review before merging.** On `master` this is a release: whatever'
+            printf ' landed on a submodule'"'"'s `main` since the last sync ships with it.\n\n'
+            printf 'Pointers that moved:\n\n```\n'
+            git diff --submodule=short "origin/${TARGET}...HEAD" | grep '^Submodule' || true
+            printf '```\n\n'
+            printf 'Opened by `.github/workflows/submodule-sync.yml`.\n'
+          } > /tmp/pr-body.md
 
-            `Scripts/check_submodule_branches.py` runs on this PR and must pass.
+          EXISTING=$(gh pr list --head "$SYNC_BRANCH" --base "$TARGET" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #${EXISTING} already open - the force push updated it."
+            gh pr edit "$EXISTING" --body-file /tmp/pr-body.md
+          else
+            gh pr create --base "$TARGET" --head "$SYNC_BRANCH" \
+              --title "chore(submodules): sync ${TARGET} pointers" \
+              --body-file /tmp/pr-body.md
+          fi
