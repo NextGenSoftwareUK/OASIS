@@ -234,3 +234,35 @@ Then paste into the matching partial class file. The companion source file alrea
 ## Related
 
 - `REMOVED_AND_MOVED_PROJECTS.md` — project-level removals and relocations (including OPORTAL)
+
+---
+
+## Follow-up: widened audit (2026-09-05)
+
+The original pass only covered the 162 commits with **"split"** in the subject. That
+net was demonstrably too narrow — two of the five commits that actually dropped
+methods were titled *"Started work on re-factoring the Publish methods…"* and
+*"Finished refactoring…"*, and matched only incidentally.
+
+The audit was re-run across **995 commits** whose subject mentions split, refactor,
+rename, move, consolidate, merge, extract, cleanup, remove, reorganise or restructure.
+
+**Result: 703 candidates, zero genuine losses.**
+
+Of the 81 that appeared to still be called:
+
+| | Count | Why it is not a break |
+|---|---|---|
+| External binding | 37 | The call resolves to a package type of the same name — e.g. `Logger.AddLogProvider` binds to NextGenSoftware.Logging, not to the deleted OASIS method |
+| Comment-only | 32 | Every remaining occurrence is inside a comment |
+| Not built | 6 | Only callers live in `Archived/`, which no solution builds |
+| Audit artefact | 6 | The method exists today; the declaration regex missed it |
+
+The six artefacts exposed two traps worth remembering if this is ever re-run — the
+declaration pattern must allow members with **no access modifier**
+(`async Task LoadConfig()`) and generic return types containing a **space**
+(`Dictionary<string, object>`).
+
+**The stronger guarantee now comes from the build, not the audit.** Every project is
+in a solution and CI fails on any error in the production build, so a genuinely
+missing member that compiled code calls can no longer hide.
