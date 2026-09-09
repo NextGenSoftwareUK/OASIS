@@ -466,7 +466,10 @@ class Program
         Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
         Console.WriteLine($"  Target : {BaseUrl}");
         Console.WriteLine($"  Email  : {(string.IsNullOrEmpty(Email) ? "(not set — use OASIS_EMAIL)" : Email)}");
-        Console.WriteLine($"  Webhook: {(string.IsNullOrEmpty(WebhookSecret) ? "(not set — webhook tests will be skipped)" : "whsec_***")}");
+        var webhookMode = !string.IsNullOrEmpty(WebhookTestToken) ? "test-token bypass"
+            : !string.IsNullOrEmpty(WebhookSecret) ? "HMAC (whsec_***)"
+            : "(not set — webhook tests will be skipped)";
+        Console.WriteLine($"  Webhook: {webhookMode}");
         Console.WriteLine();
     }
 
@@ -474,8 +477,8 @@ class Program
     {
         if (string.IsNullOrEmpty(PresetJwt) && (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password)))
             Warn("Neither ONODE_JWT_TOKEN nor OASIS_EMAIL+OASIS_PASSWORD are set. Auth tests will fail.");
-        if (string.IsNullOrEmpty(WebhookSecret))
-            Warn("STRIPE_WEBHOOK_SECRET not set. Webhook simulation tests will be skipped.");
+        if (string.IsNullOrEmpty(WebhookSecret) && string.IsNullOrEmpty(WebhookTestToken))
+            Warn("Neither STRIPE_WEBHOOK_SECRET nor STRIPE_WEBHOOK_TEST_TOKEN set. Webhook tests will be skipped.");
     }
 
     static Task Section(string title)
