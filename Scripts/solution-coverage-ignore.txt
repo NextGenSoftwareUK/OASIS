@@ -47,8 +47,13 @@ OASIS Omniverse/OGEngineClient/
 OASIS Omniverse/OASIS Hub/
 
 
-# Placeholder providers - their only source file is entirely commented out, so there
-# is no class to construct or test. Left on disk; no test projects generated for them.
-Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/
+# Superseded HoloOASIS platform shells. HoloOASIS was originally an abstract
+# HoloOASISBase with thin .Desktop and .Unity subclasses, each supplying a
+# platform-specific HoloNET client. HoloNET v4 unified those into
+# HoloNETClientAdmin/HoloNETClientAppAgent with no platform split, so the base
+# class was removed and the main provider became concrete. These two shells still
+# reference HoloOASISBase and HoloNET namespaces that no longer exist, so their
+# only source file is entirely commented out. Kept on disk, not built, not counted
+# as providers. See Docs/REMOVED_AND_MOVED_PROJECTS.md.
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/
