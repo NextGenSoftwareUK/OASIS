@@ -225,17 +225,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task HandleStripeEventAsync(Event stripeEvent)
         {
+            if (stripeEvent?.Data == null) return;
+
             switch (stripeEvent.Type)
             {
                 case "checkout.session.completed":
-                    await OnCheckoutCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session);
+                    await OnCheckoutCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session, stripeEvent.Data.RawObject);
                     break;
                 case "customer.subscription.created":
                 case "customer.subscription.updated":
-                    await OnSubscriptionUpdatedAsync(stripeEvent.Data.Object as Stripe.Subscription);
+                    await OnSubscriptionUpdatedAsync(stripeEvent.Data.Object as Stripe.Subscription, stripeEvent.Data.RawObject);
                     break;
                 case "customer.subscription.deleted":
-                    await OnSubscriptionDeletedAsync(stripeEvent.Data.Object as Stripe.Subscription);
+                    await OnSubscriptionDeletedAsync(stripeEvent.Data.Object as Stripe.Subscription, stripeEvent.Data.RawObject);
                     break;
                 case "invoice.payment_succeeded":
                     await OnPaymentSucceededAsync(stripeEvent.Data.Object as Invoice);
@@ -246,11 +248,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task OnCheckoutCompletedAsync(Stripe.Checkout.Session session)
+        private async Task OnCheckoutCompletedAsync(Stripe.Checkout.Session session, Newtonsoft.Json.Linq.JObject raw = null)
         {
-            if (session == null) return;
-            var avatarId = session.Metadata?.GetValueOrDefault("avatar_id");
-            var planId = session.Metadata?.GetValueOrDefault("plan_id");
+            string avatarId, planId, customerId, subscriptionId, sessionId;
+
+            if (session != null)
+            {
+                avatarId      = session.Metadata?.GetValueOrDefault("avatar_id");
+                planId        = session.Metadata?.GetValueOrDefault("plan_id");
+                customerId    = session.CustomerId;
+                subscriptionId = session.SubscriptionId;
+                sessionId     = session.Id;
+            }
+            else if (raw != null)
+            {
+                // Fallback for test/synthetic payloads where Stripe SDK cast returns null
+                var meta  = raw["metadata"];
+                avatarId      = meta?["avatar_id"]?.ToString();
+                planId        = meta?["plan_id"]?.ToString();
+                customerId    = raw["customer"]?.ToString();
+                subscriptionId = raw["subscription"]?.ToString();
+                sessionId     = raw["id"]?.ToString();
+            }
+            else return;
+
             if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId)) return;
 
             await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
@@ -258,8 +279,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 UserId = avatarId,
                 PlanId = planId,
                 Status = "active",
-                StripeCustomerId = session.CustomerId,
-                StripeSubscriptionId = session.SubscriptionId,
+                StripeCustomerId = customerId,
+                StripeSubscriptionId = subscriptionId,
                 CurrentPeriodStart = DateTime.UtcNow,
                 CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1)
             });
@@ -273,11 +294,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Amount = plan?.PriceMonthly ?? 0m,
                 Currency = "USD",
                 Status = "paid",
-                StripeInvoiceId = session.Id
+                StripeInvoiceId = sessionId
             });
         }
 
-        private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription)
+        private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
         {
             if (subscription == null) return;
             var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
@@ -296,11 +317,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             await _subscriptionService.UpsertSubscriptionAsync(record);
         }
 
-        private async Task OnSubscriptionDeletedAsync(Stripe.Subscription subscription)
+        private async Task OnSubscriptionDeletedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
         {
-            if (subscription == null) return;
-            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
-                      ?? await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(subscription.CustomerId);
+            string subscriptionId, customerId;
+
+            if (subscription != null)
+            {
+                subscriptionId = subscription.Id;
+                customerId = subscription.CustomerId;
+            }
+            else if (raw != null)
+            {
+                subscriptionId = raw["id"]?.ToString();
+                customerId = raw["customer"]?.ToString();
+            }
+            else return;
+
+            var record = (string.IsNullOrEmpty(subscriptionId) ? null : await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscriptionId))
+                      ?? (string.IsNullOrEmpty(customerId) ? null : await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(customerId));
             if (record == null) return;
 
             record.Status = "cancelled";
