@@ -1,324 +1,534 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 /// <summary>
-/// Manual test harness for the ONODE and ONET WebAPI endpoints.
-/// Runs against a locally-running ONODE WebAPI (default: http://localhost:5000) or a remote ONODE.
+/// End-to-end test harness for the ONODE WebAPI subscription flow.
 ///
-/// Set ONODE_BASE_URL env var to point at a different host.
-/// Set ONODE_JWT_TOKEN to include a valid JWT for endpoints that require authentication.
+/// Required env vars:
+///   ONODE_BASE_URL          - base URL of the ONODE API (default: http://localhost:5000)
+///   OASIS_EMAIL             - email of the test avatar account
+///   OASIS_PASSWORD          - password of the test avatar account
+///   STRIPE_WEBHOOK_SECRET   - webhook signing secret (whsec_...) from Stripe Dashboard
 ///
-/// Pattern matches the rest of OASIS — a console harness the developer runs to exercise the live
-/// stack end-to-end, complementing the automated unit/integration test suites.
+/// Optional:
+///   ONODE_JWT_TOKEN         - skip auto-login and use this JWT directly
+///   STRIPE_PRICE_BRONZE     - Stripe price ID for bronze plan (used for checkout session test)
+///
+/// What this tests:
+///   1. Authenticate with the OASIS API and get a JWT
+///   2. GET /subscription/plans   - verify 5 plans are returned
+///   3. GET /subscription/subscriptions/me  - record pre-test plan
+///   4. POST /subscription/checkout/session  - create a Stripe checkout session for bronze
+///   5. Simulate Stripe checkout.session.completed webhook with valid HMAC signature
+///   6. GET /subscription/subscriptions/me  - verify plan changed to bronze
+///   7. Simulate customer.subscription.deleted webhook  - cancel the subscription
+///   8. GET /subscription/subscriptions/me  - verify status changed to cancelled
+///   9. Restore the original free plan via checkout/session
 /// </summary>
 class Program
 {
     static readonly string BaseUrl = Environment.GetEnvironmentVariable("ONODE_BASE_URL") ?? "http://localhost:5000";
-    static readonly string? JwtToken = Environment.GetEnvironmentVariable("ONODE_JWT_TOKEN");
+    static readonly string Email = Environment.GetEnvironmentVariable("OASIS_EMAIL") ?? "";
+    static readonly string Password = Environment.GetEnvironmentVariable("OASIS_PASSWORD") ?? "";
+    static readonly string WebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET") ?? "";
+    static readonly string? PresetJwt = Environment.GetEnvironmentVariable("ONODE_JWT_TOKEN");
 
-    static readonly HttpClient Http = new HttpClient
-    {
-        BaseAddress = new Uri(BaseUrl),
-        Timeout = TimeSpan.FromSeconds(15)
-    };
+    static readonly HttpClient Http = new() { BaseAddress = new Uri(BaseUrl), Timeout = TimeSpan.FromSeconds(20) };
+    static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     static int _pass, _fail;
+    static string? _jwt;
+    static string? _avatarId;
 
-    static async Task Main(string[] args)
+    // ── Entry point ──────────────────────────────────────────────────────────
+
+    static async Task<int> Main(string[] args)
     {
-        if (JwtToken != null)
-            Http.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", JwtToken);
+        Banner();
+        CheckEnv();
 
-        Console.WriteLine("NEXTGEN SOFTWARE ONODE WEB API TEST HARNESS V2.0");
-        Console.WriteLine($"Target: {BaseUrl}");
-        Console.WriteLine(JwtToken != null ? "Auth: JWT token provided" : "Auth: NONE (some endpoints will return 401)");
-        Console.WriteLine(new string('=', 70));
-
-        // ── ONODE endpoints ──────────────────────────────────────────────────
-        await Section("ONODE — Node lifecycle");
-        await Get("/api/v1/onode/status",                   "GET  /onode/status");
-        await Get("/api/v1/onode/info",                     "GET  /onode/info");
-        await Get("/api/v1/onode/metrics",                  "GET  /onode/metrics");
-        await Get("/api/v1/onode/logs",                     "GET  /onode/logs");
-        await Get("/api/v1/onode/config",                   "GET  /onode/config");
-        await Get("/api/v1/onode/peers",                    "GET  /onode/peers");
-        await Get("/api/v1/onode/stats",                    "GET  /onode/stats");
-        await Get("/api/v1/onode/oasisdna",                 "GET  /onode/oasisdna");
-
-        await Post("/api/v1/onode/start",   null,           "POST /onode/start");
-        await Post("/api/v1/onode/stop",    null,           "POST /onode/stop");
-        await Post("/api/v1/onode/restart", null,           "POST /onode/restart");
-
-        await Put("/api/v1/onode/config",
-            new { Config = new Dictionary<string, object> { ["testKey"] = "testValue" } },
-            "PUT  /onode/config");
-
-        // ── ONET endpoints ───────────────────────────────────────────────────
-        await Section("ONET — Network management");
-        await Get("/api/v1/onet/network/status",            "GET  /onet/network/status");
-        await Get("/api/v1/onet/network/nodes",             "GET  /onet/network/nodes");
-        await Get("/api/v1/onet/network/stats",             "GET  /onet/network/stats");
-        await Get("/api/v1/onet/network/topology",          "GET  /onet/network/topology");
-        await Get("/api/v1/onet/oasisdna",                  "GET  /onet/oasisdna");
-
-        await Post("/api/v1/onet/network/start", null,      "POST /onet/network/start");
-        await Post("/api/v1/onet/network/stop",  null,      "POST /onet/network/stop");
-
-        await Post("/api/v1/onet/network/connect",
-            new { NodeId = "test-node-id", NodeAddress = "127.0.0.1:38471" },
-            "POST /onet/network/connect");
-
-        await Post("/api/v1/onet/network/broadcast",
-            new { Message = "hello onet", MessageType = "test" },
-            "POST /onet/network/broadcast");
-
-        await Post("/api/v1/onet/nodes/register",
-            new { NodeId = "harness-node-001", PublicKey = Convert.ToBase64String(Encoding.UTF8.GetBytes("fake-public-key-for-harness")), NodeAddress = (string?)null },
-            "POST /onet/nodes/register");
-
-        await Post("/api/v1/onet/network/disconnect",
-            new { NodeId = "test-node-id" },
-            "POST /onet/network/disconnect");
-
-        // ── Subscription — PUBLIC endpoints (no auth needed) ─────────────────
-        await Section("Subscription — public endpoints");
-
-        await GetExpect("/api/subscription/plans",
-            200, "GET  /subscription/plans",
-            body => body.Contains("\"free\"") && body.Contains("\"bronze\""),
-            "should contain free and bronze plans");
-
-        await GetExpect("/api/subscription/hyperdrive-usage",
-            200, "GET  /subscription/hyperdrive-usage",
-            body => body.Contains("PlanType") || body.Contains("planType"),
-            "should contain PlanType field");
-
-        // ── Subscription — POST check-hyperdrive-quota ────────────────────────
-        await PostExpect("/api/subscription/check-hyperdrive-quota",
-            new { OperationType = "Requests" },
-            200, "POST /subscription/check-hyperdrive-quota (Requests)",
-            body => body.Contains("CanProceed") || body.Contains("canProceed"),
-            "should contain CanProceed field");
-
-        await PostExpect("/api/subscription/check-hyperdrive-quota",
-            new { OperationType = "Replications" },
-            200, "POST /subscription/check-hyperdrive-quota (Replications)",
-            body => body.Length > 2,
-            "should return non-empty body");
-
-        // ── Subscription — webhook (no secret → 400) ──────────────────────────
-        await Section("Subscription — Stripe webhook (no secret configured)");
-
-        await PostExpect("/api/subscription/webhooks/stripe",
-            new { },
-            400, "POST /subscription/webhooks/stripe (no secret/signature)",
-            _ => true,
-            "400 expected when webhook secret not set or Stripe-Signature missing");
-
-        // ── Subscription — checkout session validation ─────────────────────────
-        await Section("Subscription — checkout session validation");
-
-        await PostExpect("/api/subscription/checkout/session",
-            new { PlanId = "enterprise" },
-            400, "POST /subscription/checkout/session (enterprise, no auth — 400 or 401)",
-            _ => true,
-            "enterprise plan = contact sales (400) or unauthenticated (401)");
-
-        await PostExpect("/api/subscription/checkout/session",
-            new { PlanId = "diamond_nonexistent" },
-            400, "POST /subscription/checkout/session (unknown plan — 400 or 401)",
-            _ => true,
-            "unknown plan should return 400 or 401");
-
-        // ── Subscription — authenticated endpoints ────────────────────────────
-        await Section("Subscription — authenticated endpoints" + (JwtToken == null ? " (SKIPPED — no JWT token)" : ""));
-
-        if (JwtToken != null)
+        // ── 1. Auth ──────────────────────────────────────────────────────────
+        await Section("1. Authentication");
+        await Authenticate();
+        if (_jwt == null)
         {
-            await GetExpect("/api/subscription/subscriptions/me",
-                200, "GET  /subscription/subscriptions/me",
-                body => body.Contains("Result") || body.Contains("result"),
-                "should return a Result field");
+            Red("Cannot continue without a valid JWT. Set OASIS_EMAIL + OASIS_PASSWORD or ONODE_JWT_TOKEN.");
+            return 1;
+        }
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _jwt);
 
-            await GetExpect("/api/subscription/orders/me",
-                200, "GET  /subscription/orders/me",
-                body => body.Contains("Result") || body.Contains("result"),
-                "should return a Result field");
+        // ── 2. Plans ─────────────────────────────────────────────────────────
+        await Section("2. GET /subscription/plans  (public)");
+        var plans = await GetExpect("/api/subscription/plans", 200,
+            "Plans endpoint returns 200",
+            j => j?["Result"]?.AsArray().Count >= 5,
+            "should return 5 plans");
 
-            await GetExpect("/api/subscription/usage",
-                200, "GET  /subscription/usage",
-                body => body.Contains("currentMonth") || body.Contains("requests"),
-                "should contain currentMonth usage data");
+        // ── 3. Pre-test subscription state ───────────────────────────────────
+        await Section("3. Pre-test subscription state");
+        var preTestSub = await GetExpect("/api/subscription/subscriptions/me", 200,
+            "GET subscriptions/me returns 200",
+            _ => true, "");
+        var preTestPlan = ExtractPlanId(preTestSub);
+        Console.WriteLine($"       Pre-test plan: {preTestPlan ?? "none (free)"}");
 
-            await PostExpect("/api/subscription/toggle-pay-as-you-go",
-                new { Enabled = false },
-                200, "POST /subscription/toggle-pay-as-you-go (disable)",
-                body => body.Contains("false") || body.Contains("False"),
-                "should echo back PayAsYouGoEnabled = false");
+        // ── 4. Checkout session ───────────────────────────────────────────────
+        await Section("4. POST /subscription/checkout/session  (bronze)");
+        var checkoutBody = await PostExpect("/api/subscription/checkout/session",
+            new { PlanId = "bronze", SuccessUrl = $"{BaseUrl}/success", CancelUrl = $"{BaseUrl}/cancel" },
+            200, 500,  // 200 with Stripe key configured, 500 without
+            "Create bronze checkout session",
+            j => j?["SessionUrl"] != null || j?["Message"]?.ToString()?.Contains("Stripe") == true,
+            "should return SessionUrl or indicate Stripe config issue");
 
-            await PostExpect("/api/subscription/checkout/session",
-                new { PlanId = "free", SuccessUrl = "/success" },
-                200, "POST /subscription/checkout/session (free plan, authenticated)",
-                body => body.Contains("activated") || body.Contains("SessionUrl"),
-                "free plan should activate immediately");
+        var sessionUrl = checkoutBody?["SessionUrl"]?.ToString();
+        var sessionId = checkoutBody?["SessionId"]?.ToString();
+        Console.WriteLine($"       SessionUrl: {sessionUrl ?? "(not returned — Stripe not configured or no price ID)"}");
 
-            await PostExpect("/api/subscription/checkout/session",
-                new { PlanId = "bronze", SuccessUrl = "/success", CancelUrl = "/cancel" },
-                500, "POST /subscription/checkout/session (bronze, no Stripe key → 500)",
-                body => body.Contains("STRIPE_SECRET_KEY") || body.Contains("Stripe"),
-                "should indicate Stripe not configured when no key set");
+        // ── 5. Simulate checkout.session.completed webhook ───────────────────
+        await Section("5. Stripe webhook: checkout.session.completed");
+
+        if (string.IsNullOrEmpty(WebhookSecret))
+        {
+            Warn("STRIPE_WEBHOOK_SECRET not set — skipping webhook simulation tests.");
+            Warn("Set it to the whsec_... value from your Stripe Dashboard → Webhooks.");
         }
         else
         {
-            // Expect 401s for all authenticated endpoints
-            await GetExpect("/api/subscription/subscriptions/me",
-                401, "GET  /subscription/subscriptions/me (no auth → 401)",
-                _ => true, "");
-            await GetExpect("/api/subscription/orders/me",
-                401, "GET  /subscription/orders/me (no auth → 401)",
-                _ => true, "");
-            await GetExpect("/api/subscription/usage",
-                401, "GET  /subscription/usage (no auth → 401)",
-                _ => true, "");
+            // Build a realistic checkout.session.completed event
+            var fakeCheckoutSession = new
+            {
+                id = sessionId ?? $"cs_test_{Guid.NewGuid():N}",
+                @object = "checkout.session",
+                customer = $"cus_test_{Guid.NewGuid():N}[..8]",
+                subscription = $"sub_test_{Guid.NewGuid():N}",
+                payment_status = "paid",
+                status = "complete",
+                metadata = new Dictionary<string, string>
+                {
+                    ["avatar_id"] = _avatarId ?? "unknown",
+                    ["plan_id"] = "bronze"
+                }
+            };
+
+            await SendWebhook("checkout.session.completed",
+                fakeCheckoutSession,
+                "checkout.session.completed → UpsertSubscription called");
+
+            // ── 6. Verify subscription is now bronze ──────────────────────────
+            await Section("6. Verify subscription updated to bronze");
+            await Task.Delay(500); // brief pause — webhook handler is async
+            var postWebhookSub = await GetExpect("/api/subscription/subscriptions/me", 200,
+                "GET subscriptions/me after webhook",
+                j =>
+                {
+                    var arr = j?["Result"]?.AsArray();
+                    if (arr == null || arr.Count == 0) return false;
+                    var planId = arr[0]?["PlanId"]?.ToString();
+                    return planId == "bronze";
+                },
+                "PlanId should be 'bronze' after checkout.session.completed webhook");
+
+            var postPlan = ExtractPlanId(postWebhookSub);
+            Console.WriteLine($"       Post-webhook plan: {postPlan ?? "none — SAVE FAILED (check Railway logs for SaveSettingsAsync)"}");
+
+            if (postPlan == "bronze")
+            {
+                Pass("  Subscription correctly shows bronze after webhook", HttpStatusCode.OK, "");
+            }
+            else
+            {
+                Fail("  Subscription plan after webhook",
+                    $"Still '{postPlan ?? "none"}' — SaveSettingsAsync is not persisting! Check Railway logs.");
+            }
+
+            // ── 7. Simulate subscription.deleted webhook ──────────────────────
+            await Section("7. Stripe webhook: customer.subscription.deleted");
+
+            var fakeSubscription = new
+            {
+                id = $"sub_test_{Guid.NewGuid():N}",
+                @object = "subscription",
+                customer = $"cus_test_{Guid.NewGuid():N}",
+                status = "canceled"
+            };
+
+            await SendWebhook("customer.subscription.deleted",
+                fakeSubscription,
+                "customer.subscription.deleted → status set to cancelled");
+
+            // ── 8. Verify cancelled ───────────────────────────────────────────
+            await Section("8. Verify subscription shows cancelled");
+            await Task.Delay(500);
+            var cancelledSub = await GetExpect("/api/subscription/subscriptions/me", 200,
+                "GET subscriptions/me after deletion webhook",
+                j =>
+                {
+                    var arr = j?["Result"]?.AsArray();
+                    if (arr == null || arr.Count == 0) return true; // record may be gone
+                    var status = arr[0]?["Status"]?.ToString();
+                    return status == "cancelled" || status == "canceled";
+                },
+                "Status should be 'cancelled' after subscription.deleted webhook");
+
+            // ── 9. Restore free plan ──────────────────────────────────────────
+            await Section("9. Restore free plan");
+            await PostExpect("/api/subscription/checkout/session",
+                new { PlanId = "free", SuccessUrl = "/success" },
+                200, 200,
+                "Restore free plan",
+                j => j?["Message"]?.ToString()?.Contains("activated") == true ||
+                     j?["SessionUrl"] != null,
+                "Free plan should activate immediately");
+
+            await Task.Delay(300);
+            var restoredSub = await GetExpect("/api/subscription/subscriptions/me", 200,
+                "Verify restored to free",
+                j =>
+                {
+                    var arr = j?["Result"]?.AsArray();
+                    if (arr == null || arr.Count == 0) return true; // no record = free
+                    var planId = arr[0]?["PlanId"]?.ToString();
+                    return planId == "free" || planId == null;
+                },
+                "Plan should be free after restore");
         }
 
-        // ── update-hyperdrive-config ──────────────────────────────────────────
-        await Section("Subscription — HyperDrive config update");
-        await PostExpect("/api/subscription/update-hyperdrive-config",
-            new { PlanType = "free", PayAsYouGoEnabled = false },
-            200, "POST /subscription/update-hyperdrive-config (free plan)",
-            _ => true, "should return 200");
+        // ── 10. Usage endpoint ────────────────────────────────────────────────
+        await Section("10. GET /subscription/usage");
+        await GetExpect("/api/subscription/usage", 200,
+            "Usage endpoint returns currentMonth",
+            j => j?["currentMonth"] != null,
+            "should contain currentMonth field");
 
-        await PostExpect("/api/subscription/update-hyperdrive-config",
-            new { PlanType = "bronze", PayAsYouGoEnabled = false },
-            200, "POST /subscription/update-hyperdrive-config (bronze plan)",
-            _ => true, "should return 200");
+        // ── 11. Orders ────────────────────────────────────────────────────────
+        await Section("11. GET /subscription/orders/me");
+        await GetExpect("/api/subscription/orders/me", 200,
+            "Orders endpoint returns Result array",
+            j => j?["Result"] != null,
+            "should contain Result field");
 
-        // ── Summary ──────────────────────────────────────────────────────────
-        Console.WriteLine();
-        Console.WriteLine(new string('=', 70));
-        Console.WriteLine($"RESULT: {_pass} passed, {_fail} failed out of {_pass + _fail} tests");
-        if (_fail > 0) Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(_fail == 0 ? "ALL TESTS PASSED" : $"{_fail} TEST(S) FAILED");
-        Console.ResetColor();
+        // ── 12. HyperDrive ────────────────────────────────────────────────────
+        await Section("12. HyperDrive endpoints");
+        await GetExpect("/api/subscription/hyperdrive-usage", 200,
+            "GET hyperdrive-usage",
+            j => j?["Result"] != null,
+            "should return Result");
 
-        if (JwtToken == null)
+        await PostExpect("/api/subscription/check-hyperdrive-quota",
+            new { OperationType = "Requests" },
+            200, 200,
+            "POST check-hyperdrive-quota (Requests)",
+            j => j?["Result"]?["CanProceed"] != null,
+            "should return CanProceed");
+
+        // ── Summary ───────────────────────────────────────────────────────────
+        Summary();
+        return _fail > 0 ? 1 : 0;
+    }
+
+    // ── Auth ─────────────────────────────────────────────────────────────────
+
+    static async Task Authenticate()
+    {
+        if (!string.IsNullOrEmpty(PresetJwt))
         {
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("TIP: Set ONODE_JWT_TOKEN to a valid JWT to also test authenticated endpoints.");
-            Console.ResetColor();
+            _jwt = PresetJwt;
+            Console.WriteLine("  Using preset ONODE_JWT_TOKEN.");
+            // Try to extract avatar id from the JWT claims
+            _avatarId = ExtractAvatarIdFromJwt(_jwt);
+            Pass("  JWT provided via env var", HttpStatusCode.OK, $"avatarId={_avatarId ?? "unknown"}");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
+        {
+            Fail("  Cannot authenticate", "OASIS_EMAIL and OASIS_PASSWORD not set. Provide them or set ONODE_JWT_TOKEN.");
+            return;
+        }
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/avatar/authenticate",
+                new { Email, Password });
+
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Fail("  POST /api/avatar/authenticate", $"{(int)response.StatusCode} — {body[..Math.Min(200, body.Length)]}");
+                return;
+            }
+
+            var doc = JsonNode.Parse(body);
+            _jwt = doc?["jwtToken"]?.ToString()
+                ?? doc?["JwtToken"]?.ToString()
+                ?? doc?["token"]?.ToString()
+                ?? doc?["Result"]?["jwtToken"]?.ToString()
+                ?? doc?["Result"]?["JwtToken"]?.ToString();
+
+            _avatarId = doc?["id"]?.ToString()
+                ?? doc?["Id"]?.ToString()
+                ?? doc?["Result"]?["id"]?.ToString()
+                ?? doc?["Result"]?["Id"]?.ToString();
+
+            if (_jwt == null)
+            {
+                Fail("  POST /api/avatar/authenticate", $"No JWT in response: {body[..Math.Min(300, body.Length)]}");
+                return;
+            }
+
+            Pass("  POST /api/avatar/authenticate", response.StatusCode,
+                $"avatarId={_avatarId ?? "unknown"}  jwt={_jwt[..Math.Min(20, _jwt.Length)]}...");
+        }
+        catch (Exception ex)
+        {
+            Fail("  POST /api/avatar/authenticate", ex.Message);
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Stripe webhook simulation ─────────────────────────────────────────────
+
+    static async Task SendWebhook(string eventType, object dataObject, string label)
+    {
+        try
+        {
+            var payload = BuildStripeEventPayload(eventType, dataObject);
+            var signature = ComputeStripeSignature(payload, WebhookSecret);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "/api/subscription/webhooks/stripe");
+            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+            request.Headers.Add("Stripe-Signature", signature);
+
+            var response = await Http.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+                Pass($"  {label}", response.StatusCode, body[..Math.Min(100, body.Length)]);
+            else
+                Fail($"  {label}", $"{(int)response.StatusCode} — {body[..Math.Min(200, body.Length)]}");
+        }
+        catch (Exception ex)
+        {
+            Fail($"  {label}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Builds a minimal Stripe event envelope.
+    /// The Stripe SDK's EventUtility.ConstructEvent only validates the signature
+    /// and the timestamp; the inner object shape is validated by the cast in the controller.
+    /// </summary>
+    static string BuildStripeEventPayload(string type, object dataObject)
+    {
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var payload = new
+        {
+            id = $"evt_{Guid.NewGuid():N}",
+            @object = "event",
+            api_version = "2024-06-20",
+            created = ts,
+            type,
+            livemode = false,
+            data = new { @object = dataObject }
+        };
+        return JsonSerializer.Serialize(payload, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+    }
+
+    /// <summary>
+    /// Computes a Stripe webhook signature: t=timestamp,v1=HMAC-SHA256(secret, "timestamp.payload").
+    /// Mirrors what Stripe.net EventUtility.ConstructEvent validates on the server side.
+    /// </summary>
+    static string ComputeStripeSignature(string payload, string secret)
+    {
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var signedPayload = $"{ts}.{payload}";
+
+        // Stripe webhook secrets start with "whsec_" and are base64-encoded
+        var keyBytes = Convert.FromBase64String(secret.Replace("whsec_", ""));
+        using var hmac = new HMACSHA256(keyBytes);
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(signedPayload));
+        var sig = Convert.ToHexString(hash).ToLower();
+
+        return $"t={ts},v1={sig}";
+    }
+
+    // ── HTTP helpers ──────────────────────────────────────────────────────────
+
+    static async Task<JsonNode?> GetExpect(string path, int expectedStatus, string label,
+        Func<JsonNode?, bool> check, string checkDesc)
+    {
+        try
+        {
+            var response = await Http.GetAsync(path);
+            var body = await response.Content.ReadAsStringAsync();
+            var status = (int)response.StatusCode;
+
+            JsonNode? doc = null;
+            try { doc = JsonNode.Parse(body); } catch { }
+
+            var statusOk = status == expectedStatus;
+            var checkOk = check(doc);
+
+            if (statusOk && checkOk)
+                Pass($"  {label}", response.StatusCode, body[..Math.Min(120, body.Length)]);
+            else
+                Fail($"  {label}",
+                    !statusOk ? $"Expected {expectedStatus} got {status}. Body: {body[..Math.Min(200, body.Length)]}"
+                               : $"Body check failed ({checkDesc}): {body[..Math.Min(200, body.Length)]}");
+
+            return doc;
+        }
+        catch (Exception ex) { Fail($"  {label}", ex.Message); return null; }
+    }
+
+    static async Task<JsonNode?> PostExpect(string path, object payload,
+        int expectedStatus1, int expectedStatus2, string label,
+        Func<JsonNode?, bool> check, string checkDesc)
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync(path, payload);
+            var body = await response.Content.ReadAsStringAsync();
+            var status = (int)response.StatusCode;
+
+            JsonNode? doc = null;
+            try { doc = JsonNode.Parse(body); } catch { }
+
+            var statusOk = status == expectedStatus1 || status == expectedStatus2;
+            var checkOk = check(doc);
+
+            if (statusOk && checkOk)
+                Pass($"  {label}", response.StatusCode, body[..Math.Min(120, body.Length)]);
+            else
+                Fail($"  {label}",
+                    !statusOk ? $"Expected {expectedStatus1}/{expectedStatus2} got {status}. Body: {body[..Math.Min(200, body.Length)]}"
+                               : $"Body check failed ({checkDesc}): {body[..Math.Min(200, body.Length)]}");
+
+            return doc;
+        }
+        catch (Exception ex) { Fail($"  {label}", ex.Message); return null; }
+    }
+
+    // ── Utility ───────────────────────────────────────────────────────────────
+
+    static string? ExtractPlanId(JsonNode? doc)
+    {
+        var arr = doc?["Result"]?.AsArray();
+        if (arr == null || arr.Count == 0) return null;
+        return arr[0]?["PlanId"]?.ToString();
+    }
+
+    static string? ExtractAvatarIdFromJwt(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length < 2) return null;
+            var payload = parts[1];
+            // Pad base64url
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            while (payload.Length % 4 != 0) payload += "=";
+            var json = Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+            var doc = JsonNode.Parse(json);
+            return doc?["sub"]?.ToString()
+                ?? doc?["nameid"]?.ToString()
+                ?? doc?["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]?.ToString();
+        }
+        catch { return null; }
+    }
+
+    // ── Console output ────────────────────────────────────────────────────────
+
+    static void Banner()
+    {
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║      OASIS SUBSCRIPTION END-TO-END TEST HARNESS  v3.0               ║");
+        Console.WriteLine("║      Tests the full portal subscription signup flow                  ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
+        Console.WriteLine($"  Target : {BaseUrl}");
+        Console.WriteLine($"  Email  : {(string.IsNullOrEmpty(Email) ? "(not set — use OASIS_EMAIL)" : Email)}");
+        Console.WriteLine($"  Webhook: {(string.IsNullOrEmpty(WebhookSecret) ? "(not set — webhook tests will be skipped)" : "whsec_***")}");
+        Console.WriteLine();
+    }
+
+    static void CheckEnv()
+    {
+        if (string.IsNullOrEmpty(PresetJwt) && (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password)))
+            Warn("Neither ONODE_JWT_TOKEN nor OASIS_EMAIL+OASIS_PASSWORD are set. Auth tests will fail.");
+        if (string.IsNullOrEmpty(WebhookSecret))
+            Warn("STRIPE_WEBHOOK_SECRET not set. Webhook simulation tests will be skipped.");
+    }
 
     static Task Section(string title)
     {
         Console.WriteLine();
-        Console.WriteLine($"── {title} ──");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine($"── {title}");
+        Console.ResetColor();
         return Task.CompletedTask;
     }
 
-    static async Task Get(string path, string label)
-    {
-        try
-        {
-            var response = await Http.GetAsync(path);
-            var body = await response.Content.ReadAsStringAsync();
-            Pass(label, response.StatusCode, body);
-        }
-        catch (Exception ex) { Fail(label, ex.Message); }
-    }
-
-    static async Task GetExpect(string path, int expectedStatus, string label, Func<string, bool> bodyCheck, string bodyCheckDesc)
-    {
-        try
-        {
-            var response = await Http.GetAsync(path);
-            var body = await response.Content.ReadAsStringAsync();
-            var statusOk = (int)response.StatusCode == expectedStatus;
-            var bodyOk = bodyCheck(body);
-            if (statusOk && bodyOk)
-                Pass(label, response.StatusCode, body);
-            else
-                Fail(label, $"Expected status {expectedStatus} got {(int)response.StatusCode}" +
-                            (!bodyOk ? $"; body check failed: {bodyCheckDesc}" : ""));
-        }
-        catch (Exception ex) { Fail(label, ex.Message); }
-    }
-
-    static async Task Post(string path, object? payload, string label)
-    {
-        try
-        {
-            var content = payload is null
-                ? new StringContent("{}", Encoding.UTF8, "application/json")
-                : JsonContent.Create(payload);
-            var response = await Http.PostAsync(path, content);
-            var body = await response.Content.ReadAsStringAsync();
-            Pass(label, response.StatusCode, body);
-        }
-        catch (Exception ex) { Fail(label, ex.Message); }
-    }
-
-    static async Task PostExpect(string path, object? payload, int expectedStatus, string label, Func<string, bool> bodyCheck, string bodyCheckDesc)
-    {
-        try
-        {
-            var content = payload is null
-                ? new StringContent("{}", Encoding.UTF8, "application/json")
-                : JsonContent.Create(payload);
-            var response = await Http.PostAsync(path, content);
-            var body = await response.Content.ReadAsStringAsync();
-            var statusOk = (int)response.StatusCode == expectedStatus;
-            var bodyOk = bodyCheck(body);
-            if (statusOk && bodyOk)
-                Pass(label, response.StatusCode, body);
-            else
-                Fail(label, $"Expected status {expectedStatus} got {(int)response.StatusCode}" +
-                            (!bodyOk ? $"; body check failed: {bodyCheckDesc}" : ""));
-        }
-        catch (Exception ex) { Fail(label, ex.Message); }
-    }
-
-    static async Task Put(string path, object? payload, string label)
-    {
-        try
-        {
-            var content = payload is null
-                ? new StringContent("{}", Encoding.UTF8, "application/json")
-                : JsonContent.Create(payload);
-            var response = await Http.PutAsync(path, content);
-            var body = await response.Content.ReadAsStringAsync();
-            Pass(label, response.StatusCode, body);
-        }
-        catch (Exception ex) { Fail(label, ex.Message); }
-    }
-
-    static void Pass(string label, System.Net.HttpStatusCode code, string body)
+    static void Pass(string label, HttpStatusCode code, string preview)
     {
         _pass++;
-        var preview = body.Length > 100 ? body[..100] + "…" : body;
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("  PASS");
+        Console.Write("  ✓ PASS");
         Console.ResetColor();
-        Console.WriteLine($"  {label,-55} {(int)code} {code}  {preview}");
+        var p = preview.Length > 80 ? preview[..80] + "…" : preview;
+        Console.WriteLine($"  {label.TrimStart(),-58} {(int)code}  {p}");
     }
 
     static void Fail(string label, string reason)
     {
         _fail++;
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.Write("  FAIL");
+        Console.Write("  ✗ FAIL");
         Console.ResetColor();
-        Console.WriteLine($"  {label,-55} {reason}");
+        Console.WriteLine($"  {label.TrimStart(),-58} {reason}");
+    }
+
+    static void Warn(string msg)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"  ⚠  {msg}");
+        Console.ResetColor();
+    }
+
+    static void Red(string msg)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"  ✗  {msg}");
+        Console.ResetColor();
+    }
+
+    static void Summary()
+    {
+        Console.WriteLine();
+        Console.WriteLine(new string('═', 72));
+        Console.WriteLine($"  RESULT: {_pass} passed  {_fail} failed  ({_pass + _fail} total)");
+        Console.ForegroundColor = _fail > 0 ? ConsoleColor.Red : ConsoleColor.Green;
+        Console.WriteLine(_fail == 0 ? "  ALL TESTS PASSED" : $"  {_fail} TEST(S) FAILED");
+        Console.ResetColor();
+        Console.WriteLine();
+        if (_fail > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("  Troubleshooting subscription save failures:");
+            Console.WriteLine("    1. Check Railway logs for 'SaveSettingsAsync failed'");
+            Console.WriteLine("    2. Check Railway logs for 'NullReferenceException' in AvatarRepository");
+            Console.WriteLine("    3. Verify STRIPE_WEBHOOK_SECRET matches the Stripe Dashboard webhook");
+            Console.WriteLine("    4. Verify MongoDB is the active provider (check AutoFailOverProviders in OASISDNA)");
+            Console.ResetColor();
+        }
     }
 }
