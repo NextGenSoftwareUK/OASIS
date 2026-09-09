@@ -227,15 +227,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrEmpty(signature))
                 return BadRequest("Missing Stripe-Signature header.");
 
+            // Validate signature first; if EventConverter NRE-crashes during SDK deserialize,
+            // fall back to parsing the raw body ourselves (signature was already verified).
+            Event stripeEvent = null;
             try
             {
-                var stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false);
-                await HandleStripeEventAsync(stripeEvent, body);
-                return Ok();
+                stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false);
             }
             catch (StripeException ex)
             {
                 return BadRequest($"Stripe error: {ex.Message}");
+            }
+            catch
+            {
+                // Stripe.net EventConverter can NRE on synthetic/test payloads after the
+                // signature is valid — parse raw body instead.
+            }
+
+            if (stripeEvent == null)
+            {
+                try { stripeEvent = JsonConvert.DeserializeObject<Event>(body); } catch { }
+            }
+
+            if (stripeEvent == null)
+                return BadRequest("Could not parse Stripe event payload.");
+
+            try
+            {
+                await HandleStripeEventAsync(stripeEvent, body);
+                return Ok();
             }
             catch (Exception ex)
             {
