@@ -208,8 +208,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 try
                 {
                     var evt = JsonConvert.DeserializeObject<Event>(body);
-                    if (evt != null) await HandleStripeEventAsync(evt);
-                    return Ok();
+                    var diag = evt != null ? await HandleStripeEventAsync(evt, body) : "null_event";
+                    return Ok(new { processed = true, diag });
                 }
                 catch (Exception ex)
                 {
@@ -254,8 +254,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             try
             {
-                await HandleStripeEventAsync(stripeEvent, body);
-                return Ok();
+                var diag = await HandleStripeEventAsync(stripeEvent, body);
+                return Ok(new { processed = true, diag });
             }
             catch (Exception ex)
             {
@@ -263,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandleStripeEventAsync(Event stripeEvent, string rawBody = null)
+        private async Task<string> HandleStripeEventAsync(Event stripeEvent, string rawBody = null)
         {
             // Always parse the raw body — the Stripe SDK may return null Data or empty Metadata
             // for synthetic test payloads even when signature verification succeeds.
@@ -281,30 +281,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             // Use event type from SDK (preferred) or raw JSON if SDK didn't deserialize it
             var eventType = stripeEvent?.Type ?? rawJson?["type"]?.ToString();
-            if (string.IsNullOrEmpty(eventType)) return;
+            if (string.IsNullOrEmpty(eventType)) return "no_event_type";
 
             switch (eventType)
             {
                 case "checkout.session.completed":
-                    await OnCheckoutCompletedAsync(stripeEvent?.Data?.Object as Stripe.Checkout.Session, rawDataObject);
-                    break;
+                    return await OnCheckoutCompletedAsync(stripeEvent?.Data?.Object as Stripe.Checkout.Session, rawDataObject);
                 case "customer.subscription.created":
                 case "customer.subscription.updated":
                     await OnSubscriptionUpdatedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
-                    break;
+                    return "subscription_updated";
                 case "customer.subscription.deleted":
                     await OnSubscriptionDeletedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
-                    break;
+                    return "subscription_deleted";
                 case "invoice.payment_succeeded":
                     await OnPaymentSucceededAsync(stripeEvent?.Data?.Object as Invoice);
-                    break;
+                    return "payment_succeeded";
                 case "invoice.payment_failed":
                     await OnPaymentFailedAsync(stripeEvent?.Data?.Object as Invoice);
-                    break;
+                    return "payment_failed";
+                default:
+                    return $"unhandled_{eventType}";
             }
         }
 
-        private async Task OnCheckoutCompletedAsync(Stripe.Checkout.Session session, Newtonsoft.Json.Linq.JObject raw = null)
+        private async Task<string> OnCheckoutCompletedAsync(Stripe.Checkout.Session session, Newtonsoft.Json.Linq.JObject raw = null)
         {
             // Always prefer raw JSON for metadata — Stripe SDK may not populate Metadata
             // when the payload is synthetic (test harness) or uses non-standard field names.
@@ -314,11 +315,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var planId = session?.Metadata?.GetValueOrDefault("plan_id")
                       ?? rawMeta?["plan_id"]?.ToString();
 
-            if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId)) return;
+            if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId))
+                return $"early_exit:avatarId={avatarId ?? "null"},planId={planId ?? "null"},rawNull={raw == null},rawMeta={rawMeta?.ToString() ?? "null"}";
 
             var customerId     = session?.CustomerId     ?? raw?["customer"]?.ToString();
             var subscriptionId = session?.SubscriptionId ?? raw?["subscription"]?.ToString();
             var sessionId      = session?.Id             ?? raw?["id"]?.ToString();
+
+            bool isValidGuid = Guid.TryParse(avatarId, out _);
+            if (!isValidGuid)
+                return $"invalid_guid:avatarId={avatarId},planId={planId}";
 
             await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
             {
@@ -342,6 +348,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Status = "paid",
                 StripeInvoiceId = sessionId
             });
+            return $"ok:avatarId={avatarId},planId={planId}";
         }
 
         private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
