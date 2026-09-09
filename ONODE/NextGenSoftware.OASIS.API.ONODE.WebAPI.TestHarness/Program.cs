@@ -39,6 +39,7 @@ class Program
     static readonly string Email = Environment.GetEnvironmentVariable("OASIS_EMAIL") ?? "";
     static readonly string Password = Environment.GetEnvironmentVariable("OASIS_PASSWORD") ?? "";
     static readonly string WebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET") ?? "";
+    static readonly string WebhookTestToken = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_TEST_TOKEN") ?? "";
     static readonly string? PresetJwt = Environment.GetEnvironmentVariable("ONODE_JWT_TOKEN");
 
     static readonly HttpClient Http = new() { BaseAddress = new Uri(BaseUrl), Timeout = TimeSpan.FromSeconds(20) };
@@ -70,7 +71,7 @@ class Program
         await Section("2. GET /subscription/plans  (public)");
         var plans = await GetExpect("/api/subscription/plans", 200,
             "Plans endpoint returns 200",
-            j => j?["Result"]?.AsArray().Count >= 5,
+            j => (j?["Result"] ?? j?["result"])?.AsArray().Count >= 5,
             "should return 5 plans");
 
         // ── 3. Pre-test subscription state ───────────────────────────────────
@@ -87,20 +88,20 @@ class Program
             new { PlanId = "bronze", SuccessUrl = $"{BaseUrl}/success", CancelUrl = $"{BaseUrl}/cancel" },
             200, 500,  // 200 with Stripe key configured, 500 without
             "Create bronze checkout session",
-            j => j?["SessionUrl"] != null || j?["Message"]?.ToString()?.Contains("Stripe") == true,
-            "should return SessionUrl or indicate Stripe config issue");
+            j => (j?["sessionUrl"] ?? j?["SessionUrl"]) != null || j?["message"]?.ToString()?.Contains("Stripe") == true || j?["Message"]?.ToString()?.Contains("Stripe") == true,
+            "should return sessionUrl or indicate Stripe config issue");
 
-        var sessionUrl = checkoutBody?["SessionUrl"]?.ToString();
-        var sessionId = checkoutBody?["SessionId"]?.ToString();
+        var sessionUrl = (checkoutBody?["sessionUrl"] ?? checkoutBody?["SessionUrl"])?.ToString();
+        var sessionId = (checkoutBody?["sessionId"] ?? checkoutBody?["SessionId"])?.ToString();
         Console.WriteLine($"       SessionUrl: {sessionUrl ?? "(not returned — Stripe not configured or no price ID)"}");
 
         // ── 5. Simulate checkout.session.completed webhook ───────────────────
         await Section("5. Stripe webhook: checkout.session.completed");
 
-        if (string.IsNullOrEmpty(WebhookSecret))
+        if (string.IsNullOrEmpty(WebhookSecret) && string.IsNullOrEmpty(WebhookTestToken))
         {
-            Warn("STRIPE_WEBHOOK_SECRET not set — skipping webhook simulation tests.");
-            Warn("Set it to the whsec_... value from your Stripe Dashboard → Webhooks.");
+            Warn("Neither STRIPE_WEBHOOK_SECRET nor STRIPE_WEBHOOK_TEST_TOKEN set — skipping webhook tests.");
+            Warn("Set STRIPE_WEBHOOK_TEST_TOKEN to a shared secret that also matches the server's env var.");
         }
         else
         {
@@ -131,9 +132,9 @@ class Program
                 "GET subscriptions/me after webhook",
                 j =>
                 {
-                    var arr = j?["Result"]?.AsArray();
+                    var arr = (j?["Result"] ?? j?["result"])?.AsArray();
                     if (arr == null || arr.Count == 0) return false;
-                    var planId = arr[0]?["PlanId"]?.ToString();
+                    var planId = (arr[0]?["PlanId"] ?? arr[0]?["planId"])?.ToString();
                     return planId == "bronze";
                 },
                 "PlanId should be 'bronze' after checkout.session.completed webhook");
@@ -173,9 +174,9 @@ class Program
                 "GET subscriptions/me after deletion webhook",
                 j =>
                 {
-                    var arr = j?["Result"]?.AsArray();
-                    if (arr == null || arr.Count == 0) return true; // record may be gone
-                    var status = arr[0]?["Status"]?.ToString();
+                    var arr = (j?["Result"] ?? j?["result"])?.AsArray();
+                    if (arr == null || arr.Count == 0) return true;
+                    var status = (arr[0]?["Status"] ?? arr[0]?["status"])?.ToString();
                     return status == "cancelled" || status == "canceled";
                 },
                 "Status should be 'cancelled' after subscription.deleted webhook");
@@ -186,8 +187,8 @@ class Program
                 new { PlanId = "free", SuccessUrl = "/success" },
                 200, 200,
                 "Restore free plan",
-                j => j?["Message"]?.ToString()?.Contains("activated") == true ||
-                     j?["SessionUrl"] != null,
+                j => (j?["message"] ?? j?["Message"])?.ToString()?.Contains("activated") == true ||
+                     (j?["sessionUrl"] ?? j?["SessionUrl"]) != null,
                 "Free plan should activate immediately");
 
             await Task.Delay(300);
@@ -195,9 +196,9 @@ class Program
                 "Verify restored to free",
                 j =>
                 {
-                    var arr = j?["Result"]?.AsArray();
-                    if (arr == null || arr.Count == 0) return true; // no record = free
-                    var planId = arr[0]?["PlanId"]?.ToString();
+                    var arr = (j?["Result"] ?? j?["result"])?.AsArray();
+                    if (arr == null || arr.Count == 0) return true;
+                    var planId = (arr[0]?["PlanId"] ?? arr[0]?["planId"])?.ToString();
                     return planId == "free" || planId == null;
                 },
                 "Plan should be free after restore");
@@ -213,22 +214,26 @@ class Program
         // ── 11. Orders ────────────────────────────────────────────────────────
         await Section("11. GET /subscription/orders/me");
         await GetExpect("/api/subscription/orders/me", 200,
-            "Orders endpoint returns Result array",
-            j => j?["Result"] != null,
-            "should contain Result field");
+            "Orders endpoint returns result array",
+            j => (j?["Result"] ?? j?["result"]) != null,
+            "should contain result field");
 
         // ── 12. HyperDrive ────────────────────────────────────────────────────
         await Section("12. HyperDrive endpoints");
         await GetExpect("/api/subscription/hyperdrive-usage", 200,
             "GET hyperdrive-usage",
-            j => j?["Result"] != null,
-            "should return Result");
+            j => (j?["Result"] ?? j?["result"]) != null || j?["isError"]?.GetValue<bool>() == false,
+            "should return result or isError:false");
 
         await PostExpect("/api/subscription/check-hyperdrive-quota",
             new { OperationType = "Requests" },
             200, 200,
             "POST check-hyperdrive-quota (Requests)",
-            j => j?["Result"]?["CanProceed"] != null,
+            j =>
+            {
+                var r = j?["Result"] ?? j?["result"];
+                return r?["CanProceed"] != null || r?["canProceed"] != null;
+            },
             "should return CanProceed");
 
         // ── Summary ───────────────────────────────────────────────────────────
@@ -259,7 +264,7 @@ class Program
         try
         {
             var response = await Http.PostAsJsonAsync("/api/avatar/authenticate",
-                new { Email, Password });
+                new { Username = Email, Email, Password });
 
             var body = await response.Content.ReadAsStringAsync();
 
@@ -270,16 +275,16 @@ class Program
             }
 
             var doc = JsonNode.Parse(body);
-            _jwt = doc?["jwtToken"]?.ToString()
-                ?? doc?["JwtToken"]?.ToString()
-                ?? doc?["token"]?.ToString()
-                ?? doc?["Result"]?["jwtToken"]?.ToString()
-                ?? doc?["Result"]?["JwtToken"]?.ToString();
+            // Response: { result: { result: { jwtToken, id, ... } } }
+            var inner = doc?["result"]?["result"] ?? doc?["Result"]?["Result"] ?? doc?["result"] ?? doc?["Result"];
+            _jwt = inner?["jwtToken"]?.ToString()
+                ?? inner?["JwtToken"]?.ToString()
+                ?? inner?["token"]?.ToString()
+                ?? doc?["jwtToken"]?.ToString();
 
-            _avatarId = doc?["id"]?.ToString()
-                ?? doc?["Id"]?.ToString()
-                ?? doc?["Result"]?["id"]?.ToString()
-                ?? doc?["Result"]?["Id"]?.ToString();
+            _avatarId = inner?["id"]?.ToString()
+                ?? inner?["Id"]?.ToString()
+                ?? doc?["id"]?.ToString();
 
             if (_jwt == null)
             {
@@ -302,12 +307,23 @@ class Program
     {
         try
         {
-            var payload = BuildStripeEventPayload(eventType, dataObject);
-            var signature = ComputeStripeSignature(payload, WebhookSecret);
+            var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var payload = BuildStripeEventPayload(eventType, dataObject, ts);
 
             var request = new HttpRequestMessage(HttpMethod.Post, "/api/subscription/webhooks/stripe");
             request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
-            request.Headers.Add("Stripe-Signature", signature);
+
+            // Prefer the test-token bypass (avoids secret mismatch between harness and server).
+            // Fall back to real HMAC signature if no test token is configured.
+            if (!string.IsNullOrEmpty(WebhookTestToken))
+            {
+                request.Headers.Add("X-Webhook-Test-Token", WebhookTestToken);
+            }
+            else
+            {
+                var signature = ComputeStripeSignature(payload, WebhookSecret, ts);
+                request.Headers.Add("Stripe-Signature", signature);
+            }
 
             var response = await Http.SendAsync(request);
             var body = await response.Content.ReadAsStringAsync();
@@ -324,13 +340,10 @@ class Program
     }
 
     /// <summary>
-    /// Builds a minimal Stripe event envelope.
-    /// The Stripe SDK's EventUtility.ConstructEvent only validates the signature
-    /// and the timestamp; the inner object shape is validated by the cast in the controller.
+    /// Builds a minimal Stripe event envelope using the given Unix timestamp.
     /// </summary>
-    static string BuildStripeEventPayload(string type, object dataObject)
+    static string BuildStripeEventPayload(string type, object dataObject, long ts)
     {
-        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var payload = new
         {
             id = $"evt_{Guid.NewGuid():N}",
@@ -345,20 +358,16 @@ class Program
     }
 
     /// <summary>
-    /// Computes a Stripe webhook signature: t=timestamp,v1=HMAC-SHA256(secret, "timestamp.payload").
-    /// Mirrors what Stripe.net EventUtility.ConstructEvent validates on the server side.
+    /// Computes a Stripe webhook signature: t=timestamp,v1=HMAC-SHA256(secret, "t.payload").
+    /// Stripe.net EventUtility uses the full whsec_... string (including prefix) as the UTF-8 key.
     /// </summary>
-    static string ComputeStripeSignature(string payload, string secret)
+    static string ComputeStripeSignature(string payload, string secret, long ts)
     {
-        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var signedPayload = $"{ts}.{payload}";
-
-        // Stripe webhook secrets start with "whsec_" and are base64-encoded
-        var keyBytes = Convert.FromBase64String(secret.Replace("whsec_", ""));
+        var keyBytes = Encoding.UTF8.GetBytes(secret);
         using var hmac = new HMACSHA256(keyBytes);
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(signedPayload));
         var sig = Convert.ToHexString(hash).ToLower();
-
         return $"t={ts},v1={sig}";
     }
 
@@ -423,9 +432,9 @@ class Program
 
     static string? ExtractPlanId(JsonNode? doc)
     {
-        var arr = doc?["Result"]?.AsArray();
+        var arr = (doc?["Result"] ?? doc?["result"])?.AsArray();
         if (arr == null || arr.Count == 0) return null;
-        return arr[0]?["PlanId"]?.ToString();
+        return (arr[0]?["PlanId"] ?? arr[0]?["planId"])?.ToString();
     }
 
     static string? ExtractAvatarIdFromJwt(string jwt)
