@@ -283,29 +283,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task OnCheckoutCompletedAsync(Stripe.Checkout.Session session, Newtonsoft.Json.Linq.JObject raw = null)
         {
-            string avatarId, planId, customerId, subscriptionId, sessionId;
-
-            if (session != null)
-            {
-                avatarId      = session.Metadata?.GetValueOrDefault("avatar_id");
-                planId        = session.Metadata?.GetValueOrDefault("plan_id");
-                customerId    = session.CustomerId;
-                subscriptionId = session.SubscriptionId;
-                sessionId     = session.Id;
-            }
-            else if (raw != null)
-            {
-                // Fallback for test/synthetic payloads where Stripe SDK cast returns null
-                var meta  = raw["metadata"];
-                avatarId      = meta?["avatar_id"]?.ToString();
-                planId        = meta?["plan_id"]?.ToString();
-                customerId    = raw["customer"]?.ToString();
-                subscriptionId = raw["subscription"]?.ToString();
-                sessionId     = raw["id"]?.ToString();
-            }
-            else return;
+            // Always prefer raw JSON for metadata — Stripe SDK may not populate Metadata
+            // when the payload is synthetic (test harness) or uses non-standard field names.
+            var rawMeta = raw?["metadata"];
+            var avatarId = session?.Metadata?.GetValueOrDefault("avatar_id")
+                        ?? rawMeta?["avatar_id"]?.ToString();
+            var planId = session?.Metadata?.GetValueOrDefault("plan_id")
+                      ?? rawMeta?["plan_id"]?.ToString();
 
             if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId)) return;
+
+            var customerId     = session?.CustomerId     ?? raw?["customer"]?.ToString();
+            var subscriptionId = session?.SubscriptionId ?? raw?["subscription"]?.ToString();
+            var sessionId      = session?.Id             ?? raw?["id"]?.ToString();
 
             await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
             {

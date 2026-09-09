@@ -344,6 +344,7 @@ class Program
     /// </summary>
     static string BuildStripeEventPayload(string type, object dataObject, long ts)
     {
+        // Stripe SDK requires pending_webhooks and request fields to deserialize without NullReferenceException
         var payload = new
         {
             id = $"evt_{Guid.NewGuid():N}",
@@ -352,6 +353,8 @@ class Program
             created = ts,
             type,
             livemode = false,
+            pending_webhooks = 1,
+            request = new { id = (string?)null, idempotency_key = (string?)null },
             data = new { @object = dataObject }
         };
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
