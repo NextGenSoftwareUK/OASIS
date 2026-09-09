@@ -265,38 +265,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task HandleStripeEventAsync(Event stripeEvent, string rawBody = null)
         {
-            if (stripeEvent?.Data == null) return;
-
-            // Parse the raw body as a fallback for when the Stripe SDK can't fully deserialize
-            // synthetic/test payloads (stripeEvent.Data.Object casts return null in that case)
+            // Always parse the raw body — the Stripe SDK may return null Data or empty Metadata
+            // for synthetic test payloads even when signature verification succeeds.
+            Newtonsoft.Json.Linq.JObject rawJson = null;
             Newtonsoft.Json.Linq.JObject rawDataObject = null;
             if (rawBody != null)
             {
                 try
                 {
-                    var rawJson = Newtonsoft.Json.Linq.JObject.Parse(rawBody);
+                    rawJson = Newtonsoft.Json.Linq.JObject.Parse(rawBody);
                     rawDataObject = rawJson?["data"]?["object"] as Newtonsoft.Json.Linq.JObject;
                 }
                 catch { }
             }
 
-            switch (stripeEvent.Type)
+            // Use event type from SDK (preferred) or raw JSON if SDK didn't deserialize it
+            var eventType = stripeEvent?.Type ?? rawJson?["type"]?.ToString();
+            if (string.IsNullOrEmpty(eventType)) return;
+
+            switch (eventType)
             {
                 case "checkout.session.completed":
-                    await OnCheckoutCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session, rawDataObject);
+                    await OnCheckoutCompletedAsync(stripeEvent?.Data?.Object as Stripe.Checkout.Session, rawDataObject);
                     break;
                 case "customer.subscription.created":
                 case "customer.subscription.updated":
-                    await OnSubscriptionUpdatedAsync(stripeEvent.Data.Object as Stripe.Subscription, rawDataObject);
+                    await OnSubscriptionUpdatedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
                     break;
                 case "customer.subscription.deleted":
-                    await OnSubscriptionDeletedAsync(stripeEvent.Data.Object as Stripe.Subscription, rawDataObject);
+                    await OnSubscriptionDeletedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
                     break;
                 case "invoice.payment_succeeded":
-                    await OnPaymentSucceededAsync(stripeEvent.Data.Object as Invoice);
+                    await OnPaymentSucceededAsync(stripeEvent?.Data?.Object as Invoice);
                     break;
                 case "invoice.payment_failed":
-                    await OnPaymentFailedAsync(stripeEvent.Data.Object as Invoice);
+                    await OnPaymentFailedAsync(stripeEvent?.Data?.Object as Invoice);
                     break;
             }
         }
