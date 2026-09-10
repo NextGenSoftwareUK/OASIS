@@ -425,7 +425,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             {
                 var emailDna = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA;
                 if (emailDna?.OASIS?.Email != null && !emailDna.OASIS.Email.DisableAllEmails
-                    && !NextGenSoftware.OASIS.API.Core.Managers.EmailManager.IsEmailConfigured(emailDna))
+                    && string.IsNullOrWhiteSpace(emailDna.OASIS.Email.ResendKey)
+                    && string.IsNullOrWhiteSpace(emailDna.OASIS.Email.SmtpHost))
                 {
                     LoggingManager.Log("EMAIL NOT CONFIGURED: no Resend API key found (set OASIS_RESEND_KEY or RESEND_API_KEY, or OASIS.Email.ResendKey in OASIS_DNA.json). Verification / forgot-password / reset-password emails will NOT be delivered.", LogType.Error);
                 }
