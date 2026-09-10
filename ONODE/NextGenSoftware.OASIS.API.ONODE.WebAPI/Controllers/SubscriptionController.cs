@@ -247,10 +247,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (stripeEvent == null)
             {
                 try { stripeEvent = JsonConvert.DeserializeObject<Event>(body); } catch { }
+                // stripeEvent may still be null if the SDK converter crashed —
+                // HandleStripeEventAsync uses rawBody as fallback and handles null stripeEvent.
             }
-
-            if (stripeEvent == null)
-                return BadRequest("Could not parse Stripe event payload.");
 
             try
             {
