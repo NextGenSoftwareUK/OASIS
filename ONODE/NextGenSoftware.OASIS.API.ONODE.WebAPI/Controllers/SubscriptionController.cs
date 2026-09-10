@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.Common;
+using Newtonsoft.Json;
 using Stripe;
 using OASISSub = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
@@ -193,29 +194,67 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("webhooks/stripe")]
         public async Task<IActionResult> StripeWebhook()
         {
+            string body;
+            using (var reader = new System.IO.StreamReader(Request.Body))
+                body = await reader.ReadToEndAsync();
+
+            // Test-harness bypass: STRIPE_WEBHOOK_TEST_TOKEN lets automated E2E tests skip
+            // real Stripe signature verification by supplying a shared secret token instead.
+            // Only works when the env var is set (never set it in production).
+            var testToken = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_TEST_TOKEN");
+            var incomingTestToken = Request.Headers["X-Webhook-Test-Token"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(testToken) && incomingTestToken == testToken)
+            {
+                try
+                {
+                    var evt = JsonConvert.DeserializeObject<Event>(body);
+                    var diag = evt != null ? await HandleStripeEventAsync(evt, body) : "null_event";
+                    return Ok(new { processed = true, diag });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, $"Internal error (test mode): {ex.Message}");
+                }
+            }
+
             var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
                 ?? _configuration["STRIPE_WEBHOOK_SECRET"]
                 ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.WebhookSecret;
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Webhook secret not configured.");
 
-            string body;
-            using (var reader = new System.IO.StreamReader(Request.Body))
-                body = await reader.ReadToEndAsync();
-
             var signature = Request.Headers["Stripe-Signature"].FirstOrDefault();
             if (string.IsNullOrEmpty(signature))
                 return BadRequest("Missing Stripe-Signature header.");
 
+            // Validate signature first; if EventConverter NRE-crashes during SDK deserialize,
+            // fall back to parsing the raw body ourselves (signature was already verified).
+            Event stripeEvent = null;
             try
             {
-                var stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false);
-                await HandleStripeEventAsync(stripeEvent);
-                return Ok();
+                stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false);
             }
             catch (StripeException ex)
             {
                 return BadRequest($"Stripe error: {ex.Message}");
+            }
+            catch
+            {
+                // Stripe.net EventConverter can NRE on synthetic/test payloads after the
+                // signature is valid — parse raw body instead.
+            }
+
+            if (stripeEvent == null)
+            {
+                try { stripeEvent = JsonConvert.DeserializeObject<Event>(body); } catch { }
+                // stripeEvent may still be null if the SDK converter crashed —
+                // HandleStripeEventAsync uses rawBody as fallback and handles null stripeEvent.
+            }
+
+            try
+            {
+                var diag = await HandleStripeEventAsync(stripeEvent, body);
+                return Ok(new { processed = true, diag });
             }
             catch (Exception ex)
             {
@@ -223,43 +262,76 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandleStripeEventAsync(Event stripeEvent)
+        private async Task<string> HandleStripeEventAsync(Event stripeEvent, string rawBody = null)
         {
-            switch (stripeEvent.Type)
+            // Always parse the raw body — the Stripe SDK may return null Data or empty Metadata
+            // for synthetic test payloads even when signature verification succeeds.
+            Newtonsoft.Json.Linq.JObject rawJson = null;
+            Newtonsoft.Json.Linq.JObject rawDataObject = null;
+            if (rawBody != null)
+            {
+                try
+                {
+                    rawJson = Newtonsoft.Json.Linq.JObject.Parse(rawBody);
+                    rawDataObject = rawJson?["data"]?["object"] as Newtonsoft.Json.Linq.JObject;
+                }
+                catch { }
+            }
+
+            // Use event type from SDK (preferred) or raw JSON if SDK didn't deserialize it
+            var eventType = stripeEvent?.Type ?? rawJson?["type"]?.ToString();
+            if (string.IsNullOrEmpty(eventType)) return "no_event_type";
+
+            switch (eventType)
             {
                 case "checkout.session.completed":
-                    await OnCheckoutCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session);
-                    break;
+                    return await OnCheckoutCompletedAsync(stripeEvent?.Data?.Object as Stripe.Checkout.Session, rawDataObject);
                 case "customer.subscription.created":
                 case "customer.subscription.updated":
-                    await OnSubscriptionUpdatedAsync(stripeEvent.Data.Object as Stripe.Subscription);
-                    break;
+                    await OnSubscriptionUpdatedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
+                    return "subscription_updated";
                 case "customer.subscription.deleted":
-                    await OnSubscriptionDeletedAsync(stripeEvent.Data.Object as Stripe.Subscription);
-                    break;
+                    await OnSubscriptionDeletedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
+                    return "subscription_deleted";
                 case "invoice.payment_succeeded":
-                    await OnPaymentSucceededAsync(stripeEvent.Data.Object as Invoice);
-                    break;
+                    await OnPaymentSucceededAsync(stripeEvent?.Data?.Object as Invoice);
+                    return "payment_succeeded";
                 case "invoice.payment_failed":
-                    await OnPaymentFailedAsync(stripeEvent.Data.Object as Invoice);
-                    break;
+                    await OnPaymentFailedAsync(stripeEvent?.Data?.Object as Invoice);
+                    return "payment_failed";
+                default:
+                    return $"unhandled_{eventType}";
             }
         }
 
-        private async Task OnCheckoutCompletedAsync(Stripe.Checkout.Session session)
+        private async Task<string> OnCheckoutCompletedAsync(Stripe.Checkout.Session session, Newtonsoft.Json.Linq.JObject raw = null)
         {
-            if (session == null) return;
-            var avatarId = session.Metadata?.GetValueOrDefault("avatar_id");
-            var planId = session.Metadata?.GetValueOrDefault("plan_id");
-            if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId)) return;
+            // Always prefer raw JSON for metadata — Stripe SDK may not populate Metadata
+            // when the payload is synthetic (test harness) or uses non-standard field names.
+            var rawMeta = raw?["metadata"];
+            var avatarId = session?.Metadata?.GetValueOrDefault("avatar_id")
+                        ?? rawMeta?["avatar_id"]?.ToString();
+            var planId = session?.Metadata?.GetValueOrDefault("plan_id")
+                      ?? rawMeta?["plan_id"]?.ToString();
+
+            if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId))
+                return $"early_exit:avatarId={avatarId ?? "null"},planId={planId ?? "null"},rawNull={raw == null},rawMeta={rawMeta?.ToString() ?? "null"}";
+
+            var customerId     = session?.CustomerId     ?? raw?["customer"]?.ToString();
+            var subscriptionId = session?.SubscriptionId ?? raw?["subscription"]?.ToString();
+            var sessionId      = session?.Id             ?? raw?["id"]?.ToString();
+
+            bool isValidGuid = Guid.TryParse(avatarId, out _);
+            if (!isValidGuid)
+                return $"invalid_guid:avatarId={avatarId},planId={planId}";
 
             await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
             {
                 UserId = avatarId,
                 PlanId = planId,
                 Status = "active",
-                StripeCustomerId = session.CustomerId,
-                StripeSubscriptionId = session.SubscriptionId,
+                StripeCustomerId = customerId,
+                StripeSubscriptionId = subscriptionId,
                 CurrentPeriodStart = DateTime.UtcNow,
                 CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1)
             });
@@ -273,11 +345,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Amount = plan?.PriceMonthly ?? 0m,
                 Currency = "USD",
                 Status = "paid",
-                StripeInvoiceId = session.Id
+                StripeInvoiceId = sessionId
             });
+            return $"ok:avatarId={avatarId},planId={planId}";
         }
 
-        private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription)
+        private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
         {
             if (subscription == null) return;
             var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
@@ -296,11 +369,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             await _subscriptionService.UpsertSubscriptionAsync(record);
         }
 
-        private async Task OnSubscriptionDeletedAsync(Stripe.Subscription subscription)
+        private async Task OnSubscriptionDeletedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
         {
-            if (subscription == null) return;
-            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
-                      ?? await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(subscription.CustomerId);
+            string subscriptionId, customerId;
+
+            if (subscription != null)
+            {
+                subscriptionId = subscription.Id;
+                customerId = subscription.CustomerId;
+            }
+            else if (raw != null)
+            {
+                subscriptionId = raw["id"]?.ToString();
+                customerId = raw["customer"]?.ToString();
+            }
+            else return;
+
+            var record = (string.IsNullOrEmpty(subscriptionId) ? null : await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscriptionId))
+                      ?? (string.IsNullOrEmpty(customerId) ? null : await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(customerId));
             if (record == null) return;
 
             record.Status = "cancelled";

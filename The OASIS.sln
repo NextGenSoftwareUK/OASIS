@@ -1674,6 +1674,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.UnitTests", "Providers\Storage\TestProjects\NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.UnitTests\NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.UnitTests.csproj", "{0D3EFAD3-7FE7-519D-B8EE-F416A1AE24EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests", "Providers\Maps\TestProjects\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests.csproj", "{A4B1B401-4300-5D3D-85ED-75D69949F7F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests", "Providers\Maps\TestProjects\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests.csproj", "{BF1DF15A-C304-5155-8248-352B2F1774B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness", "Providers\Maps\TestProjects\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.TestHarness.csproj", "{9D5FA59E-BD09-5372-8045-A11D40345A77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -8745,6 +8751,18 @@ Global
 		{665EAD9B-E44F-5A9C-BF60-331B503A79A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{665EAD9B-E44F-5A9C-BF60-331B503A79A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{665EAD9B-E44F-5A9C-BF60-331B503A79A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4B1B401-4300-5D3D-85ED-75D69949F7F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4B1B401-4300-5D3D-85ED-75D69949F7F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4B1B401-4300-5D3D-85ED-75D69949F7F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4B1B401-4300-5D3D-85ED-75D69949F7F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF1DF15A-C304-5155-8248-352B2F1774B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF1DF15A-C304-5155-8248-352B2F1774B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF1DF15A-C304-5155-8248-352B2F1774B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF1DF15A-C304-5155-8248-352B2F1774B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D5FA59E-BD09-5372-8045-A11D40345A77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D5FA59E-BD09-5372-8045-A11D40345A77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D5FA59E-BD09-5372-8045-A11D40345A77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D5FA59E-BD09-5372-8045-A11D40345A77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -9507,6 +9525,9 @@ Global
 		{5A146C03-7C59-5BC7-8E26-B7009444A0F2} = {38E1BB25-5B19-5A2A-A22A-73BFE77FFE69}
 		{21E581DB-9672-520A-A676-9B9BD53FFDEA} = {38E1BB25-5B19-5A2A-A22A-73BFE77FFE69}
 		{665EAD9B-E44F-5A9C-BF60-331B503A79A2} = {38E1BB25-5B19-5A2A-A22A-73BFE77FFE69}
+		{A4B1B401-4300-5D3D-85ED-75D69949F7F9} = {04B2F569-E744-5881-99C2-120D1504DD27}
+		{BF1DF15A-C304-5155-8248-352B2F1774B7} = {04B2F569-E744-5881-99C2-120D1504DD27}
+		{9D5FA59E-BD09-5372-8045-A11D40345A77} = {04B2F569-E744-5881-99C2-120D1504DD27}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}
