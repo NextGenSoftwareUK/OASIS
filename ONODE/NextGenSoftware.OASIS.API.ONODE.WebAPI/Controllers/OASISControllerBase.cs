@@ -112,16 +112,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Exception = ex
                 };
                 
+                // Always populate DetailedMessage - it was previously null on every OASISException response,
+                // leaving callers with no actionable information about why the call failed.
+                errorResult.DetailedMessage = ex.ToString();
+
                 if (EnableGenericExceptionHandling)
                 {
-                    // Friendly message for validation errors
-                    errorResult.Message = $"Invalid args were passed to {operationName}. {ex.Message}";
+                    string reason = string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
+                    errorResult.Message = (ex is ArgumentException || ex is ArgumentNullException)
+                        ? $"Invalid args were passed to {operationName}. {reason}"
+                        : $"{operationName} could not be completed. {reason}";
                 }
                 else
                 {
                     // Raw error details in dev/test mode
                     errorResult.Message = ex.Message;
-                    errorResult.DetailedMessage = ex.ToString();
                 }
                 
                 return BadRequest(errorResult);
@@ -181,14 +186,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValidationError)
             {
                 // Validation error - return 400
+                // Always populate DetailedMessage (previously null on every OASISException response).
+                errorResult.DetailedMessage = ex.ToString();
+
                 if (EnableGenericExceptionHandling)
                 {
-                    errorResult.Message = $"Invalid args were passed to {operationName}. {ex.Message}";
+                    string reason = string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
+                    errorResult.Message = (ex is ArgumentException || ex is ArgumentNullException)
+                        ? $"Invalid args were passed to {operationName}. {reason}"
+                        : $"{operationName} could not be completed. {reason}";
                 }
                 else
                 {
                     errorResult.Message = ex.Message;
-                    errorResult.DetailedMessage = ex.ToString();
                 }
                 
                 return HttpResponseHelper.FormatResponse(errorResult, HttpStatusCode.BadRequest);
@@ -485,6 +495,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
 
             return (result, providerTypeOverride);
+        }
+
+        /// <summary>
+        /// Builds an honest "not implemented yet" result for endpoints that are still stubs, so they stop
+        /// returning fabricated data as though it were real. Sets HTTP 501 when a response is available.
+        /// </summary>
+        protected OASISResult<T> NotImplementedResult<T>(string capability)
+        {
+            if (Response != null && !Response.HasStarted)
+                Response.StatusCode = StatusCodes.Status501NotImplemented;
+
+            return new OASISResult<T>
+            {
+                IsError = true,
+                Message = $"{capability} is not implemented yet. This endpoint has no live on-chain data source behind it, so it returns no data rather than placeholder values.",
+                DetailedMessage = "Set OASIS:UseTestDataWhenLiveDataNotAvailable=true (or USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE=true) to receive clearly-labelled sample data for local development."
+            };
         }
     }
 }
