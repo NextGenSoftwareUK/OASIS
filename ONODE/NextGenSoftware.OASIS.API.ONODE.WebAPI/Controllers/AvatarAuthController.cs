@@ -75,24 +75,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType)
                 : AvatarType.User;
 
-            // Diagnostic: log boot/DNA/provider state into the response so failures are self-explaining
-            var diagMessages = new System.Collections.Generic.List<string>();
-            diagMessages.Add($"[DIAG] IsOASISBooted={OASISBootLoader.OASISBootLoader.IsOASISBooted}");
-            diagMessages.Add($"[DIAG] OASISDNAPath={OASISBootLoader.OASISBootLoader.OASISDNAPath}");
-            diagMessages.Add($"[DIAG] DNA file exists: {System.IO.File.Exists(OASISBootLoader.OASISBootLoader.OASISDNAPath)}");
-            diagMessages.Add($"[DIAG] OASISDNA loaded: {OASISBootLoader.OASISBootLoader.OASISDNA != null}");
-            if (OASISBootLoader.OASISBootLoader.OASISDNA != null)
-            {
-                var sp = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS?.StorageProviders;
-                diagMessages.Add($"[DIAG] AutoFailOverEnabled={sp?.AutoFailOverEnabled} AutoFailOverProviders={sp?.AutoFailOverProviders}");
-                var mongoConn = sp?.MongoDBOASIS?.ConnectionString;
-                diagMessages.Add($"[DIAG] MongoDB ConnectionString set: {!string.IsNullOrEmpty(mongoConn)}");
-            }
-            var failOverList = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetProviderAutoFailOverList();
-            diagMessages.Add($"[DIAG] Active failover provider count: {failOverList?.Count ?? 0}");
-            if (failOverList != null)
-                foreach (var p in failOverList)
-                    diagMessages.Add($"[DIAG] Failover provider: {p.Name}");
+            // Boot/DNA/provider diagnostics. These leak internal paths, the failover provider list and
+            // whether the Mongo connection string is set, so they are ALWAYS written to the server log and
+            // only added to the (public, unauthenticated) response when explicitly opted in by an operator.
+            var diagMessages = BuildRegistrationDiagnostics();
+            foreach (var diag in diagMessages)
+                _logger.LogInformation("{Diagnostic}", diag);
+
+            bool exposeDiagnostics = RegistrationDiagnosticsExposedToClient(callerIsWizard);
 
             var result = await AvatarManager.RegisterAsync(
                 model.Title,
@@ -104,11 +94,107 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 avatarType,
                 OASISType.OASISAPIREST,
                 callerIsWizard: callerIsWizard,
-                suppressVerificationEmail: callerIsWizard && model.SuppressVerificationEmail
+                // Suppression is honoured for a Wizard caller, and for any caller when the operator has
+                // enabled programmatic signup. Previously a non-Wizard's suppressVerificationEmail:true was
+                // silently ignored, so programmatic signup had no way to complete verification.
+                suppressVerificationEmail: model.SuppressVerificationEmail && (callerIsWizard || ProgrammaticVerificationAllowed())
             );
 
-            result.InnerMessages.InsertRange(0, diagMessages);
+            if (exposeDiagnostics)
+                result.InnerMessages.InsertRange(0, diagMessages);
+
             return HttpResponseHelper.FormatResponse(result);
+        }
+
+        /// <summary>
+        /// Builds the boot/DNA/provider diagnostics used when a registration fails. Server-log only unless
+        /// OASIS_EXPOSE_REGISTRATION_DIAGNOSTICS=true (or the caller is a Wizard).
+        /// </summary>
+        private static List<string> BuildRegistrationDiagnostics()
+        {
+            var diagMessages = new List<string>();
+
+            try
+            {
+                diagMessages.Add($"[DIAG] IsOASISBooted={OASISBootLoader.OASISBootLoader.IsOASISBooted}");
+                diagMessages.Add($"[DIAG] OASISDNAPath={OASISBootLoader.OASISBootLoader.OASISDNAPath}");
+                diagMessages.Add($"[DIAG] DNA file exists: {System.IO.File.Exists(OASISBootLoader.OASISBootLoader.OASISDNAPath)}");
+                diagMessages.Add($"[DIAG] OASISDNA loaded: {OASISBootLoader.OASISBootLoader.OASISDNA != null}");
+
+                if (OASISBootLoader.OASISBootLoader.OASISDNA != null)
+                {
+                    var sp = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS?.StorageProviders;
+                    diagMessages.Add($"[DIAG] AutoFailOverEnabled={sp?.AutoFailOverEnabled} AutoFailOverProviders={sp?.AutoFailOverProviders}");
+                    var mongoConn = sp?.MongoDBOASIS?.ConnectionString;
+                    diagMessages.Add($"[DIAG] MongoDB ConnectionString set: {!string.IsNullOrEmpty(mongoConn)}");
+                }
+
+                var failOverList = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetProviderAutoFailOverList();
+                diagMessages.Add($"[DIAG] Active failover provider count: {failOverList?.Count ?? 0}");
+
+                if (failOverList != null)
+                    foreach (var p in failOverList)
+                        diagMessages.Add($"[DIAG] Failover provider: {p.Name}");
+            }
+            catch (Exception diagEx)
+            {
+                diagMessages.Add($"[DIAG] Failed to build diagnostics: {diagEx.Message}");
+            }
+
+            return diagMessages;
+        }
+
+        /// <summary>
+        /// Whether a non-Wizard caller may set suppressVerificationEmail:true (programmatic signup).
+        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true.
+        /// </summary>
+        private bool ProgrammaticVerificationAllowed()
+        {
+            if (bool.TryParse(Environment.GetEnvironmentVariable("OASIS_ALLOW_PROGRAMMATIC_VERIFICATION"), out var fromEnv) && fromEnv)
+                return true;
+
+            return _configuration?.GetValue<bool>("OASIS:AllowProgrammaticVerification", false) ?? false;
+        }
+
+        /// <summary>
+        ///     Administratively verify an avatar by id without any outbound email. Wizard callers only.
+        ///     Provides an onboarding path that survives an email-provider outage.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar to verify.</param>
+        /// <response code="200">Avatar verified</response>
+        /// <response code="401">Caller is not a Wizard</response>
+        [HttpPost("{avatarId}/verify")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISHttpResponseMessage<bool>> VerifyAvatar(Guid avatarId)
+        {
+            if (Avatar?.AvatarType.Value != AvatarType.Wizard)
+            {
+                Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Result = false,
+                    Message = "Unauthorized. Only a Wizard avatar may administratively verify another avatar."
+                });
+            }
+
+            return HttpResponseHelper.FormatResponse(await AvatarManager.VerifyAvatarAsync(avatarId));
+        }
+
+        /// <summary>
+        /// Diagnostics reach the client only for a Wizard caller, or when an operator sets
+        /// OASIS_EXPOSE_REGISTRATION_DIAGNOSTICS=true / OASIS:ExposeRegistrationDiagnostics=true.
+        /// </summary>
+        private bool RegistrationDiagnosticsExposedToClient(bool callerIsWizard)
+        {
+            if (callerIsWizard)
+                return true;
+
+            if (bool.TryParse(Environment.GetEnvironmentVariable("OASIS_EXPOSE_REGISTRATION_DIAGNOSTICS"), out var fromEnv) && fromEnv)
+                return true;
+
+            return _configuration?.GetValue<bool>("OASIS:ExposeRegistrationDiagnostics", false) ?? false;
         }
 
         /// <summary>
