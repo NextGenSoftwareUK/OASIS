@@ -30,7 +30,6 @@ DemoQuestSeed.csproj
 # Duplicate project names - a solution cannot hold two projects with the same name.
 # In each of these the real implementation is in a solution and these empty shells
 # are kept on disk only. See Docs/REMOVED_AND_MOVED_PROJECTS.md.
-Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloWeb/
 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/
 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.TestHarness/
@@ -47,13 +46,14 @@ ONODE/ONODEManager/
 OASIS Omniverse/OGEngineClient/
 OASIS Omniverse/OASIS Hub/
 
-# Pre-split monolithic copy of ArweaveOASIS. The current implementation is the
-# split partial-class version under Providers/Network (5 files, ~2160 lines);
-# this single 1403-line file is the superseded original, kept on disk only.
-Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/
 
-# Placeholder providers - their only source file is entirely commented out, so there
-# is no class to construct or test. Left on disk; no test projects generated for them.
-Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/
+# Superseded HoloOASIS platform shells. HoloOASIS was originally an abstract
+# HoloOASISBase with thin .Desktop and .Unity subclasses, each supplying a
+# platform-specific HoloNET client. HoloNET v4 unified those into
+# HoloNETClientAdmin/HoloNETClientAppAgent with no platform split, so the base
+# class was removed and the main provider became concrete. These two shells still
+# reference HoloOASISBase and HoloNET namespaces that no longer exist, so their
+# only source file is entirely commented out. Kept on disk, not built, not counted
+# as providers. See Docs/REMOVED_AND_MOVED_PROJECTS.md.
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/

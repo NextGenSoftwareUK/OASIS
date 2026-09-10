@@ -379,7 +379,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddType<GraphQL.Types.AvatarType>()
-                .AddType<GraphQL.Types.HolonType>();
+                .AddType<GraphQL.Types.HolonType>()
+                // Removes the IHolon persistence methods that HotChocolate would otherwise infer as fields
+                // taking an 'IHolon (Input)' argument, which made the whole schema fail to build.
+                .TryAddTypeInterceptor<GraphQL.OASISMethodFieldTypeInterceptor>();
 
             //services.AddCors(options =>
             //{
@@ -403,6 +406,35 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Railway terminates TLS at its edge and forwards plain HTTP, so without this UseHttpsRedirection
+            // saw scheme=http and 301-redirected https://.../graphql to http://.../graphql (a downgrade).
+            // Must run before UseHttpsRedirection/UseRouting so Request.Scheme is already corrected.
+            app.UseForwardedHeaders(new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+            {
+                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                                 | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+                                 | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost,
+                // The Railway proxy IP is not fixed, so the default known-network allow-list would drop the headers.
+                KnownNetworks = { },
+                KnownProxies = { }
+            });
+
+            // Fail loudly at startup when outbound email is not configured - a stale/blank Resend key
+            // previously only showed up as a per-registration warning in the client response.
+            try
+            {
+                var emailDna = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA;
+                if (emailDna?.OASIS?.Email != null && !emailDna.OASIS.Email.DisableAllEmails
+                    && !NextGenSoftware.OASIS.API.Core.Managers.EmailManager.IsEmailConfigured(emailDna))
+                {
+                    LoggingManager.Log("EMAIL NOT CONFIGURED: no Resend API key found (set OASIS_RESEND_KEY or RESEND_API_KEY, or OASIS.Email.ResendKey in OASIS_DNA.json). Verification / forgot-password / reset-password emails will NOT be delivered.", LogType.Error);
+                }
+            }
+            catch (Exception emailCfgEx)
+            {
+                LoggingManager.Log($"Could not validate email configuration at startup: {emailCfgEx.Message}", LogType.Error);
+            }
+
             // Wire up the DID challenge nonce store based on OASISDNA config
             var didStoreCfg = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Security?.DIDChallengeStore;
             if (didStoreCfg?.Provider?.Equals("Redis", StringComparison.OrdinalIgnoreCase) == true

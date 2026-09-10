@@ -1,696 +1,220 @@
-//using NextGenSoftware.OASIS.API.Contracts.Interfaces;
-//using System;
-//using System.Collections.Generic;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using NextGenSoftware.OASIS.API.Contracts.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Bridge;
+using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions;
+using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Geocoding;
+using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Models;
 
-//namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
-//{
-//    /// <summary>
-//    /// GOMap OASIS Provider - Integrates GO Map Unity package with OASIS
-//    /// Provides mapping functionality for Unity projects using GO Map
-//    /// </summary>
-//    public class GOMapOASIS : IOASISMapProvider
-//    {
-//        public MapProviderType MapProviderType { get; set; }
-//        public string MapProviderName { get; set; }
-//        public string MapProviderDescription { get; set; }
-//        public bool IsInitialized { get; set; }
+namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
+{
+    /// <summary>
+    /// GO Map OASIS Provider - places OASIS avatars, holons, quests, OAPPs, GeoNFTs
+    /// and geo hot spots on real-world maps for Our World and One World.
+    ///
+    /// GO Map is a Unity Asset Store package, so its runtime types only exist inside
+    /// a Unity player. This provider therefore does all the work it can do without
+    /// Unity - the projection and geodesy maths, and the authoritative record of
+    /// what is placed where - and expresses everything that must happen in the scene
+    /// as a queue of <see cref="GOMapCommand"/> for a Unity client to drain.
+    ///
+    /// When it IS hosted inside Unity, <see cref="Initialize"/> is handed the real
+    /// GOMap component and the same operations are additionally forwarded to it
+    /// through <see cref="GOMapUnityBridge"/>, so one assembly serves both hosts.
+    ///
+    /// Directions and geocoding are genuine HTTP services (OSRM and Nominatim by
+    /// default, both keyless), configurable to any compatible endpoint.
+    /// </summary>
+    public partial class GOMapOASIS : IOASISMapProvider
+    {
+        private readonly ConcurrentDictionary<Guid, GOMapPin> _pins =
+            new ConcurrentDictionary<Guid, GOMapPin>();
 
-//        // Unity-specific properties
-//        public IDirectionsAPIProvider DirectionsAPI { get; set; }
-//        public IForwardGeocodingProvider GeocodingProvider { get; set; }
+        private readonly ConcurrentDictionary<Guid, GOMapPlacement> _placements =
+            new ConcurrentDictionary<Guid, GOMapPlacement>();
 
-//        // GO Map specific properties
-//        public object GOMapInstance { get; set; }
+        private readonly ConcurrentQueue<GOMapCommand> _commands =
+            new ConcurrentQueue<GOMapCommand>();
 
-//        public GOMapOASIS()
-//        {
-//            MapProviderType = MapProviderType.GoMap;
-//            MapProviderName = "GO Map";
-//            MapProviderDescription = "GO Map OASIS Provider for Unity integration";
-//            IsInitialized = false;
-//        }
+        private readonly object _cameraLock = new object();
 
-//        /// <summary>
-//        /// Initialize the GO Map provider with a GO Map instance
-//        /// </summary>
-//        /// <param name="GOMapInstanceInstance">The GO Map instance from Unity</param>
-//        public void Initialize(object GOMapInstanceInstance)
-//        {
-//            GOMapInstance = GOMapInstanceInstance;
-//            IsInitialized = true;
-//        }
+        private readonly OriginSignal _originSet = new OriginSignal();
 
-//        #region IOASISMapProvider Implementation
+        #region Core Properties
 
-//        public bool CreateAndDrawRouteOnMapBetweenHolons(object fromHolon, object toHolon)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Extract coordinates from holons and create route
-//                // This would use GO Map's routing capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        public MapProviderType MapProviderType { get; set; }
+        public string MapProviderName { get; set; }
+        public string MapProviderDescription { get; set; }
+        public bool IsInitialized { get; set; }
 
-//        public bool CreateAndDrawRouteOnMapBeweenPoints(object points)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Process points array and create route
-//                // This would use GO Map's routing capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        #endregion
 
-//        public bool Draw2DSpriteOnHUD(object sprite, float x, float y)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Draw 2D sprite on HUD at specified coordinates
-//                // This would use GO Map's HUD drawing capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        #region Unity-Specific Functions
 
-//        public bool Draw2DSpriteOnMap(object sprite, float x, float y)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Draw 2D sprite on map at specified coordinates
-//                // This would use GO Map's map drawing capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        public IDirectionsAPIProvider DirectionsAPI { get; set; }
+        public IForwardGeocodingProvider GeocodingProvider { get; set; }
 
-//        public bool Draw3DObjectOnMap(object obj, float x, float y)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Draw 3D object on map at specified coordinates
-//                // This would use GO Map's 3D object drawing capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        #endregion
 
-//        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Draw route on map between start and end coordinates
-//                // This would use GO Map's route drawing capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        #region GO Map State
 
-//        public bool HighlightBuildingOnMap(object building)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Highlight building on map
-//                // This would use GO Map's building highlighting capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>
+        /// The live GO Map component, when hosted inside Unity. Null when headless -
+        /// which is not an error, it is the server-side mode of operation.
+        /// </summary>
+        public object GOMapInstance => Bridge.Instance;
 
-//        public bool PanMapDown(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Pan map down by specified value
-//                // This would use GO Map's pan capabilities
-//                // For now, return true to indicate the method is implemented
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>Reflective dispatcher onto the live GO Map instance.</summary>
+        public GOMapUnityBridge Bridge { get; }
 
-//        public bool PanMapLeft(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Pan map left by specified value
-//                // This would use GO Map's pan capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>Where the map is currently centred, and at what zoom and orbit.</summary>
+        public GOMapCameraState Camera { get; }
 
-//        public bool PanMapRight(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Pan map right by specified value
-//                // This would use GO Map's pan capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>
+        /// The coordinate the Unity world origin corresponds to. GO Map measures its
+        /// world positions from this point, so conversions are meaningless until it
+        /// is set - which is what <see cref="WaitForOriginSet"/> waits for.
+        /// </summary>
+        public Geolocation Origin { get; private set; }
 
-//        public bool PanMapUp(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Pan map up by specified value
-//                // This would use GO Map's pan capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>Unity world units per projected metre. GO Map's default is 1:1.</summary>
+        public double WorldUnitsPerMetre { get; set; } = 1.0;
 
-//        public bool SelectBuildingOnMap(object building)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Select building on map
-//                // This would use GO Map's building selection capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>The device location last reported by the client or the GO Map location manager.</summary>
+        public Geolocation CurrentLocation { get; private set; }
 
-//        public bool SelectHolonOnMap(object holon)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Select holon on map
-//                // This would use GO Map's holon selection capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        public IReadOnlyCollection<GOMapPin> Pins => _pins.Values.ToList();
 
-//        public bool ZoomMapIn(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Zoom map in by specified value
-//                // This would use GO Map's zoom capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        public IReadOnlyCollection<GOMapPlacement> Placements => _placements.Values.ToList();
 
-//        public bool ZoomMapOut(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Zoom map out by specified value
-//                // This would use GO Map's zoom capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>Commands queued for a GO Map client, oldest first.</summary>
+        public IReadOnlyCollection<GOMapCommand> PendingCommands => _commands.ToList();
 
-//        public bool ZoomToHolonOnMap(object holon)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Zoom to holon on map
-//                // This would use GO Map's zoom to object capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        #endregion
 
-//        public bool PlaceQuestOnMap(object quest, double latitude, double longitude)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Place quest on map at specified coordinates
-//                // This would use GO Map's quest placement capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        public GOMapOASIS() : this(null)
+        {
+        }
 
-//        public bool PlaceOAPPOnMap(object oapp, double latitude, double longitude)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Place OAPP on map at specified coordinates
-//                // This would use GO Map's OAPP placement capabilities
-//                return true;
-//            }
-//            catch (Exception)
-//            {
-//                return false;
-//            }
-//        }
+        /// <summary>
+        /// Creates the provider and immediately binds it to a live GO Map instance.
+        /// </summary>
+        /// <param name="goMapInstance">The Unity GOMap component, or null for headless use.</param>
+        public GOMapOASIS(object goMapInstance)
+        {
+            MapProviderType = MapProviderType.GoMap;
+            MapProviderName = "GO Map";
+            MapProviderDescription =
+                "GO Map OASIS Provider - real-world geo-spatial and AR mapping for OASIS avatars, "
+                + "holons, quests, OAPPs, GeoNFTs and geo hot spots.";
 
-//        #endregion
+            Bridge = new GOMapUnityBridge();
+            Camera = new GOMapCameraState();
+            DirectionsAPI = new OSRMDirectionsProvider();
+            GeocodingProvider = new NominatimGeocodingProvider();
 
-//        #region Location Management
+            if (goMapInstance != null)
+                Initialize(goMapInstance);
+        }
 
-//        public Geolocation GetCurrentLocation()
-//        {
-//            if (!IsInitialized) return null;
-            
-//            try
-//            {
-//                // Real GO Map current location retrieval
-//                if (GOMapInstance != null && GOMapInstance.locationManager != null)
-//                {
-//                    var currentLocation = GOMapInstance.locationManager.currentLocation;
-//                    if (currentLocation != null)
-//                    {
-//                        return new Geolocation
-//                        {
-//                            Latitude = currentLocation.latitude,
-//                            Longitude = currentLocation.longitude,
-//                            Altitude = currentLocation.altitude,
-//                            Accuracy = currentLocation.horizontalAccuracy,
-//                            Timestamp = currentLocation.timestamp
-//                        };
-//                    }
-//                }
-//                return null;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return null
-//                UnityEngine.Debug.LogError($"Error getting current location from GO Map: {ex.Message}");
-//                return null;
-//            }
-//        }
+        #region Initialization
 
-//        public System.Threading.Tasks.Task WaitForOriginSet()
-//        {
-//            if (!IsInitialized) return System.Threading.Tasks.Task.CompletedTask;
-            
-//            try
-//            {
-//                // Real GO Map origin wait implementation
-//                if (GOMapInstance != null && GOMapInstance.locationManager != null)
-//                {
-//                    return GOMapInstance.locationManager.WaitForOriginSet();
-//                }
-//                return System.Threading.Tasks.Task.CompletedTask;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return completed task
-//                UnityEngine.Debug.LogError($"Error waiting for origin set in GO Map: {ex.Message}");
-//                return System.Threading.Tasks.Task.CompletedTask;
-//            }
-//        }
+        /// <summary>
+        /// Binds the provider to a GO Map instance. Passing null initialises it in
+        /// headless mode, where every operation still records state and queues
+        /// commands but nothing is forwarded to Unity.
+        /// </summary>
+        public void Initialize(object mapInstance)
+        {
+            if (mapInstance != null)
+            {
+                Bridge.Bind(mapInstance);
+                ReadOriginFromLiveMap();
+            }
 
-//        #endregion
+            IsInitialized = true;
+        }
 
-//        #region Pin Management
+        /// <summary>
+        /// Sets the coordinate the Unity world origin corresponds to and releases
+        /// anything awaiting <see cref="WaitForOriginSet"/>.
+        /// </summary>
+        public void SetOrigin(Geolocation origin)
+        {
+            if (origin == null) throw new ArgumentNullException(nameof(origin));
 
-//        public bool DropPin(Geolocation coordinates, object gameObject)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Real GO Map pin dropping implementation
-//                if (GOMapInstance != null)
-//                {
-//                    // Convert Geolocation to GO Map coordinate format
-//                    var GOMapInstanceCoordinate = new GoShared.GOCoordinate
-//                    {
-//                        latitude = coordinates.Latitude,
-//                        longitude = coordinates.Longitude,
-//                        altitude = coordinates.Altitude
-//                    };
-                    
-//                    // Drop pin using GO Map API
-//                    GOMapInstance.dropPin(GOMapInstanceCoordinate, gameObject);
-//                    return true;
-//                }
-//                return false;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return false
-//                UnityEngine.Debug.LogError($"Error dropping pin in GO Map: {ex.Message}");
-//                return false;
-//            }
-//        }
+            Origin = origin;
 
-//        public bool RemovePin(object gameObject)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Real GO Map pin removal implementation
-//                if (GOMapInstance != null)
-//                {
-//                    // Remove pin using GO Map API
-//                    GOMapInstance.removePin(gameObject);
-//                    return true;
-//                }
-//                return false;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return false
-//                UnityEngine.Debug.LogError($"Error removing pin in GO Map: {ex.Message}");
-//                return false;
-//            }
-//        }
+            lock (_cameraLock)
+            {
+                if (Camera.Centre == null || (Camera.Centre.Latitude == 0.0 && Camera.Centre.Longitude == 0.0))
+                    Camera.Centre = new Geolocation(origin.Latitude, origin.Longitude);
+            }
 
-//        #endregion
+            _originSet.Complete();
+        }
 
-//        #region Distance Calculation
+        /// <summary>Records the device location reported by the client.</summary>
+        public void SetCurrentLocation(Geolocation location)
+        {
+            CurrentLocation = location;
 
-//        public float CalculateDistance(Geolocation location1, Geolocation location2)
-//        {
-//            if (!IsInitialized) return 0f;
-            
-//            try
-//            {
-//                // Real GO Map distance calculation implementation
-//                if (GOMapInstance != null && GOMapInstance.locationManager != null)
-//                {
-//                    // Convert Geolocation to GO Map coordinate format
-//                    var coord1 = new GoShared.GOCoordinate
-//                    {
-//                        latitude = location1.Latitude,
-//                        longitude = location1.Longitude
-//                    };
-                    
-//                    var coord2 = new GoShared.GOCoordinate
-//                    {
-//                        latitude = location2.Latitude,
-//                        longitude = location2.Longitude
-//                    };
-                    
-//                    // Calculate distance using GO Map API
-//                    return coord1.DistanceFromOtherGPSCoordinate(coord2);
-//                }
-//                return 0f;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return 0
-//                UnityEngine.Debug.LogError($"Error calculating distance in GO Map: {ex.Message}");
-//                return 0f;
-//            }
-//        }
+            if (Origin == null && location != null)
+                SetOrigin(new Geolocation(location.Latitude, location.Longitude));
+        }
 
-//        public float CalculateDistance(double lat1, double lon1, double lat2, double lon2)
-//        {
-//            if (!IsInitialized) return 0f;
-            
-//            try
-//            {
-//                // Real GO Map distance calculation with lat/lon parameters
-//                if (GOMapInstance != null && GOMapInstance.locationManager != null)
-//                {
-//                    // Create GO Map coordinates
-//                    var coord1 = new GoShared.GOCoordinate
-//                    {
-//                        latitude = lat1,
-//                        longitude = lon1
-//                    };
-                    
-//                    var coord2 = new GoShared.GOCoordinate
-//                    {
-//                        latitude = lat2,
-//                        longitude = lon2
-//                    };
-                    
-//                    // Calculate distance using GO Map API
-//                    return coord1.DistanceFromOtherGPSCoordinate(coord2);
-//                }
-//                return 0f;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return 0
-//                UnityEngine.Debug.LogError($"Error calculating distance in GO Map: {ex.Message}");
-//                return 0f;
-//            }
-//        }
+        /// <summary>Releases the GO Map instance and returns the provider to headless mode.</summary>
+        public void Shutdown()
+        {
+            Bridge.Unbind();
+            IsInitialized = false;
+        }
 
-//        #endregion
+        private void ReadOriginFromLiveMap()
+        {
+            double latitude = Bridge.GetValueOrDefault("locationManager.currentLocation.latitude", double.NaN);
+            double longitude = Bridge.GetValueOrDefault("locationManager.currentLocation.longitude", double.NaN);
 
-//        #region Camera/Orbit Control
+            if (double.IsNaN(latitude) || double.IsNaN(longitude)) return;
 
-//        public bool UpdateOrbitValue(float value)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Real GO Map orbit control implementation
-//                var orbitController = UnityEngine.GameObject.FindObjectOfType<GoShared.GOOrbit>();
-//                if (orbitController != null)
-//                {
-//                    orbitController.UpdateValue(value);
-//                    return true;
-//                }
-//                return false;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return false
-//                UnityEngine.Debug.LogError($"Error updating orbit value in GO Map: {ex.Message}");
-//                return false;
-//            }
-//        }
+            Geolocation location = new Geolocation(latitude, longitude);
+            CurrentLocation = location;
+            SetOrigin(new Geolocation(latitude, longitude));
+        }
 
-//        #endregion
+        #endregion
 
-//        #region GO Map Specific Methods
+        #region Command Queue
 
-//        /// <summary>
-//        /// Convert lat/long coordinates to GO Map world position
-//        /// </summary>
-//        /// <param name="latitude">Latitude</param>
-//        /// <param name="longitude">Longitude</param>
-//        /// <returns>World position</returns>
-//        public object ConvertLatLongToWorldPosition(double latitude, double longitude)
-//        {
-//            if (!IsInitialized) return null;
-            
-//            try
-//            {
-//                // Real GO Map coordinate conversion implementation
-//                if (GOMapInstance != null)
-//                {
-//                    var coordinate = new GoShared.GOCoordinate
-//                    {
-//                        latitude = latitude,
-//                        longitude = longitude
-//                    };
-                    
-//                    // Convert to world position using GO Map API
-//                    return GOMapInstance.coordinateToWorldPosition(coordinate);
-//                }
-//                return null;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return null
-//                UnityEngine.Debug.LogError($"Error converting lat/long to world position in GO Map: {ex.Message}");
-//                return null;
-//            }
-//        }
+        /// <summary>
+        /// Removes and returns everything queued. A Unity client calls this each
+        /// frame and applies the commands on its main thread.
+        /// </summary>
+        public IList<GOMapCommand> DrainCommands()
+        {
+            List<GOMapCommand> drained = new List<GOMapCommand>();
 
-//        /// <summary>
-//        /// Convert world position to lat/long coordinates
-//        /// </summary>
-//        /// <param name="worldPosition">World position</param>
-//        /// <returns>Lat/long coordinates</returns>
-//        public object ConvertWorldPositionToLatLong(object worldPosition)
-//        {
-//            if (!IsInitialized) return null;
-            
-//            try
-//            {
-//                // Real GO Map coordinate conversion implementation
-//                if (GOMapInstance != null && worldPosition != null)
-//                {
-//                    // Convert world position to lat/long using GO Map API
-//                    return GOMapInstance.worldPositionToCoordinate(worldPosition);
-//                }
-//                return null;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return null
-//                UnityEngine.Debug.LogError($"Error converting world position to lat/long in GO Map: {ex.Message}");
-//                return null;
-//            }
-//        }
+            while (_commands.TryDequeue(out GOMapCommand command))
+                drained.Add(command);
 
-//        /// <summary>
-//        /// Place a GeoNFT on the GO Map
-//        /// </summary>
-//        /// <param name="geoNFT">GeoNFT to place</param>
-//        /// <param name="latitude">Latitude</param>
-//        /// <param name="longitude">Longitude</param>
-//        /// <returns>Success status</returns>
-//        public bool PlaceGeoNFTOnMap(object geoNFT, double latitude, double longitude)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Real GO Map GeoNFT placement implementation
-//                if (GOMapInstance != null && geoNFT != null)
-//                {
-//                    var coordinate = new GoShared.GOCoordinate
-//                    {
-//                        latitude = latitude,
-//                        longitude = longitude
-//                    };
-                    
-//                    // Place GeoNFT using GO Map API
-//                    GOMapInstance.placeGeoNFT(geoNFT, coordinate);
-//                    return true;
-//                }
-//                return false;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return false
-//                UnityEngine.Debug.LogError($"Error placing GeoNFT on GO Map: {ex.Message}");
-//                return false;
-//            }
-//        }
+            return drained;
+        }
 
-//        /// <summary>
-//        /// Place a GeoHotSpot on the GO Map
-//        /// </summary>
-//        /// <param name="geoHotSpot">GeoHotSpot to place</param>
-//        /// <param name="latitude">Latitude</param>
-//        /// <param name="longitude">Longitude</param>
-//        /// <returns>Success status</returns>
-//        public bool PlaceGeoHotSpotOnMap(object geoHotSpot, double latitude, double longitude)
-//        {
-//            if (!IsInitialized) return false;
-            
-//            try
-//            {
-//                // Real GO Map GeoHotSpot placement implementation
-//                if (GOMapInstance != null && geoHotSpot != null)
-//                {
-//                    var coordinate = new GoShared.GOCoordinate
-//                    {
-//                        latitude = latitude,
-//                        longitude = longitude
-//                    };
-                    
-//                    // Place GeoHotSpot using GO Map API
-//                    GOMapInstance.placeGeoHotSpot(geoHotSpot, coordinate);
-//                    return true;
-//                }
-//                return false;
-//            }
-//            catch (Exception ex)
-//            {
-//                // Log error and return false
-//                UnityEngine.Debug.LogError($"Error placing GeoHotSpot on GO Map: {ex.Message}");
-//                return false;
-//            }
-//        }
+        /// <summary>Discards every queued command without applying it.</summary>
+        public void ClearCommands()
+        {
+            while (_commands.TryDequeue(out _)) { }
+        }
 
-//        #endregion
-//    }
-//}
+        private GOMapCommand Enqueue(GOMapCommand command)
+        {
+            _commands.Enqueue(command);
+            return command;
+        }
+
+        #endregion
+
+    }
+}
