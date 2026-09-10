@@ -179,7 +179,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 });
             }
 
-            return HttpResponseHelper.FormatResponse(await AvatarManager.VerifyAvatarAsync(avatarId));
+            var result = new OASISResult<bool>();
+            try
+            {
+                var loadResult = await AvatarManager.LoadAvatarAsync(avatarId, false, false);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    result.IsError = true;
+                    result.Result = false;
+                    result.Message = $"Avatar {avatarId} not found. {loadResult.Message}";
+                }
+                else
+                {
+                    loadResult.Result.Verified = DateTime.UtcNow;
+                    loadResult.Result.VerificationToken = null;
+                    loadResult.Result.IsActive = true;
+                    var saveResult = await AvatarManager.SaveAvatarAsync(loadResult.Result);
+                    result.IsError = saveResult.IsError;
+                    result.IsSaved = saveResult.IsSaved;
+                    result.Result = !saveResult.IsError && saveResult.IsSaved;
+                    result.Message = result.Result ? $"Avatar {avatarId} verified successfully." : saveResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Result = false;
+                result.Message = $"Error verifying avatar {avatarId}: {ex.Message}";
+            }
+            return HttpResponseHelper.FormatResponse(result);
         }
 
         /// <summary>
