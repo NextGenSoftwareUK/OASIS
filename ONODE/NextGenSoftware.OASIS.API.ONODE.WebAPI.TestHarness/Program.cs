@@ -315,15 +315,21 @@ class Program
 
             // Prefer the test-token bypass (avoids secret mismatch between harness and server).
             // Fall back to real HMAC signature if no test token is configured.
+            string sigHeader;
             if (!string.IsNullOrEmpty(WebhookTestToken))
             {
                 request.Headers.Add("X-Webhook-Test-Token", WebhookTestToken);
+                sigHeader = "(test-token bypass)";
             }
             else
             {
-                var signature = ComputeStripeSignature(payload, WebhookSecret, ts);
-                request.Headers.Add("Stripe-Signature", signature);
+                sigHeader = ComputeStripeSignature(payload, WebhookSecret, ts);
+                request.Headers.Add("Stripe-Signature", sigHeader);
             }
+
+            // Debug output — uncomment to inspect exact payload and signature
+            Console.WriteLine($"       [DBG] ts={ts}  sig={sigHeader[..Math.Min(80, sigHeader.Length)]}");
+            Console.WriteLine($"       [DBG] payload={payload[..Math.Min(120, payload.Length)]}");
 
             var response = await Http.SendAsync(request);
             var body = await response.Content.ReadAsStringAsync();
