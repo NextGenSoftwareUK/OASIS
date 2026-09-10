@@ -135,7 +135,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     webBuilder.UseStartup<Startup>();
                     webBuilder.ConfigureKestrel(options =>
                     {
-                        var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+                        // Keep the release executable aligned with the local launch profiles when PORT is not supplied.
+                        var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "7777");
                         // Railway terminates TLS externally and forwards HTTP/2, so Http1AndHttp2 works in production.
                         // Locally this produces a warning (no TLS for ALPN) but gRPC still works via h2c on loopback.
                         options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
