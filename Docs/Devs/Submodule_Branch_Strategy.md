@@ -100,10 +100,11 @@ pointer moved, opens a PR. It opens a PR rather than pushing, because a pointer 
 It uses only `actions/checkout` and the `gh` CLI preinstalled on GitHub-hosted runners —
 no third-party action is given write access to this repository.
 
-> **Setup note:** the workflow prefers a `SUBMODULE_SYNC_TOKEN` secret and falls back to
-> `GITHUB_TOKEN`. PRs created with `GITHUB_TOKEN` do **not** trigger workflow runs, so with
-> the fallback the branch check will not run on the sync PR. Add a repo-scoped PAT as
-> `SUBMODULE_SYNC_TOKEN` to get CI on those PRs.
+It authenticates with `PRIVATE_SUBMODULE_PAT`, the same secret `ci-cd.yml`,
+`publish-nuget.yml` and `publish-mcp.yml` already use. That secret is **required**, not
+optional — `GITHUB_TOKEN` cannot fetch private submodules, so there is no useful fallback.
+Using the PAT also means the PR it opens triggers CI; a PR created with `GITHUB_TOKEN`
+does not, which would leave the branch check unrun on exactly the PRs that need it.
 
 ### Still to do: branch protection
 
