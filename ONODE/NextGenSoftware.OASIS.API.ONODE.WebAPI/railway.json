@@ -1,7 +1,8 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Docker/Dockerfile.web4"
   },
   "deploy": {
     "startCommand": "dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
