@@ -57,14 +57,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters
             if (isValidationError)
             {
                 // Validation error - return 400
+                // DetailedMessage was previously null on every OASISException response.
+                errorResult.DetailedMessage = ex.ToString();
+
                 if (_enableGenericExceptionHandling)
                 {
-                    errorResult.Message = $"Invalid args were passed to {context.ActionDescriptor.DisplayName}. {ex.Message}";
+                    string reason = string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
+                    errorResult.Message = (ex is ArgumentException || ex is ArgumentNullException)
+                        ? $"Invalid args were passed to {context.ActionDescriptor.DisplayName}. {reason}"
+                        : $"{context.ActionDescriptor.DisplayName} could not be completed. {reason}";
                 }
                 else
                 {
                     errorResult.Message = ex.Message;
-                    errorResult.DetailedMessage = ex.ToString();
                 }
                 context.Result = new BadRequestObjectResult(errorResult);
             }
