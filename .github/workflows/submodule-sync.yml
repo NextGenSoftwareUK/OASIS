@@ -61,10 +61,12 @@ jobs:
           ref: ${{ matrix.branch }}
           submodules: recursive
           fetch-depth: 0
-          # A PR created with GITHUB_TOKEN does not trigger workflow runs, which would
-          # leave the branch check unverified on exactly the PRs that need it. Set a
-          # repo-scoped PAT as SUBMODULE_SYNC_TOKEN to get CI on these PRs.
-          token: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          # Same PRIVATE_SUBMODULE_PAT that ci-cd.yml, publish-nuget.yml and
+          # publish-mcp.yml already use, rather than a second token for the same job.
+          # It is required, not optional: GITHUB_TOKEN cannot fetch private submodules,
+          # so falling back to it would make this job fail at checkout. It also means
+          # the PR opened below triggers CI, which a GITHUB_TOKEN PR does not.
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Move each pointer to the branch tip declared in .gitmodules
         if: steps.gate.outputs.skip == 'false'
@@ -92,7 +94,7 @@ jobs:
       - name: Open or update the pull request
         if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.SUBMODULE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           TARGET: ${{ matrix.branch }}
         run: |
           set -euo pipefail
