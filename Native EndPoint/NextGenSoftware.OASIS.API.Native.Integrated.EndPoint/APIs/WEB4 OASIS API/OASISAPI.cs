@@ -39,7 +39,19 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private ProviderManager _provider = null;
         //private COSMICManager _cosmic = null;
 
-        public bool IsOASISBooted { get; set; }
+        private bool _isOASISBooted;
+
+        /// <summary>
+        /// True once THIS instance booted OASIS, OR once the process-wide OASISBootLoader has booted it.
+        /// Web API hosts create many OASISAPI/STARAPI instances (one static per controller); without the
+        /// OASISBootLoader fall-back each instance believed OASIS was un-booted and every manager property
+        /// threw OASISException("OASIS is not booted...") - which surfaced as a 400 on all GetAll endpoints.
+        /// </summary>
+        public bool IsOASISBooted
+        {
+            get => _isOASISBooted || OASISBootLoader.OASISBootLoader.IsOASISBooted;
+            set => _isOASISBooted = value;
+        }
         //public string OASISRunVersion { get; set; }
         public OASISDNA OASISDNA { get; set; } 
 
