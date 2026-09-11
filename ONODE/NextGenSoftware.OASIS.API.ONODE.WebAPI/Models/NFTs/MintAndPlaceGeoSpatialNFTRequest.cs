@@ -3,8 +3,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class MintAndPlaceGeoSpatialNFTRequest : MintNFTTransactionRequest
     {
-        public long Lat { get; set; }
-        public long Long { get; set; }
+        public double Lat { get; set; }
+        public double Long { get; set; }
         public bool AllowOtherPlayersToAlsoCollect { get; set; }
         public bool PermSpawn { get; set; }
         public int GlobalSpawnQuantity { get; set; }
