@@ -25,6 +25,7 @@ param(
     [string]$NFTStandardType = 'SPL',
     [string]$Title = 'Our World Desktop GeoNFT Demo',
     [string]$Description = 'A seeded GeoNFT used to verify map placement around the desktop test origin.',
+    [string]$ImageUrl = 'https://raw.githubusercontent.com/NextGenSoftwareUK/OASIS/master/Logos/OASISOmniverse.png',
     [string]$Symbol = 'OWDEMO',
     [string]$OutputPath = (Join-Path ([IO.Path]::GetTempPath()) 'our-world-geonft-demo.json'),
     [switch]$PlanOnly
@@ -63,6 +64,7 @@ $plan = @($layout | ForEach-Object {
 Write-Host "Our World GeoNFT demo seed"
 Write-Host "Development API: $Web4BaseUrl"
 Write-Host "Map center: $Latitude, $Longitude"
+Write-Host "NFT image: $ImageUrl"
 if ($PlanOnly) {
     Write-Host 'Plan-only mode: no NFT will be minted and no GeoNFT will be placed.'
     $plan
@@ -94,7 +96,7 @@ foreach ($axis in @('lat', 'long')) {
 $mintSchemaRef = $openApi.paths.'/api/Nft/mint-nft'.post.requestBody.content.'application/json'.schema.'$ref'
 $mintSchemaName = $mintSchemaRef -replace '^#/components/schemas/', ''
 $mintSchema = $openApi.components.schemas.$mintSchemaName
-foreach ($field in @('title', 'offChainProvider', 'onChainProvider', 'nftStandardType', 'sendToAvatarAfterMintingId')) {
+foreach ($field in @('title', 'imageUrl', 'offChainProvider', 'onChainProvider', 'nftStandardType', 'sendToAvatarAfterMintingId')) {
     if ($null -eq $mintSchema.properties.$field) {
         throw "The running API does not expose the required mint field '$field'."
     }
@@ -143,6 +145,7 @@ try {
         Write-Host 'Minting one development SOL Web4 NFT...'
         $minted = Invoke-GeoApi 'nft/mint-nft' 'Post' @{
             title = $Title; description = $Description; symbol = $Symbol
+            imageUrl = $ImageUrl
             numberToMint = 1; price = 0; discount = 0
             offChainProvider = $Provider; onChainProvider = $OnChainProvider
             nftOffChainMetaType = 'OASIS'; nftStandardType = $NFTStandardType
