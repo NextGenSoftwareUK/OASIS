@@ -5,12 +5,15 @@ Mints one Web4 NFT and places four API-backed GeoNFTs around Our World's desktop
 Mints one source Web4 NFT through the configured on-chain provider, then uses
 that NFT as the source for four GeoNFT placements. The manifest is written as
 soon as the source NFT exists so a failed placement can be resumed with
--OriginalNFTId. Credentials and tokens are never saved.
+-OriginalNFTId. The default account is loaded from a Windows user-encrypted
+credential file and is never stored in Git.
 .EXAMPLE
 ./Scripts/seed_our_world_geonfts.ps1 -PlanOnly
 .EXAMPLE
 ./Scripts/seed_our_world_geonfts.ps1
 ./Scripts/seed_our_world_geonfts.ps1 -OriginalNFTId <source-Web4-NFT-guid>
+.EXAMPLE
+./Scripts/seed_our_world_geonfts.ps1 -PromptForCredential
 #>
 [CmdletBinding()]
 param(
@@ -18,6 +21,8 @@ param(
     [string]$Web4BaseUrl = 'https://dev.api.web4.oasisomniverse.one',
     [Guid]$OriginalNFTId = [Guid]::Empty,
     [PSCredential]$Credential,
+    [switch]$PromptForCredential,
+    [string]$CredentialPath,
     [ValidateRange(-85, 85)][double]$Latitude = 31.54998,
     [ValidateRange(-180, 180)][double]$Longitude = 74.27728,
     [string]$Provider = 'MongoDBOASIS',
@@ -33,6 +38,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+$defaultCredentialPath = Join-Path $env:LOCALAPPDATA 'OASIS\our-world-geonft-seed.credential.clixml'
+$effectiveCredentialPath = if ([string]::IsNullOrWhiteSpace($CredentialPath)) { $defaultCredentialPath } else { $CredentialPath }
 
 function Get-DemoCoordinate {
     param([double]$Bearing, [double]$Distance)
@@ -72,11 +79,17 @@ if ($PlanOnly) {
 }
 
 if ($null -eq $Credential) {
-    Write-Host 'Waiting for OASIS avatar sign-in...'
-    $username = Read-Host 'OASIS username or email'
-    if ([string]::IsNullOrWhiteSpace($username)) { throw 'An OASIS username or email is required.' }
-    $password = Read-Host 'OASIS password' -AsSecureString
-    $Credential = [PSCredential]::new($username, $password)
+    if (-not $PromptForCredential -and (Test-Path -LiteralPath $effectiveCredentialPath)) {
+        Write-Host 'Loading the configured local OASIS avatar sign-in...'
+        $Credential = Import-Clixml -LiteralPath $effectiveCredentialPath
+        if ($Credential -isnot [PSCredential]) { throw "The local OASIS credential file is invalid: $effectiveCredentialPath" }
+    } else {
+        Write-Host 'Waiting for OASIS avatar sign-in...'
+        $username = Read-Host 'OASIS username or email'
+        if ([string]::IsNullOrWhiteSpace($username)) { throw 'An OASIS username or email is required.' }
+        $password = Read-Host 'OASIS password' -AsSecureString
+        $Credential = [PSCredential]::new($username, $password)
+    }
 }
 if ($null -eq $Credential) { throw 'An OASIS login is required.' }
 
