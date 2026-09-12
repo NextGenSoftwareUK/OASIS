@@ -60,7 +60,22 @@ $plan = @($layout | ForEach-Object {
     $coordinate = Get-DemoCoordinate $_.bearing $_.distance
     [pscustomobject]@{ label = $_.label; distanceMeters = $_.distance; lat = $coordinate.lat; long = $coordinate.long }
 })
-if ($PlanOnly) { $plan; return }
+Write-Host "Our World GeoNFT demo seed"
+Write-Host "Development API: $Web4BaseUrl"
+Write-Host "Map center: $Latitude, $Longitude"
+if ($PlanOnly) {
+    Write-Host 'Plan-only mode: no NFT will be minted and no GeoNFT will be placed.'
+    $plan
+    return
+}
+
+if ($null -eq $Credential) {
+    Write-Host 'Waiting for OASIS avatar sign-in...'
+    $Credential = Get-Credential -Message 'OASIS avatar login for Our World development demo data'
+}
+if ($null -eq $Credential) { throw 'An OASIS login is required.' }
+
+Write-Host 'Checking the development API contract...'
 $server = $Web4BaseUrl.TrimEnd('/') -replace '/api$', ''
 $api = "$server/api"
 $openApi = Invoke-RestMethod -Uri "$server/swagger/v1/swagger.json" -TimeoutSec 30
@@ -82,9 +97,6 @@ foreach ($field in @('title', 'offChainProvider', 'onChainProvider', 'nftStandar
     }
 }
 
-if ($null -eq $Credential) { $Credential = Get-Credential -Message 'Local OASIS avatar login for Our World demo data' }
-if ($null -eq $Credential) { throw 'An OASIS login is required.' }
-
 function Get-OasisValue {
     param($Envelope, [string]$Operation)
     if ($null -eq $Envelope -or $null -eq $Envelope.PSObject.Properties['isError']) {
@@ -99,6 +111,7 @@ function Get-OasisValue {
 
 $loginBody = @{ username = $Credential.UserName; password = $Credential.GetNetworkCredential().Password } | ConvertTo-Json
 try {
+    Write-Host 'Authenticating the avatar...'
     $login = Invoke-RestMethod -Uri "$api/avatar/authenticate" -Method Post -ContentType 'application/json' -Body $loginBody -TimeoutSec 45
 } finally { $loginBody = $null }
 $avatar = Get-OasisValue $login.result 'Authenticate'
@@ -123,6 +136,7 @@ try {
     }
 
     if ($OriginalNFTId -eq [Guid]::Empty) {
+        Write-Host 'Minting one development SOL Web4 NFT...'
         $minted = Invoke-GeoApi 'nft/mint-nft' 'Post' @{
             title = $Title; description = $Description; symbol = $Symbol
             numberToMint = 1; price = 0; discount = 0
@@ -143,12 +157,14 @@ try {
         $manifest.sourceNFTCreated = $true
     }
 
+    Write-Host 'Loading the source Web4 NFT...'
     $original = Invoke-GeoApi "nft/load-nft-by-id/$OriginalNFTId/$Provider/false"
     if ($null -eq $original -or [Guid]$original.id -ne $OriginalNFTId) { throw 'The source Web4 NFT could not be loaded.' }
     $manifest.sourceNFTId = $OriginalNFTId.ToString()
     # Save the minted source before placing anything, so the run is safely resumable.
     $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
 
+    Write-Host 'Loading existing GeoNFT placements...'
     $existing = @(Invoke-GeoApi "nft/load-all-geo-nfts/$Provider/false")
     foreach ($point in $plan) {
         $matches = @($existing | Where-Object {
@@ -160,8 +176,10 @@ try {
         if ($matches.Count -gt 1) { throw "Duplicate existing placements at $($point.label); inspect them before proceeding." }
         $created = $false
         if ($matches.Count -eq 1) {
+            Write-Host "Reusing existing placement: $($point.label)"
             $geo = $matches[0]
         } else {
+            Write-Host "Placing GeoNFT: $($point.label)..."
             $geo = Invoke-GeoApi 'nft/place-geo-nft' 'Post' @{
                 originalOASISNFTId = $OriginalNFTId.ToString()
                 originalOASISNFTOffChainProvider = $Provider; geoNFTMetaDataProvider = $Provider
@@ -180,6 +198,7 @@ try {
         # Save progress after every successful placement, including interrupted runs.
         $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
     }
+    Write-Host 'Reading back saved GeoNFT placements...'
     $persisted = @(Invoke-GeoApi "nft/load-all-geo-nfts/$Provider/false")
     foreach ($placed in $manifest.placements) {
         $saved = @($persisted | Where-Object { $null -ne $_ -and $_.id -eq $placed.id })
