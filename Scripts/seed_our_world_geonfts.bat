@@ -6,6 +6,7 @@ echo.
 echo ========================================
 echo   Our World GeoNFT demo seed
 echo ========================================
+echo Script directory: %~dp0
 echo Starting PowerShell...
 
 if not exist "seed_our_world_geonfts.ps1" (
