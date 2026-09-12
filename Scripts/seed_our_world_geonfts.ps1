@@ -94,7 +94,7 @@ foreach ($axis in @('lat', 'long')) {
 $mintSchemaRef = $openApi.paths.'/api/Nft/mint-nft'.post.requestBody.content.'application/json'.schema.'$ref'
 $mintSchemaName = $mintSchemaRef -replace '^#/components/schemas/', ''
 $mintSchema = $openApi.components.schemas.$mintSchemaName
-foreach ($field in @('title', 'offChainProvider', 'onChainProvider', 'nftStandardType')) {
+foreach ($field in @('title', 'offChainProvider', 'onChainProvider', 'nftStandardType', 'sendToAvatarAfterMintingId')) {
     if ($null -eq $mintSchema.properties.$field) {
         throw "The running API does not expose the required mint field '$field'."
     }
@@ -119,6 +119,7 @@ try {
 } finally { $loginBody = $null }
 $avatar = Get-OasisValue $login.result 'Authenticate'
 if ($null -eq $avatar -or [string]::IsNullOrWhiteSpace($avatar.jwtToken)) { throw 'Login returned no avatar session.' }
+if ([string]::IsNullOrWhiteSpace([string]$avatar.id)) { throw 'Login returned no avatar ID to receive the minted NFT.' }
 $headers = @{ Authorization = "Bearer $($avatar.jwtToken)" }
 
 function Invoke-GeoApi {
@@ -145,6 +146,7 @@ try {
             numberToMint = 1; price = 0; discount = 0
             offChainProvider = $Provider; onChainProvider = $OnChainProvider
             nftOffChainMetaType = 'OASIS'; nftStandardType = $NFTStandardType
+            sendToAvatarAfterMintingId = $avatar.id
             storeNFTMetaDataOnChain = $false
             waitTillNFTMinted = $true; waitForNFTToMintInSeconds = 180
             attemptToMintEveryXSeconds = 1; waitTillNFTVerified = $true
