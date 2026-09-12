@@ -54,6 +54,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
         Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0);
 
         OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0);
+
+        OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0);
+
+        OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0);
+
+        OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0);
+
         OASISResult<IAvatar> SaveAvatar(IAvatar avatar);
         Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar);
     }

@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.SuiOASIS, providerType);
+            Assert.AreEqual(ProviderType.SuiOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -89,14 +89,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderVersion_ShouldBeSetViaProviderName()
         {
             // Arrange & Act
-            var version = _provider.GetProviderVersion();
+            var name = _provider.ProviderName;
 
             // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsNotNull(name);
+            Assert.IsFalse(string.IsNullOrEmpty(name));
         }
 
         [TestCleanup]

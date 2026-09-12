@@ -1,8 +1,8 @@
 using System.Numerics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Avatar = NextGenSoftware.OASIS.API.Core.Holons.Avatar;
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
         /// </summary>
         private static async Task ExecuteAvatarProviderExample(string contractAddress)
         {
-            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
+            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, contractAddress);
 
             #region Create Avatar
 
@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
             Console.WriteLine("🔄 Requesting avatar saving on Avalanche...");
             var saveAvatarResult = await avalancheOASIS.SaveAvatarAsync(avatar);
 
-            if (saveAvatarResult.IsError && !saveAvatarResult.IsSaved)
+            if (saveAvatarResult.IsError)
             {
                 Console.WriteLine($"❌ Saving avatar failed! Error message: {saveAvatarResult.Message}");
                 return;
@@ -92,7 +92,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
         /// </summary>
         private static async Task ExecuteAvatarDetailProviderExample(string contractAddress)
         {
-            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
+            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, contractAddress);
 
             #region Create Avatar Detail
 
@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
         /// </summary>
         private static async Task ExecuteHolonProviderExample(string contractAddress)
         {
-            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
+            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, contractAddress);
             avalancheOASIS.ActivateProvider();
 
             #region Create Holon
@@ -205,18 +205,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
 
         private static async Task ExecuteSendNFTExample()
         {
-            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
+            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _contractAddress);
             avalancheOASIS.ActivateProvider();
 
-            OASISResult<INFTTransactionRespone> result = await avalancheOASIS.SendNFTAsync(new NFTWalletTransactionRequest()
+            OASISResult<IWeb3NFTTransactionResponse> result = await avalancheOASIS.SendNFTAsync(new SendWeb3NFTRequest()
             {
                 FromWalletAddress = _contractAddress,
                 ToWalletAddress = _contractAddress,
-                FromProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
-                ToProvider = new EnumValue<ProviderType>(ProviderType.AvalancheOASIS),
                 Amount = 1m,
                 MemoText = "Sending NFT on Avalanche",
-                TokenId = 1
+                TokenId = "1"
             });
 
             Console.WriteLine($"NFT Sent: {result.IsSaved}, Message: {result.Message}");
@@ -225,11 +223,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
 
         private static async Task ExecuteMintNftExample()
         {
-            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
+            AvalancheOASIS avalancheOASIS = new(_chainUrl, _chainPrivateKey, _contractAddress);
             avalancheOASIS.ActivateProvider();
 
-            OASISResult<INFTTransactionRespone> result = await avalancheOASIS.MintNFTAsync(
-                new MintNFTTransactionRequest()
+            OASISResult<IWeb3NFTTransactionResponse> result = await avalancheOASIS.MintNFTAsync(
+                new MintWeb3NFTRequest()
                 {
                     MintedByAvatarId = Guid.NewGuid(),
                     Title = "Avalanche OASIS NFT",
@@ -243,19 +241,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.TestHarness
                     MemoText = "Minted on Avalanche!",
                     NumberToMint = 1,
                     StoreNFTMetaDataOnChain = true,
-                    MetaData = new Dictionary<string, object>
+                    MetaData = new Dictionary<string, string>
                     {
                         { "Network", "Avalanche" },
-                        { "Chain", "C-Chain" },
-                        { "Attributes", new Dictionary<string, string>
-                            {
-                                { "BackgroundColor", "Red" },
-                                { "Rarity", "Epic" }
-                            }
-                        }
+                        { "Chain", "C-Chain" }
                     },
-                    OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
-                    OnChainProvider = new EnumValue<ProviderType>(ProviderType.AvalancheOASIS),
                     JSONMetaDataURL = "https://example.com/metadata/avalanche-nft.json"
                 }
             );

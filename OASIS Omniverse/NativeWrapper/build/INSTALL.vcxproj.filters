@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\CMakeFiles\9b59fedc8313c238138d9a3e010e0633\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{C850F582-8A15-391C-A017-D95F8CC2F0BE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

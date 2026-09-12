@@ -1,4 +1,4 @@
-# OASIS Alpha Tester Documentation
+﻿# OASIS Alpha Tester Documentation
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -156,8 +156,8 @@ The OASIS API provides RESTful endpoints for avatar management, data operations,
 
 ### Base URL
 - **Development**: `https://localhost:5002`
-- **Staging**: `https://staging-api.oasisplatform.world`
-- **Production**: `https://api.oasisplatform.world`
+- **Staging**: `https://staging-api.web4.oasisomniverse.one`
+- **Production**: `https://api.web4.oasisomniverse.one`
 
 ### Authentication Flow
 
@@ -750,7 +750,7 @@ await testHarness.TestProviderIntegration();
 - [OASIS API Postman Collection](https://oasisweb4.one/postman/OASIS_API.postman_collection.json)
 
 ### Community
-- [Telegram General Chat](https://t.me/ourworldthegamechat)
+- [Telegram General Chat](https://t.me/oasisweb4chat)
 - [Discord Server](https://discord.gg/q9gMKU6)
 - [OASIS API Hackalong](https://t.me/oasisapihackalong)
 
@@ -808,4 +808,4 @@ This documentation provides a comprehensive guide to using OASIS for alpha testi
 
 For additional support or questions, please reach out through the community channels or create an issue on GitHub.
 
-**Happy Testing! 🚀**
+**Happy Testing! ðŸš€**

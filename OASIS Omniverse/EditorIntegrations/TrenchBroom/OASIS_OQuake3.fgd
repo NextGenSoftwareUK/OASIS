@@ -1,0 +1,71 @@
+// OASIS Omniverse — OQuake3 entity definitions for TrenchBroom
+// Thing type range: 7001–7899 (OQuake3)
+// Portal: 5900 (shared cross-game)
+
+// ---------------------------------------------------------------------------
+// PORTAL ENTITIES
+// ---------------------------------------------------------------------------
+
+@SolidClass color(0 192 255) = oasis_portal_enter : "OASIS teleport source — brush trigger the player walks into to be sent to another OASIS game or map. Draw this brush around the portal frame or jumppad. OASIS thing type 5900."
+[
+    oasis_game_id(string)   : "Target OGame ID"  : ""  : "Destination game (e.g. oquake, odoom, oquake2, oduke3d)"
+    oasis_map(string)       : "Target map"        : ""  : "Destination map name in the target game (e.g. e1m1, base1, map1)"
+    oasis_exit_name(string) : "Exit name"         : ""  : "targetname of the oasis_portal_exit in the destination map where the player will spawn"
+    message(string)         : "Approach message"  : ""  : "Optional text shown to the player when they enter this portal"
+    targetname(target_source) : "Portal name"
+]
+
+@PointClass color(0 255 192) size(-16 -16 -24, 16 16 24) = oasis_portal_exit : "OASIS teleport destination — point entity marking where players arrive from another OASIS game or map. Place at the exit of the portal frame. OASIS thing type 5900."
+[
+    targetname(target_source) : "Exit name" : "" : "Must match the oasis_exit_name on the corresponding oasis_portal_enter in the source map"
+    angle(integer)            : "Spawn angle" : 0 : "Direction the player faces on arrival (0=east, 90=north, 180=west, 270=south)"
+]
+
+// ---------------------------------------------------------------------------
+// KEYS / MISSION TOKENS
+// In OQuake3 there are no traditional keys; OASIS uses Quad Damage and Regeneration
+// runes as cross-game mission token stand-ins.
+// ---------------------------------------------------------------------------
+
+@PointClass color(100 0 200) size(-8 -8 -8, 8 8 8) = oasis_token_quad : "OASIS Quad Damage token — cross-game mission collectible equivalent to silver key. OASIS thing type 7001. Native: item_quad"
+[
+    targetname(target_source) : "Token name"
+    wait(integer) : "Respawn delay (s)" : 40 : "Seconds before the token respawns. -1 = never"
+]
+
+@PointClass color(255 140 0) size(-8 -8 -8, 8 8 8) = oasis_token_regen : "OASIS Regeneration token — cross-game mission collectible equivalent to gold key. OASIS thing type 7002. Native: item_regen"
+[
+    targetname(target_source) : "Token name"
+    wait(integer) : "Respawn delay (s)" : 40 : "Seconds before the token respawns. -1 = never"
+]
+
+@PointClass color(255 255 0) size(-8 -8 -8, 8 8 8) = oasis_token_haste : "OASIS Haste token — cross-game mission collectible (tertiary). OASIS thing type 7003. Native: item_haste"
+[
+    targetname(target_source) : "Token name"
+    wait(integer) : "Respawn delay (s)" : 40
+]
+
+// ---------------------------------------------------------------------------
+// CROSS-GAME XP ANCHORS
+// Point entities that award OASIS XP to a player who picks them up.
+// These are placed alongside native weapons/armour/health — the XP event fires
+// in addition to the native pickup effect.
+// ---------------------------------------------------------------------------
+
+@PointClass color(0 255 64) size(-12 -12 -12, 12 12 12) = oasis_xp_minor : "OASIS minor XP anchor — 25 XP. Place at ammo or small health pickup locations. OASIS thing type 7010."
+[
+    targetname(target_source) : "Anchor name"
+    oasis_xp(integer) : "XP value" : 25
+]
+
+@PointClass color(0 200 255) size(-12 -12 -12, 12 12 12) = oasis_xp_major : "OASIS major XP anchor — 100 XP. Place at weapon or heavy armour locations. OASIS thing type 7011."
+[
+    targetname(target_source) : "Anchor name"
+    oasis_xp(integer) : "XP value" : 100
+]
+
+@PointClass color(255 215 0) size(-16 -16 -16, 16 16 16) = oasis_xp_boss : "OASIS boss XP anchor — 500 XP. Place at domination nodes or tier-3 power-up spawns. OASIS thing type 7012."
+[
+    targetname(target_source) : "Anchor name"
+    oasis_xp(integer) : "XP value" : 500
+]

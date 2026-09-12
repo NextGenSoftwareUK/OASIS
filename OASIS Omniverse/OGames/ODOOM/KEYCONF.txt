@@ -1,0 +1,6 @@
+// ODOOM OASIS STAR - Inventory quick-use keys (rebindable in Options > Customize Controls)
+addkeysection "OASIS Inventory" OASISInventory
+addmenukey "Use Health (from STAR inventory)" odoom_use_health
+addmenukey "Use Armor (from STAR inventory)" odoom_use_armor
+defaultbind c odoom_use_health
+defaultbind f odoom_use_armor

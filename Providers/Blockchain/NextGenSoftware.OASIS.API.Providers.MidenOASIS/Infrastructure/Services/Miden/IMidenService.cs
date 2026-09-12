@@ -11,7 +11,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
         Task<STARKProof> GenerateSTARKProofAsync(string programHash, object inputs, object outputs);
         Task<bool> VerifySTARKProofAsync(STARKProof proof);
         Task<PrivateNote> NullifyNoteAsync(string noteId, STARKProof proof);
-        
+
+        Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress);
+        Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync();
+        Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase);
+
         // Bridge-specific methods for Zcash ↔ Miden
         Task<OASISResult<string>> MintOnMidenAsync(string midenAddress, decimal amount, string zcashTxHash, string viewingKey);
         Task<OASISResult<string>> LockOnMidenAsync(string midenAddress, decimal amount, string zcashAddress);

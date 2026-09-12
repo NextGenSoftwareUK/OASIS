@@ -1,0 +1,395 @@
+{
+  "description": "OASIS STAR API cross-game asset catalog for placing ODOOM/OQUAKE assets in maps. Used by UDBScript and map converter.",
+  "version": "1.0",
+  "odoom": {
+    "keycards": [
+      { "id": "blue_keycard", "name": "Blue Keycard", "doomThingType": 5, "category": "key" },
+      { "id": "red_keycard", "name": "Red Keycard", "doomThingType": 13, "category": "key" },
+      { "id": "yellow_keycard", "name": "Yellow Keycard", "doomThingType": 6, "category": "key" },
+      { "id": "skull_red", "name": "Red Skull Key", "doomThingType": 38, "category": "key" },
+      { "id": "skull_blue", "name": "Blue Skull Key", "doomThingType": 39, "category": "key" },
+      { "id": "skull_yellow", "name": "Yellow Skull Key", "doomThingType": 40, "category": "key" }
+    ],
+    "weapons": [
+      { "id": "shotgun", "name": "Shotgun", "doomThingType": 2001, "category": "weapon" },
+      { "id": "chaingun", "name": "Chaingun", "doomThingType": 2002, "category": "weapon" },
+      { "id": "rocket_launcher", "name": "Rocket Launcher", "doomThingType": 2003, "category": "weapon" },
+      { "id": "plasma_rifle", "name": "Plasma Rifle", "doomThingType": 2004, "category": "weapon" },
+      { "id": "chainsaw", "name": "Chainsaw", "doomThingType": 2005, "category": "weapon" },
+      { "id": "bfg9000", "name": "BFG 9000", "doomThingType": 2006, "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "clip", "name": "Clip", "doomThingType": 2007, "category": "ammo" },
+      { "id": "shells", "name": "Shells", "doomThingType": 2008, "category": "ammo" },
+      { "id": "rocket", "name": "Rocket", "doomThingType": 2010, "category": "ammo" },
+      { "id": "cell", "name": "Cell", "doomThingType": 2047, "category": "ammo" },
+      { "id": "cell_pack", "name": "Cell Pack", "doomThingType": 2048, "category": "ammo" },
+      { "id": "ammo_box", "name": "Ammo Box", "doomThingType": 2049, "category": "ammo" }
+    ],
+    "health": [
+      { "id": "medikit", "name": "Medikit", "doomThingType": 2011, "category": "health" },
+      { "id": "stimpack", "name": "Stimpack", "doomThingType": 2012, "category": "health" },
+      { "id": "soul_sphere", "name": "Soul Sphere", "doomThingType": 2013, "category": "health" },
+      { "id": "health_potion", "name": "Health Potion", "doomThingType": 2014, "category": "health" },
+      { "id": "armor_bonus", "name": "Armor Bonus", "doomThingType": 2015, "category": "health" },
+      { "id": "armor_helmet", "name": "Armor Helmet", "doomThingType": 2016, "category": "health" }
+    ],
+    "monsters": [
+      { "id": "zombieman", "name": "Zombieman", "doomThingType": 3004, "category": "monster" },
+      { "id": "sergeant", "name": "Sergeant", "doomThingType": 9, "category": "monster" },
+      { "id": "imp", "name": "Imp", "doomThingType": 3001, "category": "monster" },
+      { "id": "demon", "name": "Demon", "doomThingType": 3002, "category": "monster" },
+      { "id": "spectre", "name": "Spectre", "doomThingType": 58, "category": "monster" },
+      { "id": "cacodemon", "name": "Cacodemon", "doomThingType": 3005, "category": "monster" },
+      { "id": "baron", "name": "Baron of Hell", "doomThingType": 3003, "category": "monster" },
+      { "id": "hell_knight", "name": "Hell Knight", "doomThingType": 69, "category": "monster" },
+      { "id": "lost_soul", "name": "Lost Soul", "doomThingType": 3006, "category": "monster" },
+      { "id": "revenant", "name": "Revenant", "doomThingType": 65, "category": "monster" },
+      { "id": "mancubus", "name": "Mancubus", "doomThingType": 66, "category": "monster" },
+      { "id": "arch_vile", "name": "Arch-Vile", "doomThingType": 64, "category": "monster" },
+      { "id": "pain_elemental", "name": "Pain Elemental", "doomThingType": 68, "category": "monster" },
+      { "id": "arachnotron", "name": "Arachnotron", "doomThingType": 67, "category": "monster" },
+      { "id": "spider_mastermind", "name": "Spider Mastermind", "doomThingType": 7, "category": "monster" },
+      { "id": "cyberdemon", "name": "Cyberdemon", "doomThingType": 16, "category": "monster" }
+    ],
+    "powerups": [
+      { "id": "invulnerability", "name": "Invulnerability Sphere", "doomThingType": 2022, "category": "powerup" },
+      { "id": "invisible", "name": "Partial Invisibility", "doomThingType": 2024, "category": "powerup" },
+      { "id": "rad_suit", "name": "Radiation Suit", "doomThingType": 2025, "category": "powerup" },
+      { "id": "computer_map", "name": "Computer Map", "doomThingType": 2026, "category": "powerup" },
+      { "id": "berserk", "name": "Berserk", "doomThingType": 2023, "category": "powerup" },
+      { "id": "infrared", "name": "Light Amplification Visor", "doomThingType": 2045, "category": "powerup" }
+    ]
+  },
+  "oquake": {
+    "keycards": [
+      { "id": "silver_key", "name": "Silver Key", "quakeClassname": "key_silver", "category": "key", "doomEquivalent": "red_keycard" },
+      { "id": "gold_key", "name": "Gold Key", "quakeClassname": "key_gold", "category": "key", "doomEquivalent": "blue_keycard" }
+    ],
+    "weapons": [
+      { "id": "shotgun", "name": "Shotgun", "quakeClassname": "weapon_shotgun", "category": "weapon" },
+      { "id": "supershotgun", "name": "Super Shotgun", "quakeClassname": "weapon_supershotgun", "category": "weapon" },
+      { "id": "nailgun", "name": "Nailgun", "quakeClassname": "weapon_nailgun", "category": "weapon" },
+      { "id": "supernailgun", "name": "Super Nailgun", "quakeClassname": "weapon_supernailgun", "category": "weapon" },
+      { "id": "grenadelauncher", "name": "Grenade Launcher", "quakeClassname": "weapon_grenadelauncher", "category": "weapon" },
+      { "id": "rocketlauncher", "name": "Rocket Launcher", "quakeClassname": "weapon_rocketlauncher", "category": "weapon" },
+      { "id": "lightning", "name": "Thunderbolt", "quakeClassname": "weapon_lightning", "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "shells", "name": "Shells", "quakeClassname": "item_shells", "category": "ammo" },
+      { "id": "spikes", "name": "Nails", "quakeClassname": "item_spikes", "category": "ammo" },
+      { "id": "rockets", "name": "Rockets", "quakeClassname": "item_rockets", "category": "ammo" },
+      { "id": "cells", "name": "Cells", "quakeClassname": "item_cells", "category": "ammo" }
+    ],
+    "health": [
+      { "id": "health", "name": "Health", "quakeClassname": "item_health", "category": "health" },
+      { "id": "health_small", "name": "Small Health", "quakeClassname": "item_health_small", "category": "health" },
+      { "id": "armor1", "name": "Green Armor", "quakeClassname": "item_armor1", "category": "health" },
+      { "id": "armor2", "name": "Yellow Armor", "quakeClassname": "item_armor2", "category": "health" },
+      { "id": "armorInv", "name": "Mega Armor", "quakeClassname": "item_armorInv", "category": "health" }
+    ],
+    "monsters": [
+      { "id": "grunt", "name": "Grunt", "quakeClassname": "monster_grunt", "category": "monster" },
+      { "id": "ogre", "name": "Ogre", "quakeClassname": "monster_ogre", "category": "monster" },
+      { "id": "demon", "name": "Demon", "quakeClassname": "monster_demon", "category": "monster" },
+      { "id": "dog", "name": "Rottweiler", "quakeClassname": "monster_dog", "category": "monster" },
+      { "id": "shambler", "name": "Shambler", "quakeClassname": "monster_shambler", "category": "monster" },
+      { "id": "zombie", "name": "Zombie", "quakeClassname": "monster_zombie", "category": "monster" },
+      { "id": "hell_knight", "name": "Hell Knight", "quakeClassname": "monster_hell_knight", "category": "monster" },
+      { "id": "enforcer", "name": "Enforcer", "quakeClassname": "monster_enforcer", "category": "monster" },
+      { "id": "fish", "name": "Fish", "quakeClassname": "monster_fish", "category": "monster" },
+      { "id": "spawn", "name": "Spawn", "quakeClassname": "monster_spawn", "category": "monster" }
+    ],
+    "powerups": [
+      { "id": "quad_damage", "name": "Quad Damage", "quakeClassname": "item_quad", "category": "powerup" },
+      { "id": "pentagram", "name": "Pentagram of Protection", "quakeClassname": "item_invulnerability", "category": "powerup" },
+      { "id": "ring_shadows", "name": "Ring of Shadows", "quakeClassname": "item_invisibility", "category": "powerup" },
+      { "id": "biosuit", "name": "Biosuit", "quakeClassname": "item_envirosuit", "category": "powerup" }
+    ]
+  },
+  "odoom3": {
+    "description": "dhewm3 (classic Doom 3 GPL port) cross-game asset catalog — base game only",
+    "keycards": [
+      { "id": "blue_key",    "name": "Blue Key",    "d3classname": "item_key_blue",        "category": "key", "doomEquivalent": "blue_keycard",   "quakeEquivalent": "gold_key"   },
+      { "id": "red_key",     "name": "Red Key",     "d3classname": "item_key_red",         "category": "key", "doomEquivalent": "red_keycard",    "quakeEquivalent": "silver_key" },
+      { "id": "yellow_key",  "name": "Yellow Key",  "d3classname": "item_key_yellow",      "category": "key", "doomEquivalent": "yellow_keycard"                                  },
+      { "id": "keycard",     "name": "Keycard",     "d3classname": "item_keycard_generic", "category": "key"  }
+    ],
+    "monsters": [
+      { "id": "zombie",          "name": "Zombie",            "d3classname": "monster_zombie",               "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "imp",             "name": "Imp",               "d3classname": "monster_demon_imp",            "category": "monster", "xp": 25,   "isBoss": false },
+      { "id": "imp_crawler",     "name": "Imp Crawler",       "d3classname": "monster_demon_imp_crawler",    "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "trite",           "name": "Trite",             "d3classname": "monster_demon_trite",          "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "tick",            "name": "Tick",              "d3classname": "monster_demon_tick",           "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "cherub",          "name": "Cherub",            "d3classname": "monster_demon_cherub",         "category": "monster", "xp": 15,   "isBoss": false },
+      { "id": "pinky",           "name": "Pinky",             "d3classname": "monster_demon_pinky",          "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "pinky_pipes",     "name": "Pinky (Pipes)",     "d3classname": "monster_demon_pinky_pipes",    "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "maggot",          "name": "Maggot",            "d3classname": "monster_demon_maggot",         "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "wraith",          "name": "Wraith",            "d3classname": "monster_demon_wraith",         "category": "monster", "xp": 50,   "isBoss": false },
+      { "id": "vulgar",          "name": "Vulgar",            "d3classname": "monster_demon_vulgar",         "category": "monster", "xp": 45,   "isBoss": false },
+      { "id": "sentry",          "name": "Sentry",            "d3classname": "monster_demon_sentry",         "category": "monster", "xp": 30,   "isBoss": false },
+      { "id": "hellknight",      "name": "Hell Knight",       "d3classname": "monster_demon_hellknight",     "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "revenant",        "name": "Revenant",          "d3classname": "monster_demon_revenant",       "category": "monster", "xp": 60,   "isBoss": false },
+      { "id": "mancubus",        "name": "Mancubus",          "d3classname": "monster_demon_mancubus",       "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "archvile",        "name": "Archvile",          "d3classname": "monster_demon_archvile",       "category": "monster", "xp": 150,  "isBoss": false },
+      { "id": "vagary",          "name": "Vagary",            "d3classname": "monster_boss_vagary",          "category": "monster", "xp": 400,  "isBoss": true  },
+      { "id": "guardian",        "name": "Guardian",          "d3classname": "monster_boss_guardian",        "category": "monster", "xp": 600,  "isBoss": true  },
+      { "id": "guardian2",       "name": "Guardian (Final)",  "d3classname": "monster_boss_guardian2",       "category": "monster", "xp": 800,  "isBoss": true  },
+      { "id": "sabaoth",         "name": "Sabaoth",           "d3classname": "monster_boss_sabaoth",         "category": "monster", "xp": 500,  "isBoss": true  },
+      { "id": "cyberdemon",      "name": "Cyberdemon",        "d3classname": "monster_boss_cyberdemon",      "category": "monster", "xp": 1000, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "pistol",         "name": "Pistol",         "d3classname": "weapon_pistol",         "category": "weapon" },
+      { "id": "shotgun",        "name": "Shotgun",         "d3classname": "weapon_shotgun",        "category": "weapon" },
+      { "id": "machinegun",     "name": "Machine Gun",     "d3classname": "weapon_machinegun",     "category": "weapon" },
+      { "id": "chaingun",       "name": "Chaingun",        "d3classname": "weapon_chaingun",       "category": "weapon" },
+      { "id": "plasmagun",      "name": "Plasma Gun",      "d3classname": "weapon_plasmagun",      "category": "weapon" },
+      { "id": "rocketlauncher", "name": "Rocket Launcher", "d3classname": "weapon_rocketlauncher", "category": "weapon" },
+      { "id": "bfg",            "name": "BFG",             "d3classname": "weapon_bfg",            "category": "weapon" },
+      { "id": "soulcube",       "name": "Soul Cube",       "d3classname": "weapon_soulcube",       "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "adrenaline",   "name": "Adrenaline",   "d3classname": "item_adrenaline",   "category": "powerup" },
+      { "id": "berserk",      "name": "Berserk Pack", "d3classname": "item_berserk",      "category": "powerup" },
+      { "id": "medkit_large", "name": "Large Medkit", "d3classname": "item_medkit_large", "category": "powerup" }
+    ]
+  },
+  "odoom3bfg": {
+    "description": "RBDOOM-3-BFG (Doom 3 BFG Edition) cross-game asset catalog",
+    "keycards": [
+      { "id": "blue_key",    "name": "Blue Key",    "d3classname": "item_key_blue",        "category": "key", "doomEquivalent": "blue_keycard",   "quakeEquivalent": "gold_key"   },
+      { "id": "red_key",     "name": "Red Key",     "d3classname": "item_key_red",         "category": "key", "doomEquivalent": "red_keycard",    "quakeEquivalent": "silver_key" },
+      { "id": "yellow_key",  "name": "Yellow Key",  "d3classname": "item_key_yellow",      "category": "key", "doomEquivalent": "yellow_keycard"                                  },
+      { "id": "keycard",     "name": "Keycard",     "d3classname": "item_keycard_generic", "category": "key"  },
+      { "id": "aco_keycard", "name": "ACO Keycard", "d3classname": "item_keycard_aco",    "category": "key"  }
+    ],
+    "monsters": [
+      { "id": "zombie",          "name": "Zombie",            "d3classname": "monster_zombie",               "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "imp",             "name": "Imp",               "d3classname": "monster_demon_imp",            "category": "monster", "xp": 25,   "isBoss": false },
+      { "id": "imp_crawler",     "name": "Imp Crawler",       "d3classname": "monster_demon_imp_crawler",    "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "trite",           "name": "Trite",             "d3classname": "monster_demon_trite",          "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "tick",            "name": "Tick",              "d3classname": "monster_demon_tick",           "category": "monster", "xp": 10,   "isBoss": false },
+      { "id": "cherub",          "name": "Cherub",            "d3classname": "monster_demon_cherub",         "category": "monster", "xp": 15,   "isBoss": false },
+      { "id": "pinky",           "name": "Pinky",             "d3classname": "monster_demon_pinky",          "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "pinky_pipes",     "name": "Pinky (Pipes)",     "d3classname": "monster_demon_pinky_pipes",    "category": "monster", "xp": 40,   "isBoss": false },
+      { "id": "maggot",          "name": "Maggot",            "d3classname": "monster_demon_maggot",         "category": "monster", "xp": 20,   "isBoss": false },
+      { "id": "wraith",          "name": "Wraith",            "d3classname": "monster_demon_wraith",         "category": "monster", "xp": 50,   "isBoss": false },
+      { "id": "vulgar",          "name": "Vulgar",            "d3classname": "monster_demon_vulgar",         "category": "monster", "xp": 45,   "isBoss": false },
+      { "id": "sentry",          "name": "Sentry",            "d3classname": "monster_demon_sentry",         "category": "monster", "xp": 30,   "isBoss": false },
+      { "id": "hellknight",      "name": "Hell Knight",       "d3classname": "monster_demon_hellknight",     "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "revenant",        "name": "Revenant",          "d3classname": "monster_demon_revenant",       "category": "monster", "xp": 60,   "isBoss": false },
+      { "id": "mancubus",        "name": "Mancubus",          "d3classname": "monster_demon_mancubus",       "category": "monster", "xp": 100,  "isBoss": false },
+      { "id": "archvile",        "name": "Archvile",          "d3classname": "monster_demon_archvile",       "category": "monster", "xp": 150,  "isBoss": false },
+      { "id": "vagary",          "name": "Vagary",            "d3classname": "monster_boss_vagary",          "category": "monster", "xp": 400,  "isBoss": true  },
+      { "id": "guardian",        "name": "Guardian",          "d3classname": "monster_boss_guardian",        "category": "monster", "xp": 600,  "isBoss": true  },
+      { "id": "guardian2",       "name": "Guardian (Final)",  "d3classname": "monster_boss_guardian2",       "category": "monster", "xp": 800,  "isBoss": true  },
+      { "id": "sabaoth",         "name": "Sabaoth",           "d3classname": "monster_boss_sabaoth",         "category": "monster", "xp": 500,  "isBoss": true  },
+      { "id": "cyberdemon",      "name": "Cyberdemon",        "d3classname": "monster_boss_cyberdemon",      "category": "monster", "xp": 1000, "isBoss": true  },
+      { "id": "maledict",        "name": "Maledict",          "d3classname": "monster_boss_d3xp_maledict",   "category": "monster", "xp": 1200, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "pistol",         "name": "Pistol",         "d3classname": "weapon_pistol",         "category": "weapon" },
+      { "id": "shotgun",        "name": "Shotgun",         "d3classname": "weapon_shotgun",        "category": "weapon" },
+      { "id": "machinegun",     "name": "Machine Gun",     "d3classname": "weapon_machinegun",     "category": "weapon" },
+      { "id": "chaingun",       "name": "Chaingun",        "d3classname": "weapon_chaingun",       "category": "weapon" },
+      { "id": "plasmagun",      "name": "Plasma Gun",      "d3classname": "weapon_plasmagun",      "category": "weapon" },
+      { "id": "rocketlauncher", "name": "Rocket Launcher", "d3classname": "weapon_rocketlauncher", "category": "weapon" },
+      { "id": "bfg",            "name": "BFG",             "d3classname": "weapon_bfg",            "category": "weapon" },
+      { "id": "soulcube",       "name": "Soul Cube",       "d3classname": "weapon_soulcube",       "category": "weapon" },
+      { "id": "grabber",        "name": "Grabber",         "d3classname": "weapon_grabber",        "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "adrenaline",   "name": "Adrenaline",   "d3classname": "item_adrenaline",   "category": "powerup" },
+      { "id": "berserk",      "name": "Berserk Pack", "d3classname": "item_berserk",      "category": "powerup" },
+      { "id": "medkit_large", "name": "Large Medkit", "d3classname": "item_medkit_large", "category": "powerup" }
+    ]
+  },
+  "oduke3d": {
+    "description": "Duke Nukem 3D cross-game asset catalog",
+    "monsters": [
+      { "id": "liztroop",    "name": "Lizard Troop",          "duke3dActor": "LIZTROOP",   "category": "Monster" },
+      { "id": "pigcop",      "name": "Pig Cop",               "duke3dActor": "PIGCOP",     "category": "Monster" },
+      { "id": "octabrain",   "name": "Octabrain",             "duke3dActor": "OCTABRAIN",  "category": "Monster" },
+      { "id": "commander",   "name": "Commander",             "duke3dActor": "COMMANDER",  "category": "Monster" },
+      { "id": "drone",       "name": "Assault Drone",         "duke3dActor": "DRONE",      "category": "Monster" },
+      { "id": "sentry",      "name": "Sentry Drone",          "duke3dActor": "SENTRY",     "category": "Monster" },
+      { "id": "newbeast",    "name": "Protector Drone",       "duke3dActor": "NEWBEAST",   "category": "Monster" },
+      { "id": "greenslime",  "name": "Slimer",                "duke3dActor": "GREENSLIME", "category": "Monster" },
+      { "id": "recon",       "name": "Recon Patrol Vehicle",  "duke3dActor": "RECON",      "category": "Monster" },
+      { "id": "lizman",      "name": "Lizard Man",            "duke3dActor": "LIZMAN",     "category": "Monster" },
+      { "id": "rotategun",   "name": "Turret",                "duke3dActor": "ROTATEGUN",  "category": "Monster" },
+      { "id": "boss1",       "name": "Battlelord",            "duke3dActor": "BOSS1",      "category": "Monster" },
+      { "id": "boss2",       "name": "Overlord",              "duke3dActor": "BOSS2",      "category": "Monster" },
+      { "id": "boss3",       "name": "Cycloid Emperor",       "duke3dActor": "BOSS3",      "category": "Monster" },
+      { "id": "boss4",       "name": "Alien Queen",           "duke3dActor": "BOSS4",      "category": "Monster" },
+      { "id": "boss5",       "name": "Cycloid Incinerator",   "duke3dActor": "BOSS5",      "category": "Monster" }
+    ],
+    "weapons": [
+      { "id": "pistol",      "name": "Pistol",            "duke3dActor": "PISTOLSPRITE",   "category": "weapon" },
+      { "id": "shotgun",     "name": "Shotgun",           "duke3dActor": "SHOTGUN",        "category": "weapon" },
+      { "id": "chaingun",    "name": "Ricochet Chaingun", "duke3dActor": "CHAINGUNSPRITE", "category": "weapon" },
+      { "id": "rpg",         "name": "RPG",               "duke3dActor": "RPGSPRITE",      "category": "weapon" },
+      { "id": "shrinker",    "name": "Shrinker",          "duke3dActor": "SHRINKERSPRITE", "category": "weapon" },
+      { "id": "devastator",  "name": "Devastator",        "duke3dActor": "DEVISTATOR",     "category": "weapon" },
+      { "id": "tripbomb",    "name": "Tripbomb",          "duke3dActor": "TRIPBOMBSPRITE", "category": "weapon" },
+      { "id": "freeze_ray",  "name": "Freeze Ray",        "duke3dActor": "FREEZESPRITE",   "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "jetpack",     "name": "Jetpack",      "duke3dActor": "JETPACK",     "category": "powerup" },
+      { "id": "holoduke",    "name": "Holoduke",     "duke3dActor": "HOLODUKE",    "category": "powerup" },
+      { "id": "steroids",    "name": "Steroids",     "duke3dActor": "STEROIDS",    "category": "powerup" },
+      { "id": "nightvision", "name": "Night Vision", "duke3dActor": "NIGHTVISION", "category": "powerup" },
+      { "id": "scuba_gear",  "name": "Scuba Gear",   "duke3dActor": "SCUBA",       "category": "powerup" }
+    ]
+  },
+  "owolf3d": {
+    "description": "Wolfenstein 3D cross-game asset catalog",
+    "weapons": [
+      { "id": "knife",       "name": "Knife",       "wolf3dClassname": "Knife",      "category": "weapon" },
+      { "id": "pistol",      "name": "Pistol",      "wolf3dClassname": "Pistol",     "category": "weapon" },
+      { "id": "machinegun",  "name": "Machine Gun", "wolf3dClassname": "MachineGun", "category": "weapon" },
+      { "id": "gatling_gun", "name": "Gatling Gun", "wolf3dClassname": "GatlingGun", "category": "weapon" }
+    ],
+    "powerups": [
+      { "id": "food",        "name": "Food",          "wolf3dClassname": "Food",      "category": "powerup" },
+      { "id": "first_aid",   "name": "First Aid Kit", "wolf3dClassname": "FirstAid",  "category": "powerup" },
+      { "id": "extra_life",  "name": "Extra Life",    "wolf3dClassname": "ExtraLife", "category": "powerup" },
+      { "id": "crown",       "name": "Crown",         "wolf3dClassname": "Crown",     "category": "powerup" }
+    ]
+  },
+  "oquake2": {
+    "description": "Yamagi Quake II cross-game asset catalog",
+    "monsters": [
+      { "id": "soldier",   "name": "Soldier",   "q2classname": "monster_soldier",        "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "infantry",  "name": "Infantry",  "q2classname": "monster_infantry",       "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "gunner",    "name": "Gunner",    "q2classname": "monster_gunner",         "category": "monster", "xp": 50,  "isBoss": false },
+      { "id": "floater",   "name": "Floater",   "q2classname": "monster_floater",        "category": "monster", "xp": 45,  "isBoss": false },
+      { "id": "medic",     "name": "Medic",     "q2classname": "monster_medic",          "category": "monster", "xp": 55,  "isBoss": false },
+      { "id": "mutant",    "name": "Mutant",    "q2classname": "monster_mutant",         "category": "monster", "xp": 60,  "isBoss": false },
+      { "id": "brain",     "name": "Brain",     "q2classname": "monster_brain",          "category": "monster", "xp": 80,  "isBoss": false },
+      { "id": "gladiator", "name": "Gladiator", "q2classname": "monster_gladiator",      "category": "monster", "xp": 120, "isBoss": false },
+      { "id": "tank",      "name": "Tank",      "q2classname": "monster_tank",           "category": "monster", "xp": 150, "isBoss": true  },
+      { "id": "jorg",      "name": "Jorg",      "q2classname": "monster_jorg",           "category": "monster", "xp": 400, "isBoss": true  },
+      { "id": "makron",    "name": "Makron",    "q2classname": "monster_makron",         "category": "monster", "xp": 500, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "blaster",          "name": "Blaster",          "q2classname": "weapon_blaster",          "category": "weapon" },
+      { "id": "shotgun",          "name": "Shotgun",           "q2classname": "weapon_shotgun",          "category": "weapon" },
+      { "id": "super_shotgun",    "name": "Super Shotgun",     "q2classname": "weapon_supershotgun",     "category": "weapon" },
+      { "id": "machinegun",       "name": "Machinegun",        "q2classname": "weapon_machinegun",       "category": "weapon" },
+      { "id": "chaingun",         "name": "Chaingun",          "q2classname": "weapon_chaingun",         "category": "weapon" },
+      { "id": "grenade_launcher", "name": "Grenade Launcher",  "q2classname": "weapon_grenadelauncher",  "category": "weapon" },
+      { "id": "rocket_launcher",  "name": "Rocket Launcher",   "q2classname": "weapon_rocketlauncher",   "category": "weapon" },
+      { "id": "hyperblaster",     "name": "Hyperblaster",      "q2classname": "weapon_hyperblaster",     "category": "weapon" },
+      { "id": "railgun",          "name": "Railgun",           "q2classname": "weapon_railgun",          "category": "weapon" },
+      { "id": "bfg10k",           "name": "BFG10K",            "q2classname": "weapon_bfg",              "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "bullets",  "name": "Bullets",  "q2classname": "ammo_bullets",  "category": "ammo" },
+      { "id": "shells",   "name": "Shells",   "q2classname": "ammo_shells",   "category": "ammo" },
+      { "id": "grenades", "name": "Grenades", "q2classname": "ammo_grenades", "category": "ammo" },
+      { "id": "rockets",  "name": "Rockets",  "q2classname": "ammo_rockets",  "category": "ammo" },
+      { "id": "cells",    "name": "Cells",    "q2classname": "ammo_cells",    "category": "ammo" },
+      { "id": "slugs",    "name": "Slugs",    "q2classname": "ammo_slugs",    "category": "ammo" }
+    ],
+    "powerups": [
+      { "id": "quad_damage",   "name": "Quad Damage",     "q2classname": "item_quad",          "category": "powerup" },
+      { "id": "invulnerability","name": "Invulnerability", "q2classname": "item_invulnerability","category": "powerup" },
+      { "id": "enviro_suit",   "name": "Environment Suit","q2classname": "item_enviro",         "category": "powerup" },
+      { "id": "rebreather",    "name": "Rebreather",      "q2classname": "item_breather",       "category": "powerup" },
+      { "id": "adrenaline",    "name": "Adrenaline",      "q2classname": "item_adrenaline",     "category": "powerup" },
+      { "id": "silencer",      "name": "Silencer",        "q2classname": "item_silencer",       "category": "powerup" },
+      { "id": "bandolier",     "name": "Bandolier",       "q2classname": "item_bandolier",      "category": "powerup" },
+      { "id": "pack",          "name": "Ammo Pack",       "q2classname": "item_pack",           "category": "powerup" }
+    ]
+  },
+  "oquake2rtx": {
+    "description": "Q2 RTX (Quake II ray-traced) — same asset catalog as OQuake2",
+    "monsters": [
+      { "id": "soldier",   "name": "Soldier",   "q2classname": "monster_soldier",   "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "infantry",  "name": "Infantry",  "q2classname": "monster_infantry",  "category": "monster", "xp": 30,  "isBoss": false },
+      { "id": "gunner",    "name": "Gunner",    "q2classname": "monster_gunner",    "category": "monster", "xp": 50,  "isBoss": false },
+      { "id": "floater",   "name": "Floater",   "q2classname": "monster_floater",   "category": "monster", "xp": 45,  "isBoss": false },
+      { "id": "medic",     "name": "Medic",     "q2classname": "monster_medic",     "category": "monster", "xp": 55,  "isBoss": false },
+      { "id": "mutant",    "name": "Mutant",    "q2classname": "monster_mutant",    "category": "monster", "xp": 60,  "isBoss": false },
+      { "id": "brain",     "name": "Brain",     "q2classname": "monster_brain",     "category": "monster", "xp": 80,  "isBoss": false },
+      { "id": "gladiator", "name": "Gladiator", "q2classname": "monster_gladiator", "category": "monster", "xp": 120, "isBoss": false },
+      { "id": "tank",      "name": "Tank",      "q2classname": "monster_tank",      "category": "monster", "xp": 150, "isBoss": true  },
+      { "id": "jorg",      "name": "Jorg",      "q2classname": "monster_jorg",      "category": "monster", "xp": 400, "isBoss": true  },
+      { "id": "makron",    "name": "Makron",    "q2classname": "monster_makron",    "category": "monster", "xp": 500, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "blaster",          "name": "Blaster",         "q2classname": "weapon_blaster",         "category": "weapon" },
+      { "id": "shotgun",          "name": "Shotgun",          "q2classname": "weapon_shotgun",         "category": "weapon" },
+      { "id": "super_shotgun",    "name": "Super Shotgun",    "q2classname": "weapon_supershotgun",    "category": "weapon" },
+      { "id": "machinegun",       "name": "Machinegun",       "q2classname": "weapon_machinegun",      "category": "weapon" },
+      { "id": "chaingun",         "name": "Chaingun",         "q2classname": "weapon_chaingun",        "category": "weapon" },
+      { "id": "grenade_launcher", "name": "Grenade Launcher", "q2classname": "weapon_grenadelauncher", "category": "weapon" },
+      { "id": "rocket_launcher",  "name": "Rocket Launcher",  "q2classname": "weapon_rocketlauncher",  "category": "weapon" },
+      { "id": "hyperblaster",     "name": "Hyperblaster",     "q2classname": "weapon_hyperblaster",    "category": "weapon" },
+      { "id": "railgun",          "name": "Railgun",          "q2classname": "weapon_railgun",         "category": "weapon" },
+      { "id": "bfg10k",           "name": "BFG10K",           "q2classname": "weapon_bfg",             "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "bullets",  "name": "Bullets",  "q2classname": "ammo_bullets",  "category": "ammo" },
+      { "id": "shells",   "name": "Shells",   "q2classname": "ammo_shells",   "category": "ammo" },
+      { "id": "grenades", "name": "Grenades", "q2classname": "ammo_grenades", "category": "ammo" },
+      { "id": "rockets",  "name": "Rockets",  "q2classname": "ammo_rockets",  "category": "ammo" },
+      { "id": "cells",    "name": "Cells",    "q2classname": "ammo_cells",    "category": "ammo" },
+      { "id": "slugs",    "name": "Slugs",    "q2classname": "ammo_slugs",    "category": "ammo" }
+    ],
+    "powerups": [
+      { "id": "quad_damage",    "name": "Quad Damage",     "q2classname": "item_quad",          "category": "powerup" },
+      { "id": "invulnerability","name": "Invulnerability", "q2classname": "item_invulnerability","category": "powerup" },
+      { "id": "enviro_suit",    "name": "Environment Suit","q2classname": "item_enviro",         "category": "powerup" },
+      { "id": "rebreather",     "name": "Rebreather",      "q2classname": "item_breather",       "category": "powerup" },
+      { "id": "adrenaline",     "name": "Adrenaline",      "q2classname": "item_adrenaline",     "category": "powerup" },
+      { "id": "silencer",       "name": "Silencer",        "q2classname": "item_silencer",       "category": "powerup" },
+      { "id": "bandolier",      "name": "Bandolier",       "q2classname": "item_bandolier",      "category": "powerup" },
+      { "id": "pack",           "name": "Ammo Pack",       "q2classname": "item_pack",           "category": "powerup" }
+    ]
+  },
+  "oquake3": {
+    "description": "Quake III Arena (Quake3e) cross-game asset catalog — bots as monster equivalents",
+    "monsters": [
+      { "id": "grunt",  "name": "Grunt Bot",  "q3classname": "bot_grunt",  "category": "monster", "xp": 50,  "isBoss": false },
+      { "id": "klesk",  "name": "Klesk Bot",  "q3classname": "bot_klesk",  "category": "monster", "xp": 75,  "isBoss": false },
+      { "id": "orbb",   "name": "Orbb Bot",   "q3classname": "bot_orbb",   "category": "monster", "xp": 60,  "isBoss": false },
+      { "id": "xaero",  "name": "Xaero Bot",  "q3classname": "bot_xaero",  "category": "monster", "xp": 200, "isBoss": true  }
+    ],
+    "weapons": [
+      { "id": "gauntlet",       "name": "Gauntlet",        "q3itemname": "Gauntlet",         "category": "weapon" },
+      { "id": "machinegun",     "name": "Machinegun",      "q3itemname": "Machinegun",        "category": "weapon" },
+      { "id": "shotgun",        "name": "Shotgun",         "q3itemname": "Shotgun",           "category": "weapon" },
+      { "id": "grenade_launcher","name": "Grenade Launcher","q3itemname": "Grenade Launcher", "category": "weapon" },
+      { "id": "rocket_launcher","name": "Rocket Launcher", "q3itemname": "Rocket Launcher",  "category": "weapon" },
+      { "id": "lightning_gun",  "name": "Lightning Gun",   "q3itemname": "Lightning Gun",     "category": "weapon" },
+      { "id": "railgun",        "name": "Railgun",         "q3itemname": "Railgun",           "category": "weapon" },
+      { "id": "plasma_gun",     "name": "Plasma Gun",      "q3itemname": "Plasma Gun",        "category": "weapon" },
+      { "id": "bfg",            "name": "BFG",             "q3itemname": "BFG",               "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "bullets",   "name": "Bullets",   "q3itemname": "Bullets",   "category": "ammo" },
+      { "id": "shells",    "name": "Shells",    "q3itemname": "Shells",    "category": "ammo" },
+      { "id": "grenades",  "name": "Grenades",  "q3itemname": "Grenades",  "category": "ammo" },
+      { "id": "rockets",   "name": "Rockets",   "q3itemname": "Rockets",   "category": "ammo" },
+      { "id": "lightning", "name": "Lightning", "q3itemname": "Lightning", "category": "ammo" },
+      { "id": "slugs",     "name": "Slugs",     "q3itemname": "Slugs",     "category": "ammo" },
+      { "id": "plasma",    "name": "Plasma",    "q3itemname": "Plasma",    "category": "ammo" },
+      { "id": "bfg_ammo",  "name": "BFG Ammo",  "q3itemname": "BFG Ammo",  "category": "ammo" }
+    ],
+    "powerups": [
+      { "id": "quad_damage",  "name": "Quad Damage",  "q3itemname": "Quad Damage",  "category": "powerup" },
+      { "id": "battle_suit",  "name": "Battle Suit",  "q3itemname": "Battle Suit",  "category": "powerup" },
+      { "id": "haste",        "name": "Haste",        "q3itemname": "Haste",        "category": "powerup" },
+      { "id": "invisibility", "name": "Invisibility", "q3itemname": "Invisibility", "category": "powerup" },
+      { "id": "regeneration", "name": "Regeneration", "q3itemname": "Regeneration", "category": "powerup" }
+    ],
+    "runes": [
+      { "id": "rune_strength",     "name": "Strength Rune",     "q3classname": "item_rune1", "category": "powerup" },
+      { "id": "rune_haste",        "name": "Haste Rune",        "q3classname": "item_rune2", "category": "powerup" },
+      { "id": "rune_regeneration", "name": "Regeneration Rune", "q3classname": "item_rune3", "category": "powerup" },
+      { "id": "rune_resistance",   "name": "Resistance Rune",   "q3classname": "item_rune4", "category": "powerup" }
+    ]
+  }
+}

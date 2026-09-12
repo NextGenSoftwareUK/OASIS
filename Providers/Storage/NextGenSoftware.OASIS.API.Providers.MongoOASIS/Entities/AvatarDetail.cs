@@ -81,6 +81,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; } = new List<KarmaAkashicRecord>();
 
         public int Level { get; set; }
+
+        /// <summary>Quest currently tracked in the game HUD. Persisted so GET avatar/current can restore after beam-in.</summary>
+        public Guid? ActiveQuestId { get; set; }
+        /// <summary>Objective currently active within the tracked quest. Persisted so GET avatar/current can restore after beam-in.</summary>
+        public Guid? ActiveObjectiveId { get; set; }
+
         //public bool AcceptTerms { get; set; }
         //public string VerificationToken { get; set; }
         //public DateTime? Verified { get; set; }

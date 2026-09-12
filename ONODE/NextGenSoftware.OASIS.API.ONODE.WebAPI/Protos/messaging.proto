@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service MessagingService {
+  rpc GetMessages (GetMessagesRequest) returns (JsonResponse);
+  rpc GetConversation (GetConversationRequest) returns (JsonResponse);
+  rpc GetNotifications (GetNotificationsRequest) returns (JsonResponse);
+  rpc SendMessage (SendMessageRequest) returns (OASISGrpcResponse);
+  rpc MarkMessagesAsRead (MarkMessagesAsReadRequest) returns (OASISGrpcResponse);
+  rpc MarkNotificationsAsRead (MarkNotificationsAsReadRequest) returns (OASISGrpcResponse);
+}
+
+message GetMessagesRequest { string avatar_id = 1; int32 limit = 2; int32 offset = 3; }
+message GetConversationRequest {
+  string avatar_id = 1;
+  string other_avatar_id = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+message GetNotificationsRequest { string avatar_id = 1; int32 limit = 2; int32 offset = 3; }
+message SendMessageRequest {
+  string from_avatar_id = 1;
+  string to_avatar_id = 2;
+  string content = 3;
+}
+message MarkMessagesAsReadRequest {
+  string avatar_id = 1;
+  repeated string message_ids = 2;
+}
+message MarkNotificationsAsReadRequest {
+  string avatar_id = 1;
+  repeated string notification_ids = 2;
+}

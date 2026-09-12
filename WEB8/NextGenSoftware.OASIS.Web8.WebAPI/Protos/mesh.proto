@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.Web8.WebAPI.Grpc";
+
+package oasis.web8;
+
+import "google/protobuf/timestamp.proto";
+
+// ─── Shared messages ────────────────────────────────────────────────────────
+
+message GalacticNodeProto {
+  string id              = 1;  // Guid as string
+  string name            = 2;
+  string type            = 3;  // NodeType enum as string
+  string endpoint_url    = 4;
+  bool   is_sovereign    = 5;
+  google.protobuf.Timestamp registered_utc = 6;
+  google.protobuf.Timestamp last_seen_utc  = 7;
+}
+
+message MeshMessageProto {
+  string id                  = 1;  // Guid as string
+  string source_node_id      = 2;
+  string destination_node_id = 3;
+  string payload             = 4;
+  int32  ttl                 = 5;
+}
+
+message MeshRouteResultProto {
+  string          message_id       = 1;
+  repeated string path             = 2;  // list of Guid strings
+  double          total_latency_ms = 3;
+  bool            delivered        = 4;
+  repeated string relay_log        = 5;
+}
+
+// ─── Mesh service ────────────────────────────────────────────────────────────
+
+message RegisterNodeRequest  { string avatar_id = 1; GalacticNodeProto node = 2; }
+message RegisterNodeResponse { bool is_error = 1; string message = 2; GalacticNodeProto node = 3; }
+
+message GetNodesRequest  { string avatar_id = 1; }
+message GetNodesResponse { bool is_error = 1; string message = 2; repeated GalacticNodeProto nodes = 3; }
+
+message AddLinkRequest  { string avatar_id = 1; string node_a_id = 2; string node_b_id = 3; double latency_ms = 4; }
+message AddLinkResponse { bool is_error = 1; string message = 2; bool result = 3; }
+
+message HeartbeatRequest  { string avatar_id = 1; string node_id = 2; }
+message HeartbeatResponse { bool is_error = 1; string message = 2; bool result = 3; }
+
+message ComputeRouteRequest  { string avatar_id = 1; string source_node_id = 2; string destination_node_id = 3; }
+message ComputeRouteResponse { bool is_error = 1; string message = 2; repeated string node_ids = 3; }
+
+message SendMeshMessageRequest  { string avatar_id = 1; MeshMessageProto mesh_message = 2; }
+message SendMeshMessageResponse { bool is_error = 1; string message = 2; MeshRouteResultProto result = 3; }
+
+service MeshService {
+  rpc RegisterNode    (RegisterNodeRequest)    returns (RegisterNodeResponse);
+  rpc GetNodes        (GetNodesRequest)        returns (GetNodesResponse);
+  rpc AddLink         (AddLinkRequest)         returns (AddLinkResponse);
+  rpc Heartbeat       (HeartbeatRequest)       returns (HeartbeatResponse);
+  rpc ComputeRoute    (ComputeRouteRequest)    returns (ComputeRouteResponse);
+  rpc SendMeshMessage (SendMeshMessageRequest) returns (SendMeshMessageResponse);
+}
+
+// ─── Protocol Bridge service ─────────────────────────────────────────────────
+
+message TranslateInboundRequest  { string format = 1; string source_node_id = 2; string destination_node_id = 3; string raw_payload = 4; }
+message TranslateInboundResponse { bool is_error = 1; string message = 2; MeshMessageProto mesh_message = 3; }
+
+message TranslateOutboundRequest  { string target_format = 1; MeshMessageProto mesh_message = 2; }
+message TranslateOutboundResponse { bool is_error = 1; string message = 2; string translated = 3; }
+
+service ProtocolBridgeService {
+  rpc TranslateInbound  (TranslateInboundRequest)  returns (TranslateInboundResponse);
+  rpc TranslateOutbound (TranslateOutboundRequest) returns (TranslateOutboundResponse);
+}

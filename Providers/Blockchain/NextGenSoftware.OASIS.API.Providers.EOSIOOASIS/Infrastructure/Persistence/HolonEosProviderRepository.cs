@@ -156,16 +156,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 Table = _holonTable
             });
 
-            //TODO: Finish implementing properly.
             var filteredHolons = holonTableRows.Rows.Where(holon =>
             {
-                // Filter by HolonType if specified
-                //if (type != HolonType.All)
-                //{
-                //    var baseHolon = holon.GetBaseHolon();
-                //    if (baseHolon == null || baseHolon.GetType().Name != type.ToString())
-                //        return false;
-                //}
 
                 // Parse Info as metadata dictionary
                 Dictionary<string, string>? holonMeta = null;
@@ -212,16 +204,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 Table = _holonTable
             });
 
-            //TODO: Finish implementing properly.
             var filteredHolons = holonTableRows.Rows.Where(holon =>
             {
-                // Optionally filter by HolonType (commented out in other overload)
-                //if (type != HolonType.All)
-                //{
-                //    var baseHolon = holon.GetBaseHolon();
-                //    if (baseHolon == null || baseHolon.GetType().Name != type.ToString())
-                //        return false;
-                //}
 
                 // Parse Info as metadata dictionary
                 Dictionary<string, string>? holonMeta = null;
@@ -286,7 +270,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Request sent: {id}", LogType.Info);
         }
 
-        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task DeleteHard(Guid id)
         {
             if (id == null)

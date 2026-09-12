@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "NextGenSoftware.OASIS.Web10.WebAPI": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:57482;http://localhost:57483"
+    }
+  }
+}

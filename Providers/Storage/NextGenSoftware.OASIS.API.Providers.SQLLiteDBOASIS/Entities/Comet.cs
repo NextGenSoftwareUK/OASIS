@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public GenesisType GenesisType { get; set; }
         public bool IsInitialized { get; }
         public List<IMoon> Moons { get; set; } = new List<IMoon>();
-        public int NumberActiveAvatars { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int NumberActiveAvatars { get; set; }
 
         public Comet() { }
 
@@ -68,254 +68,129 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public event HolonsError OnHolonsError;
 
         public Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." });
 
         public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." };
 
         public Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() });
 
         public OASISResult<IEnumerable<IZome>> LoadZomes()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() };
 
         public Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IHolon> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." });
 
         public OASISResult<IHolon> LoadCelestialBody()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IHolon> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." };
 
-        public Task InitializeAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public Task InitializeAsync() => Task.CompletedTask;
 
-        public void Initialize()
-        {
-            throw new NotImplementedException();
-        }
+        public void Initialize() { }
 
-        public void Dim()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Emit()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Evolve()
-        {
-            throw new NotImplementedException();
-        }
-
-        public CoronalEjection Flare()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Love()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Mutate()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Radiate()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reflect()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Seed()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Shine()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Super()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Twinkle()
-        {
-            throw new NotImplementedException();
-        }
+        public void Dim() { }
+        public void Emit() { }
+        public void Evolve() { }
+        public CoronalEjection Flare() => new CoronalEjection();
+        public void Love() { }
+        public void Mutate() { }
+        public void Radiate() { }
+        public void Reflect() { }
+        public void Seed() { }
+        public void Shine() { }
+        public void Super() { }
+        public void Twinkle() { }
 
         public Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." });
 
         public OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." };
 
         public Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." });
 
         public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." };
 
         public Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IHolon> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." });
 
         public OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IHolon> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." };
 
         public Task<OASISResult<ICelestialBody>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." });
 
         public OASISResult<ICelestialBody> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." };
 
         public Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() });
 
         public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() };
 
         public Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() });
 
         public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() };
 
         public Task<OASISResult<T>> InitializeAsync<T>() where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<T> { Result = new T() });
 
         public OASISResult<T> Initialize<T>() where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<T> { Result = new T() };
 
         public Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." });
 
         public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." };
 
         public Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<T> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." });
 
         public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<T> { IsError = true, Message = "Use the OASIS Storage Provider to save celestial bodies." };
 
         public Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." });
 
         public OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<ICelestialBody> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." };
 
         public Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<T> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." });
 
         public OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : ICelestialBody, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<T> { IsError = true, Message = "Use the OASIS Storage Provider to load celestial bodies." };
 
         public Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() });
 
         public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() };
 
         public Task<OASISResult<IEnumerable<T>>> LoadZomesAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<T>> { Result = new List<T>() });
 
         public OASISResult<IEnumerable<T>> LoadZomes<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IZome, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<T>> { Result = new List<T>() };
 
         public Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() });
 
         public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<IZome>> { Result = new List<IZome>() };
 
         public Task<OASISResult<IEnumerable<T>>> SaveZomesAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(new OASISResult<IEnumerable<T>> { Result = new List<T>() });
 
         public OASISResult<IEnumerable<T>> SaveZomes<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IZome, new()
-        {
-            throw new NotImplementedException();
-        }
+            => new OASISResult<IEnumerable<T>> { Result = new List<T>() };
 
         //Task<OASISResult<ICelestialBody>> ICelestialBody.InitializeAsync()
         //{

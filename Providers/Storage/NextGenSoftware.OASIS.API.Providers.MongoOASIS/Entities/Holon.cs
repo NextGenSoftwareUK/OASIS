@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public DateTime DeletedDate { get; set; }
 
         public int Version { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
 
         //  [BsonRepresentation(BsonType.ObjectId)]
         public string CreatedByAvatarId { get; set; }

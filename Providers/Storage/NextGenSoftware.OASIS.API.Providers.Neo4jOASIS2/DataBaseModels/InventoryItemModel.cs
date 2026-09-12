@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             this.Name=source.Name;
             this.Description=source.Description;
             this.Quantity=source.Quantity;
+            this.Stack=source.Stack;
         }
 
         public InventoryItem GetInventoryItem(){
@@ -31,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             item.Name=this.Name;
             item.Description=this.Description;
             item.Quantity=this.Quantity;
+            item.Stack=this.Stack;
 
             return(item);
         }

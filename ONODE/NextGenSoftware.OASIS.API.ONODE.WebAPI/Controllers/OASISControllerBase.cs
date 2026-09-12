@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using Microsoft.Extensions.Configuration;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -44,6 +46,178 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISControllerBase()
         {
 
+        }
+        
+        /// <summary>
+        /// Gets whether generic exception handling is enabled (default: true).
+        /// Set ENABLE_GENERIC_EXCEPTION_HANDLING=false to disable in dev/test mode.
+        /// </summary>
+        protected bool EnableGenericExceptionHandling
+        {
+            get
+            {
+                var config = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+                if (config == null)
+                    return true; // Default to enabled
+                    
+                return config.GetValue<bool>("EnableGenericExceptionHandling", 
+                    bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
+            }
+        }
+
+        /// <summary>
+        /// Gets whether to use test data when live data is not available (default: false).
+        /// Set OASIS:UseTestDataWhenLiveDataNotAvailable=true in appsettings.json or 
+        /// USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE=true as environment variable to enable.
+        /// </summary>
+        protected bool UseTestDataWhenLiveDataNotAvailable
+        {
+            get
+            {
+                var config = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+                if (config == null)
+                    return false; // Default to disabled
+                    
+                return config.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
+                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false"));
+            }
+        }
+        
+        /// <summary>
+        /// Handles exceptions with proper logging and error response.
+        /// - Validation errors (OASISException, missing args) → 400 BadRequest
+        /// - Real exceptions → 500 InternalServerError
+        /// - If ENABLE_GENERIC_EXCEPTION_HANDLING is ON: Returns friendly messages
+        /// - If ENABLE_GENERIC_EXCEPTION_HANDLING is OFF: Returns raw error details
+        /// </summary>
+        protected IActionResult HandleException<T>(Exception ex, string operationName)
+        {
+            // Always log the error first
+            OASISErrorHandling.HandleError($"Error in {operationName}: {ex.Message}", ex, includeStackTrace: true);
+            
+            // Check if this is a validation error (400) or real exception (500)
+            bool isValidationError = ex is OASISException ||
+                                    ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+            
+            if (isValidationError)
+            {
+                // Validation error - return 400
+                var errorResult = new OASISResult<T>
+                {
+                    IsError = true,
+                    Exception = ex
+                };
+                
+                // Always populate DetailedMessage - it was previously null on every OASISException response,
+                // leaving callers with no actionable information about why the call failed.
+                errorResult.DetailedMessage = ex.ToString();
+
+                if (EnableGenericExceptionHandling)
+                {
+                    string reason = string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
+                    errorResult.Message = (ex is ArgumentException || ex is ArgumentNullException)
+                        ? $"Invalid args were passed to {operationName}. {reason}"
+                        : $"{operationName} could not be completed. {reason}";
+                }
+                else
+                {
+                    // Raw error details in dev/test mode
+                    errorResult.Message = ex.Message;
+                }
+                
+                return BadRequest(errorResult);
+            }
+            else
+            {
+                // Real exception - return 500
+                var errorResult = new OASISResult<T>
+                {
+                    IsError = true,
+                    Exception = ex
+                };
+                
+                if (EnableGenericExceptionHandling)
+                {
+                    // Friendly message for production
+                    errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                    // Don't expose internal details to client in production
+                }
+                else
+                {
+                    // Raw error details in dev/test mode
+                    errorResult.Message = $"Unexpected error in {operationName}: {ex.Message}";
+                    errorResult.DetailedMessage = ex.ToString();
+                }
+                
+                return StatusCode(500, errorResult);
+            }
+        }
+        
+        /// <summary>
+        /// Handles exceptions with proper logging and error response for WEB4 API (returns OASISHttpResponseMessage).
+        /// - Validation errors (OASISException, missing args) → 400 BadRequest
+        /// - Real exceptions → 500 InternalServerError
+        /// - If ENABLE_GENERIC_EXCEPTION_HANDLING is ON: Returns friendly messages
+        /// - If ENABLE_GENERIC_EXCEPTION_HANDLING is OFF: Returns raw error details
+        /// </summary>
+        protected OASISHttpResponseMessage<T> HandleExceptionForWeb4<T>(Exception ex, string operationName)
+        {
+            // Always log the error first
+            OASISErrorHandling.HandleError($"Error in {operationName}: {ex.Message}", ex, includeStackTrace: true);
+            
+            // Check if this is a validation error (400) or real exception (500)
+            bool isValidationError = ex is OASISException ||
+                                    ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+            
+            var errorResult = new OASISResult<T>
+            {
+                IsError = true,
+                Exception = ex
+            };
+            
+            if (isValidationError)
+            {
+                // Validation error - return 400
+                // Always populate DetailedMessage (previously null on every OASISException response).
+                errorResult.DetailedMessage = ex.ToString();
+
+                if (EnableGenericExceptionHandling)
+                {
+                    string reason = string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
+                    errorResult.Message = (ex is ArgumentException || ex is ArgumentNullException)
+                        ? $"Invalid args were passed to {operationName}. {reason}"
+                        : $"{operationName} could not be completed. {reason}";
+                }
+                else
+                {
+                    errorResult.Message = ex.Message;
+                }
+                
+                return HttpResponseHelper.FormatResponse(errorResult, HttpStatusCode.BadRequest);
+            }
+            else
+            {
+                // Real exception - return 500
+                if (EnableGenericExceptionHandling)
+                {
+                    errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                }
+                else
+                {
+                    errorResult.Message = $"Unexpected error in {operationName}: {ex.Message}";
+                    errorResult.DetailedMessage = ex.ToString();
+                }
+                
+                return HttpResponseHelper.FormatResponse(errorResult, HttpStatusCode.InternalServerError);
+            }
         }
 
         protected OASISResult<IOASISStorageProvider> GetAndActivateDefaultStorageProvider()
@@ -321,6 +495,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
 
             return (result, providerTypeOverride);
+        }
+
+        /// <summary>
+        /// Builds an honest "not implemented yet" result for endpoints that are still stubs, so they stop
+        /// returning fabricated data as though it were real. Sets HTTP 501 when a response is available.
+        /// </summary>
+        protected OASISResult<T> NotImplementedResult<T>(string capability)
+        {
+            if (Response != null && !Response.HasStarted)
+                Response.StatusCode = StatusCodes.Status501NotImplemented;
+
+            return new OASISResult<T>
+            {
+                IsError = true,
+                Message = $"{capability} is not implemented yet. This endpoint has no live on-chain data source behind it, so it returns no data rather than placeholder values.",
+                DetailedMessage = "Set OASIS:UseTestDataWhenLiveDataNotAvailable=true (or USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE=true) to receive clearly-labelled sample data for local development."
+            };
         }
     }
 }

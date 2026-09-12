@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,4 +1,4 @@
-# WEB4 OASIS API - Complete Documentation
+﻿# WEB4 OASIS API - Complete Documentation
 
 ## 📋 **Overview**
 
@@ -22,7 +22,7 @@ The WEB4 OASIS API is the foundational data aggregation and identity layer that 
 
 ## 🔗 **Base URL**
 ```
-https://api.oasisplatform.world
+https://api.web4.oasisomniverse.one
 ```
 
 ## 🔐 **Authentication**
@@ -2281,7 +2281,7 @@ import { OASISClient } from '@oasis/api-client';
 
 const client = new OASISClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.web4.oasisomniverse.one'
 });
 
 // Get avatar
@@ -2342,7 +2342,7 @@ client.karma.add({
 
 ### **Sandbox Environment**
 ```
-https://sandbox-api.oasisplatform.world
+https://sandbox-api.web4.oasisomniverse.one
 ```
 
 ### **Test Data**

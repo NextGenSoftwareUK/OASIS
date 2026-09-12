@@ -1,3 +1,68 @@
+module oasis::oasis {
+    use std::string;
+
+    /// Simple on-chain representation of an avatar for OASIS.
+    struct Avatar has copy, drop, store {
+        id: string::String,
+        username: string::String,
+        email: string::String,
+        created_at: u64,
+        modified_at: u64,
+    }
+
+    /// Simple on-chain representation of a holon for OASIS.
+    struct Holon has copy, drop, store {
+        id: string::String,
+        parent_id: string::String,
+        name: string::String,
+        description: string::String,
+        created_at: u64,
+        modified_at: u64,
+    }
+
+    /// These tables would normally be implemented using aptos_std::table / aggregator resources.
+    /// For brevity, this module only defines the entry functions that the C# AptosOASIS provider calls.
+
+    /// View function used by the C# provider:
+    /// function = "{_contractAddress}::oasis::get_avatar_by_username"
+    public fun get_avatar_by_username(username: string::String, _version: u64): Avatar acquires Avatar {
+        // In a full implementation, this would look up an Avatar resource keyed by username.
+        // Here we just abort to indicate "not found" unless deployed with real storage logic.
+        abort 1;
+    }
+
+    /// View function used by the C# provider:
+    /// function = "{_contractAddress}::oasis::get_avatar_by_email"
+    public fun get_avatar_by_email(email: string::String, _version: u64): Avatar acquires Avatar {
+        abort 1;
+    }
+
+    /// View function used by the C# provider:
+    /// function = "{_contractAddress}::oasis::get_holons_by_parent"
+    public fun get_holons_by_parent(parent_id: string::String, _version: u64): vector<Holon> acquires Holon {
+        abort 1;
+    }
+
+    /// View function used by the C# provider:
+    /// function = "{_contractAddress}::oasis::get_holons_by_metadata"
+    public fun get_holons_by_metadata(_key: string::String, _value: string::String, _version: u64): vector<Holon> acquires Holon {
+        abort 1;
+    }
+
+    /// View function used by the C# provider:
+    /// function = "{_contractAddress}::oasis::search"
+    public fun search(_query: string::String, _scope: string::String, _version: u64): vector<Holon> acquires Holon {
+        abort 1;
+    }
+
+    /// Entry function used for deletes:
+    /// function = "{_contractAddress}::oasis::delete_avatar_by_email"
+    public entry fun delete_avatar_by_email(_signer: &signer, _email: string::String, _soft_delete: bool) acquires Avatar {
+        // Real implementation would mark the avatar as deleted or remove it from storage.
+        abort 1;
+    }
+}
+
 module Oasis::oasis {
     use std::signer;
     use std::string::{Self, String};

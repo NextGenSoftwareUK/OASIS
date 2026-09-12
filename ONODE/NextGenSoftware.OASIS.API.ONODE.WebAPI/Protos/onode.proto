@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service ONODEService {
+  rpc GetNodeStatus (ONODEEmptyRequest) returns (JsonResponse);
+  rpc GetNodeInfo (ONODEEmptyRequest) returns (JsonResponse);
+  rpc GetNodeMetrics (ONODEEmptyRequest) returns (JsonResponse);
+  rpc GetNodeLogs (GetNodeLogsRequest) returns (JsonResponse);
+  rpc GetNodeConfig (ONODEEmptyRequest) returns (JsonResponse);
+  rpc GetNodePeers (ONODEEmptyRequest) returns (JsonResponse);
+  rpc GetNodeStats (ONODEEmptyRequest) returns (JsonResponse);
+  rpc StartNode (ONODEEmptyRequest) returns (OASISGrpcResponse);
+  rpc StopNode (ONODEEmptyRequest) returns (OASISGrpcResponse);
+  rpc RestartNode (ONODEEmptyRequest) returns (OASISGrpcResponse);
+  rpc UpdateNodeConfig (UpdateNodeConfigRequest) returns (OASISGrpcResponse);
+}
+
+message ONODEEmptyRequest {}
+message GetNodeLogsRequest { int32 lines = 1; }
+message UpdateNodeConfigRequest { string config_json = 1; }
+
+

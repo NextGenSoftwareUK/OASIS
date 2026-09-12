@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+service KarmaService {
+  rpc GetKarmaForAvatar (GetKarmaRequest) returns (KarmaResponse);
+  rpc AddKarmaToAvatar (KarmaOperationRequest) returns (KarmaResponse);
+  rpc RemoveKarmaFromAvatar (KarmaOperationRequest) returns (KarmaResponse);
+}
+
+// ── Request messages ────────────────────────────────────────────────────────
+
+message GetKarmaRequest {
+  string avatar_id = 1;
+  string provider_type = 2;
+  bool   set_globally = 3;
+}
+
+message KarmaOperationRequest {
+  string avatar_id = 1;
+  string karma_type_positive = 2;  // KarmaTypePositive enum name (for add)
+  string karma_type_negative = 3;  // KarmaTypeNegative enum name (for remove)
+  string karma_source = 4;         // KarmaSourceType enum name
+  string karma_source_title = 5;
+  string karma_source_desc = 6;
+  string provider_type = 7;
+  bool   set_globally = 8;
+}
+
+// ── Response messages ───────────────────────────────────────────────────────
+
+message KarmaResponse {
+  bool   is_error = 1;
+  string message = 2;
+  int32  karma_total = 3;
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service EOSIOService {
+  rpc GetEOSIOAccountNamesForAvatar(EOSIOByAvatarRequest) returns (StringListResponse);
+  rpc GetEOSIOAccountPrivateKeyForAvatar(EOSIOByAvatarRequest) returns (StringResponse);
+  rpc GetEOSIOAccount(EOSIOByAccountNameRequest) returns (JsonResponse);
+  rpc GetEOSIOAccountForAvatar(EOSIOByAvatarRequest) returns (JsonResponse);
+  rpc GetAvatarIdForEOSIOAccountName(EOSIOByAccountNameRequest) returns (StringResponse);
+  rpc GetAvatarForEOSIOAccountName(EOSIOByAccountNameRequest) returns (JsonResponse);
+  rpc GetBalanceForEOSIOAccount(GetEOSIOBalanceRequest) returns (StringResponse);
+  rpc GetBalanceForAvatarEOSIO(GetEOSIOAvatarBalanceRequest) returns (StringResponse);
+  rpc LinkEOSIOAccountToAvatar(LinkEOSIOAccountRequest) returns (JsonResponse);
+}
+
+message EOSIOByAvatarRequest { string avatar_id = 1; }
+message EOSIOByAccountNameRequest { string account_name = 1; }
+message GetEOSIOBalanceRequest { string account_name = 1; string code = 2; string symbol = 3; }
+message GetEOSIOAvatarBalanceRequest { string avatar_id = 1; string code = 2; string symbol = 3; }
+message LinkEOSIOAccountRequest { string wallet_id = 1; string avatar_id = 2; string account_name = 3; string wallet_address = 4; }

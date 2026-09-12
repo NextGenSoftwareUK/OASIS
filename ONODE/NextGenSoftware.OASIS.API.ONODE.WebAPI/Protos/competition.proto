@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service CompetitionService {
+  rpc GetLeaderboard (GetLeaderboardRequest) returns (JsonResponse);
+  rpc GetAvatarRank (GetAvatarRankRequest) returns (JsonResponse);
+  rpc GetLeagues (GetLeaguesRequest) returns (JsonResponse);
+  rpc GetAvatarLeague (GetAvatarLeagueRequest) returns (JsonResponse);
+  rpc GetActiveTournaments (GetActiveTournamentsRequest) returns (JsonResponse);
+  rpc JoinTournament (JoinTournamentRequest) returns (OASISGrpcResponse);
+}
+
+message GetLeaderboardRequest {
+  string competition_type = 1;
+  string season_type = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+message GetAvatarRankRequest {
+  string avatar_id = 1;
+  string competition_type = 2;
+  string season_type = 3;
+}
+message GetLeaguesRequest {
+  string competition_type = 1;
+  string season_type = 2;
+}
+message GetAvatarLeagueRequest {
+  string avatar_id = 1;
+  string competition_type = 2;
+  string season_type = 3;
+}
+message GetActiveTournamentsRequest { string competition_type = 1; }
+message JoinTournamentRequest { string avatar_id = 1; string tournament_id = 2; }
+
+

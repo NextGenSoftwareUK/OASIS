@@ -1,0 +1,46 @@
+# --- Package dependencies (Ubuntu/Debian) ---
+sudo apt update
+sudo apt install -y build-essential
+
+sudo apt install -y clang
+
+sudo apt update
+sudo apt install -y build-essential binutils
+
+sudo apt install -y clang lld
+export DOTNET_CLANG_PATH=$(which clang)
+export DOTNET_LINKER_PATH=$(which ld.lld)
+
+sudo apt update
+sudo apt install -y build-essential binutils
+
+sudo apt install -y pkg-config
+
+# For UZDoom/ODOOM build (SDL2, etc.):
+# sudo apt install -y libsdl2-dev libasound2-dev libglib2.0-dev libgtk-3-dev libvpx-dev
+
+# --- Build and run ---
+# From the ODOOM folder:
+#   ./BUILD_ODOOM.sh
+#   ./RUN_ODOOM.sh
+
+# --- IWAD (game data) ---
+# ODOOM needs an IWAD (doom.wad, doom2.wad, heretic.wad, etc.) from the original games.
+# The build and run scripts create this folder automatically:
+#   ~/.local/share/games/odoom
+# Copy your IWAD file there, or into the ODOOM build folder (same folder as the ODOOM binary).
+# To show hidden folders in Files: Ctrl+H, or menu ⋮ → Show Hidden Files.
+
+# --- No sound ---
+# If you have no sound or music:
+# 1. Install OpenAL (required by UZDoom for sound): sudo apt install -y libopenal-dev
+# 2. In game: Options → Sound Options → ensure "Sound" is enabled and volume sliders are up.
+# 3. If still silent, try: Options → Sound Options → change output device if listed.
+# 4. Run from a terminal and check for "Sound init failed" or OpenAL errors in the output.
+
+# --- "Could not find patch set" / "Falling back to System Default" (MIDI) ---
+# These console messages are harmless. The engine tries several MIDI backends (WildMidi, FluidSynth, GUS, Timidity++)
+# and looks for soundfonts (e.g. "odoom" or /usr/share/sounds/sf2/FluidR3_GS.sf2). If not found, it falls back to
+# System Default and music still plays. To reduce or remove the messages:
+# - Install a soundfont so the engine finds it: sudo apt install -y fluid-soundfont-gm
+# - Or in game: Options → Sound Options → MIDI device / Soundfont: choose a valid device or leave as default.

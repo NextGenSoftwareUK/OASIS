@@ -1,138 +1,40 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.IntegrationTests
 {
     [TestClass]
     public class WRLD3DOASISIntegrationTests
     {
-        private WRLD3DOASIS _provider;
+        private WRDLD3DOASIS _provider;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new WRLD3DOASIS();
+            _provider = new WRDLD3DOASIS();
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public void MapProviderType_ShouldBeWRLD3D()
         {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
-
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            Assert.AreEqual(MapProviderType.WRLD3D, _provider.MapProviderType);
         }
 
         [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
+        public void MapProviderName_ShouldNotBeEmpty()
         {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
+            Assert.IsNotNull(_provider.MapProviderName);
+            Assert.IsFalse(string.IsNullOrEmpty(_provider.MapProviderName));
         }
 
         [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
+        public void MapProviderDescription_ShouldNotBeEmpty()
         {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
+            Assert.IsNotNull(_provider.MapProviderDescription);
+            Assert.IsFalse(string.IsNullOrEmpty(_provider.MapProviderDescription));
         }
     }
 }

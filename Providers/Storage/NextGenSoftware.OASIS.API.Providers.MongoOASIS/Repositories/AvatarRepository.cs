@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Linq;
@@ -22,6 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         public AvatarRepository(MongoDbContext dbContext)
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
+            SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+            SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
             _dbContext = dbContext;
         }
 
@@ -335,7 +337,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                var replaceResult = await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar).ConfigureAwait(false);
+                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"AvatarDetail update matched no document (HolonId={avatar.HolonId}). Active quest / XP were not persisted.");
+                    return result;
+                }
+
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -507,7 +515,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                var replaceResult = _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"AvatarDetail update matched no document (HolonId={avatar.HolonId}). Active quest / XP were not persisted.");
+                    return result;
+                }
+
                 result.Result = avatar;
             }
             catch (Exception ex)
