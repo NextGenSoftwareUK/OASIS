@@ -72,6 +72,7 @@ Write-Host "Our World GeoNFT demo seed"
 Write-Host "Development API: $Web4BaseUrl"
 Write-Host "Map center: $Latitude, $Longitude"
 Write-Host "NFT image: $ImageUrl"
+Write-Host "Local credential file: $effectiveCredentialPath (exists: $(Test-Path -LiteralPath $effectiveCredentialPath))"
 if ($PlanOnly) {
     Write-Host 'Plan-only mode: no NFT will be minted and no GeoNFT will be placed.'
     $plan
