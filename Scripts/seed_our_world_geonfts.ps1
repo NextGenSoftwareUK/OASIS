@@ -97,10 +97,15 @@ if ($null -eq $Credential) {
 if ($null -eq $Credential) { throw 'An OASIS login is required.' }
 
 if ($credentialWasPrompted -and [string]::IsNullOrWhiteSpace($CredentialPath)) {
-    $credentialDirectory = Split-Path -Parent $defaultCredentialPath
-    New-Item -ItemType Directory -Path $credentialDirectory -Force | Out-Null
-    $Credential | Export-Clixml -LiteralPath $defaultCredentialPath
-    Write-Host "Saved the local OASIS avatar sign-in for future launches: $defaultCredentialPath"
+    $saveCredential = Read-Host 'Save this OASIS sign-in for future launches on this Windows account? [Y/N]'
+    if ($saveCredential -match '^(?i:y|yes)$') {
+        $credentialDirectory = Split-Path -Parent $defaultCredentialPath
+        New-Item -ItemType Directory -Path $credentialDirectory -Force | Out-Null
+        $Credential | Export-Clixml -LiteralPath $defaultCredentialPath
+        Write-Host "Saved the local OASIS avatar sign-in for future launches: $defaultCredentialPath"
+    } else {
+        Write-Host 'OASIS avatar sign-in will be used only for this run.'
+    }
 }
 
 Write-Host 'Checking the development API contract...'
