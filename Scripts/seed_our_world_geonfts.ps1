@@ -71,7 +71,10 @@ if ($PlanOnly) {
 
 if ($null -eq $Credential) {
     Write-Host 'Waiting for OASIS avatar sign-in...'
-    $Credential = Get-Credential -Message 'OASIS avatar login for Our World development demo data'
+    $username = Read-Host 'OASIS username or email'
+    if ([string]::IsNullOrWhiteSpace($username)) { throw 'An OASIS username or email is required.' }
+    $password = Read-Host 'OASIS password' -AsSecureString
+    $Credential = [PSCredential]::new($username, $password)
 }
 if ($null -eq $Credential) { throw 'An OASIS login is required.' }
 
