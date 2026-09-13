@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
+using NextGenSoftware.OASIS.API.Contracts.Enums;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Bridge;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions;
 using NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Geocoding;

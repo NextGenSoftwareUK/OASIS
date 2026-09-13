@@ -273,6 +273,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public RateLimitingSettings RateLimiting { get; set; } = new RateLimitingSettings();
         /// <summary>OIDC / OAuth 2.0 provider settings for HerzID white-label SSO.</summary>
         public OidcSettings Oidc { get; set; } = new OidcSettings();
+        /// <summary>HerzID registration, vouching, QEA seal and voice biometric settings.</summary>
+        public HerzIdSettings HerzId { get; set; } = new HerzIdSettings();
     }
 
     public class OidcSettings
@@ -285,6 +287,39 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool Enabled { get; set; } = false;
         /// <summary>Access token lifetime in seconds for OAuth authorisation-code grants (defaults to JwtTokenExpirationMinutes × 60).</summary>
         public int AccessTokenLifetimeSeconds { get; set; } = 0;
+    }
+
+    public class HerzIdSettings
+    {
+        /// <summary>When true, HerzID registration, vouching and QEA seal endpoints are active.</summary>
+        public bool Enabled { get; set; } = false;
+        /// <summary>
+        /// Server-side private seed used to compute the QEA seal (14th HerzID character) via HMAC-SHA256.
+        /// Keep this secret — it is the Wiccian root authority equivalent on the OASIS side.
+        /// Set via OASIS_HERZID_QEA_SEED environment variable in production.
+        /// </summary>
+        public string QeaPrivateSeed { get; set; } = "";
+        /// <summary>
+        /// Optional URL of the Wiccian QEA Registry REST API (e.g. "https://registry.wiccian.io").
+        /// When set, OASIS calls the registry to issue/verify QEA certificates in addition to local computation.
+        /// Leave empty to use local HMAC computation only (sufficient for Phase 1).
+        /// </summary>
+        public string WiccianRegistryUrl { get; set; } = "";
+        /// <summary>API key for the Wiccian QEA Registry. Set via OASIS_WICCIAN_API_KEY environment variable.</summary>
+        public string WiccianApiKey { get; set; } = "";
+        /// <summary>
+        /// Optional URL of the Azure Cognitive Services Speech endpoint for voice biometric enrollment/verification.
+        /// Format: "https://&lt;region&gt;.api.cognitive.microsoft.com". Leave empty to skip voice biometric integration.
+        /// </summary>
+        public string AzureSpeakerRecognitionEndpoint { get; set; } = "";
+        /// <summary>Azure Cognitive Services subscription key. Set via OASIS_AZURE_SPEECH_KEY environment variable.</summary>
+        public string AzureSpeakerRecognitionKey { get; set; } = "";
+        /// <summary>Vouches gifted to every new HerzID member on assignment (default 12, per the 369 Principle).</summary>
+        public int NewMemberVouches { get; set; } = 12;
+        /// <summary>Number of sequential ID digits (default 10, giving capacity for 9,999,999,999 members).</summary>
+        public int SequentialDigits { get; set; } = 10;
+        /// <summary>QEA seal symbols shown in the HerzID display string. The stored character is always alphanumeric; this maps it to the display glyph.</summary>
+        public string QeaSealDisplayGlyph { get; set; } = "✦";
     }
 
     public class RateLimitingSettings

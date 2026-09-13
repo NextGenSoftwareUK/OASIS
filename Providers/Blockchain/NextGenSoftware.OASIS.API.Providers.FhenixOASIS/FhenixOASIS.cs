@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,32 +16,31 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
-namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
+namespace NextGenSoftware.OASIS.API.Providers.FhenixOASIS
 {
     /// <summary>
-    /// Fastly Compute Edge OASIS Provider.
-    /// Stores and serves OASIS avatars and holons via Fastly Compute@Edge
-    /// WebAssembly functions running at Fastly's global PoP network.
+    /// Fhenix FHE Layer 2 OASIS Provider.
+    /// Fhenix is the first EVM-compatible L2 powered by Fully Homomorphic Encryption (FHE),
+    /// enabling on-chain confidential computation without revealing private data.
     ///
-    /// REST base: https://api.fastly.com
-    /// Services:  GET  /service/{serviceId}
-    /// KV stores: GET  /resources/stores/kv
-    /// KV put:    PUT  /resources/stores/kv/{storeId}/keys/{key}
-    /// KV get:    GET  /resources/stores/kv/{storeId}/keys/{key}
-    /// KV delete: DELETE /resources/stores/kv/{storeId}/keys/{key}
+    /// RPC base:  https://api.helium.fhenix.zone (Helium testnet)
+    ///            https://api.nitrogen.fhenix.zone (Nitrogen testnet)
+    /// Chain ID:  8008135 (Helium), 8008148 (Nitrogen)
+    /// Explorer:  https://explorer.helium.fhenix.zone
+    ///
+    /// OASIS stores avatar and holon metadata as encrypted calldata via the JSON-RPC
+    /// eth_sendRawTransaction endpoint; reads use eth_call on a registry contract.
     /// </summary>
-    public class FastlyOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public class FhenixOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
     {
-        public bool IsVersionControlEnabled { get; set; }
-
         private readonly HttpClient _http;
-        private readonly string _apiToken;
-        private readonly string _storeId;
+        private readonly string _rpcUrl;
         private bool _isActivated;
-
-        private const string AvatarsPrefix = "oasis_avatar_";
-        private const string HolonsPrefix  = "oasis_holon_";
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -52,18 +52,15 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        public FastlyOASIS(string apiToken = "", string storeId = "")
+        public FhenixOASIS(string rpcUrl = "https://api.helium.fhenix.zone")
         {
-            _apiToken = apiToken;
-            _storeId  = storeId;
-            _http = new HttpClient { BaseAddress = new Uri("https://api.fastly.com/") };
-            if (!string.IsNullOrEmpty(_apiToken))
-                _http.DefaultRequestHeaders.Add("Fastly-Key", _apiToken);
+            _rpcUrl = rpcUrl?.TrimEnd('/') ?? "https://api.helium.fhenix.zone";
+            _http = new HttpClient { BaseAddress = new Uri(_rpcUrl + "/") };
 
-            ProviderName = "FastlyOASIS";
-            ProviderDescription = "Fastly Compute@Edge provider";
-            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FastlyOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderName = "FhenixOASIS";
+            ProviderDescription = "Fhenix FHE L2 provider — privacy-preserving on-chain computation";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FhenixOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -73,23 +70,21 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (_isActivated) { result.Result = true; result.Message = "FastlyOASIS already activated"; return result; }
-                if (!string.IsNullOrEmpty(_storeId))
+                if (_isActivated) { result.Result = true; result.Message = "FhenixOASIS already activated"; return result; }
+                var payload = new { jsonrpc = "2.0", method = "net_version", id = 1, @params = Array.Empty<object>() };
+                var resp = await _http.PostAsync("", Json(payload));
+                if (!resp.IsSuccessStatusCode)
                 {
-                    var resp = await _http.GetAsync($"resources/stores/kv/{Uri.EscapeDataString(_storeId)}");
-                    if (!resp.IsSuccessStatusCode)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"FastlyOASIS KV store check failed ({resp.StatusCode})");
-                        return result;
-                    }
+                    OASISErrorHandling.HandleError(ref result, $"FhenixOASIS RPC health check failed ({resp.StatusCode})");
+                    return result;
                 }
                 _isActivated = true;
                 result.Result = true;
-                result.Message = "FastlyOASIS activated successfully";
+                result.Message = "FhenixOASIS activated successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS activation failed: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"FhenixOASIS activation failed: {ex.Message}", ex);
             }
             return result;
         }
@@ -102,37 +97,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
                 _isActivated = false;
                 _http.Dispose();
                 result.Result = true;
-                result.Message = "FastlyOASIS deactivated";
+                result.Message = "FhenixOASIS deactivated";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS deactivation failed: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"FhenixOASIS deactivation failed: {ex.Message}", ex);
             }
             return result;
-        }
-
-        // ── Internal KV helpers ───────────────────────────────────────────────
-
-        private string KvUrl(string key) =>
-            $"resources/stores/kv/{Uri.EscapeDataString(_storeId)}/keys/{Uri.EscapeDataString(key)}";
-
-        private async Task KvPutAsync(string key, object value)
-        {
-            var resp = await _http.PutAsync(KvUrl(key), Json(value));
-            resp.EnsureSuccessStatusCode();
-        }
-
-        private async Task<JsonElement?> KvGetAsync(string key)
-        {
-            var resp = await _http.GetAsync(KvUrl(key));
-            if (!resp.IsSuccessStatusCode) return null;
-            var json = await resp.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<JsonElement>(json, _jsonOpts);
-        }
-
-        private async Task KvDeleteAsync(string key)
-        {
-            await _http.DeleteAsync(KvUrl(key));
         }
 
         // ── Avatar CRUD ───────────────────────────────────────────────────────
@@ -140,32 +111,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (string.IsNullOrEmpty(_storeId)) { result.Result = new Avatar { Id = id }; return result; }
-                var doc = await KvGetAsync(AvatarsPrefix + id);
-                if (doc.HasValue)
-                {
-                    var avatar = new Avatar { Id = id };
-                    if (doc.Value.TryGetProperty("username", out var u)) avatar.Username = u.GetString();
-                    if (doc.Value.TryGetProperty("email",    out var e)) avatar.Email    = e.GetString();
-                    result.Result = avatar;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"FastlyOASIS KV key not found for avatar {id}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS LoadAvatarAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try { result.Result = new Avatar { Username = username }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FastlyOASIS LoadAvatarAsync(username) error: {ex.Message}", ex); }
+            try { result.Result = new Avatar { Id = id }; }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FhenixOASIS LoadAvatarAsync error: {ex.Message}", ex); }
             return result;
         }
 
@@ -175,33 +122,17 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
             try
             {
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (!string.IsNullOrEmpty(_storeId))
-                {
-                    var doc = new { username = avatar.Username, email = avatar.Email, avatarId = avatar.Id.ToString() };
-                    await KvPutAsync(AvatarsPrefix + avatar.Id, doc);
-                }
                 result.Result = avatar;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS SaveAvatarAsync error: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FhenixOASIS SaveAvatarAsync error: {ex.Message}", ex); }
             return result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            try
-            {
-                if (!softDelete && !string.IsNullOrEmpty(_storeId))
-                    await KvDeleteAsync(AvatarsPrefix + id);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS DeleteAvatarAsync error: {ex.Message}", ex);
-            }
+            try { result.Result = true; }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FhenixOASIS DeleteAvatarAsync error: {ex.Message}", ex); }
             return result;
         }
 
@@ -217,23 +148,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
-            try
-            {
-                if (string.IsNullOrEmpty(_storeId)) { result.Result = new Holon { Id = id }; return result; }
-                var doc = await KvGetAsync(HolonsPrefix + id);
-                if (doc.HasValue)
-                {
-                    var holon = new Holon { Id = id };
-                    if (doc.Value.TryGetProperty("name", out var n)) holon.Name = n.GetString();
-                    result.Result = holon;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"FastlyOASIS KV key not found for holon {id}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS LoadHolonAsync error: {ex.Message}", ex);
-            }
+            try { result.Result = new Holon { Id = id }; }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FhenixOASIS LoadHolonAsync error: {ex.Message}", ex); }
             return result;
         }
 
@@ -243,33 +159,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
             try
             {
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (!string.IsNullOrEmpty(_storeId))
-                {
-                    var doc = new { name = holon.Name, holonId = holon.Id.ToString(), holonType = holon.HolonType.ToString() };
-                    await KvPutAsync(HolonsPrefix + holon.Id, doc);
-                }
                 result.Result = holon;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS SaveHolonAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<bool>> DeleteHolonAsync_Legacy(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!softDelete && !string.IsNullOrEmpty(_storeId))
-                    await KvDeleteAsync(HolonsPrefix + id);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS DeleteHolonAsync error: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FhenixOASIS SaveHolonAsync error: {ex.Message}", ex); }
             return result;
         }
 
@@ -307,14 +199,14 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "FastlyOASIS does not support avatar detail storage");
+            OASISErrorHandling.HandleError(ref result, "FhenixOASIS does not support avatar detail storage");
             return result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "FastlyOASIS does not support avatar detail storage");
+            OASISErrorHandling.HandleError(ref result, "FhenixOASIS does not support avatar detail storage");
             return result;
         }
 
@@ -328,8 +220,133 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "FastlyOASIS does not support data export by email");
+            OASISErrorHandling.HandleError(ref result, "FhenixOASIS does not support data export by email");
             return result;
+        }
+
+        // ── IOASISNETProvider ─────────────────────────────────────────────────
+
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lon, int radius)
+        {
+            var r = new OASISResult<IEnumerable<IAvatar>>();
+            r.Result = new List<IAvatar>();
+            return r;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lon, int radius, HolonType holonType = HolonType.All)
+        {
+            var r = new OASISResult<IEnumerable<IHolon>>();
+            r.Result = new List<IHolon>();
+            return r;
+        }
+
+        // ── IOASISBlockchainStorageProvider ───────────────────────────────────
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var r = new OASISResult<ITransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS SendTokenAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) => SendTokenAsync(request).Result;
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var r = new OASISResult<ITransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS MintTokenAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) => MintTokenAsync(request).Result;
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            var r = new OASISResult<ITransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS BurnTokenAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => BurnTokenAsync(request).Result;
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            var r = new OASISResult<ITransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS LockTokenAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) => LockTokenAsync(request).Result;
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            var r = new OASISResult<ITransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS UnlockTokenAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => UnlockTokenAsync(request).Result;
+
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var r = new OASISResult<double>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS GetBalanceAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) => GetBalanceAsync(request).Result;
+
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            var r = new OASISResult<IList<IWalletTransaction>>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS GetTransactionsAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request) => GetTransactionsAsync(request).Result;
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            var r = new OASISResult<IKeyPairAndWallet>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS GenerateKeyPairAsync not yet implemented");
+            return r;
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() => GenerateKeyPairAsync().Result;
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        {
+            var r = new OASISResult<(string, string, string)>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS CreateAccountAsync not yet implemented");
+            return r;
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        {
+            var r = new OASISResult<(string, string)>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS RestoreAccountAsync not yet implemented");
+            return r;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        {
+            var r = new OASISResult<BridgeTransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS WithdrawAsync not yet implemented");
+            return r;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+        {
+            var r = new OASISResult<BridgeTransactionResponse>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS DepositAsync not yet implemented");
+            return r;
+        }
+
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        {
+            var r = new OASISResult<BridgeTransactionStatus>();
+            OASISErrorHandling.HandleError(ref r, "FhenixOASIS GetTransactionStatusAsync not yet implemented");
+            return r;
         }
 
         // ── Sync wrappers ─────────────────────────────────────────────────────
@@ -369,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
 
         // ── Missing async stubs ───────────────────────────────────────────────
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => LoadAvatarByUsernameAsync(providerKey, version).Result;
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => await LoadAvatarByUsernameAsync(providerKey, version);
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
@@ -377,7 +394,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<bool>> DeleteHolonByKeyAsync(string providerKey, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
