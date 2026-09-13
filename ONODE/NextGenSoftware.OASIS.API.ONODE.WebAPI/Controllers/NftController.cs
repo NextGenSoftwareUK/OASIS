@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -50,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("collect-nft")]
-        public async Task<OASISResult<IInventoryItem>> CollectNFTAsync(ICollectGeoNFTRequest request)
+        public async Task<OASISResult<IInventoryItem>> CollectNFTAsync(CollectGeoNFTRequest request)
         {
             return await NFTManager.CollectNFTAsync(request);
         }
@@ -58,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("collect-nft/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IInventoryItem>> CollectNFTAsync(ICollectGeoNFTRequest request, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IInventoryItem>> CollectNFTAsync(CollectGeoNFTRequest request, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await CollectNFTAsync(request);
@@ -67,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("collect-geo-nft")]
-        public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(ICollectGeoNFTRequest request)
+        public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(CollectGeoNFTRequest request)
         {
             return await NFTManager.CollectNFTAsync(request);
         }
@@ -75,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("collect-geo-nft/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(ICollectGeoNFTRequest request, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(CollectGeoNFTRequest request, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await CollectGeoNFTAsync(request);
@@ -464,8 +465,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 OriginalWeb4OASISNFTId = request.OriginalOASISNFTId,
                 OriginalWeb4OASISNFTOffChainProvider = new EnumValue<ProviderType>(originalOASISNFTProviderType),
-                Lat = request.Lat,
-                Long = request.Long,
+                Lat = (long)request.Lat,
+                Long = (long)request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
                 PermSpawn = request.PermSpawn,
                 GlobalSpawnQuantity = request.GlobalSpawnQuantity,
@@ -563,8 +564,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 WaitTillNFTSent = request.WaitTillNFTSent,
                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
-                Lat = request.Lat,
-                Long = request.Long,
+                Lat = (long)request.Lat,
+                Long = (long)request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
                 PermSpawn = request.PermSpawn,
                 GlobalSpawnQuantity = request.GlobalSpawnQuantity,
