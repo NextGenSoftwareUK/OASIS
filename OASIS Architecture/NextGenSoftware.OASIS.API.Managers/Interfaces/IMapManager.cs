@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
+using NextGenSoftware.OASIS.API.Contracts.Enums;
 
 namespace NextGenSoftware.OASIS.API.Managers.Interfaces
 {
