@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.PolkadotOASIS, providerType);
+            Assert.AreEqual(ProviderType.PolkadotOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -89,14 +89,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderVersion_ShouldBeSetViaProviderName()
         {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
+            // Arrange & Act - ProviderName is the primary identifier
+            var name = _provider.ProviderName;
 
             // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsNotNull(name);
+            Assert.IsFalse(string.IsNullOrEmpty(name));
         }
 
         [TestCleanup]

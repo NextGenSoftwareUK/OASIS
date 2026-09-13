@@ -1,0 +1,42 @@
+using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Providers.AbstractOASIS;
+
+namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS.TestHarness
+{
+    /// <summary>
+    /// Console harness: activates the provider, reports its metadata, deactivates.
+    /// Configure with ABSTRACTOASIS_&lt;PARAM&gt; environment variables.
+    /// </summary>
+    public static class AbstractOASISTestHarness
+    {
+        public static async Task Main()
+        {
+            Console.WriteLine("AbstractOASIS Test Harness");
+            Console.WriteLine(new string('-', 60));
+
+            var provider = AbstractOASISTestFactory.Create();
+
+            Console.WriteLine($"      name    : {provider.ProviderName}");
+            Console.WriteLine($"      type    : {provider.ProviderType.Value}");
+
+            var activated = await provider.ActivateProviderAsync();
+            Console.WriteLine(activated.IsError
+                ? $"FAIL  activate: {activated.Message}"
+                : "PASS  activate");
+
+            if (!activated.IsError)
+            {
+                var deactivated = await provider.DeActivateProviderAsync();
+                Console.WriteLine(deactivated.IsError ? $"FAIL  deactivate: {deactivated.Message}" : "PASS  deactivate");
+            }
+            else
+            {
+                Console.WriteLine($"\nSet the ABSTRACTOASIS_* environment variables and try again.");
+            }
+
+            Console.WriteLine(new string('-', 60));
+            Console.WriteLine("Done.");
+        }
+    }
+}

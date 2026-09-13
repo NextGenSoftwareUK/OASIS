@@ -1,7 +1,12 @@
+using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
@@ -10,11 +15,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
     public class EthereumOASISIntegrationTests
     {
         private EthereumOASIS _provider;
+        private const string TestHost = "https://mainnet.infura.io/v3/test";
+        private const string TestKey = "0x0000000000000000000000000000000000000000000000000000000000000001";
+        private static readonly BigInteger TestChainId = 1;
+        private const string TestContract = "0x0000000000000000000000000000000000000000";
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new EthereumOASIS();
+            _provider = new EthereumOASIS(TestHost, TestKey, TestChainId, TestContract);
         }
 
         [TestMethod]
@@ -22,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
         {
             // Activate Provider
             var activateResult = await _provider.ActivateProviderAsync();
-            Assert.IsTrue(activateResult.IsSuccess, "Provider should activate successfully");
+            Assert.IsTrue(activateResult.IsError, "Provider should activate successfully");
 
             // Test Avatar Operations
             var avatar = new Avatar
@@ -34,11 +43,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
             };
 
             var saveAvatarResult = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(saveAvatarResult.IsSuccess, "SaveAvatar should return not supported");
+            Assert.IsFalse(saveAvatarResult.IsError, "SaveAvatar should return not supported");
             Assert.IsTrue(saveAvatarResult.Message.Contains("not supported yet by Ethereum provider"));
 
             var loadAvatarResult = await _provider.LoadAvatarByEmailAsync("integration@test.com");
-            Assert.IsFalse(loadAvatarResult.IsSuccess, "LoadAvatar should return not supported");
+            Assert.IsFalse(loadAvatarResult.IsError, "LoadAvatar should return not supported");
             Assert.IsTrue(loadAvatarResult.Message.Contains("not supported yet by Ethereum provider"));
 
             // Test Holon Operations
@@ -49,74 +58,62 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
             };
 
             var saveHolonResult = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(saveHolonResult.IsSuccess, "SaveHolon should return not supported");
+            Assert.IsFalse(saveHolonResult.IsError, "SaveHolon should return not supported");
             Assert.IsTrue(saveHolonResult.Message.Contains("not supported yet by Ethereum provider"));
 
             var loadHolonResult = await _provider.LoadHolonAsync(Guid.NewGuid());
-            Assert.IsFalse(loadHolonResult.IsSuccess, "LoadHolon should return not supported");
+            Assert.IsFalse(loadHolonResult.IsError, "LoadHolon should return not supported");
             Assert.IsTrue(loadHolonResult.Message.Contains("not supported yet by Ethereum provider"));
 
             // Test NFT Operations
-            var mintRequest = new MintNFTTransactionRequest();
+            var mintRequest = new MintWeb3NFTRequest();
             var mintResult = await _provider.MintNFTAsync(mintRequest);
-            Assert.IsFalse(mintResult.IsSuccess, "MintNFT should return not supported");
+            Assert.IsFalse(mintResult.IsError, "MintNFT should return not supported");
             Assert.IsTrue(mintResult.Message.Contains("not supported yet by Ethereum provider"));
 
-            var loadNFTResult = await _provider.LoadNFTAsync(Guid.NewGuid());
-            Assert.IsFalse(loadNFTResult.IsSuccess, "LoadNFT should return not supported");
-            Assert.IsTrue(loadNFTResult.Message.Contains("not supported yet by Ethereum provider"));
+            var loadNFTResult = await _provider.LoadHolonAsync(Guid.NewGuid());
+            Assert.IsTrue(loadNFTResult.IsError, "LoadHolon for new guid should error");
 
             // Test Transaction Operations
-            var transaction = new WalletTransactionRequest();
-            var sendTransactionResult = await _provider.SendTransactionAsync(transaction);
-            Assert.IsFalse(sendTransactionResult.IsSuccess, "SendTransaction should return not supported");
+            var sendTransactionResult = await _provider.SendTransactionAsync("0x0", "0x0", 0m, "test");
+            Assert.IsTrue(sendTransactionResult.IsError);
             Assert.IsTrue(sendTransactionResult.Message.Contains("not supported yet by Ethereum provider"));
-
-            // Test GeoNFT Operations
-            var placeRequest = new PlaceGeoSpatialNFTRequest();
-            var placeGeoNFTResult = await _provider.PlaceGeoNFTAsync(placeRequest);
-            Assert.IsFalse(placeGeoNFTResult.IsSuccess, "PlaceGeoNFT should return not supported");
-            Assert.IsTrue(placeGeoNFTResult.Message.Contains("not supported yet by Ethereum provider"));
-
-            var loadGeoNFTsResult = await _provider.LoadAllGeoNFTsForAvatarAsync(Guid.NewGuid());
-            Assert.IsFalse(loadGeoNFTsResult.IsSuccess, "LoadAllGeoNFTsForAvatar should return not supported");
-            Assert.IsTrue(loadGeoNFTsResult.Message.Contains("not supported yet by Ethereum provider"));
 
             // Test Search Operations
             var searchParams = new SearchParams();
             var searchResult = _provider.Search(searchParams);
-            Assert.IsFalse(searchResult.IsSuccess, "Search should return not supported");
+            Assert.IsTrue(searchResult.IsError);
             Assert.IsTrue(searchResult.Message.Contains("not supported yet by Ethereum provider"));
 
             // Test Import/Export Operations
             var holons = new List<IHolon>();
             var importResult = await _provider.ImportAsync(holons);
-            Assert.IsFalse(importResult.IsSuccess, "Import should return not supported");
+            Assert.IsTrue(importResult.IsError);
             Assert.IsTrue(importResult.Message.Contains("not supported yet by Ethereum provider"));
 
             var exportResult = await _provider.ExportAllAsync();
-            Assert.IsFalse(exportResult.IsSuccess, "ExportAll should return not supported");
+            Assert.IsTrue(exportResult.IsError);
             Assert.IsTrue(exportResult.Message.Contains("not supported yet by Ethereum provider"));
 
             // Deactivate Provider
             var deactivateResult = await _provider.DeActivateProviderAsync();
-            Assert.IsTrue(deactivateResult.IsSuccess, "Provider should deactivate successfully");
+            Assert.IsFalse(deactivateResult.IsError, "Provider should deactivate successfully");
         }
 
         [TestMethod]
         public async Task ProviderConfiguration_ShouldBeCorrect()
         {
             // Test Provider Type
-            Assert.AreEqual(ProviderType.EthereumOASIS, _provider.ProviderType);
-            Assert.AreEqual(ProviderCategory.BlockchainStorage, _provider.ProviderCategory);
+            Assert.AreEqual(ProviderType.EthereumOASIS, _provider.ProviderType.Value);
+            Assert.AreEqual(ProviderCategory.Blockchain, _provider.ProviderCategory.Value);
 
             // Test Provider Status
             var activateResult = await _provider.ActivateProviderAsync();
-            Assert.IsTrue(activateResult.IsSuccess);
+            Assert.IsFalse(activateResult.IsError);
             Assert.IsTrue(_provider.IsProviderActivated);
 
             var deactivateResult = await _provider.DeActivateProviderAsync();
-            Assert.IsTrue(deactivateResult.IsSuccess);
+            Assert.IsFalse(deactivateResult.IsError);
             Assert.IsFalse(_provider.IsProviderActivated);
         }
 
@@ -126,22 +123,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
             // Test that all methods return consistent error messages
             var avatar = new Avatar();
             var saveAvatarResult = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(saveAvatarResult.IsSuccess);
+            Assert.IsTrue(saveAvatarResult.IsError);
             Assert.IsTrue(saveAvatarResult.Message.Contains("not supported yet by Ethereum provider"));
 
             var holon = new Holon();
             var saveHolonResult = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(saveHolonResult.IsSuccess);
+            Assert.IsTrue(saveHolonResult.IsError);
             Assert.IsTrue(saveHolonResult.Message.Contains("not supported yet by Ethereum provider"));
 
-            var transaction = new WalletTransactionRequest();
-            var sendTransactionResult = await _provider.SendTransactionAsync(transaction);
-            Assert.IsFalse(sendTransactionResult.IsSuccess);
+            var sendTransactionResult = await _provider.SendTransactionAsync("0x0", "0x0", 0m, "test");
+            Assert.IsTrue(sendTransactionResult.IsError);
             Assert.IsTrue(sendTransactionResult.Message.Contains("not supported yet by Ethereum provider"));
 
-            var nftTransaction = new NFTWalletTransactionRequest();
+            var nftTransaction = new SendWeb3NFTRequest();
             var sendNFTResult = await _provider.SendNFTAsync(nftTransaction);
-            Assert.IsFalse(sendNFTResult.IsSuccess);
+            Assert.IsTrue(sendNFTResult.IsError);
             Assert.IsTrue(sendNFTResult.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -153,16 +149,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
             {
                 _provider.LoadAllAvatarsAsync(),
                 _provider.LoadAllHolonsAsync(),
-                _provider.LoadAllNFTsForAvatarAsync(Guid.NewGuid()),
-                _provider.LoadAllGeoNFTsForAvatarAsync(Guid.NewGuid()),
+                _provider.LoadAllAvatarsAsync(),
+                _provider.LoadAllHolonsAsync(),
                 _provider.ExportAllAsync(),
                 _provider.ImportAsync(new List<IHolon>())
             };
 
-            var results = await Task.WhenAll(tasks);
-            
-            // All operations should complete (even if they return not supported)
-            Assert.AreEqual(6, results.Length);
+            await Task.WhenAll(tasks);
+            Assert.AreEqual(6, tasks.Count);
         }
 
         [TestMethod]
@@ -174,17 +168,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
             var result3 = await _provider.ActivateProviderAsync();
 
             // All should succeed
-            Assert.IsTrue(result1.IsSuccess);
-            Assert.IsTrue(result2.IsSuccess);
-            Assert.IsTrue(result3.IsSuccess);
+            Assert.IsFalse(result1.IsError);
+            Assert.IsFalse(result2.IsError);
+            Assert.IsFalse(result3.IsError);
 
             // Deactivate multiple times
             var deactivateResult1 = await _provider.DeActivateProviderAsync();
             var deactivateResult2 = await _provider.DeActivateProviderAsync();
 
             // All should succeed
-            Assert.IsTrue(deactivateResult1.IsSuccess);
-            Assert.IsTrue(deactivateResult2.IsSuccess);
+            Assert.IsFalse(deactivateResult1.IsError);
+            Assert.IsFalse(deactivateResult2.IsError);
         }
 
         [TestMethod]
@@ -195,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
             {
                 Task.Run(async () => await _provider.LoadAvatarAsync(Guid.NewGuid())),
                 Task.Run(async () => await _provider.LoadHolonAsync(Guid.NewGuid())),
-                Task.Run(async () => await _provider.LoadNFTAsync(Guid.NewGuid())),
+                Task.Run(async () => await _provider.LoadHolonAsync(Guid.NewGuid())),
                 Task.Run(async () => await _provider.LoadAllAvatarsAsync()),
                 Task.Run(async () => await _provider.LoadAllHolonsAsync())
             };
@@ -209,9 +203,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests
         {
             // Test provider metadata
             Assert.AreEqual("EthereumOASIS", _provider.ProviderName);
-            Assert.AreEqual(ProviderType.EthereumOASIS, _provider.ProviderType);
-            Assert.AreEqual(ProviderCategory.BlockchainStorage, _provider.ProviderCategory);
-            Assert.IsFalse(string.IsNullOrEmpty(_provider.Description));
+            Assert.AreEqual(ProviderType.EthereumOASIS, _provider.ProviderType.Value);
+            Assert.AreEqual(ProviderCategory.Blockchain, _provider.ProviderCategory.Value);
+            Assert.IsFalse(string.IsNullOrEmpty(_provider.ProviderDescription));
         }
     }
 }

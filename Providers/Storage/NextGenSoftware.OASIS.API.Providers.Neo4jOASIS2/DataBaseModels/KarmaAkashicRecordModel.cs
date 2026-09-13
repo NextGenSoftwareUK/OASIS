@@ -5,6 +5,7 @@ using Neo4jOgm.Attribute;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
 
@@ -35,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             this.Date = source.Date;
 
             this.Karma = source.Karma;
-            this.TotalKarma = source.TotalKarma;
+            this.TotalKarma = (int)source.TotalKarma;
 
             this.KarmaSourceTitle=source.KarmaSourceTitle;
             this.KarmaSourceDesc=source.KarmaSourceDesc;
