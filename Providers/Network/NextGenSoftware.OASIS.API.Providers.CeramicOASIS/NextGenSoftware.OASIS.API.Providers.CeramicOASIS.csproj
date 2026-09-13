@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.CeramicOASIS</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB4 OASIS API Ceramic OASIS Provider</Product>
+    <Title>WEB4 OASIS API Ceramic OASIS Provider</Title>
+    <Summary>Ceramic Network OASIS Provider -- decentralised identity (W3C DID) and mutable data streams for OASIS avatars and holons. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Ceramic Network -- the decentralised data network for Web3 applications. OASIS avatars and holons are stored as Ceramic TileDocument streams anchored to Ethereum via IPFS/IPLD, enabling verifiable W3C DID-based identity and user-controlled data. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Ceramic; DID; Identity; IPFS; Web3</PackageTags>
+    <PackageReleaseNotes>- Initial full implementation of CeramicOASIS provider (directory was previously empty).
+- Implements OASISStorageProviderBase with TileDocument streams, W3C DID identity, and avatar/holon CRUD.
+- Upgraded to .NET 10.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.1</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>
