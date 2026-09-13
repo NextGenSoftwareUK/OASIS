@@ -338,6 +338,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            services.AddSingleton<Services.IHerzCounterService, Services.HerzCounterService>();
+            services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
 
             // Per-IP rate limiting — config driven via OASISDNA.OASIS.Security.RateLimiting
             // Config is read per-request so hot-changes to OASISDNA take effect without restart
