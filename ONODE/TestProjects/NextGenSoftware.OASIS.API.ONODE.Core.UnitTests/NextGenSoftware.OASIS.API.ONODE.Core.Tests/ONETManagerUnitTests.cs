@@ -18,7 +18,7 @@ public class ONETManagerUnitTests
         string nodePrivateKey = "",
         List<string>? bootstrapServers = null)
     {
-        var dna = new OASISDNA();
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS() };
         dna.OASIS.ONET = new ONETConfig
         {
             NetworkType = networkType,
@@ -122,7 +122,9 @@ public class ONETManagerUnitTests
     public void RegisterNodePublicKey_DoesNotThrow()
     {
         var manager = new ONETManager(storageProvider: null, oasisdna: null, networkType: P2PNetworkType.Internal);
-        Action act = () => manager.RegisterNodePublicKey("nodeid123", "base64pubkey==");
+        // Use a valid base64-encoded 32-byte value so ONETSecurity.RegisterNodePublicKey can parse it.
+        string validBase64Key = Convert.ToBase64String(new byte[32]);
+        Action act = () => manager.RegisterNodePublicKey("nodeid123", validBase64Key);
         act.Should().NotThrow();
     }
 
