@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_161 fully implemented providers across 7 categories — last updated: 2026-09-09_
+_172 fully implemented providers across 7 categories — last updated: 2026-09-13_
 
 ---
 
@@ -11,12 +11,17 @@ _161 fully implemented providers across 7 categories — last updated: 2026-09-0
 | Blockchain / L1 / L2 | 43 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei… |
 | Decentralised Social / Network | 29 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO… |
 | Storage / Database / Cloud | 76 | MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB, GUN, CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna, Qdrant, Weaviate, InfluxDB, TimescaleDB, Elasticsearch, DynamoDB, Couchbase, Upstash, ScyllaDB, Litestream, MinIO, Cloudinary, PouchDB, Meilisearch, Typesense, ClickHouse, Redis, Memcached, KeyDB, OpenSearch, Algolia, Solr, ArangoDB, QuestDB, CouchDB, Xata, Pinecone, Milvus, Chroma, LanceDB, pgvector, Marqo, Zilliz, ArcadeDB, DuckDB, MotherDuck, Snowflake, BigQuery, Redshift, Databricks, Apache Druid, Apache Pinot, Dragonfly, ValKey, Garnet… |
-| Spatial / Gaming / AR | 4 | GO Map (Unity AR), Mapbox, WRLD 3D, Cargo (NFT) |
+| Blockchain / L1 / L2 | 45 | Ethereum, Solana, Bitcoin, Polygon, … Axelar, Wormhole |
+| Decentralised Social / Network | 30 | Farcaster, Nostr, Lens, … Ceramic |
+| Storage / Database / Cloud | 78 | MongoDB, IPFS, Arweave, … Fastly, Deno Deploy |
+| Spatial / Gaming / AR | 8 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship |
 | Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
-| Identity / Encryption / IP | 3 | World ID, Lit Protocol, Story Protocol |
+| Identity / Encryption / IP | 5 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 161 providers** (43 + 29 + 76 + 4 + 4 + 3 + 2 = 161)
+**Total: 172 providers** (45 + 30 + 78 + 8 + 4 + 5 + 2 = 172)
+
+> **Added 2026-09-13 (+11):** Maps ×4 (Google Maps, HERE Maps, MapLibre, Niantic Lightship), Blockchain ×2 (Axelar, Wormhole), Network ×1 (Ceramic), Identity ×2 (Civic, Reclaim Protocol), Storage ×2 (Fastly, Deno Deploy). Previous total: 161.
 
 ---
 
