@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <PackageId>NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS</PackageId>
+        <Company>NextGen Software Ltd</Company>
+        <Product>WEB4 OASIS API Google Maps OASIS Provider</Product>
+        <Title>WEB4 OASIS API Google Maps OASIS Provider</Title>
+        <Summary>Google Maps Platform OASIS Map Provider -- enterprise-grade mapping, routing, and Places API for OASIS avatars and holons. https://oasisomniverse.one</Summary>
+        <Description>Connects the OASIS to Google Maps Platform -- the world's most widely used mapping service. Visualises OASIS avatars, holons, and Our World data on Google Maps with routing, Street View, Places, and satellite imagery. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+        <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+        <PackageIcon>OASIS.jpg</PackageIcon>
+        <Authors>David Ellams (NextGen Software Ltd)</Authors>
+        <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Google; Maps; Geospatial</PackageTags>
+        <PackageReleaseNotes>- Initial release as part of OASIS Omniverse ecosystem expansion.
+- Implements IOASISMapProvider for Google Maps Platform.
+- Upgraded to .NET 10.</PackageReleaseNotes>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+        <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+        <Version>2.0.1</Version>
+        <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
+            <PackagePath>\</PackagePath>
+            <Pack>True</Pack>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+        <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="README.md">
+            <PackagePath>\</PackagePath>
+            <Pack>True</Pack>
+        </None>
+    </ItemGroup>
+
+</Project>
