@@ -13,7 +13,7 @@ public class ONODEManagerUnitTests
 {
     private static OASISDNA BuildDna(string nodeId = "testnode")
     {
-        var dna = new OASISDNA();
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS() };
         dna.OASIS.ONET = new ONETConfig { NodeId = nodeId, NetworkType = "Internal" };
         return dna;
     }
