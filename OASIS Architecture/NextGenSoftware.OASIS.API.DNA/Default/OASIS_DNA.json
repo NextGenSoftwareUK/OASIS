@@ -65,6 +65,12 @@
                 "QuantumEncryptionEnabled": false,
                 "QuantumEncryptionKey": "",
                 "AdditionalQueryableKeys": []
+            },
+            "Oidc": {
+                "Enabled": false,
+                "Issuer": "",
+                "ProviderName": "OASIS",
+                "AccessTokenLifetimeSeconds": 0
             }
         },
         "Email": {
