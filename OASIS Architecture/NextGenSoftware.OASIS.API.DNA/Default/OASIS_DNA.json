@@ -71,6 +71,17 @@
                 "Issuer": "",
                 "ProviderName": "OASIS",
                 "AccessTokenLifetimeSeconds": 0
+            },
+            "HerzId": {
+                "Enabled": false,
+                "QeaPrivateSeed": "",
+                "WiccianRegistryUrl": "",
+                "WiccianApiKey": "",
+                "AzureSpeakerRecognitionEndpoint": "",
+                "AzureSpeakerRecognitionKey": "",
+                "NewMemberVouches": 12,
+                "SequentialDigits": 10,
+                "QeaSealDisplayGlyph": "✦"
             }
         },
         "Email": {
