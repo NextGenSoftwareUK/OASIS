@@ -271,6 +271,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ApiKey { get; set; } = "";
         /// <summary>Per-IP rate limiting. Configurable per deployment; defaults provide sensible protection out of the box.</summary>
         public RateLimitingSettings RateLimiting { get; set; } = new RateLimitingSettings();
+        /// <summary>OIDC / OAuth 2.0 provider settings for HerzID white-label SSO.</summary>
+        public OidcSettings Oidc { get; set; } = new OidcSettings();
+    }
+
+    public class OidcSettings
+    {
+        /// <summary>Base URL of this OASIS instance as published to OIDC clients (e.g. "https://oasisomniverse.one"). Auto-detected from request host when empty.</summary>
+        public string Issuer { get; set; } = "";
+        /// <summary>Display name returned in the OIDC discovery document.</summary>
+        public string ProviderName { get; set; } = "OASIS";
+        /// <summary>When true the /.well-known/openid-configuration, /oauth/jwks, /oauth/userinfo, /oauth/authorize and /oauth/token endpoints are active.</summary>
+        public bool Enabled { get; set; } = false;
+        /// <summary>Access token lifetime in seconds for OAuth authorisation-code grants (defaults to JwtTokenExpirationMinutes × 60).</summary>
+        public int AccessTokenLifetimeSeconds { get; set; } = 0;
     }
 
     public class RateLimitingSettings
