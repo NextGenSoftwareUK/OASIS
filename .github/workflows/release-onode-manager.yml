@@ -16,7 +16,8 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  PROJECT: ONODE/NextGenSoftware.OASIS.ONODE.Manager/NextGenSoftware.OASIS.ONODE.Manager.csproj
+  PROJECT:         ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Manager/NextGenSoftware.OASIS.ONODE.Manager.csproj
+  SERVICE_PROJECT: ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/NextGenSoftware.OASIS.ONODE.Service.csproj
 
 jobs:
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
@@ -48,9 +49,16 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Restore & Publish (win-x64)
+      - name: Restore & Publish Manager (win-x64)
         run: >
           dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r win-x64 --self-contained
+          -o publish/win-x64
+          /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Restore & Publish Service (win-x64)
+        run: >
+          dotnet publish OASIS/${{ env.SERVICE_PROJECT }}
           -c Release -r win-x64 --self-contained
           -o publish/win-x64
           /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
@@ -99,9 +107,16 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Restore & Publish (osx-x64)
+      - name: Restore & Publish Manager (osx-x64)
         run: >
           dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r osx-x64 --self-contained
+          -o publish/osx-x64
+          /p:PublishSingleFile=true
+
+      - name: Restore & Publish Service (osx-x64)
+        run: >
+          dotnet publish OASIS/${{ env.SERVICE_PROJECT }}
           -c Release -r osx-x64 --self-contained
           -o publish/osx-x64
           /p:PublishSingleFile=true
@@ -150,9 +165,16 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Restore & Publish (linux-x64)
+      - name: Restore & Publish Manager (linux-x64)
         run: >
           dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r linux-x64 --self-contained
+          -o publish/linux-x64
+          /p:PublishSingleFile=true
+
+      - name: Restore & Publish Service (linux-x64)
+        run: >
+          dotnet publish OASIS/${{ env.SERVICE_PROJECT }}
           -c Release -r linux-x64 --self-contained
           -o publish/linux-x64
           /p:PublishSingleFile=true
