@@ -20,8 +20,38 @@ env:
   SERVICE_PROJECT: ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/NextGenSoftware.OASIS.ONODE.Service.csproj
 
 jobs:
+  # ── Unit tests ────────────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Run unit tests
+        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "github-actions" --no-restore
+
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
   build-windows:
+    needs: [test]
     runs-on: windows-latest
     steps:
       - name: Checkout OASIS
@@ -80,6 +110,7 @@ jobs:
 
   # ── macOS (DMG via Velopack) ───────────────────────────────────────────────
   build-macos:
+    needs: [test]
     runs-on: macos-latest
     steps:
       - name: Checkout OASIS
@@ -138,6 +169,7 @@ jobs:
 
   # ── Linux (AppImage via Velopack) ─────────────────────────────────────────
   build-linux:
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout OASIS
