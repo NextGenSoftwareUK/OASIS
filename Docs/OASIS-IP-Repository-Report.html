@@ -715,7 +715,7 @@
       <div class="repo-card private">
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OGEngineClient</div>
-          <div class="repo-desc">Native AOT .NET HTTP client for both the WEB4 OASIS API and WEB5 STAR API, plus P/Invoke interop bridge exposing OASIS/STAR functionality directly into OGEngine native games (OQuake, ODOOM and others).</div>
+          <div class="repo-desc">Native AOT .NET HTTP client for both the WEB4 OASIS API and WEB5 STAR API, plus P/Invoke interop bridge exposing OASIS/STAR functionality directly into OGEngine native games (OQuake, ODOOM and others). Includes <code>OmniverseHubBridge</code> — real-time IPC layer that pushes live avatar XP/karma to the Hub status strip and lets hosted games request cross-game portal transitions. Exports <code>ogengine_hub_notify_avatar_state</code> and <code>ogengine_hub_request_teleport</code> so C/C++ game binaries can signal the Hub without managed interop overhead.</div>
         </div>
         <span class="repo-role private">Game engine bridge</span>
       </div>
@@ -752,7 +752,7 @@
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-Omniverse-Hub</div>
           <div class="repo-desc" style="font-style:italic;color:var(--gold);margin-bottom:.4rem;font-size:.8rem;">The beating heart of the entire OASIS Omniverse.</div>
-          <div class="repo-desc">The Unity-based Omniverse OS and Kernel — the persistent cross-game space every player teleports through between all 23 connected OGames. Contains <code>OmniverseKernel.cs</code>, the portal rendering system, the shared cross-game HUD, login screen, and the Web4/Web5 gateway client. Nothing in the platform is more strategically sensitive than this.</div>
+          <div class="repo-desc">The Unity-based Omniverse OS and Kernel — the persistent cross-game space every player teleports through between all 23 connected OGames. Contains <code>OmniverseKernel.cs</code>, the portal rendering system, the shared cross-game HUD, login screen, and the Web4/Web5 gateway client. Portal triggers carry <code>TargetMap</code> and spawn coordinates so each portal drops players into a specific level; the kernel writes the arrive IPC file on walk-in as well as on game-initiated teleports. <code>TickAvatarStateIpc</code> polls the bridge file written by <code>OGEngineClient</code> every second, feeding live XP, karma and active-game identity into <code>GetRuntimeHealthSnapshot</code> — the status strip shows them in real time alongside API circuit and host diagnostics. Nothing in the platform is more strategically sensitive than this.</div>
         </div>
         <span class="repo-role private">Omniverse core</span>
       </div>
