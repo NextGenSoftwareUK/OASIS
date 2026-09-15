@@ -18,7 +18,7 @@ const web5Apis = [
 ];
 
 const web6Apis = [
-  { name: 'AI COMPLETION', desc: 'Unified completion across 15+ providers — OpenAI, Anthropic, Gemini, Groq, Mistral, and more. Auto routing, failover, streaming.' },
+  { name: 'AI COMPLETION', desc: 'Unified completion across 99 providers — OpenAI, Anthropic, Gemini, Groq, Mistral, and more. Auto routing, failover, streaming SSE, native tool/function calling.' },
   { name: 'FAHRN', desc: 'Fractal Adaptive Holonic Reasoning Network. Multi-agent orchestration with Serial, Parallel, Debate, Voting, and Decomposed modes.' },
   { name: 'HOLONIC BRAID', desc: 'Shared Mermaid reasoning graphs stored as holons. Agents reuse and improve graphs across sessions via EMA scoring.' },
   { name: 'HOLONIC MEMORY', desc: 'Fractal memory hierarchy from Session to Earth. Membrane rules, semantic search, TTL policies, multi-hop propagation.' },
