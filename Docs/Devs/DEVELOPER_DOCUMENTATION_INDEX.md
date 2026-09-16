@@ -334,6 +334,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Local Development](./DEPLOYMENT/LOCAL_DEVELOPMENT.md)** - Local setup
 - **[Cloud Deployment](./DEPLOYMENT/CLOUD_DEPLOYMENT.md)** - Cloud deployment
 - **[Edge Deployment](./DEPLOYMENT/EDGE_DEPLOYMENT.md)** - Edge computing
+- **[Railway WEB4-WEB10 Dependency Pins](./RAILWAY_DEPENDENCY_PINS.md)** - Single manifest, update workflow, and CI enforcement for deterministic Railway builds
 
 ### **Operations**
 - **[Monitoring & Alerting](./OPERATIONS/MONITORING.md)** - System monitoring
