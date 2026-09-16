@@ -13,7 +13,7 @@ The WEB4-WEB10 Dockerfiles must:
 3. Invoke `Docker/clone-pinned-oasis-dependencies.sh` for the private OASIS repositories.
 4. Contain no dependency commit SHAs of their own.
 
-On `Development`, the seven private repository values in the manifest must exactly match the parent repository's gitlinks. This makes the locally tested checkout and the Railway checkout identical.
+On `Development` and `master`, the seven private repository values in that branch's manifest must exactly match the parent repository's gitlinks. This makes the locally tested checkout and the Railway checkout identical without allowing Development revisions to leak into production.
 
 ## Updating a dependency
 
@@ -43,6 +43,8 @@ Do not point a Docker build at a moving branch, use `git clone --depth 1` withou
 - no Dockerfile contains a duplicated commit pin;
 - with `--require-gitlinks`, every private pin equals the parent gitlink.
 
-The `solution-integrity` CI job runs the structural check on every supported branch. It additionally enforces gitlink equality on `Development` pushes and pull requests targeting `Development`. A submodule-only update therefore cannot merge into the deployment branch until its manifest is updated in the same change.
+The `solution-integrity` CI job runs the structural check on every branch that contains WEB4-WEB10. It additionally enforces gitlink equality on `Development` and `master` pushes and pull requests targeting either branch. A submodule-only update therefore cannot merge into a deployment branch until its manifest is updated in the same change.
+
+The legacy parent `main` branch uses a vendored directory layout and does not contain the WEB4-WEB10 Dockerfiles, so this manifest policy does not apply there. Do not copy a Development manifest into `master`; each deployment branch records its own tested source graph.
 
 The existing `submodule-sync` workflow may open a pointer-update pull request when a submodule's `Development` branch advances. That pull request is expected to fail this policy check until the manifest is deliberately updated and the service matrix has been verified. This makes deployment promotion an explicit reviewed action.

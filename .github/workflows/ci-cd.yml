@@ -41,8 +41,8 @@ jobs:
       - name: Railway Dockerfiles must use the shared dependency manifest
         run: python3 Scripts/validate_railway_dependency_manifest.py
 
-      - name: Railway dependency manifest must match Development gitlinks
-        if: github.ref_name == 'Development' || github.base_ref == 'Development'
+      - name: Railway dependency manifest must match deployment-branch gitlinks
+        if: github.ref_name == 'Development' || github.base_ref == 'Development' || github.ref_name == 'master' || github.base_ref == 'master'
         run: python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 
       - name: Solutions must parse
