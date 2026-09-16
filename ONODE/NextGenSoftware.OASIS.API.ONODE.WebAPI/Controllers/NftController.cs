@@ -70,7 +70,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("collect-geo-nft")]
         public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(CollectGeoNFTRequest request)
         {
-            return await NFTManager.CollectNFTAsync(request);
+            request.CollectedByAvatarId = AvatarId;
+            return await NFTManager.CollectGeoNFTAsync(request);
         }
 
         [Authorize]

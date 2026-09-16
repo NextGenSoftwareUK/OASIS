@@ -101,6 +101,8 @@ Phase 6 requires running the services and game executables with an authenticated
 
 ## Acceptance checks
 
+See [Anorak API quest](OUR_WORLD_ANORAK_API_QUEST.md) for the collection-route correction, four/five placement seed, runtime effects, outstanding deployment checks, and recommendation to consolidate Unity integration in OGEngineClient.
+
 - Repeated GeoNFT seed runs do not create overlapping duplicate placements or inventory rows.
 - A successful collection returns HTTP 200 with a populated `GeoNFTId`, the expected category, and an empty `NFTId`.
 - A request containing both identifiers fails and persists nothing.
