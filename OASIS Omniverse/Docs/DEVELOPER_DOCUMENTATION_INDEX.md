@@ -10,6 +10,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OGEngine overview (WEB4 + WEB5 + OGEngineClient)](./OGEngine_Overview.md)** — Omniverse Game Engine: APIs, diagrams, GeoHotSpots, cross-app quest handoff roadmap
 - **[STAR Quest System — Developer Guide](./STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, OGEngineClient, `ogengine_*`, extending games
 - **[STAR Games — User Guide](./STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
+- **[Our World shared inventory and quest plan](./OUR_WORLD_SHARED_INVENTORY_AND_QUEST_PLAN.md)** — NFT/GeoNFT identity contract, category UI, seed data, WEB4 inventory, and WEB5 quest rollout
 - **[ODOOM quest list + STAR](./ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
 - **[Cross-game teleportation](./OGENGINE_VISION_AND_ROADMAP.md#42-cross-game-teleportation-in-map-portals)** — Teleport IPC, C API (`ogengine_request_teleport`, `ogengine_poll_teleport_request`, `ogengine_confirm_teleport_arrival`), `OmniverseKernel.TickTeleportIpc()`
 - **[Story arcs](./OGENGINE_VISION_AND_ROADMAP.md#46-cross-game-quests--missions--story)** — `StoriesController` (`GET/POST /api/stories`); first arc: `stories/oasis_arc_001_dimensional_rift.json` (ODOOM → OQUAKE → OWOLF3D)
