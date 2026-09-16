@@ -1,8 +1,8 @@
 {
   "config_file": "json",
   "star_transport": "remote",
-  "ogengine_url": "http://localhost:8888",
-  "oasis_api_url": "http://localhost:7777",
+  "ogengine_url": "https://dev.api.starnet.oasisomniverse.one",
+  "oasis_api_url": "https://dev.api.web4.oasisomniverse.one",
   "oasis_dna_path": "",
   "beam_face": 1,
   "stack_armor": 1,
