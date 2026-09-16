@@ -100,8 +100,8 @@ Key fields:
 
 ```json
 {
-  "ogengine_url": "http://localhost:8888",
-  "oasis_api_url": "http://localhost:7777",
+  "ogengine_url": "https://dev.api.starnet.oasisomniverse.one",
+  "oasis_api_url": "https://dev.api.web4.oasisomniverse.one",
   "saved_jwt": "",
   "offline_mode": 0,
   "mint_monsters": 1,
