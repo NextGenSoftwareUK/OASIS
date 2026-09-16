@@ -340,6 +340,7 @@ typedef struct oquake_inventory_entry_s {
     char id[64];  /* STAR inventory item Guid (empty for local-only entries) */
     char game_source[64];  /* e.g. ODOOM, OQUAKE - for display (ODOOM)/(OQUAKE) */
     char nft_id[128];  /* when set, show [NFT] prefix in overlay (persists after reload / from API) */
+    char geo_nft_id[128]; /* when set, show [GEONFT] independently of functional category */
     int quantity;  /* from API (stack size); use for display so reload shows correct total */
 } oquake_inventory_entry_t;
 
@@ -713,7 +714,9 @@ static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char*
     if (out_value) *out_value = 1;
     if (!item) return;
     if (label && label_size > 0) {
-        if (item->nft_id[0] != '\0')
+        if (item->geo_nft_id[0] != '\0')
+            q_snprintf(label, label_size, "[GEONFT] %s", item->name);
+        else if (item->nft_id[0] != '\0')
             q_snprintf(label, label_size, "[NFT] %s", item->name);
         else
             q_strlcpy(label, item->name, label_size);
@@ -741,7 +744,9 @@ static int OQ_BuildGroupedRows(
         if (display_qty < 1) display_qty = 1;
 
         out_rep_indices[group_count] = item_idx;
-        if (ent->nft_id[0] != '\0')
+        if (ent->geo_nft_id[0] != '\0')
+            q_snprintf(out_labels[group_count], OQ_GROUP_LABEL_MAX, "[GEONFT] %s", ent->name);
+        else if (ent->nft_id[0] != '\0')
             q_snprintf(out_labels[group_count], OQ_GROUP_LABEL_MAX, "[NFT] %s", ent->name);
         else
             q_strlcpy(out_labels[group_count], ent->name, OQ_GROUP_LABEL_MAX);
@@ -1208,7 +1213,7 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
     /* API may return "KeyItem" or different casing; match type and name case-insensitively so API items show in correct tab. */
     int is_key = OQ_ContainsNoCase(type, "key") || (name && OQ_ContainsNoCase(name, "key"));
     int is_powerup = OQ_ContainsNoCase(type, "powerup") || (name && (OQ_IsOasisCanonicalPowerupInventoryName(name) || OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Ring") || OQ_ContainsNoCase(name, "Pentagram") || OQ_ContainsNoCase(name, "Biosuit") || OQ_ContainsNoCase(name, "Quad")));
-    int is_monster = OQ_ContainsNoCase(type, "monster") || (name && (strstr(name, "[NFT]") != NULL || strstr(name, "[BOSSNFT]") != NULL));
+    int is_monster = OQ_ContainsNoCase(type, "monster");
     /* Name heuristics must not match Doom monsters ShotgunGuy / ChaingunGuy (substring Shotgun/Chaingun). Monster rows must never match Weapons tab. */
     int is_weapon = !is_monster
         && (OQ_ContainsNoCase(type, "weapon")
@@ -1402,6 +1407,7 @@ static void OQ_RefreshOverlayFromClient(void) {
                     q_strlcpy(dst->id, id ? id : "", sizeof(dst->id));
                     q_strlcpy(dst->game_source, src ? src : "", sizeof(dst->game_source));
                     q_strlcpy(dst->nft_id, nft ? nft : "", sizeof(dst->nft_id));
+                    q_strlcpy(dst->geo_nft_id, list->items[i].geo_nft_id, sizeof(dst->geo_nft_id));
                     dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
                     g_inventory_count++;
                 }
@@ -1442,6 +1448,7 @@ static void OQ_RefreshOverlayFromClient(void) {
                 q_strlcpy(dst->id, id ? id : "", sizeof(dst->id));
                 q_strlcpy(dst->game_source, src ? src : "", sizeof(dst->game_source));
                 q_strlcpy(dst->nft_id, nft ? nft : "", sizeof(dst->nft_id));
+                q_strlcpy(dst->geo_nft_id, list->items[i].geo_nft_id, sizeof(dst->geo_nft_id));
                 dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
                 g_inventory_count++;
             }

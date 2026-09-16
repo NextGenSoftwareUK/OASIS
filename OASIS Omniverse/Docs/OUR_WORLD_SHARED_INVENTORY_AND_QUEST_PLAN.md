@@ -84,6 +84,19 @@ The Unity UI must bind to the WEB5 response rather than duplicate quest rules. O
 5. **Quest popup** — replace the early static popup with WEB5-backed quest lists, objectives, subquests, prerequisites, active tracking, and progress.
 6. **Cross-game verification** — collect a GeoNFT key in Our World, observe it in ODOOM/OQuake, use it in the intended game, and verify quantity/identity remains correct across refresh and restart.
 
+## Implementation status (September 2026)
+
+Phases 1–5 are implemented in the coordinated OASIS, API Core, OGEngineClient, and Our World branches:
+
+- WEB4 inventory now persists separate optional `NFTId` and `GeoNFTId` values, rejects rows containing both, and uses token identity when deciding whether rows can stack.
+- `PUT /api/avatar/inventory/{itemId}` provides an owned-row update contract used by the deterministic inventory seed. The seed matches token-backed rows by token id, matches normal rows by functional identity, updates drift, and emits JSON counts for created, updated, unchanged, and failed rows.
+- Native `ogengine_item_t` exposes both identifiers. ODOOM and OQuake render `[NFT]`/`[GEONFT]` independently of category; their category tabs now use `item_type` rather than display prefixes. The ABI field is mirrored in the OQuake2, OQuake2-RTX, and OQuake3 headers.
+- Our World uses one WEB4-backed inventory popup for every category, including Nature. It includes category and identity filters, search, sorting, quantities, source labels, token badges, details, and remote item thumbnails.
+- The previous Endangered Trees inventory rendering path remains commented and marked obsolete as requested. Collected trees are ordinary Nature items in the shared inventory.
+- Our World loads the WEB5 avatar quest feed and displays status tabs, search, objectives, the active objective, prerequisites, subquests, rewards, linked GeoHotSpots, and cross-game handoff URIs.
+
+Phase 6 requires running the services and game executables with an authenticated test avatar. The compile-time contract and UI paths are complete; the runtime acceptance flow below remains the release verification checklist because it depends on a live WEB4/WEB5 database and native game builds.
+
 ## Acceptance checks
 
 - Repeated GeoNFT seed runs do not create overlapping duplicate placements or inventory rows.
