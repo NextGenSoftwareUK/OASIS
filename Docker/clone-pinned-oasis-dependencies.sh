@@ -1,6 +1,20 @@
 #!/usr/bin/env sh
 set -eu
 
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <dependency-manifest>" >&2
+    exit 2
+fi
+
+manifest="$1"
+if [ ! -f "${manifest}" ]; then
+    echo "Dependency manifest not found: ${manifest}" >&2
+    exit 2
+fi
+
+# shellcheck disable=SC1090
+. "${manifest}"
+
 # Railway receives the parent repository without populated private submodules.
 # Check out the exact revisions tested together instead of each repository's
 # moving default branch, which can produce an internally inconsistent build.
