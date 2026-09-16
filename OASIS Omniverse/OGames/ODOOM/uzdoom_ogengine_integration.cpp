@@ -3648,7 +3648,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 			static bool s_logged_oasis_missing = false;
 			if (!s_logged_oasis_missing) {
 				s_logged_oasis_missing = true;
-				StarLogInfo("STAR: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\": \"http://localhost:5555\" to oasisstar.json for auto-renew.");
+				StarLogInfo("STAR: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\": \"https://dev.api.web4.oasisomniverse.one\" to oasisstar.json for auto-renew.");
 			}
 		}
 	}
