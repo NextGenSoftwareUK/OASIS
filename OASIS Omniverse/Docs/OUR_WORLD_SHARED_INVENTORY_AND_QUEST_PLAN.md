@@ -77,6 +77,16 @@ Our World should consume the same WEB5 quest definitions and progress used by OD
 
 The Unity UI must bind to the WEB5 response rather than duplicate quest rules. Objective progress is posted through the existing quest API, followed by an authoritative refresh or the documented OGEngineClient cache merge contract.
 
+## Shared OGEngine client implementation
+
+The portable layer is in `OASIS Omniverse/OGEngineClient/Shared` and targets .NET Standard 2.1. Native OGEngineClient references that project directly. Our World includes the same reviewed source through `Scripts/sync_ogengine_shared.ps1`; the script copies it and verifies the SHA-256 hash so Unity cannot silently ship a stale variant.
+
+The shared layer owns the invariants that must be identical in every game: development WEB4/WEB5 endpoint defaults, optional NFT/GeoNFT identity normalization, and objective/quest completion transition ordering. Unity remains the adapter for `UnityWebRequest`, coroutines, and main-thread UI. Native OGEngineClient remains the adapter for `HttpClient`, NativeAOT, and C exports.
+
+WEB5 progress responses include the exact objective IDs/titles completed by that request and the completed quest ID/title. This applies to every progress source supported by the quest API: kills, XP, weapons, ammo, armour, health, keys, powerups, generic or named pickups, and level time. Our World maps those events to the blue chest/audio `OBJECTIVE COMPLETE` sequence and the final `QUEST COMPLETE` celebration.
+
+The old GeoNFT-placement-to-inventory conversion remains commented out in `EnhancedInventoryIntegration.cs` with an obsolete note. It must stay disabled because collected GeoNFTs are canonical WEB4 inventory items whose category is Nature, Weapons, Ammo, Armour, Keys, or another gameplay category. GeoNFT is an optional identity, not a category.
+
 ## Delivery phases
 
 1. **Contract and persistence** — add `GeoNFTId`, enforce mutual exclusion with `NFTId`, remove NFT/GeoNFT categories, update providers and OGEngineClient, and migrate SQLite. Development databases may be reset because no live data depends on the old enum numbering.
