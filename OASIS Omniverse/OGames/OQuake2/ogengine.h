@@ -39,7 +39,7 @@ extern "C" {
 /* Stub: real declarations are in OGEngineClient\ogengine.h */
 /* The build script copies that file here before compiling.  */
 typedef struct { const char* base_url; const char* api_key; const char* avatar_id; int timeout_seconds; const char* client_game_source; int32_t transport; const char* oasis_dna_path; } ogengine_config_t;
-typedef struct { char id[64]; char name[256]; char description[512]; char game_source[64]; char item_type[64]; char nft_id[128]; int quantity; } ogengine_item_t;
+typedef struct { char id[64]; char name[256]; char description[512]; char game_source[64]; char item_type[64]; char nft_id[128]; char geo_nft_id[128]; int quantity; } ogengine_item_t;
 typedef struct { ogengine_item_t* items; size_t count; size_t capacity; } ogengine_item_list_t;
 typedef enum { OGENGINE_SUCCESS=0, OGENGINE_ERROR_INIT_FAILED=-1, OGENGINE_ERROR_NOT_INITIALIZED=-2, OGENGINE_ERROR_NETWORK=-3, OGENGINE_ERROR_INVALID_PARAM=-4, OGENGINE_ERROR_API_ERROR=-5 } ogengine_result_t;
 typedef void (*ogengine_callback_t)(ogengine_result_t result, void* user_data);

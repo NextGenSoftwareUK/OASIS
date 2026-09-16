@@ -191,6 +191,7 @@ typedef struct oquake2_inventory_entry_s {
     char id[64];
     char game_source[64];
     char nft_id[128];
+    char geo_nft_id[128];
     int  quantity;
 } oquake2_inventory_entry_t;
 
@@ -429,6 +430,7 @@ static void OQ2_RefreshInventoryCache(void) {
         Q2_Q_strlcpy(e->id,          list->items[i].id,          sizeof(e->id));
         Q2_Q_strlcpy(e->game_source, list->items[i].game_source, sizeof(e->game_source));
         Q2_Q_strlcpy(e->nft_id,      list->items[i].nft_id,      sizeof(e->nft_id));
+        Q2_Q_strlcpy(e->geo_nft_id,  list->items[i].geo_nft_id,  sizeof(e->geo_nft_id));
         e->quantity = list->items[i].quantity;
         g_inventory_count++;
     }

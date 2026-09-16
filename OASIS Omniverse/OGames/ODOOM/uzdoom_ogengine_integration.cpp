@@ -1142,13 +1142,13 @@ static bool ODOOM_ItemMatchesTab(const char* item_type, const char* name, int ta
 		return contains(item_type, "Powerup") || ODOOM_ItemNameIsCanonicalPhase1Powerup(name);
 	if (tab == ODOOM_TAB_WEAPONS) {
 		/* Holon ItemType from API may be *Weapon* for monster NFTs; monster kills use "Monster defeated in ..." description (normalized in STARAPI GetNativeItemType). */
-		if (contains(item_type, "Monster") || (name && (std::strstr(name, "[NFT]") != nullptr || std::strstr(name, "[BOSSNFT]") != nullptr)))
+		if (contains(item_type, "Monster"))
 			return false;
 		return contains(item_type, "Weapon");
 	}
 	if (tab == ODOOM_TAB_AMMO) return contains(item_type, "Ammo");
 	if (tab == ODOOM_TAB_ARMOR) return contains(item_type, "Armor");
-	if (tab == ODOOM_TAB_MONSTERS) return contains(item_type, "Monster") || (name && (std::strstr(name, "[NFT]") != nullptr || std::strstr(name, "[BOSSNFT]") != nullptr));
+	if (tab == ODOOM_TAB_MONSTERS) return contains(item_type, "Monster");
 	if (tab == ODOOM_TAB_ITEMS) {
 		return !containsKey(item_type) && !containsKey(name)
 			&& !contains(item_type, "Powerup") && !contains(item_type, "Weapon")
@@ -1229,8 +1229,12 @@ static void ODOOM_PushInventoryToCVars(const ogengine_item_list_t* list) {
 		if ((filteredIndex - (size_t)scrollOffset) >= ODOOM_INVENTORY_WINDOW_ITEMS) break;
 
 		char name[320], desc[256], type[64], game[64];
+		bool isGeoNft = (it->geo_nft_id[0] != '\0');
 		bool isNft = (it->nft_id[0] != '\0');
-		if (isNft) {
+		if (isGeoNft) {
+			snprintf(name, sizeof(name), "[GEONFT] %s", it->name);
+			copySafe(name, name, 320);
+		} else if (isNft) {
 			snprintf(name, sizeof(name), "[NFT] %s", it->name);
 			copySafe(name, name, 320);
 		} else {
