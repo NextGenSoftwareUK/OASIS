@@ -61,6 +61,8 @@ Representative cross-game cases should include a Quake golden key discovered as 
 
 The initial tool is `OASIS Omniverse/OGEngineClient/TestProjects/DemoInventorySeed`. Configure it with the same `STARAPI_WEB4_BASE_URL`, `STARAPI_WEB5_BASE_URL`, `STARAPI_USERNAME`, and `STARAPI_PASSWORD` environment variables as `DemoQuestSeed`, then run `dotnet run` from its directory. Seed names are stable and repeated runs report them as unchanged.
 
+Convenience runners matching the demo quest seed are available under `OASIS Omniverse/OGEngineClient/Scripts`: `RUN_DEMO_INVENTORY_SEED.bat`, `run_demo_inventory_seed.ps1`, and `RUN_DEMO_INVENTORY_SEED.sh`. They default to the deployed WEB4 and WEB5 dev APIs.
+
 ## Quest UI and WEB5 integration
 
 Our World should consume the same WEB5 quest definitions and progress used by ODOOM and OQuake. The popup should contain:
