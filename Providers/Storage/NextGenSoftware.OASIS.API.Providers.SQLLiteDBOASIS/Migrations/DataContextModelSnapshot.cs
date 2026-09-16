@@ -1387,6 +1387,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("GameSource")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("GeoNFTId")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("HolonType")
                         .HasColumnType("INTEGER");
 
