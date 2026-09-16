@@ -12,31 +12,30 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 ARG LIBRARIES_REPO=https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git
 ARG HOLOCHAIN_REPO=https://github.com/holochain-open-dev/holochain-client-csharp.git
-# Increment CACHE_BUST to force Railway to re-clone these repos
-ARG CACHE_BUST=2
+ARG LIBRARIES_COMMIT=8634ab8be426d2919111e75cadac9ff2901b7384
+ARG HOLOCHAIN_COMMIT=8f47260109834c058e07767656dec4e55d54d8f2
 RUN apt-get update && apt-get install -y --no-install-recommends git \
-    && git clone --depth 1 "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
-    && git clone --depth 1 "${HOLOCHAIN_REPO}" /holochain-client-csharp \
+    && git clone --no-checkout "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
+    && git -C /NextGenSoftware-Libraries checkout --detach "${LIBRARIES_COMMIT}" \
+    && git clone --no-checkout "${HOLOCHAIN_REPO}" /holochain-client-csharp \
+    && git -C /holochain-client-csharp checkout --detach "${HOLOCHAIN_COMMIT}" \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 COPY . .
 
 ARG GITHUB_PAT
-RUN rm -rf "OASIS Architecture/NextGenSoftware.OASIS.API.Core" \
-           "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" \
-           "ONODE/ONODEManager" \
-           "STAR ODK" \
-           "WEB6" \
-           "OASIS Omniverse/OGEngineClient" \
-           "HoloNET-ORM" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OASIS-API-Core.git" "OASIS Architecture/NextGenSoftware.OASIS.API.Core" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OASIS-ONODE-Core.git" "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/ONODEManager.git" "ONODE/ONODEManager" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/STAR-ODK.git" "STAR ODK" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OASIS-WEB6.git" "WEB6" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/OGEngineClient.git" "OASIS Omniverse/OGEngineClient" \
-    && git clone --depth 1 "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/HoloNET-ORM.git" "HoloNET-ORM"
+ARG OASIS_API_CORE_COMMIT=2baebfffe4c8fc0b3cb8b2ef75cf7d1509de2c48
+ARG OASIS_ONODE_CORE_COMMIT=33956e6c27bdcca127b058675fbe13a4c5944f44
+ARG ONODE_MANAGER_COMMIT=0abe9c2218d96e741990dd28fd6b2db4d50380f4
+ARG STAR_ODK_COMMIT=43ab294cb7a2dc287cca7c54700ffadee9fe117e
+ARG OASIS_WEB6_COMMIT=4921b5b3fa54b9713912cf115bcd47817a81ab20
+ARG OGENGINE_CLIENT_COMMIT=d1539ecef171e5bd34ffebf359786776573b0f0a
+ARG HOLONET_ORM_COMMIT=902851522a4485862ebebfcd843b85211854bddd
+COPY Docker/clone-pinned-oasis-dependencies.sh /tmp/clone-pinned-oasis-dependencies.sh
+RUN chmod +x /tmp/clone-pinned-oasis-dependencies.sh \
+    && /tmp/clone-pinned-oasis-dependencies.sh \
+    && rm /tmp/clone-pinned-oasis-dependencies.sh
 
 RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" || \
     cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json" \
