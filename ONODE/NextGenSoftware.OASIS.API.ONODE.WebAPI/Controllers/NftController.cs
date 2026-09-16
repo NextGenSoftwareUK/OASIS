@@ -445,6 +445,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("place-geo-nft")]
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> PlaceGeoNFTAsync(Models.NFT.PlaceGeoSpatialNFTRequest request)
         {
+            if (request == null || request.OriginalOASISNFTId == Guid.Empty ||
+                double.IsNaN(request.Lat) || double.IsInfinity(request.Lat) || Math.Abs(request.Lat) > 90 ||
+                double.IsNaN(request.Long) || double.IsInfinity(request.Long) || Math.Abs(request.Long) > 180 ||
+                request.GlobalSpawnQuantity < 1 || request.PlayerSpawnQuantity < 1 || request.RespawnDurationInSeconds < 0)
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A valid NFT, GPS coordinates and positive spawn quantities are required." };
+
             ProviderType originalOASISNFTProviderType = ProviderType.None;
             ProviderType geoNFTMetaDataProvider = ProviderType.None;
             Object originalOASISNFTProviderTypeObject = null;
@@ -461,12 +467,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else
                 return new OASISResult<IWeb4GeoSpatialNFT>() { IsError = true, Message = $"The ProviderType is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
+            var original = await NFTManager.LoadWeb4NftAsync(request.OriginalOASISNFTId, originalOASISNFTProviderType);
+            if (original.IsError || original.Result == null)
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = original.Message };
+            if (original.Result.CurrentOwnerAvatarId != AvatarId)
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "Only the NFT's current owner can publish its hotspot." };
+
             API.Core.Objects.NFT.Request.PlaceWeb4GeoSpatialNFTRequest placeRequest = new API.Core.Objects.NFT.Request.PlaceWeb4GeoSpatialNFTRequest()
             {
                 OriginalWeb4OASISNFTId = request.OriginalOASISNFTId,
                 OriginalWeb4OASISNFTOffChainProvider = new EnumValue<ProviderType>(originalOASISNFTProviderType),
-                Lat = (long)request.Lat,
-                Long = (long)request.Long,
+                Lat = request.Lat,
+                Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
                 PermSpawn = request.PermSpawn,
                 GlobalSpawnQuantity = request.GlobalSpawnQuantity,
