@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.GameSource = source.GameSource;
             this.ItemType = source.ItemType;
             this.NftId = source.NftId;
+            this.GeoNFTId = source.GeoNFTId;
             this.HolonType = source.HolonType;
             if (source.MetaData != null)
                 this.MetaData = new System.Collections.Generic.Dictionary<string, object>(source.MetaData);
@@ -35,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.GameSource = this.GameSource;
             item.ItemType = this.ItemType;
             item.NftId = this.NftId;
+            item.GeoNFTId = this.GeoNFTId;
             item.HolonType = this.HolonType;
             /* Note: item.Id is not set from this.Id (table PK is long); avatar detail load may assign Id elsewhere if needed. */
             if (this.MetaData != null)

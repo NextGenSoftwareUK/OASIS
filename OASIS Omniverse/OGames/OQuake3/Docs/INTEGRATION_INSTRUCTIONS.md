@@ -268,8 +268,8 @@ make BUILD_SERVER=0 BUILD_CLIENT=1 BUILD_RENDERER_OPENGL=1 \
 
 | Field                            | Type    | Description                                              |
 |---------------------------------|---------|----------------------------------------------------------|
-| `ogengine_url`                   | string  | OGEngineClient base URL (default: http://localhost:8888) |
-| `oasis_api_url`                  | string  | OASIS API base URL (default: http://localhost:7777)      |
+| `ogengine_url`                   | string  | OGEngineClient base URL (default: https://dev.api.starnet.oasisomniverse.one) |
+| `oasis_api_url`                  | string  | OASIS API base URL (default: https://dev.api.web4.oasisomniverse.one)      |
 | `offline_mode`                   | int     | 1 = skip STAR API calls entirely                         |
 | `saved_jwt`                      | string  | Persisted JWT from last session                          |
 | `refresh_token`                  | string  | Refresh token for session renewal                        |

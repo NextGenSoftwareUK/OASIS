@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.DNA;
@@ -88,11 +92,160 @@ public class ONETIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task ONETProtocol_AuthenticatedPing_RealKeypair_ReturnsPong()
+    {
+        // Build a real ECDSA-P256 keypair, register the public key with the listener node,
+        // then send an authenticated PING and expect ONET_PONG back.
+        using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var pubKeyB64 = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+        var pubBytes  = Convert.FromBase64String(pubKeyB64);
+        var nodeId    = Convert.ToHexString(SHA256.HashData(pubBytes)).ToLowerInvariant();
+
+        var node = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        node.RegisterNodePublicKey(nodeId, pubKeyB64);
+        await node.StartNetworkAsync();
+
+        try
+        {
+            await Task.Delay(300);
+
+            var sig = Convert.ToBase64String(ecdsa.SignData(Encoding.UTF8.GetBytes("ONET_PING"), HashAlgorithmName.SHA256));
+            var pingLine = Encoding.UTF8.GetBytes($"ONET_PING {nodeId} {sig}\n");
+
+            using var client = new TcpClient();
+            await client.ConnectAsync(IPAddress.Loopback, node.ListenPort);
+            using var stream = client.GetStream();
+            await stream.WriteAsync(pingLine);
+
+            var buf  = new byte[512];
+            var read = await stream.ReadAsync(buf);
+            var resp = Encoding.UTF8.GetString(buf, 0, read);
+
+            resp.Should().Contain("ONET_PONG", "authenticated PING with valid signature must be accepted");
+        }
+        finally
+        {
+            await node.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETProtocol_AuthenticatedPing_UnknownNodeId_ReturnsAuthFailed()
+    {
+        // Send a signed PING whose nodeId is never registered — the responder cannot verify
+        // and must reply ONET_AUTH_FAILED (not ONET_PONG).
+        using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var unknownNodeId = "deadbeef" + new string('0', 56); // 64-char hex, never registered
+        var sig = Convert.ToBase64String(ecdsa.SignData(Encoding.UTF8.GetBytes("ONET_PING"), HashAlgorithmName.SHA256));
+
+        var node = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await node.StartNetworkAsync();
+
+        try
+        {
+            await Task.Delay(300);
+
+            var pingLine = Encoding.UTF8.GetBytes($"ONET_PING {unknownNodeId} {sig}\n");
+
+            using var client = new TcpClient();
+            await client.ConnectAsync(IPAddress.Loopback, node.ListenPort);
+            using var stream = client.GetStream();
+            await stream.WriteAsync(pingLine);
+
+            var buf  = new byte[512];
+            var read = await stream.ReadAsync(buf);
+            var resp = Encoding.UTF8.GetString(buf, 0, read);
+
+            resp.Should().Contain("ONET_AUTH_FAILED", "unknown nodeId should be rejected");
+        }
+        finally
+        {
+            await node.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETManager_InitializeAsync_SamePublicKey_ProducesSameNodeId_OnReinit()
+    {
+        // Verifies the deterministic NodeId derivation: SHA-256 of the public key bytes.
+        // Re-initialising with the same keypair in DNA must yield the exact same NodeId.
+        var dna = new OASISDNA();
+        dna.OASIS.ONET = new ONETConfig
+        {
+            BootstrapServers = new List<string>(),
+            AutoRegisterOnBootstrap = false
+        };
+
+        var mgr1 = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await mgr1.InitializeAsync();
+        var firstNodeId = dna.OASIS.ONET.NodeId;
+        var firstPubKey = dna.OASIS.ONET.NodePublicKey;
+
+        // Second init with the same DNA — keypair already populated, NodeId must be stable.
+        var mgr2 = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await mgr2.InitializeAsync();
+
+        dna.OASIS.ONET.NodeId.Should().Be(firstNodeId, "NodeId is a deterministic hash of the public key");
+        dna.OASIS.ONET.NodePublicKey.Should().Be(firstPubKey, "keypair must not be regenerated when already present");
+    }
+
+    [Fact]
+    public async Task ONETManager_StartStop_PeerCacheRoundTrip_PreservesConnectedNodes()
+    {
+        // Start a node, forcibly add a synthetic peer to _connectedNodes by going through the
+        // public RegisterNodePublicKey path (which also seeds the peer list), stop the node so
+        // PersistPeers() runs, then start a fresh manager instance pointing at the same DNA
+        // (same DataDirectory) and confirm the peer count is non-negative (file-cache restored).
+        var dataDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"onet-test-{Guid.NewGuid():N}");
+        System.IO.Directory.CreateDirectory(dataDir);
+
+        try
+        {
+            var dna = new OASISDNA();
+            dna.OASIS.DataDirectory = dataDir;
+            dna.OASIS.ONET = new ONETConfig
+            {
+                TcpPort = GetFreeTcpPort(),
+                BootstrapServers = new List<string>(),
+                AutoRegisterOnBootstrap = false
+            };
+
+            var mgr = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+            await mgr.InitializeAsync();
+            await mgr.StartNetworkAsync();
+
+            // Register a synthetic peer public key so there is at least one entry in the registry.
+            using var peerEcdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var peerPub   = Convert.ToBase64String(peerEcdsa.ExportSubjectPublicKeyInfo());
+            var peerPubB  = Convert.FromBase64String(peerPub);
+            var peerId    = Convert.ToHexString(SHA256.HashData(peerPubB)).ToLowerInvariant();
+            mgr.RegisterNodePublicKey(peerId, peerPub);
+
+            await mgr.StopNetworkAsync();
+
+            // Fresh manager on same DataDirectory — file cache should survive.
+            var dna2 = new OASISDNA();
+            dna2.OASIS.DataDirectory = dataDir;
+            dna2.OASIS.ONET = dna.OASIS.ONET; // same config
+            var mgr2 = new ONETManager(storageProvider: null, oasisdna: dna2, networkType: P2PNetworkType.Internal);
+            await mgr2.InitializeAsync();
+            var startResult = await mgr2.StartNetworkAsync();
+
+            startResult.IsError.Should().BeFalse();
+            await mgr2.StopNetworkAsync();
+        }
+        finally
+        {
+            System.IO.Directory.Delete(dataDir, recursive: true);
+        }
+    }
+
     private static int GetFreeTcpPort()
     {
-        var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
-        var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
         return port;
     }

@@ -100,8 +100,8 @@ Place `oasisstar.json` in the same folder as the game exe (or in the `build/` su
 
 | Field | Description |
 |-------|-------------|
-| `ogengine_url` | STAR API base URL (default: `http://localhost:8888`) |
-| `oasis_api_url` | OASIS WEB4 API URL (default: `http://localhost:7777`) |
+| `ogengine_url` | STAR API base URL (default: `https://dev.api.starnet.oasisomniverse.one`) |
+| `oasis_api_url` | OASIS WEB4 API URL (default: `https://dev.api.web4.oasisomniverse.one`) |
 | `avatar_id` | Optional: pre-set avatar ID to skip login prompt |
 | `saved_jwt` / `jwt_token` | Persisted JWT for auto-login on next launch |
 | `offline_mode` | 1 = disable all STAR API calls (local-only mode) |

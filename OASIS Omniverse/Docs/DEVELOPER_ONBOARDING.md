@@ -127,7 +127,7 @@ The games talk to two HTTP APIs:
 - **WEB4 (OASIS ONODE)** – e.g. avatar, auth, inventory persistence.
 - **WEB5 (STAR)** – STAR API used by the games (inventory, quests, etc.).
 
-You can either run these **locally** or point the games at the **live** OASIS APIs.
+You can either run these **locally** or use the hosted development APIs. Shipped game configs default to the hosted development APIs; local URLs are an explicit developer override.
 
 ### Option A: Run WEB4 and WEB5 locally
 
@@ -145,12 +145,12 @@ You can either run these **locally** or point the games at the **live** OASIS AP
 
 4. To stop them: run `Scripts\stop_web4_and_web5_apis.bat` (or the matching `.ps1`).
 
-### Option B: Use the live OASIS APIs
+### Option B: Use the hosted development APIs
 
 If you don’t start the local APIs, you can point the games at the live servers by editing **oasisstar.json** in each game’s **build** folder:
 
-- **WEB4 (OASIS):** `https://oasisweb4.one/api`
-- **WEB5 (STAR):** `https://oasisweb4.one/star/api`
+- **WEB4 (OASIS):** `https://dev.api.web4.oasisomniverse.one`
+- **WEB5 (STAR):** `https://dev.api.starnet.oasisomniverse.one`
 
 See [Section 5](#5-config-oasisstarjson-odoom--oquake) for the exact keys and paths.
 
@@ -167,14 +167,14 @@ Both games read STAR/WEB4 URLs and options from a config file named **oasisstar.
 
 ### Relevant keys
 
-- **ogengine_url** – WEB5 (STAR) API base URL (e.g. `http://localhost:8888` or `https://oasisweb4.one/star/api`).
-- **oasis_api_url** – WEB4 (OASIS/ONODE) API base URL (e.g. `http://localhost:7777` or `https://oasisweb4.one/api`).
+- **ogengine_url** – WEB5 (STAR) API base URL (hosted default: `https://dev.api.starnet.oasisomniverse.one`; local override: `http://localhost:8888`).
+- **oasis_api_url** – WEB4 (OASIS/ONODE) API base URL (hosted default: `https://dev.api.web4.oasisomniverse.one`; local override: `http://localhost:7777`).
 - **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint an NFT (WEB4 NFTHolon) when collecting that category; `0` to disable. Optional; default off for keys/weapons/armor/powerups if omitted.
 - **nft_provider** – NFT mint provider (e.g. `SolanaOASIS`). Optional.
 
 Other keys (e.g. `beam_face`, `stack_armor`, `stack_keys`) control behavior; you can leave them as-is for onboarding.
 
-### Local APIs (default after build)
+### Local API override
 
 ```json
 {
@@ -193,19 +193,19 @@ Other keys (e.g. `beam_face`, `stack_armor`, `stack_keys`) control behavior; you
 }
 ```
 
-### Live APIs
+### Hosted development APIs (default)
 
 Edit **oasisstar.json** in **ODOOM** and **OQuake** build folders and set:
 
-- **WEB4:** `"oasis_api_url": "https://oasisweb4.one/api"`
-- **WEB5:** `"ogengine_url": "https://oasisweb4.one/star/api"`
+- **WEB4:** `"oasis_api_url": "https://dev.api.web4.oasisomniverse.one"`
+- **WEB5:** `"ogengine_url": "https://dev.api.starnet.oasisomniverse.one"`
 
 Example (excerpt):
 
 ```json
 {
-  "ogengine_url": "https://oasisweb4.one/star/api",
-  "oasis_api_url": "https://oasisweb4.one/api",
+  "ogengine_url": "https://dev.api.starnet.oasisomniverse.one",
+  "oasis_api_url": "https://dev.api.web4.oasisomniverse.one",
   "mint_weapons": 0,
   "mint_armor": 0,
   "mint_powerups": 0,
@@ -219,8 +219,8 @@ Optional: **`send_to_address_after_minting`** – wallet address to send the min
 
 Summary:
 
-- **Local:** Run `Scripts\start_web4_and_web5_apis.bat` and use `localhost:7777` / `localhost:8888` in oasisstar.json.
-- **Live:** Do not start the bat; set `oasis_api_url` and `ogengine_url` in both games’ `build\oasisstar.json` to the URLs above.
+- **Local override:** Run `Scripts\start_web4_and_web5_apis.bat` and use `http://localhost:7777` / `http://localhost:8888` in `oasisstar.json`.
+- **Hosted development (default):** Set `oasis_api_url` and `ogengine_url` to the hosted URLs above.
 
 ---
 
@@ -237,7 +237,7 @@ Summary:
 | Run ODOOM | `OASIS Omniverse\ODOOM\RUN ODOOM.bat` or run `build\ODOOM.exe`. |
 | Build OQuake | From repo root: `"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"` (set VKQUAKE_SRC; use Developer Command Prompt). |
 | Run OQuake | `"OASIS Omniverse\OQuake\RUN OQUAKE.bat"` or run `build\OQUAKE.exe` with game data. |
-| Use live APIs | Edit `ODOOM\build\oasisstar.json` and `OQuake\build\oasisstar.json`: set `ogengine_url` and `oasis_api_url` to `https://oasisweb4.one/star/api` and `https://oasisweb4.one/api`. |
+| Use hosted development APIs | Edit `ODOOM\build\oasisstar.json` and `OQuake\build\oasisstar.json`: set `ogengine_url` and `oasis_api_url` to `https://dev.api.starnet.oasisomniverse.one` and `https://dev.api.web4.oasisomniverse.one`. |
 | Auth (games) | Set env vars: `STAR_USERNAME` / `STAR_PASSWORD` or `OGENGINE_KEY` / `STAR_AVATAR_ID`. |
 
 ### More detail
