@@ -87,10 +87,6 @@ jobs:
             git diff --submodule=short | grep '^Submodule' || true
           fi
 
-      - name: Verify the result still satisfies the branch rule
-        if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
-        run: python3 Scripts/check_submodule_branches.py
-
       - name: Open or update the pull request
         if: steps.gate.outputs.skip == 'false' && steps.bump.outputs.changed == 'true'
         env:
@@ -104,13 +100,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git checkout -B "$SYNC_BRANCH"
-          git commit -am "chore(submodules): bump ${TARGET} pointers to their branch tips"
+          python3 Scripts/sync_railway_dependency_manifest.py
+          git add --all
+          git commit -m "chore(submodules): bump ${TARGET} pointers to their branch tips"
+
+          # Validate HEAD, not the pre-commit tree. Both policy scripts resolve the
+          # committed parent gitlinks, so this proves the exact PR source graph.
+          python3 Scripts/check_submodule_branches.py
+          python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+
           git push --force origin "$SYNC_BRANCH"
 
           # Build the body in a file - avoids heredoc indentation problems inside YAML.
           {
             printf 'Moves each submodule pointer to the tip of the branch `.gitmodules`'
             printf ' declares for it: `main` on master, `Development` on Development.\n\n'
+            printf 'The Railway dependency manifest was regenerated from those same'
+            printf ' checked-out commits and committed atomically with the gitlinks.\n\n'
             printf '**Review before merging.** On `master` this is a release: whatever'
             printf ' landed on a submodule'"'"'s `main` since the last sync ships with it.\n\n'
             printf 'Pointers that moved:\n\n```\n'
