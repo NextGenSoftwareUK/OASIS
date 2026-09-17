@@ -27,7 +27,7 @@ Production must never point at a submodule's `Development` commit. Each changed 
    - advances each gitlink to the `main` tip declared by `.gitmodules`;
    - regenerates the seven private pins in `Docker/oasis-dependency-versions.env` from those checked-out commits;
    - commits the pointers and manifest together;
-   - validates the committed branch mapping and manifest/gitlink equality; and
+   - validates the committed branch mapping under the target branch's rule and validates manifest/gitlink equality; and
    - opens or updates a `submodule-sync/master` pull request.
 6. Review that parent pull request. CI must pass the branch-policy checks, manifest checks, and applicable builds before merging.
 7. Merge the parent pull request into `master`. This is the production release action.
