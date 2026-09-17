@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -406,6 +406,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 holon.CreatedByAvatarId = createdByAvatarId?.ToString();
             }
+
+            // The manager cannot know whether a caller-assigned public GUID is a first save.
+            // This branch can. A first insert has creation audit only; it is not an update.
+            holon.ModifiedDate = DateTime.MinValue;
+            holon.ModifiedByAvatarId = string.Empty;
         }
     }
 }
