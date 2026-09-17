@@ -96,6 +96,26 @@ try {
             Write-Host "Repaired collected GeoNFT $id"
         }
     }
+    # Older collect calls could append the same placement more than once. Keep the
+    # earliest acquisition and remove only duplicate rows for this manifest. The
+    # current AvatarManager identity guard prevents these duplicates recurring.
+    $inventory = @(Invoke-QuestSeedApi $Web4BaseUrl 'avatar/inventory')
+    foreach ($id in $ids) {
+        $duplicates = @($inventory | Where-Object { [string]$_.geoNFTId -eq $id } |
+            Sort-Object acquiredOn, createdDate, id)
+        if ($duplicates.Count -le 1) { continue }
+        foreach ($duplicate in @($duplicates | Select-Object -Skip 1)) {
+            $quantity = if ([int]$duplicate.quantity -gt 0) { [int]$duplicate.quantity } else { 1 }
+            $null = Invoke-QuestSeedApi $Web4BaseUrl "avatar/inventory/$($duplicate.id)?quantity=$quantity" 'Delete'
+            Write-Host "Removed duplicate inventory row $($duplicate.id) for GeoNFT $id"
+        }
+    }
+    $inventory = @(Invoke-QuestSeedApi $Web4BaseUrl 'avatar/inventory')
+    foreach ($id in $ids) {
+        if (@($inventory | Where-Object { [string]$_.geoNFTId -eq $id }).Count -gt 1) {
+            throw "Duplicate inventory rows remain for GeoNFT $id after repair."
+        }
+    }
     $verified = Invoke-QuestSeedApi $Web5BaseUrl "quests/$($saved.id)/inventory-progress" 'Post' @{}
     Write-Host "Verified $($verified.objectives.Count) objectives. Status: $($verified.status). Quest ID: $($verified.id)"
 } finally { $headers.Clear(); $avatar=$null; $Credential=$null }
