@@ -332,8 +332,17 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
-            services.AddSingleton<Services.IHerzCounterService, Services.HerzCounterService>();
+            // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
+            services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
+            // Voice biometrics — wire Azure impl when configured, no-op otherwise
+            services.AddSingleton<Services.IVoiceBiometricService>(sp =>
+            {
+                var cfg = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Security?.Biometric;
+                if (cfg != null && cfg.Enabled && cfg.VoiceEnabled)
+                    return new Services.AzureVoiceBiometricService();
+                return new Services.NullVoiceBiometricService();
+            });
 
             // Per-IP rate limiting — config driven via OASISDNA.OASIS.Security.RateLimiting
             // Config is read per-request so hot-changes to OASISDNA take effect without restart
