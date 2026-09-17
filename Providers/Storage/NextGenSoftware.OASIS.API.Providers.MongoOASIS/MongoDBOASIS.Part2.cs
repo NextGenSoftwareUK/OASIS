@@ -332,6 +332,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             // a durable cross-client storage key.
             var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
             var persistedHolon = await _holonRepository.GetHolonAsync(mongoHolon.HolonId);
+            PreserveCreationAuditFields(mongoHolon, persistedHolon);
             var saveResult = persistedHolon == null
                 ? await _holonRepository.AddAsync(mongoHolon)
                 : await _holonRepository.UpdateAsync(mongoHolon);
@@ -357,6 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
             var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
+            PreserveCreationAuditFields(mongoHolon, persistedHolon);
             var saveResult = persistedHolon == null
                 ? _holonRepository.Add(mongoHolon)
                 : _holonRepository.Update(mongoHolon);
@@ -376,6 +378,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
 
             return result;
+        }
+
+        private static void PreserveCreationAuditFields(Holon holon, Holon persistedHolon)
+        {
+            if (persistedHolon != null)
+            {
+                // Creation audit data is immutable. A stateless update often has none of it,
+                // so preserve the persisted values before ReplaceOne performs a full document
+                // replacement.
+                holon.Id = persistedHolon.Id;
+                holon.CreatedDate = persistedHolon.CreatedDate;
+                holon.CreatedByAvatarId = persistedHolon.CreatedByAvatarId;
+                holon.CreatedProviderType = persistedHolon.CreatedProviderType;
+                return;
+            }
+
+            // STAR and graph creation flows may allocate the public GUID before their first
+            // save. Persist a complete creation audit record for those inserts even though the
+            // generic manager correctly treats the supplied GUID as an existing-client shape.
+            if (holon.CreatedDate == DateTime.MinValue)
+                holon.CreatedDate = DateTime.UtcNow;
+
+            if (string.IsNullOrWhiteSpace(holon.CreatedByAvatarId)
+                && holon.MetaData != null
+                && holon.MetaData.TryGetValue("CreatedByAvatarId", out var createdByAvatarId))
+            {
+                holon.CreatedByAvatarId = createdByAvatarId?.ToString();
+            }
         }
     }
 }
