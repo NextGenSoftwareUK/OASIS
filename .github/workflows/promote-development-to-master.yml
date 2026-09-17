@@ -43,8 +43,10 @@ jobs:
           pending=false
 
           git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while IFS= read -r line; do
-            key="${line%% *}"
-            path="${line#* }"
+            path="${line#*.path }"
+            key="${line% $path}"
+            name="${key#submodule.}"
+            name="${name%.path}"
             if ! dev_sha=$(git rev-parse "origin/Development:${path}" 2>/dev/null); then
               continue
             fi
@@ -55,8 +57,6 @@ jobs:
             fi
 
             pending=true
-            name=${key#submodule.}
-            name=${name%.path}
             url=$(git config -f .gitmodules --get "submodule.${name}.url")
             repo=$(printf '%s' "$url" | sed -E 's#^git@github.com:##; s#^https://github.com/##; s#\.git$##')
             existing=$(gh pr list --repo "$repo" --base main --head Development --state open --json url --jq '.[0].url // empty')
@@ -107,7 +107,7 @@ jobs:
           git submodule sync --recursive
 
           git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while IFS= read -r line; do
-            path="${line#* }"
+            path="${line#*.path }"
             git -C "$path" fetch origin main
             git -C "$path" checkout --detach origin/main
             git add "$path"
