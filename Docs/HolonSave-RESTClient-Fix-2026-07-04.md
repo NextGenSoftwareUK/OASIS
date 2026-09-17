@@ -103,3 +103,36 @@ Mongo provider activation creates the unique public identity index. If a databas
 contains duplicate `HolonId` values from an older build, activation fails visibly while
 building that index. Resolve those duplicates deliberately before deployment; do not remove
 the index or introduce a second save path.
+
+## Audit results (16 September 2026)
+
+This table records the completed source, build, client-contract, and deployment-contract
+checks for this change. It is the release evidence for the identity matrix above; it does
+not claim that a particular environment's database has been exercised unless that check is
+listed as an environment test below.
+
+| Check | Scope | Result |
+|---|---|---|
+| Provider identity decision | `MongoDBOASIS.SaveHolon` and `SaveHolonAsync` | Passed source review: the public `HolonId` lookup is the sole generic insert-versus-replace decision. |
+| Duplicate identity protection | Mongo repository activation | Passed source review: `ux_holon_public_identity` is a unique index on the public `HolonId`; an existing duplicate is a visible activation failure. |
+| Preallocated server GUID | STAR/graph creation path | Passed source review: a new non-empty public GUID inserts once and remains available to child/metadata references. |
+| GUID-only update | REST, C#, Unity, native, and JavaScript | Passed source review: the persisted entity is resolved by public GUID and its private Mongo `_id` is restored before replacement. |
+| Creation audit preservation | Existing full-replacement update | Passed source review: persisted creation audit values are restored before replacement. |
+| Missing explicit update target | Repository `Update` / `UpdateAsync` | Passed source review: an unmatched update returns an `OASISResult` error. |
+| WEB5 create/update routing | All inspected direct resource endpoints | Passed: `Scripts/validate_webapi_holon_identity_contract.ps1` inspected 21 resource `POST` routes and 21 `PUT /{id}` routes; no violations. |
+| WEB4 and WEB6-WEB10 generic persistence | Shared `HolonManager` / `Data.SaveHolonAsync` callers | Passed source audit: these callers flow into the provider invariant instead of maintaining divergent lifecycle rules. |
+| JavaScript SDK caller-assigned GUID create | WEB5 NPM package | Passed: Node smoke tests confirm the GUID remains in the create body. |
+| JavaScript SDK update | WEB5 NPM package | Passed: Node smoke tests confirm `id` becomes `PUT /api/holons/{id}` and is not a required Mongo key in the body. |
+| Mongo provider compilation | `NextGenSoftware.OASIS.API.Providers.MongoOASIS.csproj` | Passed with `dotnet build --no-restore -v:q -m:1` (zero errors). |
+| STAR WebAPI compilation | `NextGenSoftware.OASIS.STAR.WebAPI.csproj` | Passed with `dotnet build --no-restore -v:q -m:1` (zero errors). |
+| Railway dependency integrity | WEB4-WEB10 deployment inputs | Passed: `python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks` confirmed manifest pins, parent gitlinks, and all seven Dockerfiles agree. |
+| Development health endpoints | Hosted WEB4 and WEB5 development services | Passed: both `/api/health` endpoints returned HTTP 200 at verification time. |
+
+### Remaining environment acceptance test
+
+The only check that must be run against each freshly deployed Mongo environment is the
+five-step real-database verification in **Verification requirements**. It verifies runtime
+credentials, database migration state, and the actual duplicate-free index on that
+environment; source/build checks cannot substitute for it. Record the deployment URL, UTC
+time, caller type, public GUID, and result beside the release or incident ticket when it is
+performed.
