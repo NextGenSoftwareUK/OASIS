@@ -63,10 +63,16 @@ try {
     $actual = @($quest.objectives | ForEach-Object { $_.needToCollectItems.'Our World' } | Sort-Object)
     $expected = @($ids | ForEach-Object { "geonft:$_" } | Sort-Object)
     if (@(Compare-Object $actual $expected).Count -gt 0) { throw 'Anorak objectives do not match the placement manifest.' }
+    if (@($quest.objectives[0].crossGameEventsOnActivate).Count -lt 1) { throw 'Anorak intro events are not authored on the first objective.' }
+    foreach ($objective in @($quest.objectives)) {
+        if (-not (@($objective.crossGameEventsOnComplete) | Where-Object eventType -eq 'PlayAnimation')) {
+            throw "Objective '$($objective.title)' has no completion presentation event."
+        }
+    }
     $reconciled = Invoke-OasisApi $Web5BaseUrl "quests/$($quest.id)/inventory-progress" 'Post' @{}
-    $completed = @($reconciled.objectives | Where-Object isCompleted).Count
+    $completed = @($reconciled.quest.objectives | Where-Object isCompleted).Count
     if ($completed -ne $ids.Count) { throw "Expected $($ids.Count) completed objectives; found $completed." }
-    if ([string]$reconciled.status -notin @('2', 'Completed')) { throw "Quest status is '$($reconciled.status)' instead of Completed." }
+    if ([string]$reconciled.quest.status -notin @('2', 'Completed')) { throw "Quest status is '$($reconciled.quest.status)' instead of Completed." }
     Write-Host "Verified $($ids.Count) canonical Nature GeoNFT items and completed Anorak quest $($quest.id)." -ForegroundColor Green
 } finally {
     $headers.Clear(); $avatar=$null; $Credential=$null

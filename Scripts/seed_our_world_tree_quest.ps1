@@ -20,11 +20,29 @@ $ids = @($placements | ForEach-Object { ([Guid]$_.id).ToString() } | Select-Obje
 if ($ids.Count -ne $placements.Count -or $ids -contains [Guid]::Empty.ToString()) { throw 'Manifest contains duplicate or empty GeoNFT IDs.' }
 $names = @('Rainbow Tree', 'Lightning Tree', 'Mycelium Tree', 'Fruit Tree', 'Skeleton Tree')
 $objectives = @(for ($i=0; $i -lt $placements.Count; $i++) {
+    $activateEvents = @()
+    if ($i -eq 0) {
+        $activateEvents = @(
+            @{ eventType='ShowNarration'; targetGame='Our World'; narrationText="Anorak:`n`nFind and collect $($placements.Count) tokens of nature's regenerative power.`n`nEach token you find will help heal our world." },
+            @{ eventType='ShowImage'; targetGame='Our World'; imageUrl='oasis://our-world/anorak'; imageTitle='Anorak' },
+            @{ eventType='PlayAudio'; targetGame='Our World'; audioUrl='oasis://our-world/anorak-welcome'; audioTitle='Anorak welcomes you' }
+        )
+    }
+    $completeEvents = @(
+        # The authored objective-complete animation owns its synchronized chest,
+        # blue particles and congratulations/pickup audio track.
+        @{ eventType='PlayAnimation'; targetGame='Our World'; animationKey='objective-complete'; narrationText="Collect the $($names[$i])" }
+    )
+    if ($i -eq $placements.Count - 1) {
+        $completeEvents += @{ eventType='PlayAnimation'; targetGame='Our World'; animationKey='quest-complete'; narrationText='Quest Complete: Restoration of Harmony' }
+    }
     @{
         id = [Guid]::NewGuid().ToString(); order = $i
         title = "Collect the $($names[$i])"; description = "Find and collect the tree at $($placements[$i].label)."
         gameSource = 'Our World'
         needToCollectItems = @{ 'Our World' = @("geonft:$($ids[$i])") }
+        crossGameEventsOnActivate = $activateEvents
+        crossGameEventsOnComplete = $completeEvents
     }
 })
 $quest = @{
@@ -69,6 +87,16 @@ try {
         $savedIds = @($saved.objectives | ForEach-Object { $_.needToCollectItems.'Our World' } | Sort-Object)
         $expected = @($ids | ForEach-Object { "geonft:$_" } | Sort-Object)
         if (@(Compare-Object $savedIds $expected).Count -gt 0) { throw 'Existing quest targets a different manifest. Refusing to overwrite progress.' }
+        # Upgrade the existing demo quest in place to the canonical cross-game
+        # presentation contract without replacing its identity or progress.
+        foreach ($authored in $objectives) {
+            $token = [string]$authored.needToCollectItems.'Our World'[0]
+            $persistedObjective = @($saved.objectives | Where-Object { @($_.needToCollectItems.'Our World') -contains $token }) | Select-Object -First 1
+            if ($null -eq $persistedObjective) { throw "Could not map authored event data to objective $token." }
+            $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnActivate -NotePropertyValue $authored.crossGameEventsOnActivate -Force
+            $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnComplete -NotePropertyValue $authored.crossGameEventsOnComplete -Force
+        }
+        $saved = Invoke-QuestSeedApi $Web5BaseUrl "quests/$($saved.id)" 'Put' $saved
         Write-Host "Reusing quest $($saved.id)"
     } else {
         $saved = Invoke-QuestSeedApi $Web5BaseUrl 'quests' 'Post' $quest
@@ -117,5 +145,5 @@ try {
         }
     }
     $verified = Invoke-QuestSeedApi $Web5BaseUrl "quests/$($saved.id)/inventory-progress" 'Post' @{}
-    Write-Host "Verified $($verified.objectives.Count) objectives. Status: $($verified.status). Quest ID: $($verified.id)"
+    Write-Host "Verified $($verified.quest.objectives.Count) objectives. Status: $($verified.quest.status). Quest ID: $($verified.quest.id)"
 } finally { $headers.Clear(); $avatar=$null; $Credential=$null }
