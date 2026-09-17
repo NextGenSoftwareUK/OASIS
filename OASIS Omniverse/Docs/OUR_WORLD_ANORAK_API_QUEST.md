@@ -20,15 +20,15 @@ Startup eligibility and instructions come from the API quest with `MetaData["Our
 4. `-PlanOnly` prints the four/five objective quest without authentication or writes. Live seeding checks Swagger for the new endpoint before changing data.
 5. The script reuses the matching Anorak quest and repairs only inventory rows whose incorrect `NftId` matches the manifest. It then reconciles already-collected items. Conflicting objective sets produce an error rather than overwriting progress.
 
-At implementation time hosted WEB5 Swagger did **not** expose `inventory-progress`. Local builds/tests do not imply deployment. Live seeding and in-game acceptance remain pending deployment.
+Hosted development WEB4 and WEB5 now expose the collector and `inventory-progress` contracts. The first live seed verification found a JWT runtime package mismatch in WEB5 before changing seed data. API Core now owns a coherent IdentityModel 8.19.1 dependency family, and the WEB5 deployment consumes that shared invariant. Live seed output and Unity Play Mode remain the final runtime evidence; local builds alone do not satisfy them.
 
 ## OGEngineClient consolidation
 
 Inspected `OGames/ODOOM/ogengine_sync.c`, `OGames/ODOOM/uzdoom_ogengine_integration.cpp`, `OGames/OQuake/Code/oquake_ogengine_integration.c`, and `OGEngineClient.Inventory.Progress.cs`. These share inventory operations, progress submission, cache refresh and active-objective tracking through OGEngineClient.
 
-Recommended architecture: extract a portable managed OGEngineClient core and add a Unity adapter. The core owns authentication, inventory identity/stacking, quest operations, cache invalidation and event delivery. Unity owns location sensors, main-thread dispatch, scenes, UI and effects. Native exports remain an adapter used by ODOOM/OQuake. Migrate feature by feature, disabling each old Unity transport as it moves; do not run two collection/progress implementations together.
+The consolidation is implemented as a portable .NET Standard 2.1 project in `OGEngineClient/Shared`. It owns endpoint defaults, optional NFT/GeoNFT identity normalization, and authoritative objective/quest transition ordering. Native OGEngineClient references it directly. Our World's Unity adapter copies the same reviewed source with `Scripts/sync_ogengine_shared.ps1` and verifies the SHA-256 hash; Unity continues to own `UnityWebRequest`, coroutines, main-thread UI, location sensors, scenes, audio and particles.
 
-Current OGEngineClient targets .NET 10/NativeAOT; Our World uses Unity 2022.3.62f3. Its managed assembly is not directly compatible. A portable core needs Unity-compatible dependencies and platform APIs. Native exports are an alternative to investigate for desktop, requiring platform binaries and mobile/IL2CPP validation. No OGEngineClient Unity migration is implemented by this change.
+This keeps transport and engine concerns separate without duplicating quest rules. The native adapter remains the C ABI used by ODOOM/OQuake, while Unity maps the same transition results to its retained chest and celebration effects. The previous independent GeoNFT quest counter remains disabled.
 
 ## Acceptance
 
