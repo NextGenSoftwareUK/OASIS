@@ -309,7 +309,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //     //}
                 // }
 
-                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                var replaceResult = await _dbContext.Holon.ReplaceOneAsync(
+                    filter: g => g.HolonId == holon.HolonId,
+                    replacement: holon);
+
+                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
+                {
+                    result.IsError = true;
+                    result.Message = $"Cannot update holon {holon.HolonId}: no persisted document matched the supplied ID.";
+                    return result;
+                }
+
                 result.Result = holon;
             }
             catch (Exception ex)
@@ -336,7 +346,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         holon.Id = originalHolon.Id;
                 }
 
-                _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
+                var replaceResult = _dbContext.Holon.ReplaceOne(
+                    filter: g => g.HolonId == holon.HolonId,
+                    replacement: holon);
+
+                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
+                {
+                    result.IsError = true;
+                    result.Message = $"Cannot update holon {holon.HolonId}: no persisted document matched the supplied ID.";
+                    return result;
+                }
+
                 result.Result = holon;
             }
             catch (Exception ex)
