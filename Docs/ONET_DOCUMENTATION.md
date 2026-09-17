@@ -516,27 +516,42 @@ Console.WriteLine($"Network Health: {metrics.Health}");
 Console.WriteLine($"Average Latency: {metrics.Latency}ms");
 ```
 
-## 🚀 Future Roadmap
+## ✅ Completed Work (as of 2026-09-15)
 
-### Planned Features
+### Core stability fixes (all on Development branch)
 
-#### Phase 1: Core Stability
-- Enhanced error handling
-- Performance optimizations
-- Comprehensive testing
-- Documentation improvements
+| Fix | File | Status |
+|-----|------|--------|
+| Sync-over-async deadlock in `InitializeAsync` | `ONETProtocol.cs` | ✅ Done |
+| `_oasisdna` field never assigned from constructor | `ONETManager.cs` | ✅ Done |
+| `ExportECPrivateKey` (SEC1) fails on Windows CNG → switched to PKCS8 | `ONETManager.cs` | ✅ Done |
+| `LoadOASISDNAAsync` silently replaced injected DNA | `ONETManager.cs` | ✅ Done |
+| `PublicKey` field on `NodeInfo` + `OnPeerKeyDiscovered` callback | `ONETDiscovery.cs` | ✅ Done |
+| Authenticated PING via `BuildAuthenticatedPing` delegate | `ONETRouting.cs` / `ONETProtocol.cs` | ✅ Done |
+| Kademlia table seeded during peer discovery | `ONETDiscovery.cs` | ✅ Done |
+| `OASISHyperDrive.DataDirectory` wired from OASISDNA | `ONETManager.cs` | ✅ Done |
+| 128/128 unit tests passing | `ONODE.Core.UnitTests` | ✅ Done |
 
-#### Phase 2: Advanced Features
-- Machine learning-based routing
-- Advanced consensus algorithms
-- Quantum-resistant cryptography
-- Cross-chain integration
+## 🚀 Next Steps
 
-#### Phase 3: Ecosystem Integration
-- OASIS ecosystem integration
-- Third-party provider support
-- Enterprise features
-- Global deployment
+### Near-term
+
+- **Holon-backed ONET state** — persist routing table, known peers, and node keypair to an OASIS Holon via the provider layer so state survives restarts without a local file. Replaces the current in-memory-only tables.
+- **HoloNET P2P mode** — wire ONET as the transport layer for HoloNET so C#↔Holochain calls can traverse the ONET mesh rather than requiring a direct WebSocket to a local conductor.
+- **Integration tests** — `ONODE.Core.IntegrationTests` project exists but test coverage is thin; add tests for peer discovery round-trips, authenticated PING, and Kademlia routing convergence.
+
+### Medium-term
+
+- Machine learning-based routing optimisation
+- Advanced consensus algorithms (beyond current PoS stub)
+- Quantum-resistant cryptography (post-quantum key exchange)
+- Cross-chain node registration via smart contracts
+
+### Long-term
+
+- Enterprise node management dashboard
+- Global deployment tooling
+- Third-party provider federation
 
 ### Contributing
 
