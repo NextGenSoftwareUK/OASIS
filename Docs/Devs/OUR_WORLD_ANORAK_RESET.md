@@ -46,3 +46,36 @@ version mismatch, not a reason to add a local eligibility fallback.
 See [the test matrix](GEONFT_COLLECTION_TEST_MATRIX.md) and
 [dependency deployment policy](RAILWAY_DEPENDENCY_PINS.md). Startup reconciliation
 updates quest state silently; pickup celebrations belong to confirmed gameplay.
+
+## Automated Anorak API acceptance
+
+With Unity stopped, run:
+
+```powershell
+./Scripts/test_our_world_tree_collection.ps1 -Apply
+```
+
+This explicitly collects all required demo trees, tests one-time eligibility,
+inventory category/quantity, one-objective-per-pickup progress, objective/quest
+events and no event replay on an unchanged sync. It updates tagged demo duplicates
+at the quest coordinates to the once-per-player defaults. Its final cleanup invokes
+the targeted reset so a successful test leaves a fresh manual playthrough.
+
+### Verified 2026-09-17 (development)
+
+- Parent deployment: `80f2d2b769ac37eb2f7b9b5b012c1554887ead64`.
+- All seven WEB4-WEB10 projects published locally successfully.
+- Manifest/gitlink equality and all eight Development branch pointers passed.
+- Authenticated eligibility route works; the previous 404 is resolved.
+- All 12 tagged demo placements returned once-per-player settings after updating.
+- Four sequential pickups passed; all four duplicate pickups were rejected.
+- Nature inventory quantity remained one per pickup despite duplicate requests.
+- Quest progress advanced 1/4, 2/4, 3/4, 4/4, one objective event each, with one
+  quest-complete event on the last pickup. Repeated sync returned no events.
+- Cleanup removed four test inventory rows and four durable history entries.
+  Reconciliation then remained 0/4; all 20 unrelated inventory rows were unchanged.
+
+These are API results, not manual verification of chest rendering, audio, portal
+placement or UI. Full rule combinations, multiplayer and cross-replica persistence
+remain separate tests in the matrix. GitHub Actions also has private-submodule
+checkout/restore failures; successful local publish is not a claim that CI is green.
