@@ -44,6 +44,7 @@ For a **new chat**, paste: goal + â€œsee `Docs/Devs/STAR_CLI_SessionHandoff.md`â
 - When advancing a deployed private submodule, update its parent gitlink and manifest value together, then run `python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks` and publish the affected services.
 - CI enforces Dockerfile usage and exact manifest/gitlink equality on both deployment branches, `Development` and `master`. The legacy parent `main` branch has no WEB4-WEB10 Dockerfiles, so this policy is not applicable there.
 - Full workflow: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
+- Development-to-production release sequence: `Docs/Devs/DEVELOPMENT_TO_MASTER_PROMOTION.md`.
 
 ## High-churn STAR CLI paths
 
