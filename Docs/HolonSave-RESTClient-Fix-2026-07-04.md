@@ -23,9 +23,7 @@ MongoDB persists a holon by its public OASIS GUID:
    such as STAR, which allocate the public GUID before their first save so that metadata
    can refer to it.
 
-`CreatedDate` remains audit data. `IsNewHolon` remains an in-memory lifecycle hint used
-by manager audit preparation. Neither is a Mongo persistence key and neither can decide
-insert versus update for a stateless client.
+`CreatedDate` remains audit data. On a matched GUID, Mongo preserves the persisted creation audit fields before the full replacement. On a first insert with a preallocated GUID, Mongo establishes the creation audit fields from the server-supplied metadata. `IsNewHolon` remains an in-memory lifecycle hint used by manager audit preparation. Neither is a Mongo persistence key and neither can decide insert versus update for a stateless client.
 
 ## Implementation
 
