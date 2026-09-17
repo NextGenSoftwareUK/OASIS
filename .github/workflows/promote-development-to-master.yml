@@ -131,6 +131,11 @@ jobs:
 
           python3 Scripts/sync_railway_dependency_manifest.py
           git add --all
+          if git diff --cached --quiet; then
+            echo '## Nothing to promote' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Development is already fully merged into master. No promotion commit needed.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           git commit -m 'Promote Development to master'
 
           commit=$(git rev-parse HEAD)
