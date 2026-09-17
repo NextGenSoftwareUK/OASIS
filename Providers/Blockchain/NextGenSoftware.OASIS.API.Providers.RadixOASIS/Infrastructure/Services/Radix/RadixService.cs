@@ -8,7 +8,8 @@ using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.Enu
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Helpers;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Extensions;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.DTOs.Oracle;
-using TransactionBuilder = RadixEngineToolkit.TransactionBuilder;
+// TransactionBuilder may not be available in current RadixEngineToolkit version
+// using TransactionBuilder = RadixEngineToolkit.TransactionBuilder;
 
 namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 
@@ -77,8 +78,9 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<decimal>(ref result, 
+            OASISErrorHandling.HandleError<decimal>(ref result, 
                 $"Error getting account balance: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -96,7 +98,7 @@ public sealed class RadixService : IRadixService
             
             Mnemonic mnemonic = new(Wordlist.English, WordCount.TwentyFour);
             using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
-            string publicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
+            string publicKey = Convert.ToHexString(privateKey.PublicKeyBytes());
 
             result.Result = (publicKey, privateKey.RawHex(), mnemonic.ToString());
             result.IsError = false;
@@ -105,8 +107,9 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<(string, string, string)>(ref result,
+            OASISErrorHandling.HandleError<(string, string, string)>(ref result,
                 $"Error creating account: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -132,7 +135,7 @@ public sealed class RadixService : IRadixService
 
             Mnemonic mnemonic = new(seedPhrase);
             using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKey(mnemonic);
-            string publicKey = Encoders.Hex.EncodeData(privateKey.PublicKeyBytes());
+            string publicKey = Convert.ToHexString(privateKey.PublicKeyBytes());
 
             result.Result = (publicKey, privateKey.RawHex());
             result.IsError = false;
@@ -141,8 +144,9 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<(string, string)>(ref result,
+            OASISErrorHandling.HandleError<(string, string)>(ref result,
                 $"Error restoring account: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -159,22 +163,24 @@ public sealed class RadixService : IRadixService
             token.ThrowIfCancellationRequested();
             byte network = (byte)networkType;
 
-            result.Result = addressType switch
+            Address address = addressType switch
             {
-                RadixAddressType.Account => Address.VirtualAccountAddressFromPublicKey(publicKey, network)
-                    .AddressString(),
-                RadixAddressType.Identity => Address.VirtualIdentityAddressFromPublicKey(publicKey, network)
-                    .AddressString(),
-                _ => throw new ArgumentException("Invalid address type")
+                RadixAddressType.Account =>
+                    RadixEngineToolkitUniffiMethods.DerivePreallocatedAccountAddressFromPublicKey(publicKey, network),
+                RadixAddressType.Identity =>
+                    RadixEngineToolkitUniffiMethods.DerivePreallocatedIdentityAddressFromPublicKey(publicKey, network),
+                _ => throw new ArgumentException($"Unsupported address type: {addressType}", nameof(addressType))
             };
-            
+
+            result.Result = address.AddressString();
             result.IsError = false;
             return result;
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<string>(ref result,
+            OASISErrorHandling.HandleError<string>(ref result,
                 $"Error getting address: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -198,14 +204,15 @@ public sealed class RadixService : IRadixService
             }
 
             return await ExecuteTransactionAsync(
-                new PrivateKey.Ed25519(Encoders.Hex.DecodeData(senderPrivateKey)),
+                RadixBridgeHelper.GetPrivateKeyFromHex(senderPrivateKey),
                 _config.AccountAddress,
                 amount);
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
+            OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
                 $"Error during withdrawal: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -228,14 +235,15 @@ public sealed class RadixService : IRadixService
             }
 
             return await ExecuteTransactionAsync(
-                new PrivateKey.Ed25519(Encoders.Hex.DecodeData(_config.PrivateKey)),
+                RadixBridgeHelper.GetPrivateKeyFromHex(_config.PrivateKey),
                 receiverAccountAddress,
                 amount);
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
+            OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
                 $"Error during deposit: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -252,7 +260,8 @@ public sealed class RadixService : IRadixService
         
         try
         {
-            Address senderAddress = Address.VirtualAccountAddressFromPublicKey(sender.PublicKey(), _config.NetworkId);
+            Address senderAddress = RadixEngineToolkitUniffiMethods.DerivePreallocatedAccountAddressFromPublicKey(
+                sender.PublicKey(), _config.NetworkId);
             Address receiverAddress = new(receiver);
 
             // Check balance
@@ -282,66 +291,78 @@ public sealed class RadixService : IRadixService
             string formattedAmount = roundedAmount.ToString("F18", CultureInfo.InvariantCulture)
                 .TrimEnd('0').TrimEnd('.');
 
-            // Build transaction manifest
-            using TransactionManifest manifest = new ManifestBuilder()
-                .AccountLockFeeAndWithdraw(senderAddress, new($"{fee}"), _xrdAddress, new(formattedAmount))
-                .TakeFromWorktop(_xrdAddress, new(formattedAmount), new("xrdBucket"))
-                .AccountTryDepositOrAbort(receiverAddress, new("xrdBucket"), null)
+            // Build the V1 transaction manifest: lock fee + withdraw from sender, deposit to receiver
+            using TransactionManifestV1 manifest = new ManifestV1Builder()
+                .AccountLockFeeAndWithdraw(
+                    senderAddress,
+                    new RadixEngineToolkit.Decimal(fee.ToString()),
+                    _xrdAddress,
+                    new RadixEngineToolkit.Decimal(formattedAmount))
+                .TakeFromWorktop(
+                    _xrdAddress,
+                    new RadixEngineToolkit.Decimal(formattedAmount),
+                    new ManifestBuilderBucket("xrdBucket"))
+                .AccountTryDepositBatchOrAbort(
+                    receiverAddress,
+                    new[] { new ManifestBuilderBucket("xrdBucket") },
+                    null)
                 .Build(_config.NetworkId);
 
-            manifest.StaticallyValidate();
+            manifest.StaticallyValidate(_config.NetworkId);
 
-            // Get current epoch
+            // Get current epoch for transaction header window
             ulong currentEpoch = (await _httpClient.GetConstructionMetadataAsync(_config))?.CurrentEpoch ?? 0;
 
-            // Build and sign transaction
-            using NotarizedTransaction transaction = new TransactionBuilder()
-                .Header(new TransactionHeader(
-                    networkId: _config.NetworkId,
-                    startEpochInclusive: currentEpoch,
-                    endEpochExclusive: currentEpoch + 50,
-                    nonce: RadixBridgeHelper.RandomNonce(),
-                    notaryPublicKey: sender.PublicKey(),
-                    notaryIsSignatory: true,
-                    tipPercentage: 0
-                ))
-                .Manifest(manifest)
-                .Message(new Message.None())
-                .NotarizeWithPrivateKey(sender);
+            // Build the signed + notarized transaction (notaryIsSignatory = true means no extra signatures needed)
+            var header = new TransactionHeaderV1(
+                networkId: _config.NetworkId,
+                startEpochInclusive: currentEpoch,
+                endEpochExclusive: currentEpoch + 50,
+                nonce: RadixBridgeHelper.RandomNonce(),
+                notaryPublicKey: sender.PublicKey(),
+                notaryIsSignatory: true,
+                tipPercentage: 0);
 
-            // Submit transaction
-            var data = new
+            using IntentV1 intent = new(header, manifest, new MessageV1());
+            using SignedTransactionIntentV1 signedIntent = new(intent, Array.Empty<SignatureWithPublicKeyV1>());
+            var notarySignature = sender.SignToSignature(signedIntent.SignedIntentHash().AsHash());
+            using NotarizedTransactionV1 notarizedTransaction = new(signedIntent, notarySignature);
+
+            notarizedTransaction.StaticallyValidate(_config.NetworkId);
+
+            var payloadHex = Convert.ToHexString(notarizedTransaction.ToPayloadBytes()).ToLowerInvariant();
+            var submitData = new
             {
                 network = _network,
-                notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()),
+                notarized_transaction_hex = payloadHex,
                 force_recalculate = true
             };
 
             var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
                 _httpClient,
                 $"{_config.HostUri}/core/lts/transaction/submit",
-                data);
+                submitData);
 
-            var transactionHash = transaction.IntentHash().AsStr();
-            
+            var transactionHash = notarizedTransaction.IntentHash().AsStr();
+
             result.Result = new BridgeTransactionResponse(
                 transactionHash,
                 response.Result?.TransactionHash,
                 response.Result != null && !response.IsError,
                 response.IsError ? response.Message : null,
-                response.Result != null && !response.IsError 
-                    ? BridgeTransactionStatus.Completed 
+                response.Result != null && !response.IsError
+                    ? BridgeTransactionStatus.Completed
                     : BridgeTransactionStatus.Canceled
             );
-            
-            result.IsError = false;
-            return result;
+            result.IsError = response.IsError;
+            result.Message = response.IsError ? response.Message : null;
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
+            OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
                 $"Error executing transaction: {ex.Message}", ex);
         }
+        return result;
     }
 
     /// <summary>
@@ -391,8 +412,8 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionStatus>(ref result,
-                $"Error getting transaction status: {ex.Message}", ex);
+            OASISErrorHandling.HandleError<BridgeTransactionStatus>(ref result, $"Error getting transaction status: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -432,8 +453,9 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixChainState>(ref result,
+            OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixChainState>(ref result,
                 $"Error getting chain state: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -461,8 +483,9 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<ulong>(ref result,
+            OASISErrorHandling.HandleError<ulong>(ref result,
                 $"Error getting latest epoch: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -504,8 +527,9 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails>(ref result,
+            OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails>(ref result,
                 $"Error getting transaction details: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -536,13 +560,14 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error verifying transaction: {ex.Message}", ex);
+            return result;
         }
     }
 
     /// <summary>
-    /// Gets XRD price feed (placeholder - would integrate with CoinGecko, CoinMarketCap, etc.)
+    /// Gets XRD price feed from CoinGecko API
     /// </summary>
     public async Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>> GetXrdPriceAsync(
         string currency = "USD",
@@ -552,27 +577,67 @@ public sealed class RadixService : IRadixService
         
         try
         {
-            // TODO: Integrate with actual price sources (CoinGecko, CoinMarketCap, RadixDEX, etc.)
-            // For now, return a placeholder structure
-            
+            token.ThrowIfCancellationRequested();
+
+            var vs = (currency ?? "USD").Trim().ToLowerInvariant();
+
+            // CoinGecko IDs observed for Radix over time; try a few to be robust.
+            var idsToTry = new[] { "radix", "radix-protocol" };
+
+            decimal? price = null;
+            string usedId = null;
+
+            using (var http = new System.Net.Http.HttpClient())
+            {
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("OASIS-RadixOASIS/1.0");
+
+                foreach (var id in idsToTry)
+                {
+                    var url = $"https://api.coingecko.com/api/v3/simple/price?ids={Uri.EscapeDataString(id)}&vs_currencies={Uri.EscapeDataString(vs)}";
+                    using var resp = await http.GetAsync(url, token);
+                    if (!resp.IsSuccessStatusCode)
+                        continue;
+
+                    var json = await resp.Content.ReadAsStringAsync(token);
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+                    if (doc.RootElement.TryGetProperty(id, out var idEl) &&
+                        idEl.TryGetProperty(vs, out var priceEl) &&
+                        priceEl.ValueKind == System.Text.Json.JsonValueKind.Number &&
+                        priceEl.TryGetDecimal(out var p))
+                    {
+                        price = p;
+                        usedId = id;
+                        break;
+                    }
+                }
+            }
+
+            if (price == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Unable to retrieve XRD price from CoinGecko.");
+                return result;
+            }
+
             result.Result = new Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed
             {
                 TokenSymbol = "XRD",
                 Currency = currency,
-                Price = 0, // Would fetch from price source
+                Price = price.Value,
                 Timestamp = DateTime.UtcNow,
-                Source = "Placeholder", // Would be "CoinGecko", "CoinMarketCap", etc.
-                Confidence = 0 // Would be calculated based on source reliability
+                Source = $"CoinGecko:{usedId}",
+                Confidence = 0.9m
             };
-            
+
             result.IsError = false;
-            result.Message = "Price feed not yet integrated - implement CoinGecko/CoinMarketCap integration";
+            result.Message = "XRD price retrieved successfully from CoinGecko.";
             return result;
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>(ref result,
+            OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>(ref result,
                 $"Error getting XRD price: {ex.Message}", ex);
+            return result;
         }
     }
 

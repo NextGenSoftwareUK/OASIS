@@ -1,1 +1,0 @@
-variableName: i32

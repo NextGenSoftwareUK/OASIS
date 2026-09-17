@@ -37,9 +37,11 @@ namespace NextGenSoftware.OASIS.API.DNA.UnitTests
         {
             // Act
             var dna = new OASISDNA();
+            var prop = typeof(OASISDNA).GetProperty("OASIS");
 
             // Assert
-            dna.Should().HaveProperty("OASIS");
+            prop.Should().NotBeNull();
+            prop!.GetValue(dna).Should().Be(dna.OASIS);
         }
 
         [Fact]

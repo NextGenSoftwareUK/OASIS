@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service EggsService {
+  rpc GetAllEggs (GetAllEggsRequest) returns (JsonResponse);
+  rpc GetCurrentEggQuests (GetCurrentEggQuestsRequest) returns (JsonResponse);
+  rpc GetEggQuestLeaderboard (GetEggQuestLeaderboardRequest) returns (JsonResponse);
+  rpc HatchEgg (HatchEggRequest) returns (JsonResponse);
+}
+
+message GetAllEggsRequest { string avatar_id = 1; }
+message GetCurrentEggQuestsRequest { string avatar_id = 1; }
+message GetEggQuestLeaderboardRequest { string avatar_id = 1; }
+message HatchEggRequest { string avatar_id = 1; string egg_id = 2; }

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -39,7 +39,19 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private ProviderManager _provider = null;
         //private COSMICManager _cosmic = null;
 
-        public bool IsOASISBooted { get; set; }
+        private bool _isOASISBooted;
+
+        /// <summary>
+        /// True once THIS instance booted OASIS, OR once the process-wide OASISBootLoader has booted it.
+        /// Web API hosts create many OASISAPI/STARAPI instances (one static per controller); without the
+        /// OASISBootLoader fall-back each instance believed OASIS was un-booted and every manager property
+        /// threw OASISException("OASIS is not booted...") - which surfaced as a 400 on all GetAll endpoints.
+        /// </summary>
+        public bool IsOASISBooted
+        {
+            get => _isOASISBooted || OASISBootLoader.OASISBootLoader.IsOASISBooted;
+            set => _isOASISBooted = value;
+        }
         //public string OASISRunVersion { get; set; }
         public OASISDNA OASISDNA { get; set; } 
 
@@ -472,6 +484,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNA);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -485,6 +499,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = await OASISBootLoader.OASISBootLoader.BootOASISAsync(OASISDNA);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -498,6 +514,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNAPath);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -511,6 +529,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
             if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
                 result = await OASISBootLoader.OASISBootLoader.BootOASISAsync(OASISDNAPath);
+            else
+                result.Result = true;
 
             if (!result.IsError && result.Result)
                 InitOASIS(userName, password, startApolloServer);
@@ -574,6 +594,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             // Set OASIS DNA and boot status
             OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             IsOASISBooted = true;
+
+            NextGenSoftware.OASIS.API.ONODE.Core.Managers.QuestStatsStatsManagerIntegration.RegisterWithStatsManager();
 
             // All managers are now lazily initialized when accessed
             // This provides better performance and memory usage

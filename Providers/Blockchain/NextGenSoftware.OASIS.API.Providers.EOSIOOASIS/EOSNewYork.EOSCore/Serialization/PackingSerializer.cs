@@ -151,7 +151,7 @@ namespace EOSNewYork.EOSCore.Serialization
                         }
                         return;
                     }
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException($"Unsupported type for EOS binary packing serialization: {type?.FullName ?? "null"}. Only primitives, arrays, enumerables, and classes with runtime properties are supported.");
                 }
             }
         }

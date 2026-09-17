@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service StatsService {
+  rpc GetAvatarStats (GetAvatarStatsRequest) returns (JsonResponse);
+  rpc GetLeaderboardStats (GetLeaderboardStatsRequest) returns (JsonResponse);
+  rpc GetKeyStats (GetKeyStatsRequest) returns (JsonResponse);
+  rpc GetSystemStats (GetSystemStatsRequest) returns (JsonResponse);
+}
+
+message GetAvatarStatsRequest { string avatar_id = 1; }
+message GetLeaderboardStatsRequest { string avatar_id = 1; }
+message GetKeyStatsRequest { string avatar_id = 1; }
+message GetSystemStatsRequest {}

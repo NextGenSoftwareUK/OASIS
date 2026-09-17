@@ -12,5 +12,30 @@ public interface IRadixService : IOASISBridge
     /// </summary>
     OASISResult<string> GetAddress(PublicKey publicKey, RadixAddressType addressType, 
         RadixNetworkType networkType, CancellationToken token = default);
+
+    /// <summary>
+    /// Gets the current chain state
+    /// </summary>
+    Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixChainState>> GetChainStateAsync(CancellationToken token = default);
+
+    /// <summary>
+    /// Gets the latest epoch
+    /// </summary>
+    Task<OASISResult<ulong>> GetLatestEpochAsync(CancellationToken token = default);
+
+    /// <summary>
+    /// Gets transaction details
+    /// </summary>
+    Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails>> GetTransactionDetailsAsync(string transactionHash, CancellationToken token = default);
+
+    /// <summary>
+    /// Verifies a transaction
+    /// </summary>
+    Task<OASISResult<bool>> VerifyTransactionAsync(string transactionHash, CancellationToken token = default);
+
+    /// <summary>
+    /// Gets XRD price
+    /// </summary>
+    Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>> GetXrdPriceAsync(string currency = "USD", CancellationToken token = default);
 }
 

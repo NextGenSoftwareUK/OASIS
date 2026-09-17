@@ -9,14 +9,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.TestHarness
 {
     public class MapboxOASISTestHarness
     {
-        private static MapboxOASIS _provider;
+        private static MapBoxOASIS _provider;
 
         public static async Task Main(string[] args)
         {
             Console.WriteLine("=== MapboxOASIS Test Harness ===");
             Console.WriteLine("Testing MapboxOASIS integration with OASIS...\n");
 
-            _provider = new MapboxOASIS();
+            _provider = new MapBoxOASIS();
 
             try
             {

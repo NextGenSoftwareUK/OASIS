@@ -40,8 +40,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             this.Science=source.Science;
             this.Negotiating=source.Negotiating;
             this.Translating=source.Translating;
-            this.MelleeCombat=source.MelleeCombat;
-            this.RangeCombat=source.RangeCombat;
+            this.MelleeCombat=source.MeleeCombat;
+            this.RangeCombat=source.RangedCombat;
             this.SpellCasting=source.SpellCasting;
             this.Meditation=source.Meditation;
             this.Yoga=source.Yoga;
@@ -62,8 +62,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             item.Science=this.Science;
             item.Negotiating=this.Negotiating;
             item.Translating=this.Translating;
-            item.MelleeCombat=this.MelleeCombat;
-            item.RangeCombat=this.RangeCombat;
+            item.MeleeCombat=this.MelleeCombat;
+            item.RangedCombat=this.RangeCombat;
             item.SpellCasting=this.SpellCasting;
             item.Meditation=this.Meditation;
             item.Yoga=this.Yoga;

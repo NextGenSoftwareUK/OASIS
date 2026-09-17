@@ -1,0 +1,146 @@
+name: ONET/ONODE Tests
+
+on:
+  push:
+    branches: [ master, Development ]
+    paths:
+      - 'ONODE/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'ONODE/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/**'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  unit-tests:
+    name: ONET/ONODE Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
+
+      - name: Build
+        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-restore
+
+      - name: Run unit tests
+        run: dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-build --logger "trx;LogFileName=unit-results.trx" --results-directory TestResults
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results
+          path: TestResults/unit-results.trx
+
+  integration-tests:
+    name: ONET/ONODE Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj"
+
+      - name: Build
+        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-restore
+
+      - name: Run integration tests
+        run: dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-build --logger "trx;LogFileName=integration-results.trx" --results-directory TestResults
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: TestResults/integration-results.trx
+
+  webapi-unit-tests:
+    name: ONODE WebAPI Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
+
+      - name: Build
+        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-restore
+
+      - name: Run WebAPI unit tests
+        run: dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-build --logger "trx;LogFileName=webapi-unit-results.trx" --results-directory TestResults
+
+      - name: Upload WebAPI unit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webapi-unit-test-results
+          path: TestResults/webapi-unit-results.trx

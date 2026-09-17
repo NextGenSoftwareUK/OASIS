@@ -1,0 +1,41 @@
+// OASIS Omniverse — OQuake2 entity definitions for TrenchBroom
+// Thing type range: 6001–6899 (OQuake2 / OQuake2-RTX shared)
+// Portal: 5900 (shared cross-game)
+
+// ---------------------------------------------------------------------------
+// PORTAL ENTITIES
+// ---------------------------------------------------------------------------
+
+@SolidClass color(0 192 255) = oasis_portal_enter : "OASIS teleport source — brush trigger the player walks into to be sent to another OASIS game or map. Draw this brush around the portal frame or doorway. OASIS thing type 5900."
+[
+    oasis_game_id(string)   : "Target OGame ID"  : ""  : "Destination game (e.g. oquake, odoom, oquake3, oduke3d, owolf3d)"
+    oasis_map(string)       : "Target map"        : ""  : "Destination map name in the target game (e.g. e1m1, start)"
+    oasis_exit_name(string) : "Exit name"         : ""  : "targetname of the oasis_portal_exit in the destination map where the player will spawn"
+    message(string)         : "Approach message"  : ""  : "Optional text shown to the player when they enter this portal"
+    targetname(target_source) : "Portal name"
+]
+
+@PointClass color(0 255 192) size(-16 -16 -24, 16 16 24) = oasis_portal_exit : "OASIS teleport destination — point entity marking where players arrive from another OASIS game or map. Place at the exit of the portal frame. OASIS thing type 5900."
+[
+    targetname(target_source) : "Exit name" : "" : "Must match the oasis_exit_name on the corresponding oasis_portal_enter in the source map"
+    angle(integer)            : "Spawn angle" : 0 : "Direction the player faces on arrival (0=east, 90=north, 180=west, 270=south)"
+]
+
+// ---------------------------------------------------------------------------
+// KEYS
+// ---------------------------------------------------------------------------
+
+@PointClass color(0 128 255) size(-8 -8 -8, 8 8 8) = oasis_key_blue : "OASIS blue keycard — unlocks blue key doors cross-game. OASIS thing type 6001. Classname: item_key_blue_key"
+[
+    targetname(target_source) : "Key name"
+]
+
+@PointClass color(255 0 0) size(-8 -8 -8, 8 8 8) = oasis_key_red : "OASIS red keycard — unlocks red key doors cross-game. OASIS thing type 6002. Classname: item_key_red_key"
+[
+    targetname(target_source) : "Key name"
+]
+
+@PointClass color(180 180 0) size(-8 -8 -8, 8 8 8) = oasis_key_commanders_head : "Commander's Head — special mission key. OASIS thing type 6003."
+[
+    targetname(target_source) : "Key name"
+]

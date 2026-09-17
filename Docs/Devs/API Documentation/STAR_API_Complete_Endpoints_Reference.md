@@ -1,4 +1,4 @@
-# STAR API - Complete Endpoints Reference
+﻿# STAR API - Complete Endpoints Reference
 
 ## 📋 **Overview**
 
@@ -13,7 +13,7 @@ https://localhost:5004/api
 
 ### **Production**
 ```
-https://star-api.oasisplatform.world/api
+https://api.starnet.oasisomniverse.one/api
 ```
 
 ## 🔐 **Authentication**
