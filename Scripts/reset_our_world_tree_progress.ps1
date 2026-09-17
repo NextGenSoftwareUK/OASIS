@@ -63,7 +63,8 @@ try {
     if (!$Apply) { Write-Host 'Read-only plan. Use -Apply to reset.'; return }
     New-Item -ItemType Directory -Path $BackupDirectory -Force | Out-Null
     $backup = Join-Path $BackupDirectory ("anorak-{0:yyyyMMdd-HHmmss}-{1}.json" -f [DateTime]::UtcNow,[guid]::NewGuid().ToString('N'))
-    @{ avatarId=$avatar.id; quest=$quest; inventory=$items; history=$historyValue; placementIds=@($demo.id) } |
+    $preservedState = @{activeQuestId=$detail.activeQuestId;activeObjectiveId=$detail.activeObjectiveId;dimensionLevel=$detail.dimensionLevel}
+    @{ avatarId=$avatar.id; quest=$quest; inventory=$items; history=$historyValue; placementIds=@($demo.id); preservedAvatarState=$preservedState } |
         ConvertTo-Json -Depth 70 | Set-Content -LiteralPath $backup -Encoding UTF8
     foreach ($item in $items) {
         $removed = Api $Web4BaseUrl "avatar/inventory/$($item.id)?quantity=$([Math]::Max(1,[int]$item.quantity))" 'Delete'
@@ -72,7 +73,12 @@ try {
     if ($removedHistory.Count) {
         foreach ($entry in $removedHistory) { $history.PSObject.Properties.Remove($entry.Name) }
         $metadata = @{}; $metadata[$historyKey] = ConvertTo-Json -InputObject $history -Depth 20 -Compress
-        $null = Api $Web4BaseUrl "avatar/update-avatar-detail-by-id/$($avatar.id)" 'Post' @{metaData=$metadata}
+        # The general avatar-detail update applies these three fields even when omitted.
+        # Preserve them explicitly while merging only the collection-history metadata.
+        $null = Api $Web4BaseUrl "avatar/update-avatar-detail-by-id/$($avatar.id)" 'Post' @{
+            metaData=$metadata;activeQuestId=$detail.activeQuestId
+            activeObjectiveId=$detail.activeObjectiveId;dimensionLevel=$detail.dimensionLevel
+        }
     }
     $null = Api $Web5BaseUrl "quests/$($quest.id)/progress/reset" 'Post' @{}
     $after = @(Api $Web4BaseUrl 'avatar/inventory')
