@@ -302,7 +302,92 @@ All settings live under `OASIS.Security` in `OASIS_DNA.json`:
 
 ---
 
-## 7. Technical notes
+## 7. Implementation status
+
+### Phase 2 — Done (commits c3040a4e9, 03198a87d)
+
+| Item | File |
+|---|---|
+| All 5 HerzID endpoints (register, vouch, verify, profile, set-clearance) | `Controllers/HerzIdController.cs` |
+| In-process atomic sequential counter (`Interlocked.Increment`, seeds from OASIS Holon) | `Services/HerzCounterService.cs` |
+| Request/response models | `Models/HerzId/HerzIdModels.cs` |
+| DI registration, `HerzIdSettings` in OASISDNA, `HerzId.Enabled` feature flag | Done |
+
+### Phase 3 — Done
+
+All remaining items have been implemented:
+
+| Item | Notes |
+|---|---|
+| OIDC discovery endpoints | `OidcController.cs` — all 5 endpoints active |
+| Avatar fields | All 9 `Herz*` fields on `IAvatar` / `Avatar`; `VoiceprintId` + `BiometricEnrolled` for general biometrics |
+| Distributed sequential counter | `DistributedHerzCounterService` — optimistic read-increment-write with 10-retry back-off; safe for multi-pod Railway deployments |
+| Wiccian Registry integration | `QeaSealService.TryIssueRegistryCertificateAsync` — fires when `WiccianRegistryUrl` is configured |
+| Voice biometrics (HerzID) | `AzureVoiceBiometricService` — enroll/verify/delete via Azure Cognitive Services Speaker Recognition; stored as `HerzVoiceprintId` |
+| Voice biometrics (general OASIS) | `BiometricController` — `POST /api/biometric/voice/enroll`, `POST /api/biometric/voice/verify`, `DELETE /api/biometric/voice`; stored as `VoiceprintId` on any Avatar; configurable via `OASIS.Security.Biometric` in OASISDNA |
+| Vouching graph queries | `GET /api/herzid/vouch-chain/{herzId}` (upward to founder); `GET /api/herzid/vouches-issued` (downward) |
+| Ghost-account detection | `POST /api/herzid/ghost-check/{herzId}` — risk score + signals; requires clearance 8+ |
+
+---
+
+## 8. General biometric authentication (all OASIS Avatars)
+
+Any OASIS Avatar — with or without a HerzID — can enroll a voice biometric. This is independent of HerzID.
+
+### Configuration (`OASIS.Security.Biometric` in `OASIS_DNA.json`)
+
+```json
+{
+  "Biometric": {
+    "Enabled": false,
+    "VoiceEnabled": false,
+    "RequireForLogin": false,
+    "RequireForSensitiveOps": false,
+    "AzureSpeakerRecognitionEndpoint": "",
+    "AzureSpeakerRecognitionKey": "",
+    "VoiceVerificationMinScore": 0.5
+  }
+}
+```
+
+| Variable | Purpose |
+|---|---|
+| `OASIS_AZURE_SPEECH_ENDPOINT` | Azure endpoint (takes priority over OASISDNA) |
+| `OASIS_AZURE_SPEECH_KEY` | Azure subscription key (takes priority over OASISDNA) |
+
+### Biometric API endpoints
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/biometric/status` | Returns enrollment status for the authenticated avatar |
+| `POST /api/biometric/voice/enroll` | Enrol a voice biometric (multipart form `audio` field, WAV/OGG/MP3, ≥20 s) |
+| `POST /api/biometric/voice/verify` | Verify voice against enrolled profile (multipart form `audio` field) |
+| `DELETE /api/biometric/voice` | Remove voice biometric from Azure and Avatar |
+| `POST /api/biometric/voice/verify/{avatarId}` | Admin: verify another avatar's voice (clearance 8+ required) |
+
+### Vouching graph and ghost-account endpoints
+
+| Endpoint | Auth | Description |
+|---|---|---|
+| `GET /api/herzid/vouch-chain/{herzId}` | Public | Walks the vouch chain upward to the founder (max 50 hops) |
+| `GET /api/herzid/vouches-issued` | OASIS JWT | Returns all members this avatar has vouched for |
+| `POST /api/herzid/ghost-check/{herzId}` | HerzID clearance 8+ | Returns risk score + signals for ghost-account detection |
+
+**Ghost-check risk signals:**
+
+| Signal | Risk |
+|---|---|
+| Registered within last 24 h | +1 |
+| No voice biometric enrolled | +1 |
+| Clearance still at level 1 | +1 |
+| Voucher issued > 2× allocation in 30 days | +3 |
+| Voucher total issues > allocation | +2 |
+
+Score 0 = Low, 1–2 = Moderate, 3–4 = High, 5+ = Critical.
+
+---
+
+## 9. Technical notes
 
 **Sequential number atomicity:** `HerzCounterService` uses `Interlocked.Increment` for in-process atomicity. It seeds from a dedicated OASIS Holon on startup and persists the high-water mark fire-and-forget after each increment. A crash between increment and persist causes a *gap* (not a duplicate) — acceptable for member numbers. For horizontal scaling, replace with a distributed SQL sequence.
 
