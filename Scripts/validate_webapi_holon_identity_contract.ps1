@@ -25,7 +25,10 @@ foreach ($file in (Get-ChildItem -LiteralPath $starControllers -Filter '*.cs' -F
     # A bare [HttpPost] is the resource-create route. It must never dispatch to UpdateAsync.
     foreach ($match in [regex]::Matches($source, '(?s)\[HttpPost\]\s*(?:\[[^\]]+\]\s*)*public\s+async\s+Task<IActionResult>\s+(?<method>\w+)\s*\([^\)]*\)\s*\{(?<body>.*?)\n\s*\}')) {
         $postCount++
-        if ($match.Groups['body'].Value -match '\.UpdateAsync\s*\(') {
+        $nextAttribute = $source.IndexOf('[Http', $match.Index + $match.Length)
+        if ($nextAttribute -lt 0) { $nextAttribute = $source.Length }
+        $methodWindow = $source.Substring($match.Index, $nextAttribute - $match.Index)
+        if ($methodWindow -match '\.UpdateAsync\s*\(') {
             $resourcePostUpdateViolations.Add("$($file.Name): $($match.Groups['method'].Value)")
         }
     }
