@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -96,6 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
+                    _holonRepository.EnsurePublicIdentityIndex();
                     _searchRepository = new SearchRepository(Database);
                 }
 
@@ -153,6 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
+                    await _holonRepository.EnsurePublicIdentityIndexAsync();
                     _searchRepository = new SearchRepository(Database);
                 }
 
