@@ -136,3 +136,23 @@ credentials, database migration state, and the actual duplicate-free index on th
 environment; source/build checks cannot substitute for it. Record the deployment URL, UTC
 time, caller type, public GUID, and result beside the release or incident ticket when it is
 performed.
+
+## Storage-provider coverage
+
+The public-GUID contract is a provider contract, not a Mongo-only convention. A provider
+is conformant only when its `SaveHolon` and `SaveHolonAsync` operations use `IHolon.Id`
+as their persistence identity, do not use `CreatedDate`, `IsNewHolon`, or a provider key to
+choose insert versus update, and preserve immutable creation audit data on replacement.
+
+| Provider | Static audit status | Current result |
+|---|---|---|
+| MongoDBOASIS | Complete | Conformant: public `HolonId` lookup plus unique public-identity index. |
+| SQLLiteDBOASIS | Complete | Conformant after the public-ID repository fix: the SQLite primary key is the public GUID, existing rows are updated, and their creation date is preserved. |
+| Neo4jOASIS | Complete | Conformant for identity: Cypher `MERGE` keys on public `Id`; `CreatedDate` is set only by `ON CREATE`. |
+| Neo4jOASIS2 | Not an active implementation | Its holon save implementation is commented out, so it cannot be represented as a tested persistence provider. |
+| Other storage, search, cache, vector, and blockchain providers | Pending individual audit | Do not infer conformance from the Mongo fix. Each has its own persistence contract and must receive the same source review and, where active, a provider-backed create/update/read test before it is certified. |
+
+The SQLite and Neo4j source builds passed after their changes. Runtime certification still
+requires each provider's configured integration environment; a source-only audit cannot
+prove a remote service's schema, credentials, uniqueness constraints, or transaction
+behaviour.
