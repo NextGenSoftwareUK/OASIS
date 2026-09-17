@@ -106,7 +106,7 @@ jobs:
 
           # Validate HEAD, not the pre-commit tree. Both policy scripts resolve the
           # committed parent gitlinks, so this proves the exact PR source graph.
-          python3 Scripts/check_submodule_branches.py
+          python3 Scripts/check_submodule_branches.py "$(git rev-parse HEAD)" "$TARGET"
           python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 
           git push --force origin "$SYNC_BRANCH"
