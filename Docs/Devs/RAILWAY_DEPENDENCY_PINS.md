@@ -26,10 +26,12 @@ On `Development` and `master`, the seven private repository values in that branc
 | [`Scripts/check_submodule_branches.py`](../../Scripts/check_submodule_branches.py) | Enforces `Development → Development` and `master → main`, including the branch declarations in `.gitmodules`. |
 | [`.github/workflows/ci-cd.yml`](../../.github/workflows/ci-cd.yml) | Runs both policy checks on pushes and pull requests and blocks drift from merging. |
 | [`.github/workflows/submodule-sync.yml`](../../.github/workflows/submodule-sync.yml) | Detects new submodule branch tips and opens a reviewed pointer-update pull request. |
+| [`.github/workflows/promote-development-to-master.yml`](../../.github/workflows/promote-development-to-master.yml) | Opens missing component promotion PRs and prepares a validated Development-to-master parent PR. |
 | [`.gitmodules`](../../.gitmodules) | Declares which branch each parent branch follows for every submodule. |
 | [`AGENTS.md`](../../AGENTS.md) | Gives this policy to repository-aware coding agents before they modify deployment dependencies. |
 | [`Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md`](./DEVELOPER_DOCUMENTATION_INDEX.md) | Makes this guide discoverable from the developer documentation index. |
 | [`Docs/Devs/DEVELOPMENT_TO_MASTER_PROMOTION.md`](./DEVELOPMENT_TO_MASTER_PROMOTION.md) | Defines the complete reviewed Development-to-production promotion sequence and its automation boundary. |
+| [`Docs/Devs/MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md`](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md) | Provides the short GitHub-only release checklist for normal developers. |
 | [`Docker/Dockerfile.web4`](../../Docker/Dockerfile.web4) | WEB4 Railway build; consumes the shared manifest. |
 | [`Docker/Dockerfile.web5`](../../Docker/Dockerfile.web5) | WEB5 Railway build; consumes the shared manifest. |
 | [`Docker/Dockerfile.web6`](../../Docker/Dockerfile.web6) | WEB6 Railway build; consumes the shared manifest. |

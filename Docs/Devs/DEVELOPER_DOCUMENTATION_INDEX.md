@@ -336,6 +336,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Edge Deployment](./DEPLOYMENT/EDGE_DEPLOYMENT.md)** - Edge computing
 - **[Railway WEB4-WEB10 Dependency Pins](./RAILWAY_DEPENDENCY_PINS.md)** - Single manifest, update workflow, and CI enforcement for deterministic Railway builds
 - **[Development to master Promotion](./DEVELOPMENT_TO_MASTER_PROMOTION.md)** - Ordered submodule and parent release process, automated manifest synchronization, review gates, and recovery
+- **[Merge Development to master: Quick Start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md)** - Simple GitHub Actions release checklist for normal development releases
 
 ### **Operations**
 - **[Monitoring & Alerting](./OPERATIONS/MONITORING.md)** - System monitoring
