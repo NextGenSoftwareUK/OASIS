@@ -104,8 +104,8 @@ static int   g_quest_popup_open            = 0;
 static int   g_inventory_open              = 0;
 
 /* Config variables (loaded from oasisstar.json) */
-static char  g_ogengine_url[512]           = "http://localhost:8888";
-static char  g_oasis_api_url[512]          = "http://localhost:7777";
+static char  g_ogengine_url[512]           = "https://dev.api.starnet.oasisomniverse.one";
+static char  g_oasis_api_url[512]          = "https://dev.api.web4.oasisomniverse.one";
 static int   g_offline_mode                = 0;
 static int   g_stack_weapons               = 1;
 static int   g_stack_armor                 = 1;

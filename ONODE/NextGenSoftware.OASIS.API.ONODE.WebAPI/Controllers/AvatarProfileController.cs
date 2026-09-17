@@ -897,6 +897,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        [HttpPut("inventory/{itemId}")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IInventoryItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IInventoryItem>> UpdateItemInAvatarInventory(Guid itemId, [FromBody] InventoryItem inventoryItem)
+        {
+            if (AvatarId == Guid.Empty)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem> { IsError = true, Message = "AvatarId is required but was not found." }, HttpStatusCode.BadRequest);
+            if (inventoryItem == null || itemId == Guid.Empty)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem> { IsError = true, Message = "A valid item id and request body are required." }, HttpStatusCode.BadRequest);
+            return HttpResponseHelper.FormatResponse(await AvatarManager.UpdateItemInAvatarInventoryAsync(AvatarId, itemId, inventoryItem));
+        }
+
         [HttpDelete("inventory/{itemId}")]
         [Authorize]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]

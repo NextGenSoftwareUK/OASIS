@@ -314,6 +314,8 @@ When the OQUAKE chapter triggers, `StoriesController` pushes 3 cacodemon spawn e
 
 When enabled in **oasisstar.json** (ODOOM and OQuake), collecting items can **mint an NFT** (WEB4 NFTHolon) and attach it to the inventory item. Config keys:
 
+Inventory token identity is independent of category. `NFTId` identifies a minted NFT and `GeoNFTId` identifies a geographic placement; both are optional and mutually exclusive. `NFT` and `GeoNFT` are not inventory categories. Games categorize these rows by their function (`Weapon`, `Ammo`, `Armor`, `Key`, `Nature`, and so on), then display an NFT or GeoNFT badge from the corresponding identifier. See [Our World shared inventory and quest plan](OUR_WORLD_SHARED_INVENTORY_AND_QUEST_PLAN.md).
+
 - **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint when collecting that category; `0` to disable.
 - **nft_provider** – Provider name (e.g. `SolanaOASIS`).
 

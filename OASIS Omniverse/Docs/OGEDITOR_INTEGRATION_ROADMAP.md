@@ -171,8 +171,8 @@ Each editor gains a top-level **OASIS** menu. Editors discover each other via th
     "odoom3_editor": "C:\\Source\\ODOOM3-Editor\\install\\darkradiant.exe"
   },
   "OGEditorClient_path": "C:\\Source\\UltimateDoomBuilder\\build\\OGEditorClient.dll",
-  "ogengine_url":      "http://localhost:8888",
-  "star_api_url":      "http://localhost:7777"
+  "ogengine_url":      "https://dev.api.starnet.oasisomniverse.one",
+  "star_api_url":      "https://dev.api.web4.oasisomniverse.one"
 }
 ```
 
@@ -225,8 +225,8 @@ UDB already has `OASISStarPanel.cs` as a dockable panel. The satellite editors n
 
 ```
 ┌─ OASIS ─────────────────────────────────────────┐
-│ OGEngine  ● Connected  localhost:8888            │
-│ STAR API  ● Connected  localhost:7777            │
+│ OGEngine  ● Connected  dev.api.starnet.oasisomniverse.one            │
+│ STAR API  ● Connected  dev.api.web4.oasisomniverse.one            │
 │ Avatar    PlayerOne  ✦ XP: 4,200                │
 ├─ Asset Browser ─────────────────────────────────┤
 │ Game: [OQuake2 ▼]  Category: [All ▼]            │

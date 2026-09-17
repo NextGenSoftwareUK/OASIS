@@ -8,12 +8,24 @@ const providers: Record<string, string[]> = {
     'Rootstock (RSK)', 'Telos', 'Stacks (BlockStack)', 'Zcash', 'Miden', 'Aztec', 'Starknet',
     'Radix', 'TON', 'Stellar', 'Monad', 'ChainLink', 'Loom', 'Algorand', 'Filecoin',
     'Ceramic / ComposeDB', 'Basechain', 'Abstract', 'Berachain',
+    'Axelar (cross-chain)', 'Wormhole (bridge)', 'Fhenix (FHE L2)', 'Web3Core (EVM universal)',
   ],
   'Storage / Database / Cloud': [
     'MongoDB', 'Neo4j', 'SQL Server', 'Oracle DB', 'SQLite', 'Local File',
     'IPFS', 'Pinata (IPFS pinning)', 'Arweave (permanent)', 'SOLID (Tim Berners-Lee)',
     'ThreeFold', 'Azure Blob Storage', 'Azure Cosmos DB', 'AWS', 'Google Cloud',
     'Moralis (Web3 data API)', 'Tableland (on-chain SQL)',
+    'PostgreSQL', 'Firebase', 'Supabase', 'Cloudflare Workers / KV', 'Cloudflare D1',
+    'PocketBase', 'Turso', 'Appwrite', 'PlanetScale', 'OrbitDB', 'GUN', 'CockroachDB',
+    'Neon', 'SurrealDB', 'RavenDB', 'Cassandra', 'Convex', 'Fauna',
+    'Qdrant', 'Weaviate', 'InfluxDB', 'TimescaleDB', 'Elasticsearch', 'DynamoDB',
+    'Couchbase', 'Upstash', 'ScyllaDB', 'Litestream', 'MinIO', 'Cloudinary',
+    'PouchDB', 'Meilisearch', 'Typesense', 'ClickHouse', 'Redis', 'Memcached',
+    'KeyDB', 'OpenSearch', 'Algolia', 'Solr', 'ArangoDB', 'QuestDB', 'CouchDB',
+    'Xata', 'Pinecone', 'Milvus', 'Chroma', 'LanceDB', 'pgvector', 'Marqo', 'Zilliz',
+    'ArcadeDB', 'DuckDB', 'MotherDuck', 'Snowflake', 'BigQuery', 'Redshift', 'Databricks',
+    'Apache Druid', 'Apache Pinot', 'Dragonfly', 'ValKey', 'Garnet',
+    'Fastly (edge CDN / KV)', 'Deno Deploy (edge functions)',
   ],
   'Decentralised Social / Network': [
     'ActivityPub', 'Holochain', 'HoloWeb', 'Scuttlebutt', 'Urbit', 'SEEDS', 'Telegram',
@@ -24,6 +36,7 @@ const providers: Record<string, string[]> = {
     'Lens v2', 'Privy (embedded wallets)', 'LayerZero (cross-chain)',
     'Gitcoin Passport (identity scoring)', 'Polybase (decentralised DB)',
     'Sui zkLogin (social login)', 'ZKsync SSO (smart account SSO)',
+    'Ceramic / ComposeDB (data streams)',
   ],
   'Web3 API / Indexing / RPC': [
     'The Graph (GraphQL subgraph indexing)', 'ENS (Ethereum Name Service)',
@@ -31,11 +44,14 @@ const providers: Record<string, string[]> = {
   ],
   'Spatial / Gaming / AR': [
     'GO Map (Unity AR)', 'Mapbox (geospatial)', 'WRLD 3D (metaverse)', 'Cargo (NFT marketplace)',
+    'Google Maps', 'HERE Maps', 'MapLibre (open-source maps)', 'Niantic Lightship (AR)',
   ],
   'Identity / Security / IP': [
     'World ID (Worldcoin ZK proof-of-humanity)',
     'Lit Protocol (threshold access control)',
     'Story Protocol (programmable IP)',
+    'Civic (decentralised identity)',
+    'Reclaim Protocol (zk identity proofs)',
   ],
   'Infrastructure / Multisig': [
     'Safe (Gnosis multisig)', 'Sei Network',
