@@ -1,4 +1,4 @@
-﻿{
+{
     "OASIS": {
         "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
         "Logging": {
@@ -101,12 +101,12 @@
             "DectivateProviderTimeOutSeconds": 10,
             "AutoReplicationEnabled": false,
             "AutoFailOverEnabled": true,
-            "AutoLoadBalanceEnabled": true,
+            "AutoLoadBalanceEnabled": false,
             "AutoLoadBalanceReadPollIntervalMins": 10,
             "AutoLoadBalanceWritePollIntervalMins": 10,
-            "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-            "AutoLoadBalanceProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-            "AutoFailOverProviders": "MongoDBOASIS, ArbitrumOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+            "AutoReplicationProviders": "MongoDBOASIS",
+            "AutoLoadBalanceProviders": "MongoDBOASIS",
+            "AutoFailOverProviders": "MongoDBOASIS",
             "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS",
             "AutoFailOverProvidersForCheckIfEmailAlreadyInUse": "MongoDBOASIS",
             "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse": "MongoDBOASIS",
