@@ -2,6 +2,8 @@
 
 This is the release process for promoting the OASIS parent repository and its submodules from development into production. It keeps the source graph tested locally, built by Railway, and recorded by the parent repository identical.
 
+For the normal three-step GitHub process, start with [Merge Development into master: quick start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md). The remainder of this guide explains the implementation, manual equivalent, failure handling, and recovery process.
+
 ## Release invariant
 
 | Parent branch | Submodule branch | Railway manifest |
@@ -11,7 +13,9 @@ This is the release process for promoting the OASIS parent repository and its su
 
 Production must never point at a submodule's `Development` commit. Each changed submodule is promoted to its `main` branch first. The parent `master` pointer and `Docker/oasis-dependency-versions.env` then advance together in one reviewed pull request.
 
-## Promotion sequence
+## Underlying promotion sequence
+
+The **Promote Development to master** workflow performs this sequence. These details are provided for maintainers and recovery; normal developers should use the quick-start workflow rather than execute them manually.
 
 1. Confirm the OASIS `Development` branch is green, its Railway development deployment succeeded, and the changed hosted contracts work.
 2. Identify submodules changed since production:
@@ -76,12 +80,14 @@ These gates are intentional. Automation prepares and proves a concrete release c
 |---|---|
 | `.gitmodules` | Declares `Development` or `main` as the required submodule branch for the current parent branch. |
 | `.github/workflows/submodule-sync.yml` | Updates branch tips, regenerates the manifest, validates the committed result, and opens the PR. |
+| `.github/workflows/promote-development-to-master.yml` | Opens missing submodule promotion PRs and prepares the validated parent production PR. |
 | `.github/workflows/ci-cd.yml` | Blocks pull requests that violate the source-graph invariants. |
 | `Docker/oasis-dependency-versions.env` | Records the immutable revisions Railway clones. |
 | `Scripts/sync_railway_dependency_manifest.py` | Generates private manifest pins from checked-out submodule commits. |
 | `Scripts/check_submodule_branches.py` | Confirms parent gitlinks and `.gitmodules` follow the branch policy. |
 | `Scripts/validate_railway_dependency_manifest.py` | Confirms all seven Dockerfiles share the manifest and its private pins equal committed gitlinks. |
 | `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md` | Documents dependency pinning, local build checks, Railway verification, and failure diagnosis. |
+| `Docs/Devs/MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md` | Gives normal developers the short GitHub-only release procedure. |
 
 ## Failure handling
 
