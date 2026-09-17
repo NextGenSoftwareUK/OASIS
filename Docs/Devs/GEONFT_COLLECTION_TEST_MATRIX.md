@@ -105,7 +105,8 @@ two signed-in clients. Automated results cannot replace these visual checks.
 | Layer | Current recorded result |
 | --- | --- |
 | Local policy matrix | 1,536 combinations, 14 named boundary checks and invalid-limit rejection passed; rerun after any policy change |
-| Hosted API and persistence | Pending |
+| Hosted Anorak once-per-player path | Passed 2026-09-17: four pickups, duplicate rejection, Nature inventory, 1/4 to 4/4 progress, exact event counts, no replay, reset back to 0/4; see [run report](OUR_WORLD_ANORAK_RESET.md) |
+| Other hosted policy combinations | Pending |
 | Multiplayer across replicas | Pending; process-local locking alone is insufficient |
 | Manual Unity matrix | Pending |
 
