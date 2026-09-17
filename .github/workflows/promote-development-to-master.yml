@@ -154,6 +154,14 @@ jobs:
           TARGET_BRANCH: promotion/development-to-master
         run: |
           set -euo pipefail
+
+          ahead=$(git rev-list --count "origin/master..origin/${TARGET_BRANCH}" 2>/dev/null || echo 0)
+          if [ "$ahead" -eq 0 ]; then
+            echo '## Nothing to promote' >> "$GITHUB_STEP_SUMMARY"
+            echo "The promotion branch has no commits ahead of master." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
           cat > /tmp/promotion-body.md <<'EOF'
           Promotes the tested parent Development changes while preserving the production invariant: every submodule points to `main`, and the Railway manifest records those exact gitlinks.
 
