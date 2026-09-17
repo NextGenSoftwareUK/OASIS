@@ -72,6 +72,11 @@ try {
         Write-Host "Reusing quest $($saved.id)"
     } else {
         $saved = Invoke-QuestSeedApi $Web5BaseUrl 'quests' 'Post' $quest
+        $persisted = Invoke-QuestSeedApi $Web5BaseUrl "quests/$($saved.id)"
+        if ($null -eq $persisted -or [string]$persisted.id -ne [string]$saved.id) {
+            throw "WEB5 reported quest $($saved.id) as saved, but it could not be loaded again. No inventory repair was attempted."
+        }
+        $saved = $persisted
         Write-Host "Created quest $($saved.id)"
     }
     $inventory = @(Invoke-QuestSeedApi $Web4BaseUrl 'avatar/inventory')
@@ -82,8 +87,9 @@ try {
             $source = $geo | Where-Object id -eq $id | Select-Object -First 1
             $item | Add-Member -NotePropertyName geoNFTId -NotePropertyValue $id -Force
             $item.nftId = [Guid]::Empty.ToString()
-            $item.name = $source.title; $item.description = $source.description
-            $item.itemType = 'Nature'
+            $item | Add-Member -NotePropertyName name -NotePropertyValue $source.title -Force
+            $item | Add-Member -NotePropertyName description -NotePropertyValue $source.description -Force
+            $item | Add-Member -NotePropertyName itemType -NotePropertyValue 'Nature' -Force
             $item | Add-Member -NotePropertyName image2DURI -NotePropertyValue $source.imageUrl -Force
             if ($item.metaData) { $item.metaData.PSObject.Properties.Remove('NFTId'); $item.metaData.PSObject.Properties.Remove('NftId') }
             $null = Invoke-QuestSeedApi $Web4BaseUrl "avatar/inventory/$($item.id)" 'Put' $item
