@@ -7,7 +7,11 @@ For a normal release, use the **Promote Development to master** GitHub Actions w
 1. Open the OASIS repository on GitHub.
 2. Select **Actions**.
 3. Select **Promote Development to master**.
-4. Select **Run workflow**, leave **Create or update promotion pull requests** selected, and run it.
+4. Select **Run workflow**.
+5. Leave **Use workflow from: master** selected. This selects the trusted production copy of the workflow; the workflow fetches and promotes `Development` automatically.
+6. Leave **Create or update promotion pull requests** selected and run it.
+
+Do not search for or select `Development` in GitHub's **Use workflow from** field. That field chooses which branch's workflow definition runs; it does not choose the source branch being promoted.
 
 The workflow checks every submodule used by Development. If a required change has not reached that submodule's `main` branch, it opens a `Development` to `main` pull request in that repository and stops before changing OASIS production.
 
