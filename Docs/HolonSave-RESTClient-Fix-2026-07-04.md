@@ -156,3 +156,53 @@ The SQLite and Neo4j source builds passed after their changes. Runtime certifica
 requires each provider's configured integration environment; a source-only audit cannot
 prove a remote service's schema, credentials, uniqueness constraints, or transaction
 behaviour.
+
+### Full source inventory (all storage and blockchain providers)
+
+`Scripts/audit_holon_persistence_providers.py` scans every concrete `SaveHolonAsync`
+implementation under `Providers/Storage` and `Providers/Blockchain`, excluding test,
+build-output, and explicitly commented source. Run it with the repository's Python 3
+runtime:
+
+```powershell
+python Scripts/audit_holon_persistence_providers.py --format markdown
+```
+
+The checked-in output is [HOLON_PERSISTENCE_PROVIDER_STATIC_AUDIT.md](Devs/HOLON_PERSISTENCE_PROVIDER_STATIC_AUDIT.md).
+It is deliberately a static inventory, not a false runtime certificate: it records every
+implementation and separates public-ID writes from append-only ledgers, source divergences,
+and implementations that require an integration environment to verify their actual write
+primitive.
+
+| Static result | Count | Meaning and release consequence |
+|---|---:|---|
+| Public-ID write | 35 | Source passes the minimum identity signal: it passes `IHolon.Id` to an upsert, merge, update, or repository write. It still needs its configured provider integration test before runtime certification. |
+| Append-only | 7 | Immutable stores/ledgers such as Arweave and chain transaction providers cannot implement replacement updates by writing the same remote record. They require an explicit versioning/index contract before they may be advertised as generic CRUD providers. |
+| Manual review | 19 | `Id` is present, but static source alone cannot prove whether the remote write is an update, an insert, or an upsert. These are not certified. |
+| Divergent | 37 | Source either omits the public ID in its save method or branches on a provider-key/lifecycle signal. These are not certified and must be fixed at the provider boundary before use as generic CRUD persistence. |
+
+The static output includes storage and blockchain providers precisely so an unreviewed
+alternative cannot silently inherit Mongo's certification. `Neo4jOASIS.Aura` is one such
+visible divergence: it matches `Name`, not the public GUID, and is not selected by the
+standard bootloader. It must not be substituted for `Neo4jOASIS` until corrected and
+tested.
+
+### Active bootloader providers
+
+The standard bootloader currently creates `SQLLiteDBOASIS`, `MongoDBOASIS`,
+`Neo4jOASIS`, `LocalFileOASIS`, and `ArweaveOASIS` for this area (along with chain
+providers whose writes have ledger semantics). The first four mutable stores are now
+covered as follows:
+
+| Active provider | Public-ID create/update decision | Creation audit preservation | Evidence |
+|---|---|---|---|
+| MongoDBOASIS | `HolonId` lookup plus unique index | Yes | Provider build plus source audit |
+| SQLLiteDBOASIS | Public GUID primary key | Yes | Provider build plus source audit |
+| Neo4jOASIS | Cypher `MERGE` on public `Id` | Yes, `ON CREATE` | Provider build plus source audit |
+| LocalFileOASIS | `Id`-named file existence | Yes; persisted creation fields are retained on full replacement | Provider build plus source audit |
+| ArweaveOASIS | Not generic update-in-place | Immutable upload produces a new transaction | Explicitly not CRUD-certified; needs version/index design |
+
+No source audit can demonstrate remote uniqueness, schema state, or a provider's actual
+transaction semantics. Every provider labelled source-conformant still requires one
+provider-backed preallocated-ID create, update, reload, and duplicate-identity acceptance
+test before it can be listed as runtime certified.
