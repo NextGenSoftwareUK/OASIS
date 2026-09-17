@@ -35,6 +35,7 @@ typedef struct {
     char game_source[64];
     char item_type[64];
     char nft_id[128];  /* NFTId from MetaData when item is linked to NFTHolon; empty when not an NFT item */
+    char geo_nft_id[128]; /* GeoNFT placement identity; empty when not geographically collected */
     int quantity;      /* Stack size. API increments if item exists and stack=1; otherwise new item gets this. */
 } ogengine_item_t;
 

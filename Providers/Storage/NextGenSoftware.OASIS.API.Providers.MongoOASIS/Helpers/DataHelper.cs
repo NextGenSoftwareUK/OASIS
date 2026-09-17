@@ -278,7 +278,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                         Object3DURI = inv.Object3DURI,
                         GameSource = inv.GameSource,
                         ItemType = inv.ItemType,
-                        NftId = inv.NftId
+                        NftId = inv.NftId,
+                        GeoNFTId = inv.GeoNFTId
                     };
                     if (inv.MetaData != null && inv.MetaData.Count > 0)
                         copy.MetaData = new Dictionary<string, object>(inv.MetaData);
@@ -617,7 +618,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                         Object3DURI = inv.Object3DURI,
                         GameSource = inv.GameSource,
                         ItemType = inv.ItemType,
-                        NftId = inv.NftId
+                        NftId = inv.NftId,
+                        GeoNFTId = inv.GeoNFTId
                     };
                     if (inv.MetaData != null && inv.MetaData.Count > 0)
                         mongoInv.MetaData = new Dictionary<string, object>(inv.MetaData);
