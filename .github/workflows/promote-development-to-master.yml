@@ -1,0 +1,160 @@
+name: Promote Development to master
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Promotion action
+        required: true
+        type: choice
+        options:
+          - Create or update promotion pull requests
+        default: Create or update promotion pull requests
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: promote-development-to-master
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Fetch Development
+        run: git fetch origin Development
+
+      - name: Open missing submodule promotion pull requests
+        id: submodules
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          set -euo pipefail
+          : > /tmp/submodule-promotions.md
+          pending=false
+
+          git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while read -r key path; do
+            if ! dev_sha=$(git rev-parse "origin/Development:${path}" 2>/dev/null); then
+              continue
+            fi
+
+            git -C "$path" fetch origin main Development
+            if git -C "$path" merge-base --is-ancestor "$dev_sha" origin/main; then
+              continue
+            fi
+
+            pending=true
+            name=${key#submodule.}
+            name=${name%.path}
+            url=$(git config -f .gitmodules --get "submodule.${name}.url")
+            repo=$(printf '%s' "$url" | sed -E 's#^git@github.com:##; s#^https://github.com/##; s#\.git$##')
+            existing=$(gh pr list --repo "$repo" --base main --head Development --state open --json url --jq '.[0].url // empty')
+            if [ -z "$existing" ]; then
+              existing=$(gh pr create --repo "$repo" --base main --head Development \
+                --title 'Promote Development to main for OASIS production' \
+                --body 'Required by the OASIS Development-to-master promotion. Review and merge this component before rerunning the parent promotion workflow.')
+            fi
+            printf -- '- `%s`: %s\n' "$path" "$existing" >> /tmp/submodule-promotions.md
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          done
+
+          if [ -s /tmp/submodule-promotions.md ]; then
+            {
+              echo '## Submodule promotions required'
+              echo
+              echo 'Review and merge these pull requests, then rerun this workflow:'
+              cat /tmp/submodule-promotions.md
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo 'pending=false' >> "$GITHUB_OUTPUT"
+          echo 'All Development submodule commits are present on their production main branches.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build the parent promotion commit
+        if: steps.submodules.outputs.pending == 'false'
+        env:
+          TARGET_BRANCH: promotion/development-to-master
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -B "$TARGET_BRANCH" origin/master
+          cp .gitmodules /tmp/production.gitmodules
+          cp Docker/oasis-dependency-versions.env /tmp/production-dependency-versions.env
+
+          set +e
+          git merge --no-ff --no-commit origin/Development
+          merge_status=$?
+          set -e
+
+          # These files encode the production source graph and must retain master
+          # semantics. The exact values are regenerated below from main branch tips.
+          cp /tmp/production.gitmodules .gitmodules
+          cp /tmp/production-dependency-versions.env Docker/oasis-dependency-versions.env
+          git add .gitmodules Docker/oasis-dependency-versions.env
+          git submodule sync --recursive
+
+          git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while read -r _ path; do
+            git -C "$path" fetch origin main
+            git -C "$path" checkout --detach origin/main
+            git add "$path"
+          done
+
+          unresolved=$(git diff --name-only --diff-filter=U)
+          if [ -n "$unresolved" ]; then
+            {
+              echo '## Parent merge needs conflict resolution'
+              echo
+              echo 'The automation safely resolved production graph files, but these application files conflict:'
+              echo '```'
+              echo "$unresolved"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [ "$merge_status" -ne 0 ]; then
+            echo 'All merge conflicts were limited to the production graph and were resolved deterministically.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          python3 Scripts/sync_railway_dependency_manifest.py
+          git add --all
+          git commit -m 'Promote Development to master'
+
+          commit=$(git rev-parse HEAD)
+          python3 Scripts/check_submodule_branches.py "$commit" master
+          python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+
+          git push --force origin "$TARGET_BRANCH"
+
+      - name: Open or update the parent promotion pull request
+        if: steps.submodules.outputs.pending == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          TARGET_BRANCH: promotion/development-to-master
+        run: |
+          set -euo pipefail
+          cat > /tmp/promotion-body.md <<'EOF'
+          Promotes the tested parent Development changes while preserving the production invariant: every submodule points to `main`, and the Railway manifest records those exact gitlinks.
+
+          Prepared by `.github/workflows/promote-development-to-master.yml`. Review the application diff and required checks before merging. Merging this pull request deploys production.
+          EOF
+
+          existing=$(gh pr list --base master --head "$TARGET_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --title 'Promote Development to master' --body-file /tmp/promotion-body.md
+            url=$(gh pr view "$existing" --json url --jq .url)
+          else
+            url=$(gh pr create --base master --head "$TARGET_BRANCH" \
+              --title 'Promote Development to master' --body-file /tmp/promotion-body.md)
+          fi
+          printf '## Parent promotion ready\n\n%s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
