@@ -2,7 +2,7 @@
 
 This is the release process for promoting the OASIS parent repository and its submodules from development into production. It keeps the source graph tested locally, built by Railway, and recorded by the parent repository identical.
 
-For the normal three-step GitHub process, start with [Merge Development into master: quick start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md). The remainder of this guide explains the implementation, manual equivalent, failure handling, and recovery process.
+For the normal three-step GitHub process, start with [Merge Development into master: quick start](./MERGE_DEVELOPMENT_TO_MASTER_QUICK_START.md). Run the workflow using GitHub's **Use workflow from: master** selection; the workflow fetches `Development` itself. The remainder of this guide explains the implementation, manual equivalent, failure handling, and recovery process.
 
 ## Release invariant
 
