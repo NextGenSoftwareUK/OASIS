@@ -22,12 +22,14 @@ On `Development` and `master`, the seven private repository values in that branc
 | [`Docker/oasis-dependency-versions.env`](../../Docker/oasis-dependency-versions.env) | The single authoritative dependency SHA set for the current parent branch. |
 | [`Docker/clone-pinned-oasis-dependencies.sh`](../../Docker/clone-pinned-oasis-dependencies.sh) | Reads the manifest and checks out the private repositories at those exact revisions. |
 | [`Scripts/validate_railway_dependency_manifest.py`](../../Scripts/validate_railway_dependency_manifest.py) | Rejects missing or malformed pins, Dockerfile-local pins, Dockerfiles that bypass the manifest, and manifest/gitlink mismatches. |
+| [`Scripts/sync_railway_dependency_manifest.py`](../../Scripts/sync_railway_dependency_manifest.py) | Regenerates the seven private pins from the currently checked-out submodule commits. |
 | [`Scripts/check_submodule_branches.py`](../../Scripts/check_submodule_branches.py) | Enforces `Development → Development` and `master → main`, including the branch declarations in `.gitmodules`. |
 | [`.github/workflows/ci-cd.yml`](../../.github/workflows/ci-cd.yml) | Runs both policy checks on pushes and pull requests and blocks drift from merging. |
 | [`.github/workflows/submodule-sync.yml`](../../.github/workflows/submodule-sync.yml) | Detects new submodule branch tips and opens a reviewed pointer-update pull request. |
 | [`.gitmodules`](../../.gitmodules) | Declares which branch each parent branch follows for every submodule. |
 | [`AGENTS.md`](../../AGENTS.md) | Gives this policy to repository-aware coding agents before they modify deployment dependencies. |
 | [`Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md`](./DEVELOPER_DOCUMENTATION_INDEX.md) | Makes this guide discoverable from the developer documentation index. |
+| [`Docs/Devs/DEVELOPMENT_TO_MASTER_PROMOTION.md`](./DEVELOPMENT_TO_MASTER_PROMOTION.md) | Defines the complete reviewed Development-to-production promotion sequence and its automation boundary. |
 | [`Docker/Dockerfile.web4`](../../Docker/Dockerfile.web4) | WEB4 Railway build; consumes the shared manifest. |
 | [`Docker/Dockerfile.web5`](../../Docker/Dockerfile.web5) | WEB5 Railway build; consumes the shared manifest. |
 | [`Docker/Dockerfile.web6`](../../Docker/Dockerfile.web6) | WEB6 Railway build; consumes the shared manifest. |
@@ -80,7 +82,7 @@ The `solution-integrity` CI job runs the structural check on every branch that c
 
 The legacy parent `main` branch uses a vendored directory layout and does not contain the WEB4-WEB10 Dockerfiles, so this manifest policy does not apply there. Do not copy a Development manifest into `master`; each deployment branch records its own tested source graph.
 
-The existing `submodule-sync` workflow may open a pointer-update pull request when a tracked submodule branch advances. That pull request is expected to fail this policy check until the matching branch manifest is deliberately updated and the service matrix has been verified. This makes deployment promotion an explicit reviewed action.
+The `submodule-sync` workflow opens a pointer-update pull request when a tracked submodule branch advances. It regenerates the private manifest pins from the checked-out submodules and commits them with the gitlinks, then validates the committed state. The pull request remains an explicit reviewed release action. See [Promoting OASIS from Development to master](./DEVELOPMENT_TO_MASTER_PROMOTION.md).
 
 ## Required verification
 
