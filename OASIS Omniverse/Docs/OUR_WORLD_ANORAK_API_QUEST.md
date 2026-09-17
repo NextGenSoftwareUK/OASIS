@@ -18,9 +18,9 @@ Startup eligibility and instructions come from the API quest with `MetaData["Our
 2. Run the existing GeoNFT seed if a placement manifest does not exist.
 3. Run `Scripts/seed_our_world_tree_quest.bat`, or its PowerShell script with `-ManifestPath`, `-Web4BaseUrl`, `-Web5BaseUrl`, `-CredentialPath` or `-Credential`. Defaults are the hosted dev APIs. Credentials use the existing DPAPI file and are not printed.
 4. `-PlanOnly` prints the four/five objective quest without authentication or writes. Live seeding checks Swagger for the new endpoint before changing data.
-5. The script reuses the matching Anorak quest and repairs only inventory rows whose incorrect `NftId` matches the manifest. It then reconciles already-collected items. Conflicting objective sets produce an error rather than overwriting progress.
+5. The script reuses the matching Anorak quest and repairs only inventory rows whose incorrect `NftId` matches the manifest. It consolidates historical duplicate rows only for the same manifest `GeoNFTId`, retaining the earliest acquisition, and verifies that no duplicate remains. The deployed AvatarManager token-identity guard prevents repeated collection from adding another row. It then reconciles already-collected items. Conflicting objective sets produce an error rather than overwriting progress.
 
-Hosted development WEB4 and WEB5 now expose the collector and `inventory-progress` contracts. The first live seed verification found a JWT runtime package mismatch in WEB5 before changing seed data. API Core now owns a coherent IdentityModel 8.19.1 dependency family, and the WEB5 deployment consumes that shared invariant. Live seed output and Unity Play Mode remain the final runtime evidence; local builds alone do not satisfy them.
+Hosted development WEB4 and WEB5 expose the collector and `inventory-progress` contracts. On 17 September 2026 the live repair reused quest `e7528f70-8452-42d6-be63-ddee006c746c`, verified four completed objectives, and proved one canonical `Nature` inventory item for each manifest GeoNFT. Quest detail and inventory reconciliation both returned HTTP 200. Unity Play Mode remains the final visual/audio acceptance step; local builds and serialized scene wiring alone do not prove rendered timing or appearance.
 
 ## OGEngineClient consolidation
 
