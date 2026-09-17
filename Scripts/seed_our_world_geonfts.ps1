@@ -213,15 +213,18 @@ try {
         $created = $false
         if ($matches.Count -eq 1) {
             Write-Host "Reusing existing placement: $($point.label)"
-            $geo = $matches[0]
+            $geo = Invoke-GeoApi "nft/geo-nft/$($matches[0].id)" 'Put' @{
+                permSpawn = $false; allowOtherPlayersToAlsoCollect = $true
+                globalSpawnQuantity = 0; playerSpawnQuantity = 1; respawnDurationInSeconds = 60
+            }
         } else {
             Write-Host "Placing GeoNFT: $($point.label)..."
             $geo = Invoke-GeoApi 'nft/place-geo-nft' 'Post' @{
                 originalOASISNFTId = $OriginalNFTId.ToString()
                 originalOASISNFTOffChainProvider = $Provider; geoNFTMetaDataProvider = $Provider
-                lat = $point.lat; long = $point.long; permSpawn = $true
-                allowOtherPlayersToAlsoCollect = $true; globalSpawnQuantity = -1
-                playerSpawnQuantity = -1; respawnDurationInSeconds = 60
+                lat = $point.lat; long = $point.long; permSpawn = $false
+                allowOtherPlayersToAlsoCollect = $true; globalSpawnQuantity = 0
+                playerSpawnQuantity = 1; respawnDurationInSeconds = 60
             }
             if ($null -eq $geo -or [string]::IsNullOrWhiteSpace($geo.id)) { throw "Placement at $($point.label) returned no GeoNFT ID." }
             $created = $true

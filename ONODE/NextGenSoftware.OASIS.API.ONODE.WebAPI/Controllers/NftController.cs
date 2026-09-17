@@ -65,6 +65,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await CollectNFTAsync(request);
         }
 
+        /// <summary>Authoritative per-avatar visibility/respawn state for requested placements.</summary>
+        [Authorize]
+        [HttpPost("geo-nft-collection-status")]
+        public async Task<OASISResult<List<NextGenSoftware.OASIS.API.Core.Objects.NFT.GeoNFTCollectionStatus>>> GeoNFTCollectionStatus([FromBody] Guid[] ids)
+        {
+            if (ids == null || ids.Length > 500)
+                return new() { IsError = true, Message = "Supply up to 500 GeoNFT IDs." };
+            var loaded = await NFTManager.LoadAllWeb4GeoNFTsAsync();
+            if (loaded.IsError || loaded.Result == null)
+                return new() { IsError = true, Message = loaded.Message };
+            var requested = new HashSet<Guid>(ids);
+            var nfts = loaded.Result.Where(n => requested.Contains(n.Id)).ToList();
+            if (nfts.Count != requested.Count)
+                return new() { IsError = true, Message = "One or more GeoNFT placements were not found." };
+            return await NextGenSoftware.OASIS.API.Core.Managers.AvatarManager.Instance
+                .GetGeoNFTCollectionStatusesAsync(AvatarId, nfts);
+        }
+
+        /// <summary>Update a placement's authored metadata/rules, restricted to its creator.</summary>
+        [Authorize]
+        [HttpPut("geo-nft/{id}")]
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> UpdateGeoNFT(Guid id,
+            [FromBody] NextGenSoftware.OASIS.API.Core.Objects.NFT.Request.UpdateWeb4GeoNFTRequest request)
+        {
+            if (request == null) return new() { IsError = true, Message = "Request body is required." };
+            var loaded = await NFTManager.LoadWeb4GeoNftAsync(id);
+            if (loaded.IsError || loaded.Result == null)
+                return new() { IsError = true, Message = loaded.Message };
+            if (loaded.Result.PlacedByAvatarId != AvatarId)
+                return new() { IsError = true, Message = "Only the placement creator may update its rules." };
+            request.Id = id;
+            request.ModifiedByAvatarId = AvatarId;
+            return await NFTManager.UpdateWeb4GeoNFTAsync(request);
+        }
         [Authorize]
         [HttpPost]
         [Route("collect-geo-nft")]
