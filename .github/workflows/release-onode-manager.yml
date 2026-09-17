@@ -16,11 +16,42 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  PROJECT: ONODE/NextGenSoftware.OASIS.ONODE.Manager/NextGenSoftware.OASIS.ONODE.Manager.csproj
+  PROJECT:         ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Manager/NextGenSoftware.OASIS.ONODE.Manager.csproj
+  SERVICE_PROJECT: ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/NextGenSoftware.OASIS.ONODE.Service.csproj
 
 jobs:
+  # ── Unit tests ────────────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Run unit tests
+        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "github-actions" --no-restore
+
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
   build-windows:
+    needs: [test]
     runs-on: windows-latest
     steps:
       - name: Checkout OASIS
@@ -48,9 +79,16 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Restore & Publish (win-x64)
+      - name: Restore & Publish Manager (win-x64)
         run: >
           dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r win-x64 --self-contained
+          -o publish/win-x64
+          /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Restore & Publish Service (win-x64)
+        run: >
+          dotnet publish OASIS/${{ env.SERVICE_PROJECT }}
           -c Release -r win-x64 --self-contained
           -o publish/win-x64
           /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
@@ -72,6 +110,7 @@ jobs:
 
   # ── macOS (DMG via Velopack) ───────────────────────────────────────────────
   build-macos:
+    needs: [test]
     runs-on: macos-latest
     steps:
       - name: Checkout OASIS
@@ -99,9 +138,16 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Restore & Publish (osx-x64)
+      - name: Restore & Publish Manager (osx-x64)
         run: >
           dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r osx-x64 --self-contained
+          -o publish/osx-x64
+          /p:PublishSingleFile=true
+
+      - name: Restore & Publish Service (osx-x64)
+        run: >
+          dotnet publish OASIS/${{ env.SERVICE_PROJECT }}
           -c Release -r osx-x64 --self-contained
           -o publish/osx-x64
           /p:PublishSingleFile=true
@@ -123,6 +169,7 @@ jobs:
 
   # ── Linux (AppImage via Velopack) ─────────────────────────────────────────
   build-linux:
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout OASIS
@@ -150,9 +197,16 @@ jobs:
       - name: Install Velopack CLI
         run: dotnet tool install -g vpk
 
-      - name: Restore & Publish (linux-x64)
+      - name: Restore & Publish Manager (linux-x64)
         run: >
           dotnet publish OASIS/${{ env.PROJECT }}
+          -c Release -r linux-x64 --self-contained
+          -o publish/linux-x64
+          /p:PublishSingleFile=true
+
+      - name: Restore & Publish Service (linux-x64)
+        run: >
+          dotnet publish OASIS/${{ env.SERVICE_PROJECT }}
           -c Release -r linux-x64 --self-contained
           -o publish/linux-x64
           /p:PublishSingleFile=true

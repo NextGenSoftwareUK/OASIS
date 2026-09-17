@@ -178,67 +178,61 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>ScrollOASIS</b> - Scroll Provider.</li>
 <li><b>LineaOASIS</b> - Linea (Consensys L2) Provider.</li>
 <li><b>AbstractOASIS</b> - Abstract (Consumer L2) Provider.</li>
-<li><b>BerachainOASIS</b> - Berachain (Proof-of-Liquidity L1) Provider.</li>
+<li><b>BerachainOASIS</b> - Berachain EVM L1 Provider (chain ID 80094; Proof-of-Liquidity consensus; transactions → Holons, addresses → Avatars).</li>
+<li><b>AxelarOASIS</b> - Axelar Cross-Chain Interoperability Provider (Cosmos-based; cross-chain messaging and token transfers; GMP calls → Holons).</li>
+<li><b>WormholeOASIS</b> - Wormhole Cross-Chain Bridge Provider (VAA messages → Holons; multi-chain asset transfers and messaging).</li>
+<li><b>FhenixOASIS</b> - Fhenix FHE L2 Provider (Fully Homomorphic Encryption L2; encrypted smart contract state; transactions → Holons, addresses → Avatars).</li>
+<li><b>Web3CoreOASIS</b> - Web3Core EVM Universal Adapter Provider (supports any EVM-compatible chain; transactions → Holons, addresses → Avatars).</li>
 <li><b>TelegramOASIS</b> - Telegram Provider.</li>
 <li><b>MoralisOASIS</b> - Moralis Web3 API Provider.</li>
-<li><b>SQLServerDBOASIS</b> - SQL Server Provider (Relational Database).</li>
-<li><b>OracleDBOASIS</b> - Oracle DB Provider (Relational Database).</li>
-<li><b>AzureStorageOASIS</b> - Azure Blob Storage Provider.</li>
+<li><b>SQLServerDBOASIS</b> - SQL Server Provider (ADO.NET, MERGE upserts, JSON_VALUE search).</li>
+<li><b>OracleDBOASIS</b> - Oracle DB Provider (Oracle.ManagedDataAccess.Core, CLOB JSON, Oracle MERGE).</li>
+<li><b>AzureStorageOASIS</b> - Azure Blob Storage Provider (Azure.Storage.Blobs SDK; holons and avatars stored as JSON blobs).</li>
+<li><b>FastlyOASIS</b> - Fastly Edge CDN / KV Provider (edge KV store; holons cached and retrieved at the network edge).</li>
+<li><b>DenoDeployOASIS</b> - Deno Deploy Edge Functions Provider (Deno KV; holons stored as key-value pairs at the edge).</li>
 <li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider.</li>
-<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider.</li>
-<li><b>OnionOASIS</b> - Tor / Onion Protocol Privacy Provider.</li>
-<li><b>GOMapOASIS</b> - GO Map Unity AR Provider.</li>
-<li><b>MapboxOASIS</b> - Mapbox Geospatial Provider.</li>
-<li><b>WRLD3DOASIS</b> - WRLD 3D Metaverse Provider.</li>
-<li><b>CargoOASIS</b> - Cargo NFT Marketplace Provider.</li>
+<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider (read-only: order-book and swap quotes via Orion REST API).</li>
+<li><b>OnionOASIS</b> - Tor / Onion Protocol Provider (routes all OASIS storage calls through a SOCKS5 Tor proxy to an onion-hosted OASIS backend).</li>
+<li><b>GOMapOASIS</b> - GO Map Unity AR Provider (spatial / AR mapping integration for Unity apps).</li>
+<li><b>MapboxOASIS</b> - Mapbox Geospatial Provider (geospatial tiles, geocoding, directions via Mapbox REST API).</li>
+<li><b>GoogleMapsOASIS</b> - Google Maps Provider (Places API, Geocoding, Directions; locations → Holons, users → Avatars).</li>
+<li><b>HEREMapsOASIS</b> - HERE Maps Provider (HERE REST APIs; geocoding, routing, places → Holons).</li>
+<li><b>MapLibreOASIS</b> - MapLibre Open-Source Maps Provider (vector tile rendering; tile sources → Holons).</li>
+<li><b>NianticLightshipOASIS</b> - Niantic Lightship AR Provider (VPS anchors and AR content → Holons; real-world AR platform).</li>
+<li><b>WRLD3DOASIS</b> - WRLD 3D Metaverse Provider (3D world / metaverse geospatial layer integration).</li>
+<li><b>CargoOASIS</b> - Cargo NFT Marketplace Provider (NFT marketplace and minting via Cargo API).</li>
 <li><b>HoloWebOASIS</b> - HoloWeb Provider.</li>
 <li><b>ScuttlebuttOASIS</b> - Scuttlebutt (SSB) Provider.</li>
 <li><b>FarcasterOASIS</b> - Farcaster Decentralised Social Provider.</li>
 <li><b>NostrOASIS</b> - Nostr Decentralised Social Protocol Provider (BIP-340 Schnorr signing, WebSocket relay).</li>
-<li><b>LensOASIS</b> - Lens Protocol v2 Decentralised Social Graph Provider (Polygon/Lens Network, GraphQL).</li>
+<li><b>LensOASIS</b> - Lens Protocol Decentralised Social Graph Provider (Polygon/Lens Network, GraphQL).</li>
+<li><b>LensV2OASIS</b> - Lens Protocol v2 Provider.</li>
 <li><b>BlueSkyOASIS</b> - BlueSky / AT Protocol Decentralised Social Provider (XRPC REST, DIDs, AT-URIs; posts → Holons, profiles → Avatars).</li>
-<li><b>MatrixOASIS</b> - Matrix Client-Server API v3 Decentralised Messaging Provider (room events → Holons, @user:server → Avatars, 3PID email lookup).</li>
+<li><b>MatrixOASIS</b> - Matrix Client-Server API v3 Decentralised Messaging Provider (room events → Holons, @user:server → Avatars).</li>
 <li><b>FilecoinOASIS</b> - Filecoin Lotus JSON-RPC Provider (storage deals, CIDs → Holons, addresses → Avatars; Glif.io public node).</li>
-<li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer via Algonode.io; transactions → Holons, accounts → Avatars, ASA support).</li>
-<li><b>CeramicOASIS</b> - Ceramic Network Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
-<li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars, raw-tx broadcast).</li>
-<li><b>DiscordOASIS</b> - Discord REST API v10 Provider (guild members → Avatars, channel messages → Holons; bot-token auth, 800M+ user reach).</li>
-<li><b>TheGraphOASIS</b> - The Graph Protocol Indexing Provider (GraphQL subgraph; blockchain entities → Holons, indexers → Avatars; configurable subgraph URL).</li>
-<li><b>WorldIDOASIS</b> - World ID (Worldcoin) Proof-of-Humanity Provider (ZK verification → Avatars; nullifier_hash as anonymous unique key; Sybil resistance for OASIS karma).</li>
-<li><b>LitProtocolOASIS</b> - Lit Protocol Decentralised Access Control Provider (threshold encryption; encrypted holons with token/NFT/karma-gated conditions; wallet addresses → Avatars).</li>
-<li><b>StoryProtocolOASIS</b> - Story Protocol Programmable IP Blockchain Provider (Story Network EVM L1; IP Assets → Holons, creators → Avatars; license attachment and royalty support).</li>
-<li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC via evm-rpc.sei-apis.com; transactions → Holons, addresses → Avatars).</li>
-<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval; base64-encoded holons stored as DA blobs).</li>
-<li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons, pubkeys → Avatars).</li>
-<li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons, wallet addresses → Avatars).</li>
-<li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars, domains/subdomains → Holons).</li>
-<li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons, wallet balances → Avatars).</li>
-<li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects, CID as providerKey).</li>
+<li><b>AlgorandOASIS</b> - Algorand Provider (Algod v2 REST + Indexer; transactions → Holons, accounts → Avatars, ASA support).</li>
+<li><b>CeramicOASIS</b> - Ceramic Network / ComposeDB Provider (TileDocument streams → Holons, DID resolution → Avatars; HTTP API, pin/unpin).</li>
+<li><b>BasechainOASIS</b> - Basechain (Loom Network) EVM Provider (Ethereum JSON-RPC; transactions → Holons, addresses → Avatars).</li>
+<li><b>DiscordOASIS</b> - Discord REST API v10 Provider (guild members → Avatars, channel messages → Holons; bot-token auth).</li>
+<li><b>TheGraphOASIS</b> - The Graph Protocol Indexing Provider (GraphQL subgraph; blockchain entities → Holons, indexers → Avatars).</li>
+<li><b>WorldIDOASIS</b> - World ID (Worldcoin) Proof-of-Humanity Provider (ZK verification → Avatars; Sybil resistance for OASIS karma).</li>
+<li><b>LitProtocolOASIS</b> - Lit Protocol Decentralised Access Control Provider (threshold encryption; karma-gated conditions; wallet addresses → Avatars).</li>
+<li><b>StoryProtocolOASIS</b> - Story Protocol Programmable IP Blockchain Provider (IP Assets → Holons, creators → Avatars).</li>
+<li><b>CivicOASIS</b> - Civic Decentralised Identity Provider (Civic Pass verification → Avatars; on-chain identity attestations).</li>
+<li><b>ReclaimProtocolOASIS</b> - Reclaim Protocol ZK Identity Proofs Provider (zero-knowledge proofs of web credentials → Avatars).</li>
+<li><b>SeiOASIS</b> - Sei Network EVM Provider (chain ID 1329; EVM JSON-RPC; transactions → Holons, addresses → Avatars).</li>
+<li><b>CelestiaOASIS</b> - Celestia Modular DA Network Provider (light node REST API; blob submission/retrieval).</li>
+<li><b>EclipseOASIS</b> - Eclipse SVM L2 Provider (Solana JSON-RPC on mainnetbeta-rpc.eclipse.xyz; transactions → Holons).</li>
+<li><b>PushProtocolOASIS</b> - Push Protocol Decentralised Notifications Provider (REST API; notifications → Holons).</li>
+<li><b>ENSOASIS</b> - ENS (Ethereum Name Service) Provider (The Graph GraphQL subgraph; ENS names → Avatars).</li>
+<li><b>AlchemyOASIS</b> - Alchemy Web3 Infrastructure Provider (ETH JSON-RPC + NFT v3 API; transactions → Holons).</li>
+<li><b>InfuraOASIS</b> - Infura Web3 Gateway Provider (ETH JSON-RPC + IPFS pinning; holons stored as IPFS objects).</li>
 <li><b>SafeOASIS</b> - Gnosis Safe Multisig Provider (Safe Transaction REST API; multisig txs → Holons, safe addresses → Avatars).</li>
 <li><b>TablelandOASIS</b> - Tableland Decentralised SQL Provider (REST API; SQL SELECT/INSERT for holons stored as table rows).</li>
-<li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons, content topics map to parent keys).</li>
-<li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons, asset IDs as providerKey).</li>
+<li><b>WakuOASIS</b> - Waku v2 Decentralised Messaging Provider (REST API; relay messages → Holons).</li>
+<li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons).</li>
 <li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
-<li><b>AbstractOASIS</b> - Abstract EVM L2 Provider (chain ID 2741; consumer gaming and NFT L2, Ethereum-settled, ZK-proven; transactions → Holons, addresses → Avatars).</li>
-<li><b>BerachainOASIS</b> - Berachain EVM L1 Provider (chain ID 80094; Proof-of-Liquidity consensus; transactions → Holons, addresses → Avatars).</li>
-<li><b>StellarOASIS</b> - Stellar Horizon REST API Provider (transactions → Holons via memo_text, account IDs → Avatars; XLM balance included).</li>
-<li><b>zkSyncOASIS</b> - zkSync Era EVM L2 Provider (chain ID 324; ZK rollup with native account abstraction; transactions → Holons, addresses → Avatars).</li>
-<li><b>ScrollOASIS</b> - Scroll zkEVM L2 Provider (chain ID 534352; bytecode-level EVM equivalence; transactions → Holons, addresses → Avatars).</li>
-<li><b>LineaOASIS</b> - Linea zkEVM L2 Provider (chain ID 59144; ConsenSys / MetaMask-integrated ZK rollup; transactions → Holons, addresses → Avatars).</li>
-<li><b>MonadOASIS</b> - Monad EVM L1 Provider (chain ID 41454; 10,000+ TPS parallel execution; transactions → Holons, addresses → Avatars).</li>
-<li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (Azure.Storage.Blobs SDK; holons and avatars stored as JSON blobs; prefix-based parent queries).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
-<li><b>StellarOASIS</b> - Stellar Blockchain Provider (Horizon REST API, BIP-340 Ed25519 signing, XDR transactions).</li>
-<li><b>AzureStorageOASIS</b> - Microsoft Azure Blob Storage Provider (object storage, distinct from AzureCosmosDBOASIS).</li>
-<li><b>SQLServerDBOASIS</b> - Microsoft SQL Server Provider (ADO.NET, MERGE upserts, JSON_VALUE search).</li>
-<li><b>OracleDBOASIS</b> - Oracle Database Provider (Oracle.ManagedDataAccess.Core, CLOB JSON, Oracle MERGE).</li>
-<li><b>OrionProtocolOASIS</b> - Orion Protocol DEX Aggregator Provider (read-only: order-book and swap quotes via Orion REST API).</li>
-<li><b>OnionOASIS</b> - Tor / Onion Protocol Provider (routes all OASIS storage calls through a SOCKS5 Tor proxy to an onion-hosted OASIS backend).</li>
-<li><b>GOMapOASIS</b> - GO Map Unity Provider (spatial / AR mapping integration for Unity apps).</li>
-<li><b>MapboxOASIS</b> - Mapbox Provider (geospatial tiles, geocoding, directions via Mapbox REST API).</li>
-<li><b>WRLD3DOASIS</b> - WRLD3D Provider (3D world / metaverse geospatial layer integration).</li>
-<li><b>CargoOASIS</b> - Cargo NFT Provider (NFT marketplace and minting via Cargo API).</li>
-<li><b>PLANOASIS</b> - PLAN (Personal Local Area Network) Provider — decentralised identity mesh.</li>
 
 </ul>
 
