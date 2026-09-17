@@ -324,23 +324,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            // CHANGED: Previously this used ProviderUniqueStorageKey.ContainsKey(MongoDBOASIS)
-            // to decide insert vs update. That key is an internal MongoDB implementation detail
-            // (the ObjectId) that is only present if the caller round-tripped a previously loaded
-            // holon. Stateless REST/JS clients constructing a holon from scratch never have this
-            // key, so they always hit AddAsync and created a new document on every save.
-            // The sync SaveHolon overload below already uses IsNewHolon correctly; this async
-            // path now matches it.  IsNewHolon is the authoritative lifecycle state supplied
-            // by the create/update manager, never a proxy such as a missing CreatedDate.
-            //
-            // Old code (kept for reference):
-            // OASISResult<IHolon> result = !holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS)
-            //     ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
-            //     : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
-
-            OASISResult<IHolon> result = holon.IsNewHolon
-                ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
-                : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
+            // Holon.Id is the public, provider-independent OASIS identity. MongoDB's ObjectId is
+            // intentionally private and therefore is not present in REST, JavaScript/NPM, Unity,
+            // or native update payloads. Resolve the operation from the persisted public identity
+            // itself: update the matching document, otherwise create the first document for it.
+            // Do not use CreatedDate or IsNewHolon here: both are lifecycle/audit state and are not
+            // a durable cross-client storage key.
+            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
+            var persistedHolon = await _holonRepository.GetHolonAsync(mongoHolon.HolonId);
+            var saveResult = persistedHolon == null
+                ? await _holonRepository.AddAsync(mongoHolon)
+                : await _holonRepository.UpdateAsync(mongoHolon);
+            OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
 
             if (!result.IsError && result.Result != null && saveChildren && saveChildrenOnProvider && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
@@ -360,9 +355,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IHolon> result = holon.IsNewHolon
-                ? DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Add(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
-                : DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Update(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
+            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
+            var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
+            var saveResult = persistedHolon == null
+                ? _holonRepository.Add(mongoHolon)
+                : _holonRepository.Update(mongoHolon);
+            OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
 
             if (!result.IsError && result.Result != null && saveChildren && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
