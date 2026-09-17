@@ -42,7 +42,9 @@ jobs:
           : > /tmp/submodule-promotions.md
           pending=false
 
-          git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while read -r key path; do
+          git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while IFS= read -r line; do
+            key="${line%% *}"
+            path="${line#* }"
             if ! dev_sha=$(git rev-parse "origin/Development:${path}" 2>/dev/null); then
               continue
             fi
@@ -104,7 +106,8 @@ jobs:
           git add .gitmodules Docker/oasis-dependency-versions.env
           git submodule sync --recursive
 
-          git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while read -r _ path; do
+          git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while IFS= read -r line; do
+            path="${line#* }"
             git -C "$path" fetch origin main
             git -C "$path" checkout --detach origin/main
             git add "$path"
