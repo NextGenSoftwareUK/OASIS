@@ -74,12 +74,19 @@ if (Test-Path -LiteralPath $ManifestPath) {
 function Save-Manifest { $folder=Split-Path -Parent $ManifestPath; New-Item -ItemType Directory -Path $folder -Force | Out-Null; $manifest | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $ManifestPath -Encoding UTF8 }
 
 try {
+    $ownedNfts = @(Invoke-OasisApi $Web4BaseUrl "nft/load-all-nfts-for-avatar/$($avatar.id)")
     foreach ($fixture in $fixtures) {
         $saved = @($manifest.fixtures | Where-Object key -eq $fixture.key) | Select-Object -First 1
         $point = Get-Coordinate $fixture.bearing $fixture.distance
         if ($null -eq $saved) {
-            Write-Host "Minting $($fixture.name)..."
-            $nft = Invoke-OasisApi $Web4BaseUrl 'nft/mint-nft' 'Post' @{
+            $matchingNfts = @($ownedNfts | Where-Object { [string]$_.title -eq $fixture.name -and [string]$_.mintedByAvatarId -eq [string]$avatar.id })
+            if ($matchingNfts.Count -gt 1) { throw "Multiple owned source NFTs named '$($fixture.name)' exist; resolve the duplicate before seeding." }
+            if ($matchingNfts.Count -eq 1) {
+                $nft = $matchingNfts[0]
+                Write-Host "Reusing source NFT $($nft.id) for $($fixture.name)."
+            } else {
+                Write-Host "Minting $($fixture.name)..."
+                $nft = Invoke-OasisApi $Web4BaseUrl 'nft/mint-nft' 'Post' @{
                 title=$fixture.name; description=$fixture.description; symbol=$fixture.symbol; imageUrl=$fixture.image
                 numberToMint=1; price=0; discount=0; offChainProvider='MongoDBOASIS'; onChainProvider='SolanaOASIS'
                 nftOffChainMetaType='OASIS'; nftStandardType='SPL'; sendToAvatarAfterMintingId=$avatar.id
@@ -87,6 +94,8 @@ try {
                 waitTillNFTVerified=$true; waitForNFTToVerifyInSeconds=180; attemptToVerifyEveryXSeconds=1
                 waitTillNFTSent=$true; waitForNFTToSendInSeconds=180; attemptToSendEveryXSeconds=1
                 metaData=@{ 'OurWorld.TestSuite'='quest-mode-spawn-matrix'; 'OurWorld.FixtureKey'=$fixture.key; 'OurWorld.Rarity'=$fixture.rarity; 'OurWorld.Category'='Nature' }
+                }
+                $ownedNfts += $nft
             }
             $saved=[pscustomobject]@{ key=$fixture.key; sourceNFTId=[string]$nft.id; geoNFTId=$null; name=$fixture.name; rarity=$fixture.rarity; quest=$fixture.quest }
             $manifest.fixtures += $saved; Save-Manifest
