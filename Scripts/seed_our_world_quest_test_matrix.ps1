@@ -1,12 +1,14 @@
 <#
 .SYNOPSIS
-Seeds two repeatable Our World quest fixtures and six distinct GeoNFTs on the development APIs.
+Seeds four repeatable Our World quest fixtures and fourteen distinct GeoNFTs on the development APIs.
 
 .DESCRIPTION
-The suite creates one AnyOrder quest and one InOrder quest. Every objective owns a
+The suite creates two AnyOrder quests and two InOrder quests. Every objective owns a
 different source NFT and GeoNFT placement, with varied names, descriptions, images,
-rarities and collection rules. A manifest makes interrupted runs resumable and keeps
-the fixture identities stable. This script never edits or resets the Anorak quest.
+rarities and collection rules. Two non-quest fixtures deliberately have zero allowance
+to verify portal suppression without making a quest impossible. A manifest makes
+interrupted runs resumable and keeps fixture identities stable. This script never
+edits or resets the Anorak quest.
 #>
 [CmdletBinding()]
 param(
@@ -22,14 +24,22 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$imageRoot = 'https://raw.githubusercontent.com/NextGenSoftwareUK/Our-World/main/Assets/SFX%20Selects/endangered%20tokens/TreeBigIcons'
+$imageRoot = 'https://raw.githubusercontent.com/NextGenSoftwareUK/OASIS/Development/Docs/Assets/OurWorld/TreeBigIcons'
 $fixtures = @(
-    [ordered]@{ key='aurora-fern'; name='Aurora Fern'; description='A luminous fern used to test alphabetical sorting and once-per-player collection.'; symbol='OWAF'; rarity='Uncommon'; image="$imageRoot/1.png"; bearing=20; distance=95; quest='any'; perm=$false; share=$true; global=0; player=1; cooldown=0 },
-    [ordered]@{ key='cobalt-mushroom'; name='Cobalt Mushroom'; description='A cobalt forest specimen used to test descriptions, rarity sorting and search.'; symbol='OWCM'; rarity='Rare'; image="$imageRoot/2.png"; bearing=70; distance=110; quest='any'; perm=$false; share=$true; global=0; player=1; cooldown=0 },
-    [ordered]@{ key='ember-orchid'; name='Ember Orchid'; description='A warm orange orchid used to prove AnyOrder objectives complete independently.'; symbol='OWEO'; rarity='Epic'; image="$imageRoot/3.png"; bearing=120; distance=125; quest='any'; perm=$false; share=$true; global=0; player=1; cooldown=0 },
-    [ordered]@{ key='moonlit-reed'; name='Moonlit Reed'; description='The first ordered objective and a permanent spawn with a thirty-second cooldown.'; symbol='OWMR'; rarity='Common'; image="$imageRoot/4.png"; bearing=190; distance=105; quest='ordered'; perm=$true; share=$true; global=0; player=1; cooldown=30 },
-    [ordered]@{ key='prism-bloom'; name='Prism Bloom'; description='The second ordered objective; each avatar may collect it twice and cannot share a claimed placement.'; symbol='OWPB'; rarity='Legendary'; image="$imageRoot/Screenshot%202024-08-24%20at%2014.38.16%202.png"; bearing=240; distance=125; quest='ordered'; perm=$false; share=$false; global=0; player=2; cooldown=0 },
-    [ordered]@{ key='verdant-starfruit'; name='Verdant Starfruit'; description='The final ordered objective; its global limit overrides the per-player value.'; symbol='OWVS'; rarity='Mythic'; image="$imageRoot/1.png"; bearing=300; distance=145; quest='ordered'; perm=$false; share=$true; global=5; player=1; cooldown=0 }
+    [ordered]@{ key='aurora-fern'; name='Aurora Fern'; description='A luminous fern used to test alphabetical sorting and once-per-player collection.'; symbol='OWAF'; rarity='Uncommon'; image="$imageRoot/rainbow-tree.png"; bearing=20; distance=95; quest='any'; perm=$false; share=$true; global=0; player=1; cooldown=0 },
+    [ordered]@{ key='cobalt-mushroom'; name='Cobalt Mushroom'; description='A cobalt forest specimen used to test descriptions, rarity sorting and search.'; symbol='OWCM'; rarity='Rare'; image="$imageRoot/lightning-tree.png"; bearing=70; distance=110; quest='any'; perm=$false; share=$true; global=0; player=1; cooldown=0 },
+    [ordered]@{ key='ember-orchid'; name='Ember Orchid'; description='A warm orange orchid used to prove AnyOrder objectives complete independently.'; symbol='OWEO'; rarity='Epic'; image="$imageRoot/mycelium-tree.png"; bearing=120; distance=125; quest='any'; perm=$false; share=$true; global=0; player=1; cooldown=0 },
+    [ordered]@{ key='moonlit-reed'; name='Moonlit Reed'; description='The first ordered objective and a permanent spawn with a thirty-second cooldown.'; symbol='OWMR'; rarity='Common'; image="$imageRoot/fruit-tree.png"; bearing=190; distance=105; quest='ordered'; perm=$true; share=$true; global=0; player=1; cooldown=30 },
+    [ordered]@{ key='prism-bloom'; name='Prism Bloom'; description='The second ordered objective; each avatar may collect it twice and cannot share a claimed placement.'; symbol='OWPB'; rarity='Legendary'; image="$imageRoot/skeleton-tree.png"; bearing=240; distance=125; quest='ordered'; perm=$false; share=$false; global=0; player=2; cooldown=0 },
+    [ordered]@{ key='verdant-starfruit'; name='Verdant Starfruit'; description='The final ordered objective; its global limit overrides the per-player value.'; symbol='OWVS'; rarity='Mythic'; image="$imageRoot/rainbow-tree.png"; bearing=300; distance=145; quest='ordered'; perm=$false; share=$true; global=5; player=1; cooldown=0 }
+    [ordered]@{ key='solar-lotus'; name='Solar Lotus'; description='A radiant permanent specimen with immediate unlimited respawn.'; symbol='OWSL'; rarity='Celestial'; image="$imageRoot/lightning-tree.png"; bearing=330; distance=165; quest='respawn'; perm=$true; share=$true; global=0; player=1; cooldown=0 },
+    [ordered]@{ key='tideglass-moss'; name='Tideglass Moss'; description='A translucent permanent specimen that becomes available again after twenty seconds.'; symbol='OWTM'; rarity='Uncommon'; image="$imageRoot/mycelium-tree.png"; bearing=350; distance=185; quest='respawn'; perm=$true; share=$true; global=0; player=1; cooldown=20 },
+    [ordered]@{ key='echo-seed'; name='Echo Seed'; description='An unlimited per-player specimen with a ten-second personal cooldown.'; symbol='OWES'; rarity='Rare'; image="$imageRoot/fruit-tree.png"; bearing=10; distance=205; quest='respawn'; perm=$false; share=$true; global=0; player=-1; cooldown=10 },
+    [ordered]@{ key='crystal-thistle'; name='Crystal Thistle'; description='A globally scarce specimen; the global allowance of two overrides its larger player allowance.'; symbol='OWCT'; rarity='Epic'; image="$imageRoot/skeleton-tree.png"; bearing=145; distance=165; quest='limits'; perm=$false; share=$true; global=2; player=5; cooldown=0 },
+    [ordered]@{ key='obsidian-pod'; name='Obsidian Pod'; description='A globally unlimited specimen proving that global minus one overrides a zero player allowance.'; symbol='OWOP'; rarity='Legendary'; image="$imageRoot/rainbow-tree.png"; bearing=165; distance=185; quest='limits'; perm=$false; share=$true; global=-1; player=0; cooldown=15 },
+    [ordered]@{ key='silver-lichen'; name='Silver Lichen'; description='An exclusive placement claim that allows its claiming avatar two collections.'; symbol='OWLI'; rarity='Mythic'; image="$imageRoot/lightning-tree.png"; bearing=185; distance=205; quest='limits'; perm=$false; share=$false; global=0; player=2; cooldown=5 },
+    [ordered]@{ key='dormant-bulb'; name='Dormant Bulb'; description='A deliberately unavailable per-player zero-limit fixture; no portal should appear.'; symbol='OWDB'; rarity='Dormant'; image="$imageRoot/mycelium-tree.png"; bearing=215; distance=225; quest='eligibility'; perm=$false; share=$true; global=0; player=0; cooldown=0 },
+    [ordered]@{ key='exhausted-cone'; name='Exhausted Cone'; description='A deliberately unavailable exclusive zero-limit fixture used to verify suppression and filtering.'; symbol='OWXC'; rarity='Exhausted'; image="$imageRoot/fruit-tree.png"; bearing=235; distance=245; quest='eligibility'; perm=$false; share=$false; global=0; player=0; cooldown=60 }
 )
 
 function Get-Coordinate([double]$bearing, [double]$distance) {
@@ -102,8 +112,16 @@ try {
             $saved=[pscustomobject]@{ key=$fixture.key; sourceNFTId=[string]$nft.id; geoNFTId=$null; name=$fixture.name; rarity=$fixture.rarity; quest=$fixture.quest }
             $manifest.fixtures += $saved; Save-Manifest
         }
+        $source = Invoke-OasisApi $Web4BaseUrl "nft/load-nft-by-id/$($saved.sourceNFTId)/MongoDBOASIS/false"
+        $source = Invoke-OasisApi $Web4BaseUrl 'nft/update-web4-nft' 'Post' @{
+            id=$saved.sourceNFTId; title=$fixture.name; description=$fixture.description; imageUrl=$fixture.image
+            currentOwnerAvatarId=$avatar.id; mintedByAvatarId=$avatar.id
+            metaData=@{ 'OurWorld.TestSuite'='quest-mode-spawn-matrix'; 'OurWorld.FixtureKey'=$fixture.key; 'OurWorld.Rarity'=$fixture.rarity; 'OurWorld.Category'='Nature' }
+        }
+        if ([string]$source.title -ne $fixture.name -or [string]$source.imageUrl -ne $fixture.image) {
+            throw "Source NFT metadata reconciliation failed for $($fixture.name)."
+        }
         if ([string]::IsNullOrWhiteSpace([string]$saved.geoNFTId)) {
-            $source = Invoke-OasisApi $Web4BaseUrl "nft/load-nft-by-id/$($saved.sourceNFTId)/MongoDBOASIS/false"
             if ([Guid]$source.currentOwnerAvatarId -eq [Guid]::Empty -and [string]$source.mintedByAvatarId -eq [string]$avatar.id) {
                 $source = Invoke-OasisApi $Web4BaseUrl 'nft/update-web4-nft' 'Post' @{
                     id=$saved.sourceNFTId; currentOwnerAvatarId=$avatar.id; mintedByAvatarId=$avatar.id
@@ -132,7 +150,9 @@ try {
 
     $questDefinitions = @(
         @{ key='any-order'; name='Chromatic Canopy: Any Path'; description='Collect three unusual nature specimens in whichever order you choose.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'any') },
-        @{ key='in-order'; name='Celestial Garden: Follow the Sequence'; description='Collect Moonlit Reed, Prism Bloom and Verdant Starfruit in that exact order.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'ordered') }
+        @{ key='in-order'; name='Celestial Garden: Follow the Sequence'; description='Collect Moonlit Reed, Prism Bloom and Verdant Starfruit in that exact order.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'ordered') },
+        @{ key='respawn-any-order'; name='Renewal Cycle: Living Echoes'; description='Collect three renewable specimens in any order and observe their distinct cooldown rules.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'respawn') },
+        @{ key='limits-in-order'; name='Custodians of Scarcity'; description='Follow the sequence through global precedence, unlimited global supply and an exclusive claim.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'limits') }
     )
     $allQuests = @(Invoke-OasisApi $Web5BaseUrl 'quests/all-for-avatar/game')
     foreach ($definition in $questDefinitions) {
@@ -177,7 +197,9 @@ try {
         $expectedOrder = if ($definition.order -eq 0) { 'AnyOrder' } else { 'InOrder' }
         if ([string]$matches[0].objectiveCompletionOrder -ne $expectedOrder) { throw "$($definition.name) did not persist $expectedOrder." }
     }
-    Write-Host "Seeded and verified six GeoNFT fixtures and two quest modes. Manifest: $ManifestPath" -ForegroundColor Green
+    $fixtureCount = @($manifest.fixtures | Where-Object { $_.key -in @($fixtures.key) }).Count
+    if ($fixtureCount -ne $fixtures.Count) { throw "Expected $($fixtures.Count) fixture records; found $fixtureCount." }
+    Write-Host "Seeded and verified $($fixtures.Count) GeoNFT fixtures and $($questDefinitions.Count) quests across both ordering modes. Manifest: $ManifestPath" -ForegroundColor Green
 } finally {
     $headers.Clear(); $avatar=$null; $Credential=$null
 }
