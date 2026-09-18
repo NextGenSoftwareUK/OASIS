@@ -13,7 +13,7 @@ Stop Unity Play mode, then from the OASIS repository root:
 ```
 
 The script authenticates using the existing encrypted development seed credential.
-It discovers Anorak's four/five required GeoNFTs, includes only tagged demo duplicates
+It discovers Anorak's five required GeoNFTs, includes only tagged demo duplicates
 at those coordinates, removes their inventory rows and collection-history entries,
 and resets that quest. It does not reset the database, avatar, karma, other quests
 or other inventory. It verifies unrelated inventory is unchanged and calls inventory
@@ -68,12 +68,15 @@ the targeted reset so a successful test leaves a fresh manual playthrough.
 - Manifest/gitlink equality and all eight Development branch pointers passed.
 - Authenticated eligibility route works; the previous 404 is resolved.
 - All 12 tagged demo placements returned once-per-player settings after updating.
-- Four sequential pickups passed; all four duplicate pickups were rejected.
+- The original four sequential pickups passed; all four duplicate pickups were rejected.
 - Nature inventory quantity remained one per pickup despite duplicate requests.
 - Quest progress advanced 1/4, 2/4, 3/4, 4/4, one objective event each, with one
   quest-complete event on the last pickup. Repeated sync returned no events.
 - Cleanup removed four test inventory rows and four durable history entries.
   Reconciliation then remained 0/4; all 20 unrelated inventory rows were unchanged.
+- On 2026-09-18 the quest was migrated in place to five canonical named trees
+  (Rainbow, Lightning, Mycelium, Fruit and Skeleton) and reset to 0/5. The old
+  four-placement set was retained but made ineligible (`PlayerSpawnQuantity=0`).
 
 These are API results, not manual verification of chest rendering, audio, portal
 placement or UI. Full rule combinations, multiplayer and cross-replica persistence
