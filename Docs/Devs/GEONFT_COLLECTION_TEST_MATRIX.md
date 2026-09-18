@@ -20,6 +20,10 @@ or Unity presentation. Do not mark an unexecuted check as passed.
 
 ## Automated policy suite
 
+For reusable hosted fixtures covering `AnyOrder`, `InOrder`, permanent/cooldown,
+per-player, exclusive and global-limit behavior, see
+[Our World quest test fixtures](OUR_WORLD_QUEST_TEST_FIXTURES.md).
+
 Run from the OASIS repository root:
 
 ```powershell

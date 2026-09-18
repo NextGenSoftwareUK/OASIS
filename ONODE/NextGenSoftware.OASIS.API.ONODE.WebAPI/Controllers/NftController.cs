@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -483,8 +484,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null || request.OriginalOASISNFTId == Guid.Empty ||
                 double.IsNaN(request.Lat) || double.IsInfinity(request.Lat) || Math.Abs(request.Lat) > 90 ||
                 double.IsNaN(request.Long) || double.IsInfinity(request.Long) || Math.Abs(request.Long) > 180 ||
-                request.GlobalSpawnQuantity < 1 || request.PlayerSpawnQuantity < 1 || request.RespawnDurationInSeconds < 0)
-                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A valid NFT, GPS coordinates and positive spawn quantities are required." };
+                !GeoNFTCollectionPolicy.AreLimitsValid(request.GlobalSpawnQuantity, request.PlayerSpawnQuantity, request.RespawnDurationInSeconds))
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A valid NFT, GPS coordinates and spawn quantities of -1, 0, or a positive value are required." };
 
             ProviderType originalOASISNFTProviderType = ProviderType.None;
             ProviderType geoNFTMetaDataProvider = ProviderType.None;
