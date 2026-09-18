@@ -105,13 +105,42 @@ try {
         $saved = Invoke-QuestSeedApi $Web5BaseUrl "quests/$($existing[0].id)"
         $savedIds = @($saved.objectives | ForEach-Object { $_.needToCollectItems.'Our World' } | Sort-Object)
         $expected = @($ids | ForEach-Object { "geonft:$_" } | Sort-Object)
-        if (@(Compare-Object $savedIds $expected).Count -gt 0) { throw 'Existing quest targets a different manifest. Refusing to overwrite progress.' }
+        $newTokens = @($expected | Where-Object { $_ -notin $savedIds })
+        $removedTokens = @($savedIds | Where-Object { $_ -notin $expected })
+        $completed = @($saved.objectives | Where-Object { $_.isCompleted -or [int]$_.currentCount -gt 0 })
+        if (($removedTokens.Count -gt 0 -or $newTokens.Count -gt 0) -and $completed.Count -gt 0) {
+            throw 'Reset Anorak progress before changing its placement manifest.'
+        }
+        if ($removedTokens.Count -gt 0) {
+            foreach ($token in $removedTokens) {
+                $retiredId = $token.Substring('geonft:'.Length)
+                $null = Invoke-QuestSeedApi $Web4BaseUrl "nft/geo-nft/$retiredId" 'Put' @{
+                    permSpawn=$false; allowOtherPlayersToAlsoCollect=$true
+                    globalSpawnQuantity=0; playerSpawnQuantity=0; respawnDurationInSeconds=0
+                    metaData=@{ 'OurWorld.DemoSeed'='true'; 'OurWorld.Retired'='true'; 'OurWorld.ReplacedByManifest'=$ManifestPath }
+                }
+                Write-Host "Retired superseded Anorak placement $retiredId"
+            }
+            $saved.objectives = $objectives
+            Write-Host "Migrating Anorak quest to the canonical $($objectives.Count)-tree manifest."
+        } elseif ($newTokens.Count -eq 1) {
+            $newObjective = @($objectives | Where-Object { @($_.needToCollectItems.'Our World') -contains $newTokens[0] }) | Select-Object -First 1
+            if ($null -eq $newObjective) { throw 'Could not author the fifth Anorak objective.' }
+            $saved.objectives += $newObjective
+            Write-Host "Appending fifth Anorak objective: $($newObjective.title)"
+        }
+        $saved.description = $quest.description
+        $saved.objectiveCompletionOrder = 0
         # Upgrade the existing demo quest in place to the canonical cross-game
         # presentation contract without replacing its identity or progress.
         foreach ($authored in $objectives) {
             $token = [string]$authored.needToCollectItems.'Our World'[0]
             $persistedObjective = @($saved.objectives | Where-Object { @($_.needToCollectItems.'Our World') -contains $token }) | Select-Object -First 1
             if ($null -eq $persistedObjective) { throw "Could not map authored event data to objective $token." }
+            $persistedObjective.title = $authored.title
+            $persistedObjective.description = $authored.description
+            $persistedObjective.order = $authored.order
+            $persistedObjective.needToCollectItems = $authored.needToCollectItems
             $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnActivate -NotePropertyValue $authored.crossGameEventsOnActivate -Force
             $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnComplete -NotePropertyValue $authored.crossGameEventsOnComplete -Force
         }
