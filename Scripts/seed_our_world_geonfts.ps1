@@ -1,11 +1,12 @@
 <#
 .SYNOPSIS
-Mints one Web4 NFT and places four API-backed GeoNFTs around Our World's desktop test location.
+Mints one Web4 NFT and places five API-backed GeoNFTs around Our World's desktop test location.
 .DESCRIPTION
 Mints one source Web4 NFT through the configured on-chain provider, then uses
-that NFT as the source for four GeoNFT placements. The manifest is written as
+that NFT as the source for five GeoNFT placements. The manifest is written as
 soon as the source NFT exists so a failed placement can be resumed with
--OriginalNFTId. The default account is loaded from a Windows user-encrypted
+-OriginalNFTId. A later run reuses the source NFT recorded in the existing
+manifest instead of minting another one. The default account is loaded from a Windows user-encrypted
 credential file and is never stored in Git.
 .EXAMPLE
 ./Scripts/seed_our_world_geonfts.ps1 -PlanOnly
@@ -165,6 +166,17 @@ function Invoke-GeoApi {
 }
 
 try {
+    if ($OriginalNFTId -eq [Guid]::Empty -and (Test-Path -LiteralPath $OutputPath)) {
+        $previousManifest = Get-Content -LiteralPath $OutputPath -Raw | ConvertFrom-Json
+        $previousSourceNFTId = [Guid]::Empty
+        if ($null -ne $previousManifest -and
+            [Guid]::TryParse([string]$previousManifest.sourceNFTId, [ref]$previousSourceNFTId) -and
+            $previousSourceNFTId -ne [Guid]::Empty) {
+            $OriginalNFTId = $previousSourceNFTId
+            Write-Host "Reusing source Web4 NFT from the existing manifest: $OriginalNFTId"
+        }
+    }
+
     $manifest = [ordered]@{
         web4BaseUrl = $server; sourceNFTId = $null; sourceNFTCreated = $false
         center = @{ lat = $Latitude; long = $Longitude }; placements = @()

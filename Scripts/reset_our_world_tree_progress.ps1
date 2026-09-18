@@ -40,7 +40,7 @@ try {
         if ($_ -notmatch '^geonft:([0-9a-f-]{36})$') { throw "Unexpected Anorak requirement: $_" }
         $Matches[1]
     })
-    if ($required.Count -notin @(4,5)) { throw 'Expected four or five tree objectives.' }
+    if ($required.Count -ne 5) { throw 'Expected the canonical five Anorak tree objectives.' }
     $placements = @(Api $Web4BaseUrl 'nft/load-all-geo-nfts/MongoDBOASIS/false')
     $canonical = @($placements | Where-Object { $_.id -in $required })
     if ($canonical.Count -ne $required.Count) { throw 'Anorak placement is missing.' }

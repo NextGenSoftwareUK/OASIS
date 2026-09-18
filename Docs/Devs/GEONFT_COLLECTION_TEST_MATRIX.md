@@ -92,7 +92,7 @@ two signed-in clients. Automated results cannot replace these visual checks.
 6. Eligible repeat pickups respawn when cooldown expires, including after scene
    reload, sign-out/sign-in and application restart. Exhausted placements do not.
 7. A second avatar observes sharing/global limits correctly after a refresh.
-8. Collect all four Anorak trees: Nature inventory, quest list and tracker agree;
+8. Collect all five Anorak trees: Nature inventory, quest list and tracker agree;
    Quest Complete and its celebration appear once for the completion transition.
 9. After collecting a target, approach another: detection and Locate still work.
 10. Check duplicate coordinates, interrupted requests, and repeated Fetch clicks:
@@ -109,7 +109,7 @@ two signed-in clients. Automated results cannot replace these visual checks.
 | Layer | Current recorded result |
 | --- | --- |
 | Local policy matrix | 1,536 combinations, 14 named boundary checks and invalid-limit rejection passed; rerun after any policy change |
-| Hosted Anorak once-per-player path | Passed 2026-09-17: four pickups, duplicate rejection, Nature inventory, 1/4 to 4/4 progress, exact event counts, no replay, reset back to 0/4; see [run report](OUR_WORLD_ANORAK_RESET.md) |
+| Hosted Anorak once-per-player path | The original four-tree path passed 2026-09-17. The canonical dataset was migrated to five named trees on 2026-09-18 and reset to 0/5; rerun the full five-pickup acceptance before release. See [run report](OUR_WORLD_ANORAK_RESET.md). |
 | Other hosted policy combinations | Pending |
 | Multiplayer across replicas | Pending; process-local locking alone is insufficient |
 | Manual Unity matrix | Pending |
