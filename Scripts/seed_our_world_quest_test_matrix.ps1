@@ -134,7 +134,10 @@ try {
     )
     $allQuests = @(Invoke-OasisApi $Web5BaseUrl 'quests/all-for-avatar/game')
     foreach ($definition in $questDefinitions) {
-        $existing = @($allQuests | Where-Object title -eq $definition.name)
+        $existing = @($allQuests | Where-Object {
+            $null -ne $_ -and (($_.PSObject.Properties['title'] -and [string]$_.title -eq $definition.name) -or
+                ($_.PSObject.Properties['name'] -and [string]$_.name -eq $definition.name))
+        })
         if ($existing.Count -gt 1) { throw "Duplicate fixture quest: $($definition.name)" }
         if ($existing.Count -eq 1) { Write-Host "Reusing quest $($definition.name) ($($existing[0].id))"; continue }
         $objectives=@(); $index=0
