@@ -138,9 +138,14 @@ try {
             $saved.geoNFTId=[string]$geo.id; Save-Manifest
         } else {
             $geo = Invoke-OasisApi $Web4BaseUrl "nft/geo-nft/$($saved.geoNFTId)" 'Put' @{
+                title=$fixture.name; description=$fixture.description; imageUrl=$fixture.image
+                metaData=@{ 'OurWorld.TestSuite'='quest-mode-spawn-matrix'; 'OurWorld.FixtureKey'=$fixture.key; 'OurWorld.Rarity'=$fixture.rarity; 'OurWorld.Category'='Nature' }
                 permSpawn=$fixture.perm; allowOtherPlayersToAlsoCollect=$fixture.share; globalSpawnQuantity=$fixture.global
                 playerSpawnQuantity=$fixture.player; respawnDurationInSeconds=$fixture.cooldown
             }
+        }
+        if ([string]$geo.title -ne $fixture.name -or [string]$geo.imageUrl -ne $fixture.image) {
+            throw "GeoNFT presentation metadata reconciliation failed for $($fixture.name)."
         }
         foreach ($property in 'permSpawn','allowOtherPlayersToAlsoCollect','globalSpawnQuantity','playerSpawnQuantity','respawnDurationInSeconds') {
             $expected = switch ($property) { 'permSpawn' {$fixture.perm}; 'allowOtherPlayersToAlsoCollect' {$fixture.share}; 'globalSpawnQuantity' {$fixture.global}; 'playerSpawnQuantity' {$fixture.player}; default {$fixture.cooldown} }
