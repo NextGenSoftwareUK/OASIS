@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Exercise the four/five Anorak pickups on the development APIs, then leave a clean test run.
+Exercise the five canonical Anorak pickups on the development APIs, then leave a clean test run.
 .DESCRIPTION
 Explicit opt-in via -Apply. Uses the same scoped reset before and after the test.
 Requires the GeoNFT collection-rules deployment. Does not verify Unity visuals.
@@ -38,7 +38,7 @@ try {
         if ($_ -notmatch '^geonft:([0-9a-f-]{36})$') {throw 'Unexpected objective requirement'}
         $Matches[1]
     })
-    if ($ids.Count -notin @(4,5)) {throw 'Expected four/five GeoNFT objectives.'}
+    if ($ids.Count -ne 5) {throw 'Expected five canonical GeoNFT objectives.'}
     $null=Api $Web4BaseUrl 'nft/geo-nft-collection-status' 'Post' $ids
     & "$PSScriptRoot/reset_our_world_tree_progress.ps1" -Apply -Web4BaseUrl $Web4BaseUrl -Web5BaseUrl $Web5BaseUrl -CredentialPath $CredentialPath
     $resetNeeded=$true

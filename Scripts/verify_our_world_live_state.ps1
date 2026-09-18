@@ -19,7 +19,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
 $ids = @($manifest.placements | ForEach-Object { ([Guid]$_.id).ToString() } | Select-Object -Unique)
-if ($ids.Count -lt 4 -or $ids.Count -gt 5) { throw 'Expected four or five unique manifest placements.' }
+if ($ids.Count -ne 5) { throw 'Expected five unique Anorak manifest placements.' }
 if ($null -eq $Credential) { $Credential = Import-Clixml -LiteralPath $CredentialPath }
 
 function Unwrap($response) {
