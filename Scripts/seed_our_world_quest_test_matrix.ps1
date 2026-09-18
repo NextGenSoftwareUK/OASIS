@@ -88,13 +88,16 @@ try {
                 waitTillNFTSent=$true; waitForNFTToSendInSeconds=180; attemptToSendEveryXSeconds=1
                 metaData=@{ 'OurWorld.TestSuite'='quest-mode-spawn-matrix'; 'OurWorld.FixtureKey'=$fixture.key; 'OurWorld.Rarity'=$fixture.rarity; 'OurWorld.Category'='Nature' }
             }
+            $saved=[pscustomobject]@{ key=$fixture.key; sourceNFTId=[string]$nft.id; geoNFTId=$null; name=$fixture.name; rarity=$fixture.rarity; quest=$fixture.quest }
+            $manifest.fixtures += $saved; Save-Manifest
+        }
+        if ([string]::IsNullOrWhiteSpace([string]$saved.geoNFTId)) {
             $geo = Invoke-OasisApi $Web4BaseUrl 'nft/place-geo-nft' 'Post' @{
-                originalOASISNFTId=[string]$nft.id; originalOASISNFTOffChainProvider='MongoDBOASIS'; geoNFTMetaDataProvider='MongoDBOASIS'
+                originalOASISNFTId=[string]$saved.sourceNFTId; originalOASISNFTOffChainProvider='MongoDBOASIS'; geoNFTMetaDataProvider='MongoDBOASIS'
                 lat=$point.lat; long=$point.long; permSpawn=$fixture.perm; allowOtherPlayersToAlsoCollect=$fixture.share
                 globalSpawnQuantity=$fixture.global; playerSpawnQuantity=$fixture.player; respawnDurationInSeconds=$fixture.cooldown
             }
-            $saved=[pscustomobject]@{ key=$fixture.key; sourceNFTId=[string]$nft.id; geoNFTId=[string]$geo.id; name=$fixture.name; rarity=$fixture.rarity; quest=$fixture.quest }
-            $manifest.fixtures += $saved; Save-Manifest
+            $saved.geoNFTId=[string]$geo.id; Save-Manifest
         } else {
             $geo = Invoke-OasisApi $Web4BaseUrl "nft/geo-nft/$($saved.geoNFTId)" 'Put' @{
                 permSpawn=$fixture.perm; allowOtherPlayersToAlsoCollect=$fixture.share; globalSpawnQuantity=$fixture.global
