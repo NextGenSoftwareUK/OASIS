@@ -101,6 +101,15 @@ try {
             $manifest.fixtures += $saved; Save-Manifest
         }
         if ([string]::IsNullOrWhiteSpace([string]$saved.geoNFTId)) {
+            $source = Invoke-OasisApi $Web4BaseUrl "nft/load-nft-by-id/$($saved.sourceNFTId)/MongoDBOASIS/false"
+            if ([Guid]$source.currentOwnerAvatarId -eq [Guid]::Empty -and [string]$source.mintedByAvatarId -eq [string]$avatar.id) {
+                $source = Invoke-OasisApi $Web4BaseUrl 'nft/update-web4-nft' 'Post' @{
+                    id=$saved.sourceNFTId; currentOwnerAvatarId=$avatar.id; mintedByAvatarId=$avatar.id
+                }
+            }
+            if ([string]$source.currentOwnerAvatarId -ne [string]$avatar.id) {
+                throw "Source NFT $($saved.sourceNFTId) is not owned by the authenticated fixture avatar."
+            }
             $geo = Invoke-OasisApi $Web4BaseUrl 'nft/place-geo-nft' 'Post' @{
                 originalOASISNFTId=[string]$saved.sourceNFTId; originalOASISNFTOffChainProvider='MongoDBOASIS'; geoNFTMetaDataProvider='MongoDBOASIS'
                 lat=$point.lat; long=$point.long; permSpawn=$fixture.perm; allowOtherPlayersToAlsoCollect=$fixture.share
