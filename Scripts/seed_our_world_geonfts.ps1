@@ -63,7 +63,8 @@ $layout = @(
     @{ label = 'North 30 m'; bearing = 0; distance = 30 },
     @{ label = 'East 45 m'; bearing = 90; distance = 45 },
     @{ label = 'South 60 m'; bearing = 180; distance = 60 },
-    @{ label = 'West 75 m'; bearing = 270; distance = 75 }
+    @{ label = 'West 75 m'; bearing = 270; distance = 75 },
+    @{ label = 'North-east 90 m'; bearing = 45; distance = 90 }
 )
 $plan = @($layout | ForEach-Object {
     $coordinate = Get-DemoCoordinate $_.bearing $_.distance
@@ -196,6 +197,12 @@ try {
     Write-Host 'Loading the source Web4 NFT...'
     $original = Invoke-GeoApi "nft/load-nft-by-id/$OriginalNFTId/$Provider/false"
     if ($null -eq $original -or [Guid]$original.id -ne $OriginalNFTId) { throw 'The source Web4 NFT could not be loaded.' }
+    if ([Guid]$original.currentOwnerAvatarId -eq [Guid]::Empty -and [string]$original.mintedByAvatarId -eq [string]$avatar.id) {
+        $original = Invoke-GeoApi 'nft/update-web4-nft' 'Post' @{
+            id=$OriginalNFTId; currentOwnerAvatarId=$avatar.id; mintedByAvatarId=$avatar.id
+        }
+    }
+    if ([string]$original.currentOwnerAvatarId -ne [string]$avatar.id) { throw 'The source Web4 NFT is not owned by the authenticated avatar.' }
     $manifest.sourceNFTId = $OriginalNFTId.ToString()
     # Save the minted source before placing anything, so the run is safely resumable.
     $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
@@ -247,7 +254,7 @@ try {
         }
     }
     $manifest.placements | Format-Table label, id, lat, long, created
-    Write-Host "Verified all four API-backed placements. Manifest: $OutputPath"
+    Write-Host "Verified all five API-backed placements. Manifest: $OutputPath"
 } finally {
     $headers.Clear()
     $avatar = $null
