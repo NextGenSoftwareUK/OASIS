@@ -19,6 +19,9 @@ if ($placements.Count -lt 4 -or $placements.Count -gt 5) { throw 'The tree demo 
 $ids = @($placements | ForEach-Object { ([Guid]$_.id).ToString() } | Select-Object -Unique)
 if ($ids.Count -ne $placements.Count -or $ids -contains [Guid]::Empty.ToString()) { throw 'Manifest contains duplicate or empty GeoNFT IDs.' }
 $names = @('Rainbow Tree', 'Lightning Tree', 'Mycelium Tree', 'Fruit Tree', 'Skeleton Tree')
+$rarities = @('Common', 'Rare', 'Epic', 'Legendary', 'Uncommon')
+$imageRoot = 'https://raw.githubusercontent.com/NextGenSoftwareUK/Our-World/main/Assets/SFX%20Selects/endangered%20tokens/TreeBigIcons'
+$images = @("$imageRoot/1.png", "$imageRoot/2.png", "$imageRoot/3.png", "$imageRoot/4.png", "$imageRoot/Screenshot%202024-08-24%20at%2014.38.16%202.png")
 $objectives = @(for ($i=0; $i -lt $placements.Count; $i++) {
     $activateEvents = @()
     if ($i -eq 0) {
@@ -78,7 +81,23 @@ function Invoke-QuestSeedApi($base, $path, $method='Get', $body=$null) {
 try {
     # The manifest is the authority for quest identity, not a title-based count of arbitrary pickups.
     $geo = @(Invoke-QuestSeedApi $Web4BaseUrl 'nft/load-all-geo-nfts/MongoDBOASIS/false')
-    foreach ($id in $ids) { if (@($geo | Where-Object id -eq $id).Count -ne 1) { throw "GeoNFT $id not found. Seed placements first." } }
+    for ($i=0; $i -lt $ids.Count; $i++) {
+        $id = $ids[$i]
+        $placement = @($geo | Where-Object id -eq $id)
+        if ($placement.Count -ne 1) { throw "GeoNFT $id not found. Seed placements first." }
+        $current = $placement[0]
+        $canonicalDescription = "Anorak's $($names[$i]) token at $($placements[$i].label). Collect it to restore nature's harmony."
+        $updated = Invoke-QuestSeedApi $Web4BaseUrl "nft/geo-nft/$id" 'Put' @{
+            title=$names[$i]; description=$canonicalDescription; imageUrl=$images[$i]
+            permSpawn=$false; allowOtherPlayersToAlsoCollect=$true
+            globalSpawnQuantity=0; playerSpawnQuantity=1; respawnDurationInSeconds=60
+            metaData=@{ 'OurWorld.DemoSeed'='true'; 'OurWorld.AnorakTree'=$names[$i]; 'OurWorld.Rarity'=$rarities[$i]; 'OurWorld.Category'='Nature' }
+        }
+        if ([string]$updated.title -ne $names[$i] -or [string]$updated.imageUrl -ne $images[$i]) {
+            throw "GeoNFT $id did not persist its canonical Anorak identity."
+        }
+        $geo = @($geo | Where-Object id -ne $id) + @($updated)
+    }
     $quests = @(Invoke-QuestSeedApi $Web5BaseUrl 'quests/all-for-avatar/game')
     $existing = @($quests | Where-Object startupSequence -eq 'anorak-trees')
     if ($existing.Count -gt 1) { throw 'Multiple Anorak intro quests exist; resolve duplicate seed records.' }
@@ -123,6 +142,20 @@ try {
             $null = Invoke-QuestSeedApi $Web4BaseUrl "avatar/inventory/$($item.id)" 'Put' $item
             Write-Host "Repaired collected GeoNFT $id"
         }
+    }
+    # Reconcile already-correct GeoNFT inventory rows with the canonical placement
+    # identity as well. Earlier seeds used one generic source NFT title for every
+    # tree, which made inventory rows impossible to map to quest objectives.
+    $inventory = @(Invoke-QuestSeedApi $Web4BaseUrl 'avatar/inventory')
+    foreach ($item in $inventory) {
+        $index = [Array]::IndexOf($ids, [string]$item.geoNFTId)
+        if ($index -lt 0) { continue }
+        $item | Add-Member -NotePropertyName name -NotePropertyValue $names[$index] -Force
+        $item | Add-Member -NotePropertyName description -NotePropertyValue "Anorak's $($names[$index]) token at $($placements[$index].label). Collect it to restore nature's harmony." -Force
+        $item | Add-Member -NotePropertyName itemType -NotePropertyValue 'Nature' -Force
+        $item | Add-Member -NotePropertyName rarity -NotePropertyValue $rarities[$index] -Force
+        $item | Add-Member -NotePropertyName image2DURI -NotePropertyValue $images[$index] -Force
+        $null = Invoke-QuestSeedApi $Web4BaseUrl "avatar/inventory/$($item.id)" 'Put' $item
     }
     # Older collect calls could append the same placement more than once. Keep the
     # earliest acquisition and remove only duplicate rows for this manifest. The
