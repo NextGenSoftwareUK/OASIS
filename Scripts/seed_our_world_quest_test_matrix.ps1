@@ -69,9 +69,11 @@ $manifest = [ordered]@{ version=1; avatarId=[string]$avatar.id; fixtures=@(); qu
 if (Test-Path -LiteralPath $ManifestPath) {
     $loaded = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
     if ([string]$loaded.avatarId -ne [string]$avatar.id) { throw 'The existing fixture manifest belongs to another avatar.' }
-    $manifest.fixtures = @($loaded.fixtures); $manifest.quests = @($loaded.quests)
+    $manifest.fixtures = @($loaded.fixtures)
+    $manifest.quests = @($loaded.quests | Group-Object key | ForEach-Object { $_.Group | Select-Object -First 1 })
 }
 function Save-Manifest { $folder=Split-Path -Parent $ManifestPath; New-Item -ItemType Directory -Path $folder -Force | Out-Null; $manifest | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $ManifestPath -Encoding UTF8 }
+Save-Manifest
 
 try {
     $ownedNfts = @(Invoke-OasisApi $Web4BaseUrl "nft/load-all-nfts-for-avatar/$($avatar.id)")
@@ -138,8 +140,22 @@ try {
             $null -ne $_ -and (($_.PSObject.Properties['title'] -and [string]$_.title -eq $definition.name) -or
                 ($_.PSObject.Properties['name'] -and [string]$_.name -eq $definition.name))
         })
-        if ($existing.Count -gt 1) { throw "Duplicate fixture quest: $($definition.name)" }
-        if ($existing.Count -eq 1) { Write-Host "Reusing quest $($definition.name) ($($existing[0].id))"; continue }
+        if ($existing.Count -gt 1) { throw "Duplicate visible fixture quest: $($definition.name)" }
+        $manifestQuest = @($manifest.quests | Where-Object key -eq $definition.key) | Select-Object -First 1
+        if ($existing.Count -eq 0 -and $null -ne $manifestQuest) {
+            $candidate = Invoke-OasisApi $Web5BaseUrl "quests/$($manifestQuest.id)"
+            if ([string]$candidate.name -eq $definition.name) { $existing = @($candidate) }
+        }
+        if ($existing.Count -eq 1) {
+            $persisted = Invoke-OasisApi $Web5BaseUrl "quests/$($existing[0].id)"
+            if ([Guid]$persisted.createdByAvatarId -eq [Guid]::Empty) {
+                $persisted.createdByAvatarId = $avatar.id
+                $persisted = Invoke-OasisApi $Web5BaseUrl "quests/$($persisted.id)" 'Put' $persisted
+            }
+            if ([string]$persisted.createdByAvatarId -ne [string]$avatar.id) { throw "Quest $($persisted.id) has the wrong creator." }
+            Write-Host "Reusing quest $($definition.name) ($($persisted.id))"
+            continue
+        }
         $objectives=@(); $index=0
         foreach ($fixture in $definition.fixtures) {
             $saved=@($manifest.fixtures | Where-Object key -eq $fixture.key) | Select-Object -First 1
@@ -148,9 +164,18 @@ try {
             $objectives += @{ id=[Guid]::NewGuid().ToString(); order=$index; title="Collect $($fixture.name)"; description=$fixture.description; gameSource='Our World'; needToCollectItems=@{ 'Our World'=@("geonft:$($saved.geoNFTId)") }; crossGameEventsOnComplete=$completeEvents }
             $index++
         }
-        $created=Invoke-OasisApi $Web5BaseUrl 'quests' 'Post' @{ name=$definition.name; description=$definition.description; gameSource='Our World'; status=1; objectiveCompletionOrder=$definition.order; objectives=$objectives; metaData=@{ 'OurWorld.TestSuite'='quest-mode-spawn-matrix'; 'OurWorld.TestSuiteKey'=$definition.key } }
+        $created=Invoke-OasisApi $Web5BaseUrl 'quests' 'Post' @{ name=$definition.name; description=$definition.description; gameSource='Our World'; status=1; createdByAvatarId=$avatar.id; objectiveCompletionOrder=$definition.order; objectives=$objectives; metaData=@{ 'OurWorld.TestSuite'='quest-mode-spawn-matrix'; 'OurWorld.TestSuiteKey'=$definition.key } }
+        $created=Invoke-OasisApi $Web5BaseUrl "quests/$($created.id)"
+        if ([string]$created.createdByAvatarId -ne [string]$avatar.id) { throw "Created quest $($created.id) did not persist its creator." }
         $manifest.quests += [pscustomobject]@{ key=$definition.key; id=[string]$created.id; name=$definition.name; objectiveCompletionOrder=$definition.order }; Save-Manifest
         Write-Host "Created $($definition.name) ($($created.id))"
+    }
+    $visibleQuests = @(Invoke-OasisApi $Web5BaseUrl 'quests/all-for-avatar/game')
+    foreach ($definition in $questDefinitions) {
+        $matches = @($visibleQuests | Where-Object { [string]$_.name -eq $definition.name })
+        if ($matches.Count -ne 1) { throw "Expected one visible '$($definition.name)' quest; found $($matches.Count)." }
+        $expectedOrder = if ($definition.order -eq 0) { 'AnyOrder' } else { 'InOrder' }
+        if ([string]$matches[0].objectiveCompletionOrder -ne $expectedOrder) { throw "$($definition.name) did not persist $expectedOrder." }
     }
     Write-Host "Seeded and verified six GeoNFT fixtures and two quest modes. Manifest: $ManifestPath" -ForegroundColor Green
 } finally {
