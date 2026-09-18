@@ -148,6 +148,22 @@ try {
         }
     }
 
+    # Reconcile previously collected fixture rows after display metadata changes.
+    # Collection identity and quantity stay intact; only the canonical presentation
+    # fields are refreshed from the fixture definition.
+    $inventory = @(Invoke-OasisApi $Web4BaseUrl 'avatar/inventory')
+    foreach ($fixture in $fixtures) {
+        $saved = @($manifest.fixtures | Where-Object key -eq $fixture.key) | Select-Object -First 1
+        foreach ($item in @($inventory | Where-Object { [string]$_.geoNFTId -eq [string]$saved.geoNFTId })) {
+            $item | Add-Member -NotePropertyName name -NotePropertyValue $fixture.name -Force
+            $item | Add-Member -NotePropertyName description -NotePropertyValue $fixture.description -Force
+            $item | Add-Member -NotePropertyName itemType -NotePropertyValue 'Nature' -Force
+            $item | Add-Member -NotePropertyName rarity -NotePropertyValue $fixture.rarity -Force
+            $item | Add-Member -NotePropertyName image2DURI -NotePropertyValue $fixture.image -Force
+            $null = Invoke-OasisApi $Web4BaseUrl "avatar/inventory/$($item.id)" 'Put' $item
+        }
+    }
+
     $questDefinitions = @(
         @{ key='any-order'; name='Chromatic Canopy: Any Path'; description='Collect three unusual nature specimens in whichever order you choose.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'any') },
         @{ key='in-order'; name='Celestial Garden: Follow the Sequence'; description='Collect Moonlit Reed, Prism Bloom and Verdant Starfruit in that exact order.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'ordered') },
