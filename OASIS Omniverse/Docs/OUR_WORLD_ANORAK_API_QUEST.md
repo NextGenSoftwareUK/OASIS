@@ -4,6 +4,10 @@
 
 The temporary demo uses the four GeoNFT placement IDs in `our-world-geonft-demo.json`. The seed also supports a five-placement manifest. Each objective has one `NeedToCollectItems["Our World"]` token, `geonft:{placement-guid}`. Names are display text, not collection identity.
 
+The seeded Anorak quest sets `objectiveCompletionOrder` to `AnyOrder`. All four eligible portals may coexist and collecting a portal completes the objective whose placement GUID it owns, regardless of the currently displayed tracker objective. The tracker can cycle among incomplete objectives and persists that navigation choice through WEB4 `POST /api/Avatar/set-active-quest`; this selection does not constrain WEB5 progress. An any-order pickup plays only its completion effects and must not replay Anorak's introduction.
+
+For a future `InOrder` quest, Our World hides tracker cycling, renders only the first incomplete objective's portal, rejects progress for later objectives at WEB5, and refreshes portals after completion so the next objective appears.
+
 WEB4 `POST /api/nft/collect-geo-nft` must call `NFTManager.CollectGeoNFTAsync` and persist the placement as `GeoNFTId` for the authenticated avatar. Previously it called the regular NFT collector and saved that ID as `NftId`, losing its display metadata. The fixed collector loads title, description and image from the placement. Our World's tree collection submits category `Nature`. Inventory serializers emit category strings. Unity normalizes empty GUIDs and reads the canonical `Image2DURI` thumbnail field.
 
 WEB5 `POST /api/quests/{id}/inventory-progress` reads the avatar's saved inventory and passes matching placement tokens to the existing `ApplyQuestProgressAsync` engine. Its result contains the refreshed authoritative `Quest`, `CompletedObjectives`, `QuestCompleted`, rewards, and `CrossGameEventsToDispatch`. ODOOM/OQuake use this same engine through OGEngineClient's `/progress` requests. Only incomplete objectives participate. One placement per objective permits replay/recovery without recounting a placement. This endpoint operates on avatar-owned quest instances and serializes reconciliation per avatar/quest within the API process; multi-instance transactional concurrency remains a backend concern.
@@ -33,6 +37,9 @@ This keeps transport and engine concerns separate without duplicating quest rule
 ## Acceptance
 
 - Four/five objectives match exact placement IDs in reverse collection order; completed objectives are skipped.
+- Any-order collection succeeds in reverse order and the tracker can cycle among remaining objectives.
+- In-order collection cannot advance a later objective and only the current objective portal is visible.
+- An objective pickup never replays the quest introduction; only an ordered transition may play the next objective's activation events.
 - Both serializers emit `Nature` and preserve `GeoNFTId` separately from empty `NftId`.
 - With deployed APIs, collect each placement, check saved inventory and quest progress, then restart to verify persistence.
 - Check the Nature tab, tracker and quest popup after each collection; final completion should trigger congratulations.

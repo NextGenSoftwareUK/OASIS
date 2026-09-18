@@ -80,6 +80,26 @@ Responses are **flat JSON** suited for clients (not full holon graphs). Implemen
 - The client only POSTs progress when there is a **non-empty cached active quest id** (from avatar profile / tracker) and **at least one non-zero delta**.
 - While the in-game **quest list popup is open**, progress POSTs and cache replacement from GET are **suppressed** (`ogengine_set_quest_popup_open(1)`); gameplay still merges locally in **client-merge** mode when configured.
 
+Every quest has an `objectiveCompletionOrder` contract:
+
+| Value | API progress rule | Client tracker and world rule |
+|---|---|---|
+| `AnyOrder` (`0`, default) | A progress event may update any matching incomplete objective. The caller's selected objective does not restrict matching. | The player may cycle incomplete objectives. Persist the selection with WEB4 `POST /api/Avatar/set-active-quest`. All eligible objective locations may be visible together. |
+| `InOrder` (`1`) | Only the first incomplete objective by `Order`, then `Id`, may progress. A caller-supplied later `ActiveObjectiveId` cannot bypass this invariant. | Do not show objective-cycle controls. Show only the current objective's location; refresh the world after completion to reveal the next one. |
+
+`AnyOrder` is the default so quests saved before this field existed retain their behavior. Completing an `AnyOrder` objective dispatches that objective's completion events without activating or replaying another objective. Completing an `InOrder` objective may dispatch the next objective's activation events. Tracker selection is a UI/navigation preference and never changes server completion rules.
+
+Create example:
+
+```json
+{
+  "name": "Restoration of Harmony",
+  "description": "Collect the four endangered-tree GeoNFTs.",
+  "objectiveCompletionOrder": "AnyOrder",
+  "objectives": []
+}
+```
+
 ### 2.5 GameSource / multi-game
 
 **`gameSource`** (e.g. `ODOOM`, `OQUAKE`, `Quake`, `Doom`) must align with **objective requirement dictionaries** on the server (`NeedToKillMonsters`, `NeedToCollectItems`, etc.) so progress increments the correct row. The client sets game source from:
@@ -150,6 +170,7 @@ Games use the C ABI; managed hosts can call:
 4. On gameplay events, use **queues** (`queue_add_item`, `queue_monster_kill`, `queue_quest_progress_from_pickup`, `queue_quest_level_time`) so the main thread does not block.
 5. For UI, poll **`ogengine_get_top_level_quests_string`** (and detail APIs) into your engine; call **`ogengine_set_quest_popup_open(1)`** while the list is visible.
 6. When the user picks a tracked quest/objective, call **`ogengine_set_active_quest`** so **`/progress`** targets the right quest.
+7. Expose previous/next objective selection only when `objectiveCompletionOrder` is `AnyOrder`; persist it to WEB4. For `InOrder`, render and target the first incomplete objective returned by WEB5.
 
 ---
 
@@ -185,6 +206,8 @@ OQuake uses **`ogengine_set_quest_progress_cache_refresh`** from loaded config w
 - Open quest list → **no** progress POST until closed (verify with `star debug on` + `ogengine.log`).
 - Complete objective → **POST objectives/complete** → cache invalidated → list refresh.
 - Cross-game quest: objectives use different **gameSource** keys; verify each engine increments its row.
+- Any-order quest: collect a later objective first; verify that exact objective completes, the selection may be cycled, and no unrelated activation event replays.
+- In-order quest: submit progress for a later objective; verify no progress. Complete the first objective, then verify the next objective activates and becomes the sole active world target.
 
 ---
 
@@ -194,3 +217,4 @@ OQuake uses **`ogengine_set_quest_progress_cache_refresh`** from loaded config w
 |------|------|
 | 2026-03-27 | Initial consolidated developer guide (API + OGEngineClient + extension points). |
 | 2026-04-02 | GeoHotSpot media types (Audio/Video/Text/WebsiteLink); quest/objective `LinkedGeoHotSpotId` / `ExternalHandoffUri`; see `OGEngine_Overview.md`. |
+| 2026-09-18 | Documented authoritative `AnyOrder`/`InOrder` objective completion, tracker, event and world-portal behavior. |
