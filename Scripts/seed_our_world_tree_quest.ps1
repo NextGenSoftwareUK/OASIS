@@ -20,8 +20,8 @@ $ids = @($placements | ForEach-Object { ([Guid]$_.id).ToString() } | Select-Obje
 if ($ids.Count -ne $placements.Count -or $ids -contains [Guid]::Empty.ToString()) { throw 'Manifest contains duplicate or empty GeoNFT IDs.' }
 $names = @('Rainbow Tree', 'Lightning Tree', 'Mycelium Tree', 'Fruit Tree', 'Skeleton Tree')
 $rarities = @('Common', 'Rare', 'Epic', 'Legendary', 'Uncommon')
-$imageRoot = 'https://raw.githubusercontent.com/NextGenSoftwareUK/Our-World/main/Assets/SFX%20Selects/endangered%20tokens/TreeBigIcons'
-$images = @("$imageRoot/1.png", "$imageRoot/2.png", "$imageRoot/3.png", "$imageRoot/4.png", "$imageRoot/Screenshot%202024-08-24%20at%2014.38.16%202.png")
+$imageRoot = 'https://raw.githubusercontent.com/NextGenSoftwareUK/OASIS/Development/Docs/Assets/OurWorld/TreeBigIcons'
+$images = @("$imageRoot/rainbow-tree.png", "$imageRoot/lightning-tree.png", "$imageRoot/mycelium-tree.png", "$imageRoot/fruit-tree.png", "$imageRoot/skeleton-tree.png")
 $objectives = @(for ($i=0; $i -lt $placements.Count; $i++) {
     $activateEvents = @()
     if ($i -eq 0) {
