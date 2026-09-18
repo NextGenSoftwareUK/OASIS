@@ -19,6 +19,10 @@ class Program
    checks++;
   }
   if(GeoNFTCollectionPolicy.Evaluate(Guid.NewGuid(),true,true,-2,1,60,0,0,false,null,now).CanCollect)throw new Exception("Invalid limit accepted");
+  foreach (var limits in new[] { (-1,-1,0), (0,0,0), (1,1,60) })
+   if (!GeoNFTCollectionPolicy.AreLimitsValid(limits.Item1,limits.Item2,limits.Item3)) throw new Exception("Valid authored limits rejected");
+  foreach (var limits in new[] { (-2,1,0), (1,-2,0), (1,1,-1) })
+   if (GeoNFTCollectionPolicy.AreLimitsValid(limits.Item1,limits.Item2,limits.Item3)) throw new Exception("Invalid authored limits accepted");
   int named = 0;
   void Check(string name, bool expected, bool permanent, bool shared, int global, int player,
       int seconds, long total, long mine, bool other, DateTime? last, DateTime? next = null)
