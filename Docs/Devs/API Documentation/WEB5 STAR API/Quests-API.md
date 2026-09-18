@@ -13,6 +13,40 @@
 
 The Quests API provides comprehensive quest management services for the STAR ecosystem. It handles quest creation, assignment, completion, and analytics with support for multiple quest types, real-time updates, and advanced security features.
 
+### Objective ordering contract
+
+`objectiveCompletionOrder` is part of the quest create, load, game-summary and progress contract.
+
+| JSON value | Numeric value | Meaning |
+|---|---:|---|
+| `AnyOrder` | `0` | Default. Any matching incomplete objective may progress. Clients may cycle the tracked objective. |
+| `InOrder` | `1` | Only the first incomplete objective ordered by `Order`, then `Id`, may progress. A later `ActiveObjectiveId` is ignored for progress matching. |
+
+WEB5 owns completion enforcement. WEB4 `POST /api/Avatar/set-active-quest` stores the player's tracker/navigation choice; it cannot bypass `InOrder`. With `AnyOrder`, completing one objective does not activate or replay another objective. With `InOrder`, completing the current objective may return the next objective's activation events.
+
+The current concrete create route is `POST /api/quests/create`:
+
+```json
+{
+  "name": "Restoration of Harmony",
+  "description": "Collect four nature GeoNFTs.",
+  "gameSource": "Our World",
+  "objectiveCompletionOrder": "AnyOrder",
+  "objectives": [
+    {
+      "name": "Collect the Rainbow Tree",
+      "description": "Collect the Rainbow Tree GeoNFT.",
+      "order": 0,
+      "needToCollectItems": {
+        "Our World": ["geonft:00000000-0000-0000-0000-000000000000"]
+      }
+    }
+  ]
+}
+```
+
+Use `POST /api/quests/{questId}/inventory-progress` for authoritative inventory reconciliation. Its response reports the refreshed quest, completed objectives, quest completion, rewards and cross-game events. Automated clients should test both a reverse-order `AnyOrder` collection and rejection of a later `InOrder` objective.
+
 ## Quest Management
 
 ### Get All Quests
