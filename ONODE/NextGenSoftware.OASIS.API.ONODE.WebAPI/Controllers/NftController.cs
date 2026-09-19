@@ -197,6 +197,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await LoadWeb4NftByIdAsync(id);
         }
 
+        /// <summary>
+        /// Loads and decodes a WEB4 GeoNFT by its canonical WEB4 GeoNFT id.
+        /// </summary>
+        [Authorize]
+        [HttpGet]
+        [Route("load-geo-nft-by-id/{id}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4GeoSpatialNFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> LoadWeb4GeoNftByIdAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A WEB4 GeoNFT id is required." };
+
+            return await NFTManager.LoadWeb4GeoNftAsync(id);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("load-geo-nft-by-id/{id}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> LoadWeb4GeoNftByIdAsync(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return await LoadWeb4GeoNftByIdAsync(id);
+        }
+
         [Authorize]
         [HttpGet]
         [Route("load-nft-by-hash/{hash}")]
