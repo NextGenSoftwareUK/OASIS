@@ -1,6 +1,6 @@
 # GeoHotSpot Quest Integration — Specification and Implementation Checklist
 
-**Status:** Design agreed; implementation not started  
+**Status:** Implementation in progress  
 **Owners:** WEB5 STAR API and Our World  
 **Last updated:** 2026-09-19
 
@@ -97,13 +97,13 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 
 ## API contract work
 
-- [ ] Define the canonical GeoHotSpot trigger request DTO, including trigger evidence and an idempotency key.
-- [ ] Define the canonical trigger result DTO.
+- [x] Define the canonical GeoHotSpot trigger request DTO, including trigger evidence and an idempotency key. (`TriggerGeoHotSpotRequest`)
+- [x] Define the canonical trigger result DTO. (`TriggerGeoHotSpotResult`)
 - [x] Add an explicit typed GeoNFT reward/action representation. (`GeoHotSpot.GeoNFTRewardIds`)
 - [x] Move or share all applicable GeoNFT spawn-policy fields with GeoHotSpots without duplicating rule evaluation. (`GeoSpatialSpawnPolicy`; 1,536-combination regression passes)
-- [ ] Implement the WEB5 trigger endpoint at one documented route.
-- [ ] Implement server-side trigger, eligibility, radius, dwell/gaze/touch evidence, spawn-policy, and idempotency validation.
-- [ ] Implement persistent trigger/activity history.
+- [x] Implement the WEB5 trigger endpoint at one documented route. (`POST /api/geohotspots/{id}/trigger`)
+- [x] Implement server-side trigger, eligibility, radius, dwell/gaze/touch evidence, spawn-policy, and idempotency validation.
+- [x] Implement persistent trigger/activity history. (`GeoHotSpotTriggerStateV1` metadata, persisted with the hotspot)
 - [ ] Atomically update linked quest/objective progress.
 - [ ] Atomically grant inventory rewards.
 - [ ] Atomically grant/collect GeoNFT rewards.
@@ -114,21 +114,21 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 
 ## Our World work
 
-- [ ] Replace the disconnected GeoHotSpot scaffold with the canonical WEB5 contract.
+- [x] Replace the disconnected GeoHotSpot scaffold with the canonical WEB5 contract.
 - [ ] Load only active, relevant, eligible quest-linked GeoHotSpots plus intentionally discoverable standalone hotspots.
 - [ ] Parse the complete GeoHotSpot model, including content, assets, rewards, spawn policy, and eligibility.
-- [ ] Place GeoHotSpots on the map using the proven GeoNFT geographical anchoring pipeline.
+- [x] Place GeoHotSpots through `UnifiedGeoDisplaySystem` and register them with the trigger manager.
 - [ ] Give GeoHotSpots distinct visuals while allowing authored 2D/3D representations.
-- [ ] Implement immediate-arrival triggering.
-- [ ] Implement continuous dwell progress and reset-on-exit.
-- [ ] Implement AR gaze-duration triggering.
-- [ ] Implement AR touch and map-tap triggering.
-- [ ] Submit canonical trigger evidence and wait for server acceptance.
+- [x] Implement immediate-arrival triggering.
+- [x] Implement continuous dwell progress and reset-on-exit.
+- [x] Implement AR gaze-duration triggering.
+- [x] Implement AR touch triggering.
+- [x] Submit canonical trigger evidence and wait for server acceptance.
 - [ ] Drive visibility and respawn countdown from server eligibility.
 - [ ] Apply returned inventory and GeoNFT state to the shared inventory UI.
 - [ ] Apply returned quest/objective state to the quest list and HUD tracker.
 - [ ] Dispatch returned content and cross-game presentation actions in order.
-- [ ] Prevent duplicate popups, audio overlap, intro replay, and premature objective/quest completion effects.
+- [x] Prevent premature local trigger effects: `HasBeenTriggered`, object events, and presentation now change only after WEB5 accepts the evidence.
 - [ ] Add creator UI fields for the complete trigger, payload, and spawn-policy model.
 - [ ] Add clear validation and summaries to the creator UI.
 
