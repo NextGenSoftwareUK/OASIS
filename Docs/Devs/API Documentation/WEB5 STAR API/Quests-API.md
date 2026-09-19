@@ -1,5 +1,17 @@
 # Quests API
 
+## GeoHotSpot objectives
+
+Quest and objective payloads may set `linkedGeoHotSpotId`. Objectives may also use `needToGoToGeoHotSpots`, keyed by game source, with either explicit hotspot GUIDs or a numeric distinct-visit count. Accepted WEB5 GeoHotSpot triggers update `geoHotSpotsArrived` through the same quest progress engine used by all games.
+
+- `objectiveCompletionOrder: "AnyOrder"` applies a trigger to every matching incomplete objective.
+- `objectiveCompletionOrder: "InOrder"` applies it only to the first incomplete objective by `order`.
+- `crossGameEventsOnGeoHotSpotTriggered` is returned only when that objective records a new matching visit.
+- Objective and quest completion events are returned only for real incomplete-to-complete transitions.
+- `rewardInventoryItemIds` are granted by the canonical GeoHotSpot trigger operation when their objective or quest completes.
+
+Clients trigger hotspots with `POST /api/geohotspots/{id}/trigger`; they must not write `geoHotSpotsArrived` directly.
+
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)

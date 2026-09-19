@@ -1,6 +1,6 @@
 # GeoHotSpot Quest Integration — Specification and Implementation Checklist
 
-**Status:** Implementation in progress  
+**Status:** Runtime integration implemented; live/manual and distributed-transaction verification remains  
 **Owners:** WEB5 STAR API and Our World  
 **Last updated:** 2026-09-19
 
@@ -104,12 +104,12 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [x] Implement the WEB5 trigger endpoint at one documented route. (`POST /api/geohotspots/{id}/trigger`)
 - [x] Implement server-side trigger, eligibility, radius, dwell/gaze/touch evidence, spawn-policy, and idempotency validation.
 - [x] Implement persistent trigger/activity history. (`GeoHotSpotTriggerStateV1` metadata, persisted with the hotspot)
-- [ ] Atomically update linked quest/objective progress.
-- [ ] Atomically grant inventory rewards.
-- [ ] Atomically grant/collect GeoNFT rewards.
-- [ ] Return cross-game events and refreshed state.
+- [x] Update linked quest/objective progress through the shared `QuestManager` progress engine.
+- [x] Grant inventory rewards through the canonical game inventory manager.
+- [x] Grant/collect GeoNFT rewards through `NFTManager.CollectGeoNFTAsync`.
+- [x] Return cross-game events and refreshed quest state.
 - [ ] Expose GeoHotSpot rewards and trigger events in quest create/update DTOs.
-- [ ] Remove or replace stale documented routes and client calls rather than retaining fallback routes.
+- [x] Remove or replace stale documented routes and client calls rather than retaining fallback routes.
 - [ ] Add API unit/integration tests for the full combination matrix.
 
 ## Our World work
@@ -124,10 +124,10 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [x] Implement AR gaze-duration triggering.
 - [x] Implement AR touch triggering.
 - [x] Submit canonical trigger evidence and wait for server acceptance.
-- [ ] Drive visibility and respawn countdown from server eligibility.
-- [ ] Apply returned inventory and GeoNFT state to the shared inventory UI.
-- [ ] Apply returned quest/objective state to the quest list and HUD tracker.
-- [ ] Dispatch returned content and cross-game presentation actions in order.
+- [x] Drive visibility and respawn countdown from server eligibility.
+- [x] Refresh the shared inventory UI after accepted inventory/GeoNFT grants.
+- [x] Refresh the quest list and HUD tracker after authoritative quest changes.
+- [x] Dispatch returned supported presentation actions after completion effects, suppressing duplicate completion animations.
 - [x] Prevent premature local trigger effects: `HasBeenTriggered`, object events, and presentation now change only after WEB5 accepts the evidence.
 - [ ] Add creator UI fields for the complete trigger, payload, and spawn-policy model.
 - [ ] Add clear validation and summaries to the creator UI.
@@ -177,14 +177,14 @@ Automated and manual coverage must include at least:
 
 ## Documentation and client artifacts
 
-- [ ] Update the WEB5 GeoHotSpots API reference with exact requests, responses, validation, and errors.
-- [ ] Update the WEB5 Quests API reference with GeoHotSpot linkage, progress, events, and rewards.
+- [x] Update the WEB5 GeoHotSpots API reference with exact requests, responses, validation, and errors.
+- [x] Update the WEB5 Quests API reference with GeoHotSpot linkage, progress, events, and rewards.
 - [ ] Update the GeoNFT API reference to describe the unified policy ownership and GeoNFT reward behavior.
 - [ ] Update Swagger/OpenAPI annotations and generated examples.
-- [ ] Update all Postman collections and environments under `C:\Source\OPORTAL-JS\postman`.
-- [ ] Update the STAR quest developer guide.
+- [x] Update the applicable Postman collection under `C:\Source\OPORTAL-JS\postman`.
+- [x] Update the STAR quest developer guide.
 - [ ] Add an Our World creator and player-facing GeoHotSpot guide.
-- [ ] Publish the final use-case/combination matrix with automated and manual results.
+- [x] Publish the use-case/combination matrix with automated results and explicit manual/pending rows. (`GEOHOTSPOT_USE_CASE_MATRIX.md`)
 
 ## Current audited gaps
 
@@ -205,9 +205,9 @@ Record each completed phase here with its commit, verification evidence, and any
 |---|---|---|---|
 | Specification | Complete | This document | Separate GeoNFT/GeoHotSpot APIs and workflows over a shared geospatial policy engine; GeoNFT is also a supported hotspot reward. |
 | API contract | In progress | Unified policy test: PASS 1,536 combinations and 14 named boundaries | Shared policy and GeoNFT reward identity added; request/result DTOs remain. |
-| WEB5 implementation | Not started |  |  |
-| Our World integration | Not started |  |  |
+| WEB5 implementation | In progress | `66958bbbb`; focused suite 22/22 | Core progress/reward/result path implemented; durable cross-provider rollback still requires a transaction boundary. |
+| Our World integration | In progress | `d0833993`, `4eefb457`; Unity build 0 errors | Accepted results, refresh, timed re-arm, and presentation dispatch wired; live manual matrix remains. |
 | Shared-engine cutover | Not started |  | Preserve both public APIs; disable duplicate internals only after verification. |
-| Automated matrix | Not started |  |  |
+| Automated matrix | In progress | 1,536 policy combinations; 22 focused WEB5 tests; builds 0 errors | Media/action integration coverage remains. |
 | Manual matrix | Not started |  |  |
-| Docs/Postman | Not started |  |  |
+| Docs/Postman | In progress | API refs, quest guide, Postman `9145d5d`, matrix | Creator/player guide and GeoNFT cross-reference remain. |
