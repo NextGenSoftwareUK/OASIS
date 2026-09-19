@@ -54,8 +54,13 @@ GeoHotSpots must support the same policy dimensions already authored for GeoNFTs
 - A positive respawn delay hides or disables the hotspot until the authoritative next-eligible time.
 - Global and per-player counts are enforced atomically by WEB5.
 - Repeated or concurrent trigger submissions are idempotent and cannot grant duplicate rewards.
+- `SpawnInSafeZone` controls whether the hotspot/payload may be placed in a safe zone.
+- `SpawnNearPlayer` selects authored coordinates or player-relative placement.
+- `SpawnWithinXMetersFromPlayer` bounds player-relative placement.
+- `SpawnXMetersAwayFromPlayer` supplies the authored player-relative distance when applicable.
+- `IsVisibleOnMap` controls map-marker visibility without bypassing server eligibility.
 
-The final model must also preserve all additional existing GeoNFT spawn properties discovered during implementation. They must be listed in the use-case matrix and tested before this section is marked complete.
+These fields are the complete additional GeoNFT spawn properties found in the current canonical `IWeb4GeoSpatialNFT`/`Web4OASISGeoSpatialNFT` model. They must be represented in the use-case matrix and tested before this section is marked complete.
 
 ## Quest behavior
 
@@ -90,8 +95,8 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 
 - [ ] Define the canonical GeoHotSpot trigger request DTO, including trigger evidence and an idempotency key.
 - [ ] Define the canonical trigger result DTO.
-- [ ] Add an explicit typed GeoNFT reward/action representation.
-- [ ] Move or share all applicable GeoNFT spawn-policy fields with GeoHotSpots without duplicating rule evaluation.
+- [x] Add an explicit typed GeoNFT reward/action representation. (`GeoHotSpot.GeoNFTRewardIds`)
+- [x] Move or share all applicable GeoNFT spawn-policy fields with GeoHotSpots without duplicating rule evaluation. (`GeoHotSpotSpawnPolicy`; 1,536-combination regression passes)
 - [ ] Implement the WEB5 trigger endpoint at one documented route.
 - [ ] Implement server-side trigger, eligibility, radius, dwell/gaze/touch evidence, spawn-policy, and idempotency validation.
 - [ ] Implement persistent trigger/activity history.
@@ -194,7 +199,7 @@ Record each completed phase here with its commit, verification evidence, and any
 | Phase | Status | Commit/evidence | Notes |
 |---|---|---|---|
 | Specification | Complete | This document | Agreed unified GeoHotSpot trigger and GeoNFT reward/spawn-policy direction. |
-| API contract | Not started |  |  |
+| API contract | In progress | Unified policy test: PASS 1,536 combinations and 14 named boundaries | Shared policy and GeoNFT reward identity added; request/result DTOs remain. |
 | WEB5 implementation | Not started |  |  |
 | Our World integration | Not started |  |  |
 | Legacy GeoNFT cutover | Not started |  | Disable only after replacement verification. |
