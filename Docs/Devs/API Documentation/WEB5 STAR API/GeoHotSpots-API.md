@@ -58,11 +58,12 @@ Content-Type: application/json
   "latitude": 31.5499,
   "longitude": 74.2778,
   "accuracyMetres": 4.5,
-  "continuousDurationSeconds": 10
+  "continuousDurationSeconds": 10,
+  "gameSource": "Our World"
 }
 ```
 
-WEB5 validates the authored trigger type, observation time, radius and required continuous duration. It then applies the shared GeoNFT/GeoHotSpot quantity and cooldown policy and persists the accepted idempotency key and activity counts before returning success. Repeating an accepted idempotency key returns the original result without incrementing counts.
+WEB5 validates the authored trigger type, observation time, radius and required continuous duration. It applies the shared GeoNFT/GeoHotSpot quantity and cooldown policy, records matching `LinkedGeoHotSpotId` / `NeedToGoToGeoHotSpots` progress, grants configured inventory and GeoNFT rewards, and returns the resulting quest transitions and presentation events. Repeating an accepted idempotency key returns the original result without incrementing counts or replaying grants.
 
 ```json
 {
@@ -76,12 +77,17 @@ WEB5 validates the authored trigger type, observation time, radius and required 
     "inventoryRewardIds": [],
     "geoNFTRewardIds": [],
     "questTransitions": [],
-    "crossGameEvents": []
+    "crossGameEvents": [],
+    "refreshedQuests": []
   },
   "isError": false,
   "message": "GeoHotSpot trigger accepted."
 }
 ```
+
+`gameSource` selects the corresponding quest requirement dictionary row. A linked objective records the accepted hotspot ID in `GeoHotSpotsArrived`. Explicit ID lists require every listed hotspot; a numeric requirement such as `["3"]` requires three distinct accepted hotspot IDs. `ObjectiveCompletionOrder.InOrder` limits progress to the current objective, while `AnyOrder` permits every matching incomplete objective.
+
+The endpoint can return these validation errors: missing authentication, missing hotspot/idempotency key, inactive or missing hotspot, trigger-type mismatch, stale/future evidence, missing/out-of-radius coordinates, insufficient dwell or gaze duration, exhausted global/player allocation, another-player exclusivity, active cooldown, invalid persisted trigger state, quest update failure, or reward grant failure.
 
 ### Get Nearby GeoHotSpots
 ```http
