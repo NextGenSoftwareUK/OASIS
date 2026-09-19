@@ -105,6 +105,8 @@ The client must not load those feeds as unrelated portal lists. The canonical ru
 7. If multiple WEB5 versions or packages wrap the same WEB4 GeoNFT, select the explicitly installed/quest-referenced version according to STARNET version rules. Never spawn one portal per wrapper.
 8. Collection calls use the WEB4 GeoNFT ID because collection and spawn eligibility belong to the geographic asset. Quest/STARNET progress may additionally carry the WEB5 wrapper ID where the authored quest references that Smartbrick.
 
+Our World resolves an individual wrapped asset with `GET /api/nft/load-geo-nft-by-id/{web4GeoNftId}`. This typed route uses `NFTManager.LoadWeb4GeoNftAsync`; the generic `load-nft-by-id` route must not be used because it decodes the ordinary WEB4 NFT contract rather than the GeoNFT placement contract.
+
 ```mermaid
 flowchart TD
     A[Load WEB4 GeoNFTs]

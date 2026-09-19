@@ -1131,6 +1131,8 @@ DELETE /data/delete-file/{id}
 #### **Get NFT by ID**
 ```http
 GET /api/nft/load-nft-by-id/{id}
+GET /api/nft/load-geo-nft-by-id/{id}
+GET /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}
 ```
 
 #### **Get NFT by Hash**
