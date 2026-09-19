@@ -8,7 +8,9 @@ This document is the source of truth for integrating GeoHotSpots with STAR quest
 
 ## Core invariant
 
-A GeoHotSpot is the authoritative geographical trigger and spawn-policy container. Its payload describes the result of successfully triggering it. GeoNFTs are one supported GeoHotSpot payload/reward type; they must use the same trigger, eligibility, repeatability, cooldown, quantity, and respawn rules as other GeoHotSpot payloads rather than maintaining a parallel rule engine.
+GeoNFTs and GeoHotSpots remain distinct public domain types and distinct APIs. A GeoNFT is the streamlined, NFT-focused experience for placing and collecting a token geographically. A GeoHotSpot is the general-purpose/power-user experience with arrival, dwell, AR gaze/touch, media, links, inventory rewards, GeoNFT rewards, quest actions, and cross-game events.
+
+Both types use one shared geospatial placement and spawn-policy engine underneath their public APIs. Sharing the engine must not collapse `/api/geonfts` into `/api/geohotspots`, remove either authored model, or force ordinary GeoNFT creators through the advanced GeoHotSpot workflow. A GeoNFT can also be a reward emitted by a GeoHotSpot, but that relationship does not make every independently authored GeoNFT a GeoHotSpot record.
 
 WEB5 is authoritative for trigger acceptance, progress, reward grants, repeatability, and idempotency. Our World detects and presents an attempted interaction, but must not mark a hotspot triggered, grant a reward, or complete a quest objective until WEB5 accepts the trigger.
 
@@ -96,7 +98,7 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [ ] Define the canonical GeoHotSpot trigger request DTO, including trigger evidence and an idempotency key.
 - [ ] Define the canonical trigger result DTO.
 - [x] Add an explicit typed GeoNFT reward/action representation. (`GeoHotSpot.GeoNFTRewardIds`)
-- [x] Move or share all applicable GeoNFT spawn-policy fields with GeoHotSpots without duplicating rule evaluation. (`GeoHotSpotSpawnPolicy`; 1,536-combination regression passes)
+- [x] Move or share all applicable GeoNFT spawn-policy fields with GeoHotSpots without duplicating rule evaluation. (`GeoSpatialSpawnPolicy`; 1,536-combination regression passes)
 - [ ] Implement the WEB5 trigger endpoint at one documented route.
 - [ ] Implement server-side trigger, eligibility, radius, dwell/gaze/touch evidence, spawn-policy, and idempotency validation.
 - [ ] Implement persistent trigger/activity history.
@@ -128,20 +130,21 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [ ] Add creator UI fields for the complete trigger, payload, and spawn-policy model.
 - [ ] Add clear validation and summaries to the creator UI.
 
-## Legacy GeoNFT cutover
+## Shared-engine cutover
 
-This phase happens only after the unified GeoHotSpot implementation passes the automated and manual matrix. Until then, the existing GeoNFT runtime remains operational so the replacement can be verified against known behavior.
+This phase happens only after the shared geospatial engine passes the automated and manual matrix. Both public APIs and both Our World content paths remain supported throughout and after the cutover.
 
 - [ ] Inventory every legacy GeoNFT runtime path and classify it as shared/reused, migrated, or redundant.
 - [ ] Reuse neutral GeoNFT components (assets, presentation, inventory mapping, and proven map anchoring) from the unified GeoHotSpot path where they still have one clear responsibility.
-- [ ] Route GeoNFT discovery, eligibility, spawn policy, collection, cooldown, and respawn through the unified GeoHotSpot system.
-- [ ] Disable redundant legacy GeoNFT runtime entry points only after equivalent GeoHotSpot behavior is verified.
-- [ ] Add a clear comment above every intentionally retained disabled block: `Superseded by the unified GeoHotSpot system`, including the replacement class/method and migration date.
+- [ ] Route the common parts of GeoNFT and GeoHotSpot eligibility, spawn policy, cooldown, respawn, and placement through the shared geospatial engine.
+- [ ] Preserve the GeoNFT API, GeoHotSpot API, their specialised fields, and their separate user/creator workflows.
+- [ ] Disable only genuinely duplicated internal rule evaluation or polling after both public paths are verified.
+- [ ] Add a clear comment above every intentionally retained disabled internal block: `Superseded by the shared geospatial engine`, including the replacement class/method and migration date.
 - [ ] Remove duplicate event subscriptions, polling loops, local rule evaluation, and API calls so only one runtime path owns each invariant.
 - [ ] Confirm no scene or prefab still references disabled entry points.
 - [ ] Run the existing GeoNFT regression suite again after cutover.
 
-Disabled legacy code is temporary migration evidence, not a permanent fallback. Once the replacement has remained verified and the old code is no longer needed for review, remove it in a dedicated cleanup change.
+Disabled duplicate internal code is temporary migration evidence, not a permanent fallback. Once the shared implementation has remained verified and the duplicate block is no longer needed for review, remove it in a dedicated cleanup change. Public GeoNFT behavior is not legacy and must not be removed.
 
 ## Verification matrix
 
@@ -198,11 +201,11 @@ Record each completed phase here with its commit, verification evidence, and any
 
 | Phase | Status | Commit/evidence | Notes |
 |---|---|---|---|
-| Specification | Complete | This document | Agreed unified GeoHotSpot trigger and GeoNFT reward/spawn-policy direction. |
+| Specification | Complete | This document | Separate GeoNFT/GeoHotSpot APIs and workflows over a shared geospatial policy engine; GeoNFT is also a supported hotspot reward. |
 | API contract | In progress | Unified policy test: PASS 1,536 combinations and 14 named boundaries | Shared policy and GeoNFT reward identity added; request/result DTOs remain. |
 | WEB5 implementation | Not started |  |  |
 | Our World integration | Not started |  |  |
-| Legacy GeoNFT cutover | Not started |  | Disable only after replacement verification. |
+| Shared-engine cutover | Not started |  | Preserve both public APIs; disable duplicate internals only after verification. |
 | Automated matrix | Not started |  |  |
 | Manual matrix | Not started |  |  |
 | Docs/Postman | Not started |  |  |
