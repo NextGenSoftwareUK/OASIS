@@ -114,7 +114,9 @@ Create example:
 - **Objective** optional fields: `LinkedGeoHotSpotId`, `ExternalHandoffUri`.
 - **Create / add objective** requests accept the same (`CreateQuestRequest`, `QuestObjectiveRequest`, `AddQuestObjectiveRequest`). An objective **must** have either at least one **Need\*** dictionary entry **or** a **LinkedGeoHotSpotId** **or** **ExternalHandoffUri** (in addition to title and description).
 - **Game DTOs** (`GameQuestSummaryLite`, `GameQuestObjectiveLite`) expose `linkedGeoHotSpotId` and `externalHandoffUri` for thin JSON in clients.
-- **Roadmap**: clients (Our World, OPortal, ODOOM, OQUAKE) should load the hotspot by id when present and **play / show** media or open links on trigger; **handoff URIs** are opaque until routing schemes are standardized (STAR CLI, OPortal, Telegram, Discord, WhatsApp, web). See **`OGEngine_Overview.md`**.
+- **Canonical trigger**: `POST /api/geohotspots/{id}/trigger` validates evidence and spawn policy, applies `LinkedGeoHotSpotId` / `NeedToGoToGeoHotSpots` progress, grants configured inventory and GeoNFT rewards, and returns quest transitions plus `CrossGameEventsOnGeoHotSpotTriggered`. Clients wait for this result before changing local state.
+- **Progress semantics**: explicit hotspot GUID lists require every listed distinct hotspot; a numeric `NeedToGoToGeoHotSpots` value requires that many distinct visits. `AnyOrder` and `InOrder` use the same shared objective target selection as other progress types.
+- **Handoff URIs** remain opaque until routing schemes are standardized (STAR CLI, OPortal, Telegram, Discord, WhatsApp, web). See **`OGEngine_Overview.md`**.
 
 ---
 
