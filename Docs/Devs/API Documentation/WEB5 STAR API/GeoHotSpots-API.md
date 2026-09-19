@@ -45,21 +45,47 @@ Authorization: Bearer YOUR_TOKEN
 
 ## GeoHotSpot Operations
 
-### Visit GeoHotSpot
+### Trigger GeoHotSpot
 ```http
-POST /api/geohotspots/{geoHotSpotId}/visit
+POST /api/geohotspots/{geoHotSpotId}/trigger
 Authorization: Bearer YOUR_TOKEN
+Content-Type: application/json
+
+{
+  "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "triggerType": "WhenAtGeoLocationForXSeconds",
+  "observedAtUtc": "2026-09-19T18:30:00Z",
+  "latitude": 31.5499,
+  "longitude": 74.2778,
+  "accuracyMetres": 4.5,
+  "continuousDurationSeconds": 10
+}
+```
+
+WEB5 validates the authored trigger type, observation time, radius and required continuous duration. It then applies the shared GeoNFT/GeoHotSpot quantity and cooldown policy and persists the accepted idempotency key and activity counts before returning success. Repeating an accepted idempotency key returns the original result without incrementing counts.
+
+```json
+{
+  "result": {
+    "geoHotSpotId": "...",
+    "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "acceptedAtUtc": "2026-09-19T18:30:01Z",
+    "nextEligibleAtUtc": "2026-09-19T18:31:01Z",
+    "playerTriggerCount": 1,
+    "globalTriggerCount": 1,
+    "inventoryRewardIds": [],
+    "geoNFTRewardIds": [],
+    "questTransitions": [],
+    "crossGameEvents": []
+  },
+  "isError": false,
+  "message": "GeoHotSpot trigger accepted."
+}
 ```
 
 ### Get Nearby GeoHotSpots
 ```http
 GET /api/geohotspots/nearby
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get GeoHotSpot Activity
-```http
-GET /api/geohotspots/{geoHotSpotId}/activity
 Authorization: Bearer YOUR_TOKEN
 ```
 
