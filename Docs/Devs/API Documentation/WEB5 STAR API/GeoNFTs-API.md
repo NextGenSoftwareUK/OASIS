@@ -12,6 +12,8 @@
 
 The GeoNFTs API provides location-based NFT management for the STAR ecosystem. It handles geo-located NFTs with AR integration.
 
+The WEB5 `STARGeoNFT` is a STARNET Smartbrick wrapper around a WEB4 GeoNFT; the WEB4 GeoNFT in turn extends a WEB4 NFT and carries its Web3 NFT representations. WEB5 adds publishing, discovery, versioning, installation, and composition without replacing the wrapped WEB4 identity. See [NFT and GeoNFT architecture across Web3, WEB4, and WEB5](../../NFT_GEONFT_WEB4_WEB5_ARCHITECTURE.md) for the complete type and collection model and the Our World merge rules.
+
 ## GeoNFT Management
 
 ### Get All GeoNFTs

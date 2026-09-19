@@ -6,6 +6,8 @@
 
 This document is the source of truth for integrating GeoHotSpots with STAR quests and Our World. Check an item only after its implementation and relevant automated or manual verification have completed. Add evidence beside completed items where practical (test name, commit, endpoint response, or screenshot).
 
+For the complete Web3 → WEB4 → WEB5 NFT/GeoNFT wrapper model, typed collections, Smartbrick role, and the decision that Our World supports both WEB4 and WEB5 GeoNFT sources, see [NFT and GeoNFT architecture across Web3, WEB4, and WEB5](NFT_GEONFT_WEB4_WEB5_ARCHITECTURE.md).
+
 ## Core invariant
 
 GeoNFTs and GeoHotSpots remain distinct public domain types and distinct APIs. A GeoNFT is the streamlined, NFT-focused experience for placing and collecting a token geographically. A GeoHotSpot is the general-purpose/power-user experience with arrival, dwell, AR gaze/touch, media, links, inventory rewards, GeoNFT rewards, quest actions, and cross-game events.
