@@ -45,9 +45,11 @@ Trigger results to support through one typed result/action contract:
 
 GeoHotSpots must support the same policy dimensions already authored for GeoNFTs. The implementation must preserve the documented GeoNFT precedence:
 
+- `AllowOtherPlayersToAlsoCollect` controls whether collection is exclusive to the first/owning player or remains available to other avatars.
 - `PermSpawn` means unlimited collection subject to its respawn/cooldown policy.
 - When `PermSpawn` is false and `GlobalSpawnQuantity` is non-zero, the global limit takes precedence.
 - When `PermSpawn` is false and `GlobalSpawnQuantity` is zero, `PlayerSpawnQuantity` is the per-player limit.
+- A quantity of `-1` means unlimited wherever the selected global or per-player quantity applies.
 - A zero respawn delay means immediate eligibility when the selected policy permits another trigger.
 - A positive respawn delay hides or disables the hotspot until the authoritative next-eligible time.
 - Global and per-player counts are enforced atomically by WEB5.
@@ -121,6 +123,21 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [ ] Add creator UI fields for the complete trigger, payload, and spawn-policy model.
 - [ ] Add clear validation and summaries to the creator UI.
 
+## Legacy GeoNFT cutover
+
+This phase happens only after the unified GeoHotSpot implementation passes the automated and manual matrix. Until then, the existing GeoNFT runtime remains operational so the replacement can be verified against known behavior.
+
+- [ ] Inventory every legacy GeoNFT runtime path and classify it as shared/reused, migrated, or redundant.
+- [ ] Reuse neutral GeoNFT components (assets, presentation, inventory mapping, and proven map anchoring) from the unified GeoHotSpot path where they still have one clear responsibility.
+- [ ] Route GeoNFT discovery, eligibility, spawn policy, collection, cooldown, and respawn through the unified GeoHotSpot system.
+- [ ] Disable redundant legacy GeoNFT runtime entry points only after equivalent GeoHotSpot behavior is verified.
+- [ ] Add a clear comment above every intentionally retained disabled block: `Superseded by the unified GeoHotSpot system`, including the replacement class/method and migration date.
+- [ ] Remove duplicate event subscriptions, polling loops, local rule evaluation, and API calls so only one runtime path owns each invariant.
+- [ ] Confirm no scene or prefab still references disabled entry points.
+- [ ] Run the existing GeoNFT regression suite again after cutover.
+
+Disabled legacy code is temporary migration evidence, not a permanent fallback. Once the replacement has remained verified and the old code is no longer needed for review, remove it in a dedicated cleanup change.
+
 ## Verification matrix
 
 Automated and manual coverage must include at least:
@@ -180,7 +197,7 @@ Record each completed phase here with its commit, verification evidence, and any
 | API contract | Not started |  |  |
 | WEB5 implementation | Not started |  |  |
 | Our World integration | Not started |  |  |
+| Legacy GeoNFT cutover | Not started |  | Disable only after replacement verification. |
 | Automated matrix | Not started |  |  |
 | Manual matrix | Not started |  |  |
 | Docs/Postman | Not started |  |  |
-
