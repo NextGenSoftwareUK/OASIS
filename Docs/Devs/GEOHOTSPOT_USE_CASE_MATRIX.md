@@ -43,7 +43,7 @@ This matrix covers the shared policy engine, WEB5 trigger contract, quest progre
 Automated evidence:
 
 - `GeoSpatialSpawnPolicy`: 1,536 combinations plus 14 named boundary cases passed.
-- Focused WEB5 suite: 22/22 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
+- Focused WEB5 suite: 23/23 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
 - WEB5 project build: 0 errors.
 - Our World `Assembly-CSharp.csproj` build: 0 errors.
 - Railway dependency manifest validation is run whenever the dependency SHAs below are advanced.
