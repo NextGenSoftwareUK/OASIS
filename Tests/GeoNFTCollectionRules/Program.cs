@@ -1,5 +1,6 @@
 using System;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Geo;
 class Program
 {
  static void Main()
@@ -48,6 +49,13 @@ class Program
   Check("Exhaustion never schedules respawn",false,false,true,0,1,60,1,1,false,now);
   Check("Invalid player limit",false,true,true,0,-2,0,0,0,false,null);
   Check("Invalid cooldown",false,true,true,0,1,-1,0,0,false,null);
+  var hotspotId=Guid.NewGuid();
+  var hotspot=GeoHotSpotSpawnPolicy.Evaluate(hotspotId,false,true,0,1,30,12,0,true,null,now);
+  if(!hotspot.CanTrigger || hotspot.GeoHotSpotId!=hotspotId || hotspot.GlobalTriggerCount!=12)
+   throw new Exception("Unified GeoHotSpot policy did not preserve per-player precedence.");
+  var nft=GeoNFTCollectionPolicy.Evaluate(hotspotId,false,true,0,1,30,12,0,true,null,now);
+  if(nft.CanCollect!=hotspot.CanTrigger || nft.PlayerCollectionCount!=hotspot.PlayerTriggerCount || nft.GlobalCollectionCount!=hotspot.GlobalTriggerCount)
+   throw new Exception("GeoNFT compatibility surface diverged from unified GeoHotSpot policy.");
   Console.WriteLine($"PASS {checks} collection policy combinations, {named} named boundary checks, plus invalid-limit rejection");
  }
 }
