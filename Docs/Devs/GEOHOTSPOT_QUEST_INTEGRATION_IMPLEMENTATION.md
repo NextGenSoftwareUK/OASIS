@@ -205,9 +205,9 @@ Record each completed phase here with its commit, verification evidence, and any
 |---|---|---|---|
 | Specification | Complete | This document | Separate GeoNFT/GeoHotSpot APIs and workflows over a shared geospatial policy engine; GeoNFT is also a supported hotspot reward. |
 | API contract | In progress | Unified policy test: PASS 1,536 combinations and 14 named boundaries | Shared policy and GeoNFT reward identity added; request/result DTOs remain. |
-| WEB5 implementation | In progress | `66958bbbb`; focused suite 22/22 | Core progress/reward/result path implemented; durable cross-provider rollback still requires a transaction boundary. |
+| WEB5 implementation | In progress | `66958bbbb`; focused suite 23/23 | Core progress/reward/result path implemented; durable cross-provider rollback still requires a transaction boundary. |
 | Our World integration | In progress | `d0833993`, `4eefb457`; Unity build 0 errors | Accepted results, refresh, timed re-arm, and presentation dispatch wired; live manual matrix remains. |
 | Shared-engine cutover | Not started |  | Preserve both public APIs; disable duplicate internals only after verification. |
-| Automated matrix | In progress | 1,536 policy combinations; 22 focused WEB5 tests; builds 0 errors | Media/action integration coverage remains. |
+| Automated matrix | In progress | 1,536 policy combinations; 23 focused WEB5 tests; builds 0 errors | Media/action integration coverage remains. |
 | Manual matrix | Not started |  |  |
 | Docs/Postman | In progress | API refs, quest guide, Postman `9145d5d`, matrix | Creator/player guide and GeoNFT cross-reference remain. |
