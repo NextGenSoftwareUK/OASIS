@@ -13,6 +13,8 @@ const providers: Record<string, string[]> = {
     'Stargate (LayerZero bridge)', 'Synapse (cross-chain bridge)',
     'LayerZero V2 (omnichain messaging)', 'Hyperlane (permissionless interoperability)', 'Connext (modular cross-chain)',
     'EigenLayer (restaking protocol)', 'Espresso Systems (shared sequencer)',
+    'OpenZeppelin Defender (smart contract security)', 'Gelato Network (smart contract automation)',
+    'Chainlink Functions (serverless on-chain compute)',
   ],
   'Storage / Database / Cloud': [
     'MongoDB', 'Neo4j', 'SQL Server', 'Oracle DB', 'SQLite', 'Local File',
@@ -52,10 +54,13 @@ const providers: Record<string, string[]> = {
   'Web3 API / Indexing / RPC': [
     'The Graph (GraphQL subgraph indexing)', 'ENS (Ethereum Name Service)',
     'Alchemy', 'Infura',
+    'Covalent (multi-chain data API)', 'Dune Analytics (on-chain SQL)',
+    'Reservoir (NFT data and trading)', 'Blockscout (block explorer API)', 'Zapper (DeFi portfolio)',
   ],
   'Spatial / Gaming / AR': [
     'GO Map (Unity AR)', 'Mapbox (geospatial)', 'WRLD 3D (metaverse)', 'Cargo (NFT marketplace)',
     'Google Maps', 'HERE Maps', 'MapLibre (open-source maps)', 'Niantic Lightship (AR)',
+    'Ready Player Me (cross-platform avatars)', 'Decentraland (metaverse)', 'The Sandbox (voxel gaming)',
   ],
   'Identity / Security / IP': [
     'World ID (Worldcoin ZK proof-of-humanity)',
@@ -66,6 +71,9 @@ const providers: Record<string, string[]> = {
     'Polygon ID (ZK decentralised identity)', 'zkPass (ZK data verification)', 'Holonym (ZK proof of humanity)',
     'Self Protocol (ZK identity verification)', 'Proof of Humanity (sybil-resistant registry)',
     'ENS Off-Chain Resolver (off-chain ENS names)', 'Privy Server Wallets (programmatic embedded wallets)',
+  ],
+  'AI / Machine Learning': [
+    'Bittensor (decentralised ML network)', 'Galadriel (on-chain AI)', 'Ritual (AI coprocessor)',
   ],
   'Infrastructure / Multisig': [
     'Safe (Gnosis multisig)', 'Sei Network',

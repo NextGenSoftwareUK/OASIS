@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_220 fully implemented providers across 7 categories — last updated: 2026-09-20_
+_220 fully implemented providers across 8 categories — last updated: 2026-09-20_
 
 ---
 
@@ -16,8 +16,9 @@ _220 fully implemented providers across 7 categories — last updated: 2026-09-2
 | Identity / Encryption / IP | 12 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol, Polygon ID, zkPass, Holonym, Self Protocol, Proof of Humanity, ENS Offchain, Privy Server Wallets |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 220 providers** (59 + 46 + 83 + 11 + 4 + 12 + 2 + 3 = 220)
+**Total: 220 providers** (59 + 41 + 83 + 11 + 9 + 12 + 2 + 3 = 220)
 
+> **Added 2026-09-20d (+14):** Blockchain ×3 (OpenZeppelin Defender, Gelato, Chainlink Functions), Network (Web3 API) ×5 (Covalent, Dune Analytics, Reservoir, Blockscout, Zapper), Spatial ×3 (Ready Player Me, Decentraland, The Sandbox), AI ×3 (Bittensor, Galadriel, Ritual). Previous total: 206.
 > **Added 2026-09-20c (+4):** Network ×4 (NATS JetStream, Temporal, Dapr, Intel OpenVINO). Previous total: 202.
 > **Added 2026-09-20b (+9):** Blockchain ×2 (EigenLayer, Espresso Systems), Network ×3 (Ankr, Nansen, Goldsky), Storage ×2 (Tigris, Nile), Identity ×2 (ENS Offchain, Privy Server Wallets). Previous total: 193.
 > **Added 2026-09-20 (+9):** Blockchain ×3 (LayerZero V2, Hyperlane, Connext), Identity ×2 (Self Protocol, Proof of Humanity), Network ×4 (QuickNode, Tenderly, Moralis Streams, SubQuery). Previous total: 184.
