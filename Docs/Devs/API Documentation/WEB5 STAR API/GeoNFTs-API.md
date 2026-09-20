@@ -1,5 +1,7 @@
 # GeoNFTs API
 
+> **Shared geospatial policy ownership:** GeoNFTs remain a distinct public API and the streamlined NFT placement/collection workflow. Their quantity, sharing, cooldown and respawn decisions delegate to `GeoSpatialSpawnPolicy`, the same invariant used by GeoHotSpots. GeoHotSpots may grant existing WEB4 GeoNFTs through `GeoNFTRewardIds`; that relationship does not convert the authored GeoNFT into a GeoHotSpot or replace any GeoNFT route.
+
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)
