@@ -205,7 +205,7 @@ Record each completed phase here with its commit, verification evidence, and any
 |---|---|---|---|
 | Specification | Complete | This document | Separate GeoNFT/GeoHotSpot APIs and workflows over a shared geospatial policy engine; GeoNFT is also a supported hotspot reward. |
 | API contract | In progress | Unified policy test: PASS 1,536 combinations and 14 named boundaries | Shared policy and GeoNFT reward identity added; request/result DTOs remain. |
-| WEB5 implementation | Complete | Durable trigger journal plus idempotent quest, inventory, and GeoNFT operation ledgers; focused GeoHotSpot suite 21/21 | A trigger allocation is reserved before effects. Provider/process failures return HTTP 503 and the same idempotency key resumes the operation without duplicating progress or rewards. |
+| WEB5 implementation | Complete | Durable trigger journal plus idempotent quest, inventory, and GeoNFT operation ledgers; focused GeoHotSpot suite 22/22 | A trigger allocation is reserved before effects. Provider/process failures return HTTP 503 and the same idempotency key resumes the operation without duplicating progress or rewards. |
 
 ### Trigger transaction invariant
 

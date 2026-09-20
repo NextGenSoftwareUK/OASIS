@@ -38,12 +38,12 @@ This matrix covers the shared policy engine, WEB5 trigger contract, quest progre
 | Content | Map/AR/VR/IR | Authored representation loads | Unity build | Required |
 | Content | Audio/video/text/link | Authored action dispatches in response order | Pass: parser/dispatcher compile | Required |
 | Events | Spawn/unlock/narration/teleport/audio/video/web/image/animation | Each action dispatches once in authored order | Pass: explicit dispatcher and scene-binding contract compile | Required |
-| Failure | Provider/save/grant failure | No untracked partial success; retry same key resumes without duplicates | Release build; journal round-trip and child-operation stability tests; focused suite 21/21 | Live provider interruption remains a manual deployment check |
+| Failure | Provider/save/grant failure | No untracked partial success; retry same key resumes without duplicates | Release build; journal round-trip and child-operation stability tests; focused suite 22/22 | Live provider interruption remains a manual deployment check |
 
 Automated evidence:
 
 - `GeoSpatialSpawnPolicy`: 1,536 combinations plus 14 named boundary cases passed.
-- Focused WEB5 suite: 21/21 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
+- Focused WEB5 suite: 22/22 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
 - WEB5 project build: 0 errors.
 - Our World `Assembly-CSharp.csproj` build: 0 errors; isolated Unity runtime suite: 6/6 passed.
 - Live development Anorak contract: all five distinct tree pickups succeeded; every duplicate was rejected, each pickup produced one objective transition with no replay, and cleanup restored progress to 0/5 while preserving all 26 unrelated inventory rows.
