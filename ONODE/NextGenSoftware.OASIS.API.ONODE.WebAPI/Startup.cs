@@ -252,6 +252,19 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>TenderlyOASIS</b> - Tenderly Web3 Development and Simulation Provider (transaction simulation and debugging → Holons).</li>
 <li><b>MoralisStreamsOASIS</b> - Moralis Streams Real-Time Blockchain Event Provider (webhooks for on-chain events → Holons).</li>
 <li><b>SubqueryOASIS</b> - SubQuery Blockchain Data Indexing Provider (GraphQL APIs for any chain → Holons).</li>
+<li><b>EigenLayerOASIS</b> - EigenLayer Restaking Protocol Provider (restake ETH to secure AVS networks → Holons).</li>
+<li><b>EspressoSystemsOASIS</b> - Espresso Systems Shared Sequencer Provider (decentralised sequencing for L2 rollups → Holons).</li>
+<li><b>AnkrOASIS</b> - Ankr Multi-Chain RPC Infrastructure Provider (enterprise-grade node access across 40+ chains → Holons).</li>
+<li><b>NansenOASIS</b> - Nansen On-Chain Analytics Provider (wallet intelligence and blockchain analytics → Holons).</li>
+<li><b>GoldskyOASIS</b> - Goldsky Real-Time Subgraph Indexing Provider (instant GraphQL APIs for any chain → Holons).</li>
+<li><b>TigrisOASIS</b> - Tigris Globally Distributed S3-Compatible Object Storage Provider (edge-native object storage → Holons).</li>
+<li><b>NileOASIS</b> - Nile Serverless Postgres Multi-Tenant Provider (isolated per-tenant Postgres → Holons).</li>
+<li><b>ENSOffchainOASIS</b> - ENS Off-Chain Resolver Provider (off-chain ENS name resolution without on-chain gas → Avatars).</li>
+<li><b>PrivyServerWalletsOASIS</b> - Privy Server Wallets Provider (programmatic embedded wallets via API → Avatars).</li>
+<li><b>NATSJetStreamOASIS</b> - NATS JetStream High-Performance Messaging Provider (persistent pub/sub at scale → Holons).</li>
+<li><b>TemporalOASIS</b> - Temporal Workflow Orchestration Provider (durable distributed workflow execution → Holons).</li>
+<li><b>DaprOASIS</b> - Dapr Distributed Application Runtime Provider (portable microservices building blocks → Holons).</li>
+<li><b>IntelOpenVINOOASIS</b> - Intel OpenVINO AI/ML Inference Runtime Provider (optimised AI inference on Intel hardware → Holons).</li>
 
 </ul>
 
