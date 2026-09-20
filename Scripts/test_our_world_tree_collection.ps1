@@ -9,6 +9,7 @@ Requires the GeoNFT collection-rules deployment. Does not verify Unity visuals.
 param([switch]$Apply,
     [string]$Web4BaseUrl='https://dev.api.web4.oasisomniverse.one',
     [string]$Web5BaseUrl='https://dev.api.starnet.oasisomniverse.one',
+    [ValidateNotNullOrEmpty()][string]$Provider='MongoDBOASIS',
     [string]$CredentialPath=(Join-Path $env:LOCALAPPDATA 'OASIS/our-world-geonft-seed.credential.clixml'))
 $ErrorActionPreference='Stop'
 if (!$Apply) { throw 'This collects demo trees and resets their data afterward. Use -Apply to execute.' }
@@ -40,9 +41,9 @@ try {
     })
     if ($ids.Count -ne 5) {throw 'Expected five canonical GeoNFT objectives.'}
     $null=Api $Web4BaseUrl 'nft/geo-nft-collection-status' 'Post' $ids
-    & "$PSScriptRoot/reset_our_world_tree_progress.ps1" -Apply -Web4BaseUrl $Web4BaseUrl -Web5BaseUrl $Web5BaseUrl -CredentialPath $CredentialPath
+    & "$PSScriptRoot/reset_our_world_tree_progress.ps1" -Apply -Web4BaseUrl $Web4BaseUrl -Web5BaseUrl $Web5BaseUrl -Provider $Provider -CredentialPath $CredentialPath
     $resetNeeded=$true
-    $all=@(Api $Web4BaseUrl 'nft/load-all-geo-nfts/MongoDBOASIS/false')
+    $all=@(Api $Web4BaseUrl "nft/load-all-geo-nfts/$Provider/false")
     $canonical=@($all|Where-Object {$_.id -in $ids})
     $demo=@($all|Where-Object {
         $n=$_
@@ -88,6 +89,6 @@ try {
 } finally {
     $headers.Clear();$avatar=$null
     if ($resetNeeded) {
-        & "$PSScriptRoot/reset_our_world_tree_progress.ps1" -Apply -Web4BaseUrl $Web4BaseUrl -Web5BaseUrl $Web5BaseUrl -CredentialPath $CredentialPath
+        & "$PSScriptRoot/reset_our_world_tree_progress.ps1" -Apply -Web4BaseUrl $Web4BaseUrl -Web5BaseUrl $Web5BaseUrl -Provider $Provider -CredentialPath $CredentialPath
     }
 }

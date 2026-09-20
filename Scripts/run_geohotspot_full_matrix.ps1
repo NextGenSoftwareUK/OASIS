@@ -80,7 +80,7 @@ try {
         $profiles=@(Get-Content -Raw $ProviderProfilesPath | ConvertFrom-Json)
         foreach ($profile in $profiles) {
             Invoke-Case Providers "Live contract: $($profile.name)" {
-                & (Join-Path $PSScriptRoot 'test_our_world_tree_collection.ps1') -Apply -Web4BaseUrl $profile.web4BaseUrl -Web5BaseUrl $profile.web5BaseUrl -CredentialPath $profile.credentialPath
+                & (Join-Path $PSScriptRoot 'test_our_world_tree_collection.ps1') -Apply -Web4BaseUrl $profile.web4BaseUrl -Web5BaseUrl $profile.web5BaseUrl -Provider $profile.name -CredentialPath $profile.credentialPath
             }
         }
     }
