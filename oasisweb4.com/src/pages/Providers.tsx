@@ -9,6 +9,8 @@ const providers: Record<string, string[]> = {
     'Radix', 'TON', 'Stellar', 'Monad', 'ChainLink', 'Loom', 'Algorand', 'Filecoin',
     'Ceramic / ComposeDB', 'Basechain', 'Abstract', 'Berachain',
     'Axelar (cross-chain)', 'Wormhole (bridge)', 'Fhenix (FHE L2)', 'Web3Core (EVM universal)',
+    'Chainflip (native cross-chain swap)', 'deBridge (cross-chain liquidity)',
+    'Stargate (LayerZero bridge)', 'Synapse (cross-chain bridge)',
   ],
   'Storage / Database / Cloud': [
     'MongoDB', 'Neo4j', 'SQL Server', 'Oracle DB', 'SQLite', 'Local File',
@@ -26,6 +28,7 @@ const providers: Record<string, string[]> = {
     'ArcadeDB', 'DuckDB', 'MotherDuck', 'Snowflake', 'BigQuery', 'Redshift', 'Databricks',
     'Apache Druid', 'Apache Pinot', 'Dragonfly', 'ValKey', 'Garnet',
     'Fastly (edge CDN / KV)', 'Deno Deploy (edge functions)',
+    'Vercel KV (edge key-value)', 'Netlify Blobs (edge object store)', 'Fly.io (distributed platform)',
   ],
   'Decentralised Social / Network': [
     'ActivityPub', 'Holochain', 'HoloWeb', 'Scuttlebutt', 'Urbit', 'SEEDS', 'Telegram',
@@ -52,6 +55,7 @@ const providers: Record<string, string[]> = {
     'Story Protocol (programmable IP)',
     'Civic (decentralised identity)',
     'Reclaim Protocol (zk identity proofs)',
+    'Polygon ID (ZK decentralised identity)', 'zkPass (ZK data verification)', 'Holonym (ZK proof of humanity)',
   ],
   'Infrastructure / Multisig': [
     'Safe (Gnosis multisig)', 'Sei Network',
