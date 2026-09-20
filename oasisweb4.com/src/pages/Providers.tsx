@@ -11,6 +11,7 @@ const providers: Record<string, string[]> = {
     'Axelar (cross-chain)', 'Wormhole (bridge)', 'Fhenix (FHE L2)', 'Web3Core (EVM universal)',
     'Chainflip (native cross-chain swap)', 'deBridge (cross-chain liquidity)',
     'Stargate (LayerZero bridge)', 'Synapse (cross-chain bridge)',
+    'LayerZero V2 (omnichain messaging)', 'Hyperlane (permissionless interoperability)', 'Connext (modular cross-chain)',
   ],
   'Storage / Database / Cloud': [
     'MongoDB', 'Neo4j', 'SQL Server', 'Oracle DB', 'SQLite', 'Local File',
@@ -40,6 +41,8 @@ const providers: Record<string, string[]> = {
     'Gitcoin Passport (identity scoring)', 'Polybase (decentralised DB)',
     'Sui zkLogin (social login)', 'ZKsync SSO (smart account SSO)',
     'Ceramic / ComposeDB (data streams)',
+    'QuickNode (RPC and API infrastructure)', 'Tenderly (Web3 dev and simulation)',
+    'Moralis Streams (real-time blockchain events)', 'SubQuery (blockchain data indexing)',
   ],
   'Web3 API / Indexing / RPC': [
     'The Graph (GraphQL subgraph indexing)', 'ENS (Ethereum Name Service)',
@@ -56,6 +59,7 @@ const providers: Record<string, string[]> = {
     'Civic (decentralised identity)',
     'Reclaim Protocol (zk identity proofs)',
     'Polygon ID (ZK decentralised identity)', 'zkPass (ZK data verification)', 'Holonym (ZK proof of humanity)',
+    'Self Protocol (ZK identity verification)', 'Proof of Humanity (sybil-resistant registry)',
   ],
   'Infrastructure / Multisig': [
     'Safe (Gnosis multisig)', 'Sei Network',

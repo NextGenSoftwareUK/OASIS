@@ -243,6 +243,15 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>PolygonIDOASIS</b> - Polygon ID ZK Decentralised Identity Provider (ZK credentials and verifications → Avatars).</li>
 <li><b>zkPassOASIS</b> - zkPass ZK Data Verification Provider (privacy-preserving data proofs → Avatars).</li>
 <li><b>HolonymOASIS</b> - Holonym ZK Proof of Unique Humanity Provider (sybil resistance without revealing personal data → Avatars).</li>
+<li><b>LayerZeroV2OASIS</b> - LayerZero V2 Omnichain Messaging Provider (cross-chain dApp interactions across 50+ networks → Holons).</li>
+<li><b>HyperlaneOASIS</b> - Hyperlane Permissionless Interoperability Provider (deploy cross-chain apps on any chain → Holons).</li>
+<li><b>ConnextOASIS</b> - Connext Modular Cross-Chain Provider (fast trust-minimised token transfers and messaging → Holons).</li>
+<li><b>SelfProtocolOASIS</b> - Self Protocol ZK Identity Verification Provider (privacy-preserving credential verification → Avatars).</li>
+<li><b>ProofOfHumanityOASIS</b> - Proof of Humanity Sybil-Resistant Registry Provider (on-chain human verification → Avatars).</li>
+<li><b>QuickNodeOASIS</b> - QuickNode Blockchain RPC and API Infrastructure Provider (enterprise-grade node access across chains → Holons).</li>
+<li><b>TenderlyOASIS</b> - Tenderly Web3 Development and Simulation Provider (transaction simulation and debugging → Holons).</li>
+<li><b>MoralisStreamsOASIS</b> - Moralis Streams Real-Time Blockchain Event Provider (webhooks for on-chain events → Holons).</li>
+<li><b>SubqueryOASIS</b> - SubQuery Blockchain Data Indexing Provider (GraphQL APIs for any chain → Holons).</li>
 
 </ul>
 
