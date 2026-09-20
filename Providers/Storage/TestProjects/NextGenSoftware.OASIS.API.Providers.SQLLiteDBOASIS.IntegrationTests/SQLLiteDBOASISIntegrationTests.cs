@@ -59,6 +59,12 @@ public class SQLLiteDBOASISIntegrationTests
         loaded.IsError.Should().BeFalse(loaded.Message);
         loaded.Result.Should().NotBeNull();
         loaded.Result.Email.Should().Be(avatar.Email);
+
+        (await provider.DeActivateProviderAsync()).IsError.Should().BeFalse();
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var afterReactivation = await provider.LoadAvatarByUsernameAsync(avatar.Username);
+        afterReactivation.IsError.Should().BeFalse(afterReactivation.Message);
+        afterReactivation.Result.Id.Should().Be(avatar.Id);
     }
 
     [Fact]
