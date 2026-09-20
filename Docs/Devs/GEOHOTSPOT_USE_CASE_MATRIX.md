@@ -1,6 +1,6 @@
 # GeoHotSpot use-case and verification matrix
 
-**Updated:** 2026-09-19
+**Updated:** 2026-09-20
 
 This matrix covers the shared policy engine, WEB5 trigger contract, quest progress, rewards, and Our World client behavior. “Automated pass” means a repeatable checked test/build. “Manual required” identifies behavior that must be observed in a running Unity scene with real media, location, and two-avatar sessions.
 
@@ -46,6 +46,7 @@ Automated evidence:
 - Focused WEB5 suite: 24/24 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
 - WEB5 project build: 0 errors.
 - Our World `Assembly-CSharp.csproj` build: 0 errors.
+- Live development Anorak contract: all five distinct tree pickups succeeded; every duplicate was rejected, each pickup produced one objective transition with no replay, and cleanup restored progress to 0/5 while preserving all 26 unrelated inventory rows.
 - Railway dependency manifest validation is run whenever the dependency SHAs below are advanced.
 
 ## One-command automated runner
