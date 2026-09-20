@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_193 fully implemented providers across 7 categories — last updated: 2026-09-20_
+_202 fully implemented providers across 7 categories — last updated: 2026-09-20_
 
 ---
 
@@ -8,16 +8,17 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 
 | Category | Count | Examples |
 |---|---|---|
-| Blockchain / L1 / L2 | 54 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei, Axelar, Wormhole, Fhenix, Web3Core, Chainflip, deBridge, Stargate, Synapse, LayerZero V2, Hyperlane, Connext… |
-| Decentralised Social / Network | 34 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Push Protocol, Celestia, Ceramic, QuickNode, Tenderly, Moralis Streams, SubQuery… |
-| Storage / Database / Cloud | 81 | MongoDB, IPFS, Arweave, Neo4j, SQL Server, Oracle DB, SQLite, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, PostgreSQL, Firebase, Supabase, Fastly, Deno Deploy, Vercel KV, Netlify Blobs, Fly.io… |
+| Blockchain / L1 / L2 | 56 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Axelar, Wormhole, Fhenix, Web3Core, Chainflip, deBridge, Stargate, Synapse, LayerZero V2, Hyperlane, Connext, EigenLayer, Espresso Systems… |
+| Decentralised Social / Network | 37 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Push Protocol, Celestia, Ceramic, QuickNode, Tenderly, Moralis Streams, SubQuery, Ankr, Nansen, Goldsky… |
+| Storage / Database / Cloud | 83 | MongoDB, IPFS, Arweave, Neo4j, SQL Server, Oracle DB, SQLite, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, PostgreSQL, Firebase, Supabase, Fastly, Deno Deploy, Vercel KV, Netlify Blobs, Fly.io, Tigris, Nile… |
 | Spatial / Gaming / AR | 8 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship |
 | Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
-| Identity / Encryption / IP | 10 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol, Polygon ID, zkPass, Holonym, Self Protocol, Proof of Humanity |
+| Identity / Encryption / IP | 12 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol, Polygon ID, zkPass, Holonym, Self Protocol, Proof of Humanity, ENS Offchain, Privy Server Wallets |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 193 providers** (54 + 34 + 81 + 8 + 4 + 10 + 2 = 193)
+**Total: 202 providers** (56 + 37 + 83 + 8 + 4 + 12 + 2 = 202)
 
+> **Added 2026-09-20b (+9):** Blockchain ×2 (EigenLayer, Espresso Systems), Network ×3 (Ankr, Nansen, Goldsky), Storage ×2 (Tigris, Nile), Identity ×2 (ENS Offchain, Privy Server Wallets). Previous total: 193.
 > **Added 2026-09-20 (+9):** Blockchain ×3 (LayerZero V2, Hyperlane, Connext), Identity ×2 (Self Protocol, Proof of Humanity), Network ×4 (QuickNode, Tenderly, Moralis Streams, SubQuery). Previous total: 184.
 > **Added 2026-09-19 (+10):** Blockchain ×4 (Chainflip, deBridge, Stargate, Synapse), Storage ×3 (Vercel KV, Netlify Blobs, Fly.io), Identity ×3 (Polygon ID, zkPass, Holonym). Previous total: 174.
 > **Added 2026-09-15 (+1):** Web3Core (EVM-compatible blockchain universal adapter). Previous total: 173.
@@ -27,7 +28,7 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 
 ## Full Provider List
 
-### Blockchain / L1 / L2 (51)
+### Blockchain / L1 / L2 (56)
 
 | Provider | ProviderType |
 |---|---|
@@ -85,8 +86,10 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 | LayerZero V2 (omnichain messaging) | LayerZeroV2OASIS |
 | Hyperlane (permissionless interoperability) | HyperlaneOASIS |
 | Connext (modular cross-chain) | ConnextOASIS |
+| EigenLayer (restaking protocol) | EigenLayerOASIS |
+| Espresso Systems (shared sequencer) | EspressoSystemsOASIS |
 
-### Storage / Database / Cloud (81)
+### Storage / Database / Cloud (83)
 
 | Provider | ProviderType |
 |---|---|
@@ -175,8 +178,10 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 | Vercel KV (edge key-value store) | VercelKVOASIS |
 | Netlify Blobs (edge object store) | NetlifyBlobsOASIS |
 | Fly.io (distributed app platform) | FlyIOOASIS |
+| Tigris (globally distributed S3-compatible) | TigrisOASIS |
+| Nile (serverless Postgres multi-tenant) | NileOASIS |
 
-### Decentralised Social / Network (34)
+### Decentralised Social / Network (37)
 
 | Provider | ProviderType |
 |---|---|
@@ -214,6 +219,9 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 | Tenderly (Web3 dev and simulation platform) | TenderlyOASIS |
 | Moralis Streams (real-time blockchain events) | MoralisStreamsOASIS |
 | SubQuery (blockchain data indexing) | SubqueryOASIS |
+| Ankr (multi-chain RPC infrastructure) | AnkrOASIS |
+| Nansen (on-chain analytics and wallet intelligence) | NansenOASIS |
+| Goldsky (real-time subgraph indexing) | GoldskyOASIS |
 
 ### Web3 API / Indexing / RPC (4)
 
@@ -237,7 +245,7 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 | MapLibre (open-source maps) | MapLibreOASIS |
 | Niantic Lightship (AR platform) | NianticLightshipOASIS |
 
-### Identity / Security / IP (10)
+### Identity / Security / IP (12)
 
 | Provider | ProviderType |
 |---|---|
@@ -251,6 +259,8 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 | Holonym (ZK proof of unique humanity) | HolonymOASIS |
 | Self Protocol (ZK identity verification) | SelfProtocolOASIS |
 | Proof of Humanity (sybil-resistant registry) | ProofOfHumanityOASIS |
+| ENS Off-Chain Resolver (off-chain ENS names) | ENSOffchainOASIS |
+| Privy Server Wallets (programmatic embedded wallets) | PrivyServerWalletsOASIS |
 
 ### Infrastructure / Multisig (2)
 
@@ -263,11 +273,11 @@ _193 fully implemented providers across 7 categories — last updated: 2026-09-2
 
 ## Competitive Moat
 
-No competitor — Web3 or traditional — comes close to 193 implemented providers under a single unified interface:
+No competitor — Web3 or traditional — comes close to 202 implemented providers under a single unified interface:
 
 | Platform | Providers |
 |---|---|
-| **OASIS** | **193** |
+| **OASIS** | **202** |
 | Moralis | ~15 (read-only Web3 data) |
 | Alchemy | ~10 (EVM chains only) |
 | Infura | ~8 (EVM chains only) |
