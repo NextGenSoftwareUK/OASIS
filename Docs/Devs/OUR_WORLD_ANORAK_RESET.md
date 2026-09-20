@@ -12,6 +12,14 @@ Stop Unity Play mode, then from the OASIS repository root:
 ./Scripts/reset_our_world_tree_progress.ps1 -Apply
 ```
 
+To clear every seeded Our World test item and reset both the Anorak quest and the
+quest-mode/spawn-matrix fixtures, use the broader command:
+
+```powershell
+./Scripts/reset_our_world_test_progress.ps1          # inspect
+./Scripts/reset_our_world_test_progress.ps1 -Apply   # back up, reset and verify
+```
+
 The script authenticates using the existing encrypted development seed credential.
 It discovers Anorak's five required GeoNFTs, includes only tagged demo duplicates
 at those coordinates, removes their inventory rows and collection-history entries,
