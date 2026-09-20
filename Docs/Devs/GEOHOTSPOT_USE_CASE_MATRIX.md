@@ -38,7 +38,7 @@ This matrix covers the shared policy engine, WEB5 trigger contract, quest progre
 | Content | Map/AR/VR/IR | Authored representation loads | Unity build | Required |
 | Content | Audio/video/text/link | Authored action dispatches in response order | Pass: parser/dispatcher compile | Required |
 | Events | Spawn/unlock/narration/teleport/audio/video/web/image/animation | Each action dispatches once in authored order | Pass: explicit dispatcher and scene-binding contract compile | Required |
-| Failure | Provider/save/grant failure | Error surfaced; no silent success | Build pass; error paths explicit | Transaction rollback test still required |
+| Failure | Provider/save/grant failure | No untracked partial success; retry same key resumes without duplicates | Release build; journal round-trip and child-operation stability tests; focused suite 21/21 | Live provider interruption remains a manual deployment check |
 
 Automated evidence:
 
@@ -48,4 +48,4 @@ Automated evidence:
 - Our World `Assembly-CSharp.csproj` build: 0 errors.
 - Railway dependency manifest validation is run whenever the dependency SHAs below are advanced.
 
-The uncompleted rows are deliberately marked rather than reported as verified. Media/action dispatch and durable cross-provider rollback need implementation before the complete feature can be signed off.
+The uncompleted rows are deliberately marked rather than reported as verified. Live Unity presentation, two-avatar concurrency across deployed replicas, media playback, and deliberately interrupted live providers still require manual observation. The cross-provider mutation path now uses a durable reservation journal and idempotent owning-manager writes, so a retry resumes instead of compensating or duplicating state.
