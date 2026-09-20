@@ -26,8 +26,8 @@ The runner never converts a missing prerequisite into a pass. Each stage is reco
 | Spawn-policy matrix | 1,536 combinations, 14 named boundaries, invalid limits, and GeoNFT/GeoHotSpot policy parity | Runs |
 | Our World runtime | inventory parsing, WEB4/WEB5 identity merge, transparent effects, dynamic orbit artwork, objective then quest presentation, audio separation, and readable title | Runs |
 | Provider profiles | the canonical five-tree collection/progression contract against each configured provider deployment | Requires fixture |
-| Two-avatar replicas | synchronized requests from two avatars to separate WEB5 replicas competing for a final allocation | Requires fixture |
-| Restart/replay | interruption followed by replay with the same key, then another replay proving one committed result | Requires fixture |
+| Two-avatar replicas | synchronized requests from two avatars to separate HTTP processes competing for a final allocation in shared SQLite state | Runs against the disposable local contract host; a populated fixture replaces it with full WEB5 replicas |
+| Restart/replay | an in-flight process kill followed by replay with the same key, then another replay proving one committed result | Runs against the disposable local contract host; a populated fixture replaces it with a full WEB5 process |
 
 When Our World is closed, Unity runs in batch mode. When the project is already open, `GeoHotSpotMatrixAutomation` consumes `Library/GeoHotSpotMatrix.request` and runs the same test filter inside that editor. This prevents a second Unity process from corrupting or locking the project.
 
@@ -51,6 +51,27 @@ When Our World is closed, Unity runs in batch mode. When the project is already 
 ```
 
 `-SkipBuild` and `-SkipUnity` produce explicit `SKIP` rows. They are useful for focused development runs but do not constitute a fully passing matrix.
+
+### Disposable local resilience environment
+
+When `-ConcurrencyFixturePath` is omitted, the matrix no longer skips process resilience. It starts a purpose-built local host twice on ports 5055 and 5056. Both processes implement the WEB5 `POST /api/geohotspots/{id}/trigger` response contract and share a temporary SQLite WAL database. The orchestrator creates two temporary bearer identities and a GeoHotSpot with one remaining global allocation, releases both requests together, and requires exactly one acceptance.
+
+The restart case starts a fresh host with a deterministic pre-commit delay, sends a trigger, forcibly terminates that process while the request is in flight, restarts it over the same SQLite database, and replays the same idempotency key twice. The first replay must commit and the second must return the identical count and key. Every process and temporary database is removed in `finally` unless `-KeepArtifacts` is requested.
+
+Run it independently with:
+
+```powershell
+./Scripts/run_local_geohotspot_resilience.ps1
+```
+
+The components are:
+
+- `Scripts/run_local_geohotspot_resilience.ps1` — complete arrange/run/cleanup orchestration;
+- `Scripts/manage_local_geohotspot_resilience_host.ps1` — process lifecycle and PID files;
+- `Scripts/TestHosts/geohotspot_resilience_host.py` — isolated HTTP/SQLite trigger-contract host;
+- `Scripts/test_geohotspot_live_resilience.ps1` — the same black-box assertions used for full deployments.
+
+This local host verifies the HTTP runner, true cross-process competition, durable SQLite serialization, process termination, and replay behavior without booting OASIS providers or granting real quest/inventory rewards. The focused WEB5 controller tests verify its reservation/effect/finalization rules. A populated fixture remains the integration gate for proving the complete controller and configured provider deployment across replicas; local contract-host evidence must not be relabelled as a provider integration pass.
 
 ## Provider profiles
 
@@ -114,9 +135,20 @@ Do not commit JWTs, credentials, production process commands, or populated fixtu
 
 ## Latest verified run
 
-On 2026-09-20 the WEB5 Release build passed, the focused WEB5 contract suite passed 21/21, the policy executable passed all 1,536 combinations plus 14 boundary cases, and the isolated Our World Unity suite passed 6/6. The earlier live development Anorak run also passed all five unique pickups, duplicate rejection, exact objective transitions, cleanup to 0/5, and preservation of 26 unrelated inventory rows.
+On 2026-09-20 the WEB5 Release build passed, the focused WEB5 contract suite passed 21/21, the policy executable passed all 1,536 combinations plus 14 boundary cases, and the isolated Our World Unity suite passed 6/6. The disposable process suite also passed synchronized two-avatar competition across two host processes and an actual in-flight process kill, restart, first replay commit, and second idempotent replay. The earlier live development Anorak run passed all five unique pickups, duplicate rejection, exact objective transitions, cleanup to 0/5, and preservation of 26 unrelated inventory rows.
 
-The same environment audit found no disposable local MongoDB, SQLite, or Neo4j WEB4/WEB5 stack, no Docker executable, no second local WEB5 replica, and no populated resilience fixture. Those live stages therefore remain `SKIP`. This is an infrastructure prerequisite, not a passing test result.
+The environment still has no disposable MongoDB or Neo4j WEB4/WEB5 deployment and no populated full-WEB5 replica fixture. Those provider-specific integration stages remain `SKIP`. The new SQLite contract host fills the local process/concurrency/restart automation gap while keeping the distinction between transport/durability evidence and complete provider integration evidence explicit.
+
+### Storage-provider harness audit
+
+The local provider harnesses have two distinct responsibilities:
+
+- backend-free unit projects validate provider identity and construction without pretending that a database operation ran;
+- populated provider profiles execute the complete five-tree HTTP contract against disposable WEB4/WEB5 deployments.
+
+The audit corrected the MongoDB unit project's stale project path (`MongoOASIS` is the repository directory), removed backend activation from its unit scope, and updated the SQLite unit project to construct against an isolated in-memory connection. The obsolete SQLite source file that asserted removed interfaces and “not supported” persistence is excluded from compilation. Activation and persistence belong to populated integration profiles, even for SQLite, because activation initializes the complete provider schema. Neo4j's backend-free metadata suite remains valid. The WEB5 suite now also persists a pending trigger journal to a disposable file, reloads it through an independent store instance, commits it, reloads again, and verifies that the idempotency result survives without process-static state.
+
+These tests establish the provider-independent serialization and replay contract. They do not claim MongoDB, SQLite, Neo4j, or another provider is integration-tested unless its populated provider profile completes successfully. `Neo4jOASIS2` remains a commented, non-implementation provider and is not counted as a usable provider.
 
 ## Visual and audio evidence
 
@@ -126,6 +158,7 @@ Unity automation verifies objective and quest sequencing, active state, effect c
 
 - **Unity result missing:** check `unity.log`. If the project is open, wait for script compilation and confirm `BuildLogs/geohotspot-matrix-unity.json` appears.
 - **Provider stage skipped:** supply `-ProviderProfilesPath`; the runner will not infer credentials.
+- **Local host cannot start:** install Python 3 or pass `-PythonPath`; the manager also detects the Codex bundled runtime when available.
 - **Concurrency stage accepts both avatars:** confirm the fixture has one global allocation remaining and both replicas use the same provider state.
 - **Restart first request succeeds:** configure the disposable instance to stop during the request; success means recovery was not exercised.
 - **Pending request continues to return 503:** inspect the complete provider error. Retry the same key after restoring the failed provider; do not issue a replacement key.
