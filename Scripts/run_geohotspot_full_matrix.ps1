@@ -65,7 +65,16 @@ try {
                 $unityResult=Get-Content -Raw $result|ConvertFrom-Json
                 if ([int]$unityResult.failCount -gt 0) { throw "$($unityResult.failCount) Unity tests failed: $($unityResult.message)" }
             } else {
-                & $UnityPath -batchmode -nographics -projectPath $OurWorldPath -runTests -testPlatform EditMode -testFilter QuestEffectsRuntimeTests -testResults $unityXml -logFile $unityLog
+                Remove-Item -LiteralPath $unityXml -Force -ErrorAction SilentlyContinue
+                $unityProcess = [Diagnostics.Process]::new()
+                $unityProcess.StartInfo = [Diagnostics.ProcessStartInfo]::new($UnityPath)
+                $unityProcess.StartInfo.UseShellExecute = $false
+                $unityProcess.StartInfo.CreateNoWindow = $true
+                foreach ($argument in @('-batchmode','-nographics','-projectPath',$OurWorldPath,'-runTests','-testPlatform','EditMode','-testFilter','QuestEffectsRuntimeTests','-testResults',$unityXml,'-logFile',$unityLog)) {
+                    $null = $unityProcess.StartInfo.ArgumentList.Add($argument)
+                }
+                if (!$unityProcess.Start()) { throw 'Unity test process could not be started.' }
+                $unityProcess.WaitForExit()
                 if (!(Test-Path $unityXml)) { throw 'Unity did not produce a test result file.' }
                 [xml]$xml=Get-Content -Raw $unityXml
                 $failed=[int]$xml.'test-run'.failed
