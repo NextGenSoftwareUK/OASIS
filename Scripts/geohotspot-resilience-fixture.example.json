@@ -9,6 +9,7 @@
   "continuousDurationSeconds": 0,
   "gameSource": "Our World",
   "expectedAcceptedCount": 1,
+  "interruptDelayMilliseconds": 250,
   "restartStopCommand": "Stop-Process -Id 12345 -Force",
   "restartStartCommand": "Start-Process dotnet -ArgumentList 'run --project C:\\Source\\OASIS\\STAR ODK\\NextGenSoftware.OASIS.STAR.WebAPI' -WindowStyle Hidden"
 }
