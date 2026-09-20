@@ -217,3 +217,5 @@ The final hotspot save moves the operation from `PendingOperations` to `Accepted
 | Automated matrix | In progress | 1,536 policy combinations; 23 focused WEB5 tests; builds 0 errors | Media/action integration coverage remains. |
 | Manual matrix | Not started |  |  |
 | Docs/Postman | In progress | API refs, quest guide, Postman `9145d5d`, matrix | Creator/player guide and GeoNFT cross-reference remain. |
+
+The automation entry point is `Scripts/run_geohotspot_full_matrix.ps1`. Local contract, policy, and Unity runtime stages run without secrets. Provider, two-avatar/replica, and restart/replay stages consume external fixture files and produce explicit PASS/FAIL/SKIP evidence in JSON, Markdown, HTML, TRX, and Unity XML formats. Example schemas are `Scripts/geohotspot-provider-profiles.example.json` and `Scripts/geohotspot-resilience-fixture.example.json`. Full operating instructions are in `Docs/Devs/GEOHOTSPOT_AUTOMATED_VERIFICATION.md`.

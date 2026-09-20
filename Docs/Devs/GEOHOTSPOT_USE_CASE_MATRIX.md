@@ -48,4 +48,12 @@ Automated evidence:
 - Our World `Assembly-CSharp.csproj` build: 0 errors.
 - Railway dependency manifest validation is run whenever the dependency SHAs below are advanced.
 
+## One-command automated runner
+
+Run `Scripts/run_geohotspot_full_matrix.ps1`. It executes the WEB5 Release build, focused API suite, all 1,536 spawn-policy combinations, and Our World EditMode/PlayMode runtime tests. It writes `geohotspot-matrix.json`, `.md`, and `.html`, plus TRX, Unity XML, and logs under `TestResults/GeoHotSpotMatrix`.
+
+Setup, fixture contracts, CI gates, transaction assertions, evidence formats, and troubleshooting are documented in [GeoHotSpot automated verification](./GEOHOTSPOT_AUTOMATED_VERIFICATION.md).
+
+Live providers use `-ProviderProfilesPath Scripts/geohotspot-provider-profiles.example.json` after copying that example outside the repository and supplying disposable credentials/endpoints. Two-avatar, multiple-replica, and restart/replay tests use `-ConcurrencyFixturePath` with the schema in `Scripts/geohotspot-resilience-fixture.example.json`. These inputs are deliberately external because CI secrets, deployed endpoints, and disposable process IDs must never be committed. An omitted prerequisite is recorded as `SKIP`; it is never reported as a pass.
+
 The uncompleted rows are deliberately marked rather than reported as verified. Live Unity presentation, two-avatar concurrency across deployed replicas, media playback, and deliberately interrupted live providers still require manual observation. The cross-provider mutation path now uses a durable reservation journal and idempotent owning-manager writes, so a retry resumes instead of compensating or duplicating state.
