@@ -12,6 +12,7 @@ const providers: Record<string, string[]> = {
     'Chainflip (native cross-chain swap)', 'deBridge (cross-chain liquidity)',
     'Stargate (LayerZero bridge)', 'Synapse (cross-chain bridge)',
     'LayerZero V2 (omnichain messaging)', 'Hyperlane (permissionless interoperability)', 'Connext (modular cross-chain)',
+    'EigenLayer (restaking protocol)', 'Espresso Systems (shared sequencer)',
   ],
   'Storage / Database / Cloud': [
     'MongoDB', 'Neo4j', 'SQL Server', 'Oracle DB', 'SQLite', 'Local File',
@@ -30,6 +31,7 @@ const providers: Record<string, string[]> = {
     'Apache Druid', 'Apache Pinot', 'Dragonfly', 'ValKey', 'Garnet',
     'Fastly (edge CDN / KV)', 'Deno Deploy (edge functions)',
     'Vercel KV (edge key-value)', 'Netlify Blobs (edge object store)', 'Fly.io (distributed platform)',
+    'Tigris (distributed S3-compatible)', 'Nile (serverless Postgres multi-tenant)',
   ],
   'Decentralised Social / Network': [
     'ActivityPub', 'Holochain', 'HoloWeb', 'Scuttlebutt', 'Urbit', 'SEEDS', 'Telegram',
@@ -43,6 +45,9 @@ const providers: Record<string, string[]> = {
     'Ceramic / ComposeDB (data streams)',
     'QuickNode (RPC and API infrastructure)', 'Tenderly (Web3 dev and simulation)',
     'Moralis Streams (real-time blockchain events)', 'SubQuery (blockchain data indexing)',
+    'Ankr (multi-chain RPC)', 'Nansen (on-chain analytics)', 'Goldsky (real-time subgraph indexing)',
+    'NATS JetStream (high-performance messaging)', 'Temporal (workflow orchestration)',
+    'Dapr (distributed app runtime)', 'Intel OpenVINO (AI/ML inference)',
   ],
   'Web3 API / Indexing / RPC': [
     'The Graph (GraphQL subgraph indexing)', 'ENS (Ethereum Name Service)',
@@ -60,6 +65,7 @@ const providers: Record<string, string[]> = {
     'Reclaim Protocol (zk identity proofs)',
     'Polygon ID (ZK decentralised identity)', 'zkPass (ZK data verification)', 'Holonym (ZK proof of humanity)',
     'Self Protocol (ZK identity verification)', 'Proof of Humanity (sybil-resistant registry)',
+    'ENS Off-Chain Resolver (off-chain ENS names)', 'Privy Server Wallets (programmatic embedded wallets)',
   ],
   'Infrastructure / Multisig': [
     'Safe (Gnosis multisig)', 'Sei Network',
