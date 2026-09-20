@@ -69,7 +69,7 @@ Run:
 
 The provider stage calls `test_our_world_tree_collection.ps1`. That script validates five canonical identities, once-per-player rules, collection history, Nature inventory rows, objective transitions, final quest completion, duplicate rejection, and reconciliation without replayed events. It resets only tagged demo quest progress before and after the run.
 
-Provider profiles configure provider selection through each disposable deployment's normal OASIS DNA. The automation does not override ProviderManager, disable HyperDrive, or replace automatic failover.
+Each profile's `name` is passed to provider-explicit WEB4 GeoNFT routes while its disposable deployments retain their normal OASIS DNA. The automation does not override ProviderManager, disable HyperDrive, or replace automatic failover.
 
 ## Concurrency and restart fixture
 
