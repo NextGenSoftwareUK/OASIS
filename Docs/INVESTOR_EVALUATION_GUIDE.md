@@ -7,7 +7,7 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 **Where we are today (August 2026):**
 - **WEB4** — The foundation: universal data aggregation, COSMIC ORM (**102 providers**), HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P networking. Live in production.
 - **WEB5** — The application layer: STAR ODK low-code metaverse generator, STARNET holon graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
-- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, **250 MCP tools**, **56 REST endpoints**, **107 AI providers** (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, EXO, SambaNova, Cerebras, OpenRouter, Together AI, Fireworks AI, Perplexity, HuggingFace, Azure OpenAI, AWS Bedrock, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS, ElevenLabs, Runway ML, Black Forest Labs, and 60+ more), **17 orchestrator protocols** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook), DID/Verifiable Credentials, karma-gated model tiers. **Fully shipped as of August 2026. This is the primary revenue growth driver.**
+- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, **259 MCP tools**, **56 REST endpoints**, **99 AI providers** (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, EXO, SambaNova, Cerebras, OpenRouter, Together AI, Fireworks AI, Perplexity, HuggingFace, Azure OpenAI, AWS Bedrock, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS, ElevenLabs, Runway ML, Black Forest Labs, and 60+ more), **17 orchestrator protocols** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook), DID/Verifiable Credentials, karma-gated model tiers. **Fully shipped as of August 2026. This is the primary revenue growth driver.**
 - **WEB7** — The symbiosis layer: bio-signal and neural interface integration bridging human consciousness to the OASIS AI layer. Architecture complete, implementation in progress.
 - **WEB8–WEB10** — The galactic mesh, singularity, and source layers — long-horizon vision stages.
 
@@ -308,7 +308,7 @@ WEB6 is the AI abstraction and aggregation layer built on top of WEB4 and WEB5. 
 
 **Investment Value**: Karma-gated tiers create a proven revenue escalation model with natural upgrade pressure. It also aligns economic incentives with network quality — the best contributors get the best tools.
 
-### WEB6.5 — 250 MCP tools + REST API (56 Endpoints)
+### WEB6.5 — 259 MCP tools + REST API (56 Endpoints)
 **Innovation**: The largest single MCP server surface area available on any platform:
 
 - **250 typed named tools** spanning WEB4 (102), WEB5 (96), WEB6 (31), WEB7 (8), WEB8 (9), WEB9 (2), WEB10 (2)
@@ -325,7 +325,7 @@ WEB6 is the AI abstraction and aggregation layer built on top of WEB4 and WEB5. 
 |---|---|---|
 | AI API Infrastructure | $45B+ | Provider-agnostic + real identity grounding |
 | Enterprise AI Orchestration | $12B+ | FAHRN multi-mode dispatch + BRAID memory |
-| AI Developer Tools | $8B+ | 250 MCP tools + npm package + IDE integration |
+| AI Developer Tools | $8B+ | 259 MCP tools + npm package + IDE integration |
 | Data-Grounded AI | Emerging | Only AI router with WEB4/WEB5 ecosystem context |
 
 **Key differentiator from competitors**: OpenAI, Anthropic, and Google all sell model access. WEB6 sells *intelligence infrastructure* — routing, orchestration, memory, identity, and skill evolution — that works with all of them simultaneously.
@@ -358,7 +358,7 @@ These layers are vision-stage but their MCP tool surface is already live, ensuri
 ### 6. Advanced AI/ML Capabilities (WEB6)
 **Innovation**: Full AI abstraction and aggregation layer — not just ML over data, but multi-agent orchestration, self-evolving skills, and grounded-in-identity intelligence
 
-- FAHRN multi-mode agent dispatch across 107 providers (17 orchestrator protocols: MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook)
+- FAHRN multi-mode agent dispatch across 99 providers (17 orchestrator protocols: MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook)
 - SkillOpt self-evolving skills (+23.5% avg gain, Microsoft Research method)
 - Holonic BRAID 74× performance-per-dollar reasoning graph sharing
 - ML.NET in-process task classification at microsecond latency
