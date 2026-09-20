@@ -79,7 +79,8 @@ Copy `Scripts/geohotspot-resilience-fixture.example.json` to a secure location. 
 - two avatar JWTs;
 - hotspot ID, trigger type, coordinates, accuracy and duration evidence;
 - `expectedAcceptedCount`, normally `1`;
-- stop/start commands for a disposable WEB5 process used only by restart testing.
+- stop/start commands for a disposable WEB5 process used only by restart testing;
+- `interruptDelayMilliseconds`, controlling when the runner terminates WEB5 while the trigger request is in flight.
 
 Run:
 
@@ -88,7 +89,7 @@ Run:
   -ConcurrencyFixturePath C:\secure\geohotspot-resilience.json
 ```
 
-The concurrency stage releases two requests together through PowerShell jobs and verifies the authored accepted count. The restart stage uses one idempotency key for the interrupted request, restart replay, and committed replay. It requires the first request to be interrupted; a normally successful first response fails the test because it did not exercise recovery.
+The concurrency stage releases two requests together through PowerShell jobs and verifies the authored accepted count. The restart stage starts the trigger in a background job, waits `interruptDelayMilliseconds`, terminates the disposable WEB5 process, restarts it, then uses one idempotency key for recovery replay and committed replay. A normally successful first response fails the test because it committed before interruption; reduce the delay or use a deliberately slower disposable provider.
 
 ## Durable transaction assertions
 
@@ -122,4 +123,3 @@ Unity automation verifies objective and quest sequencing, active state, effect c
 - **Concurrency stage accepts both avatars:** confirm the fixture has one global allocation remaining and both replicas use the same provider state.
 - **Restart first request succeeds:** configure the disposable instance to stop during the request; success means recovery was not exercised.
 - **Pending request continues to return 503:** inspect the complete provider error. Retry the same key after restoring the failed provider; do not issue a replacement key.
-

@@ -27,9 +27,19 @@ if ($Mode -eq 'Concurrency') {
     return
 }
 if (!$f.restartStopCommand -or !$f.restartStartCommand) { throw 'RestartReplay fixture requires restartStopCommand and restartStartCommand.' }
-$key=([Guid]::NewGuid()).ToString(); $first=Trigger $f.web5BaseUrls[0] $f.jwtTokens[0] $key
-if (!$first.isError -and $first.result) { throw 'Fixture did not interrupt the first request; configure its disposable instance fault/stop point.' }
-& ([scriptblock]::Create([string]$f.restartStopCommand)); & ([scriptblock]::Create([string]$f.restartStartCommand))
+$key=([Guid]::NewGuid()).ToString()
+$requestJob=Start-Job -ScriptBlock {
+    param($base,$token,$key,$fixture)
+    $headers=@{Authorization="Bearer $token"}
+    $body=[ordered]@{idempotencyKey=$key;triggerType=$fixture.triggerType;observedAtUtc=[DateTime]::UtcNow.ToString('O');latitude=$fixture.latitude;longitude=$fixture.longitude;accuracyMetres=$fixture.accuracyMetres;continuousDurationSeconds=$fixture.continuousDurationSeconds;gameSource=$fixture.gameSource}|ConvertTo-Json
+    try { Invoke-RestMethod "$base/api/geohotspots/$($fixture.hotSpotId)/trigger" -Method Post -Headers $headers -ContentType application/json -Body $body -TimeoutSec 90 }
+    catch { if ($_.ErrorDetails.Message) { $_.ErrorDetails.Message|ConvertFrom-Json } else { [pscustomobject]@{isError=$true;message=$_.Exception.Message} } }
+} -ArgumentList $f.web5BaseUrls[0],$f.jwtTokens[0],$key,$f
+Start-Sleep -Milliseconds $(if ($f.interruptDelayMilliseconds) {[int]$f.interruptDelayMilliseconds} else {250})
+& ([scriptblock]::Create([string]$f.restartStopCommand))
+$first=$requestJob|Wait-Job|Receive-Job; $requestJob|Remove-Job -Force
+if (!$first.isError -and $first.result) { throw 'The request committed before interruption; reduce interruptDelayMilliseconds or use a slower disposable provider.' }
+& ([scriptblock]::Create([string]$f.restartStartCommand))
 $deadline=[DateTime]::UtcNow.AddSeconds(120); do { try {$null=Invoke-WebRequest "$($f.web5BaseUrls[0])/api/health" -TimeoutSec 2;break}catch{Start-Sleep 1} } while([DateTime]::UtcNow -lt $deadline)
 $replay=Trigger $f.web5BaseUrls[0] $f.jwtTokens[0] $key
 if ($replay.isError -or !$replay.result) { throw 'Replay did not commit the pending operation.' }
