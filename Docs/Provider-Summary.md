@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_174 fully implemented providers across 7 categories — last updated: 2026-09-15_
+_184 fully implemented providers across 7 categories — last updated: 2026-09-19_
 
 ---
 
@@ -8,16 +8,17 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 
 | Category | Count | Examples |
 |---|---|---|
-| Blockchain / L1 / L2 | 47 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei, Axelar, Wormhole, Fhenix, Web3Core (EVM)… |
+| Blockchain / L1 / L2 | 51 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei, Axelar, Wormhole, Fhenix, Web3Core, Chainflip, deBridge, Stargate, Synapse… |
 | Decentralised Social / Network | 30 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Push Protocol, Celestia, Ceramic… |
-| Storage / Database / Cloud | 78 | MongoDB, IPFS, Arweave, Neo4j, SQL Server, Oracle DB, SQLite, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, PostgreSQL, Firebase, Supabase, Fastly, Deno Deploy… |
+| Storage / Database / Cloud | 81 | MongoDB, IPFS, Arweave, Neo4j, SQL Server, Oracle DB, SQLite, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, PostgreSQL, Firebase, Supabase, Fastly, Deno Deploy, Vercel KV, Netlify Blobs, Fly.io… |
 | Spatial / Gaming / AR | 8 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship |
 | Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
-| Identity / Encryption / IP | 5 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol |
+| Identity / Encryption / IP | 8 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol, Polygon ID, zkPass, Holonym |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 174 providers** (47 + 30 + 78 + 8 + 4 + 5 + 2 = 174)
+**Total: 184 providers** (51 + 30 + 81 + 8 + 4 + 8 + 2 = 184)
 
+> **Added 2026-09-19 (+10):** Blockchain ×4 (Chainflip, deBridge, Stargate, Synapse), Storage ×3 (Vercel KV, Netlify Blobs, Fly.io), Identity ×3 (Polygon ID, zkPass, Holonym). Previous total: 174.
 > **Added 2026-09-15 (+1):** Web3Core (EVM-compatible blockchain universal adapter). Previous total: 173.
 > **Added 2026-09-13 (+12):** Maps ×4 (Google Maps, HERE Maps, MapLibre, Niantic Lightship), Blockchain ×3 (Axelar, Wormhole, Fhenix FHE L2), Network ×1 (Ceramic), Identity ×2 (Civic, Reclaim Protocol), Storage ×2 (Fastly, Deno Deploy). Previous total: 161.
 
@@ -25,7 +26,7 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 
 ## Full Provider List
 
-### Blockchain / L1 / L2 (47)
+### Blockchain / L1 / L2 (51)
 
 | Provider | ProviderType |
 |---|---|
@@ -76,8 +77,12 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 | Wormhole (cross-chain bridge) | WormholeOASIS |
 | Fhenix (FHE L2) | FhenixOASIS |
 | Web3Core (EVM universal adapter) | Web3CoreOASIS |
+| Chainflip (native cross-chain swap) | ChainflipOASIS |
+| deBridge (cross-chain liquidity) | deBridgeOASIS |
+| Stargate (LayerZero liquidity bridge) | StargateOASIS |
+| Synapse (cross-chain bridge) | SynapseOASIS |
 
-### Storage / Database / Cloud (78)
+### Storage / Database / Cloud (81)
 
 | Provider | ProviderType |
 |---|---|
@@ -163,6 +168,9 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 | Garnet | GarnetOASIS |
 | Fastly (edge CDN / KV) | FastlyOASIS |
 | Deno Deploy (edge functions) | DenoDeployOASIS |
+| Vercel KV (edge key-value store) | VercelKVOASIS |
+| Netlify Blobs (edge object store) | NetlifyBlobsOASIS |
+| Fly.io (distributed app platform) | FlyIOOASIS |
 
 ### Decentralised Social / Network (30)
 
@@ -221,7 +229,7 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 | MapLibre (open-source maps) | MapLibreOASIS |
 | Niantic Lightship (AR platform) | NianticLightshipOASIS |
 
-### Identity / Security / IP (5)
+### Identity / Security / IP (8)
 
 | Provider | ProviderType |
 |---|---|
@@ -230,6 +238,9 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 | Story Protocol (programmable IP) | StoryProtocolOASIS |
 | Civic (decentralised identity) | CivicOASIS |
 | Reclaim Protocol (zk identity proofs) | ReclaimProtocolOASIS |
+| Polygon ID (ZK decentralised identity) | PolygonIDOASIS |
+| zkPass (ZK data verification) | zkPassOASIS |
+| Holonym (ZK proof of unique humanity) | HolonymOASIS |
 
 ### Infrastructure / Multisig (2)
 
@@ -242,11 +253,11 @@ _174 fully implemented providers across 7 categories — last updated: 2026-09-1
 
 ## Competitive Moat
 
-No competitor — Web3 or traditional — comes close to 174 implemented providers under a single unified interface:
+No competitor — Web3 or traditional — comes close to 184 implemented providers under a single unified interface:
 
 | Platform | Providers |
 |---|---|
-| **OASIS** | **174** |
+| **OASIS** | **184** |
 | Moralis | ~15 (read-only Web3 data) |
 | Alchemy | ~10 (EVM chains only) |
 | Infura | ~8 (EVM chains only) |

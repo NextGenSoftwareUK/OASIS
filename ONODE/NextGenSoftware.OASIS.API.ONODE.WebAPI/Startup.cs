@@ -233,6 +233,16 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons).</li>
 <li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
+<li><b>ChainflipOASIS</b> - Chainflip Native Cross-Chain Swap Provider (non-custodial swaps between BTC, ETH, DOT, USDC → Holons).</li>
+<li><b>deBridgeOASIS</b> - deBridge Cross-Chain Liquidity Transfer Provider (cross-chain asset transfers → Holons).</li>
+<li><b>StargateOASIS</b> - Stargate LayerZero Liquidity Bridge Provider (composable native asset bridge → Holons).</li>
+<li><b>SynapseOASIS</b> - Synapse Cross-Chain Bridge Provider (cross-chain communication and bridge → Holons).</li>
+<li><b>VercelKVOASIS</b> - Vercel KV Edge Key-Value Store Provider (serverless key-value storage → Holons).</li>
+<li><b>NetlifyBlobsOASIS</b> - Netlify Blobs Edge Object Store Provider (edge-native object storage → Holons).</li>
+<li><b>FlyIOOASIS</b> - Fly.io Distributed Application Platform Provider (edge-native distributed apps with global Postgres → Holons).</li>
+<li><b>PolygonIDOASIS</b> - Polygon ID ZK Decentralised Identity Provider (ZK credentials and verifications → Avatars).</li>
+<li><b>zkPassOASIS</b> - zkPass ZK Data Verification Provider (privacy-preserving data proofs → Avatars).</li>
+<li><b>HolonymOASIS</b> - Holonym ZK Proof of Unique Humanity Provider (sybil resistance without revealing personal data → Avatars).</li>
 
 </ul>
 
