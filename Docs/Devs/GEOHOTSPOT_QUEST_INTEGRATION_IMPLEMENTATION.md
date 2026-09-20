@@ -205,7 +205,13 @@ Record each completed phase here with its commit, verification evidence, and any
 |---|---|---|---|
 | Specification | Complete | This document | Separate GeoNFT/GeoHotSpot APIs and workflows over a shared geospatial policy engine; GeoNFT is also a supported hotspot reward. |
 | API contract | In progress | Unified policy test: PASS 1,536 combinations and 14 named boundaries | Shared policy and GeoNFT reward identity added; request/result DTOs remain. |
-| WEB5 implementation | In progress | `66958bbbb`; focused suite 23/23 | Core progress/reward/result path implemented; durable cross-provider rollback still requires a transaction boundary. |
+| WEB5 implementation | Complete | Durable trigger journal plus idempotent quest, inventory, and GeoNFT operation ledgers; focused GeoHotSpot suite 21/21 | A trigger allocation is reserved before effects. Provider/process failures return HTTP 503 and the same idempotency key resumes the operation without duplicating progress or rewards. |
+
+### Trigger transaction invariant
+
+`POST /api/geohotspots/{id}/trigger` is a resumable distributed commit. WEB5 first persists the allocation and result skeleton in `GeoHotSpotTriggerStateV1.PendingOperations`. It then derives stable child operation IDs for every quest update, inventory grant, and GeoNFT collection. Each owning manager stores that operation ID in the same provider save as its state change. Replaying an already committed child operation returns its existing result without changing quantities, collection history, or quest progress.
+
+The final hotspot save moves the operation from `PendingOperations` to `AcceptedResults`. A failure before the reservation applies no effects. A failure after reservation returns `503 Service Unavailable`; the caller retries the same `IdempotencyKey`, which resumes pending work. A failure during the final save also remains resumable. This gives the trigger one logical all-or-eventually-committed outcome without unsafe compensating deletes and without changing HyperDrive provider failover.
 | Our World integration | In progress | `d0833993`, `4eefb457`; Unity build 0 errors | Accepted results, refresh, timed re-arm, and presentation dispatch wired; live manual matrix remains. |
 | Shared-engine cutover | Not started |  | Preserve both public APIs; disable duplicate internals only after verification. |
 | Automated matrix | In progress | 1,536 policy combinations; 23 focused WEB5 tests; builds 0 errors | Media/action integration coverage remains. |
