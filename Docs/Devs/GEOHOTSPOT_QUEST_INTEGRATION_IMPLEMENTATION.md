@@ -219,3 +219,6 @@ The final hotspot save moves the operation from `PendingOperations` to `Accepted
 | Docs/Postman | In progress | API refs, quest guide, Postman `9145d5d`, matrix | Creator/player guide and GeoNFT cross-reference remain. |
 
 The automation entry point is `Scripts/run_geohotspot_full_matrix.ps1`. Local contract, policy, Unity runtime, two-process concurrency, and real process restart/replay stages run without secrets. Provider deployments and full WEB5 replicas consume external fixture files and produce explicit PASS/FAIL/SKIP evidence in JSON, Markdown, HTML, TRX, and Unity XML formats. Example schemas are `Scripts/geohotspot-provider-profiles.example.json` and `Scripts/geohotspot-resilience-fixture.example.json`; the no-secret process harness is `Scripts/run_local_geohotspot_resilience.ps1`. Full operating instructions are in `Docs/Devs/GEOHOTSPOT_AUTOMATED_VERIFICATION.md`.
+### Live acceptance evidence
+
+Deterministic API, provider, policy, concurrency, recovery, and Unity state checks run through `Scripts/run_geohotspot_full_matrix.ps1`. Physical GPS, AR gaze/touch, target-display rendering, media quality, and deployed interruption observations use `Scripts/geohotspot-acceptance-evidence.template.json`. Pass the completed file through `-AcceptanceEvidencePath`; the runner fails if any required case, note, or referenced artifact is absent.
