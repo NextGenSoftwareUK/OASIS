@@ -10,6 +10,7 @@ param(
     [switch]$Apply,
     [string]$Web4BaseUrl = 'https://dev.api.web4.oasisomniverse.one',
     [string]$Web5BaseUrl = 'https://dev.api.starnet.oasisomniverse.one',
+    [ValidateNotNullOrEmpty()][string]$Provider = 'MongoDBOASIS',
     [string]$CredentialPath = (Join-Path $env:LOCALAPPDATA 'OASIS/our-world-geonft-seed.credential.clixml'),
     [string]$BackupDirectory = (Join-Path $env:LOCALAPPDATA 'OASIS/AnorakResetBackups')
 )
@@ -41,7 +42,7 @@ try {
         $Matches[1]
     })
     if ($required.Count -ne 5) { throw 'Expected the canonical five Anorak tree objectives.' }
-    $placements = @(Api $Web4BaseUrl 'nft/load-all-geo-nfts/MongoDBOASIS/false')
+    $placements = @(Api $Web4BaseUrl "nft/load-all-geo-nfts/$Provider/false")
     $canonical = @($placements | Where-Object { $_.id -in $required })
     if ($canonical.Count -ne $required.Count) { throw 'Anorak placement is missing.' }
     # Include prior seed duplicates only when tagged as demo data and at the same quest coordinates.
