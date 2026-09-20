@@ -17,6 +17,17 @@ The runner never converts a missing prerequisite into a pass. Each stage is reco
 - `unity-results.xml` or `unity-open-editor.json` for Unity;
 - `spawn-policy.log` and `unity.log` for diagnostics.
 
+Physical-device and deployed-environment acceptance is also machine-verifiable once the observation artifacts exist. Copy `Scripts/geohotspot-acceptance-evidence.template.json`, complete every case during the device/deployment run, attach at least one screenshot, recording, log, or trace to each case, and run:
+
+```powershell
+./Scripts/run_geohotspot_full_matrix.ps1 -PortableProviders `
+  -AcceptanceEvidencePath C:\TestEvidence\geohotspot-live-acceptance.json
+```
+
+`Scripts/validate_geohotspot_acceptance_evidence.ps1` rejects missing cases, duplicate IDs, non-PASS statuses, absent notes, absent artifacts, and invalid run metadata. This makes the human observations auditable without pretending that a desktop test can observe GPS, headset rendering, speaker quality, or a deployed outage.
+
+The exact procedure and pass criteria for all nine cases are in [GeoHotSpot live acceptance runbook](GEOHOTSPOT_LIVE_ACCEPTANCE_RUNBOOK.md).
+
 ## Stages
 
 | Stage | What it verifies | Default |
@@ -29,6 +40,7 @@ The runner never converts a missing prerequisite into a pass. Each stage is reco
 | Provider profiles | the canonical five-tree collection/progression contract against each configured provider deployment | Requires fixture |
 | Two-avatar replicas | synchronized requests from two avatars to separate HTTP processes competing for a final allocation in shared SQLite state | Runs against the disposable local contract host; a populated fixture replaces it with full WEB5 replicas |
 | Restart/replay | an in-flight process kill followed by replay with the same key, then another replay proving one committed result | Runs against the disposable local contract host; a populated fixture replaces it with a full WEB5 process |
+| Device/deployment acceptance | GPS radius/dwell, AR gaze/touch, map/AR/VR/IR rendering, media, quest presentation, deployed replicas, and deployed provider interruption | Requires completed evidence JSON and referenced artifacts |
 
 When Our World is closed, Unity runs in batch mode. When the project is already open, `GeoHotSpotMatrixAutomation` consumes `Library/GeoHotSpotMatrix.request` and runs the same test filter inside that editor. This prevents a second Unity process from corrupting or locking the project.
 
