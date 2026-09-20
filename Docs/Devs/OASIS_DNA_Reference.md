@@ -430,7 +430,7 @@ WEB6 enforces access control through a two-axis model: **Karma tier** (earned re
 | Bronze | 100 | + OpenAI GPT-4o-mini, Anthropic Haiku, Groq, Mistral | 60 | Requires `PlanType = Bronze` in SubscriptionConfig |
 | Silver | 500 | + GPT-4o, Claude Sonnet, Gemini 1.5 Pro, Cohere | 300 | |
 | Gold | 2 000 | + o1-preview, Claude Opus, Gemini Ultra, xAI Grok | 1 000 | |
-| Diamond | 10 000 | All 97 providers including Bittensor native subnets, Nostr DVMs | Unlimited | |
+| Diamond | 10 000 | All 99 providers including Bittensor native subnets, Nostr DVMs | Unlimited | |
 
 > Tier gating is enforced in `AIProviderManager` via `KarmaGateMiddleware`. The karma threshold values above are the live production defaults and can be overridden in `Web6.KarmaGates` in OASIS_DNA.json (not yet wired; middleware reads these constants directly).
 

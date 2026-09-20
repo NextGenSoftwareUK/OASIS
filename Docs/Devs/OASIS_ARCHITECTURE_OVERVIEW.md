@@ -20,7 +20,7 @@ The OASIS (Open Advanced Secure Interoperable System) is a revolutionary WEB4–
 │  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
 │  │ • 107 AI Providers Unified (OpenAI, Anthropic, Gemini…)    │ │
 │  │ • DID/Verifiable Credentials (W3C standard)               │ │
-│  │ • 250 MCP tools · 56 REST Endpoints · v2.0                │ │
+│  │ • 259 MCP tools · 56 REST Endpoints · v2.0                │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  WEB5 STAR Web API (Gamification & Business Layer)             │
