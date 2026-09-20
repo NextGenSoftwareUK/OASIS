@@ -169,7 +169,7 @@ Automated and manual coverage must include at least:
 - [ ] Per-player quantity when global quantity is zero.
 - [ ] Immediate and delayed respawn.
 - [ ] Two avatars competing for the final global allocation.
-- [ ] Duplicate and concurrent submissions using the same idempotency key.
+- [x] Duplicate replay and synchronized concurrent submissions across independent local processes, including forced restart with the same idempotency key.
 - [ ] Reconnect/reload while a cooldown is active.
 - [ ] Inactive, exhausted, locked, unauthenticated, and malformed requests.
 - [ ] No partial reward or quest update after a rejected/failed transaction.
@@ -218,4 +218,4 @@ The final hotspot save moves the operation from `PendingOperations` to `Accepted
 | Manual matrix | Not started |  |  |
 | Docs/Postman | In progress | API refs, quest guide, Postman `9145d5d`, matrix | Creator/player guide and GeoNFT cross-reference remain. |
 
-The automation entry point is `Scripts/run_geohotspot_full_matrix.ps1`. Local contract, policy, and Unity runtime stages run without secrets. Provider, two-avatar/replica, and restart/replay stages consume external fixture files and produce explicit PASS/FAIL/SKIP evidence in JSON, Markdown, HTML, TRX, and Unity XML formats. Example schemas are `Scripts/geohotspot-provider-profiles.example.json` and `Scripts/geohotspot-resilience-fixture.example.json`. Full operating instructions are in `Docs/Devs/GEOHOTSPOT_AUTOMATED_VERIFICATION.md`.
+The automation entry point is `Scripts/run_geohotspot_full_matrix.ps1`. Local contract, policy, Unity runtime, two-process concurrency, and real process restart/replay stages run without secrets. Provider deployments and full WEB5 replicas consume external fixture files and produce explicit PASS/FAIL/SKIP evidence in JSON, Markdown, HTML, TRX, and Unity XML formats. Example schemas are `Scripts/geohotspot-provider-profiles.example.json` and `Scripts/geohotspot-resilience-fixture.example.json`; the no-secret process harness is `Scripts/run_local_geohotspot_resilience.ps1`. Full operating instructions are in `Docs/Devs/GEOHOTSPOT_AUTOMATED_VERIFICATION.md`.

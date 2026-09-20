@@ -47,6 +47,9 @@ try {
     Invoke-Case Policy 'GeoNFT/GeoHotSpot spawn combination matrix' {
         dotnet run --project 'Tests/GeoNFTCollectionRules/GeoNFTCollectionRules.csproj' -c Release | Tee-Object -FilePath (Join-Path $output 'spawn-policy.log')
     }
+    Invoke-Case Providers 'Disposable local provider persistence' {
+        & (Join-Path $PSScriptRoot 'run_local_provider_matrix.ps1') -OutputPath (Join-Path $output 'providers')
+    }
 
     if ($SkipUnity) { Add-Skip Unity 'Our World EditMode and PlayMode verification' 'Disabled by -SkipUnity.' }
     elseif (!(Test-Path -LiteralPath $UnityPath)) { Add-Skip Unity 'Our World EditMode and PlayMode verification' "Unity executable not found: $UnityPath" }
@@ -95,8 +98,8 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace($ConcurrencyFixturePath)) {
-        Add-Skip Concurrency 'Two avatars and multiple replicas' 'Supply -ConcurrencyFixturePath with a dedicated final-allocation hotspot and two JWTs.'
-        Add-Skip Recovery 'Restart and replay pending transaction' 'Supply -ConcurrencyFixturePath with stop/start commands for a disposable WEB5 instance.'
+        Invoke-Case Concurrency 'Disposable two-avatar and two-replica HTTP contract' { & (Join-Path $PSScriptRoot 'run_local_geohotspot_resilience.ps1') -Mode Concurrency }
+        Invoke-Case Recovery 'Disposable process interruption and durable replay contract' { & (Join-Path $PSScriptRoot 'run_local_geohotspot_resilience.ps1') -Mode RestartReplay }
     } else {
         Invoke-Case Concurrency 'Two avatars and multiple replicas' { & (Join-Path $PSScriptRoot 'test_geohotspot_live_resilience.ps1') -FixturePath $ConcurrencyFixturePath -Mode Concurrency }
         Invoke-Case Recovery 'Restart and replay pending transaction' { & (Join-Path $PSScriptRoot 'test_geohotspot_live_resilience.ps1') -FixturePath $ConcurrencyFixturePath -Mode RestartReplay }
