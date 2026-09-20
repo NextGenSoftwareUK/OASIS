@@ -166,11 +166,25 @@ Do not commit JWTs, credentials, production process commands, or populated fixtu
 
 ## Latest verified run
 
-On 2026-09-20 the WEB5 Release build passed, the focused WEB5 contract suite passed 21/21, the policy executable passed all 1,536 combinations plus 14 boundary cases, and the isolated Our World Unity suite passed 6/6. The disposable process suite also passed synchronized two-avatar competition across two host processes and an actual in-flight process kill, restart, first replay commit, and second idempotent replay. The earlier live development Anorak run passed all five unique pickups, duplicate rejection, exact objective transitions, cleanup to 0/5, and preservation of 26 unrelated inventory rows.
+On 2026-09-20 the WEB5 Release build passed, the focused WEB5 contract suite passed 22/22, the policy executable passed all 1,536 combinations plus 14 boundary cases, and the isolated Our World Unity suite passed 6/6. The disposable process suite also passed synchronized two-avatar competition across two host processes and an actual in-flight process kill, restart, first replay commit, and second idempotent replay. The earlier live development Anorak run passed all five unique pickups, duplicate rejection, exact objective transitions, cleanup to 0/5, and preservation of 26 unrelated inventory rows.
 
 Portable loopback provider verification was completed on 2026-09-20 without installing a Windows service or contacting a shared database. Official MongoDB 8.3.8, Neo4j Community 2026.08.1, MongoDB Shell 2.6.0, and Adoptium JDK 21 archives were unpacked below `TestResults/GeoHotSpotMatrix/portable-providers`. MongoDB ran as a single-node replica set on `127.0.0.1:27028`, preserving the provider's transaction requirement, and Neo4j ran on `127.0.0.1:7688`. The final `providers-portable/local-provider-matrix.json` records `PASS 3 / FAIL 0 / SKIP 0`: SQLite 3/3, MongoDB 3/3, and Neo4j 5/5. Both processes were stopped after the run.
 
 This is direct provider activation and persistence evidence, not a claim that complete disposable WEB4 and WEB5 HTTP deployments were run for each backend. A populated full-WEB5 replica fixture is still required for the separate multi-replica HTTP stage.
+
+Reproduce the portable provider run with cached downloads on later runs:
+
+```powershell
+.\Scripts\run_portable_provider_matrix.ps1
+```
+
+Or include it in the consolidated matrix:
+
+```powershell
+.\Scripts\run_geohotspot_full_matrix.ps1 -PortableProviders
+```
+
+The script pins official archive versions, creates fresh data below `TestResults`, binds every database listener to `127.0.0.1`, preserves MongoDB's replica-set transaction invariant, and verifies in `finally` that all three database ports have closed.
 
 ### Storage-provider harness audit
 

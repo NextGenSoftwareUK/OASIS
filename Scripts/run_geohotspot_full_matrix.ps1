@@ -14,6 +14,7 @@ param(
     [string]$OutputPath = (Join-Path $PSScriptRoot '..\TestResults\GeoHotSpotMatrix'),
     [string]$ProviderProfilesPath,
     [string]$ConcurrencyFixturePath,
+    [switch]$PortableProviders,
     [switch]$SkipUnity,
     [switch]$SkipBuild
 )
@@ -47,8 +48,14 @@ try {
     Invoke-Case Policy 'GeoNFT/GeoHotSpot spawn combination matrix' {
         dotnet run --project 'Tests/GeoNFTCollectionRules/GeoNFTCollectionRules.csproj' -c Release | Tee-Object -FilePath (Join-Path $output 'spawn-policy.log')
     }
-    Invoke-Case Providers 'Disposable local provider persistence' {
-        & (Join-Path $PSScriptRoot 'run_local_provider_matrix.ps1') -OutputPath (Join-Path $output 'providers')
+    if($PortableProviders){
+        Invoke-Case Providers 'Portable SQLite, MongoDB and Neo4j persistence' {
+            & (Join-Path $PSScriptRoot 'run_portable_provider_matrix.ps1') -WorkingPath (Join-Path $output 'portable-providers')
+        }
+    } else {
+        Invoke-Case Providers 'Disposable local provider persistence' {
+            & (Join-Path $PSScriptRoot 'run_local_provider_matrix.ps1') -OutputPath (Join-Path $output 'providers')
+        }
     }
 
     if ($SkipUnity) { Add-Skip Unity 'Our World EditMode and PlayMode verification' 'Disabled by -SkipUnity.' }
