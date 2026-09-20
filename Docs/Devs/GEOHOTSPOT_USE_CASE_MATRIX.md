@@ -2,7 +2,7 @@
 
 **Updated:** 2026-09-20
 
-This matrix covers the shared policy engine, WEB5 trigger contract, quest progress, rewards, and Our World client behavior. “Automated pass” means a repeatable checked test/build. “Manual required” identifies behavior that must be observed in a running Unity scene with real media, location, and two-avatar sessions.
+This matrix covers the shared policy engine, WEB5 trigger contract, quest progress, rewards, and Our World client behavior. “Automated pass” means a repeatable checked test/build. “Evidence required” identifies behavior that must be observed in a running Unity scene or deployed environment and then validated by the acceptance-evidence gate.
 
 | Area | Use case | Expected result | Automated result | Manual result |
 |---|---|---|---|---|
@@ -55,9 +55,11 @@ Run `Scripts/run_geohotspot_full_matrix.ps1`. It executes the WEB5 Release build
 
 Setup, fixture contracts, CI gates, transaction assertions, evidence formats, and troubleshooting are documented in [GeoHotSpot automated verification](./GEOHOTSPOT_AUTOMATED_VERIFICATION.md).
 
+Device and deployment execution steps are documented in [GeoHotSpot live acceptance runbook](./GEOHOTSPOT_LIVE_ACCEPTANCE_RUNBOOK.md).
+
 Live providers use `-ProviderProfilesPath Scripts/geohotspot-provider-profiles.example.json` after copying that example outside the repository and supplying disposable credentials/endpoints. With no concurrency fixture, the runner automatically uses `Scripts/run_local_geohotspot_resilience.ps1` for synchronized two-process competition and forced restart/replay over temporary SQLite state. Full WEB5 deployments use `-ConcurrencyFixturePath` with the schema in `Scripts/geohotspot-resilience-fixture.example.json`. Credentials and deployed process commands remain external because secrets must never be committed. An omitted provider prerequisite is recorded as `SKIP`; it is never reported as a pass.
 
-The uncompleted rows are deliberately marked rather than reported as verified. Live Unity presentation, two-avatar concurrency across deployed replicas, media playback, and deliberately interrupted live providers still require manual observation. The cross-provider mutation path now uses a durable reservation journal and idempotent owning-manager writes, so a retry resumes instead of compensating or duplicating state.
+The device/deployment rows are deliberately marked rather than reported as verified. Live Unity presentation, media playback, physical location/AR behavior, two-avatar concurrency across deployed replicas, and deliberately interrupted deployed providers require observation in the environment that owns those signals. Use `Scripts/geohotspot-acceptance-evidence.template.json`; the full runner's `-AcceptanceEvidencePath` gate validates all nine cases and their artifacts. The cross-provider mutation path uses a durable reservation journal and idempotent owning-manager writes, so a retry resumes without compensating or duplicating state.
 
 ### Environment audit on 2026-09-20
 
