@@ -534,11 +534,48 @@ Console.WriteLine($"Average Latency: {metrics.Latency}ms");
 
 ## 🚀 Next Steps
 
+### Recently completed (2026-09-20)
+
+| Item | Status |
+|------|--------|
+| Holon-backed ONET state — node identity + peer list persisted to OASIS Holon (MongoDB) via `HolonManager`; survives Railway ephemeral restarts | ✅ Done |
+| Integration tests — authenticated PING (real ECDSA-P256 keypair), PING rejection for unknown nodeId, NodeId stability across re-init, peer-cache round-trip | ✅ Done |
+| `ONODE.Core.IntegrationTests` csproj path fixed so project builds | ✅ Done |
+
 ### Near-term
 
-- **Holon-backed ONET state** — persist routing table, known peers, and node keypair to an OASIS Holon via the provider layer so state survives restarts without a local file. Replaces the current in-memory-only tables.
-- **HoloNET P2P mode** — wire ONET as the transport layer for HoloNET so C#↔Holochain calls can traverse the ONET mesh rather than requiring a direct WebSocket to a local conductor.
-- **Integration tests** — `ONODE.Core.IntegrationTests` project exists but test coverage is thin; add tests for peer discovery round-trips, authenticated PING, and Kademlia routing convergence.
+- **HoloNET P2P mode** — `HoloNETP2PProvider` exists and routes ONET messages through HoloNET, but requires a live Holochain conductor (see [Current State](#holonet-p2p-current-state) below).
+- **Holochain HDK 0.6.1 upgrade** — blocked on running `hc-scaffold.exe` manually first; then update `.hc` / `Cargo.toml` and regenerate bindings.
+
+### HoloNET P2P — current state {#holonet-p2p-current-state}
+
+ONET supports two P2P backend modes, selected via `OASISDNA.OASIS.ONET.NetworkType` or the `P2PNetworkType` constructor parameter:
+
+| Mode | Class | Requires | Status |
+|------|-------|----------|--------|
+| `Internal` (default) | `InternalP2PNetworkProvider` | Nothing — fully in-process | ✅ Production-ready |
+| `HoloNET` | `HoloNETP2PProvider` | Live Holochain conductor on ws://localhost:8888 | ⚠️ Conductor required |
+
+**`HoloNETP2PProvider`** routes ONET peer messages through HoloNET so calls traverse the Holochain DHT rather than a raw TCP mesh. It is wired and functional but will throw `InvalidOperationException` at construction unless the `storageProvider` is a `HoloOASIS` instance backed by a running conductor. Use `InternalP2PNetworkProvider` in environments without a conductor (Railway, CI, local dev without `hc sandbox`).
+
+To enable HoloNET mode:
+
+```json
+// OASIS_DNA.json  (never commit this file)
+{
+  "OASIS": {
+    "ONET": {
+      "NetworkType": "HoloNET"
+    }
+  }
+}
+```
+
+Or in code:
+
+```csharp
+var mgr = new ONETManager(holoOASISProvider, dna, P2PNetworkType.HoloNET);
+```
 
 ### Medium-term
 
