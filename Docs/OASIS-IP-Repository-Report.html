@@ -599,7 +599,7 @@
     </div>
 
     <div class="sub-heading" style="margin-top:1.5rem">Games &amp; Tooling</div>
-    <p class="section-desc">23 OGames powered by OGEngine — 3 live now, 20 in active development. Every quest, item and avatar cross-connects between all of them.</p>
+    <p class="section-desc">29 OGames powered by OGEngine — 3 live now, 26 in active development. Every quest, item and avatar cross-connects between all of them.</p>
     <div class="repo-list">
       <div class="repo-card public">
         <div>
@@ -660,9 +660,23 @@
       <div class="repo-card public">
         <div>
           <div class="repo-name"><a href="https://github.com/NextGenSoftwareUK/OHalfLife" target="_blank" rel="noopener">OHalfLife</a> &nbsp;·&nbsp; <a href="https://github.com/NextGenSoftwareUK/OMinecraft" target="_blank" rel="noopener">OMinecraft</a></div>
-          <div class="repo-desc">Half-Life via OpenMW open-source engine, and Minecraft via a Fabric mod connecting Java Edition to OASIS avatar SSO, cross-game inventory, karma and NFT minting.</div>
+          <div class="repo-desc">Half-Life via Xash3D open-source engine, and Minecraft (Minetest) connecting to OASIS avatar SSO, cross-game inventory, karma and NFT minting.</div>
         </div>
         <span class="repo-role public">Modern era</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><a href="https://github.com/NextGenSoftwareUK/OQuake4" target="_blank" rel="noopener">OQuake4</a> &nbsp;·&nbsp; <a href="https://github.com/NextGenSoftwareUK/OHeretic2" target="_blank" rel="noopener">OHeretic2</a></div>
+          <div class="repo-desc">Quake 4 (Strogg War continues via dhewm3 fork on id Tech 4) and Heretic II (Corvus returns on the Quake II engine) — both sharing Omniverse avatar SSO, cross-game inventory and quests.</div>
+        </div>
+        <span class="repo-role public">id Tech family</span>
+      </div>
+      <div class="repo-card public">
+        <div>
+          <div class="repo-name"><a href="https://github.com/NextGenSoftwareUK/ODaggerfall" target="_blank" rel="noopener">ODaggerfall</a> &nbsp;·&nbsp; <a href="https://github.com/NextGenSoftwareUK/OBloodFresh" target="_blank" rel="noopener">OBloodFresh</a> &nbsp;·&nbsp; <a href="https://github.com/NextGenSoftwareUK/OOpenArena" target="_blank" rel="noopener">OOpenArena</a></div>
+          <div class="repo-desc">Daggerfall Unity (The Elder Scrolls II — fully open-source, zero IP risk), Blood: Fresh Supply (Caleb's enhanced rampage on EDuke32), and OpenArena (fully GPL Quake III combat) — broadening the Omniverse from shooters into open-world RPG and arena.</div>
+        </div>
+        <span class="repo-role public">Open worlds</span>
       </div>
     </div>
   </section>
@@ -752,7 +766,7 @@
         <div>
           <div class="repo-name"><span class="org">NextGenSoftwareUK /</span> OASIS-Omniverse-Hub</div>
           <div class="repo-desc" style="font-style:italic;color:var(--gold);margin-bottom:.4rem;font-size:.8rem;">The beating heart of the entire OASIS Omniverse.</div>
-          <div class="repo-desc">The Unity-based Omniverse OS and Kernel — the persistent cross-game space every player teleports through between all 23 connected OGames. Contains <code>OmniverseKernel.cs</code>, the portal rendering system, the shared cross-game HUD, login screen, and the Web4/Web5 gateway client. Portal triggers carry <code>TargetMap</code> and spawn coordinates; both <code>EnterPortalAsync</code> and <code>TickTeleportIpc</code> write arrive JSON with <code>InvariantCulture</code> floats to prevent locale-sensitive corruption. <code>TickAvatarStateIpc</code> polls the state file written by <code>OGEngineClient</code> every second; if the file is absent or its <code>updatedUtc</code> is more than 5 seconds old the stale file is deleted and live state cleared immediately. The status strip live-state row triggers on <code>liveActiveGame</code> being non-empty so a brand-new avatar with 0 XP still gets the live display. Nothing in the platform is more strategically sensitive than this.</div>
+          <div class="repo-desc">The Unity-based Omniverse OS and Kernel — the persistent cross-game space every player teleports through between all 29 connected OGames. Contains <code>OmniverseKernel.cs</code>, the portal rendering system, the shared cross-game HUD, login screen, and the Web4/Web5 gateway client. Portal triggers carry <code>TargetMap</code> and spawn coordinates; both <code>EnterPortalAsync</code> and <code>TickTeleportIpc</code> write arrive JSON with <code>InvariantCulture</code> floats to prevent locale-sensitive corruption. <code>TickAvatarStateIpc</code> polls the state file written by <code>OGEngineClient</code> every second; if the file is absent or its <code>updatedUtc</code> is more than 5 seconds old the stale file is deleted and live state cleared immediately. The status strip live-state row triggers on <code>liveActiveGame</code> being non-empty so a brand-new avatar with 0 XP still gets the live display. Nothing in the platform is more strategically sensitive than this.</div>
         </div>
         <span class="repo-role private">Omniverse core</span>
       </div>
@@ -776,7 +790,7 @@
       <div class="arch-arrow">↓ NuGet &nbsp;·&nbsp; NPM &nbsp;·&nbsp; dotnet tool &nbsp;·&nbsp; OPORTAL downloads</div>
       <div class="arch-layer public-layer">
         <div class="arch-layer-label">Public tier — 43 GitHub repos · 103 NuGet packages · 14 NPM packages</div>
-        <div class="arch-items">OASIS monorepo &nbsp;·&nbsp; holochain-client-csharp &nbsp;·&nbsp; HoloNET-Manager &nbsp;·&nbsp; NextGenSoftware-Libraries<br>OPORTAL-React &nbsp;·&nbsp; UI component libraries (JS/React/Angular/Vue/Svelte/Next.js) &nbsp;·&nbsp; OASIS-API-Unity-Package<br>JS API packages WEB4–WEB10 &nbsp;·&nbsp; @oasisomniverse/js/react/angular/vue/svelte/nextjs/mcp-server<br>23 OGames: ODOOM · OQUAKE · ODOOM3 · OQuake2/3 · ODuke3D · OWolf3D · OHeretic · OHexen · OBlood · OMinecraft &amp; more</div>
+        <div class="arch-items">OASIS monorepo &nbsp;·&nbsp; holochain-client-csharp &nbsp;·&nbsp; HoloNET-Manager &nbsp;·&nbsp; NextGenSoftware-Libraries<br>OPORTAL-React &nbsp;·&nbsp; UI component libraries (JS/React/Angular/Vue/Svelte/Next.js) &nbsp;·&nbsp; OASIS-API-Unity-Package<br>JS API packages WEB4–WEB10 &nbsp;·&nbsp; @oasisomniverse/js/react/angular/vue/svelte/nextjs/mcp-server<br>29 OGames: ODOOM · OQUAKE · ODOOM3 · OQuake2/3/4 · ODuke3D · OWolf3D · OHeretic/2 · OHexen · OBlood · ODaggerfall · OOpenArena &amp; more</div>
       </div>
       <div class="arch-arrow">↓ private submodules &nbsp;·&nbsp; compiled NuGet packages &nbsp;·&nbsp; scoped PAT at build time only</div>
       <div class="arch-layer private-layer">
@@ -829,7 +843,7 @@
   <!-- SUMMARY -->
   <div class="summary">
     <p>
-      The two-tier structure means the platform is <strong>open enough to attract a developer ecosystem</strong> — 43 public GitHub repos including all 23 OGames, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, and a Unity SDK — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+      The two-tier structure means the platform is <strong>open enough to attract a developer ecosystem</strong> — 43 public GitHub repos including all 29 OGames, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, and a Unity SDK — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
     </p>
     <p style="margin-top:1rem;">
       As the platform matures — with an established commercial user base and paying subscribers — we plan to <strong>selectively open-source additional components</strong> where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.

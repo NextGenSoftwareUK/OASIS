@@ -76,7 +76,7 @@ Drop-in SDKs for the most popular JS frameworks — connect to the full OASIS pl
 
 ### Games & Tooling
 
-The OASIS Omniverse currently has **23 OGames** powered by OGEngine — 3 live and 20 in active development. Every quest, item and avatar cross-connects between all of them. Games with their own public GitHub repos:
+The OASIS Omniverse currently has **29 OGames** powered by OGEngine — 3 live and 26 in active development. Every quest, item and avatar cross-connects between all of them. Games with their own public GitHub repos:
 
 | Repository | What it contains | Role |
 |---|---|---|
@@ -107,10 +107,15 @@ All 20 in-development OGames also have their own public GitHub repos under `Next
 | **[ODoom64](https://github.com/NextGenSoftwareUK/ODoom64)** | DOOM 64 — the N64's darkest DOOM in the Omniverse |
 | **[OHexenII](https://github.com/NextGenSoftwareUK/OHexenII)** | Hexen II — four hero classes join the Omniverse |
 | **[ORtCW](https://github.com/NextGenSoftwareUK/ORtCW)** | Return to Castle Wolfenstein in the Omniverse |
-| **[OHalfLife](https://github.com/NextGenSoftwareUK/OHalfLife)** | Half-Life — Vvardenfell opens to the Omniverse via OpenMW |
-| **[OMinecraft](https://github.com/NextGenSoftwareUK/OMinecraft)** | Minecraft — infinite sandbox meets the Omniverse via Fabric mod |
+| **[OHalfLife](https://github.com/NextGenSoftwareUK/OHalfLife)** | Half-Life — Black Mesa incident enters the Omniverse via Xash3D |
+| **[OMinecraft](https://github.com/NextGenSoftwareUK/OMinecraft)** | Minecraft — infinite sandbox meets the Omniverse via Minetest |
+| **[OQuake4](https://github.com/NextGenSoftwareUK/OQuake4)** | Quake 4 — Strogg War continues in the Omniverse via dhewm3 fork |
+| **[OHeretic2](https://github.com/NextGenSoftwareUK/OHeretic2)** | Heretic II — Corvus returns on the Quake II engine |
+| **[ODaggerfall](https://github.com/NextGenSoftwareUK/ODaggerfall)** | The Elder Scrolls II: Daggerfall — fully open via Daggerfall Unity |
+| **[OBloodFresh](https://github.com/NextGenSoftwareUK/OBloodFresh)** | Blood: Fresh Supply — Caleb's enhanced rampage on EDuke32 |
+| **[OOpenArena](https://github.com/NextGenSoftwareUK/OOpenArena)** | OpenArena — fully GPL Quake III arena combat; zero IP risk |
 
-All 20 integrate shared cross-game inventory, avatar SSO, karma and quests via OGEngine and the STAR API.
+All 26 integrate shared cross-game inventory, avatar SSO, karma and quests via OGEngine and the STAR API.
 
 ---
 
@@ -174,7 +179,7 @@ Private repos are injected into the Railway Docker build pipeline via a scoped G
 
 ## Summary
 
-The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 43 public GitHub repos including 23 OGames, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, and a Unity SDK — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
+The two-tier structure means the platform is **open enough to attract a developer ecosystem** — 43 public GitHub repos including 29 OGames, 14 NPM packages spanning every major JS framework, UI component libraries for every framework, and a Unity SDK — while keeping every piece of strategic IP firmly under proprietary control. That private core includes the COSMIC ORM, the HyperDrive auto-failover engine, the STAR WEB5 platform, the WEB6 AI orchestration layer, the game engine bridge, the peer-to-peer multiplayer stack, the personal cloud client, and the flagship game. Community developers depend on and build trust in the public surface; the private core represents years of engineering that cannot be replicated from the outside.
 
 As the platform matures — with an established commercial user base and paying subscribers — we plan to selectively open-source additional components where there is genuine demand from open-source developers willing to contribute. The boundary between tiers will evolve as our moat is proven and our community grows.
 
