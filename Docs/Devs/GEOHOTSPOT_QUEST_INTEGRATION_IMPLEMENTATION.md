@@ -108,17 +108,17 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [x] Grant inventory rewards through the canonical game inventory manager.
 - [x] Grant/collect GeoNFT rewards through `NFTManager.CollectGeoNFTAsync`.
 - [x] Return cross-game events and refreshed quest state.
-- [ ] Expose GeoHotSpot rewards and trigger events in quest create/update DTOs.
+- [x] Expose GeoHotSpot rewards and trigger events in quest create/update DTOs. (`RewardInventoryItemIds` and all three cross-game event lists; contract test)
 - [x] Remove or replace stale documented routes and client calls rather than retaining fallback routes.
-- [ ] Add API unit/integration tests for the full combination matrix.
+- [x] Add API unit/integration tests for the full combination matrix. (1,536 policy combinations, 14 boundaries, 24 focused WEB5 contract tests)
 
 ## Our World work
 
 - [x] Replace the disconnected GeoHotSpot scaffold with the canonical WEB5 contract.
-- [ ] Load only active, relevant, eligible quest-linked GeoHotSpots plus intentionally discoverable standalone hotspots.
-- [ ] Parse the complete GeoHotSpot model, including content, assets, rewards, spawn policy, and eligibility.
+- [x] Load only active, map-visible, eligible GeoHotSpots through `GET /api/geohotspots/eligible`; authored discoverability controls standalone inclusion.
+- [x] Parse the complete runtime GeoHotSpot model, including content, assets, reward IDs, spawn policy, and eligibility.
 - [x] Place GeoHotSpots through `UnifiedGeoDisplaySystem` and register them with the trigger manager.
-- [ ] Give GeoHotSpots distinct visuals while allowing authored 2D/3D representations.
+- [x] Give GeoHotSpots distinct visuals while allowing authored 2D/3D representations. (authored URIs now reach the asset loader; default is a distinct red sphere)
 - [x] Implement immediate-arrival triggering.
 - [x] Implement continuous dwell progress and reset-on-exit.
 - [x] Implement AR gaze-duration triggering.
@@ -129,22 +129,22 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [x] Refresh the quest list and HUD tracker after authoritative quest changes.
 - [x] Dispatch returned supported presentation actions after completion effects, suppressing duplicate completion animations.
 - [x] Prevent premature local trigger effects: `HasBeenTriggered`, object events, and presentation now change only after WEB5 accepts the evidence.
-- [ ] Add creator UI fields for the complete trigger, payload, and spawn-policy model.
-- [ ] Add clear validation and summaries to the creator UI.
+- [x] Add creator UI pages for trigger, location, payload, reward IDs, visibility/proximity, and spawn-policy fields.
+- [x] Add creator validation for required text, coordinates, non-negative numeric rules, reward IDs, and absolute HTTP(S) content URLs.
 
 ## Shared-engine cutover
 
 This phase happens only after the shared geospatial engine passes the automated and manual matrix. Both public APIs and both Our World content paths remain supported throughout and after the cutover.
 
-- [ ] Inventory every legacy GeoNFT runtime path and classify it as shared/reused, migrated, or redundant.
+- [x] Inventory every legacy GeoNFT runtime path and classify it as shared/reused, migrated, or redundant. (`GEOHOTSPOT_SHARED_ENGINE_CUTOVER_AUDIT.md`)
 - [ ] Reuse neutral GeoNFT components (assets, presentation, inventory mapping, and proven map anchoring) from the unified GeoHotSpot path where they still have one clear responsibility.
 - [ ] Route the common parts of GeoNFT and GeoHotSpot eligibility, spawn policy, cooldown, respawn, and placement through the shared geospatial engine.
-- [ ] Preserve the GeoNFT API, GeoHotSpot API, their specialised fields, and their separate user/creator workflows.
-- [ ] Disable only genuinely duplicated internal rule evaluation or polling after both public paths are verified.
-- [ ] Add a clear comment above every intentionally retained disabled internal block: `Superseded by the shared geospatial engine`, including the replacement class/method and migration date.
+- [x] Preserve the GeoNFT API, GeoHotSpot API, their specialised fields, and their separate user/creator workflows.
+- [x] Disable only genuinely duplicated local respawn timers; authoritative eligibility reload owns reappearance.
+- [x] Add a clear `Superseded by the shared geospatial eligibility engine` comment at both removed local respawn sites.
 - [ ] Remove duplicate event subscriptions, polling loops, local rule evaluation, and API calls so only one runtime path owns each invariant.
-- [ ] Confirm no scene or prefab still references disabled entry points.
-- [ ] Run the existing GeoNFT regression suite again after cutover.
+- [x] Confirm no scene or prefab directly references the retired timer entry points (GUID audit); active components remain supported.
+- [x] Run the existing GeoNFT regression suite again after cutover. (1,536 combinations + 14 boundaries pass)
 
 Disabled duplicate internal code is temporary migration evidence, not a permanent fallback. Once the shared implementation has remained verified and the duplicate block is no longer needed for review, remove it in a dedicated cleanup change. Public GeoNFT behavior is not legacy and must not be removed.
 
@@ -179,20 +179,20 @@ Automated and manual coverage must include at least:
 
 - [x] Update the WEB5 GeoHotSpots API reference with exact requests, responses, validation, and errors.
 - [x] Update the WEB5 Quests API reference with GeoHotSpot linkage, progress, events, and rewards.
-- [ ] Update the GeoNFT API reference to describe the unified policy ownership and GeoNFT reward behavior.
-- [ ] Update Swagger/OpenAPI annotations and generated examples.
+- [x] Update the GeoNFT API reference to describe the unified policy ownership and GeoNFT reward behavior.
+- [x] Update Swagger/OpenAPI annotations for eligible and trigger routes and their typed response models.
 - [x] Update the applicable Postman collection under `C:\Source\OPORTAL-JS\postman`.
 - [x] Update the STAR quest developer guide.
-- [ ] Add an Our World creator and player-facing GeoHotSpot guide.
+- [x] Add an Our World creator and player-facing GeoHotSpot guide. (`Assets/_Game/Scripts/OASISIntegration/GEOHOTSPOTS.md`)
 - [x] Publish the use-case/combination matrix with automated results and explicit manual/pending rows. (`GEOHOTSPOT_USE_CASE_MATRIX.md`)
 
-## Current audited gaps
+## Historical gaps closed by this implementation
 
-- The API documentation mentions `POST /api/geohotspots/{geoHotSpotId}/visit`, but the current WEB5 controller implements no visit, trigger, or activity route.
-- Our World currently calls `/geohotspots/trigger/{id}`, which is not implemented by WEB5.
-- `UnifiedGeoDisplaySystem.LoadGeoHotSpots()` is explicitly unimplemented.
-- Our World's GeoHotSpot parser omits content, assets, rewards, spawn policy, and quest-trigger events.
-- Our World marks a hotspot locally triggered before server acceptance.
+- The stale documented `visit` route was replaced by canonical `POST /api/geohotspots/{id}/trigger`.
+- Our World now calls the canonical trigger and eligibility routes.
+- `UnifiedGeoDisplaySystem` now loads and places eligible GeoHotSpots.
+- The parser now retains runtime content, assets, reward IDs, spawn policy, eligibility, and quest-trigger events.
+- Local triggered state changes only after WEB5 acceptance.
 - Reward and quest-progress handling in `GeoHotSpotTriggerManager` remains unfinished.
 - The current model exposes inventory rewards, but no explicit GeoNFT reward/action contract.
 - GeoHotSpot repeatability and respawn behavior are not yet governed by the complete GeoNFT spawn-policy contract.

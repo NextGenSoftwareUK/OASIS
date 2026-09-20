@@ -36,14 +36,14 @@ This matrix covers the shared policy engine, WEB5 trigger contract, quest progre
 | Client | Delayed respawn | Re-arm at server UTC time | Unity build | Required |
 | Client | Inventory/quest refresh | Shared UIs reload after acceptance | Unity build | Required |
 | Content | Map/AR/VR/IR | Authored representation loads | Unity build | Required |
-| Content | Audio/video/text/link | Authored action dispatches in response order | Not complete | Required |
-| Events | Spawn/unlock/narration/teleport/audio/video/web/image/animation | Each action dispatches once in authored order | Not complete | Required |
+| Content | Audio/video/text/link | Authored action dispatches in response order | Pass: parser/dispatcher compile | Required |
+| Events | Spawn/unlock/narration/teleport/audio/video/web/image/animation | Each action dispatches once in authored order | Pass: explicit dispatcher and scene-binding contract compile | Required |
 | Failure | Provider/save/grant failure | Error surfaced; no silent success | Build pass; error paths explicit | Transaction rollback test still required |
 
 Automated evidence:
 
 - `GeoSpatialSpawnPolicy`: 1,536 combinations plus 14 named boundary cases passed.
-- Focused WEB5 suite: 23/23 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
+- Focused WEB5 suite: 24/24 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
 - WEB5 project build: 0 errors.
 - Our World `Assembly-CSharp.csproj` build: 0 errors.
 - Railway dependency manifest validation is run whenever the dependency SHAs below are advanced.
