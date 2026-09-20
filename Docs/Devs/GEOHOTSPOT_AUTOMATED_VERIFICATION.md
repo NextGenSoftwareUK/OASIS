@@ -112,6 +112,12 @@ Run the local stages on every relevant pull request. Store the entire output dir
 
 Do not commit JWTs, credentials, production process commands, or populated fixtures.
 
+## Latest verified run
+
+On 2026-09-20 the WEB5 Release build passed, the focused WEB5 contract suite passed 21/21, the policy executable passed all 1,536 combinations plus 14 boundary cases, and the isolated Our World Unity suite passed 6/6. The earlier live development Anorak run also passed all five unique pickups, duplicate rejection, exact objective transitions, cleanup to 0/5, and preservation of 26 unrelated inventory rows.
+
+The same environment audit found no disposable local MongoDB, SQLite, or Neo4j WEB4/WEB5 stack, no Docker executable, no second local WEB5 replica, and no populated resilience fixture. Those live stages therefore remain `SKIP`. This is an infrastructure prerequisite, not a passing test result.
+
 ## Visual and audio evidence
 
 Unity automation verifies objective and quest sequencing, active state, effect completion, assigned clips, suppression of reused audio, transparent materials, dynamic artwork count, and title markup. These are deterministic product invariants. Subjective judgments such as whether an animation feels pleasant or a voice sounds natural can be reviewed from a recorded build, but they are not suitable pass/fail assertions. Any such review belongs beside the automated report as optional acceptance evidence; it does not replace the automated state checks.
