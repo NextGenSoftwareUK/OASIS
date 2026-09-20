@@ -43,9 +43,9 @@ This matrix covers the shared policy engine, WEB5 trigger contract, quest progre
 Automated evidence:
 
 - `GeoSpatialSpawnPolicy`: 1,536 combinations plus 14 named boundary cases passed.
-- Focused WEB5 suite: 24/24 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
+- Focused WEB5 suite: 21/21 tests passed (`GeoHotSpotsControllerTests`, `GeoHotSpotQuestContractTests`, and `GeoNFTQuestContractTests`).
 - WEB5 project build: 0 errors.
-- Our World `Assembly-CSharp.csproj` build: 0 errors.
+- Our World `Assembly-CSharp.csproj` build: 0 errors; isolated Unity runtime suite: 6/6 passed.
 - Live development Anorak contract: all five distinct tree pickups succeeded; every duplicate was rejected, each pickup produced one objective transition with no replay, and cleanup restored progress to 0/5 while preserving all 26 unrelated inventory rows.
 - Railway dependency manifest validation is run whenever the dependency SHAs below are advanced.
 
@@ -58,3 +58,7 @@ Setup, fixture contracts, CI gates, transaction assertions, evidence formats, an
 Live providers use `-ProviderProfilesPath Scripts/geohotspot-provider-profiles.example.json` after copying that example outside the repository and supplying disposable credentials/endpoints. Two-avatar, multiple-replica, and restart/replay tests use `-ConcurrencyFixturePath` with the schema in `Scripts/geohotspot-resilience-fixture.example.json`. These inputs are deliberately external because CI secrets, deployed endpoints, and disposable process IDs must never be committed. An omitted prerequisite is recorded as `SKIP`; it is never reported as a pass.
 
 The uncompleted rows are deliberately marked rather than reported as verified. Live Unity presentation, two-avatar concurrency across deployed replicas, media playback, and deliberately interrupted live providers still require manual observation. The cross-provider mutation path now uses a durable reservation journal and idempotent owning-manager writes, so a retry resumes instead of compensating or duplicating state.
+
+### Environment audit on 2026-09-20
+
+Every locally executable stage passed. No disposable MongoDB, SQLite, or Neo4j WEB4/WEB5 deployment was listening on the documented local ports, Docker was unavailable, and no populated two-avatar/restart fixture existed. The checked-in examples contain placeholders and are rejected by the hardened runner. Consequently the provider, multi-replica, and forced-restart rows remain `SKIP`, rather than being inferred from unit results or run destructively against the shared development deployment.
