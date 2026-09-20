@@ -265,6 +265,20 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>TemporalOASIS</b> - Temporal Workflow Orchestration Provider (durable distributed workflow execution → Holons).</li>
 <li><b>DaprOASIS</b> - Dapr Distributed Application Runtime Provider (portable microservices building blocks → Holons).</li>
 <li><b>IntelOpenVINOOASIS</b> - Intel OpenVINO AI/ML Inference Runtime Provider (optimised AI inference on Intel hardware → Holons).</li>
+<li><b>CovalentOASIS</b> - Covalent Multi-Chain Unified Data API Provider (balances, transactions, NFTs across 100+ chains → Holons).</li>
+<li><b>DuneAnalyticsOASIS</b> - Dune Analytics On-Chain SQL Query Provider (SQL-queryable blockchain data → Holons).</li>
+<li><b>ReservoirOASIS</b> - Reservoir NFT Data and Trading API Provider (unified NFT liquidity and data → Holons).</li>
+<li><b>BlockscoutOASIS</b> - Blockscout Open-Source Block Explorer API Provider (transparent on-chain data → Holons).</li>
+<li><b>ZapperOASIS</b> - Zapper DeFi Portfolio and Position Data Provider (cross-chain DeFi positions → Holons).</li>
+<li><b>OpenZeppelinDefenderOASIS</b> - OpenZeppelin Defender Smart Contract Security Provider (automated monitoring and response → Holons).</li>
+<li><b>GelatoNetworkOASIS</b> - Gelato Network Smart Contract Automation Provider (cron, webhooks, off-chain triggers → Holons).</li>
+<li><b>ChainlinkFunctionsOASIS</b> - Chainlink Functions Serverless On-Chain Compute Provider (call any API from smart contracts → Holons).</li>
+<li><b>ReadyPlayerMeOASIS</b> - Ready Player Me Cross-Platform Avatar SDK Provider (interoperable 3D avatars → OASIS Avatars).</li>
+<li><b>DecentralandOASIS</b> - Decentraland Metaverse World Integration Provider (virtual land, wearables, scenes → Holons).</li>
+<li><b>TheSandboxOASIS</b> - The Sandbox Metaverse and Voxel Gaming Provider (LAND, ASSETS, game experiences → Holons).</li>
+<li><b>BittensorOASIS</b> - Bittensor Decentralised ML Network Provider (permissionless AI model marketplace → Holons).</li>
+<li><b>GaladrielOASIS</b> - Galadriel On-Chain AI Smart Contract Provider (LLM inference directly on-chain → Holons).</li>
+<li><b>RitualOASIS</b> - Ritual AI Coprocessor Provider (verifiable AI inference for any blockchain → Holons).</li>
 
 </ul>
 
