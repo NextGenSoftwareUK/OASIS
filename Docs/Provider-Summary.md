@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_206 fully implemented providers across 7 categories — last updated: 2026-09-20_
+_220 fully implemented providers across 7 categories — last updated: 2026-09-20_
 
 ---
 
@@ -8,15 +8,15 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 
 | Category | Count | Examples |
 |---|---|---|
-| Blockchain / L1 / L2 | 56 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Axelar, Wormhole, Fhenix, Web3Core, Chainflip, deBridge, Stargate, Synapse, LayerZero V2, Hyperlane, Connext, EigenLayer, Espresso Systems… |
+| Blockchain / L1 / L2 | 59 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Axelar, Wormhole, Fhenix, Web3Core, Chainflip, deBridge, Stargate, Synapse, LayerZero V2, Hyperlane, Connext, EigenLayer, Espresso Systems, OpenZeppelin Defender, Gelato, Chainlink Functions… |
 | Decentralised Social / Network | 41 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Push Protocol, Celestia, Ceramic, QuickNode, Tenderly, Moralis Streams, SubQuery, Ankr, Nansen, Goldsky… |
 | Storage / Database / Cloud | 83 | MongoDB, IPFS, Arweave, Neo4j, SQL Server, Oracle DB, SQLite, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, PostgreSQL, Firebase, Supabase, Fastly, Deno Deploy, Vercel KV, Netlify Blobs, Fly.io, Tigris, Nile… |
-| Spatial / Gaming / AR | 8 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship |
-| Web3 API / Indexing | 4 | The Graph, ENS, Alchemy, Infura |
+| Spatial / Gaming / AR | 11 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship |
+| Web3 API / Indexing | 9 | The Graph, ENS, Alchemy, Infura |
 | Identity / Encryption / IP | 12 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol, Polygon ID, zkPass, Holonym, Self Protocol, Proof of Humanity, ENS Offchain, Privy Server Wallets |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
-**Total: 206 providers** (56 + 41 + 83 + 8 + 4 + 12 + 2 = 206)
+**Total: 220 providers** (59 + 46 + 83 + 11 + 4 + 12 + 2 + 3 = 220)
 
 > **Added 2026-09-20c (+4):** Network ×4 (NATS JetStream, Temporal, Dapr, Intel OpenVINO). Previous total: 202.
 > **Added 2026-09-20b (+9):** Blockchain ×2 (EigenLayer, Espresso Systems), Network ×3 (Ankr, Nansen, Goldsky), Storage ×2 (Tigris, Nile), Identity ×2 (ENS Offchain, Privy Server Wallets). Previous total: 193.
@@ -29,7 +29,7 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 
 ## Full Provider List
 
-### Blockchain / L1 / L2 (56)
+### Blockchain / L1 / L2 (59)
 
 | Provider | ProviderType |
 |---|---|
@@ -89,6 +89,9 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 | Connext (modular cross-chain) | ConnextOASIS |
 | EigenLayer (restaking protocol) | EigenLayerOASIS |
 | Espresso Systems (shared sequencer) | EspressoSystemsOASIS |
+| OpenZeppelin Defender (smart contract security) | OpenZeppelinDefenderOASIS |
+| Gelato Network (smart contract automation) | GelatoNetworkOASIS |
+| Chainlink Functions (serverless on-chain compute) | ChainlinkFunctionsOASIS |
 
 ### Storage / Database / Cloud (83)
 
@@ -228,7 +231,7 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 | Dapr (distributed application runtime) | DaprOASIS |
 | Intel OpenVINO (AI/ML inference runtime) | IntelOpenVINOOASIS |
 
-### Web3 API / Indexing / RPC (4)
+### Web3 API / Indexing / RPC (9)
 
 | Provider | ProviderType |
 |---|---|
@@ -236,8 +239,13 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 | ENS (Ethereum Name Service) | ENSOASIS |
 | Alchemy (RPC gateway) | AlchemyOASIS |
 | Infura (RPC gateway) | InfuraOASIS |
+| Covalent (multi-chain unified data API) | CovalentOASIS |
+| Dune Analytics (on-chain SQL query) | DuneAnalyticsOASIS |
+| Reservoir (NFT data and trading API) | ReservoirOASIS |
+| Blockscout (open-source block explorer API) | BlockscoutOASIS |
+| Zapper (DeFi portfolio and position data) | ZapperOASIS |
 
-### Spatial / Gaming / AR (8)
+### Spatial / Gaming / AR (11)
 
 | Provider | ProviderType |
 |---|---|
@@ -249,6 +257,9 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 | HERE Maps | HEREMapsOASIS |
 | MapLibre (open-source maps) | MapLibreOASIS |
 | Niantic Lightship (AR platform) | NianticLightshipOASIS |
+| Ready Player Me (cross-platform avatar SDK) | ReadyPlayerMeOASIS |
+| Decentraland (metaverse world) | DecentralandOASIS |
+| The Sandbox (metaverse and voxel gaming) | TheSandboxOASIS |
 
 ### Identity / Security / IP (12)
 
@@ -267,6 +278,14 @@ _206 fully implemented providers across 7 categories — last updated: 2026-09-2
 | ENS Off-Chain Resolver (off-chain ENS names) | ENSOffchainOASIS |
 | Privy Server Wallets (programmatic embedded wallets) | PrivyServerWalletsOASIS |
 
+### AI / Machine Learning (3)
+
+| Provider | ProviderType |
+|---|---|
+| Bittensor (decentralised ML network) | BittensorOASIS |
+| Galadriel (on-chain AI smart contracts) | GaladrielOASIS |
+| Ritual (AI coprocessor for blockchains) | RitualOASIS |
+
 ### Infrastructure / Multisig (2)
 
 | Provider | ProviderType |
@@ -282,7 +301,7 @@ No competitor — Web3 or traditional — comes close to 202 implemented provide
 
 | Platform | Providers |
 |---|---|
-| **OASIS** | **206** |
+| **OASIS** | **220** |
 | Moralis | ~15 (read-only Web3 data) |
 | Alchemy | ~10 (EVM chains only) |
 | Infura | ~8 (EVM chains only) |
