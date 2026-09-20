@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             try
             {
-                if (await HasApplicationSchemaAsync())
+                if (await HasMigrationHistoryAsync())
                     await _appDataContext.Database.MigrateAsync();
                 else
                     await _appDataContext.Database.EnsureCreatedAsync();
@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             try
             {
-                if (HasApplicationSchema())
+                if (HasMigrationHistory())
                     _appDataContext.Database.Migrate();
                 else
                     _appDataContext.Database.EnsureCreated();
@@ -66,26 +66,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        private async Task<bool> HasApplicationSchemaAsync()
+        private async Task<bool> HasMigrationHistoryAsync()
         {
             await _appDataContext.Database.OpenConnectionAsync();
             try
             {
                 await using var command = _appDataContext.Database.GetDbConnection().CreateCommand();
-                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('Avatar','Holon')";
-                return Convert.ToInt32(await command.ExecuteScalarAsync()) == 2;
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory'";
+                return Convert.ToInt32(await command.ExecuteScalarAsync()) == 1;
             }
             finally { await _appDataContext.Database.CloseConnectionAsync(); }
         }
 
-        private bool HasApplicationSchema()
+        private bool HasMigrationHistory()
         {
             _appDataContext.Database.OpenConnection();
             try
             {
                 using var command = _appDataContext.Database.GetDbConnection().CreateCommand();
-                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('Avatar','Holon')";
-                return Convert.ToInt32(command.ExecuteScalar()) == 2;
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory'";
+                return Convert.ToInt32(command.ExecuteScalar()) == 1;
             }
             finally { _appDataContext.Database.CloseConnection(); }
         }
