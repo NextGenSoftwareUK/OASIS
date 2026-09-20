@@ -8,6 +8,74 @@
       "RewardTokenMintAddress": "",
       "RewardTokenSymbol": "EXP",
       "SolanaCluster": "devnet"
+    },
+    "IsProduction": false,
+    "OASISAPIURL": "https://oasisweb4.one/api",
+    "Security": {
+      "HideVerificationToken": true,
+      "HideRefreshTokens": true,
+      "SecretKey": "",
+      "RemoveOldRefreshTokensAfterXDays": 0,
+      "AvatarPassword": {
+        "BCryptEncryptionEnabled": true,
+        "Rijndael256EncryptionEnabled": true,
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": true
+      },
+      "OASISProviderPrivateKeys": {
+        "BCryptEncryptionEnabled": true,
+        "Rijndael256EncryptionEnabled": true,
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": true
+      },
+      "JwtTokenExpirationMinutes": 15,
+      "RefreshTokenExpirationDays": 7,
+      "RequireApiKey": false,
+      "ApiKey": "",
+      "RateLimiting": {
+        "Enabled": true,
+        "RequestsPerWindow": 100,
+        "WindowSeconds": 60,
+        "WindowSegments": 6,
+        "QueueLimit": 0
+      },
+      "DIDEnabled": false,
+      "DIDChallengeStore": {
+        "Provider": "InMemory",
+        "RedisConnectionString": ""
+      },
+      "HolonDataEncryption": {
+        "BCryptEncryptionEnabled": false,
+        "Rijndael256EncryptionEnabled": false,
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": false
+      },
+      "Oidc": {
+        "Issuer": "",
+        "ProviderName": "OASIS",
+        "Enabled": false,
+        "AccessTokenLifetimeSeconds": 0
+      },
+      "HerzId": {
+        "Enabled": false,
+        "QeaPrivateSeed": "8F3A1C9E2D7B4F6A0E5C8B1D3F7A2E9C4B6D0F8A3E5C1B7D9F2A4E6C0B8D3F5",
+        "WiccianRegistryUrl": "",
+        "WiccianApiKey": "",
+        "AzureSpeakerRecognitionEndpoint": "",
+        "AzureSpeakerRecognitionKey": "",
+        "NewMemberVouches": 12,
+        "SequentialDigits": 10,
+        "QeaSealDisplayGlyph": "✦"
+      },
+      "Biometric": {
+        "Enabled": false,
+        "VoiceEnabled": false,
+        "RequireForLogin": false,
+        "RequireForSensitiveOps": false,
+        "AzureSpeakerRecognitionEndpoint": "",
+        "AzureSpeakerRecognitionKey": "",
+        "VoiceVerificationMinScore": 0.5
+      }
     }
   }
 }
