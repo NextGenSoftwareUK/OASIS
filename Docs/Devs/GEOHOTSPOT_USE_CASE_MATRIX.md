@@ -61,4 +61,4 @@ The uncompleted rows are deliberately marked rather than reported as verified. L
 
 ### Environment audit on 2026-09-20
 
-Every locally executable stage passed. The added disposable resilience environment passed one-of-two acceptance across independent HTTP processes and passed an actual in-flight termination, restart, commit replay, and identical second replay. No disposable MongoDB or Neo4j WEB4/WEB5 deployment was available, so those provider-integration rows remain `SKIP` rather than being inferred from local contract tests or run destructively against the shared development deployment.
+Every locally executable stage passed. The added disposable resilience environment passed one-of-two acceptance across independent HTTP processes and passed an actual in-flight termination, restart, commit replay, and identical second replay. Portable, loopback-only provider processes also passed direct activation and persistence on 2026-09-20: SQLite 3/3, MongoDB 3/3, and Neo4j 5/5 (`PASS 3 / FAIL 0 / SKIP 0` providers). These direct-provider results do not substitute for the separate full WEB4/WEB5 HTTP deployment profiles.
