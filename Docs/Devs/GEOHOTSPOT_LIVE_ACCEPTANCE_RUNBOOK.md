@@ -38,4 +38,3 @@ Set every completed case to `PASS`, add factual notes, and attach at least one a
 ```
 
 Any missing prerequisite is a `SKIP`; any incomplete or malformed acceptance bundle is a `FAIL`. Preserve the generated JSON, Markdown, HTML, TRX, Unity XML, service logs, and referenced artifacts under the release evidence ID.
-
