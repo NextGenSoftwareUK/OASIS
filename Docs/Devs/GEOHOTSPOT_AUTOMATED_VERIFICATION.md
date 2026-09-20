@@ -24,6 +24,7 @@ The runner never converts a missing prerequisite into a pass. Each stage is reco
 | WEB5 Release build | API Core, ONODE Core, STAR and controller contracts compile together | Runs |
 | Focused WEB5 suite | evidence validation, linkage, distinct visits, result contracts, durable journal and child operation IDs | Runs |
 | Spawn-policy matrix | 1,536 combinations, 14 named boundaries, invalid limits, and GeoNFT/GeoHotSpot policy parity | Runs |
+| Local provider persistence | Real SQLite activation plus avatar/holon save-load round trips; loopback MongoDB and Neo4j when configured | Runs |
 | Our World runtime | inventory parsing, WEB4/WEB5 identity merge, transparent effects, dynamic orbit artwork, objective then quest presentation, audio separation, and readable title | Runs |
 | Provider profiles | the canonical five-tree collection/progression contract against each configured provider deployment | Requires fixture |
 | Two-avatar replicas | synchronized requests from two avatars to separate HTTP processes competing for a final allocation in shared SQLite state | Runs against the disposable local contract host; a populated fixture replaces it with full WEB5 replicas |
@@ -74,6 +75,36 @@ The components are:
 This local host verifies the HTTP runner, true cross-process competition, durable SQLite serialization, process termination, and replay behavior without booting OASIS providers or granting real quest/inventory rewards. The focused WEB5 controller tests verify its reservation/effect/finalization rules. A populated fixture remains the integration gate for proving the complete controller and configured provider deployment across replicas; local contract-host evidence must not be relabelled as a provider integration pass.
 
 ## Provider profiles
+
+### Disposable provider persistence without Docker
+
+`Scripts/run_local_provider_matrix.ps1` is now part of every full matrix run. SQLite
+requires no external service and creates a unique database under the current user's
+temporary directory for each test. The test activates the real provider and verifies
+avatar and holon save/load round trips. It does not contact WEB4, WEB5, Railway, or a
+shared development database.
+
+MongoDB and Neo4j are opt-in because they require server processes. The runner accepts
+only loopback connection strings, preventing an accidental provider test against shared
+infrastructure:
+
+```powershell
+$env:MONGODBOASIS_CONNECTIONSTRING='mongodb://127.0.0.1:27017'
+$env:MONGODBOASIS_DBNAME='oasis-geohotspot-it'
+$env:NEO4JOASIS_HOST='bolt://127.0.0.1:7687'
+$env:NEO4JOASIS_USERNAME='neo4j'
+$env:NEO4JOASIS_PASSWORD='<disposable-local-password>'
+./Scripts/run_local_provider_matrix.ps1
+```
+
+Results are written to `TestResults/GeoHotSpotMatrix/providers`, including one TRX per
+executed provider and `local-provider-matrix.json`/`.md`. An absent local server is
+`SKIP`; a configured non-loopback endpoint is `FAIL`.
+
+SQLite activation no longer deletes its database. A new database receives the current
+EF schema; an existing provider database follows the migration path. This restores the
+provider invariant that activation must never erase persisted avatars, holons, inventory,
+or GeoNFT-related data.
 
 Copy `Scripts/geohotspot-provider-profiles.example.json` to a secure location and configure disposable WEB4/WEB5 deployments. Each entry contains:
 

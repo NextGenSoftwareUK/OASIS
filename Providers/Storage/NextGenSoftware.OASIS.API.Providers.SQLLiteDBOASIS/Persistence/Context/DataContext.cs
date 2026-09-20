@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 {
@@ -66,6 +67,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 
             modelBuilder.Entity<InventoryItemModel>()
                 .Ignore("Children");
+
+            // InventoryItemModel inherits the rich runtime STARNETHolon graph. Only the
+            // inventory record fields belong in AvatarInventory; attempting to infer the
+            // runtime interface graph makes EF reject the complete model before any SQLite
+            // operation can run.
+            var inventoryColumns = new HashSet<string>(StringComparer.Ordinal)
+            {
+                nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
+                nameof(InventoryItemModel.Name), nameof(InventoryItemModel.Description),
+                nameof(InventoryItemModel.Quantity), nameof(InventoryItemModel.Stack),
+                nameof(InventoryItemModel.GameSource), nameof(InventoryItemModel.ItemType),
+                nameof(InventoryItemModel.NftId), nameof(InventoryItemModel.GeoNFTId),
+                nameof(InventoryItemModel.Rarity), nameof(InventoryItemModel.MaxQuantity),
+                nameof(InventoryItemModel.Weight), nameof(InventoryItemModel.IsUsable),
+                nameof(InventoryItemModel.IsTradeable), nameof(InventoryItemModel.AcquiredOn),
+                nameof(InventoryItemModel.LastUsedOn), nameof(InventoryItemModel.HolonType)
+            };
+            foreach (var property in typeof(InventoryItemModel).GetProperties())
+                if (!inventoryColumns.Contains(property.Name))
+                    modelBuilder.Entity<InventoryItemModel>().Ignore(property.Name);
             
             modelBuilder.Entity<AvatarDetailModel>()
                 .HasMany(avatar => avatar.GeneKeys)
