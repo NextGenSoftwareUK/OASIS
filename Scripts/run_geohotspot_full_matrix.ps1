@@ -14,6 +14,7 @@ param(
     [string]$OutputPath = (Join-Path $PSScriptRoot '..\TestResults\GeoHotSpotMatrix'),
     [string]$ProviderProfilesPath,
     [string]$ConcurrencyFixturePath,
+    [string]$AcceptanceEvidencePath,
     [switch]$PortableProviders,
     [switch]$SkipUnity,
     [switch]$SkipBuild
@@ -110,6 +111,14 @@ try {
     } else {
         Invoke-Case Concurrency 'Two avatars and multiple replicas' { & (Join-Path $PSScriptRoot 'test_geohotspot_live_resilience.ps1') -FixturePath $ConcurrencyFixturePath -Mode Concurrency }
         Invoke-Case Recovery 'Restart and replay pending transaction' { & (Join-Path $PSScriptRoot 'test_geohotspot_live_resilience.ps1') -FixturePath $ConcurrencyFixturePath -Mode RestartReplay }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($AcceptanceEvidencePath)) {
+        Add-Skip Acceptance 'Device and deployed-environment acceptance' 'Supply -AcceptanceEvidencePath with the completed evidence template after the physical/deployed run.'
+    } else {
+        Invoke-Case Acceptance 'Device and deployed-environment acceptance' {
+            & (Join-Path $PSScriptRoot 'validate_geohotspot_acceptance_evidence.ps1') -EvidencePath $AcceptanceEvidencePath -OutputPath (Join-Path $output 'acceptance-validation.json')
+        }
     }
 }
 finally { Pop-Location }
