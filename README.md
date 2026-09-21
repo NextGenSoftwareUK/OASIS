@@ -30,7 +30,7 @@ The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionar
 
 ## 🌐 Supported Providers
 
-OASIS supports 174 providers across multiple categories, providing universal compatibility and seamless integration:
+OASIS supports 184 providers across multiple categories, providing universal compatibility and seamless integration:
 
 ### **Blockchain Providers**
 - **Bitcoin** - Original cryptocurrency blockchain
@@ -991,7 +991,7 @@ Sophisticated tokenomics with:
 - Cost optimization algorithms
 
 ### 🌐 Universal Connectivity
-- 174 supported providers
+- 184 supported providers
 - Web2 and Web3 integration
 - Cross-platform compatibility
 - Protocol translation
@@ -1152,7 +1152,7 @@ OASIS represents the culmination of years of research, development, and vision. 
 
 ### Evolution Highlights
 - **From Concept to Reality**: What started as a vision for universal connectivity has become a working system
-- **Technology Integration**: Successfully integrated 174 Web2 and Web3 providers
+- **Technology Integration**: Successfully integrated 184 Web2 and Web3 providers
 - **Community Growth**: Built a global community of developers, users, and contributors
 - **Innovation Leadership**: Pioneered auto-failover technology and universal data aggregation
 

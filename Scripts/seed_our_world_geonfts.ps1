@@ -1,11 +1,12 @@
 <#
 .SYNOPSIS
-Mints one Web4 NFT and places four API-backed GeoNFTs around Our World's desktop test location.
+Mints one Web4 NFT and places five API-backed GeoNFTs around Our World's desktop test location.
 .DESCRIPTION
 Mints one source Web4 NFT through the configured on-chain provider, then uses
-that NFT as the source for four GeoNFT placements. The manifest is written as
+that NFT as the source for five GeoNFT placements. The manifest is written as
 soon as the source NFT exists so a failed placement can be resumed with
--OriginalNFTId. The default account is loaded from a Windows user-encrypted
+-OriginalNFTId. A later run reuses the source NFT recorded in the existing
+manifest instead of minting another one. The default account is loaded from a Windows user-encrypted
 credential file and is never stored in Git.
 .EXAMPLE
 ./Scripts/seed_our_world_geonfts.ps1 -PlanOnly
@@ -63,7 +64,8 @@ $layout = @(
     @{ label = 'North 30 m'; bearing = 0; distance = 30 },
     @{ label = 'East 45 m'; bearing = 90; distance = 45 },
     @{ label = 'South 60 m'; bearing = 180; distance = 60 },
-    @{ label = 'West 75 m'; bearing = 270; distance = 75 }
+    @{ label = 'West 75 m'; bearing = 270; distance = 75 },
+    @{ label = 'North-east 90 m'; bearing = 45; distance = 90 }
 )
 $plan = @($layout | ForEach-Object {
     $coordinate = Get-DemoCoordinate $_.bearing $_.distance
@@ -164,6 +166,17 @@ function Invoke-GeoApi {
 }
 
 try {
+    if ($OriginalNFTId -eq [Guid]::Empty -and (Test-Path -LiteralPath $OutputPath)) {
+        $previousManifest = Get-Content -LiteralPath $OutputPath -Raw | ConvertFrom-Json
+        $previousSourceNFTId = [Guid]::Empty
+        if ($null -ne $previousManifest -and
+            [Guid]::TryParse([string]$previousManifest.sourceNFTId, [ref]$previousSourceNFTId) -and
+            $previousSourceNFTId -ne [Guid]::Empty) {
+            $OriginalNFTId = $previousSourceNFTId
+            Write-Host "Reusing source Web4 NFT from the existing manifest: $OriginalNFTId"
+        }
+    }
+
     $manifest = [ordered]@{
         web4BaseUrl = $server; sourceNFTId = $null; sourceNFTCreated = $false
         center = @{ lat = $Latitude; long = $Longitude }; placements = @()
@@ -196,6 +209,12 @@ try {
     Write-Host 'Loading the source Web4 NFT...'
     $original = Invoke-GeoApi "nft/load-nft-by-id/$OriginalNFTId/$Provider/false"
     if ($null -eq $original -or [Guid]$original.id -ne $OriginalNFTId) { throw 'The source Web4 NFT could not be loaded.' }
+    if ([Guid]$original.currentOwnerAvatarId -eq [Guid]::Empty -and [string]$original.mintedByAvatarId -eq [string]$avatar.id) {
+        $original = Invoke-GeoApi 'nft/update-web4-nft' 'Post' @{
+            id=$OriginalNFTId; currentOwnerAvatarId=$avatar.id; mintedByAvatarId=$avatar.id
+        }
+    }
+    if ([string]$original.currentOwnerAvatarId -ne [string]$avatar.id) { throw 'The source Web4 NFT is not owned by the authenticated avatar.' }
     $manifest.sourceNFTId = $OriginalNFTId.ToString()
     # Save the minted source before placing anything, so the run is safely resumable.
     $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
@@ -213,15 +232,18 @@ try {
         $created = $false
         if ($matches.Count -eq 1) {
             Write-Host "Reusing existing placement: $($point.label)"
-            $geo = $matches[0]
+            $geo = Invoke-GeoApi "nft/geo-nft/$($matches[0].id)" 'Put' @{
+                permSpawn = $false; allowOtherPlayersToAlsoCollect = $true
+                globalSpawnQuantity = 0; playerSpawnQuantity = 1; respawnDurationInSeconds = 60
+            }
         } else {
             Write-Host "Placing GeoNFT: $($point.label)..."
             $geo = Invoke-GeoApi 'nft/place-geo-nft' 'Post' @{
                 originalOASISNFTId = $OriginalNFTId.ToString()
                 originalOASISNFTOffChainProvider = $Provider; geoNFTMetaDataProvider = $Provider
-                lat = $point.lat; long = $point.long; permSpawn = $true
-                allowOtherPlayersToAlsoCollect = $true; globalSpawnQuantity = -1
-                playerSpawnQuantity = -1; respawnDurationInSeconds = 60
+                lat = $point.lat; long = $point.long; permSpawn = $false
+                allowOtherPlayersToAlsoCollect = $true; globalSpawnQuantity = 0
+                playerSpawnQuantity = 1; respawnDurationInSeconds = 60
             }
             if ($null -eq $geo -or [string]::IsNullOrWhiteSpace($geo.id)) { throw "Placement at $($point.label) returned no GeoNFT ID." }
             $created = $true
@@ -244,7 +266,7 @@ try {
         }
     }
     $manifest.placements | Format-Table label, id, lat, long, created
-    Write-Host "Verified all four API-backed placements. Manifest: $OutputPath"
+    Write-Host "Verified all five API-backed placements. Manifest: $OutputPath"
 } finally {
     $headers.Clear()
     $avatar = $null

@@ -156,6 +156,8 @@ GET    /api/karma/get-karma-history/{avatarId}/{providerType}/{setGlobally}
 ```http
 GET    /api/nft/load-nft-by-id/{id}                                             # Load Web4 NFT by ID
 GET    /api/nft/load-nft-by-id/{id}/{providerType}/{setGlobally}
+GET    /api/nft/load-geo-nft-by-id/{id}                                         # Load typed Web4 GeoNFT by ID
+GET    /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}
 GET    /api/nft/load-nft-by-hash/{hash}                                        # Load Web4 NFT by hash
 GET    /api/nft/load-nft-by-hash/{hash}/{providerType}/{setGlobally}
 GET    /api/nft/load-all-nfts-for_avatar/{avatarId}                            # All Web4 NFTs for avatar

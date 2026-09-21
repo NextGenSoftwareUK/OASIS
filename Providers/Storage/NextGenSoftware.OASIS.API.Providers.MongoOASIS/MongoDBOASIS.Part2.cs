@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -324,24 +324,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            // CHANGED: Previously this used ProviderUniqueStorageKey.ContainsKey(MongoDBOASIS)
-            // to decide insert vs update. That key is an internal MongoDB implementation detail
-            // (the ObjectId) that is only present if the caller round-tripped a previously loaded
-            // holon. Stateless REST/JS clients constructing a holon from scratch never have this
-            // key, so they always hit AddAsync and created a new document on every save.
-            // The sync SaveHolon overload below already uses IsNewHolon correctly; this async
-            // path now matches it. IsNewHolon is set reliably by PrepareHolonForSaving (called
-            // by SaveHolonAsync in HolonManager) based solely on Id == Guid.Empty.
-            //
-            // Old code (kept for reference):
-            // OASISResult<IHolon> result = !holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS)
-            //     ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
-            //     : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
-
-            //OASISResult<IHolon> result = holon.IsNewHolon
-            OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
-                ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
-                : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
+            // Holon.Id is the public, provider-independent OASIS identity. MongoDB's ObjectId is
+            // intentionally private and therefore is not present in REST, JavaScript/NPM, Unity,
+            // or native update payloads. Resolve the operation from the persisted public identity
+            // itself: update the matching document, otherwise create the first document for it.
+            // Do not use CreatedDate or IsNewHolon here: both are lifecycle/audit state and are not
+            // a durable cross-client storage key.
+            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
+            var persistedHolon = await _holonRepository.GetHolonAsync(mongoHolon.HolonId);
+            PreserveCreationAuditFields(mongoHolon, persistedHolon);
+            var saveResult = persistedHolon == null
+                ? await _holonRepository.AddAsync(mongoHolon)
+                : await _holonRepository.UpdateAsync(mongoHolon);
+            OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
 
             if (!result.IsError && result.Result != null && saveChildren && saveChildrenOnProvider && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
@@ -361,9 +356,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
-                ? DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Add(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
-                : DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Update(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
+            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
+            var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
+            PreserveCreationAuditFields(mongoHolon, persistedHolon);
+            var saveResult = persistedHolon == null
+                ? _holonRepository.Add(mongoHolon)
+                : _holonRepository.Update(mongoHolon);
+            OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
 
             if (!result.IsError && result.Result != null && saveChildren && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
@@ -379,6 +378,39 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
 
             return result;
+        }
+
+        private static void PreserveCreationAuditFields(Holon holon, Holon persistedHolon)
+        {
+            if (persistedHolon != null)
+            {
+                // Creation audit data is immutable. A stateless update often has none of it,
+                // so preserve the persisted values before ReplaceOne performs a full document
+                // replacement.
+                holon.Id = persistedHolon.Id;
+                holon.CreatedDate = persistedHolon.CreatedDate;
+                holon.CreatedByAvatarId = persistedHolon.CreatedByAvatarId;
+                holon.CreatedProviderType = persistedHolon.CreatedProviderType;
+                return;
+            }
+
+            // STAR and graph creation flows may allocate the public GUID before their first
+            // save. Persist a complete creation audit record for those inserts even though the
+            // generic manager correctly treats the supplied GUID as an existing-client shape.
+            if (holon.CreatedDate == DateTime.MinValue)
+                holon.CreatedDate = DateTime.UtcNow;
+
+            if (string.IsNullOrWhiteSpace(holon.CreatedByAvatarId)
+                && holon.MetaData != null
+                && holon.MetaData.TryGetValue("CreatedByAvatarId", out var createdByAvatarId))
+            {
+                holon.CreatedByAvatarId = createdByAvatarId?.ToString();
+            }
+
+            // The manager cannot know whether a caller-assigned public GUID is a first save.
+            // This branch can. A first insert has creation audit only; it is not an update.
+            holon.ModifiedDate = DateTime.MinValue;
+            holon.ModifiedByAvatarId = string.Empty;
         }
     }
 }

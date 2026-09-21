@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -21,6 +21,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         public HolonRepository(MongoDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public async Task EnsurePublicIdentityIndexAsync()
+        {
+            var index = new CreateIndexModel<Holon>(
+                Builders<Holon>.IndexKeys.Ascending(x => x.HolonId),
+                new CreateIndexOptions { Name = "ux_holon_public_identity", Unique = true });
+            await _dbContext.Holon.Indexes.CreateOneAsync(index);
+        }
+
+        public void EnsurePublicIdentityIndex()
+        {
+            var index = new CreateIndexModel<Holon>(
+                Builders<Holon>.IndexKeys.Ascending(x => x.HolonId),
+                new CreateIndexOptions { Name = "ux_holon_public_identity", Unique = true });
+            _dbContext.Holon.Indexes.CreateOne(index);
         }
 
         public async Task<OASISResult<Holon>> AddAsync(Holon holon)

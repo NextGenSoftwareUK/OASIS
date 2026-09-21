@@ -19,4 +19,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Obsolete pre-interface tests assert removed APIs and unsupported persistence.
+         The maintained provider tests use an isolated in-memory SQLite database. -->
+    <Compile Remove="SQLLiteDBOASISTests.cs" />
+  </ItemGroup>
+
 </Project>

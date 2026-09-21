@@ -58,11 +58,11 @@ application built on WEB4/WEB5 into an adaptive, self-improving system:
     Earth-level; semantic search, TTL, multi-hop propagation
 -   **Karma-Gated AI**: Bronze/Silver/Gold/Diamond access tiers — aligned
     incentives as recurring SaaS revenue
--   **20+ AI Providers**: OpenAI, Anthropic, Google Gemini, Groq, Mistral,
+-   **99 AI Providers**: OpenAI, Anthropic, Google Gemini, Groq, Mistral,
     Cohere, xAI, Ollama, HuggingFace, DeepSeek, and more — one unified API
 -   **DID/Verifiable Credentials**: W3C DID (did:key, did:web, did:ethr,
     did:ion) — enterprise-grade compliance built in
--   **250 MCP tools · 56 REST Endpoints**: the largest production MCP surface
+-   **259 MCP tools · 56 REST Endpoints**: the largest production MCP surface
     area of any AI platform
 
 ------------------------------------------------------------------------

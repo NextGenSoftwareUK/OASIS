@@ -375,9 +375,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 try
                 {
                     // Create Neo4j query to save holon
-                    var query = @"MERGE (h:Holon {Id: $id}) 
+                    var query = @"MERGE (h:Holon {Id: $id})
+                                ON CREATE SET h.CreatedDate = $createdDate
                                 SET h.Name = $name, h.Description = $description, h.HolonType = $holonType,
-                                    h.CreatedDate = $createdDate, h.ModifiedDate = $modifiedDate
+                                    h.ModifiedDate = $modifiedDate
                                 RETURN h";
                     var parameters = new 
                     { 
@@ -451,9 +452,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 {
                     foreach (var holon in holons)
                     {
-                        var query = @"MERGE (h:Holon {Id: $id}) 
+                        var query = @"MERGE (h:Holon {Id: $id})
+                                    ON CREATE SET h.CreatedDate = $createdDate
                                     SET h.Name = $name, h.Description = $description, h.HolonType = $holonType,
-                                        h.CreatedDate = $createdDate, h.ModifiedDate = $modifiedDate
+                                        h.ModifiedDate = $modifiedDate
                                     RETURN h";
                         var parameters = new 
                         { 

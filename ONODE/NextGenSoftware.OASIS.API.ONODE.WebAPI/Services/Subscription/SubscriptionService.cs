@@ -208,6 +208,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             finally { _usageLock.Release(); }
         }
 
+        public async Task<SubscriptionAuthorizationDecision> AuthorizeAndIncrementRequestAsync(string userId, string consumingService)
+        {
+            if (!Guid.TryParse(userId, out var avatarId))
+                return Denied(401, "INVALID_AVATAR", "The authenticated avatar ID is invalid.");
+
+            await _usageLock.WaitAsync();
+            try
+            {
+                var subscription = await LoadSubscriptionAsync(avatarId);
+                if (subscription == null)
+                    return Denied(402, "SUBSCRIPTION_REQUIRED", "A valid OASIS subscription is required.");
+                if (subscription.Status is not ("active" or "trialing" or "free") ||
+                    subscription.CurrentPeriodEnd.HasValue && DateTime.UtcNow > subscription.CurrentPeriodEnd.Value)
+                    return Denied(402, "INACTIVE_SUBSCRIPTION", "The OASIS subscription is inactive or expired.", subscription.PlanId);
+
+                int limit = subscription.PlanId?.ToLowerInvariant() switch
+                {
+                    "free" => 1_000,
+                    "bronze" => 10_000,
+                    "silver" => 100_000,
+                    "gold" => 1_000_000,
+                    "enterprise" => -1,
+                    _ => 1_000
+                };
+                var now = DateTime.UtcNow;
+                var key = UsageKey(now.Year, now.Month);
+                var allResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-usage");
+                if (allResult.IsError)
+                    throw new InvalidOperationException(allResult.Message);
+                var all = allResult.Result ?? new Dictionary<string, object>();
+                var usage = all.TryGetValue(key, out var raw)
+                    ? DeserializeUsage(userId, now.Year, now.Month, raw)
+                    : new UsageRecord { UserId = userId, Year = now.Year, Month = now.Month };
+
+                if (limit >= 0 && usage.RequestCount >= limit && !subscription.PayAsYouGoEnabled)
+                    return new SubscriptionAuthorizationDecision { Allowed = false, StatusCode = 429, Code = "PLAN_LIMIT_EXCEEDED", Message = $"You have used {usage.RequestCount:N0} of your {limit:N0} monthly requests.", PlanId = subscription.PlanId, CurrentUsage = usage.RequestCount, Limit = limit, Remaining = 0 };
+
+                usage.RequestCount++;
+                if (limit >= 0 && usage.RequestCount > limit) usage.OverageCount++;
+                usage.LastUpdated = now;
+                all[key] = JsonSerializer.Serialize(usage, _json);
+                var save = await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription-usage", all);
+                if (save.IsError) throw new InvalidOperationException(save.Message);
+
+                return new SubscriptionAuthorizationDecision { Allowed = true, StatusCode = 200, Code = "AUTHORIZED", Message = $"{consumingService} request authorized.", PlanId = subscription.PlanId, CurrentUsage = usage.RequestCount, Limit = limit, Remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount) };
+            }
+            finally { _usageLock.Release(); }
+        }
+
+        private static SubscriptionAuthorizationDecision Denied(int status, string code, string message, string planId = null) =>
+            new() { Allowed = false, StatusCode = status, Code = code, Message = message, PlanId = planId, Limit = 0, Remaining = 0 };
+
         // ── Orders ──────────────────────────────────────────────────────────
 
         public async Task<List<OrderRecord>> GetOrdersAsync(string userId)

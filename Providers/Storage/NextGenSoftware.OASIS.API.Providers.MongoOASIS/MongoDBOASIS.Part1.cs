@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -65,8 +65,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System")); 
-            BsonSerializer.RegisterSerializer(objectSerializer);
+            // MongoDB serializers are process-global. Provider construction can happen
+            // repeatedly during failover, tests, and host reconfiguration, so registration
+            // must be idempotent rather than throwing on the second provider instance.
+            var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System"));
+            BsonSerializer.TryRegisterSerializer(objectSerializer);
             //BsonClassMap.RegisterClassMap<OAPPDNA>();
 
             try
@@ -96,6 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
+                    _holonRepository.EnsurePublicIdentityIndex();
                     _searchRepository = new SearchRepository(Database);
                 }
 
@@ -153,6 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
+                    await _holonRepository.EnsurePublicIdentityIndexAsync();
                     _searchRepository = new SearchRepository(Database);
                 }
 
