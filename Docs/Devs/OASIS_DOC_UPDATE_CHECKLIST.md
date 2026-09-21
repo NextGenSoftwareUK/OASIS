@@ -108,11 +108,49 @@ for a matching `McpServerTool`. Run:
 grep -rn "McpServerTool" C:/Source/OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/ | grep -oP 'Name = "\K[^"]+' | sort
 ```
 
-Known gaps as of 2026-09-21 (pending full audit results):
-- Avatar session management (GET/POST/PUT sessions, logout, logout-all, validate-account-token)
-- Level lookup (`GET /api/level`, `GET /api/level/{karma}`)
-- Wallet token operations (WalletTokenController)
-- Any endpoints added in commit `133f5907d` not yet in MCP tools
+Full gap audit run 2026-09-21. Current MCP coverage: **192 tools** (102 Web4 + 90 Web5).
+
+### Controllers with ZERO MCP coverage (entire controllers uncovered)
+
+| Controller | Routes | Description |
+|------------|--------|-------------|
+| MapController | `/api/map/...` | 20+ endpoints: nearby search, visit/draw, pan/zoom, routes |
+| ONETController | `/api/onet/...` | OASISDNA config, network status/nodes/topology, connect/disconnect/broadcast, node register |
+| ONODEController | `/api/onode/...` | ONODE lifecycle, metrics, logs, config, peers, provider enable/disable, audit log |
+| ProviderController | `/api/provider/...` | Register/unregister, set active, auto-replication/failover/load-balance, activate/deactivate |
+| OLandController | `/api/oland/...` | Load/buy/transfer OLand parcels |
+| OlandUnitController | `/api/oland/...` | CRUD for OLand units |
+| VideoController | `/api/video/...` | Start/join/end video calls |
+| BridgeController | `/api/bridge/...` | Cross-chain bridge orders, exchange rates, networks, proofs |
+| EggsController | `/api/eggs/...` | List eggs, discover, hatch, quest leaderboard |
+| GiftsController | `/api/gifts/...` | Send/receive/open gifts, gift history |
+| SeedsController | `/api/seeds/...` | SEEDS crypto transactions |
+| OidcController | `/oauth/...` | OIDC discovery, JWKS, userinfo, authorize, token |
+
+### Controllers with PARTIAL coverage — known gaps
+
+| Controller | Missing MCP Tools |
+|------------|-------------------|
+| AvatarSessionController | get-sessions, get-session-stats, create-session, update-session, logout, logout-all, validate-account-token |
+| AvatarProfileController | UMA JSON endpoints, add-xp, set-active-quest, search, all update variants, delete by username/email, full inventory CRUD |
+| AvatarAuthController | authenticate-token, DID challenge/auth, refresh-token, revoke-token, register-with-provider |
+| KarmaController | get/vote/set karma weightings, akashic records, activity feed |
+| WalletController | load by username/email, default wallet get/set, import key, portfolio value, token transfer, wallet tokens, analytics |
+| WalletTokenController | burn-token, lock-token, unlock-token, import-by-secret-phrase |
+| KeysController | private keys by email, WIF decode, base58 decode, signature encode, key CRUD, link wallet address, list all |
+| LevelController | level-lookup table, calculate-level-from-karma |
+| NftController | ~25+ missing: collection CRUD, transfer history, load-all variants, geo-NFT update |
+| FilesController | upload, download, delete, metadata CRUD |
+| ClanController | All 10 endpoints: create, update, load, members, inventory |
+| CompetitionController | leaderboard, rank, leagues, tournaments, stats |
+| HerzIdController | register, vouch, verify, profile, set-clearance, vouch-chain, ghost-check |
+| HolochainController | agent IDs, private keys, HoloFuel balance |
+| EOSIOController | account name/keys/balance lookups (8 endpoints) |
+| SettingsController | all settings CRUD, notification prefs, privacy, system config |
+| ShareController | share-holon with one/many avatars |
+| BiometricController | status, voice enroll/verify/delete |
+| StatsController | achievement-stats |
+| DataController | save-file/load-file, save-data/load-data, load-by-metadata, save-holons bulk, provider-key ops |
 
 ---
 
