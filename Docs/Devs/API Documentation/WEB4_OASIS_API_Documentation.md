@@ -1,4 +1,4 @@
-﻿# WEB4 OASIS API - Complete Documentation
+# WEB4 OASIS API - Complete Documentation
 
 ## 📋 **Overview**
 
@@ -424,8 +424,15 @@ GET /api/data/load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}
 ```
 
 #### **Save Holon**
+
+**Holon identity contract:** `Id` is the public, stable identity for both new and
+existing holons. Omit it to have OASIS generate one, or supply a caller-allocated GUID
+when metadata/child links need it before saving. Mongo private keys and audit fields are
+never update keys. See [Holon Persistence Identity Contract](../../HolonSave-RESTClient-Fix-2026-07-04.md).
+
 ```http
 POST /api/data/save-holon
+
 POST /api/data/save-holon/{holon}
 POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}
 POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}
@@ -1124,6 +1131,8 @@ DELETE /data/delete-file/{id}
 #### **Get NFT by ID**
 ```http
 GET /api/nft/load-nft-by-id/{id}
+GET /api/nft/load-geo-nft-by-id/{id}
+GET /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}
 ```
 
 #### **Get NFT by Hash**

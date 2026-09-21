@@ -28,8 +28,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             try
             {
-                await _appDataContext.Database.EnsureDeletedAsync();
-                await _appDataContext.Database.MigrateAsync();
+                if (await HasMigrationHistoryAsync())
+                    await _appDataContext.Database.MigrateAsync();
+                else
+                    await _appDataContext.Database.EnsureCreatedAsync();
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -48,8 +50,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             try
             {
-                _appDataContext.Database.EnsureDeleted();
-                _appDataContext.Database.Migrate();
+                if (HasMigrationHistory())
+                    _appDataContext.Database.Migrate();
+                else
+                    _appDataContext.Database.EnsureCreated();
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -60,6 +64,30 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             }
 
             return result;
+        }
+
+        private async Task<bool> HasMigrationHistoryAsync()
+        {
+            await _appDataContext.Database.OpenConnectionAsync();
+            try
+            {
+                await using var command = _appDataContext.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory'";
+                return Convert.ToInt32(await command.ExecuteScalarAsync()) == 1;
+            }
+            finally { await _appDataContext.Database.CloseConnectionAsync(); }
+        }
+
+        private bool HasMigrationHistory()
+        {
+            _appDataContext.Database.OpenConnection();
+            try
+            {
+                using var command = _appDataContext.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory'";
+                return Convert.ToInt32(command.ExecuteScalar()) == 1;
+            }
+            finally { _appDataContext.Database.CloseConnection(); }
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()

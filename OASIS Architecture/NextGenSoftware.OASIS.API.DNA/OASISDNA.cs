@@ -275,6 +275,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public OidcSettings Oidc { get; set; } = new OidcSettings();
         /// <summary>HerzID registration, vouching, QEA seal and voice biometric settings.</summary>
         public HerzIdSettings HerzId { get; set; } = new HerzIdSettings();
+        /// <summary>General biometric authentication settings for all OASIS Avatars (independent of HerzID).</summary>
+        public BiometricSettings Biometric { get; set; } = new BiometricSettings();
     }
 
     public class OidcSettings
@@ -320,6 +322,30 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int SequentialDigits { get; set; } = 10;
         /// <summary>QEA seal symbols shown in the HerzID display string. The stored character is always alphanumeric; this maps it to the display glyph.</summary>
         public string QeaSealDisplayGlyph { get; set; } = "✦";
+    }
+
+    public class BiometricSettings
+    {
+        /// <summary>Master switch — when false all biometric endpoints return 404 and biometric checks are skipped.</summary>
+        public bool Enabled { get; set; } = false;
+        /// <summary>Enable voice biometric enrollment and verification via Azure Speaker Recognition.</summary>
+        public bool VoiceEnabled { get; set; } = false;
+        /// <summary>When true, biometric verification is required in addition to password on login.</summary>
+        public bool RequireForLogin { get; set; } = false;
+        /// <summary>
+        /// When true, sensitive operations (e.g. wallet transfers, clearance changes) require biometric confirmation.
+        /// </summary>
+        public bool RequireForSensitiveOps { get; set; } = false;
+        /// <summary>
+        /// Azure Cognitive Services Speech endpoint.
+        /// Format: "https://&lt;region&gt;.api.cognitive.microsoft.com"
+        /// Set via OASIS_AZURE_SPEECH_ENDPOINT environment variable in production.
+        /// </summary>
+        public string AzureSpeakerRecognitionEndpoint { get; set; } = "";
+        /// <summary>Azure Cognitive Services subscription key. Set via OASIS_AZURE_SPEECH_KEY environment variable.</summary>
+        public string AzureSpeakerRecognitionKey { get; set; } = "";
+        /// <summary>Minimum Azure Speaker Recognition score (0.0–1.0) to accept a voice verification (default 0.5).</summary>
+        public double VoiceVerificationMinScore { get; set; } = 0.5;
     }
 
     public class RateLimitingSettings

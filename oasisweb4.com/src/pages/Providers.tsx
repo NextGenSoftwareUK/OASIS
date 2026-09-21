@@ -9,6 +9,12 @@ const providers: Record<string, string[]> = {
     'Radix', 'TON', 'Stellar', 'Monad', 'ChainLink', 'Loom', 'Algorand', 'Filecoin',
     'Ceramic / ComposeDB', 'Basechain', 'Abstract', 'Berachain',
     'Axelar (cross-chain)', 'Wormhole (bridge)', 'Fhenix (FHE L2)', 'Web3Core (EVM universal)',
+    'Chainflip (native cross-chain swap)', 'deBridge (cross-chain liquidity)',
+    'Stargate (LayerZero bridge)', 'Synapse (cross-chain bridge)',
+    'LayerZero V2 (omnichain messaging)', 'Hyperlane (permissionless interoperability)', 'Connext (modular cross-chain)',
+    'EigenLayer (restaking protocol)', 'Espresso Systems (shared sequencer)',
+    'OpenZeppelin Defender (smart contract security)', 'Gelato Network (smart contract automation)',
+    'Chainlink Functions (serverless on-chain compute)',
   ],
   'Storage / Database / Cloud': [
     'MongoDB', 'Neo4j', 'SQL Server', 'Oracle DB', 'SQLite', 'Local File',
@@ -26,6 +32,8 @@ const providers: Record<string, string[]> = {
     'ArcadeDB', 'DuckDB', 'MotherDuck', 'Snowflake', 'BigQuery', 'Redshift', 'Databricks',
     'Apache Druid', 'Apache Pinot', 'Dragonfly', 'ValKey', 'Garnet',
     'Fastly (edge CDN / KV)', 'Deno Deploy (edge functions)',
+    'Vercel KV (edge key-value)', 'Netlify Blobs (edge object store)', 'Fly.io (distributed platform)',
+    'Tigris (distributed S3-compatible)', 'Nile (serverless Postgres multi-tenant)',
   ],
   'Decentralised Social / Network': [
     'ActivityPub', 'Holochain', 'HoloWeb', 'Scuttlebutt', 'Urbit', 'SEEDS', 'Telegram',
@@ -37,14 +45,22 @@ const providers: Record<string, string[]> = {
     'Gitcoin Passport (identity scoring)', 'Polybase (decentralised DB)',
     'Sui zkLogin (social login)', 'ZKsync SSO (smart account SSO)',
     'Ceramic / ComposeDB (data streams)',
+    'QuickNode (RPC and API infrastructure)', 'Tenderly (Web3 dev and simulation)',
+    'Moralis Streams (real-time blockchain events)', 'SubQuery (blockchain data indexing)',
+    'Ankr (multi-chain RPC)', 'Nansen (on-chain analytics)', 'Goldsky (real-time subgraph indexing)',
+    'NATS JetStream (high-performance messaging)', 'Temporal (workflow orchestration)',
+    'Dapr (distributed app runtime)', 'Intel OpenVINO (AI/ML inference)',
   ],
   'Web3 API / Indexing / RPC': [
     'The Graph (GraphQL subgraph indexing)', 'ENS (Ethereum Name Service)',
     'Alchemy', 'Infura',
+    'Covalent (multi-chain data API)', 'Dune Analytics (on-chain SQL)',
+    'Reservoir (NFT data and trading)', 'Blockscout (block explorer API)', 'Zapper (DeFi portfolio)',
   ],
   'Spatial / Gaming / AR': [
     'GO Map (Unity AR)', 'Mapbox (geospatial)', 'WRLD 3D (metaverse)', 'Cargo (NFT marketplace)',
     'Google Maps', 'HERE Maps', 'MapLibre (open-source maps)', 'Niantic Lightship (AR)',
+    'Ready Player Me (cross-platform avatars)', 'Decentraland (metaverse)', 'The Sandbox (voxel gaming)',
   ],
   'Identity / Security / IP': [
     'World ID (Worldcoin ZK proof-of-humanity)',
@@ -52,6 +68,12 @@ const providers: Record<string, string[]> = {
     'Story Protocol (programmable IP)',
     'Civic (decentralised identity)',
     'Reclaim Protocol (zk identity proofs)',
+    'Polygon ID (ZK decentralised identity)', 'zkPass (ZK data verification)', 'Holonym (ZK proof of humanity)',
+    'Self Protocol (ZK identity verification)', 'Proof of Humanity (sybil-resistant registry)',
+    'ENS Off-Chain Resolver (off-chain ENS names)', 'Privy Server Wallets (programmatic embedded wallets)',
+  ],
+  'AI / Machine Learning': [
+    'Bittensor (decentralised ML network)', 'Galadriel (on-chain AI)', 'Ritual (AI coprocessor)',
   ],
   'Infrastructure / Multisig': [
     'Safe (Gnosis multisig)', 'Sei Network',

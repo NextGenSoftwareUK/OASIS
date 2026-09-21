@@ -1,147 +1,208 @@
-# Holon Save Fix for REST/JS Clients — 2026-07-04
+# Holon Persistence Identity Contract
 
-## Problem
+## Purpose
 
-Stateless REST/JS clients (e.g. Vercel serverless functions) construct holon objects from
-scratch using only the OASIS GUID (`Id`). They have no access to internal provider state
-such as the MongoDB ObjectId (`_id`) or the `CreatedDate` of a previously saved holon.
+All clients — C#, JavaScript/NPM, REST, Unity, and native — address a holon with its
+public OASIS GUID (`IHolon.Id`). MongoDB's `_id` / `ProviderUniqueStorageKey` is a
+private storage detail. Clients must never need to read, retain, or send it to update a
+holon.
 
-This caused three separate failures when a JS client tried to **update** an existing holon:
+This document replaces the earlier lifecycle guidance which incorrectly made
+`CreatedDate` or `IsNewHolon` decide whether MongoDB inserted or replaced a document.
 
-1. Every save was treated as an **insert** — a new MongoDB document was created each time
-   instead of updating the existing one.
-2. When the async save path was forced to call `UpdateAsync`, MongoDB rejected it with
-   **error code 66** ("immutable field `_id` was altered to null") because the replacement
-   document had `_id: null`.
+## The invariant
 
-These bugs did not affect C# callers that keep a holon in memory — loaded holons already
-carry `CreatedDate`, `ProviderUniqueStorageKey`, and the MongoDB `_id`, so they passed all
-three checks silently.
+MongoDB persists a holon by its public OASIS GUID:
 
----
+1. Convert the holon to its Mongo entity, whose `HolonId` is the public GUID.
+2. Look up the persisted document by `HolonId`.
+3. If it exists, replace that document. The repository obtains its private `_id` before
+   `ReplaceOne`, so a GUID-only REST/JavaScript payload cannot change MongoDB's immutable
+   `_id`.
+4. If it does not exist, insert it once. This permits trusted server-side creation flows
+   such as STAR, which allocate the public GUID before their first save so that metadata
+   can refer to it.
 
-## Changes Made
+`CreatedDate` remains audit data. On a matched GUID, Mongo preserves the persisted creation audit fields before the full replacement. On a first insert with a preallocated GUID, Mongo establishes the creation audit fields from the server-supplied metadata. `IsNewHolon` remains an in-memory lifecycle hint used by manager audit preparation. Neither is a Mongo persistence key and neither can decide insert versus update for a stateless client.
 
-### 1. `HolonManager-Private.cs` — `PrepareHolonForSaving`
+## Implementation
 
-**File:**
-`OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.cs`
+| Layer | Responsibility |
+|---|---|
+| `HolonManager.PrepareHolonForSaving` | Assigns a GUID for an object that has none and prepares audit/version fields. It does not use `CreatedDate` as a persistence signal. |
+| `MongoDBOASIS.SaveHolon` / `SaveHolonAsync` | Resolves the operation by looking up the Mongo document with the public `HolonId`. This is the only generic Mongo create-or-update decision. |
+| `HolonRepository.Update` / `UpdateAsync` | Resolves the private Mongo `_id` from `HolonId` before replacing an existing document, and returns an error when an explicit repository update has no match. |
 
-**What changed:**
-Removed `CreatedDate == DateTime.MinValue` from the "is this a new holon?" check.
-`IsNewHolon` is now set based solely on `Id == Guid.Empty`.
+The previous `ProviderUniqueStorageKey.ContainsKey(MongoDBOASIS)` path is obsolete and
+is retained only in source history. It was invalid for stateless callers because that key
+is the Mongo ObjectId. The `CreatedDate == DateTime.MinValue` branch is likewise obsolete:
+deserialised JavaScript objects routinely omit audit fields.
 
-**Before:**
-```csharp
-if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
-{
-    if (holon.Id == Guid.Empty)
-        holon.Id = Guid.NewGuid();
-    holon.IsNewHolon = true;
-}
-else if (holon.CreatedDate != DateTime.MinValue)
-    holon.IsNewHolon = false;
-```
+## Client contract
 
-**After:**
-```csharp
-if (holon.Id == Guid.Empty)
-{
-    holon.Id = Guid.NewGuid();
-    holon.IsNewHolon = true;
-}
-else
-    holon.IsNewHolon = false;
-```
-
-**Why:** REST/JS clients never set `CreatedDate`, so it is always `DateTime.MinValue`.
-The old check treated every REST save as a new insert regardless of whether a real `Id`
-was supplied. C# callers are unaffected — their in-memory holons already have
-`CreatedDate` populated, but it is no longer used for this decision.
-
-**Risk:** Low. `Id == Guid.Empty` has always been the primary signal. The only scenario
-that would change behaviour is a C# caller that manually constructs a holon with a real
-`Id` but deliberately leaves `CreatedDate` at `MinValue` expecting an insert — that
-pattern was already incorrect.
-
----
-
-### 2. `MongoDBOASIS.cs` — `SaveHolonAsync`
-
-**File:**
-`Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoDBOASIS.cs`
-
-**What changed:**
-The async `SaveHolonAsync` now uses `IsNewHolon` to decide insert vs update, matching
-the sync `SaveHolon` which already used `IsNewHolon`.
-
-**Before:**
-```csharp
-OASISResult<IHolon> result = !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS)
-    ? AddAsync(...)
-    : UpdateAsync(...);
-```
-
-**After:**
-```csharp
-OASISResult<IHolon> result = holon.IsNewHolon
-    ? AddAsync(...)
-    : UpdateAsync(...);
-```
-
-**Why:** `ProviderUniqueStorageKey` is the internal MongoDB ObjectId — an implementation
-detail that external callers cannot know. Any caller without this key always hit
-`AddAsync`, creating a new document on every save. C# callers that load then save carry
-the key in the in-memory holon, so they were unaffected. Now both the sync and async
-paths use the same `IsNewHolon` logic.
-
-**Risk:** Low. The only caller that could be affected is one that has `ProviderUniqueStorageKey`
-set but `Id == Guid.Empty` — an unusual combination that would indicate a bug in the
-caller anyway.
-
----
-
-### 3. `HolonRepository.cs` — `UpdateAsync`
-
-**File:**
-`Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/Repositories/HolonRepository.cs`
-
-**What changed:**
-Before calling `ReplaceOneAsync`, if the holon's MongoDB `_id` (`Id` field on the entity)
-is null or empty, the existing document is fetched by `HolonId` and its `_id` is copied
-across.
-
-**Added logic:**
-```csharp
-if (string.IsNullOrEmpty(holon.Id))
-{
-    Holon originalHolon = await GetHolonAsync(holon.HolonId);
-    if (originalHolon != null)
-        holon.Id = originalHolon.Id;
-}
-```
-
-**Why:** `ReplaceOneAsync` requires the replacement document's `_id` to equal the existing
-document's `_id`. REST/JS clients only know the OASIS GUID (`HolonId`); they have no way
-to supply the MongoDB ObjectId. Without this fix, `ReplaceOneAsync` received `_id: null`
-and MongoDB rejected it with error code 66. C# callers that hold a loaded holon always
-have `_id` populated, so the lookup is skipped for them.
-
-**Risk:** Very low. The extra `GetHolonAsync` call only runs when `_id` is missing — C#
-in-memory holons always have it. The worst case is one additional MongoDB read per update
-for REST clients.
-
----
-
-## Caller Contract (after fix)
-
-Callers do **not** need to set `IsNewHolon` — it is derived automatically by
-`PrepareHolonForSaving` and should never be set by a caller.
-
-| Scenario | What to set | Result |
+| Operation | Client input | Result |
 |---|---|---|
-| Creating a new holon | `Id = Guid.Empty` (or omit `Id`) | OASIS assigns a new GUID, MongoDB inserts |
-| Updating an existing holon | `Id = <the existing GUID>` | MongoDB updates the existing document |
+| Create | Omit `Id`, or use a GUID allocated by a trusted server-side creator | OASIS/Mongo persists the first document for that public GUID. |
+| Update | Supply the existing OASIS GUID in `Id` | The matching document is replaced, even when no Mongo ObjectId, `ProviderUniqueStorageKey`, `CreatedDate`, or `IsNewHolon` is present. |
 
-The MongoDB ObjectId (`_id`) and `ProviderUniqueStorageKey` are internal details —
-callers never need to supply them.
+For public API design, create endpoints should call the relevant manager's `CreateAsync`
+and update endpoints should call `UpdateAsync`. The storage layer still protects the
+cross-client identity invariant for generic `SaveHolon` callers.
+
+## Verification requirements
+
+Before releasing a change to generic holon persistence, verify all of the following
+against a real Mongo deployment:
+
+1. Create a holon through the API and read it back by its public GUID.
+2. Send a second update payload containing only the public GUID and changed data; read it
+   back and confirm the same GUID now contains the changed data.
+3. Confirm the collection contains one document for that GUID.
+4. Repeat step 2 through the JavaScript/NPM client.
+5. Confirm an explicit `UpdateAsync` for a nonexistent GUID returns an `OASISResult`
+   error rather than reporting a successful update.
+
+The Our World seed script exercises steps 1–3 for a quest and its objective progress;
+the JavaScript package contract must be exercised as part of its own release tests.
+
+## Complete supported identity matrix
+
+The following cases are supported by one persistence rule: a public GUID identifies one
+Mongo holon. The value is never inferred from audit timestamps, client process state, or
+Mongo's private `_id`.
+
+| Caller and intent | Public `Id` | Mongo outcome | Audit outcome |
+|---|---|---|---|
+| C#, Unity, native, REST, or JavaScript creates a normal object | Empty | `HolonManager` allocates a GUID; Mongo inserts one document | Manager writes creation audit fields |
+| STAR/graph/server creator allocates a GUID before saving so a child, metadata, or event can reference it | New non-empty GUID | Mongo finds no matching `HolonId` and inserts one document | Mongo establishes creation audit fields and clears modification audit fields |
+| Any client updates an existing object with only its public GUID plus the replacement entity | Existing non-empty GUID | Mongo resolves the matching document by `HolonId` and replaces it | Persisted creation audit values are retained; manager writes modification audit values |
+| JavaScript SDK `updateHolon({ id, ... })` | Existing non-empty GUID in URL | SDK consumes `id` into `PUT /api/holons/{id}`; the controller stamps that route GUID into the body before updating | Same as any REST update; no Mongo key is required in the body |
+| Client retries a create with the same preallocated GUID after the first request completed | Existing non-empty GUID | The generic save route resolves the existing document, preventing a second document | Existing creation audit is retained |
+| Two requests race to create the same preallocated GUID | Same new non-empty GUID | Mongo's unique `ux_holon_public_identity` index permits exactly one insert; the conflicting request returns a real `OASISResult` error | No duplicate document or silent fallback |
+| Explicit repository `UpdateAsync` for a nonexistent GUID | Non-empty GUID with no document | The repository returns an error; it never reports a successful replacement of zero documents | No audit mutation |
+
+A normal `PUT` is a full replacement API: clients must send the mutable entity fields they
+intend to retain. Immutable creation audit fields are always restored from storage. A
+partial-edit endpoint must load the persisted entity, apply the requested changes, and then
+save that entity; it must not rely on absent client fields.
+
+## Deployment and regression checks
+
+`Scripts/validate_webapi_holon_identity_contract.ps1` enforces the API half of the
+contract across the deployed WEB4-WEB10 source set. It verifies that bare WEB5 resource
+`POST` endpoints do not call `UpdateAsync`, and that direct-resource `PUT /{id}` handlers
+make the route GUID authoritative. WEB4 and WEB6-WEB10 persist through the shared
+`HolonManager` / `Data.SaveHolonAsync` path and therefore use the provider invariant
+rather than duplicating CRUD identity code.
+
+The WEB5 JavaScript package has a Node contract test proving both supported JavaScript
+shapes: a caller-assigned GUID remains in the create body, while `updateHolon` consumes it
+as the `PUT /api/holons/{id}` route token and does not require a provider key.
+
+Mongo provider activation creates the unique public identity index. If a database already
+contains duplicate `HolonId` values from an older build, activation fails visibly while
+building that index. Resolve those duplicates deliberately before deployment; do not remove
+the index or introduce a second save path.
+
+## Audit results (16 September 2026)
+
+This table records the completed source, build, client-contract, and deployment-contract
+checks for this change. It is the release evidence for the identity matrix above; it does
+not claim that a particular environment's database has been exercised unless that check is
+listed as an environment test below.
+
+| Check | Scope | Result |
+|---|---|---|
+| Provider identity decision | `MongoDBOASIS.SaveHolon` and `SaveHolonAsync` | Passed source review: the public `HolonId` lookup is the sole generic insert-versus-replace decision. |
+| Duplicate identity protection | Mongo repository activation | Passed source review: `ux_holon_public_identity` is a unique index on the public `HolonId`; an existing duplicate is a visible activation failure. |
+| Preallocated server GUID | STAR/graph creation path | Passed source review: a new non-empty public GUID inserts once and remains available to child/metadata references. |
+| GUID-only update | REST, C#, Unity, native, and JavaScript | Passed source review: the persisted entity is resolved by public GUID and its private Mongo `_id` is restored before replacement. |
+| Creation audit preservation | Existing full-replacement update | Passed source review: persisted creation audit values are restored before replacement. |
+| Missing explicit update target | Repository `Update` / `UpdateAsync` | Passed source review: an unmatched update returns an `OASISResult` error. |
+| WEB5 create/update routing | All inspected direct resource endpoints | Passed: `Scripts/validate_webapi_holon_identity_contract.ps1` inspected 21 resource `POST` routes and 21 `PUT /{id}` routes; no violations. |
+| WEB4 and WEB6-WEB10 generic persistence | Shared `HolonManager` / `Data.SaveHolonAsync` callers | Passed source audit: these callers flow into the provider invariant instead of maintaining divergent lifecycle rules. |
+| JavaScript SDK caller-assigned GUID create | WEB5 NPM package | Passed: Node smoke tests confirm the GUID remains in the create body. |
+| JavaScript SDK update | WEB5 NPM package | Passed: Node smoke tests confirm `id` becomes `PUT /api/holons/{id}` and is not a required Mongo key in the body. |
+| Mongo provider compilation | `NextGenSoftware.OASIS.API.Providers.MongoOASIS.csproj` | Passed with `dotnet build --no-restore -v:q -m:1` (zero errors). |
+| STAR WebAPI compilation | `NextGenSoftware.OASIS.STAR.WebAPI.csproj` | Passed with `dotnet build --no-restore -v:q -m:1` (zero errors). |
+| Railway dependency integrity | WEB4-WEB10 deployment inputs | Passed: `python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks` confirmed manifest pins, parent gitlinks, and all seven Dockerfiles agree. |
+| Development health endpoints | Hosted WEB4 and WEB5 development services | Passed: both `/api/health` endpoints returned HTTP 200 at verification time. |
+
+### Remaining environment acceptance test
+
+The only check that must be run against each freshly deployed Mongo environment is the
+five-step real-database verification in **Verification requirements**. It verifies runtime
+credentials, database migration state, and the actual duplicate-free index on that
+environment; source/build checks cannot substitute for it. Record the deployment URL, UTC
+time, caller type, public GUID, and result beside the release or incident ticket when it is
+performed.
+
+## Storage-provider coverage
+
+The public-GUID contract is a provider contract, not a Mongo-only convention. A provider
+is conformant only when its `SaveHolon` and `SaveHolonAsync` operations use `IHolon.Id`
+as their persistence identity, do not use `CreatedDate`, `IsNewHolon`, or a provider key to
+choose insert versus update, and preserve immutable creation audit data on replacement.
+
+| Provider | Static audit status | Current result |
+|---|---|---|
+| MongoDBOASIS | Complete | Conformant: public `HolonId` lookup plus unique public-identity index. |
+| SQLLiteDBOASIS | Complete | Conformant after the public-ID repository fix: the SQLite primary key is the public GUID, existing rows are updated, and their creation date is preserved. |
+| Neo4jOASIS | Complete | Conformant for identity: Cypher `MERGE` keys on public `Id`; `CreatedDate` is set only by `ON CREATE`. |
+| Neo4jOASIS2 | Not an active implementation | Its holon save implementation is commented out, so it cannot be represented as a tested persistence provider. |
+| Other storage, search, cache, vector, and blockchain providers | Pending individual audit | Do not infer conformance from the Mongo fix. Each has its own persistence contract and must receive the same source review and, where active, a provider-backed create/update/read test before it is certified. |
+
+The SQLite and Neo4j source builds passed after their changes. Runtime certification still
+requires each provider's configured integration environment; a source-only audit cannot
+prove a remote service's schema, credentials, uniqueness constraints, or transaction
+behaviour.
+
+### Full source inventory (all storage and blockchain providers)
+
+`Scripts/audit_holon_persistence_providers.py` scans every concrete `SaveHolonAsync`
+implementation under `Providers/Storage` and `Providers/Blockchain`, excluding test,
+build-output, and explicitly commented source. Run it with the repository's Python 3
+runtime:
+
+```powershell
+python Scripts/audit_holon_persistence_providers.py --format markdown
+```
+
+The checked-in output is [HOLON_PERSISTENCE_PROVIDER_STATIC_AUDIT.md](Devs/HOLON_PERSISTENCE_PROVIDER_STATIC_AUDIT.md).
+It is deliberately a static inventory, not a false runtime certificate: it records every
+implementation and separates public-ID writes from append-only ledgers, source divergences,
+and implementations that require an integration environment to verify their actual write
+primitive.
+
+| Static result | Count | Meaning and release consequence |
+|---|---:|---|
+| Public-ID write | 35 | Source passes the minimum identity signal: it passes `IHolon.Id` to an upsert, merge, update, or repository write. It still needs its configured provider integration test before runtime certification. |
+| Append-only | 7 | Immutable stores/ledgers such as Arweave and chain transaction providers cannot implement replacement updates by writing the same remote record. They require an explicit versioning/index contract before they may be advertised as generic CRUD providers. |
+| Manual review | 19 | `Id` is present, but static source alone cannot prove whether the remote write is an update, an insert, or an upsert. These are not certified. |
+| Divergent | 37 | Source either omits the public ID in its save method or branches on a provider-key/lifecycle signal. These are not certified and must be fixed at the provider boundary before use as generic CRUD persistence. |
+
+The static output includes storage and blockchain providers precisely so an unreviewed
+alternative cannot silently inherit Mongo's certification. `Neo4jOASIS.Aura` is one such
+visible divergence: it matches `Name`, not the public GUID, and is not selected by the
+standard bootloader. It must not be substituted for `Neo4jOASIS` until corrected and
+tested.
+
+### Active bootloader providers
+
+The standard bootloader currently creates `SQLLiteDBOASIS`, `MongoDBOASIS`,
+`Neo4jOASIS`, `LocalFileOASIS`, and `ArweaveOASIS` for this area (along with chain
+providers whose writes have ledger semantics). The first four mutable stores are now
+covered as follows:
+
+| Active provider | Public-ID create/update decision | Creation audit preservation | Evidence |
+|---|---|---|---|
+| MongoDBOASIS | `HolonId` lookup plus unique index | Yes | Provider build plus source audit |
+| SQLLiteDBOASIS | Public GUID primary key | Yes | Provider build plus source audit |
+| Neo4jOASIS | Cypher `MERGE` on public `Id` | Yes, `ON CREATE` | Provider build plus source audit |
+| LocalFileOASIS | `Id`-named file existence | Yes; persisted creation fields are retained on full replacement | Provider build plus source audit |
+| ArweaveOASIS | Not generic update-in-place | Immutable upload produces a new transaction | Explicitly not CRUD-certified; needs version/index design |
+
+No source audit can demonstrate remote uniqueness, schema state, or a provider's actual
+transaction semantics. Every provider labelled source-conformant still requires one
+provider-backed preallocated-ID create, update, reload, and duplicate-identity acceptance
+test before it can be listed as runtime certified.

@@ -54,6 +54,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             json.Should().Contain("false");
         }
 
+        [Fact]
+        public async Task AuthorizeRequest_ForwardsAuthenticatedAvatarAndNormalizedService()
+        {
+            var userId = Guid.NewGuid();
+            SetAuthenticatedUser(userId);
+            _svc.Setup(s => s.AuthorizeAndIncrementRequestAsync(userId.ToString(), "WEB6"))
+                .ReturnsAsync(new SubscriptionAuthorizationDecision
+                {
+                    Allowed = true,
+                    StatusCode = 200,
+                    PlanId = "enterprise",
+                    Limit = -1,
+                    Remaining = -1
+                });
+
+            var result = await _ctrl.AuthorizeRequest(new AuthorizeSubscriptionRequest
+            {
+                ConsumingService = " web6 "
+            });
+
+            result.Should().BeOfType<OkObjectResult>();
+            _svc.Verify(s => s.AuthorizeAndIncrementRequestAsync(userId.ToString(), "WEB6"), Times.Once);
+        }
+
+        [Fact]
+        public async Task AuthorizeRequest_RejectsUnknownConsumer()
+        {
+            SetAuthenticatedUser(Guid.NewGuid());
+
+            var result = await _ctrl.AuthorizeRequest(new AuthorizeSubscriptionRequest
+            {
+                ConsumingService = "OTHER"
+            });
+
+            result.Should().BeOfType<BadRequestObjectResult>();
+            _svc.Verify(s => s.AuthorizeAndIncrementRequestAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
         // ── POST /api/subscription/checkout/session ──────────────────────────
 
         [Fact]
