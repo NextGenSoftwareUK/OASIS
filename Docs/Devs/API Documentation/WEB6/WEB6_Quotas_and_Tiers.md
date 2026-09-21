@@ -1,5 +1,7 @@
 # WEB6 — Quotas, Tiers & Metering Reference
 
+> **Architecture update (2026-09-20):** WEB4 is the sole subscription and usage authority. The older WEB6-local quota counters, JWT plan/karma decisions, rate-limit headers, quota webhooks, and avatar-setting usage records described later in this historical guide are disabled. WEB6 now reserves every billable operation with WEB4, measures provider/model/tokens/cost, and synchronously settles that operation in WEB4's transactional ledger. See [WEB4 Subscription Usage Ledger](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) for the current contract and policy matrix.
+
 Authoritative reference for every limit, gate and cost the WEB6 API enforces.
 All values below are read directly from source; the file/method for each is cited so
 this document can be re-verified rather than trusted.

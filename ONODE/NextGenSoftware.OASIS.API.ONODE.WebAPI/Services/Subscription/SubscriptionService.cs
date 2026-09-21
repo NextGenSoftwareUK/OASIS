@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     public class SubscriptionService : ISubscriptionService
     {
         private readonly ILogger<SubscriptionService> _logger;
+        private readonly ISubscriptionUsageRepository _usageRepository;
 
         // Protects read-modify-write usage increments from concurrent requests
         private readonly SemaphoreSlim _usageLock = new(1, 1);
@@ -28,9 +29,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             PropertyNameCaseInsensitive = true
         };
 
-        public SubscriptionService(ILogger<SubscriptionService> logger)
+        public SubscriptionService(ILogger<SubscriptionService> logger, ISubscriptionUsageRepository usageRepository)
         {
             _logger = logger;
+            _usageRepository = usageRepository;
         }
 
         // ── Subscription ────────────────────────────────────────────────────
@@ -256,6 +258,133 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             }
             finally { _usageLock.Release(); }
         }
+
+        public async Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(
+            string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken)
+        {
+            if (!Guid.TryParse(userId, out var avatarId))
+                return Denied(401, "INVALID_AVATAR", "The authenticated avatar ID is invalid.");
+            if (request == null || !Guid.TryParse(request.OperationId, out _) ||
+                string.IsNullOrWhiteSpace(request.ConsumingService) || string.IsNullOrWhiteSpace(request.Endpoint) ||
+                string.IsNullOrWhiteSpace(request.MeterCategory) || request.RequestedUnits < 0 || request.EstimatedCostUsd < 0)
+                return Denied(400, "INVALID_USAGE_AUTHORIZATION", "OperationId must be a UUID; service, endpoint, and meter category are required; reservation values cannot be negative.");
+            string normalizedService = request.ConsumingService.Trim().ToUpperInvariant();
+            if (normalizedService is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10"))
+                return Denied(400, "INVALID_CONSUMING_SERVICE", "ConsumingService must be WEB5, WEB6, WEB7, WEB8, WEB9, or WEB10.");
+
+            var subscription = await LoadSubscriptionAsync(avatarId);
+            if (subscription == null)
+                return Denied(402, "SUBSCRIPTION_REQUIRED", "A valid OASIS subscription is required.");
+            if (subscription.Status is not ("active" or "trialing" or "free") ||
+                subscription.CurrentPeriodEnd.HasValue && DateTime.UtcNow > subscription.CurrentPeriodEnd.Value)
+                return Denied(402, "INACTIVE_SUBSCRIPTION", "The OASIS subscription is inactive or expired.", subscription.PlanId);
+
+            var policy = GetUsagePolicy(subscription.PlanId, karma);
+            var now = DateTime.UtcNow;
+            var usageEvent = new SubscriptionUsageEvent
+            {
+                OperationId = request.OperationId,
+                UserId = userId,
+                ConsumingService = normalizedService,
+                Endpoint = request.Endpoint?.Trim(),
+                MeterCategory = request.MeterCategory?.Trim(),
+                Status = "authorized",
+                RequestedUnits = request.RequestedUnits,
+                ReservedCostUsd = request.EstimatedCostUsd,
+                AuthorizedAtUtc = now
+            };
+
+            try
+            {
+                var (_, aggregate) = await _usageRepository.AuthorizeAsync(usageEvent, policy, cancellationToken);
+                return BuildDecision(subscription.PlanId, karma, request.OperationId, aggregate, policy);
+            }
+            catch (SubscriptionUsageLimitException ex)
+            {
+                var denied = Denied(429, ex.Code, ex.Message, subscription.PlanId);
+                denied.OperationId = request.OperationId;
+                return denied;
+            }
+            catch (SubscriptionUsageConflictException ex)
+            {
+                return Denied(409, "OPERATION_ID_CONFLICT", ex.Message, subscription.PlanId);
+            }
+        }
+
+        public async Task<UsageSettlementResult> SettleUsageAsync(
+            string userId, UsageSettlementRequest request, CancellationToken cancellationToken)
+        {
+            if (!Guid.TryParse(userId, out _) || request == null || !Guid.TryParse(request.OperationId, out _))
+                throw new ArgumentException("A valid authenticated avatar and operation UUID are required.");
+            if (request.PromptTokens < 0 || request.CompletionTokens < 0 || request.Units < 0 ||
+                request.EstimatedCostUsd < 0 || request.ActualCostUsd.GetValueOrDefault() < 0)
+                throw new ArgumentOutOfRangeException(nameof(request), "Usage settlement values cannot be negative.");
+            request.Outcome = request.Outcome?.Trim().ToLowerInvariant();
+            if (request.Outcome is not ("succeeded" or "failed" or "cancelled"))
+                throw new ArgumentException("Outcome must be succeeded, failed, or cancelled.", nameof(request));
+
+            var (_, _, alreadySettled) = await _usageRepository.SettleAsync(userId, request, cancellationToken);
+            return new UsageSettlementResult
+            {
+                Settled = true,
+                AlreadySettled = alreadySettled,
+                OperationId = request.OperationId,
+                Message = alreadySettled ? "Usage was already settled." : "Usage settled."
+            };
+        }
+
+        public async Task<SubscriptionUsageSummary> GetUsageSummaryAsync(string userId, int karma, CancellationToken cancellationToken)
+        {
+            if (!Guid.TryParse(userId, out var avatarId)) throw new ArgumentException("Invalid avatar id.", nameof(userId));
+            var subscription = await LoadSubscriptionAsync(avatarId) ?? throw new InvalidOperationException("A valid OASIS subscription is required.");
+            var policy = GetUsagePolicy(subscription.PlanId, karma);
+            var aggregate = await _usageRepository.GetAggregateAsync(userId, cancellationToken);
+            return new SubscriptionUsageSummary
+            {
+                UserId=userId, PlanId=subscription.PlanId, Karma=karma, MonthlyRequests=aggregate.MonthlyRequests,
+                DailyCalls=aggregate.DailyCalls, DailyTokens=aggregate.DailyTokens,
+                MonthlySpendUsd=aggregate.SettledCostUsd + aggregate.ReservedCostUsd,
+                DailyCallLimit=policy.DailyCallLimit, DailyTokenLimit=policy.DailyTokenLimit, MonthlyBudgetUsd=policy.MonthlyBudgetUsd,
+                DailyCallsRemaining=Remaining(policy.DailyCallLimit, aggregate.DailyCalls),
+                DailyTokensRemaining=Remaining(policy.DailyTokenLimit, aggregate.DailyTokens),
+                MonthlyBudgetRemainingUsd=policy.MonthlyBudgetUsd <= 0 ? -1 : Math.Max(0, policy.MonthlyBudgetUsd - aggregate.SettledCostUsd - aggregate.ReservedCostUsd),
+                UpdatedAtUtc=aggregate.UpdatedAtUtc
+            };
+        }
+
+        public Task<IReadOnlyList<SubscriptionUsageEvent>> GetUsageEventsAsync(string userId, int limit, CancellationToken cancellationToken) =>
+            _usageRepository.GetEventsAsync(userId, limit, cancellationToken);
+
+        public static SubscriptionUsagePolicy GetUsagePolicy(string planId, int karma)
+        {
+            var (monthly, daily, tokens, budget) = (planId ?? "free").ToLowerInvariant() switch
+            {
+                "bronze" => (10_000, 100, 250_000L, 10m),
+                "silver" => (100_000, 500, 1_000_000L, 50m),
+                "gold" => (1_000_000, 2_000, 5_000_000L, 250m),
+                "enterprise" => (-1, 0, 0L, 0m),
+                _ => (1_000, 20, 50_000L, 1m)
+            };
+            if (daily > 0) daily = checked((int)(daily * KarmaMultiplier(karma)));
+            return new SubscriptionUsagePolicy { MonthlyRequestLimit=monthly, DailyCallLimit=daily, DailyTokenLimit=tokens, MonthlyBudgetUsd=budget };
+        }
+
+        public static decimal KarmaMultiplier(int karma) => karma switch
+        {
+            >= 100_000 => 10m, >= 20_000 => 5m, >= 5_000 => 3m, >= 1_000 => 2m, >= 500 => 1.5m, _ => 1m
+        };
+
+        private static SubscriptionAuthorizationDecision BuildDecision(string planId, int karma, string operationId, SubscriptionUsageAggregate aggregate, SubscriptionUsagePolicy policy) => new()
+        {
+            Allowed=true, StatusCode=200, Code="AUTHORIZED", Message="Usage authorized.", PlanId=planId,
+            OperationId=operationId, Karma=karma, CurrentUsage=aggregate.MonthlyRequests, Limit=policy.MonthlyRequestLimit,
+            Remaining=Remaining(policy.MonthlyRequestLimit, aggregate.MonthlyRequests), DailyCallLimit=policy.DailyCallLimit,
+            DailyCallsRemaining=Remaining(policy.DailyCallLimit, aggregate.DailyCalls), DailyTokenLimit=policy.DailyTokenLimit,
+            DailyTokensRemaining=Remaining(policy.DailyTokenLimit, aggregate.DailyTokens), MonthlyBudgetUsd=policy.MonthlyBudgetUsd,
+            MonthlyBudgetRemainingUsd=policy.MonthlyBudgetUsd <= 0 ? -1 : Math.Max(0, policy.MonthlyBudgetUsd - aggregate.ReservedCostUsd - aggregate.SettledCostUsd)
+        };
+
+        private static long Remaining(long limit, long used) => limit <= 0 ? -1 : Math.Max(0, limit - used);
 
         private static SubscriptionAuthorizationDecision Denied(int status, string code, string message, string planId = null) =>
             new() { Allowed = false, StatusCode = status, Code = code, Message = message, PlanId = planId, Limit = 0, Remaining = 0 };
