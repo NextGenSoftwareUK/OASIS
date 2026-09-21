@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 {
@@ -18,6 +19,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         Task IncrementUsageAsync(string userId);
         Task IncrementOverageAsync(string userId);
         Task<SubscriptionAuthorizationDecision> AuthorizeAndIncrementRequestAsync(string userId, string consumingService);
+        Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken);
+        Task<UsageSettlementResult> SettleUsageAsync(string userId, UsageSettlementRequest request, CancellationToken cancellationToken);
+        Task<SubscriptionUsageSummary> GetUsageSummaryAsync(string userId, int karma, CancellationToken cancellationToken);
+        Task<IReadOnlyList<SubscriptionUsageEvent>> GetUsageEventsAsync(string userId, int limit, CancellationToken cancellationToken);
 
         // Orders
         Task<List<OrderRecord>> GetOrdersAsync(string userId);
@@ -34,5 +39,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public long CurrentUsage { get; set; }
         public int Limit { get; set; }
         public long Remaining { get; set; }
+        public string OperationId { get; set; }
+        public int Karma { get; set; }
+        public int DailyCallLimit { get; set; }
+        public long DailyCallsRemaining { get; set; }
+        public long DailyTokenLimit { get; set; }
+        public long DailyTokensRemaining { get; set; }
+        public decimal MonthlyBudgetUsd { get; set; }
+        public decimal MonthlyBudgetRemainingUsd { get; set; }
     }
 }

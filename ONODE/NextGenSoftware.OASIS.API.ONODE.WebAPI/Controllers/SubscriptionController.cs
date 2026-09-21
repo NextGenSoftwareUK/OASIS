@@ -120,6 +120,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(decision);
         }
 
+        /// <summary>Reserves one idempotent WEB5-WEB10 operation against the authenticated avatar's WEB4 subscription.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/authorize")]
+        public async Task<ActionResult> AuthorizeUsage([FromBody] OASISSub.UsageAuthorizationRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            int karma = await GetCurrentKarmaAsync(userId);
+            var decision = await _subscriptionService.AuthorizeUsageAsync(userId, karma, request, HttpContext.RequestAborted);
+            return StatusCode(decision.StatusCode, decision);
+        }
+
+        /// <summary>Finalizes an authorized usage operation. Repeating the same settlement is idempotent.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/settle")]
+        public async Task<ActionResult> SettleUsage([FromBody] OASISSub.UsageSettlementRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            try { return Ok(await _subscriptionService.SettleUsageAsync(userId, request, HttpContext.RequestAborted)); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_USAGE_SETTLEMENT", ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { IsError = true, Code = "USAGE_OPERATION_NOT_FOUND", ex.Message }); }
+            catch (OASISSub.SubscriptionUsageConflictException ex) { return Conflict(new { IsError = true, Code = "OPERATION_ID_CONFLICT", ex.Message }); }
+        }
+
+        /// <summary>Returns authoritative subscription usage; plan and karma are never accepted from the caller.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/current")]
+        public async Task<ActionResult> GetAuthoritativeUsage()
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            return Ok(await _subscriptionService.GetUsageSummaryAsync(userId, await GetCurrentKarmaAsync(userId), HttpContext.RequestAborted));
+        }
+
+        /// <summary>Returns the authenticated avatar's immutable usage ledger.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/events")]
+        public async Task<ActionResult> GetUsageEvents([FromQuery] int limit = 100)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            return Ok(await _subscriptionService.GetUsageEventsAsync(userId, limit, HttpContext.RequestAborted));
+        }
+
         // ── Checkout ─────────────────────────────────────────────────────────
 
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -696,6 +741,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // Fallback: JWT sub claim
             return User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                 ?? User?.FindFirst("sub")?.Value;
+        }
+
+        private static async Task<int> GetCurrentKarmaAsync(string userId)
+        {
+            if (!Guid.TryParse(userId, out var avatarId)) return 0;
+            var result = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            if (result.IsError || result.Result == null)
+                throw new InvalidOperationException($"Unable to load authoritative karma for subscription usage: {result.Message}");
+            return result.Result.Karma > int.MaxValue ? int.MaxValue : (int)Math.Max(0, result.Result.Karma);
         }
 
         private static decimal OveragePriceFor(string planId) => planId switch
