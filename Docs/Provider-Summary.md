@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_220 fully implemented providers across 8 categories — last updated: 2026-09-20_
+_220 fully implemented providers across 8 categories — last updated: 2026-09-21_
 
 ---
 
@@ -11,12 +11,27 @@ _220 fully implemented providers across 8 categories — last updated: 2026-09-2
 | Blockchain / L1 / L2 | 59 | Ethereum, Solana, Bitcoin, Polygon, Arbitrum, Base, BNB Chain, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Axelar, Wormhole, Fhenix, Web3Core, Chainflip, deBridge, Stargate, Synapse, LayerZero V2, Hyperlane, Connext, EigenLayer, Espresso Systems, OpenZeppelin Defender, Gelato, Chainlink Functions… |
 | Decentralised Social / Network | 41 | Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Scuttlebutt, Urbit, SEEDS, Telegram, Waku, Livepeer, Akash, Tor/Onion, Push Protocol, Celestia, Ceramic, QuickNode, Tenderly, Moralis Streams, SubQuery, Ankr, Nansen, Goldsky… |
 | Storage / Database / Cloud | 83 | MongoDB, IPFS, Arweave, Neo4j, SQL Server, Oracle DB, SQLite, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, ThreeFold, SOLID, Moralis, PostgreSQL, Firebase, Supabase, Fastly, Deno Deploy, Vercel KV, Netlify Blobs, Fly.io, Tigris, Nile… |
-| Spatial / Gaming / AR | 11 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship |
+| Spatial / Gaming / AR | 11 | GO Map, Mapbox, WRLD 3D, Cargo, Google Maps, HERE Maps, MapLibre, Niantic Lightship, Ready Player Me, Decentraland, The Sandbox |
 | Web3 API / Indexing | 9 | The Graph, ENS, Alchemy, Infura |
 | Identity / Encryption / IP | 12 | World ID, Lit Protocol, Story Protocol, Civic, Reclaim Protocol, Polygon ID, zkPass, Holonym, Self Protocol, Proof of Humanity, ENS Offchain, Privy Server Wallets |
 | Infrastructure / On-Chain | 2 | Safe (Gnosis), Sei Network |
 
 **Total: 220 providers** (59 + 41 + 83 + 11 + 9 + 12 + 2 + 3 = 220)
+
+### Blockchain category breakdown
+
+The 59 Blockchain providers include both **pure L1/L2 chains** and **blockchain protocol tooling**:
+
+| Sub-category | Count | Examples |
+|---|---|---|
+| Pure L1/L2 chains | 37 | Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Optimism, Avalanche, Base, Cardano, Polkadot, NEAR, Cosmos, TRON, XRP, EOS, Sui, Aptos, Hedera, MultiversX, Fantom, zkSync, Scroll, Linea, RSK, Telos, Stacks, Zcash, Miden, Aztec, Starknet, Radix, TON, Stellar, Monad, Algorand, Filecoin |
+| Cross-chain / bridges | 8 | ChainLink, Axelar, Wormhole, Fhenix, Chainflip, deBridge, Stargate, Synapse |
+| Omnichain messaging | 3 | LayerZero, LayerZero V2, Hyperlane |
+| Cross-chain execution | 1 | Connext |
+| EVM adapters | 3 | Web3Core, Abstract, Berachain |
+| Restaking / sequencing | 2 | EigenLayer, Espresso Systems |
+| Smart contract tooling | 3 | OpenZeppelin Defender, Gelato Network, Chainlink Functions |
+| Other on-chain | 2 | Loom, Basechain |
 
 > **Added 2026-09-20d (+14):** Blockchain ×3 (OpenZeppelin Defender, Gelato, Chainlink Functions), Network (Web3 API) ×5 (Covalent, Dune Analytics, Reservoir, Blockscout, Zapper), Spatial ×3 (Ready Player Me, Decentraland, The Sandbox), AI ×3 (Bittensor, Galadriel, Ritual). Previous total: 206.
 > **Added 2026-09-20c (+4):** Network ×4 (NATS JetStream, Temporal, Dapr, Intel OpenVINO). Previous total: 202.
@@ -298,7 +313,7 @@ _220 fully implemented providers across 8 categories — last updated: 2026-09-2
 
 ## Competitive Moat
 
-No competitor — Web3 or traditional — comes close to 202 implemented providers under a single unified interface:
+No competitor — Web3 or traditional — comes close to 220 implemented providers under a single unified interface:
 
 | Platform | Providers |
 |---|---|

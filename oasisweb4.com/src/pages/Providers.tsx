@@ -90,6 +90,7 @@ const categoryLabels: Record<string, string> = {
   'Spatial / Gaming / AR': '🗺️',
   'Identity / Security / IP': '🔐',
   'Infrastructure / Multisig': '🏗️',
+  'AI / Machine Learning': '🤖',
 };
 
 export default function Providers() {
