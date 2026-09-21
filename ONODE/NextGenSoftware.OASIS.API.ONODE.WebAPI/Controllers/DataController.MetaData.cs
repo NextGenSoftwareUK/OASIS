@@ -164,7 +164,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 ResetOASISSettings(request, configResult);
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList();
+                var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
+
+                // Avatar/visibility filter
+                if (request.SearchOnlyForCurrentAvatar)
+                    holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+                else if (request.IncludePublic)
+                    holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+
+                response.Result.Result = holons;
 
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
             }
@@ -245,7 +253,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     request.ContinueOnError, request.LoadChildrenFromProvider);
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList();
+                var searchHolons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
+
+                // When not limiting to current avatar, further restrict to public holons from others
+                if (!request.SearchOnlyForCurrentAvatar && request.IncludePublic)
+                    searchHolons = searchHolons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                else if (!request.SearchOnlyForCurrentAvatar && !request.IncludePublic)
+                    ; // no extra filter — SearchManager already scoped by searchOnlyForCurrentAvatar=false
+                // SearchOnlyForCurrentAvatar=true is already enforced inside SearchManager
+
+                response.Result.Result = searchHolons;
 
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
             }
