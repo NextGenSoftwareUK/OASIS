@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -19,27 +23,45 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
 {
-    /// <summary>LayerZero V2 — Omnichain messaging protocol across 50+ networks with ultra-light node verification.</summary>
+    /// <summary>Connext — modular cross-chain interoperability using xApps and NXTP protocol.</summary>
     public class ConnextOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
     {
         private readonly HttpClient _http;
-        private readonly string _apiUrl;
+        private readonly string _postgrestUrl;
         private bool _isActivated;
 
-        public ConnextOASIS(string apiUrl = "https://api.connext.network/v1")
+        public ConnextOASIS(string postgrestUrl = "https://postgrest.mainnet.connext.ninja")
         {
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://api.connext.network/v1";
-            _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
+            _postgrestUrl = postgrestUrl?.TrimEnd('/') ?? "https://postgrest.mainnet.connext.ninja";
+            _http = new HttpClient { BaseAddress = new Uri(_postgrestUrl + "/") };
+            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "ConnextOASIS";
             ProviderDescription = "Connext Modular Cross-Chain Interoperability Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ConnextOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
         }
 
+        private async Task<T> GetAsync<T>(string path)
+        {
+            var response = await _http.GetAsync(path);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { if (_isActivated) { r.Result = true; r.Message = "ConnextOASIS already activated"; return r; } _isActivated = true; r.Result = true; r.Message = "ConnextOASIS activated successfully"; }
+            try
+            {
+                if (_isActivated) { r.Result = true; r.Message = "ConnextOASIS already activated"; return r; }
+                // Health check: GET /transfers?limit=1
+                var response = await _http.GetAsync("transfers?limit=1");
+                response.EnsureSuccessStatusCode();
+                _isActivated = true;
+                r.Result = true;
+                r.Message = "ConnextOASIS activated successfully — PostgREST API reachable";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS activation failed: {ex.Message}", ex); }
             return r;
         }
@@ -52,13 +74,67 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
             return r;
         }
 
+        // LoadHolonAsync(string key): key = transfer ID → GET /transfers?transfer_id=eq.{id}
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                var json = await GetAsync<JArray>($"transfers?transfer_id=eq.{Uri.EscapeDataString(key)}");
+                var holon = new Holon();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ConnextOASIS] = key;
+                if (json != null && json.Count > 0)
+                {
+                    var transfer = json[0];
+                    holon.Name = transfer["transfer_id"]?.ToString() ?? key;
+                    if (holon.MetaData == null) holon.MetaData = new Dictionary<string, object>();
+                    holon.MetaData["connext_transfer_id"] = transfer["transfer_id"]?.ToString() ?? key;
+                    holon.MetaData["connext_status"] = transfer["status"]?.ToString() ?? "";
+                    holon.MetaData["connext_origin_domain"] = transfer["origin_domain"]?.ToString() ?? "";
+                    holon.MetaData["connext_destination_domain"] = transfer["destination_domain"]?.ToString() ?? "";
+                    holon.MetaData["connext_origin_sender"] = transfer["origin_sender"]?.ToString() ?? "";
+                    holon.MetaData["connext_xcall_timestamp"] = transfer["xcall_timestamp"]?.ToString() ?? "";
+                    holon.MetaData["connext_raw"] = transfer.ToString();
+                }
+                r.Result = holon;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadHolonAsync(key) failed for key={key}: {ex.Message}", ex); }
+            return r;
+        }
+
+        // SaveHolonAsync: record intent to bridge; store transfer metadata (actual xcall needs on-chain)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+                var payload = JsonConvert.SerializeObject(new
+                {
+                    holonId = h.Id.ToString(),
+                    holonName = h.Name,
+                    holonType = h.HolonType.ToString(),
+                    createdAt = DateTime.UtcNow,
+                    data = h.MetaData
+                });
+                var pendingKey = $"pending-connext-{h.Id}";
+                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.ConnextOASIS] = pendingKey;
+                if (h.MetaData == null) h.MetaData = new Dictionary<string, object>();
+                h.MetaData["connext_pending_payload"] = payload;
+                h.MetaData["connext_note"] = "Stored as Connext bridge transfer intent — actual xcall() requires EVM signer";
+                r.Result = h;
+                r.Message = "Stored as Connext bridge transfer intent";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS SaveHolonAsync failed: {ex.Message}", ex); }
+            return r;
+        }
+
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); try { if (h.Id == Guid.Empty) h.Id = Guid.NewGuid(); r.Result = h; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ConnextOASIS SaveHolonAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
@@ -72,7 +148,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
