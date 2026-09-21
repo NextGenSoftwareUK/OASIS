@@ -1,0 +1,35 @@
+{
+  "info": {
+    "name": "WEB4 Subscription Usage Ledger",
+    "description": "Authorize, settle, and inspect authoritative WEB5-WEB10 usage. Set web4BaseUrl and bearerToken in the collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "web4BaseUrl", "value": "https://api.web4.oasisomniverse.one" },
+    { "key": "bearerToken", "value": "" },
+    { "key": "operationId", "value": "2f516ca8-ce84-4f20-a020-f35e36d9b485" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "Authorize usage",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB6\",\n  \"endpoint\": \"POST /v1/complete\",\n  \"meterCategory\": \"completion\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0.0021\n}" },
+        "url": "{{web4BaseUrl}}/api/subscription/usage/authorize"
+      }
+    },
+    {
+      "name": "Settle usage",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"outcome\": \"succeeded\",\n  \"provider\": \"OpenAI\",\n  \"model\": \"gpt-5\",\n  \"promptTokens\": 120,\n  \"completionTokens\": 48,\n  \"units\": 168,\n  \"estimatedCostUsd\": 0.0021,\n  \"actualCostUsd\": 0.0019,\n  \"costSource\": \"provider\",\n  \"pricingCatalogueVersion\": \"web6-2026-09\"\n}" },
+        "url": "{{web4BaseUrl}}/api/subscription/usage/settle"
+      }
+    },
+    { "name": "Current usage", "request": { "method": "GET", "url": "{{web4BaseUrl}}/api/subscription/usage/current" } },
+    { "name": "Usage events", "request": { "method": "GET", "url": "{{web4BaseUrl}}/api/subscription/usage/events?limit=100" } }
+  ]
+}
