@@ -1,5 +1,6 @@
 ﻿//using System.Text.Json;
 //using System.Text.Json.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -428,11 +429,41 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     return result;
                 }
 
+                // The public holon ID is the persistence identity for every provider.  A caller may
+                // preallocate it for a graph/metadata relationship, so never infer create vs update
+                // from lifecycle fields such as CreatedDate or IsNewHolon.
+                if (holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
+
                 // Ensure holon directory exists
                 if (!Directory.Exists(_holonDirectory))
                     Directory.CreateDirectory(_holonDirectory);
 
                 var holonFilePath = Path.Combine(_holonDirectory, $"{holon.Id}.json");
+
+                // A full-document update must not allow the caller to rewrite creation audit data.
+                // File existence is the LocalFile provider's authoritative create/update test.
+                if (File.Exists(holonFilePath))
+                {
+                    var persistedJson = await File.ReadAllTextAsync(holonFilePath);
+                    var persistedHolon = JsonConvert.DeserializeObject<Holon>(persistedJson);
+
+                    if (persistedHolon != null)
+                    {
+                        holon.CreatedDate = persistedHolon.CreatedDate;
+                        holon.CreatedByAvatarId = persistedHolon.CreatedByAvatarId;
+                        holon.CreatedProviderType = persistedHolon.CreatedProviderType;
+                    }
+                }
+                else
+                {
+                    if (holon.CreatedDate == DateTime.MinValue)
+                        holon.CreatedDate = DateTime.UtcNow;
+
+                    holon.ModifiedDate = DateTime.MinValue;
+                    holon.ModifiedByAvatarId = Guid.Empty;
+                }
+
                 var jsonContent = JsonConvert.SerializeObject(holon, Formatting.Indented);
                 await File.WriteAllTextAsync(holonFilePath, jsonContent);
 

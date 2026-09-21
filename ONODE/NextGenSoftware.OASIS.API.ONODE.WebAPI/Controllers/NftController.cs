@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -65,6 +66,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await CollectNFTAsync(request);
         }
 
+        /// <summary>Authoritative per-avatar visibility/respawn state for requested placements.</summary>
+        [Authorize]
+        [HttpPost("geo-nft-collection-status")]
+        public async Task<OASISResult<List<NextGenSoftware.OASIS.API.Core.Objects.NFT.GeoNFTCollectionStatus>>> GeoNFTCollectionStatus([FromBody] Guid[] ids)
+        {
+            if (ids == null || ids.Length > 500)
+                return new() { IsError = true, Message = "Supply up to 500 GeoNFT IDs." };
+            var loaded = await NFTManager.LoadAllWeb4GeoNFTsAsync();
+            if (loaded.IsError || loaded.Result == null)
+                return new() { IsError = true, Message = loaded.Message };
+            var requested = new HashSet<Guid>(ids);
+            var nfts = loaded.Result.Where(n => requested.Contains(n.Id)).ToList();
+            if (nfts.Count != requested.Count)
+                return new() { IsError = true, Message = "One or more GeoNFT placements were not found." };
+            return await NextGenSoftware.OASIS.API.Core.Managers.AvatarManager.Instance
+                .GetGeoNFTCollectionStatusesAsync(AvatarId, nfts);
+        }
+
+        /// <summary>Update a placement's authored metadata/rules, restricted to its creator.</summary>
+        [Authorize]
+        [HttpPut("geo-nft/{id}")]
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> UpdateGeoNFT(Guid id,
+            [FromBody] NextGenSoftware.OASIS.API.Core.Objects.NFT.Request.UpdateWeb4GeoNFTRequest request)
+        {
+            if (request == null) return new() { IsError = true, Message = "Request body is required." };
+            var loaded = await NFTManager.LoadWeb4GeoNftAsync(id);
+            if (loaded.IsError || loaded.Result == null)
+                return new() { IsError = true, Message = loaded.Message };
+            if (loaded.Result.PlacedByAvatarId != AvatarId)
+                return new() { IsError = true, Message = "Only the placement creator may update its rules." };
+            request.Id = id;
+            request.ModifiedByAvatarId = AvatarId;
+            return await NFTManager.UpdateWeb4GeoNFTAsync(request);
+        }
         [Authorize]
         [HttpPost]
         [Route("collect-geo-nft")]
@@ -160,6 +195,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadWeb4NftByIdAsync(id);
+        }
+
+        /// <summary>
+        /// Loads and decodes a WEB4 GeoNFT by its canonical WEB4 GeoNFT id.
+        /// </summary>
+        [Authorize]
+        [HttpGet]
+        [Route("load-geo-nft-by-id/{id}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4GeoSpatialNFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> LoadWeb4GeoNftByIdAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A WEB4 GeoNFT id is required." };
+
+            return await NFTManager.LoadWeb4GeoNftAsync(id);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("load-geo-nft-by-id/{id}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> LoadWeb4GeoNftByIdAsync(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return await LoadWeb4GeoNftByIdAsync(id);
         }
 
         [Authorize]
@@ -449,8 +510,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null || request.OriginalOASISNFTId == Guid.Empty ||
                 double.IsNaN(request.Lat) || double.IsInfinity(request.Lat) || Math.Abs(request.Lat) > 90 ||
                 double.IsNaN(request.Long) || double.IsInfinity(request.Long) || Math.Abs(request.Long) > 180 ||
-                request.GlobalSpawnQuantity < 1 || request.PlayerSpawnQuantity < 1 || request.RespawnDurationInSeconds < 0)
-                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A valid NFT, GPS coordinates and positive spawn quantities are required." };
+                !GeoNFTCollectionPolicy.AreLimitsValid(request.GlobalSpawnQuantity, request.PlayerSpawnQuantity, request.RespawnDurationInSeconds))
+                return new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "A valid NFT, GPS coordinates and spawn quantities of -1, 0, or a positive value are required." };
 
             ProviderType originalOASISNFTProviderType = ProviderType.None;
             ProviderType geoNFTMetaDataProvider = ProviderType.None;

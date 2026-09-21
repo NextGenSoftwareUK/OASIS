@@ -17,9 +17,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         Task<UsageRecord> GetUsageAsync(string userId, int year, int month);
         Task IncrementUsageAsync(string userId);
         Task IncrementOverageAsync(string userId);
+        Task<SubscriptionAuthorizationDecision> AuthorizeAndIncrementRequestAsync(string userId, string consumingService);
 
         // Orders
         Task<List<OrderRecord>> GetOrdersAsync(string userId);
         Task AddOrderAsync(OrderRecord order);
+    }
+
+    public class SubscriptionAuthorizationDecision
+    {
+        public bool Allowed { get; set; }
+        public int StatusCode { get; set; }
+        public string Code { get; set; }
+        public string Message { get; set; }
+        public string PlanId { get; set; }
+        public long CurrentUsage { get; set; }
+        public int Limit { get; set; }
+        public long Remaining { get; set; }
     }
 }

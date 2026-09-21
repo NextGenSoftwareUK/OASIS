@@ -35,7 +35,45 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             Password = password;
             
             // Initialize Neo4j driver for REAL database operations
-            _driver = GraphDatabase.Driver($"bolt://{host}:7687", AuthTokens.Basic(username, password));
+            var uri = Uri.TryCreate(host, UriKind.Absolute, out var configuredUri) &&
+                      (configuredUri.Scheme == "bolt" || configuredUri.Scheme == "neo4j")
+                ? configuredUri.AbsoluteUri
+                : $"bolt://{host}:7687";
+            _driver = GraphDatabase.Driver(uri, AuthTokens.Basic(username, password));
+        }
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            try
+            {
+                await _driver.VerifyConnectivityAsync();
+                IsProviderActivated = true;
+                return new OASISResult<bool>(true);
+            }
+            catch (Exception ex)
+            {
+                IsProviderActivated = false;
+                return new OASISResult<bool>(false) { IsError = true, Message = $"Neo4j activation failed: {ex.Message}", Exception = ex };
+            }
+        }
+
+        public override OASISResult<bool> DeActivateProvider()
+            => DeActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            try
+            {
+                await _driver.CloseAsync();
+                IsProviderActivated = false;
+                return new OASISResult<bool>(true);
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>(false) { IsError = true, Message = $"Neo4j deactivation failed: {ex.Message}", Exception = ex };
+            }
         }
 
     }

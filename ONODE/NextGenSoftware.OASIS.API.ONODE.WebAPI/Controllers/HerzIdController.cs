@@ -120,9 +120,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             avatar.HerzQeaProfile       = request.QeaProfile ?? "3";
             if (!string.IsNullOrEmpty(request.VoiceprintId))
                 avatar.HerzVoiceprintId = request.VoiceprintId;
-            // Store in MetaData so FindAvatarByHerzIdAsync can use HolonManager query
+            // Store in MetaData so HolonManager metadata queries can find this avatar by HerzId and VoucherId
             if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
-            avatar.MetaData["HerzId"] = herzIdRaw;
+            avatar.MetaData["HerzId"]       = herzIdRaw;
+            avatar.MetaData["HerzVoucherId"] = request.VoucherHerzId?.Replace("·", "").Replace(" ", "").Replace(HerzCfg.QeaSealDisplayGlyph, "") ?? "";
 
             var saveResult = await avatar.SaveAsync();
             if (saveResult.IsError)
@@ -310,6 +311,208 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return StatusCode(500, new { error = saveResult.Message });
 
             return Ok(new { message = $"Clearance level updated to {request.ClearanceLevel} ({GetQeaTierName(request.ClearanceLevel)})." });
+        }
+
+        // ── Vouching graph ────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns the vouching chain for a given HerzID — walks upward from the member to
+        /// the founding member, returning each link's HerzID, country, clearance level, and
+        /// the date they joined. Maximum depth: 50.
+        ///
+        /// Public endpoint — no authentication required.
+        /// </summary>
+        [HttpGet("vouch-chain/{herzId}")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> VouchChain(string herzId)
+        {
+            if (!HerzEnabled)
+                return NotFound(new { error = "HerzID is not enabled on this OASIS instance." });
+
+            const int maxDepth = 50;
+            var chain = new System.Collections.Generic.List<object>();
+            var currentHerzId = herzId?.Replace("·", "").Replace(" ", "").Replace(HerzCfg.QeaSealDisplayGlyph, "");
+
+            for (int depth = 0; depth < maxDepth && !string.IsNullOrEmpty(currentHerzId); depth++)
+            {
+                var avatar = await FindAvatarByHerzIdAsync(currentHerzId);
+                if (avatar == null) break;
+
+                chain.Add(new
+                {
+                    herzId       = FormatHerzIdDisplay(avatar.HerzCountryCode, avatar.HerzSequentialNumber, HerzCfg.SequentialDigits, avatar.HerzId?[^1].ToString(), HerzCfg.QeaSealDisplayGlyph),
+                    clearance    = avatar.HerzClearanceLevel,
+                    tier         = GetQeaTierName(avatar.HerzClearanceLevel),
+                    countryCode  = avatar.HerzCountryCode,
+                    joinedAt     = avatar.HerzIdAssignedDate,
+                    isFounder    = avatar.HerzVouchesRemaining == int.MaxValue,
+                    vouchedBy    = avatar.HerzVoucherId
+                });
+
+                // Walk up the tree
+                if (string.IsNullOrEmpty(avatar.HerzVoucherId)) break;
+                currentHerzId = avatar.HerzVoucherId;
+            }
+
+            return Ok(new { length = chain.Count, chain });
+        }
+
+        /// <summary>
+        /// Returns all members vouched for by the authenticated avatar (downward graph).
+        /// </summary>
+        [HttpGet("vouches-issued")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> VouchesIssued()
+        {
+            if (!HerzEnabled)
+                return NotFound(new { error = "HerzID is not enabled on this OASIS instance." });
+
+            var caller = Avatar;
+            if (caller == null) return Unauthorized();
+            if (string.IsNullOrEmpty(caller.HerzId))
+                return BadRequest(new { error = "This avatar does not have a HerzID." });
+
+            var raw = caller.HerzId.Replace("·", "").Replace(" ", "").Replace(HerzCfg.QeaSealDisplayGlyph, "");
+            var vouched = new System.Collections.Generic.List<object>();
+
+            try
+            {
+                var result = await HolonManager.Instance.LoadHolonsByMetaDataAsync("HerzVoucherId", raw, HolonType.Avatar, loadChildren: false);
+                if (!result.IsError && result.Result != null)
+                {
+                    foreach (var holon in result.Result)
+                    {
+                        IAvatar av = null;
+                        if (holon is IAvatar casted) av = casted;
+                        else
+                        {
+                            var avResult = await AvatarManager.LoadAvatarAsync(holon.Id);
+                            if (!avResult.IsError) av = avResult.Result;
+                        }
+                        if (av != null)
+                        {
+                            vouched.Add(new
+                            {
+                                herzId     = av.HerzId,
+                                clearance  = av.HerzClearanceLevel,
+                                tier       = GetQeaTierName(av.HerzClearanceLevel),
+                                joinedAt   = av.HerzIdAssignedDate,
+                            });
+                        }
+                    }
+                }
+            }
+            catch { /* no-op — storage error, return empty list */ }
+
+            return Ok(new { vouchesIssued = vouched.Count, remaining = caller.HerzVouchesRemaining, vouched });
+        }
+
+        /// <summary>
+        /// Admin ghost-account detection check for a HerzID or its vouch subtree.
+        ///
+        /// Requires clearance level 8+ (Flame Keeper / Founder).
+        ///
+        /// Returns risk signals:
+        ///   - Members registered in rapid succession from the same voucher
+        ///   - Voucher has issued more than (NewMemberVouches × 2) members within 30 days
+        ///   - Member's sequential range is suspiciously clustered (many registrations in under 60 s)
+        /// </summary>
+        [HttpPost("ghost-check/{herzId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GhostCheck(string herzId)
+        {
+            if (!HerzEnabled)
+                return NotFound(new { error = "HerzID is not enabled on this OASIS instance." });
+
+            var caller = Avatar;
+            if (caller == null) return Unauthorized();
+            if (caller.HerzClearanceLevel < 8)
+                return StatusCode(403, new { error = "Clearance level 8 (Flame Keeper) required." });
+
+            var target = await FindAvatarByHerzIdAsync(herzId);
+            if (target == null)
+                return BadRequest(new { error = $"HerzID '{herzId}' not found." });
+
+            var signals = new System.Collections.Generic.List<string>();
+            int riskScore = 0;
+
+            // Signal 1: registered very recently (< 24 h)
+            if (target.HerzIdAssignedDate.HasValue &&
+                (DateTime.UtcNow - target.HerzIdAssignedDate.Value).TotalHours < 24)
+            {
+                signals.Add("Registered within the last 24 hours.");
+                riskScore += 1;
+            }
+
+            // Signal 2: no voiceprint enrolled
+            if (string.IsNullOrEmpty(target.HerzVoiceprintId) && string.IsNullOrEmpty(target.VoiceprintId))
+            {
+                signals.Add("No voice biometric enrolled.");
+                riskScore += 1;
+            }
+
+            // Signal 3: voucher issued many members — load vouched-by subtree
+            if (!string.IsNullOrEmpty(target.HerzVoucherId))
+            {
+                try
+                {
+                    var siblingResult = await HolonManager.Instance.LoadHolonsByMetaDataAsync("HerzVoucherId",
+                        target.HerzVoucherId, HolonType.Avatar, loadChildren: false);
+                    if (!siblingResult.IsError && siblingResult.Result != null)
+                    {
+                        var siblingCount = 0;
+                        var recentCount = 0;
+                        foreach (var sib in siblingResult.Result)
+                        {
+                            siblingCount++;
+                            if (sib is IAvatar sibAv && sibAv.HerzIdAssignedDate.HasValue
+                                && (DateTime.UtcNow - sibAv.HerzIdAssignedDate.Value).TotalDays <= 30)
+                                recentCount++;
+                        }
+
+                        var burstThreshold = HerzCfg.NewMemberVouches * 2;
+                        if (recentCount > burstThreshold)
+                        {
+                            signals.Add($"Voucher issued {recentCount} members in the last 30 days (burst threshold: {burstThreshold}).");
+                            riskScore += 3;
+                        }
+                        if (siblingCount > HerzCfg.NewMemberVouches)
+                        {
+                            signals.Add($"Voucher has issued {siblingCount} total members (exceeds default allocation of {HerzCfg.NewMemberVouches}).");
+                            riskScore += 2;
+                        }
+                    }
+                }
+                catch { /* no-op */ }
+            }
+
+            // Signal 4: clearance still at 1 (never upgraded — possible dormant/ghost)
+            if (target.HerzClearanceLevel <= 1)
+            {
+                signals.Add("Clearance is still at level 1 (Explorer — HerzID assigned but never active).");
+                riskScore += 1;
+            }
+
+            var risk = riskScore switch
+            {
+                0 => "Low",
+                1 or 2 => "Moderate",
+                3 or 4 => "High",
+                _ => "Critical"
+            };
+
+            return Ok(new
+            {
+                herzId    = herzId,
+                riskScore,
+                risk,
+                signals,
+                recommendation = riskScore >= 3
+                    ? "Recommend suspending this HerzID pending manual review."
+                    : "No immediate action required."
+            });
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────

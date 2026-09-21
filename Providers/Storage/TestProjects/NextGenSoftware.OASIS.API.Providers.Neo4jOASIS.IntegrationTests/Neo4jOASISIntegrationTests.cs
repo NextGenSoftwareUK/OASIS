@@ -18,28 +18,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests
     public class Neo4jOASISIntegrationTests
     {
         private Neo4jOASIS _provider = null!;
-        private bool _live;
-
         [TestInitialize]
         public void Setup()
         {
-            _provider = Neo4jOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
-        }
-
-        private void RequireLive()
-        {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live Neo4jOASIS backend configured - set the NEO4JOASIS_* environment variables to run this.");
+            _provider = Neo4jOASISTestFactory.CreateFromEnvironment();
+            var activated = _provider.ActivateProvider();
+            Assert.IsFalse(activated.IsError, activated.Message);
+            Assert.IsTrue(_provider.IsProviderActivated, "Neo4jOASIS did not remain activated.");
         }
 
         [TestMethod]
         public async Task SaveAndLoadAvatar_RoundTrips()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -61,8 +51,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAvatarByUsername_FindsTheSavedAvatar()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -83,9 +71,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests
         [TestMethod]
         public async Task SaveAndLoadHolon_RoundTrips()
         {
-            RequireLive();
-
-            var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
+            var holon = new Holon
+            {
+                Id = Guid.NewGuid(),
+                Name = $"OASIS IT Holon {Guid.NewGuid():N}",
+                Description = "Portable loopback Neo4j integration round trip"
+            };
 
             var saved = await _provider.SaveHolonAsync(holon);
             Assert.IsFalse(saved.IsError, saved.Message);
@@ -100,8 +91,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests
         [TestMethod]
         public async Task DeletedAvatar_IsNotReturnedAsLive()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -121,7 +110,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAllAvatars_ReturnsAResult()
         {
-            RequireLive();
             var all = await _provider.LoadAllAvatarsAsync();
             Assert.IsNotNull(all);
         }
