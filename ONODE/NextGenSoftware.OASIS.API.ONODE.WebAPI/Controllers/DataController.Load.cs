@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
         /// </summary>
         /// <returns></returns>
-        [Authorize]
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("load-all-holons")]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(LoadAllHolonsRequest request)
         {
@@ -525,7 +525,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
           OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, 0, childHolonType, request.Version);
 
           OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-          response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
+          var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
+
+          // Non-Wizards only see holons they own or that are explicitly public
+          if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+              holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+
+          response.Result.Result = holons;
           ResetOASISSettings(request, configResult);
 
           return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
