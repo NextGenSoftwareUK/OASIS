@@ -65,6 +65,28 @@ When Our World is closed, Unity runs in batch mode. When the project is already 
 
 `-SkipBuild` and `-SkipUnity` produce explicit `SKIP` rows. They are useful for focused development runs but do not constitute a fully passing matrix.
 
+### Playable Our World matrix
+
+The automated Cartesian matrix is complemented by a compact set of live map data:
+
+```powershell
+# Requires the GeoNFT quest matrix because two hotspots grant its tagged GeoNFTs.
+./Scripts/seed_our_world_geohotspot_quest_matrix.ps1
+
+# Read-only reset plan, then scoped apply when a fresh run is required.
+./Scripts/reset_our_world_test_progress.ps1
+./Scripts/reset_our_world_test_progress.ps1 -Apply
+```
+
+The seeder is idempotent and creates 12 purple GeoHotSpot portals across three
+quests. Together they exercise all four trigger modes, both objective ordering
+modes, all content and cross-game event types, inventory/GeoNFT/combined rewards,
+and representative spawn/visibility policies. The exhaustive 1,536 policy
+combinations remain automated. Each quest-linked portal has a floating quest and
+objective marker. Inactive markers identify the public API type (purple GeoHotSpot,
+cyan GeoNFT); active-quest objectives turn green and the currently tracked objective
+uses a brighter, larger green marker.
+
 ### Disposable local resilience environment
 
 When `-ConcurrencyFixturePath` is omitted, the matrix no longer skips process resilience. It starts a purpose-built local host twice on ports 5055 and 5056. Both processes implement the WEB5 `POST /api/geohotspots/{id}/trigger` response contract and share a temporary SQLite WAL database. The orchestrator creates two temporary bearer identities and a GeoHotSpot with one remaining global allocation, releases both requests together, and requires exactly one acceptance.
