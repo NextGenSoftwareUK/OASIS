@@ -8,7 +8,7 @@
 
 ## What is WEB6?
 
-WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 99 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
+WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 100 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
 
 On top of routing, WEB6 adds:
 
@@ -17,7 +17,7 @@ On top of routing, WEB6 adds:
 - **Holonic Memory** — a fractal hierarchy (session → agent → user → group → city → Earth) that compounds intelligence across every interaction
 - **Semantic caching** — returns cached results for 95%+ similar prompts at zero provider cost
 - **MCP server** — every FAHRN agent, memory provider and protocol adapter exposed as an MCP tool, auto-discovered by Claude Code, Cursor and any MCP-compatible host
-- **17 orchestrator protocols** — MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK / Swarm, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — all via `POST /v1/orchestrators/invoke`
+- **22 orchestrator protocols** — MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK / Swarm, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, BeeAgent, Temporal, Dapr, NATSJetStream, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — all via `POST /v1/orchestrators/invoke`
 
 ---
 
@@ -96,32 +96,161 @@ print(response["content"])
 
 Pass any of these as `"provider"` to pin a specific backend, or use `"auto"` to let WEB6 decide. Values are matched case-insensitively against the `AIProviderType` enum.
 
+**Core cloud LLMs**
+
+| Key | Provider | Example models |
+|-----|----------|----------------|
+| `OpenAI` | OpenAI | gpt-4o, gpt-4o-mini, o3, o4-mini |
+| `Anthropic` | Anthropic | claude-opus-5, claude-sonnet-5, claude-haiku-4-5 |
+| `Gemini` | Google Gemini | gemini-2.5-pro, gemini-2.5-flash |
+| `XAI` | xAI (Grok) | grok-3, grok-3-mini |
+| `DeepSeek` | DeepSeek | deepseek-chat, deepseek-reasoner |
+| `Mistral` | Mistral | mistral-large-latest, mistral-small |
+| `Cohere` | Cohere | command-r-plus, command-r |
+| `MetaLlamaAPI` | Meta Llama API | Llama-4-Scout, Llama-3.3-70B |
+| `Groq` | Groq | llama-3.3-70b-versatile, deepseek-r1 |
+| `Perplexity` | Perplexity | sonar-pro, sonar-reasoning (web-grounded) |
+
+**Fast / specialist inference**
+
 | Key | Provider | Notes |
 |-----|----------|-------|
-| `OpenAI` | OpenAI | GPT-5, GPT-4o, o3 |
-| `Anthropic` | Anthropic | Claude Opus/Sonnet/Haiku |
-| `Gemini` | Google | Gemini 2.5 Flash/Pro |
-| `Groq` | Groq | Llama 3 — ultra-fast LPU inference |
-| `Mistral` | Mistral | Mixtral, Large, Codestral |
-| `Ollama` | Ollama | Any local model (set `OLLAMA_BASE_URL`) |
-| `Cohere` | Cohere | Command R+ |
-| `XAI` | xAI | Grok 3/Vision |
-| `DeepSeek` | DeepSeek | R1, V3, Coder |
-| `OpenServ` | OpenServ | One SERV key → GPT-5 · Claude · Gemini · Grok · Qwen · DeepSeek |
-| `AWSBedrock` | AWS Bedrock | Titan, Nova, Jurassic |
-| `AzureOpenAI` | Azure OpenAI | Enterprise GPT deployments |
-| `HuggingFace` | HuggingFace | Open-source / fine-tuned models |
-| `StabilityAI` | Stability AI | Image generation (SDXL) |
-| `Cerebras` | Cerebras | ~3000 tok/s, fastest inference (llama-3.3-70b) |
+| `Cerebras` | Cerebras | ~3000 tok/s, fastest available |
+| `SambaNova` | SambaNova | Full-precision Llama 405B |
 | `TogetherAI` | Together AI | 100+ open models |
 | `FireworksAI` | Fireworks AI | Fast open model inference |
-| `MoonshotAI` | Moonshot (Kimi) | 128k context, strong on long docs |
-| `Perplexity` | Perplexity | Web-grounded answers with citations |
-| `LMStudio` | LM Studio | Local inference (set `LM_STUDIO_BASE_URL`) |
-| `Bittensor` | Bittensor | Decentralised inference via Corcel |
+| `LeptonAI` | Lepton AI | Fast, cheap open models |
+| `Hyperbolic` | Hyperbolic | GPU cloud, throughput-optimised |
+| `DeepInfra` | DeepInfra | Serverless, 50+ models |
+| `LambdaLabs` | Lambda Labs | GPU cloud inference |
+| `Modal` | Modal | Serverless Python-native |
+| `OctoAI` | OctoAI | Llama, Mistral, Qwen, image |
+| `Replicate` | Replicate | Open-source model marketplace |
+| `MoonshotAI` | Moonshot AI (Kimi) | 128k context, strong on long docs |
+| `Predibase` | Predibase | LoRA fine-tuned inference |
+| `OpenPipe` | OpenPipe | Fine-tuned model hosting |
+| `FriendliAI` | FriendliAI | Enterprise-grade inference |
+| `RunPod` | RunPod | GPU cloud serverless endpoints |
+| `Baseten` | Baseten | Deploy any HuggingFace model |
+| `NLPCloud` | NLP Cloud | Affordable multi-model API |
+
+**Aggregator gateways**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `OpenRouter` | OpenRouter | 300+ models via one key |
+| `OrcaRouter` | OrcaRouter | Privacy-focused, uncensored |
+| `OpenServ` | OpenServ | One SERV key → GPT, Claude, Gemini, Grok, Qwen, DeepSeek |
+| `HuggingFace` | HuggingFace | Inference Endpoints |
+
+**Enterprise**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `AWSBedrock` | AWS Bedrock | Claude, Llama, Titan, Nova |
+| `AzureOpenAI` | Azure OpenAI | Enterprise GPT deployments |
+| `GoogleVertexAI` | Google Vertex AI | Gemini + PaLM + third-party |
+| `IBMWatsonX` | IBM WatsonX.ai | Granite, Llama, Mistral |
+| `SnowflakeCortex` | Snowflake Cortex | SQL-native LLM functions |
+| `DatabricksServing` | Databricks | DBRX and custom models |
+| `CloudflareWorkersAI` | Cloudflare Workers AI | Edge inference |
+| `Writer` | Writer | Palmyra enterprise LLMs |
+| `AI21Labs` | AI21 Labs | Jamba (SSM) + Jurassic |
+| `RekaAI` | Reka AI | Multimodal Core/Flash/Edge |
+| `InflectionAI` | Inflection AI | Inflection-3 / Pi conversational |
+
+**Self-hosted / local**
+
+| Key | Provider | Default URL |
+|-----|----------|-------------|
+| `Ollama` | Ollama | `http://localhost:11434` |
+| `LMStudio` | LM Studio | `http://localhost:1234` |
+| `VLLM` | vLLM | `http://localhost:8000` |
+| `TGI` | HuggingFace TGI | `http://localhost:8080` |
+| `Jan` | Jan | `http://localhost:1337` |
+| `Llamafile` | Llamafile | `http://localhost:8080` |
+| `GPT4All` | GPT4All | `http://localhost:4891` |
+| `EXO` | EXO | `http://localhost:52415` — distributed cluster |
+| `ComfyUI` | ComfyUI | `http://localhost:8188` — image generation |
+| `Custom` | Custom | Set `OASIS.Web6.CustomProviders[].BaseUrl` in OASIS_DNA.json |
+
+**Affordable / community / uncensored**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `VeniceAI` | Venice AI | Privacy-first, zero logging, uncensored |
+| `KlusterAI` | Kluster.ai | OpenAI-compat aggregator |
+| `NovitaAI` | Novita AI | Affordable GPU inference |
+| `Featherless` | Featherless | Hundreds of HuggingFace models |
+| `InferenceNet` | Inference.net | Low-latency serverless |
+| `ChutesAI` | Chutes AI | Low-cost open models |
+| `MancerAI` | Mancer AI | Uncensored open models |
+| `AIHorde` | AI Horde | Free volunteer-powered, decentralised |
+| `TensorArt` | TensorArt | Image + LLM inference |
+
+**Decentralised**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `Bittensor` | Bittensor | Corcel API or direct subnet |
 | `GaiaNet` | GaiaNet | Community-run decentralised nodes |
-| `LeelaAI` | Leela AI | Spiritual intelligence / karmic-pattern reasoning |
-| `Replicate` | Replicate | Open-source model marketplace — image, audio, video, language |
+| `LeelaAI` | Leela AI | Spiritual / karmic-pattern reasoning |
+
+**Chinese / Asia-Pacific LLMs**
+
+| Key | Provider | Example models |
+|-----|----------|----------------|
+| `AlibabaQwen` | Alibaba Qwen | Qwen-Max, Qwen2.5, QwQ reasoning |
+| `Doubao` | Doubao (ByteDance) | Doubao-Pro, Seed-Thinking |
+| `MiniMax` | MiniMax | abab7, 1M-context |
+| `ZhipuAI` | Zhipu AI | GLM-4, CogVideo, CogView |
+| `Stepfun` | Stepfun | Step-1o, Step-2 reasoning |
+| `BaiduERNIE` | Baidu ERNIE | ERNIE-4.5, ERNIE-Speed |
+| `YiAI` | 01.AI (Yi) | Yi-Lightning, Yi-Large |
+| `TencentHunyuan` | Tencent Hunyuan | Hunyuan-Pro, Hunyuan-Vision |
+| `SparkAI` | IFLYTEK Spark | Spark4.0 Ultra |
+| `HyperCLOVAX` | Naver HyperCLOVA X | HCX-003 Korean/English |
+| `EXAONE` | LG EXAONE | EXAONE-3.5-32B bilingual |
+| `JAIS` | JAIS | JAIS-Adapted-70B Arabic/English |
+| `AI71` | AI71 / Falcon | Falcon-180B, Falcon-2-11B |
+
+**Image generation**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `StabilityAI` | StabilityAI | Stable Diffusion, SDXL |
+| `BlackForestLabs` | Black Forest Labs | Flux.1 Pro/Dev/Schnell |
+| `Ideogram` | Ideogram | Accurate text rendering |
+| `LeonardoAI` | Leonardo AI | Creative fine-tuned models |
+| `XAIAurora` | xAI Aurora | Shared key with Grok |
+
+**Video generation**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `RunwayML` | Runway ML | Gen-3 Alpha/Turbo |
+| `LumaAI` | Luma AI | Dream Machine text/image-to-video |
+| `PikaLabs` | Pika Labs | Pika 2.1 |
+| `KlingAI` | Kling AI | Kling 1.6 (Kuaishou) |
+| `HailuoAI` | Hailuo AI | MiniMax Video |
+| `Vidu` | Vidu | Shengshu Technology |
+| `WanVideo` | Wan Video | Wan 2.1 (Alibaba) |
+
+**Voice & speech**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `ElevenLabs` | ElevenLabs | TTS, voice cloning, speech-to-speech |
+| `AssemblyAI` | AssemblyAI | STT, diarisation, LeMUR |
+| `Deepgram` | Deepgram | Real-time STT, Nova-3, Aura TTS |
+| `PlayHT` | PlayHT | High-quality TTS and voice cloning |
+
+**European / sovereign**
+
+| Key | Provider | Notes |
+|-----|----------|-------|
+| `AlephAlpha` | Aleph Alpha | Luminous — GDPR-native German AI |
+| `ArceeAI` | Arcee AI | Small, cost-efficient specialist models |
 
 ---
 
