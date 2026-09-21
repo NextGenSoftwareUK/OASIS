@@ -171,6 +171,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
                 else if (request.IncludePublic)
                     holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                else if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                        "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
 
                 response.Result.Result = holons;
 
@@ -259,7 +262,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (!request.SearchOnlyForCurrentAvatar && request.IncludePublic)
                     searchHolons = searchHolons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
                 else if (!request.SearchOnlyForCurrentAvatar && !request.IncludePublic)
-                    ; // no extra filter — SearchManager already scoped by searchOnlyForCurrentAvatar=false
+                {
+                    // Returning ALL holons (no filter) is Wizard-only
+                    if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                        return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                            "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
+                }
                 // SearchOnlyForCurrentAvatar=true is already enforced inside SearchManager
 
                 response.Result.Result = searchHolons;
