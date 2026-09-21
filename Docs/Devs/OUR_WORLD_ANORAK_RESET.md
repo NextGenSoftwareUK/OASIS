@@ -12,8 +12,8 @@ Stop Unity Play mode, then from the OASIS repository root:
 ./Scripts/reset_our_world_tree_progress.ps1 -Apply
 ```
 
-To clear every seeded Our World test item and reset both the Anorak quest and the
-quest-mode/spawn-matrix fixtures, use the broader command:
+To clear every seeded Our World test item and reset the Anorak, GeoNFT matrix and
+GeoHotSpot matrix fixtures, use the broader command:
 
 ```powershell
 ./Scripts/reset_our_world_test_progress.ps1          # inspect
@@ -26,6 +26,11 @@ at those coordinates, removes their inventory rows and collection-history entrie
 and resets that quest. It does not reset the database, avatar, karma, other quests
 or other inventory. It verifies unrelated inventory is unchanged and calls inventory
 reconciliation to prove progress remains zero.
+
+For the GeoHotSpot matrix, the same command also removes granted inventory rewards,
+resets linked quest progress, and removes `GeoHotSpotTriggerStateV1` from the 12
+hotspots listed in `%LOCALAPPDATA%\OASIS\our-world-geohotspot-quest-matrix.json`.
+It preserves unrelated hotspots and inventory.
 
 Backups are under `%LOCALAPPDATA%/OASIS/AnorakResetBackups`. They contain scoped test
 state, not tokens. Partial failure stops with an error; inspect it before rerunning.
