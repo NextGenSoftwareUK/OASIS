@@ -1,5 +1,7 @@
 # WEB4 subscription authority for WEB5-WEB10
 
+> `POST /api/subscription/authorize-request` remains the compatibility contract for services that have not yet adopted measured usage. WEB6 uses the transactional authorize/settle ledger documented in [WEB4_SUBSCRIPTION_USAGE_LEDGER.md](WEB4_SUBSCRIPTION_USAGE_LEDGER.md). Do not add new metering to the compatibility counter.
+
 WEB4 is the single source of truth for OASIS subscription plans and monthly API-request usage. WEB5, WEB6, WEB7, WEB8, WEB9, and WEB10 do not maintain subscription records or infer entitlements from JWT plan claims.
 
 ## Customer subscription flow

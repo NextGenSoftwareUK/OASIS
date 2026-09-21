@@ -2,6 +2,12 @@
 
 Date: 2026-09-20
 
+## Implementation status
+
+The cutover described by this audit is implemented. WEB4 now provides authenticated `usage/authorize`, `usage/settle`, `usage/current`, and `usage/events` endpoints backed by a transactional MongoDB ledger with unique operation IDs. WEB6 now reserves before provider work and synchronously settles REST, token completion, SSE, OpenAI-compatible, WebSocket, GraphQL, gRPC, and MCP usage through WEB4. Caller-selected billing avatars, caller-selected plan/karma, the WEB6-local settings ledger, background usage writes, and the per-process quota middleware are removed from the active path. Disabled legacy blocks carry explicit supersession comments.
+
+The canonical operating guide, policy table, failure semantics, deployment variables, and verification commands are in [WEB4_SUBSCRIPTION_USAGE_LEDGER.md](WEB4_SUBSCRIPTION_USAGE_LEDGER.md).
+
 ## Decision
 
 WEB4 must own subscription entitlements, quota policy, usage authorization, durable usage events, aggregates, overages, and billing-facing totals for every OASIS API. WEB6 should retain only provider-specific measurement: extracting token counts and provider charges, estimating a charge when a provider supplies none, and reporting that measurement to WEB4.

@@ -1,5 +1,55 @@
 # Subscription API
 
+## Authoritative usage ledger (WEB5-WEB10)
+
+WEB4 owns subscription entitlement, quota policy, reservations, settlement, and billing-facing aggregates for every higher web. Clients authenticate with their normal WEB4 bearer token. The authenticated avatar is always the billing principal; plan, karma, avatar ID, and limits are never accepted from request data.
+
+### Reserve an operation
+
+`POST /api/subscription/usage/authorize`
+
+```json
+{
+  "operationId": "2f516ca8-ce84-4f20-a020-f35e36d9b485",
+  "consumingService": "WEB6",
+  "endpoint": "POST /v1/complete",
+  "meterCategory": "completion",
+  "requestedUnits": 1,
+  "estimatedCostUsd": 0.0021
+}
+```
+
+The operation ID is the idempotency key. Repeating the identical request returns the existing reservation; reusing it for another avatar or payload returns `409 OPERATION_ID_CONFLICT`. Quota denials return 429 with a stable code. Invalid services, identifiers, negative values, or missing dimensions return 400.
+
+### Settle an operation
+
+`POST /api/subscription/usage/settle`
+
+```json
+{
+  "operationId": "2f516ca8-ce84-4f20-a020-f35e36d9b485",
+  "outcome": "succeeded",
+  "provider": "OpenAI",
+  "model": "gpt-5",
+  "promptTokens": 120,
+  "completionTokens": 48,
+  "units": 168,
+  "estimatedCostUsd": 0.0021,
+  "actualCostUsd": 0.0019,
+  "costSource": "provider",
+  "pricingCatalogueVersion": "web6-2026-09"
+}
+```
+
+Valid outcomes are `succeeded`, `failed`, and `cancelled`. Identical retries return `alreadySettled: true`; changed payloads return 409. Settlement releases the reservation and records the final token, unit, and cost dimensions atomically.
+
+### Read usage
+
+- `GET /api/subscription/usage/current` returns authoritative plan, karma, limits, remaining values, request counts, tokens, and spend.
+- `GET /api/subscription/usage/events?limit=100` returns the authenticated avatar's immutable usage events; the limit is clamped to 1-500.
+
+Production storage uses MongoDB transactions and a unique operation-ID index. Configure `SUBSCRIPTION_MONGODB_CONNECTION_STRING` and `SUBSCRIPTION_MONGODB_DATABASE`, or the equivalent MongoDBOASIS DNA settings. MongoDB must support transactions (replica set or sharded cluster).
+
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)
