@@ -1,5 +1,7 @@
 # WEB6 Quick-Start Guide
 
+WEB6 billable routes require a user-bound WEB4 bearer token. WEB4 authorizes and records subscription usage; a global WEB6 API key is not a substitute for subscriber identity. Set `WEB4_API_BASE_URL` for the WEB4 authority used by the WEB6 deployment. See [WEB4_SUBSCRIPTION_USAGE_LEDGER.md](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) for quota policy, usage endpoints, storage configuration, and verification.
+
 Get from zero to a running AI task in under 5 minutes.
 
 ---
