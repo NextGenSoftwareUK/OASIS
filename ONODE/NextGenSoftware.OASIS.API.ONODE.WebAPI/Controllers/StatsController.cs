@@ -213,5 +213,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             return await Program.StatsManager.GetSystemStatsAsync();
         }
+
+        /// <summary>
+        /// Get achievement statistics for an avatar
+        /// </summary>
+        /// <param name="avatarId">Avatar ID</param>
+        /// <returns>Achievement statistics</returns>
+        [Authorize]
+        [HttpGet("achievement-stats/{avatarId}")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetAchievementStats(Guid avatarId)
+        {
+            var avatarResult = await Program.AvatarManager.LoadAvatarAsync(avatarId);
+            if (avatarResult.IsError || avatarResult.Result == null)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Avatar not found." };
+            return Program.StatsManager.GetAchievementStats(avatarResult.Result);
+        }
     }
 }

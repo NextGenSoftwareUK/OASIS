@@ -29,6 +29,8 @@ All responses are wrapped in `OASISResult<T>`.
 - **Load Web4 NFT by ID**
   - `GET /api/nft/load-nft-by-id/{id}`
   - `GET /api/nft/load-nft-by-id/{id}/{providerType}/{setGlobally}`
+  - `GET /api/nft/load-geo-nft-by-id/{id}` — loads the typed WEB4 GeoNFT placement contract, including location and spawn rules
+  - `GET /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}`
 
 - **Load Web4 NFT by On-Chain Hash**
   - `GET /api/nft/load-nft-by-hash/{hash}`

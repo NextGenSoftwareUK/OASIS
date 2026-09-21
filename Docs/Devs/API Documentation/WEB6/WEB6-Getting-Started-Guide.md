@@ -8,7 +8,7 @@
 
 ## What is WEB6?
 
-WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 107 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
+WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 99 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
 
 On top of routing, WEB6 adds:
 
@@ -866,7 +866,7 @@ See [Section 12](#12-spinning-up-your-own-onode) for the full ONODE configuratio
 | Resource | Description |
 |----------|-------------|
 | [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full endpoint docs — request/response shapes, auth, gRPC and GraphQL |
-| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 250 MCP tools — parameters and return values |
+| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 259 MCP tools — parameters and return values |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Common workflows, environment setup, recipes |
 | [WEB6 for Leela AI](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage |
 | [Holonic Braid Whitepaper](https://web6.oasisomniverse.one/holonic-braid-whitepaper.html) | Deep technical detail on BRAID, FAHRN, holonic memory |

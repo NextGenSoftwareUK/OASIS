@@ -1,0 +1,20 @@
+[
+  {
+    "name": "MongoDBOASIS",
+    "web4BaseUrl": "http://localhost:5003",
+    "web5BaseUrl": "http://localhost:5055",
+    "credentialPath": "C:\\secure\\mongo-test.credential.clixml"
+  },
+  {
+    "name": "SQLLiteDBOASIS",
+    "web4BaseUrl": "http://localhost:5103",
+    "web5BaseUrl": "http://localhost:5155",
+    "credentialPath": "C:\\secure\\sqlite-test.credential.clixml"
+  },
+  {
+    "name": "Neo4jOASIS",
+    "web4BaseUrl": "http://localhost:5203",
+    "web5BaseUrl": "http://localhost:5255",
+    "credentialPath": "C:\\secure\\neo4j-test.credential.clixml"
+  }
+]

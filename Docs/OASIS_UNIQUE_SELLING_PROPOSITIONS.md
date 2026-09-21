@@ -12,13 +12,13 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ### WEB6-USP-1: FAHRN — The Only Identity-Grounded Multi-Agent Orchestrator
 
-**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **97 AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **99 AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
 
 **AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
 
-**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 250 MCP tools and 56 REST endpoints natively to any of these frameworks.
+**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 259 MCP tools and 56 REST endpoints natively to any of these frameworks.
 
-**Protocols**: MCP (250 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
+**Protocols**: MCP (259 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
 
 **Why no competitor can replicate it**:
 - OpenAI, Anthropic, and Google sell single-provider model access — they have structural incentives not to route to competitors
@@ -77,7 +77,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ---
 
-### WEB6-USP-5: 250 MCP tools — Largest Production MCP Surface
+### WEB6-USP-5: 259 MCP tools — Largest Production MCP Surface
 
 **What it is**: 250 typed named tools across WEB4 (102), WEB5 (96), WEB6 (31), WEB7 (8), WEB8 (9), WEB9 (2), WEB10 (2) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
 
@@ -417,7 +417,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 **Innovation**: The world's largest unified Web2 + Web3 provider ecosystem under a single hot-swappable interface.
 
 **Technical Details**:
-- **174 fully implemented providers** across 7 categories (as of 2026-09-15)
+- **206 fully implemented providers** across 7 categories (as of 2026-09-20)
 - **43 blockchains**: Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Optimism, Avalanche, Base, Cardano, Polkadot, NEAR, Cosmos, Sui, Aptos, TRON, XRP Ledger, TON, Stellar, Monad, Fantom, zkSync, Scroll, Linea, Starknet, Aztec, Miden, Zcash, Radix, Rootstock, Telos, EOSIO, Stacks, Hedera, MultiversX, ChainLink, Loom, Algorand, Filecoin, Ceramic, Basechain, Abstract, Berachain
 - **76 storage/database/cloud**: MongoDB, Neo4j, SQL Server, Oracle DB, SQLite, IPFS, Pinata, Arweave, SOLID, ThreeFold, Azure Blob, Azure Cosmos DB, AWS, Google Cloud, Moralis, Tableland, Local File, PostgreSQL, Firebase, Supabase, Cloudflare KV, PocketBase, Turso, Appwrite, PlanetScale, OrbitDB (IPFS), GUN (P2P), CockroachDB, Neon, SurrealDB, RavenDB, Cassandra, Cloudflare D1, Convex, Fauna, Qdrant, Weaviate, InfluxDB, TimescaleDB, Elasticsearch, DynamoDB, Couchbase, Upstash, ScyllaDB, Litestream, MinIO, Cloudinary, PouchDB, Meilisearch, Typesense, ClickHouse, Redis, Memcached, KeyDB, OpenSearch, Algolia, Solr, ArangoDB, QuestDB, CouchDB, Xata, Pinecone, Milvus, Chroma, LanceDB, pgvector, Marqo, Zilliz, ArcadeDB, DuckDB, MotherDuck, Snowflake, BigQuery, Redshift, Databricks, Apache Druid, Apache Pinot, Dragonfly, ValKey, Garnet
 - **29 decentralised social/network**: Farcaster, Nostr, Lens, Lens v2, BlueSky, Matrix, Discord, ActivityPub, Holochain, HoloWeb, Scuttlebutt, Urbit, Telegram, SEEDS, Push Protocol, Waku, Livepeer, Akash, Tor/Onion, Orion Protocol, PLAN, Celestia, Eclipse, Privy, LayerZero, Gitcoin Passport, Polybase, Sui zkLogin, ZKsync SSO
@@ -432,14 +432,14 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 | Platform | Providers | Capability |
 |---|---|---|
-| **OASIS** | **174** | Read + Write + Identity + Social + Spatial + AI |
+| **OASIS** | **206** | Read + Write + Identity + Social + Spatial + AI |
 | Moralis | ~15 | Read-only Web3 data |
 | Alchemy | ~10 | EVM RPC only |
 | Infura | ~8 | EVM RPC only |
 | The Graph | ~50 | Indexing only (no write) |
 | Chainlink | ~20 | Oracle data only |
 
-No competitor provides read + write + identity + social + spatial across 174 providers under one unified interface.
+No competitor provides read + write + identity + social + spatial across 206 providers under one unified interface.
 
 **Investment Value**: Vendor independence, cost optimization, deepest moat in Web3 infrastructure — apps built on OASIS cannot be disrupted by any single provider shutting down or changing pricing.
 

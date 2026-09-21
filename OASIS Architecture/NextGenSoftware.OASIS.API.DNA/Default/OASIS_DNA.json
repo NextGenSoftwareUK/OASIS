@@ -74,7 +74,7 @@
             },
             "HerzId": {
                 "Enabled": false,
-                "QeaPrivateSeed": "",
+                "QeaPrivateSeed": "8F3A1C9E2D7B4F6A0E5C8B1D3F7A2E9C4B6D0F8A3E5C1B7D9F2A4E6C0B8D3F5",
                 "WiccianRegistryUrl": "",
                 "WiccianApiKey": "",
                 "AzureSpeakerRecognitionEndpoint": "",
@@ -82,6 +82,15 @@
                 "NewMemberVouches": 12,
                 "SequentialDigits": 10,
                 "QeaSealDisplayGlyph": "✦"
+            },
+            "Biometric": {
+                "Enabled": false,
+                "VoiceEnabled": false,
+                "RequireForLogin": false,
+                "RequireForSensitiveOps": false,
+                "AzureSpeakerRecognitionEndpoint": "",
+                "AzureSpeakerRecognitionKey": "",
+                "VoiceVerificationMinScore": 0.5
             }
         },
         "Email": {

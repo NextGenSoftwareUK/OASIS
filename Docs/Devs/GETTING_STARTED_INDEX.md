@@ -60,7 +60,7 @@ WEB6 is a unified AI abstraction layer — one endpoint for 26+ AI providers wit
 |----------|-------------|
 | **[WEB6 Getting Started Guide](./API%20Documentation/WEB6/WEB6-Getting-Started-Guide.md)** | Start here — REST/JS/Python quickstart, all providers, FAHRN/BRAID, migration guide, cost savings |
 | **[WEB6 REST API Reference](./API%20Documentation/WEB6/WEB6_REST_API_Reference.md)** | All endpoints — REST, gRPC, GraphQL |
-| **[WEB6 MCP Tool Reference](./API%20Documentation/WEB6/WEB6_MCP_Tool_Reference.md)** | All 250 MCP tools |
+| **[WEB6 MCP Tool Reference](./API%20Documentation/WEB6/WEB6_MCP_Tool_Reference.md)** | All 259 MCP tools |
 | **[WEB6 User Guide](./API%20Documentation/WEB6/WEB6_User_Guide.md)** | Common workflows and recipes |
 | **[Holonic Braid Whitepaper](https://web6.oasisomniverse.one/holonic-braid-whitepaper.html)** | Deep technical detail |
 

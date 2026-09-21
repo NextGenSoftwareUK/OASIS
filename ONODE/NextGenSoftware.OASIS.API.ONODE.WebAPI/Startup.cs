@@ -233,6 +233,52 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>LivepeerOASIS</b> - Livepeer Decentralised Video Provider (Livepeer Studio REST API; assets/streams → Holons).</li>
 <li><b>AkashOASIS</b> - Akash Decentralised Cloud Provider (Cosmos LCD REST; deployments → Holons, wallet addresses → Avatars).</li>
 <li><b>UrbitOASIS</b> - Urbit Peer-to-Peer Personal Server OS Provider (HTTP airlock, graph-store, contact-store).</li>
+<li><b>ChainflipOASIS</b> - Chainflip Native Cross-Chain Swap Provider (non-custodial swaps between BTC, ETH, DOT, USDC → Holons).</li>
+<li><b>deBridgeOASIS</b> - deBridge Cross-Chain Liquidity Transfer Provider (cross-chain asset transfers → Holons).</li>
+<li><b>StargateOASIS</b> - Stargate LayerZero Liquidity Bridge Provider (composable native asset bridge → Holons).</li>
+<li><b>SynapseOASIS</b> - Synapse Cross-Chain Bridge Provider (cross-chain communication and bridge → Holons).</li>
+<li><b>VercelKVOASIS</b> - Vercel KV Edge Key-Value Store Provider (serverless key-value storage → Holons).</li>
+<li><b>NetlifyBlobsOASIS</b> - Netlify Blobs Edge Object Store Provider (edge-native object storage → Holons).</li>
+<li><b>FlyIOOASIS</b> - Fly.io Distributed Application Platform Provider (edge-native distributed apps with global Postgres → Holons).</li>
+<li><b>PolygonIDOASIS</b> - Polygon ID ZK Decentralised Identity Provider (ZK credentials and verifications → Avatars).</li>
+<li><b>zkPassOASIS</b> - zkPass ZK Data Verification Provider (privacy-preserving data proofs → Avatars).</li>
+<li><b>HolonymOASIS</b> - Holonym ZK Proof of Unique Humanity Provider (sybil resistance without revealing personal data → Avatars).</li>
+<li><b>LayerZeroV2OASIS</b> - LayerZero V2 Omnichain Messaging Provider (cross-chain dApp interactions across 50+ networks → Holons).</li>
+<li><b>HyperlaneOASIS</b> - Hyperlane Permissionless Interoperability Provider (deploy cross-chain apps on any chain → Holons).</li>
+<li><b>ConnextOASIS</b> - Connext Modular Cross-Chain Provider (fast trust-minimised token transfers and messaging → Holons).</li>
+<li><b>SelfProtocolOASIS</b> - Self Protocol ZK Identity Verification Provider (privacy-preserving credential verification → Avatars).</li>
+<li><b>ProofOfHumanityOASIS</b> - Proof of Humanity Sybil-Resistant Registry Provider (on-chain human verification → Avatars).</li>
+<li><b>QuickNodeOASIS</b> - QuickNode Blockchain RPC and API Infrastructure Provider (enterprise-grade node access across chains → Holons).</li>
+<li><b>TenderlyOASIS</b> - Tenderly Web3 Development and Simulation Provider (transaction simulation and debugging → Holons).</li>
+<li><b>MoralisStreamsOASIS</b> - Moralis Streams Real-Time Blockchain Event Provider (webhooks for on-chain events → Holons).</li>
+<li><b>SubqueryOASIS</b> - SubQuery Blockchain Data Indexing Provider (GraphQL APIs for any chain → Holons).</li>
+<li><b>EigenLayerOASIS</b> - EigenLayer Restaking Protocol Provider (restake ETH to secure AVS networks → Holons).</li>
+<li><b>EspressoSystemsOASIS</b> - Espresso Systems Shared Sequencer Provider (decentralised sequencing for L2 rollups → Holons).</li>
+<li><b>AnkrOASIS</b> - Ankr Multi-Chain RPC Infrastructure Provider (enterprise-grade node access across 40+ chains → Holons).</li>
+<li><b>NansenOASIS</b> - Nansen On-Chain Analytics Provider (wallet intelligence and blockchain analytics → Holons).</li>
+<li><b>GoldskyOASIS</b> - Goldsky Real-Time Subgraph Indexing Provider (instant GraphQL APIs for any chain → Holons).</li>
+<li><b>TigrisOASIS</b> - Tigris Globally Distributed S3-Compatible Object Storage Provider (edge-native object storage → Holons).</li>
+<li><b>NileOASIS</b> - Nile Serverless Postgres Multi-Tenant Provider (isolated per-tenant Postgres → Holons).</li>
+<li><b>ENSOffchainOASIS</b> - ENS Off-Chain Resolver Provider (off-chain ENS name resolution without on-chain gas → Avatars).</li>
+<li><b>PrivyServerWalletsOASIS</b> - Privy Server Wallets Provider (programmatic embedded wallets via API → Avatars).</li>
+<li><b>NATSJetStreamOASIS</b> - NATS JetStream High-Performance Messaging Provider (persistent pub/sub at scale → Holons).</li>
+<li><b>TemporalOASIS</b> - Temporal Workflow Orchestration Provider (durable distributed workflow execution → Holons).</li>
+<li><b>DaprOASIS</b> - Dapr Distributed Application Runtime Provider (portable microservices building blocks → Holons).</li>
+<li><b>IntelOpenVINOOASIS</b> - Intel OpenVINO AI/ML Inference Runtime Provider (optimised AI inference on Intel hardware → Holons).</li>
+<li><b>CovalentOASIS</b> - Covalent Multi-Chain Unified Data API Provider (balances, transactions, NFTs across 100+ chains → Holons).</li>
+<li><b>DuneAnalyticsOASIS</b> - Dune Analytics On-Chain SQL Query Provider (SQL-queryable blockchain data → Holons).</li>
+<li><b>ReservoirOASIS</b> - Reservoir NFT Data and Trading API Provider (unified NFT liquidity and data → Holons).</li>
+<li><b>BlockscoutOASIS</b> - Blockscout Open-Source Block Explorer API Provider (transparent on-chain data → Holons).</li>
+<li><b>ZapperOASIS</b> - Zapper DeFi Portfolio and Position Data Provider (cross-chain DeFi positions → Holons).</li>
+<li><b>OpenZeppelinDefenderOASIS</b> - OpenZeppelin Defender Smart Contract Security Provider (automated monitoring and response → Holons).</li>
+<li><b>GelatoNetworkOASIS</b> - Gelato Network Smart Contract Automation Provider (cron, webhooks, off-chain triggers → Holons).</li>
+<li><b>ChainlinkFunctionsOASIS</b> - Chainlink Functions Serverless On-Chain Compute Provider (call any API from smart contracts → Holons).</li>
+<li><b>ReadyPlayerMeOASIS</b> - Ready Player Me Cross-Platform Avatar SDK Provider (interoperable 3D avatars → OASIS Avatars).</li>
+<li><b>DecentralandOASIS</b> - Decentraland Metaverse World Integration Provider (virtual land, wearables, scenes → Holons).</li>
+<li><b>TheSandboxOASIS</b> - The Sandbox Metaverse and Voxel Gaming Provider (LAND, ASSETS, game experiences → Holons).</li>
+<li><b>BittensorOASIS</b> - Bittensor Decentralised ML Network Provider (permissionless AI model marketplace → Holons).</li>
+<li><b>GaladrielOASIS</b> - Galadriel On-Chain AI Smart Contract Provider (LLM inference directly on-chain → Holons).</li>
+<li><b>RitualOASIS</b> - Ritual AI Coprocessor Provider (verifiable AI inference for any blockchain → Holons).</li>
 
 </ul>
 
@@ -332,8 +378,17 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
-            services.AddSingleton<Services.IHerzCounterService, Services.HerzCounterService>();
+            // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
+            services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
+            // Voice biometrics — wire Azure impl when configured, no-op otherwise
+            services.AddSingleton<Services.IVoiceBiometricService>(sp =>
+            {
+                var cfg = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Security?.Biometric;
+                if (cfg != null && cfg.Enabled && cfg.VoiceEnabled)
+                    return new Services.AzureVoiceBiometricService();
+                return new Services.NullVoiceBiometricService();
+            });
 
             // Per-IP rate limiting — config driven via OASISDNA.OASIS.Security.RateLimiting
             // Config is read per-request so hot-changes to OASISDNA take effect without restart

@@ -102,6 +102,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { Result = Plans, IsError = false, Message = "Plans loaded successfully" });
         }
 
+        /// <summary>Authoritatively checks the WEB4 subscription and atomically records one WEB5-WEB10 request.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("authorize-request")]
+        public async Task<ActionResult> AuthorizeRequest([FromBody] AuthorizeSubscriptionRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            if (request == null || string.IsNullOrWhiteSpace(request.ConsumingService))
+                return BadRequest(new { IsError = true, Message = "ConsumingService is required." });
+            var consumingService = request.ConsumingService.Trim().ToUpperInvariant();
+            if (consumingService is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10"))
+                return BadRequest(new { IsError = true, Message = "ConsumingService must be WEB5, WEB6, WEB7, WEB8, WEB9, or WEB10." });
+
+            var decision = await _subscriptionService.AuthorizeAndIncrementRequestAsync(userId, consumingService);
+            return Ok(decision);
+        }
+
         // ── Checkout ─────────────────────────────────────────────────────────
 
         [Microsoft.AspNetCore.Authorization.Authorize]
@@ -850,6 +868,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public decimal CostPerGB { get; set; }
             public string PlanType { get; set; }
         }
+    }
+
+    public sealed class AuthorizeSubscriptionRequest
+    {
+        public string ConsumingService { get; set; }
     }
 
 }

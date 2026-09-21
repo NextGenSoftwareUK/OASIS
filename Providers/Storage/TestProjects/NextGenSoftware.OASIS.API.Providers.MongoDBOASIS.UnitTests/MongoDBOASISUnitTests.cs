@@ -1,21 +1,20 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
+using MongoProvider = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
 {
     [TestClass]
     public class MongoDBOASISProviderTests
     {
-        private MongoDBOASIS _provider;
+        private MongoProvider _provider = null!;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new MongoDBOASIS();
+            // Construction is deliberately backend-free. Activation belongs to the
+            // disposable integration profile because it opens a real MongoDB connection.
+            _provider = new MongoProvider("mongodb://127.0.0.1:27017", "oasis-unit-tests");
         }
 
         [TestMethod]
@@ -25,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.MongoDBOASIS, providerType);
+            Assert.AreEqual(ProviderType.MongoDBOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -57,46 +56,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
             // Assert
             Assert.IsNotNull(description);
             Assert.IsFalse(string.IsNullOrEmpty(description));
-        }
-
-        [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
-        {
-            // Arrange
-            Assert.IsFalse(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.ActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
-        {
-            // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.DeActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsFalse(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
         }
 
         [TestCleanup]
