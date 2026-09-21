@@ -71,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public bool IsActive { get; set; } = true;
         /// <summary>Derived from DeletedDate; true when soft-deleted (IHolonBase).</summary>
         public bool IsDeleted => DeletedDate != DateTime.MinValue;
+        public bool IsPublic { get; set; } = false;
 
         //  [BsonRepresentation(BsonType.ObjectId)]
         public string CreatedByAvatarId { get; set; }
