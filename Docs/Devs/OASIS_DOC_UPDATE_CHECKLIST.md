@@ -11,7 +11,7 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 | AI providers | **100** (99 real + `Auto`) |
 | Orchestrator protocols | **22** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, BeeAgent, Temporal, Dapr, NATSJetStream, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook) |
 | External memory adapters | 7 (Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate) |
-| MCP tools | **259** (102 WEB4 + 96 WEB5 + 31 WEB6 + 18 WEB7–WEB10) |
+| MCP tools | **507** (371 WEB4 + 96 WEB5 + 40 WEB6) |
 | REST endpoints | 56 |
 | OASIS storage/network/identity providers | 220+ |
 
@@ -108,7 +108,7 @@ for a matching `McpServerTool`. Run:
 grep -rn "McpServerTool" C:/Source/OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/ | grep -oP 'Name = "\K[^"]+' | sort
 ```
 
-Full gap audit run 2026-09-21. Current MCP coverage: **192 tools** (102 Web4 + 90 Web5).
+Full gap audit run 2026-09-21. Gap implementation completed 2026-09-21: **507 tools** total (371 Web4 across Web4Tools.cs + 5 batch files + 96 Web5 + 40 Web6). All previously uncovered controllers now have MCP tools (some stubbed where HTTP session context is required).
 
 ### Controllers with ZERO MCP coverage (entire controllers uncovered)
 
