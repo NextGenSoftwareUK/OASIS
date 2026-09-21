@@ -1,75 +1,51 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 
 namespace NextGenSoftware.OASIS.Web9.WebAPI.Middleware
 {
-    /// <summary>
-    /// Validates that the caller holds an active OASIS subscription (via WEB4 /api/subscription/subscriptions/me).
-    /// Free-plan callers are allowed through; inactive or expired subscriptions return 402.
-    /// Must run after JwtMiddleware so the bearer token is already available.
-    /// </summary>
+    /// <summary>Delegates subscription authorization and usage accounting to authoritative WEB4.</summary>
     public class SubscriptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private static readonly HttpClient _http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-
-        private static readonly string[] _bypassPaths =
-        {
-            "/swagger", "/health", "/favicon", "/openapi"
-        };
-
+        private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
+        private static readonly string[] BypassPaths = { "/swagger", "/health", "/favicon", "/openapi" };
         public SubscriptionMiddleware(RequestDelegate next) => _next = next;
 
         public async Task Invoke(HttpContext context)
         {
-            string path = context.Request.Path.Value ?? "";
-            foreach (var bypass in _bypassPaths)
-                if (path.StartsWith(bypass, StringComparison.OrdinalIgnoreCase))
-                {
-                    await _next(context);
-                    return;
-                }
+            string path = context.Request.Path.Value ?? string.Empty;
+            foreach (var bypass in BypassPaths)
+                if (path.StartsWith(bypass, StringComparison.OrdinalIgnoreCase)) { await _next(context); return; }
 
-            string auth = context.Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(auth) || !auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                await _next(context);
-                return;
-            }
-
-            string bearer = auth.Substring("Bearer ".Length).Trim();
-
+            string auth = context.Request.Headers.Authorization.ToString();
+            if (!auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) { await _next(context); return; }
+            string web4Base = Environment.GetEnvironmentVariable("WEB4_API_BASE_URL") ?? "https://api.web4.oasisomniverse.one";
             try
             {
-                string web4Base = Environment.GetEnvironmentVariable("WEB4_API_BASE_URL")
-                    ?? "https://api.oasisomniverse.one";
-
-                using var req = new HttpRequestMessage(HttpMethod.Get, $"{web4Base}/api/subscription/subscriptions/me");
-                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
-                using var resp = await _http.SendAsync(req);
-
-                if (resp.IsSuccessStatusCode)
+                var client = new Web4SubscriptionAuthorizationClient(Http, web4Base);
+                var decision = await client.AuthorizeRequestAsync(auth.Substring("Bearer ".Length).Trim(), "WEB9", context.RequestAborted);
+                context.Response.Headers["X-OASIS-Subscription-Plan"] = decision.PlanId ?? string.Empty;
+                context.Response.Headers["X-OASIS-Subscription-Limit"] = decision.Limit < 0 ? "unlimited" : decision.Limit.ToString();
+                context.Response.Headers["X-OASIS-Subscription-Remaining"] = decision.Remaining < 0 ? "unlimited" : decision.Remaining.ToString();
+                if (!decision.Allowed)
                 {
-                    string json = await resp.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(json);
-                    if (doc.RootElement.TryGetProperty("isActive", out var isActive) && !isActive.GetBoolean())
-                    {
-                        context.Response.StatusCode = 402;
-                        await context.Response.WriteAsync("{\"error\":\"Subscription required. Please upgrade at https://portal.oasisomniverse.one\"}");
-                        return;
-                    }
+                    context.Response.StatusCode = decision.StatusCode;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(decision));
+                    return;
                 }
+                await _next(context);
             }
-            catch
+            catch (Exception)
             {
-                // If WEB4 is unreachable, allow through to avoid hard dependency
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new { isError = true, code = "SUBSCRIPTION_AUTHORITY_UNAVAILABLE", message = "WEB4 subscription authorization is unavailable." }));
             }
-
-            await _next(context);
         }
     }
 }
