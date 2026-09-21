@@ -118,7 +118,8 @@ Failures must return an `OASISResult<T>` error and must not leave partial grants
 - [x] Load only active, map-visible, eligible GeoHotSpots through `GET /api/geohotspots/eligible`; authored discoverability controls standalone inclusion.
 - [x] Parse the complete runtime GeoHotSpot model, including content, assets, reward IDs, spawn policy, and eligibility.
 - [x] Place GeoHotSpots through `UnifiedGeoDisplaySystem` and register them with the trigger manager.
-- [x] Give GeoHotSpots distinct visuals while allowing authored 2D/3D representations. (authored URIs now reach the asset loader; default is a distinct red sphere)
+- [x] Give GeoHotSpots distinct visuals while allowing authored 2D/3D representations. (authored URIs reach the asset loader; the default is a three-ring purple portal, distinct from the cyan/blue GeoNFT portal)
+- [x] Show a world-space quest marker above quest-linked GeoNFT and GeoHotSpot portals. (quest title and objective title; cyan GeoNFT and purple GeoHotSpot when inactive, green for active-quest objectives, brighter/larger green for the tracked objective; removed when the authoritative objective completes)
 - [x] Implement immediate-arrival triggering.
 - [x] Implement continuous dwell progress and reset-on-exit.
 - [x] Implement AR gaze-duration triggering.
@@ -174,6 +175,26 @@ Automated and manual coverage must include at least:
 - [ ] Inactive, exhausted, locked, unauthenticated, and malformed requests.
 - [ ] No partial reward or quest update after a rejected/failed transaction.
 - [ ] Map marker, HUD tracker, popup, media, inventory, and quest-list refresh behavior in Our World.
+
+### Playable GeoHotSpot quest fixtures
+
+Run `Scripts/seed_our_world_geohotspot_quest_matrix.ps1` after the GeoNFT quest
+matrix has been seeded. It creates 12 tagged GeoHotSpots, three inventory reward
+templates, and three playable quests around the configured origin:
+
+| Quest | Order | Coverage |
+|---|---|---|
+| `GeoHotSpot Signals: Four Ways In` | Any order | arrival, dwell, AR gaze and AR/map touch |
+| `GeoHotSpot Rewards: Purple Protocol` | In order | inventory reward, GeoNFT reward, combined rewards, eight content types and all nine cross-game event types |
+| `GeoHotSpot Limits: Shared Ground` | In order | global precedence, unlimited per-player, exclusive collection, safe/near placement, immediate and delayed respawn |
+
+The fixtures are intentionally a compact playable representative set. Exhaustive
+spawn-policy interaction remains the automated 1,536-case Cartesian matrix rather
+than creating 1,536 map portals. Re-running the seeder is idempotent; IDs are stored
+in `%LOCALAPPDATA%\OASIS\our-world-geohotspot-quest-matrix.json`. The comprehensive
+reset command removes granted test inventory, resets linked quest progress, clears
+test GeoNFT collection history, and clears `GeoHotSpotTriggerStateV1` only on these
+tagged hotspot IDs.
 
 ## Documentation and client artifacts
 
