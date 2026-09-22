@@ -290,9 +290,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     var holons = Mapper.Convert<IHolon, Holon>(result.Result);
                     var list = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
 
-                    // Non-Wizards only see their own holons
+                    // Avatar/visibility filter (Wizards bypass all filtering)
                     if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                        list = list.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+                    {
+                        if (request.SearchOnlyForCurrentAvatar)
+                            list = list.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+                        else if (request.IncludePublic)
+                            list = list.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                        else
+                            return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                                "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
+                    }
 
                     response.Result.Result = list;
 
