@@ -187,8 +187,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                    .Returns(Task.CompletedTask);
             SvcMock.Setup(s => s.AddOrderAsync(It.IsAny<OrderRecord>()))
                    .Returns(Task.CompletedTask);
-            SvcMock.Setup(s => s.IncrementUsageAsync(It.IsAny<string>()))
-                   .Returns(Task.CompletedTask);
             SvcMock.Setup(s => s.SetPayAsYouGoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                    .Returns(Task.CompletedTask);
         }

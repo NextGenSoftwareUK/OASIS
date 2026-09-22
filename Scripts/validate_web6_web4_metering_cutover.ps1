@@ -20,7 +20,7 @@ $checks = [ordered]@{
     '\.RecordUsageAsync\s*\(' = 'local token usage write'
     '\.RecordUnitUsageAsync\s*\(' = 'local unit usage write'
     'FindFirst\s*\(\s*"(?:plan|karma)"' = 'JWT plan/karma entitlement decision'
-    'Request\.(?:Headers|Query).*AvatarId' = 'caller-selected billing avatar'
+    'Request\.(?:Headers|Query)\s*(?:\[\s*"AvatarId"|\.TryGetValue\s*\(\s*"AvatarId")' = 'caller-selected billing avatar'
 }
 $scanRoots = @(
     (Join-Path $root 'WEB6/NextGenSoftware.OASIS.Web6.WebAPI'),
@@ -39,9 +39,10 @@ foreach ($base in $scanRoots) {
 }
 
 $required = [ordered]@{
-    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Middleware/SubscriptionMiddleware.cs' = @('AuthorizeUsageAsync','USER_BOUND_BEARER_REQUIRED','SettleAsync')
-    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Services/Web4UsageContext.cs' = @('AuthorizeUsageAsync','SettleUsageAsync','SettledKey')
-    'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs' = @('WithTransactionAsync','ux_operation_id','SameAuthorization','SameSettlement')
+    'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Middleware/SubscriptionMiddleware.cs' = @('UsageEndpointPolicy','RequiresProviderMeasurement','ai.tokens')
+    'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4UsageExecution.cs' = @('AuthorizeUsageAsync','StartUsageAsync','TryBeginAsync')
+    'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4UsageSettlementWorker.cs' = @('SettleUsageAsync','AcknowledgeAsync','USAGE_PROVIDER_RECONCILIATION_REQUIRED')
+    'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.cs' = @('WithTransactionAsync','ux_operation_id','SameAuthorization','SettlementFingerprint')
 }
 foreach ($entry in $required.GetEnumerator()) {
     $path = Join-Path $root $entry.Key
