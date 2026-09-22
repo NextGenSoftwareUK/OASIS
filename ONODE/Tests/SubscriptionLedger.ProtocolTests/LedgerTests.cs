@@ -681,6 +681,18 @@ public sealed class IdentityAndValidationTests
         Assert.Throws<UnauthorizedAccessException>(() => SubscriptionServiceIdentity.RequireAdministrator(context, new ConfigurationBuilder().Build()));
     }
     [Fact]
+    public void ExistingWizardAvatarIsAnInteractiveAdministrator()
+    {
+        var id = Guid.NewGuid();
+        var context = new DefaultHttpContext();
+        context.Items["Avatar"] = new WizardAvatar { Id = id, AvatarType = new WizardAvatarType { Value = "Wizard" } };
+
+        Assert.Equal(id.ToString("D"), SubscriptionServiceIdentity.RequireAdministrator(context, new ConfigurationBuilder().Build()));
+    }
+
+    public sealed class WizardAvatar { public Guid Id { get; set; } public WizardAvatarType AvatarType { get; set; } }
+    public sealed class WizardAvatarType { public string Value { get; set; } }
+    [Fact]
     public void TokenPolicyIncludesReservedTokensBeforeProviderCompletes()
     {
         Assert.Throws<SubscriptionUsageLimitException>(() => SubscriptionUsagePolicyEvaluator.EnsureAuthorized(
