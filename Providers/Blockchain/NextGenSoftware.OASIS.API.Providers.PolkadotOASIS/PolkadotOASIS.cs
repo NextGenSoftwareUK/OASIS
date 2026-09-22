@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             this.ProviderName = "PolkadotOASIS";
             this.ProviderDescription = "Polkadot Provider - Multi-chain interoperability protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS);
-            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

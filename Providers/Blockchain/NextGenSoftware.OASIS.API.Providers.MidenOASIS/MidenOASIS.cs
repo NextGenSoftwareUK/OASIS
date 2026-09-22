@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
         {
             ProviderName = nameof(MidenOASIS);
             ProviderDescription = "Miden Privacy Provider with STARK Proofs";
-            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
