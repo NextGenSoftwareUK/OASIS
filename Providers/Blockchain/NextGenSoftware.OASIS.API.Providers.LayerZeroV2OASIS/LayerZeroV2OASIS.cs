@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
             ProviderName = "LayerZeroV2OASIS";
             ProviderDescription = "LayerZero V2 Cross-Chain Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LayerZeroV2OASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
         }
 
         private async Task<T> GetAsync<T>(string path)

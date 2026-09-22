@@ -146,8 +146,8 @@ public sealed class AvalancheOASIS : Web3CoreOASISBaseProvider,
         ProviderName = "AvalancheOASIS";
         ProviderDescription = "Avalanche Provider - EVM-compatible using Web3Core";
         ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AvalancheOASIS);
-        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
-        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

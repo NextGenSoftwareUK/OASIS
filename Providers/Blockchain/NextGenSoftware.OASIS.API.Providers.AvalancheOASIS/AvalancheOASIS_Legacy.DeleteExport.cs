@@ -56,8 +56,8 @@ public sealed partial class AvalancheOASIS_Legacy
         this.ProviderName = "AvalancheOASIS_Legacy";
         this.ProviderDescription = "Avalanche Provider (Legacy)";
         this.ProviderType = new(Core.Enums.ProviderType.AvalancheOASIS);
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.EVMBlockchain);
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
