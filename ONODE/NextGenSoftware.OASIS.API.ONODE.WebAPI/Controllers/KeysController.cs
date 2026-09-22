@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,6 +57,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(linkProviderKeyToAvatarParams);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.LinkProviderPublicKeyToAvatarById(linkProviderKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, linkProviderKeyToAvatarParams.WalletAddress, linkProviderKeyToAvatarParams.WalletAddressSegwitP2SH, linkProviderKeyToAvatarParams.ShowSecretRecoveryWords);
             else
@@ -68,6 +70,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(linkProviderKeyToAvatarParams);
+            if (isValid && linkProviderKeyToAvatarParams.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.LinkProviderPublicKeyToAvatarByUsername(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, linkProviderKeyToAvatarParams.WalletAddress, linkProviderKeyToAvatarParams.WalletAddressSegwitP2SH, linkProviderKeyToAvatarParams.ShowSecretRecoveryWords);
             else
@@ -79,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(linkProviderKeyToAvatarParams);
+            if (isValid && linkProviderKeyToAvatarParams.AvatarEmail != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.LinkProviderPublicKeyToAvatarByEmail(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarEmail, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, linkProviderKeyToAvatarParams.WalletAddress, linkProviderKeyToAvatarParams.WalletAddressSegwitP2SH, linkProviderKeyToAvatarParams.ShowSecretRecoveryWords);
             else
@@ -90,6 +96,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(linkProviderPrivateKeyToAvatarParams);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.LinkProviderPrivateKeyToAvatarById(linkProviderPrivateKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, linkProviderPrivateKeyToAvatarParams.ShowPrivateKey, linkProviderPrivateKeyToAvatarParams.ShowSecretRecoveryWords);
             else
@@ -101,6 +109,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(linkProviderPrivateKeyToAvatarParams);
+            if (isValid && linkProviderPrivateKeyToAvatarParams.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.LinkProviderPrivateKeyToAvatarByUsername(linkProviderPrivateKeyToAvatarParams.WalletId, linkProviderPrivateKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, linkProviderPrivateKeyToAvatarParams.ShowPrivateKey, linkProviderPrivateKeyToAvatarParams.ShowSecretRecoveryWords);
             else
@@ -112,6 +122,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
@@ -123,6 +135,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarUsername(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
+            if (isValid && generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
@@ -134,6 +148,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarEmail(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
+            if (isValid && generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             if (isValid)
                 return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
@@ -147,6 +163,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarById(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderUniqueStorageKeyForAvatarById(avatarID, providerType) : new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
 
@@ -155,6 +173,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && providerKeyForAvatarParams.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderUniqueStorageKeyForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername, providerType) : new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
 
@@ -163,6 +183,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && providerKeyForAvatarParams.AvatarEmail != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderUniqueStorageKeyForAvatarByEmail(providerKeyForAvatarParams.AvatarEmail, providerType) : new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
 
@@ -171,6 +193,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<List<string>> GetProviderPrivateKeyForAvatarById(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderPrivateKeysForAvatarById(avatarID, providerType) : new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
@@ -179,6 +203,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<List<string>> GetProviderPrivateKeyForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && providerKeyForAvatarParams.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderPrivateKeysForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername, providerType) : new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
@@ -187,6 +213,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarById(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderPublicKeysForAvatarById(avatarID, providerType) : new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
@@ -195,6 +223,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && providerKeyForAvatarParams.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderPublicKeysForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername, providerType) : new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
@@ -203,6 +233,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
             (bool isValid, ProviderType providerType, Guid avatarID, string errorMessage) = ValidateParams(providerKeyForAvatarParams);
+            if (isValid && providerKeyForAvatarParams.AvatarEmail != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return isValid ? KeyManager.GetProviderPublicKeysForAvatarByEmail(providerKeyForAvatarParams.AvatarEmail, providerType) : new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
@@ -210,6 +242,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-public-keys-for-avatar-by-id/{id}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatarById(Guid id)
         {
+            if (id != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, List<string>>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderPublicKeysForAvatarById(id);
         }
 
@@ -217,6 +251,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-public-keys-for-avatar-by-username/{username}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatarByUsername(string username)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, List<string>>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderPublicKeysForAvatarByUsername(username);
         }
 
@@ -224,6 +260,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-public-keys-for-avatar-by-email/{email}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatarByEmail(string email)
         {
+            if (email != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, List<string>>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderPublicKeysForAvatarByEmail(email);
         }
 
@@ -231,6 +269,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-private-keys-for-avatar-by-id/{id}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPrivateKeysForAvatarById(Guid id)
         {
+            if (id != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, List<string>>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderPrivateKeysForAvatarById(id);
         }
 
@@ -238,6 +278,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-private-keys-for-avatar-by-username/{username}")]
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPrivateKeysForAvatarByUsername(string username)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, List<string>>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderPrivateKeysForAvatarByUsername(username);
         }
 
@@ -245,6 +287,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-unique-storage-keys-for-avatar-by-id/{id}")]
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarById(Guid id)
         {
+            if (id != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderUniqueStorageKeysForAvatarById(id);
         }
 
@@ -252,6 +296,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-unique-storage-keys-for-avatar-by-username/{username}")]
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarByUsername(string username)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderUniqueStorageKeysForAvatarByUsername(username);
         }
 
@@ -259,6 +305,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-provider-unique-storage-keys-for-avatar-by-email/{email}")]
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatarByEmail(string email)
         {
+            if (email != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<ProviderType, string>>() { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." };
             return KeyManager.GetAllProviderUniqueStorageKeysForAvatarByEmail(email);
         }
 
@@ -489,6 +537,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarById(LinkProviderKeyToAvatarParams p)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(p);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             return isValid ? KeyManager.LinkProviderWalletAddressToAvatarById(p.WalletId, avatarID, providerTypeToLinkTo, p.WalletAddress, ProviderType.Default) : new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
@@ -497,6 +547,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarByUsername(LinkProviderKeyToAvatarParams p)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(p);
+            if (isValid && p.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             return isValid ? KeyManager.LinkProviderWalletAddressToAvatarByUsername(p.WalletId, p.AvatarUsername, providerTypeToLinkTo, p.WalletAddress, ProviderType.Default) : new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
@@ -505,6 +557,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarByEmail(LinkProviderKeyToAvatarParams p)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(p);
+            if (isValid && p.AvatarEmail != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             return isValid ? KeyManager.LinkProviderWalletAddressToAvatarByEmail(p.WalletId, p.AvatarEmail, providerTypeToLinkTo, p.WalletAddress, ProviderType.Default) : new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
@@ -513,6 +567,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(LinkProviderKeyToAvatarParams p)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(p);
+            if (isValid && avatarID != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             return isValid ? KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, p.ShowPublicKey, p.ShowPrivateKey, p.ShowSecretRecoveryWords) : new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
@@ -521,6 +577,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(LinkProviderKeyToAvatarParams p)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(p);
+            if (isValid && p.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             return isValid ? KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(p.AvatarUsername, providerTypeToLinkTo, p.ShowPublicKey, p.ShowPrivateKey, p.ShowSecretRecoveryWords) : new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
@@ -529,6 +587,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(LinkProviderKeyToAvatarParams p)
         {
             (bool isValid, ProviderType providerTypeToLinkTo, Guid avatarID, string errorMessage) = ValidateParams(p);
+            if (isValid && p.AvatarEmail != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." };
             return isValid ? KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(p.AvatarEmail, providerTypeToLinkTo, p.ShowPublicKey, p.ShowPrivateKey, p.ShowSecretRecoveryWords) : new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
