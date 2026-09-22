@@ -53,6 +53,19 @@ inventory, and verifies the resulting zero-progress state.
 | Renewal Cycle: Living Echoes | `AnyOrder` | Three repeatable/cooldown portals may appear together; each objective progresses independently. |
 | Custodians of Scarcity | `InOrder` | Global precedence, globally unlimited and exclusive fixtures activate sequentially. |
 
+Each GeoNFT quest's live description expands that summary into its exact test
+contract:
+
+| Quest | Exact rules called out in its description |
+| --- | --- |
+| Chromatic Canopy: Any Path | All portals visible; independent objective completion; all three fixtures non-permanent/shareable, no global cap, one collection per player, and no cooldown; objective and final quest animations. |
+| Celestial Garden: Follow the Sequence | Current portal only; Moonlit Reed permanent with 30-second cooldown; Prism Bloom exclusive with two collections; Verdant Starfruit global quantity 5 overriding player quantity 1; completion animations. |
+| Renewal Cycle: Living Echoes | All portals visible; Solar Lotus immediate permanent respawn; Tideglass Moss permanent 20-second respawn; Echo Seed unlimited per-player supply with 10-second cooldown; completion animations. |
+| Custodians of Scarcity | Current portal only; Crystal Thistle global 2 overriding player 5; Obsidian Pod global unlimited overriding player zero with 15-second cooldown; Silver Lichen exclusive, two collections, 5-second cooldown; completion animations. |
+
+The seeder reconciles descriptions on existing quests and fails verification if
+WEB5 does not return the exact persisted text.
+
 The three GeoHotSpot matrix quests deliberately use verbose in-game descriptions
 so a tester can see the precise contract without consulting source code:
 
