@@ -11,9 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data
         // Multi-key variant (optional; used instead of MetaKey/MetaValue when provided)
         public Dictionary<string, string> MetaKeyValuePairs { get; set; }
         public string MetaKeyValuePairMatchMode { get; set; } = "All";
-        /// <summary>When true only returns holons owned by the current avatar. Defaults to true.</summary>
-        public bool SearchOnlyForCurrentAvatar { get; set; } = true;
-        /// <summary>When SearchOnlyForCurrentAvatar is false, also include holons from other avatars that are explicitly marked IsPublic=true.</summary>
-        public bool IncludePublic { get; set; } = true;
+        /// <summary>When true also returns holons from other avatars that are explicitly marked IsPublic=true. Defaults to false.</summary>
+        public bool IncludePublic { get; set; } = false;
     }
 }
