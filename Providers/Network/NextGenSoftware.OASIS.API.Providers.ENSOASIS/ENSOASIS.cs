@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ENSOASIS
             ProviderDescription = "Ethereum Name Service (ENS) Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ENSOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

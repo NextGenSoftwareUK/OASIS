@@ -43,8 +43,8 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         ProviderDescription = "XRP Ledger provider for OASIS - stores data in transaction memos";
         ProviderType = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS);
         ProviderCategory = new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Blockchain);
-        ProviderCategories.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Blockchain));
-        ProviderCategories.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Storage));
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Blockchain));
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Storage));
 
         _rpcEndpoint = rpcEndpoint;
         _archiveAccount = archiveAccount;

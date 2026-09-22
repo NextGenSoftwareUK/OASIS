@@ -45,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CelestiaOASIS
             ProviderDescription = "Celestia Modular DA Layer Provider — blob submission and retrieval";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CelestiaOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

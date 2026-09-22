@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BasechainOASIS
             ProviderDescription = "Basechain (Loom Network) EVM-compatible sidechain provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BasechainOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Ethereum JSON-RPC ────────────────────────────────────────────────────
