@@ -48,3 +48,25 @@ python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 ```
 
 The first check ensures every WEB5-WEB10 middleware uses the shared WEB4 authorization client and that WEB5's former local subscription service is absent. The dependency check ensures Railway builds use the exact API Core, STAR ODK, and WEB6 commits recorded in `Docker/oasis-dependency-versions.env`.
+
+The ONODE WebAPI subscription tests also validate that the Mongo usage aggregate
+document has exactly one `_id` mapping. Keep the persistence document separate
+from `SubscriptionUsageAggregate`; hiding an inherited `Id` with another
+`[BsonId]` makes MongoDB reject every authorization request before quota policy
+can run. The consumer then correctly surfaces `503
+SUBSCRIPTION_AUTHORITY_UNAVAILABLE`.
+
+When that response blocks a development reseed, verify WEB4 directly before
+changing subscription data or client behavior:
+
+```http
+POST https://dev.api.web4.oasisomniverse.one/api/subscription/authorize-request
+Authorization: Bearer <development avatar JWT>
+Content-Type: application/json
+
+{"consumingService":"WEB5"}
+```
+
+The prerequisite is a successful WEB4 decision response. Deploy the corrected
+ONODE WebAPI to development, verify this request, and only then resume the
+idempotent seeder; do not bypass the authority in WEB5 or the seed scripts.
