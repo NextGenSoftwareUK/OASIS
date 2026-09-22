@@ -66,7 +66,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 ResetOASISSettings(request, configResult);
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                response.Result.Result = (Holon)result.Result;
+                var holon = (Holon)result.Result;
+
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
+                    && holon.CreatedByAvatarId != AvatarId && !holon.IsPublic)
+                    return TestDataHelper.CreateErrorResponse<Holon>(
+                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+
+                response.Result.Result = holon;
 
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
             }
