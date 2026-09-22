@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify WEB5-WEB10 all delegate subscription authorization to WEB4."""
+"""Structural guard for the single WEB4 usage protocol; runtime suites test semantics."""
 
 from pathlib import Path
 import sys
@@ -20,14 +20,20 @@ for service, path in MIDDLEWARE.items():
         errors.append(f"{service}: missing {path.relative_to(ROOT)}")
         continue
     source = path.read_text(encoding="utf-8")
-    for required in (
-        "Web4SubscriptionAuthorizationClient",
-        "AuthorizeRequestAsync",
-        f'"{service}"',
-        "SUBSCRIPTION_AUTHORITY_UNAVAILABLE",
-    ):
+    for required in ("SubscriptionPolicy", "UsageEndpointPolicy"):
         if required not in source:
             errors.append(f"{service}: missing contract token {required}")
+    project = path.parent.parent
+    hosting = "\n".join(p.read_text(encoding="utf-8") for p in (project / "Program.cs", project / "Startup.cs") if p.exists())
+    for required in ("AddWeb4UsageLedger", "Web4UsageLedgerMiddleware", f'"{service}"'):
+        if required not in hosting:
+            errors.append(f"{service}: hosting does not register {required}")
+    for p in project.rglob("*.cs"):
+        if any(part in {"obj", "bin"} for part in p.parts):
+            continue
+        active = p.read_text(encoding="utf-8")
+        if "AuthorizeRequestAsync(" in active:
+            errors.append(f"{service}: obsolete authorize-request call in {p.relative_to(ROOT)}")
 
 legacy_dir = ROOT / "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Services/Subscription"
 if legacy_dir.exists() and any(legacy_dir.glob("*.cs")):
@@ -39,4 +45,4 @@ if errors:
         print(f" - {error}")
     sys.exit(1)
 
-print("WEB4 subscription authority validation passed for WEB5-WEB10.")
+print("WEB4 shared usage protocol structural validation passed for WEB5-WEB10; run runtime tests separately.")

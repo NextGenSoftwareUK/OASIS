@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using System.Reflection;
 using Path = System.IO.Path;
 using Microsoft.AspNetCore.RateLimiting;
@@ -100,6 +101,8 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -139,10 +142,11 @@ app.Use(async (context, next) =>
     }
 });
 
+app.UseRouting();
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.ApiKeyMiddleware>();
-app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionMiddleware>();
+app.UseMiddleware<Web4UsageLedgerMiddleware>();
 
 app.MapControllers();
 app.MapGraphQL();
