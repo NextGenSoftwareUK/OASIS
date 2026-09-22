@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS
             ProviderName = "LayerZeroOASIS";
             ProviderDescription = "LayerZero omnichain messaging provider — cross-chain messages as holons";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LayerZeroOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

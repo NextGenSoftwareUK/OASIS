@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             ProviderName = "ArangoDBOASIS";
             ProviderDescription = "ArangoDB provider (multi-model graph/document/key-value database via ArangoDB HTTP API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArangoDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private string ApiUrl(string path) => $"{_baseUrl}/_db/{Db}{path}";

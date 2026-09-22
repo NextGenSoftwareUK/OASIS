@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             this.ProviderName = "ThreeFoldOASIS";
             this.ProviderDescription = "ThreeFold Provider";
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.ThreeFoldOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             this.HostUri = hostURI;
 
             _apiBaseUrl = hostURI ?? "https://grid.tf/api/v1";

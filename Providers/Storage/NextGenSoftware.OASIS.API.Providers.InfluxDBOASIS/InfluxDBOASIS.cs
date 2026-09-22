@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
             ProviderName = "InfluxDBOASIS";
             ProviderDescription = "InfluxDB time-series database provider (InfluxDB.Client SDK — OASIS data as tagged measurement points)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.InfluxDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

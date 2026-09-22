@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
             this.ProviderName = "ArweaveOASIS";
             this.ProviderDescription = "Arweave Permanent Storage Provider for OASIS";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArweaveOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         public override OASISResult<bool> ActivateProvider()

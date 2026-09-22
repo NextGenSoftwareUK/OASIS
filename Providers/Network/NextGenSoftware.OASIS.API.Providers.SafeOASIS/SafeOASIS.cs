@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SafeOASIS
             ProviderName = "SafeOASIS";
             ProviderDescription = "Gnosis Safe Multisig Wallet Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SafeOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 

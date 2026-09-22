@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             ProviderName = "SurrealDBOASIS";
             ProviderDescription = "SurrealDB provider (multi-model document/graph/relational via SurrealDb.Net SDK)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SurrealDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private async Task<SurrealDbClient> GetClientAsync()

@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             this.ProviderName = "PinataOASIS";
             this.ProviderDescription = "Pinata IPFS Provider for OASIS";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PinataOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
         }
 
         public override OASISResult<bool> ActivateProvider()

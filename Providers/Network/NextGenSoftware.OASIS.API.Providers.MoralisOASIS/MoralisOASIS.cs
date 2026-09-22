@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             ProviderName = "MoralisOASIS";
             ProviderDescription = "Moralis Web3 Data API Provider — NFTs, tokens, and transactions across EVM chains";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MoralisOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         }

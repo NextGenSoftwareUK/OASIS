@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS
             ProviderName = "PushProtocolOASIS";
             ProviderDescription = "Push Protocol Web3 Notifications and Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PushProtocolOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

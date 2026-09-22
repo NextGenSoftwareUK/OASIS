@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS
             ProviderName = "AlgoliaOASIS";
             ProviderDescription = "Algolia provider (hosted search-as-a-service via Algolia REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AlgoliaOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private async Task<T?> GetDocAsync<T>(string index, string objectId)

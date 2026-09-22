@@ -179,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             ProviderName = "OptimismOASIS";
             ProviderDescription = "Optimism Provider - Ethereum Layer 2 using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));

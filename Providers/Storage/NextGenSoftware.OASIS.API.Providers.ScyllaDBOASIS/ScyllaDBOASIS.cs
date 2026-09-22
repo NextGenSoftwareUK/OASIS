@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             ProviderName = "ScyllaDBOASIS";
             ProviderDescription = "ScyllaDB provider (Cassandra-compatible high-performance NoSQL via CassandraCSharpDriver)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ScyllaDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private ISession GetSession()
