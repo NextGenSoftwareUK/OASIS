@@ -91,6 +91,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }, HttpStatusCode.NotFound);
                 }
                 var clan = loadResult.Result;
+                if (clan.OwnerAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IClan> { IsError = true, Message = "Unauthorized. Only the clan owner can update it." }, HttpStatusCode.Unauthorized);
                 clan.Name = request.Name.Trim();
                 clan.Description = request.Description?.Trim() ?? "";
                 var result = await ClanManager.UpdateClanAsync(clan);
@@ -193,6 +195,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
+                var loadResult = await ClanManager.LoadClanAsync(clanId);
+                if (!loadResult.IsError && loadResult.Result != null && loadResult.Result.OwnerAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Unauthorized. Only the clan owner can delete it." }, HttpStatusCode.Unauthorized);
                 var result = await ClanManager.DeleteClanAsync(clanId, providerType ?? ProviderType.Default);
                 if (result.IsError && !result.Result)
                     return HttpResponseHelper.FormatResponse(result, HttpStatusCode.NotFound);
@@ -218,6 +223,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
+                var loadResult = await ClanManager.LoadClanAsync(clanId);
+                if (!loadResult.IsError && loadResult.Result != null && loadResult.Result.OwnerAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Unauthorized. Only the clan owner can add members." }, HttpStatusCode.Unauthorized);
                 var result = await ClanManager.AddAvatarToClanAsync(clanId, avatarId, providerType ?? ProviderType.Default);
                 return HttpResponseHelper.FormatResponse(result);
             }
@@ -241,6 +249,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
+                var loadResult = await ClanManager.LoadClanAsync(clanId);
+                if (!loadResult.IsError && loadResult.Result != null && loadResult.Result.OwnerAvatarId != AvatarId && avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Unauthorized. Only the clan owner can remove members (or a member may remove themselves)." }, HttpStatusCode.Unauthorized);
                 var result = await ClanManager.RemoveAvatarFromClanAsync(clanId, avatarId, providerType ?? ProviderType.Default);
                 return HttpResponseHelper.FormatResponse(result);
             }
