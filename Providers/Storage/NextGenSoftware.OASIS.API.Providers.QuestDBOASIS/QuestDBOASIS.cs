@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             ProviderDescription = "QuestDB provider (high-performance time-series database via PostgreSQL wire protocol)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.QuestDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private NpgsqlConnection OpenConnection()

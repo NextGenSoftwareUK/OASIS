@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CivicOASIS
             ProviderDescription = "Civic on-chain KYC / identity provider via Civic Pass";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CivicOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

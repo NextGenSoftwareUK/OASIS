@@ -65,6 +65,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS
             ProviderDescription = "Cloudflare D1 provider (serverless SQLite-compatible REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CloudflareD1OASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

@@ -35,6 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS
             ProviderDescription = "Push Protocol Web3 Notifications and Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PushProtocolOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

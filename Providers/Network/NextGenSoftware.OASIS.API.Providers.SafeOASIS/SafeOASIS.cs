@@ -35,6 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SafeOASIS
             ProviderDescription = "Gnosis Safe Multisig Wallet Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SafeOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 

@@ -63,6 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             ProviderDescription = "Memcached provider (distributed memory caching via EnyimMemcachedCore)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MemcachedOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

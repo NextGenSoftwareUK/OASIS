@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
 
             // MongoDB serializers are process-global. Provider construction can happen
             // repeatedly during failover, tests, and host reconfiguration, so registration

@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS
             ProviderDescription = "Litestream provider (continuously replicated SQLite via Microsoft.Data.Sqlite)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LitestreamOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task<SqliteConnection> OpenAsync() { var c = new SqliteConnection(_connectionString); await c.OpenAsync(); return c; }

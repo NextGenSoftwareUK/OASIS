@@ -35,6 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS
             this.ProviderDescription = "Scuttlebutt OASIS Provider — offline-first, gossip-protocol P2P social database";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ScuttlebuttOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _apiBaseUrl = (apiBaseUrl ?? "http://localhost:8008/api/v1").TrimEnd('/');
             _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };

@@ -58,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
             ProviderDescription = "Nostr decentralised social protocol provider (WebSocket relay connections)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NostrOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

@@ -53,6 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             ProviderDescription = "PlanetScale provider (serverless MySQL via MySqlConnector ADO.NET)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PlanetScaleOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Connection helpers ───────────────────────────────────────────────────

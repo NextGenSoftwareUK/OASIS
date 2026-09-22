@@ -60,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MatrixOASIS
             ProviderDescription = "Matrix open protocol decentralised communications provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MatrixOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

@@ -81,6 +81,7 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
             ProviderDescription = "PostgreSQL provider (Npgsql ADO.NET, JSON blob storage per row)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PostgreSQLOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

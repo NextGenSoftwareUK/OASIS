@@ -45,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS
             ProviderDescription = "TimescaleDB provider (Npgsql ADO.NET — time-series PostgreSQL extension for OASIS holons and avatars)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TimescaleDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

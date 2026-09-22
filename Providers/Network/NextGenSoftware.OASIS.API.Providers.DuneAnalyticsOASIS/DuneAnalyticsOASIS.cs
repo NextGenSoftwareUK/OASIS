@@ -1,4 +1,4 @@
-using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;
+﻿using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -33,6 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS
             ProviderDescription = "Dune Analytics on-chain SQL queries and dashboards provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DuneAnalyticsOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         private async Task<JObject> GetAsync(string path)
