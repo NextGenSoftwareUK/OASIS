@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             ProviderDescription = "Algorand pure-PoS blockchain provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AlgorandOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

@@ -1,4 +1,3 @@
-using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using System.Reflection;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -82,8 +81,6 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB9", NextGenSoftware.OASIS.Web9.WebAPI.Middleware.SubscriptionPolicy.Resolve);
-
 var app = builder.Build();
 
 app.UseSwagger();
@@ -95,11 +92,10 @@ if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.
 
 app.UseCors("AllowAll");
 app.UseRateLimiter();
-app.UseRouting();
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.ApiKeyMiddleware>();
-app.UseMiddleware<Web4UsageLedgerMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapGrpcService<SingularityGrpcService>();
 app.MapGraphQL();
