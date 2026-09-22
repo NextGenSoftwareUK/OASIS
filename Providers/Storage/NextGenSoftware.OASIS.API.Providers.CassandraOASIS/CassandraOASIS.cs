@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
             ProviderName = "CassandraOASIS";
             ProviderDescription = "Apache Cassandra / ScyllaDB provider via DataStax CassandraCSharpDriver";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CassandraOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

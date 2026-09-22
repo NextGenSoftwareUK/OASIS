@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
         {
             _baseUrl = baseUrl.TrimEnd('/');
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArcadeDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Text.Json;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RedshiftOASIS
         {
             _connectionString = connectionString;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RedshiftOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             ProviderName = "QuestDBOASIS";
             ProviderDescription = "QuestDB provider (high-performance time-series database via PostgreSQL wire protocol)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.QuestDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private NpgsqlConnection OpenConnection()

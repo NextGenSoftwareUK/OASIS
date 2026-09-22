@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.StoryProtocolOASIS
             ProviderName = "StoryProtocolOASIS";
             ProviderDescription = "Story Protocol IP Asset registry (IP Assets → Holons, IP owners → Avatars, Story Chain EVM)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.StoryProtocolOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

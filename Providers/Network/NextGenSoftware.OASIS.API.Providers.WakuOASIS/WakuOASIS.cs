@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WakuOASIS
             ProviderName = "WakuOASIS";
             ProviderDescription = "Waku v2 Decentralised P2P Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WakuOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

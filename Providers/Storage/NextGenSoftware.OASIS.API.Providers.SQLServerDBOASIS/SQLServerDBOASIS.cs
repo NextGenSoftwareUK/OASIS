@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -88,7 +88,7 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_HolonType')
             ProviderName = "SQLServerDBOASIS";
             ProviderDescription = "Microsoft SQL Server provider (ADO.NET, JSON blob storage per row)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SQLServerDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

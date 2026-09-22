@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             this.ProviderName = "AzureCosmosDBOASIS";
             this.ProviderDescription = "Microsoft Azure Cosmos DB Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AzureCosmosDBOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
             this.serviceEndpoint = serviceEndpoint;
             this.authKey = authKey;
             this.databaseName = databaseName;
