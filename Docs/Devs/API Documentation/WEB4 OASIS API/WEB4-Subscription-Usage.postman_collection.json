@@ -1,35 +1,1487 @@
 {
   "info": {
-    "name": "WEB4 Subscription Usage Ledger",
-    "description": "Authorize, settle, and inspect authoritative WEB5-WEB10 usage. Set web4BaseUrl and bearerToken in the collection variables.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "name": "WEB4–WEB10 Subscription Usage Protocol",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run only with isolated staging subscribers. Configure base URL, user bearer and six separate service keys locally; never export secrets. Each folder performs included-request reserve/start/settle and replay checks. Actual provider prices/receipts and outage tests require the operations runbook. The retired authorize-request counter is not used."
   },
   "variable": [
-    { "key": "web4BaseUrl", "value": "https://api.web4.oasisomniverse.one" },
-    { "key": "bearerToken", "value": "" },
-    { "key": "operationId", "value": "2f516ca8-ce84-4f20-a020-f35e36d9b485" }
+    {
+      "key": "web4BaseUrl",
+      "value": ""
+    },
+    {
+      "key": "bearerToken",
+      "value": ""
+    },
+    {
+      "key": "operationId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "serviceKeyWEB5",
+      "value": ""
+    },
+    {
+      "key": "serviceKeyWEB6",
+      "value": ""
+    },
+    {
+      "key": "serviceKeyWEB7",
+      "value": ""
+    },
+    {
+      "key": "serviceKeyWEB8",
+      "value": ""
+    },
+    {
+      "key": "serviceKeyWEB9",
+      "value": ""
+    },
+    {
+      "key": "serviceKeyWEB10",
+      "value": ""
+    }
   ],
-  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }] },
   "item": [
     {
-      "name": "Authorize usage",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB6\",\n  \"endpoint\": \"POST /v1/complete\",\n  \"meterCategory\": \"completion\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0.0021\n}" },
-        "url": "{{web4BaseUrl}}/api/subscription/usage/authorize"
-      }
+      "name": "WEB5 reserve → start → settle",
+      "item": [
+        {
+          "name": "Authorize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB5"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB5}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB5\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Authorized', () => pm.response.to.have.status(200));",
+                  "const decision = pm.response.json();",
+                  "pm.expect(decision.allowed).to.equal(true);",
+                  "pm.collectionVariables.set('userId', decision.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay authorization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB5"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB5}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB5\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Same reservation', () => pm.expect(pm.response.json().alreadyAuthorized).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge durable execution start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB5"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB5}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Started', () => pm.expect(pm.response.json().started).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settle included request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB5"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB5}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB5\",\n  \"provider\": \"WEB5\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB5\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Settled', () => pm.expect(pm.response.json().settled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay identical settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB5"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB5}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB5\",\n  \"provider\": \"WEB5\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB5\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No duplicate charge', () => pm.expect(pm.response.json().alreadySettled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     },
     {
-      "name": "Settle usage",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"outcome\": \"succeeded\",\n  \"provider\": \"OpenAI\",\n  \"model\": \"gpt-5\",\n  \"promptTokens\": 120,\n  \"completionTokens\": 48,\n  \"units\": 168,\n  \"estimatedCostUsd\": 0.0021,\n  \"actualCostUsd\": 0.0019,\n  \"costSource\": \"provider\",\n  \"pricingCatalogueVersion\": \"web6-2026-09\"\n}" },
-        "url": "{{web4BaseUrl}}/api/subscription/usage/settle"
-      }
+      "name": "WEB6 reserve → start → settle",
+      "item": [
+        {
+          "name": "Authorize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB6"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB6}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB6\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Authorized', () => pm.response.to.have.status(200));",
+                  "const decision = pm.response.json();",
+                  "pm.expect(decision.allowed).to.equal(true);",
+                  "pm.collectionVariables.set('userId', decision.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay authorization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB6"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB6}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB6\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Same reservation', () => pm.expect(pm.response.json().alreadyAuthorized).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge durable execution start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB6"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB6}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB6\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Started', () => pm.expect(pm.response.json().started).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settle included request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB6"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB6}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB6\",\n  \"provider\": \"WEB6\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB6\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Settled', () => pm.expect(pm.response.json().settled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay identical settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB6"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB6}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB6\",\n  \"provider\": \"WEB6\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB6\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No duplicate charge', () => pm.expect(pm.response.json().alreadySettled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     },
-    { "name": "Current usage", "request": { "method": "GET", "url": "{{web4BaseUrl}}/api/subscription/usage/current" } },
-    { "name": "Usage events", "request": { "method": "GET", "url": "{{web4BaseUrl}}/api/subscription/usage/events?limit=100" } }
+    {
+      "name": "WEB7 reserve → start → settle",
+      "item": [
+        {
+          "name": "Authorize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB7"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB7}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB7\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Authorized', () => pm.response.to.have.status(200));",
+                  "const decision = pm.response.json();",
+                  "pm.expect(decision.allowed).to.equal(true);",
+                  "pm.collectionVariables.set('userId', decision.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay authorization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB7"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB7}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB7\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Same reservation', () => pm.expect(pm.response.json().alreadyAuthorized).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge durable execution start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB7"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB7}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB7\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Started', () => pm.expect(pm.response.json().started).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settle included request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB7"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB7}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB7\",\n  \"provider\": \"WEB7\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB7\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Settled', () => pm.expect(pm.response.json().settled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay identical settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB7"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB7}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB7\",\n  \"provider\": \"WEB7\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB7\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No duplicate charge', () => pm.expect(pm.response.json().alreadySettled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WEB8 reserve → start → settle",
+      "item": [
+        {
+          "name": "Authorize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB8"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB8}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB8\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Authorized', () => pm.response.to.have.status(200));",
+                  "const decision = pm.response.json();",
+                  "pm.expect(decision.allowed).to.equal(true);",
+                  "pm.collectionVariables.set('userId', decision.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay authorization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB8"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB8}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB8\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Same reservation', () => pm.expect(pm.response.json().alreadyAuthorized).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge durable execution start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB8"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB8}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB8\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Started', () => pm.expect(pm.response.json().started).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settle included request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB8"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB8}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB8\",\n  \"provider\": \"WEB8\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB8\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Settled', () => pm.expect(pm.response.json().settled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay identical settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB8"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB8}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB8\",\n  \"provider\": \"WEB8\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB8\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No duplicate charge', () => pm.expect(pm.response.json().alreadySettled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WEB9 reserve → start → settle",
+      "item": [
+        {
+          "name": "Authorize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB9"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB9}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB9\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Authorized', () => pm.response.to.have.status(200));",
+                  "const decision = pm.response.json();",
+                  "pm.expect(decision.allowed).to.equal(true);",
+                  "pm.collectionVariables.set('userId', decision.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay authorization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB9"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB9}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB9\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Same reservation', () => pm.expect(pm.response.json().alreadyAuthorized).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge durable execution start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB9"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB9}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB9\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Started', () => pm.expect(pm.response.json().started).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settle included request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB9"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB9}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB9\",\n  \"provider\": \"WEB9\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB9\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Settled', () => pm.expect(pm.response.json().settled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay identical settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB9"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB9}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB9\",\n  \"provider\": \"WEB9\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB9\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No duplicate charge', () => pm.expect(pm.response.json().alreadySettled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WEB10 reserve → start → settle",
+      "item": [
+        {
+          "name": "Authorize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB10"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB10}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB10\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Authorized', () => pm.response.to.have.status(200));",
+                  "const decision = pm.response.json();",
+                  "pm.expect(decision.allowed).to.equal(true);",
+                  "pm.collectionVariables.set('userId', decision.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay authorization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB10"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB10}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/authorize",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"consumingService\": \"WEB10\",\n  \"endpoint\": \"POST /subscription-postman-test\",\n  \"meterCategory\": \"api.request\",\n  \"requestedUnits\": 1,\n  \"estimatedCostUsd\": 0,\n  \"requestFingerprint\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Same reservation', () => pm.expect(pm.response.json().alreadyAuthorized).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge durable execution start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB10"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB10}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Started', () => pm.expect(pm.response.json().started).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settle included request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB10"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB10}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB10\",\n  \"provider\": \"WEB10\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB10\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Settled', () => pm.expect(pm.response.json().settled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replay identical settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-OASIS-Service",
+                "value": "WEB10"
+              },
+              {
+                "key": "X-OASIS-Service-Key",
+                "value": "{{serviceKeyWEB10}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/settle",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"userId\": \"{{userId}}\",\n  \"consumingService\": \"WEB10\",\n  \"provider\": \"WEB10\",\n  \"model\": null,\n  \"providerRequestId\": \"{{operationId}}\",\n  \"promptTokens\": 0,\n  \"completionTokens\": 0,\n  \"units\": 1,\n  \"actualCostUsd\": 0,\n  \"costSource\": \"service-catalogue\",\n  \"pricingCatalogueVersion\": \"postman-included-request-v1\",\n  \"outcome\": \"succeeded\",\n  \"estimatedCostUsd\": 0,\n  \"providerReceipts\": [\n    {\n      \"provider\": \"WEB10\",\n      \"model\": null,\n      \"providerRequestId\": \"{{operationId}}\",\n      \"promptTokens\": 0,\n      \"completionTokens\": 0,\n      \"units\": 1,\n      \"actualCostUsd\": 0,\n      \"costSource\": \"service-catalogue\",\n      \"pricingCatalogueVersion\": \"postman-included-request-v1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No duplicate charge', () => pm.expect(pm.response.json().alreadySettled).to.equal(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authenticated subscriber reads",
+      "item": [
+        {
+          "name": "Current quotas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/current"
+          }
+        },
+        {
+          "name": "Operation projections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/events?limit=100"
+          }
+        },
+        {
+          "name": "Immutable audit",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/audit?limit=100"
+          }
+        }
+      ]
+    }
   ]
 }
