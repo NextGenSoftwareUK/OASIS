@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 }
 
                 var aggregate = await LoadAggregateAsync(transaction, usageEvent.UserId, usageEvent.AuthorizedAtUtc, ct);
-                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, usageEvent.RequestedUnits, usageEvent.ReservedCostUsd);
+                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate.ToModel(), usageEvent.RequestedUnits, usageEvent.ReservedCostUsd);
 
                 aggregate.MonthlyRequests++;
                 aggregate.DailyCalls++;
@@ -183,9 +183,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             public SubscriptionUsageEvent ToModel() => FromModel(this);
         }
 
-        private sealed class UsageAggregateDocument : SubscriptionUsageAggregate
+        private sealed class UsageAggregateDocument
         {
-            [BsonId] public new string Id { get => base.Id; set => base.Id = value; }
+            [BsonId] public string Id { get; set; }
+            public string UserId { get; set; }
+            public string Month { get; set; }
+            public string Day { get; set; }
+            public long MonthlyRequests { get; set; }
+            public long DailyCalls { get; set; }
+            public long DailyTokens { get; set; }
+            public decimal ReservedCostUsd { get; set; }
+            public decimal SettledCostUsd { get; set; }
+            public DateTime UpdatedAtUtc { get; set; }
+
             public SubscriptionUsageAggregate ToModel() => new()
             {
                 Id=Id, UserId=UserId, Month=Month, Day=Day, MonthlyRequests=MonthlyRequests, DailyCalls=DailyCalls,
