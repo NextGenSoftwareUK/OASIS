@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LoomOASIS
             ProviderDescription = "Loom video messaging platform provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LoomOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ──────────────────────────────────────────────────────────

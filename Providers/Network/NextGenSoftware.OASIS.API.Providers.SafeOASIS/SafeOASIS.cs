@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SafeOASIS
             ProviderDescription = "Gnosis Safe Multisig Wallet Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SafeOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
