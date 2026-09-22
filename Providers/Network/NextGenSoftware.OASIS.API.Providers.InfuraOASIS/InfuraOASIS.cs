@@ -45,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.InfuraOASIS
             ProviderDescription = "Infura Ethereum RPC and IPFS Gateway Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.InfuraOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         private async Task<JsonElement?> JsonRpcAsync(string method, object[] @params)

@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CeramicOASIS
             ProviderDescription = "Ceramic Network decentralised mutable data streams provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CeramicOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
