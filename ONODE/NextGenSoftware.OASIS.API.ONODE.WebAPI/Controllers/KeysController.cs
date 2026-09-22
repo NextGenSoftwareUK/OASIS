@@ -321,6 +321,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-username-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<string> GetAvatarUsernameForProviderUniqueStorageKey(string providerKey)
         {
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. This lookup is restricted to Wizards." };
             return KeyManager.GetAvatarUsernameForProviderUniqueStorageKey(providerKey);
         }
 
@@ -328,6 +330,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-email-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<string> GetAvatarEmailForProviderUniqueStorageKey(string providerKey)
         {
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. This lookup is restricted to Wizards." };
             return KeyManager.GetAvatarEmailForProviderUniqueStorageKey(providerKey);
         }
 
@@ -335,6 +339,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-for-provider-unique-storage-key/{providerKey}")]
         public OASISResult<IAvatar> GetAvatarForProviderUniqueStorageKey(string providerKey)
         {
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar>() { IsError = true, Message = "Unauthorized. This lookup is restricted to Wizards." };
             return KeyManager.GetAvatarForProviderUniqueStorageKey(providerKey);
         }
 
@@ -349,6 +355,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-username-for-provider-public-key/{providerKey}")]
         public OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey)
         {
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. This lookup is restricted to Wizards." };
             return KeyManager.GetAvatarUsernameForProviderPublicKey(providerKey);
         }
 
@@ -356,6 +364,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-email-for-provider-public-key/{providerKey}")]
         public OASISResult<string> GetAvatarEmailForProviderPublicKey(string providerKey)
         {
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized. This lookup is restricted to Wizards." };
             return KeyManager.GetAvatarEmailForProviderPublicKey(providerKey);
         }
 
@@ -363,6 +373,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-for-provider-public-key/{providerKey}")]
         public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey)
         {
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar>() { IsError = true, Message = "Unauthorized. This lookup is restricted to Wizards." };
             return KeyManager.GetAvatarForProviderPublicKey(providerKey);
         }
 
@@ -478,6 +490,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (loadResult.IsError || loadResult.Result == null)
                     return new OASISResult<KeyInfo> { IsError = true, Message = loadResult.IsError ? loadResult.Message : "Key not found." };
                 var holon = loadResult.Result;
+                if (holon.ParentHolonId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return new OASISResult<KeyInfo> { IsError = true, Message = "Unauthorized. You can only update your own keys." };
                 holon.Name = keyRequest.Name;
                 if (holon.MetaData == null) holon.MetaData = new Dictionary<string, object>();
                 holon.MetaData["keyType"] = keyRequest.Type;
@@ -499,6 +513,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
+                var loadResult = await HolonManager.Instance.LoadHolonAsync(keyId);
+                if (loadResult.IsError || loadResult.Result == null)
+                    return new OASISResult<bool> { IsError = true, Message = loadResult.IsError ? loadResult.Message : "Key not found." };
+                if (loadResult.Result.ParentHolonId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                    return new OASISResult<bool> { IsError = true, Message = "Unauthorized. You can only delete your own keys." };
                 var deleteResult = await HolonManager.Instance.DeleteHolonAsync(keyId, AvatarId);
                 if (deleteResult.IsError)
                     return new OASISResult<bool> { IsError = true, Message = deleteResult.Message };
