@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LensV2OASIS
             ProviderDescription = "Lens Protocol v2 social graph provider — profiles and publications as holons";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LensV2OASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

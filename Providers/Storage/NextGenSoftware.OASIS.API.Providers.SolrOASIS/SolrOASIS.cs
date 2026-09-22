@@ -70,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             ProviderDescription = "Apache Solr provider (enterprise search platform via Solr JSON API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolrOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task EnsureCollectionAsync(string collection)

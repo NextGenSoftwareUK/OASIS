@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ValKeyOASIS
             _connectionString = connectionString;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ValKeyOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
