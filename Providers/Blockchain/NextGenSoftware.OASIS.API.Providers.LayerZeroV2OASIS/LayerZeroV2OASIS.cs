@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
             ProviderDescription = "LayerZero V2 Cross-Chain Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LayerZeroV2OASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task<T> GetAsync<T>(string path)

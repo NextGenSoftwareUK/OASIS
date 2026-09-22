@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.deBridgeOASIS
             ProviderDescription = "Chainflip native cross-chain swap provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.deBridgeOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

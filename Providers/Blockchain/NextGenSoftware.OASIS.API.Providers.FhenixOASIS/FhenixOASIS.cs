@@ -61,6 +61,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FhenixOASIS
             ProviderDescription = "Fhenix FHE L2 provider — privacy-preserving on-chain computation";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FhenixOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────
