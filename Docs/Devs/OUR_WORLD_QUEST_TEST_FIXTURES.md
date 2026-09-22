@@ -28,6 +28,10 @@ WEB4 deployment failure, not an entitlement signal. Verify
 `POST /api/subscription/authorize-request` on development WEB4 and deploy the
 Mongo usage-aggregate mapping fix described in
 [WEB4_SUBSCRIPTION_AUTHORITY.md](WEB4_SUBSCRIPTION_AUTHORITY.md) before rerunning.
+The development WEB5 deployment must also set
+`WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one`; otherwise WEB5 uses
+the production default and rejects the development avatar token as an authority
+failure.
 
 Before a fresh manual pass, preview and then apply the scoped reset:
 
