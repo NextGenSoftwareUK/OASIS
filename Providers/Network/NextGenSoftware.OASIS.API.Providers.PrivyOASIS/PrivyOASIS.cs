@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PrivyOASIS
             ProviderDescription = "Privy embedded wallet provider — email/social login to Web3 wallet";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PrivyOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

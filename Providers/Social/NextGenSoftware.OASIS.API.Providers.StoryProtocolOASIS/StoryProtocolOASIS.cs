@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.StoryProtocolOASIS
             ProviderDescription = "Story Protocol IP Asset registry (IP Assets → Holons, IP owners → Avatars, Story Chain EVM)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.StoryProtocolOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

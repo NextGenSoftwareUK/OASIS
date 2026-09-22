@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             this.ProviderDescription = "ActivityPub Provider - Federated social network protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ActivityPubOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _instanceUrl = instanceUrl ?? throw new ArgumentNullException(nameof(instanceUrl));
             _accessToken = accessToken;

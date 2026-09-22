@@ -47,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PgVectorOASIS
             _connectionString = connectionString;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PgVectorOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

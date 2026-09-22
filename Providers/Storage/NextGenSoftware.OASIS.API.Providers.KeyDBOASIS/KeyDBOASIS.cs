@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.KeyDBOASIS
             ProviderDescription = "KeyDB provider (multithreaded Redis-compatible key-value store via StackExchange.Redis)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.KeyDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

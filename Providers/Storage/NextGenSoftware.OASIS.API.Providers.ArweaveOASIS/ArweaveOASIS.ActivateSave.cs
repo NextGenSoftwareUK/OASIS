@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
             this.ProviderDescription = "Arweave Permanent Storage Provider for OASIS";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArweaveOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override OASISResult<bool> ActivateProvider()
