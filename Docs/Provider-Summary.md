@@ -1,45 +1,53 @@
 # OASIS Provider Summary
 
-_229 unique providers across 9 categories — last updated: 2026-09-22_
+_227 unique providers across 9 categories — last updated: 2026-09-22 (category audit)_
 
 > Provider count is derived directly from the `Providers/` directory tree.
-> Three providers (Ceramic, Moralis, Arweave) exist in two category folders each, giving 232 total folder entries.
+> Duplicate folder copies (Ceramic in Blockchain, MoralisDBOASIS in Blockchain, Arweave in Network) have been removed — each provider now lives in exactly one canonical folder.
 
 ---
 
 ## Category Breakdown
 
-| Category | Providers |
-|---|---|
-| AI / Decentralised AI | 3 |
-| Blockchain / L1 / L2 / Cross-chain | 60 |
-| Cloud / Edge / Serverless | 16 |
-| Identity / Privacy / IP | 7 |
-| Maps / Spatial / AR / Gaming | 10 |
-| Network / Social / Web3 API | 48 |
-| Other / Infrastructure | 11 |
-| Social / DAO / Identity (Social folder) | 12 |
-| Storage / Database | 65 |
+`ProviderCategory` enum value shown for each folder. The primary category is the most specific semantic label; providers that also implement `IOASISStorageProvider` or `IOASISNETProvider` are automatically included in storage/network queries regardless of primary category.
 
-**Total unique providers: 229**
+| Folder | `ProviderCategory` | Providers |
+|---|---|---|
+| AI | `AI` (Bittensor, Ritual) · `EVMBlockchain` (Galadriel) | 3 |
+| Blockchain | `EVMBlockchain` (34 EVM chains) · `Blockchain` (24 non-EVM) | 58 |
+| Cloud | `Cloud` | 16 |
+| Identity | `Identity` | 7 |
+| Maps | `Map` (most) · `Spatial` (Decentraland, Ready Player Me, The Sandbox) | 10 |
+| Network | `Network` | 48 |
+| Other | mixed | 11 |
+| Social | `Social` | 12 |
+| Storage | `Storage` (most) · `StorageLocal` (LocalFile, SQLite, DuckDB) | 65 |
+
+**Total unique providers: 227**
 
 ---
 
 ## Full Provider List
 
-### AI / Decentralised AI (3)
+### AI / Decentralised AI (3) — `AI` / `EVMBlockchain`
 
-| Provider | Package | Description |
-|---|---|---|
-| Bittensor | `NextGenSoftware.OASIS.API.Providers.BittensorOASIS` | Bittensor decentralised ML network |
-| Galadriel | `NextGenSoftware.OASIS.API.Providers.GaladrielOASIS` | Galadriel on-chain AI L1 |
-| Ritual | `NextGenSoftware.OASIS.API.Providers.RitualOASIS` | Ritual decentralised AI infrastructure |
+These are AI-network blockchain adapters that expose network data as holons. They are distinct from WEB6 AI inference providers (OpenAI, Anthropic, etc.).
+
+| Provider | Package | Category | Description |
+|---|---|---|---|
+| Bittensor | `NextGenSoftware.OASIS.API.Providers.BittensorOASIS` | `AI` | Bittensor decentralised AI network — reads account/subnet data as holons |
+| Galadriel | `NextGenSoftware.OASIS.API.Providers.GaladrielOASIS` | `EVMBlockchain` | Galadriel EVM chain where smart contracts can call AI models on-chain |
+| Ritual | `NextGenSoftware.OASIS.API.Providers.RitualOASIS` | `AI` | Ritual Infernet — submits decentralised AI compute jobs, reads results as holons |
 
 ---
 
-### Blockchain / L1 / L2 / Cross-chain (60)
+### Blockchain / L1 / L2 / Cross-chain (58) — `EVMBlockchain` / `Blockchain`
 
 Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain tooling.
+
+**EVM-compatible (`EVMBlockchain`, 34):** Abstract, Arbitrum, Avalanche, Base, Basechain, Berachain, BNB Chain, ChainLink, Chainlink Functions, Connext, deBridge, EigenLayer, Espresso Systems, Ethereum, Fantom, Fhenix, Gelato Network, Hyperlane, LayerZero V2, Linea, Monad, OpenZeppelin Defender, Optimism, Polygon, Rootstock, Scroll, Sei, Stargate, Synapse, Telos, TRON, Web3Core, Wormhole, zkSync
+
+**Non-EVM (`Blockchain`, 24):** Algorand, Aptos, Axelar, Aztec, Bitcoin, Stacks, Cardano, Chainflip, Cosmos, EOS, MultiversX, Filecoin, Hashgraph, Miden, NEAR, Polkadot, Radix, Solana, Starknet, Stellar, Sui, TON, XRP, Zcash
 
 | Provider | Package | Description |
 |---|---|---|
@@ -57,7 +65,6 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 | Bitcoin | `NextGenSoftware.OASIS.API.Providers.BitcoinOASIS` | Bitcoin L1 |
 | Stacks (BlockStack) | `NextGenSoftware.OASIS.API.Providers.BlockStackOASIS` | Stacks Bitcoin L2 |
 | Cardano | `NextGenSoftware.OASIS.API.Providers.CardanoOASIS` | Cardano L1 |
-| Ceramic / ComposeDB | `NextGenSoftware.OASIS.API.Providers.CeramicOASIS` | Ceramic / ComposeDB data streaming *(also in Network)* |
 | ChainLink | `NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS` | Chainlink decentralised oracle network |
 | Chainflip | `NextGenSoftware.OASIS.API.Providers.ChainflipOASIS` | Chainflip native cross-chain DEX |
 | Chainlink Functions | `NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS` | Chainlink Functions serverless on-chain compute |
@@ -79,7 +86,6 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 | Linea | `NextGenSoftware.OASIS.API.Providers.LineaOASIS` | Linea zkEVM L2 (Consensys) |
 | Miden | `NextGenSoftware.OASIS.API.Providers.MidenOASIS` | Polygon Miden ZK rollup |
 | Monad | `NextGenSoftware.OASIS.API.Providers.MonadOASIS` | Monad high-performance EVM L1 |
-| Moralis | `NextGenSoftware.OASIS.API.Providers.MoralisOASIS` | Moralis Web3 data API *(also in Network)* |
 | NEAR | `NextGenSoftware.OASIS.API.Providers.NEAROASIS` | NEAR Protocol L1 |
 | OpenZeppelin Defender | `NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS` | OpenZeppelin Defender smart contract security |
 | Optimism | `NextGenSoftware.OASIS.API.Providers.OptimismOASIS` | Optimism L2 (OP Stack) |
@@ -106,7 +112,7 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 
 ---
 
-### Cloud / Edge / Serverless (16)
+### Cloud / Edge / Serverless (16) — `Cloud`
 
 | Provider | Package | Description |
 |---|---|---|
@@ -129,9 +135,9 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 
 ---
 
-### Identity / Privacy / IP (7)
+### Identity / Privacy / IP (7) — `Identity`
 
-> Additional identity providers are in the Network and Social folders (World ID, Lit Protocol, Civic, Reclaim Protocol, etc.)
+> Additional identity-adjacent providers are in the Network and Social folders (World ID, Lit Protocol, Civic, Reclaim Protocol, etc.)
 
 | Provider | Package | Description |
 |---|---|---|
@@ -145,7 +151,7 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 
 ---
 
-### Maps / Spatial / AR / Gaming (10)
+### Maps / Spatial / AR / Gaming (10) — `Map` / `Spatial`
 
 | Provider | Package | Description |
 |---|---|---|
@@ -162,9 +168,9 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 
 ---
 
-### Network / Social / Web3 API (48)
+### Network / Web3 API (48) — `Network`
 
-This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infrastructure, identity scoring, messaging, and social networks not in the Social folder.
+Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scoring, messaging, and social networks not in the dedicated Social folder.
 
 | Provider | Package | Description |
 |---|---|---|
@@ -172,10 +178,10 @@ This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infr
 | Akash | `NextGenSoftware.OASIS.API.Providers.AkashOASIS` | Akash decentralised cloud compute |
 | Alchemy | `NextGenSoftware.OASIS.API.Providers.AlchemyOASIS` | Alchemy Web3 developer platform |
 | Ankr | `NextGenSoftware.OASIS.API.Providers.AnkrOASIS` | Ankr multi-chain RPC & staking |
-| Arweave | `NextGenSoftware.OASIS.API.Providers.ArweaveOASIS` | Arweave permanent storage *(also in Storage)* |
+| Arweave | `NextGenSoftware.OASIS.API.Providers.ArweaveOASIS` | Arweave permanent storage |
 | Blockscout | `NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS` | Blockscout open-source block explorer API |
 | Celestia | `NextGenSoftware.OASIS.API.Providers.CelestiaOASIS` | Celestia modular data availability layer |
-| Ceramic / ComposeDB | `NextGenSoftware.OASIS.API.Providers.CeramicOASIS` | Ceramic / ComposeDB data streams *(also in Blockchain)* |
+| Ceramic / ComposeDB | `NextGenSoftware.OASIS.API.Providers.CeramicOASIS` | Ceramic / ComposeDB data streams |
 | Civic | `NextGenSoftware.OASIS.API.Providers.CivicOASIS` | Civic identity & KYC |
 | Covalent | `NextGenSoftware.OASIS.API.Providers.CovalentOASIS` | Covalent unified multi-chain data API |
 | Dune Analytics | `NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS` | Dune Analytics on-chain SQL queries |
@@ -192,7 +198,7 @@ This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infr
 | Infura | `NextGenSoftware.OASIS.API.Providers.InfuraOASIS` | Infura Ethereum / IPFS infrastructure |
 | LayerZero | `NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS` | LayerZero V1 omnichain messaging |
 | Livepeer | `NextGenSoftware.OASIS.API.Providers.LivepeerOASIS` | Livepeer decentralised video transcoding |
-| Moralis | `NextGenSoftware.OASIS.API.Providers.MoralisOASIS` | Moralis Web3 data API *(also in Blockchain)* |
+| Moralis | `NextGenSoftware.OASIS.API.Providers.MoralisOASIS` | Moralis Web3 data API |
 | Moralis Streams | `NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS` | Moralis Streams real-time blockchain events |
 | NATS JetStream | `NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS` | NATS JetStream high-performance messaging |
 | Nansen | `NextGenSoftware.OASIS.API.Providers.NansenOASIS` | Nansen on-chain analytics & wallet labels |
@@ -218,7 +224,7 @@ This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infr
 
 ---
 
-### Other / Infrastructure (11)
+### Other / Infrastructure (11) — mixed
 
 | Provider | Package | Description |
 |---|---|---|
@@ -236,7 +242,7 @@ This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infr
 
 ---
 
-### Social / DAO / Identity (12)
+### Social / DAO / Identity (12) — `Social`
 
 | Provider | Package | Description |
 |---|---|---|
@@ -255,14 +261,14 @@ This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infr
 
 ---
 
-### Storage / Database (65)
+### Storage / Database (65) — `Storage` / `StorageLocal`
 
 | Provider | Package | Description |
 |---|---|---|
 | Algolia | `NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS` | Algolia hosted search-as-a-service |
 | ArangoDB | `NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS` | ArangoDB multi-model (graph/doc/KV) |
 | ArcadeDB | `NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS` | ArcadeDB multi-model (graph/doc/KV/time-series) |
-| Arweave | `NextGenSoftware.OASIS.API.Providers.ArweaveOASIS` | Arweave permanent on-chain storage *(also in Network)* |
+| Arweave | `NextGenSoftware.OASIS.API.Providers.ArweaveOASIS` | Arweave permanent on-chain storage |
 | BigQuery | `NextGenSoftware.OASIS.API.Providers.BigQueryOASIS` | Google BigQuery serverless analytics |
 | Cassandra | `NextGenSoftware.OASIS.API.Providers.CassandraOASIS` | Apache Cassandra wide-column distributed DB |
 | Chroma | `NextGenSoftware.OASIS.API.Providers.ChromaOASIS` | Chroma AI-native open-source vector DB |
@@ -329,6 +335,7 @@ This folder is broadly scoped and includes P2P protocols, Web3 RPC/indexing infr
 
 ## Change History
 
+> **2026-09-22 (category audit):** ProviderCategory enum assignments corrected across all 229 providers. `Social` added to enum. 12 Social providers updated to `ProviderCategory.Social`. 22 Blockchain, 16 Cloud, 27 Network, 60 Storage providers given correct primary categories. ProviderManager updated to use interface checks (IOASISStorageProvider / IOASISNETProvider) instead of category checks so all providers remain activatable. GaladrielOASIS corrected to `EVMBlockchain`. Duplicate folder copies removed (Ceramic/Blockchain, MoralisDBOASIS/Blockchain, Arweave/Network).
 > **2026-09-22:** Full recount from filesystem — 229 unique providers (232 entries, 3 cross-category). Previous docs incorrectly stated 220.
 > **2026-09-21:** Added COSMOS submodule to Blockchain — updated to 220.
 > **2026-09-20d (+14):** Blockchain ×3 (OpenZeppelin Defender, Gelato, Chainlink Functions), Network ×5 (Covalent, Dune Analytics, Reservoir, Blockscout, Zapper), Spatial ×3 (Ready Player Me, Decentraland, The Sandbox), AI ×3 (Bittensor, Galadriel, Ritual). Previous: 206.
