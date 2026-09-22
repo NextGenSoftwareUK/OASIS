@@ -311,6 +311,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
+            // For non-Wizards, verify ownership of any holon being updated (non-empty Id)
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+            {
+                foreach (var holon in request.Holons.Where(h => h.Id != Guid.Empty))
+                {
+                    var existing = await HolonManager.LoadHolonAsync(holon.Id);
+                    if (existing != null && !existing.IsError && existing.Result != null
+                        && existing.Result.CreatedByAvatarId != AvatarId)
+                        return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                            $"Forbidden. You do not have permission to update holon {holon.Id}.", null, System.Net.HttpStatusCode.Forbidden);
+                }
+            }
+
             try
             {
                 var result = await HolonManager.SaveHolonsAsync(

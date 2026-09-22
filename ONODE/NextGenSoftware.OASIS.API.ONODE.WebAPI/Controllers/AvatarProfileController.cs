@@ -377,6 +377,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-id/{id}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id)
         {
+            if (id != Avatar?.Id && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own UMA data." }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.GetAvatarUmaJsonByIdAsync(id));
         }
 
@@ -392,6 +394,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own UMA data." }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.GetAvatarUmaJsonByUsernameAsync(username));
         }
 
@@ -407,6 +411,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email)
         {
+            if (email != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own UMA data." }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.GetAvatarUmaJsonByEmailAsync(email));
         }
 
