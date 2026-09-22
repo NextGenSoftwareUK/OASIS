@@ -252,7 +252,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
         /// </summary>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpPost("load-all-holons")]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(LoadAllHolonsRequest request)
         {
@@ -289,11 +289,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
                     var holons = Mapper.Convert<IHolon, Holon>(result.Result);
                     var list = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
-                    response.Result.Result = list;
 
-                    // Ensure serialization never sees a lazy enumerable (avoids "Error while copying content to a stream")
-                    if (response.Result?.Result != null && !(response.Result.Result is IList<Holon>))
-                        response.Result.Result = response.Result.Result.ToList();
+                    // Non-Wizards only see their own holons
+                    if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                        list = list.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+
+                    response.Result.Result = list;
 
                     return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
                 }
