@@ -36,6 +36,14 @@ Unauthenticated requests continue to the normal authentication middleware so eac
 
 Set `WEB4_API_BASE_URL` on WEB6-WEB10. WEB5 also accepts its existing `WEB4_OASIS_API_BASE_URL` name during the environment-variable naming migration. The production default is `https://api.web4.oasisomniverse.one`.
 
+For the development WEB5 service, set
+`WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one`. If a bearer token
+receives `AUTHORIZED` from development WEB4 directly but development WEB5 still
+returns `SUBSCRIPTION_AUTHORITY_UNAVAILABLE`, test the same token against
+production WEB4. A matching production-side failure proves that WEB5 is using
+the production default; correct the service variable and redeploy WEB5 rather
+than adding a client or middleware bypass.
+
 WEB6 retains its AI token and provider-cost metering. That data measures model usage and cost; it does not determine the user's OASIS subscription entitlement or monthly cross-service request allowance.
 
 ## Verification
