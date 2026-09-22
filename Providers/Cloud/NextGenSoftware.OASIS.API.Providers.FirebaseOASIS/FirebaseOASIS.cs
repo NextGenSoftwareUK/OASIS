@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             ProviderName = "FirebaseOASIS";
             ProviderDescription = "Google Firebase Realtime Database provider (REST API, JSON documents)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FirebaseOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

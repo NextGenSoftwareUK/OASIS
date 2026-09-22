@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
             ProviderName = "FastlyOASIS";
             ProviderDescription = "Fastly Compute@Edge provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FastlyOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

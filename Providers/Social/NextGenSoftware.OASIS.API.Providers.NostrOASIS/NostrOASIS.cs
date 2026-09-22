@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.WebSockets;
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
             ProviderName = "NostrOASIS";
             ProviderDescription = "Nostr decentralised social protocol provider (WebSocket relay connections)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NostrOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

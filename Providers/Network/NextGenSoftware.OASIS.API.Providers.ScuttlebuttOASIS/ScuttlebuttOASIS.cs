@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS
             this.ProviderName = "ScuttlebuttOASIS";
             this.ProviderDescription = "Scuttlebutt OASIS Provider — offline-first, gossip-protocol P2P social database";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ScuttlebuttOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
 
             _apiBaseUrl = (apiBaseUrl ?? "http://localhost:8008/api/v1").TrimEnd('/');
             _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };

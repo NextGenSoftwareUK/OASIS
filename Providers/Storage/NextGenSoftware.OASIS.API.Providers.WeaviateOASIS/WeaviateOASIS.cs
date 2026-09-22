@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             ProviderName = "WeaviateOASIS";
             ProviderDescription = "Weaviate AI-native vector database provider (REST/GraphQL — semantic search over OASIS holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WeaviateOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
