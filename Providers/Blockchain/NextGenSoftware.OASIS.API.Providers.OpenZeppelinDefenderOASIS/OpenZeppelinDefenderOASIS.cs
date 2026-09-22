@@ -14,6 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS
             ProviderName = "OpenZeppelinDefenderOASIS"; ProviderDescription = "OpenZeppelin Defender smart contract security automation provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OpenZeppelinDefenderOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
         private void SetAuth(string jwtToken) { _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken); }
         private async Task<string> GetJwtAsync()

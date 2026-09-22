@@ -29,7 +29,8 @@
 //            this.ProviderName = "ProviderNameOASIS";
 //            this.ProviderDescription = "ProviderName Provider";
 //            //this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ProviderNameOASIS); //uncomment this line and make sure the enum is set to the correct one for your provider (you will need to add your provider to the enum list).
-//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage); // Choose the most specific category for your provider
+//            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network)); // Add secondary capabilities your provider also supports
 //        }
 
 //        #region IOASISStorageProvider Implementation
