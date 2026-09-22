@@ -36,10 +36,24 @@ namespace NextGenSoftware.OASIS.Web8.Core.Managers
         public GalacticMeshManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null)
             : base(OASISStorageProvider, avatarId, OASISDNA) { }
 
+        public async Task<OASISResult<GalacticNode>> GetNodeAsync(Guid nodeId)
+        {
+            OASISResult<GalacticNode> result = new OASISResult<GalacticNode>();
+            OASISResult<IHolon> loadResult = await Data.LoadHolonAsync(nodeId, false);
+            if (loadResult.IsError || loadResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Node {nodeId} not found.");
+                return result;
+            }
+            result.Result = ReadNodeFromMetaData(loadResult.Result).node;
+            return result;
+        }
+
         public async Task<OASISResult<GalacticNode>> RegisterNodeAsync(GalacticNode node)
         {
             OASISResult<GalacticNode> result = new OASISResult<GalacticNode>();
 
+            node.OwnerAvatarId = AvatarId;
             Holon holon = new Holon(HolonType.GalacticNode) { Name = node.Name, Description = $"WEB8 mesh node ({node.Type})." };
             WriteNodeToMetaData(holon, node, new Dictionary<Guid, double>());
 
@@ -320,6 +334,7 @@ namespace NextGenSoftware.OASIS.Web8.Core.Managers
             holon.MetaData["Type"] = node.Type.ToString();
             holon.MetaData["EndpointUrl"] = node.EndpointUrl;
             holon.MetaData["IsSovereign"] = node.IsSovereign;
+            holon.MetaData["OwnerAvatarId"] = node.OwnerAvatarId.ToString();
             holon.MetaData["RegisteredUtc"] = node.RegisteredUtc.ToString("o");
             holon.MetaData["LastSeenUtc"] = node.LastSeenUtc.ToString("o");
             holon.MetaData["Adjacency"] = JsonSerializer.Serialize(adjacency.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value));
@@ -333,6 +348,7 @@ namespace NextGenSoftware.OASIS.Web8.Core.Managers
                 Name = holon.MetaData.TryGetValue("Name", out object n) ? n?.ToString() : holon.Name,
                 EndpointUrl = holon.MetaData.TryGetValue("EndpointUrl", out object e) ? e?.ToString() : null,
                 IsSovereign = holon.MetaData.TryGetValue("IsSovereign", out object s) && s != null && Convert.ToBoolean(s),
+                OwnerAvatarId = holon.MetaData.TryGetValue("OwnerAvatarId", out object o) && Guid.TryParse(o?.ToString(), out Guid oid) ? oid : Guid.Empty,
                 RegisteredUtc = holon.MetaData.TryGetValue("RegisteredUtc", out object r) && r != null && DateTime.TryParse(r.ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime rd) ? rd : DateTime.UtcNow,
                 LastSeenUtc = holon.MetaData.TryGetValue("LastSeenUtc", out object l) && l != null && DateTime.TryParse(l.ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime ld) ? ld : DateTime.UtcNow
             };
