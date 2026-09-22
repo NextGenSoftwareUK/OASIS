@@ -18,7 +18,7 @@ Enterprise provisioning must update WEB4's authoritative subscription through a 
 
 ## Configuration and verification
 
-`WEB4_API_BASE_URL`, a distinct per-service credential, a durable Mongo outbox and an explicit OTLP collector endpoint are required on each consumer. WEB4 requires its transaction-capable ledger store and service keys. There is no implicit production URL or local quota fallback. WEB6 additionally requires a reviewed versioned price catalogue.
+`WEB4_API_BASE_URL` and a distinct per-service credential are required on each consumer. Durable Mongo outboxes reuse the deployed OASIS DNA connection and an explicit OTLP collector endpoint is required when telemetry export is enabled. WEB4 requires its transaction-capable ledger store and service keys. There is no implicit production URL or local quota fallback. WEB6 uses its existing reviewed, versioned `ModelCatalogueManager` prices.
 
 For development WEB5, configure `WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one`. A successful direct development WEB4 authorization paired with WEB5 `SUBSCRIPTION_AUTHORITY_UNAVAILABLE` requires checking WEB5's deployed authority URL and credentials. Correct its configuration and redeploy; do not bypass WEB4 in the client, middleware or quest seeder. The former production-default URL diagnosis applies to old consumers; this protocol requires the URL explicitly. Use the isolated-subscriber live runner for a complete authorize/start/settle diagnostic.
 
