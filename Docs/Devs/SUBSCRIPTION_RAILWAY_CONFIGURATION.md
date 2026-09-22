@@ -65,11 +65,9 @@ Add `WEB4_API_BASE_URL` to WEB5, WEB6, WEB7, WEB8, WEB9 and WEB10. Use the HTTPS
 
 This tells each consuming service where to reserve and settle usage. Staging services must point to staging WEB4; production services must point to production WEB4.
 
-### 3. WEB6 price catalogue
+### 3. WEB6 prices
 
-Add `WEB6_USAGE_PRICE_CATALOGUE_JSON` to WEB6 before enabling billable AI endpoints. It contains the reviewed provider/model rates and maximum reservation bounds. The format and supported provider families are documented in [`WEB6/docs/SUBSCRIPTION_USAGE_PROTOCOL.md`](../../WEB6/docs/SUBSCRIPTION_USAGE_PROTOCOL.md).
-
-This is separate from the Stripe subscription plan prices. Stripe price IDs charge the customer for a plan; the WEB6 catalogue accounts for measured AI-provider usage.
+No Railway price variable is required. WEB6 already stores its provider/model prices in `ModelCatalogueManager`; subscription metering now uses that same versioned catalogue and derives safe request reservations from it. The catalogue is separate from Stripe plan prices: Stripe charges the customer for a plan, while WEB6 accounts for measured AI-provider usage.
 
 ### 4. First launch only
 
@@ -98,7 +96,7 @@ These are useful when their corresponding feature is enabled, but they are not r
 ## Deployment check
 
 1. Confirm `OASIS_DNA_JSON` contains the intended MongoDB value and the existing Stripe shared variables target the intended environment, without printing their values in logs.
-2. Add the six paired service credentials, `WEB4_API_BASE_URL`, the reviewed WEB6 catalogue and the one-time empty-installation setting.
+2. Add the six paired service credentials, `WEB4_API_BASE_URL` and the one-time empty-installation setting.
 3. Deploy WEB4 first, followed by WEB5–WEB10.
 4. Run one test subscription and one request through each enabled service using stable idempotency keys.
 5. Verify one WEB4 authorization, one settlement, one immutable audit trail and one outbox completion for each request.
