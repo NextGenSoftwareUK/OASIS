@@ -40,6 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TheGraphOASIS
             ProviderDescription = "The Graph subgraph provider (GraphQL entities → Holons, indexers → Avatars)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TheGraphOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

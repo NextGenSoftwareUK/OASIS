@@ -58,6 +58,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             ProviderDescription = "PocketBase provider (self-hosted open-source backend REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PocketBaseOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Auth ─────────────────────────────────────────────────────────────────

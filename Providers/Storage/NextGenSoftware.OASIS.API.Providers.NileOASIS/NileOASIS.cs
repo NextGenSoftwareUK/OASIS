@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NileOASIS
             ProviderDescription = "Nile Serverless Postgres Multi-Tenant SaaS Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NileOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private NpgsqlConnection OpenConnection() => new NpgsqlConnection(_connectionString);

@@ -61,6 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             ProviderDescription = "Qdrant vector database provider (REST API — semantic search over OASIS holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.QdrantOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

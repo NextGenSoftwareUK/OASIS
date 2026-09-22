@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,6 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             ProviderDescription = "NATS JetStream High-Throughput Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NATSJetStreamOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

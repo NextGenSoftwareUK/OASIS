@@ -60,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS
             ProviderDescription = "Redis provider (high-performance in-memory key-value store via StackExchange.Redis)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RedisOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

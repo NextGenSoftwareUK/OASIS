@@ -136,6 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderDescription = "Holochain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             DataHelper.UseReflection = this.UseHoloNETORMReflection;
             _avatarRepository = new AvatarRepository();

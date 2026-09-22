@@ -53,6 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             ProviderDescription = "RavenDB provider (native .NET document database via RavenDB.Client SDK)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RavenDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private IDocumentStore GetStore()

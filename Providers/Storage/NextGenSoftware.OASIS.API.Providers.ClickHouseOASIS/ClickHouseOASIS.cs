@@ -58,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS
             ProviderDescription = "ClickHouse provider (columnar OLAP database via ClickHouse.Client ADO.NET driver)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ClickHouseOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private ClickHouseConnection OpenConnection()

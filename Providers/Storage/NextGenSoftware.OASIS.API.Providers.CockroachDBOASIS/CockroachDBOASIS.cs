@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS
             ProviderDescription = "CockroachDB provider (distributed SQL via Npgsql ADO.NET)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CockroachDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private NpgsqlConnection Open() { var conn = new NpgsqlConnection(_connectionString); conn.Open(); return conn; }

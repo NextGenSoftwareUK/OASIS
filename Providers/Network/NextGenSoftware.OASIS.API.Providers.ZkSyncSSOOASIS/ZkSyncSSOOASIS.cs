@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZkSyncSSOOASIS
             ProviderDescription = "ZKsync SSO provider — passkey smart accounts on ZKsync Era";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ZkSyncSSOOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

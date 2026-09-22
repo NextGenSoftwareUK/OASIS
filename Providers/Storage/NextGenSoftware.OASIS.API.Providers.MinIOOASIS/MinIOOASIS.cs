@@ -73,6 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
             ProviderDescription = "MinIO provider (S3-compatible object storage via AWSSDK.S3)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MinIOOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);

@@ -1,4 +1,4 @@
-using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;
+﻿using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -31,6 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ReservoirOASIS
             ProviderDescription = "Reservoir NFT data and trading API provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ReservoirOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         private async Task<JObject> GetAsync(string path)

@@ -62,6 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             ProviderDescription = "Elasticsearch / OpenSearch provider (REST API — full-text search and analytics over OASIS holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElasticsearchOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

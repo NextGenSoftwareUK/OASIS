@@ -59,6 +59,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
             ProviderDescription = "Cloudflare Workers KV provider (Cloudflare REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CloudflareOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
