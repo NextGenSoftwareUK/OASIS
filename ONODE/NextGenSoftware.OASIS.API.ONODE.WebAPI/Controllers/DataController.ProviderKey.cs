@@ -77,7 +77,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey,
             string holonType = "All", bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
-            string childHolonType = "All", int version = 0)
+            string childHolonType = "All", int version = 0,
+            bool searchOnlyForCurrentAvatar = true, bool includePublic = true)
         {
             var response = new OASISHttpResponseMessage<IEnumerable<Holon>>();
             OASISHttpResponseMessage<IEnumerable<Holon>> validatedResponse;
@@ -98,7 +99,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
 
                 if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                {
+                    if (searchOnlyForCurrentAvatar)
+                        holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+                    else if (includePublic)
+                        holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                    else
+                        return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                            "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
+                }
 
                 response.Result.Result = holons;
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
@@ -114,11 +123,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("load-holons-for-parent-by-providerkey/{providerKey}/{holonType}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey, string holonType)
+        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey, string holonType,
+            bool searchOnlyForCurrentAvatar = true, bool includePublic = true)
         {
             return await LoadHolonsForParentByProviderKey(providerKey, holonType,
                 loadChildren: true, recursive: true, maxChildDepth: 0, continueOnError: true,
-                loadChildrenFromProvider: false, childHolonType: "All", version: 0);
+                loadChildrenFromProvider: false, childHolonType: "All", version: 0,
+                searchOnlyForCurrentAvatar: searchOnlyForCurrentAvatar, includePublic: includePublic);
         }
 
 
