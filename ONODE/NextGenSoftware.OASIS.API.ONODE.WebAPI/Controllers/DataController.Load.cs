@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 {
                     // Cap recursive depth to prevent full-tree loads from exhausting process memory
                 int safeMaxChildDepth = request.MaxChildDepth > 0 ? Math.Min(request.MaxChildDepth, 5) : 0;
-                result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
 
                     ResetOASISSettings(request, configResult);
 
@@ -289,19 +289,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
                     var holons = Mapper.Convert<IHolon, Holon>(result.Result);
                     var list = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
-
-                    // Avatar/visibility filter (Wizards bypass all filtering)
-                    if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    {
-                        if (request.SearchOnlyForCurrentAvatar)
-                            list = list.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
-                        else if (request.IncludePublic)
-                            list = list.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
-                        else
-                            return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
-                                "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
-                    }
-
                     response.Result.Result = list;
 
                     return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
@@ -539,23 +526,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //    return new OASISResult<IEnumerable<Holon>>() { IsError = true, Message = $"The FromProviderType is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-          OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, 0, childHolonType, request.Version);
+          OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, 0, childHolonType, request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
 
           OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
           var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
-
-          // Avatar/visibility filter (Wizards bypass all filtering)
-          if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
-          {
-              if (request.SearchOnlyForCurrentAvatar)
-                  holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
-              else if (request.IncludePublic)
-                  holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
-              else
-                  return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
-                      "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
-          }
-
           response.Result.Result = holons;
           ResetOASISSettings(request, configResult);
 
