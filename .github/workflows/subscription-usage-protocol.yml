@@ -49,6 +49,7 @@ jobs:
         run: |
           python3 Scripts/validate_web4_subscription_authority.py
           python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          python3 Scripts/validate_subscription_rollout_gate.py
           pwsh -File Scripts/validate_web6_web4_metering_cutover.ps1
       - name: WEB4 transactions, ownership, migration and failure injection
         run: dotnet test ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj -m:1 --logger trx --results-directory TestResults/authority
