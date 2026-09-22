@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GaladrielOASIS
             _http.DefaultRequestHeaders.Add("Content-Type", "application/json");
             ProviderName = "GaladrielOASIS"; ProviderDescription = "Galadriel EVM-compatible AI blockchain node provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.GaladrielOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.AI);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
         }
         private async Task<JObject> RpcAsync(string method, object[] parms = null)
         {
