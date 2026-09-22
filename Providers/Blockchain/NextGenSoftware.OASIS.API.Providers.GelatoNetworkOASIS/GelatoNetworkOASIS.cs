@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GelatoNetworkOASIS
             ProviderName = "GelatoNetworkOASIS"; ProviderDescription = "Gelato Network smart contract automation and relay provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.GelatoNetworkOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
         private async Task<JObject> GetAsync(string path) { var r = await _http.GetAsync(path); r.EnsureSuccessStatusCode(); return JObject.Parse(await r.Content.ReadAsStringAsync()); }
         private async Task<JObject> PostAsync(string path, object body) { var resp = await _http.PostAsync(path, new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")); resp.EnsureSuccessStatusCode(); return JObject.Parse(await resp.Content.ReadAsStringAsync()); }

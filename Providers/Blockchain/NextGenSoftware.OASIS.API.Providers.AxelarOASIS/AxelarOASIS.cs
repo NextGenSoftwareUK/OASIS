@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -57,6 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AxelarOASIS
             ProviderDescription = "Axelar general-purpose cross-chain messaging provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AxelarOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

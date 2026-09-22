@@ -21,6 +21,9 @@ public sealed class TONOASIS : Web3CoreOASISBaseProvider,
         ProviderDescription = "TON EVM provider";
         ProviderType = new(Core.Enums.ProviderType.TONOASIS);
         ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 }
 
