@@ -37,8 +37,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LivepeerOASIS
             ProviderDescription = "Livepeer Decentralised Video Transcoding Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LivepeerOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
