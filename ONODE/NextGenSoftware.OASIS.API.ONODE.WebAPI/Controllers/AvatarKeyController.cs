@@ -32,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (!TryParseAvatarId(p?.AvatarID, out var avatarId, out var err))
                 return HttpResponseHelper.FormatResponse(new OASISResult<IProviderWallet> { IsError = true, Message = err }, HttpStatusCode.BadRequest);
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." }, HttpStatusCode.Unauthorized);
             if (!TryParseProviderType(p.ProviderType, out var providerType, out err))
                 return HttpResponseHelper.FormatResponse(new OASISResult<IProviderWallet> { IsError = true, Message = err }, HttpStatusCode.BadRequest);
 
@@ -50,6 +52,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (string.IsNullOrWhiteSpace(p?.AvatarUsername))
                 return HttpResponseHelper.FormatResponse(new OASISResult<IProviderWallet> { IsError = true, Message = "AvatarUsername is required." }, HttpStatusCode.BadRequest);
+            if (p.AvatarUsername != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only manage keys for your own avatar." }, HttpStatusCode.Unauthorized);
             if (!TryParseProviderType(p.ProviderType, out var providerType, out var err))
                 return HttpResponseHelper.FormatResponse(new OASISResult<IProviderWallet> { IsError = true, Message = err }, HttpStatusCode.BadRequest);
 
@@ -79,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public OASISHttpResponseMessage<string> GetProviderStorageKeyById(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." }, HttpStatusCode.Unauthorized);
             var result = Keys.GetProviderUniqueStorageKeyForAvatarById(avatarId, providerType);
             return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
         }
@@ -92,6 +98,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public OASISHttpResponseMessage<string> GetProviderStorageKeyByUsername(string username, ProviderType providerType = ProviderType.Default)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." }, HttpStatusCode.Unauthorized);
             var result = Keys.GetProviderUniqueStorageKeyForAvatarByUsername(username, providerType);
             return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
         }
@@ -105,6 +113,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public OASISHttpResponseMessage<List<string>> GetProviderPublicKeysById(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." }, HttpStatusCode.Unauthorized);
             var result = Keys.GetProviderPublicKeysForAvatarById(avatarId, providerType);
             return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
         }
@@ -118,6 +128,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public OASISHttpResponseMessage<List<string>> GetProviderPublicKeysByUsername(string username, ProviderType providerType = ProviderType.Default)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." }, HttpStatusCode.Unauthorized);
             var result = Keys.GetProviderPublicKeysForAvatarByUsername(username, providerType);
             return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
         }
@@ -131,6 +143,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public OASISHttpResponseMessage<List<string>> GetProviderPrivateKeysById(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." }, HttpStatusCode.Unauthorized);
             var result = Keys.GetProviderPrivateKeysForAvatarById(avatarId, providerType);
             return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
         }
@@ -144,6 +158,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public OASISHttpResponseMessage<List<string>> GetProviderPrivateKeysByUsername(string username, ProviderType providerType = ProviderType.Default)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access keys for your own avatar." }, HttpStatusCode.Unauthorized);
             var result = Keys.GetProviderPrivateKeysForAvatarByUsername(username, providerType);
             return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
         }

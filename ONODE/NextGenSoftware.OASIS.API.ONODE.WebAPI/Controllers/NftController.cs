@@ -245,6 +245,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-nfts-for-avatar/{avatarId}")]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IWeb4NFT>>() { IsError = true, Message = "Unauthorized. You can only access your own NFTs." };
             return await NFTManager.LoadAllWeb4NFTsForAvatarAsync(avatarId);
         }
 
@@ -279,6 +281,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-geo-nfts-for-avatar/{avatarId}")]
         public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> LoadAllWeb4GeoNFTsForAvatarAsync(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>() { IsError = true, Message = "Unauthorized. You can only access your own NFTs." };
             return await NFTManager.LoadAllWeb4GeoNFTsForAvatarAsync(avatarId);
         }
 
@@ -735,6 +739,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTFromFileAsync(Guid importedByAvatarId, string fullPathToOASISNFTJsonFile, ProviderType providerType = ProviderType.Default)
         {
+            if (importedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "Unauthorized. You can only import NFTs for your own avatar." };
             return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, fullPathToOASISNFTJsonFile, providerType, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -752,6 +758,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] IWeb4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
         {
+            if (importedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "Unauthorized. You can only import NFTs for your own avatar." };
             return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, oasisNFT, providerType, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -837,6 +845,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb3NFT>>> LoadAllWeb3NFTsForAvatarAsync(Guid avatarId, Guid parentWeb4NFTId = default, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IWeb3NFT>>() { IsError = true, Message = "Unauthorized. You can only access your own NFTs." };
             return await NFTManager.LoadAllWeb3NFTsForAvatarAsync(avatarId, parentWeb4NFTId, providerType);
         }
 
@@ -1088,6 +1098,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IWeb4NFT>>() { IsError = true, Message = "Unauthorized. You can only search your own NFTs." };
             return await NFTManager.SearchWeb4NFTsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
         }
 
@@ -1106,6 +1118,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>() { IsError = true, Message = "Unauthorized. You can only search your own NFTs." };
             return await NFTManager.SearchWeb4GeoNFTsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
         }
 
@@ -1124,6 +1138,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IWeb4NFTCollection>>() { IsError = true, Message = "Unauthorized. You can only search your own NFT collections." };
             return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
         }
     }
