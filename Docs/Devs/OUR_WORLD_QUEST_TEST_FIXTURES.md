@@ -14,6 +14,32 @@ Seed or reconcile the development fixtures:
 ./Scripts/seed_our_world_quest_test_matrix.ps1
 ```
 
+Seed the complete GeoHotSpot trigger/reward/policy matrix after the GeoNFT
+fixtures exist:
+
+```powershell
+./Scripts/seed_our_world_geohotspot_quest_matrix.ps1
+```
+
+This seeder is resumable: it verifies IDs saved in
+`%LOCALAPPDATA%/OASIS/our-world-geohotspot-quest-matrix.json` and continues from
+the first missing fixture. A `SUBSCRIPTION_AUTHORITY_UNAVAILABLE` response is a
+WEB4 deployment failure, not an entitlement signal. Verify
+`POST /api/subscription/authorize-request` on development WEB4 and deploy the
+Mongo usage-aggregate mapping fix described in
+[WEB4_SUBSCRIPTION_AUTHORITY.md](WEB4_SUBSCRIPTION_AUTHORITY.md) before rerunning.
+
+Before a fresh manual pass, preview and then apply the scoped reset:
+
+```powershell
+./Scripts/reset_our_world_test_progress.ps1
+./Scripts/reset_our_world_test_progress.ps1 -Apply
+```
+
+It removes tagged test inventory and collection history, resets matching quest
+progress, clears the matrix hotspots' trigger journals, preserves unrelated
+inventory, and verifies the resulting zero-progress state.
+
 ## Quest modes
 
 | Quest | Mode | Expected portal behavior |
@@ -53,5 +79,12 @@ objective ordering modes. The automated 1,536-case Cartesian policy suite remain
 the exhaustive verification for redundant numeric combinations and boundary times.
 The two zero-limit fixtures are intentionally excluded from quests because including
 an ineligible objective would make that quest impossible to complete.
+
+The full local runner last passed on 2026-09-22 with seven executed stages and
+no failures: WEB5 Release build, focused GeoHotSpot contracts, the 1,536-case
+policy matrix, SQLite persistence, Unity EditMode runtime behavior, two-avatar /
+two-replica concurrency, and interruption/replay recovery. Configured live
+MongoDB/Neo4j profiles and physical-device acceptance remain explicit external
+stages and must not be inferred from the local result.
 
 This suite does not edit or reset Anorak. Collection history is persistent, so use isolated avatars when testing multiplayer and global/exclusive limits. The complete policy and manual acceptance matrix remains in [GEONFT_COLLECTION_TEST_MATRIX.md](GEONFT_COLLECTION_TEST_MATRIX.md).
