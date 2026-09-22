@@ -22,12 +22,11 @@ See the [dated validation record](WEB4_SUBSCRIPTION_USAGE_VALIDATION.md) for the
 | SUBSCRIPTION_MIGRATION_APPROVAL_KEY | WEB4 and offline manifest signer | Required only when importing existing accounting state; at least 32 bytes and never given to consuming services |
 | SUBSCRIPTION_OTLP_METRICS_ENDPOINT | WEB4–WEB10 | Full operator-controlled HTTPS HTTP/protobuf metrics endpoint, e.g. collector /v1/metrics; HTTP only for loopback |
 | SUBSCRIPTION_OTLP_HEADERS | WEB4–WEB10 | Optional collector authentication headers, supplied as deployment secrets |
-| WEB6_USAGE_PRICE_CATALOGUE_JSON | WEB6 | Reviewed versioned provider/model rates plus input/output/fan-out reservation bounds |
 | STRIPE_SECRET_KEY | WEB4 reconciliation | Optional protected override; otherwise reuses `OASIS.SubscriptionConfig.Stripe.SecretKey` |
 
 The telemetry exporter sends only the registered subscription meters. Accounting identity/operation IDs belong in restricted logs and audit queries, not high-cardinality metric labels. Configure the collector and alert routing before opening paid traffic. [Collector example](../../Docker/monitoring/subscription-otel-collector.yaml) and [Prometheus rules](../../Docker/monitoring/subscription-alerts.yaml) are checked-in operational assets; set their protected listening interfaces for your environment.
 
-No production rates are invented by this repository. WEB6's catalogue validates uniqueness, nonnegative decimal rates and that ReservationUsd covers every permitted provider call at the configured input/output limits. Unit/media adapters also require their reviewed rates and supported receipt contracts. The service's exact configuration model is `WEB6/...WebAPI/Services/Web6UsagePricing.cs`. Pin the catalogue version to the provider contract and retain old versions for audit.
+WEB6 subscription accounting reuses the existing provider-aware rates in `ModelCatalogueManager`; Railway does not carry a second copy. `Web6UsagePricing` validates uniqueness and nonnegative decimal rates, derives a reservation that covers every permitted provider call at the configured input/output limits, and persists `ModelCatalogueManager.CatalogueVersion`. Bump that version with every rate change and retain old versions for audit. Unit/media adapters still require reviewed rates and supported receipt contracts before their execution gates can be removed.
 
 ### MongoDB deployment layout
 
@@ -96,7 +95,7 @@ To test actual service endpoints, supply `--service-cases approved-staging-cases
 [{"service":"WEB6","baseUrlEnvironment":"WEB6_TEST_BASE_URL","method":"POST","path":"/v1/chat/completions","body":{"model":"YOUR_APPROVED_TEST_MODEL","messages":[{"role":"user","content":"Reply with OK"}],"max_tokens":8},"expectedStatus":200}]
 ```
 
-The example is one entry, not a complete all-service manifest. Select valid test resources for the other five services. The runner requires an operation ID response and rejects duplicate provider execution on replay. It explicitly reports when endpoint tests were not requested. Provider credentials and a reviewed test price catalogue are required for paid endpoint cases.
+The example is one entry, not a complete all-service manifest. Select valid test resources for the other five services. The runner requires an operation ID response and rejects duplicate provider execution on replay. It explicitly reports when endpoint tests were not requested. Provider credentials are required for paid endpoint cases; pricing comes from the versioned WEB6 model catalogue.
 
 ## Required provider and failure-injection matrix
 
