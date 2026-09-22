@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DiscordOASIS
             ProviderDescription = "Discord REST API v10 provider (guild members → Avatars, messages/channels → Holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DiscordOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Helpers ──────────────────────────────────────────────────────────────

@@ -35,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AkashOASIS
             ProviderDescription = "Akash Network Decentralised Cloud Compute Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AkashOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

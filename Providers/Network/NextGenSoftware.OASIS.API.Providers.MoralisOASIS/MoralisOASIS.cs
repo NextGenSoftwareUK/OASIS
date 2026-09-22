@@ -41,8 +41,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             ProviderDescription = "Moralis Web3 Data API Provider — NFTs, tokens, and transactions across EVM chains";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MoralisOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

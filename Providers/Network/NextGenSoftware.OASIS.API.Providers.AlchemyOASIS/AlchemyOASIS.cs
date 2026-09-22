@@ -39,8 +39,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlchemyOASIS
             ProviderDescription = "Alchemy Ethereum RPC Gateway and NFT API Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AlchemyOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task<JsonElement?> JsonRpcAsync(string method, object[] @params)
