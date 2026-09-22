@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SubscriptionReconciliation;
 
@@ -58,8 +59,8 @@ public sealed class StripeUsageEvidenceReader
 
     private async Task<HttpResponseMessage> GetAsync(string path, CancellationToken ct)
     {
-        string key = _configuration["STRIPE_SECRET_KEY"];
-        if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("STRIPE_SECRET_KEY is required for Stripe reconciliation.");
+        string key = SubscriptionStripeConfiguration.SecretKey(_configuration);
+        if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("Stripe SecretKey is required in OASIS DNA or STRIPE_SECRET_KEY for reconciliation.");
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.stripe.com/v1/" + path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
         request.Headers.Add("Stripe-Version", "2025-02-24.acacia");

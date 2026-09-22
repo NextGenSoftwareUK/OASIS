@@ -271,9 +271,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             try
             {
-                var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
-                    ?? _configuration["STRIPE_SECRET_KEY"]
-                    ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.SecretKey;
+                var secretKey = OASISSub.SubscriptionStripeConfiguration.SecretKey(_configuration);
                 if (string.IsNullOrWhiteSpace(secretKey))
                     return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
@@ -330,9 +328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             using (var reader = new System.IO.StreamReader(Request.Body))
                 body = await reader.ReadToEndAsync();
 
-            var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
-                ?? _configuration["STRIPE_WEBHOOK_SECRET"]
-                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.WebhookSecret;
+            var webhookSecret = OASISSub.SubscriptionStripeConfiguration.WebhookSecret(_configuration);
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Webhook secret not configured.");
 
@@ -426,8 +422,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private IStripeClient StripeClient()
         {
-            string secret = _configuration["STRIPE_SECRET_KEY"] ?? Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
-                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.SecretKey;
+            string secret = OASISSub.SubscriptionStripeConfiguration.SecretKey(_configuration);
             if (string.IsNullOrWhiteSpace(secret)) throw new InvalidOperationException("STRIPE_SECRET_KEY is required to read canonical subscription state.");
             return new StripeClient(secret);
         }
@@ -725,15 +720,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         private string GetStripePriceId(string planId)
         {
-            var stripe = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe;
-            return planId.ToLower() switch
-            {
-                "bronze"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_BRONZE")     ?? _configuration["STRIPE_PRICE_BRONZE"]     ?? stripe?.PriceBronze,
-                "silver"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_SILVER")     ?? _configuration["STRIPE_PRICE_SILVER"]     ?? stripe?.PriceSilver,
-                "gold"       => Environment.GetEnvironmentVariable("STRIPE_PRICE_GOLD")       ?? _configuration["STRIPE_PRICE_GOLD"]       ?? stripe?.PriceGold,
-                "enterprise" => Environment.GetEnvironmentVariable("STRIPE_PRICE_ENTERPRISE") ?? _configuration["STRIPE_PRICE_ENTERPRISE"] ?? stripe?.PriceEnterprise,
-                _            => null
-            };
+            return OASISSub.SubscriptionStripeConfiguration.PriceId(_configuration, planId);
         }
 
         // ── OLD: auto-create Stripe Products/Prices on first checkout ──────────
