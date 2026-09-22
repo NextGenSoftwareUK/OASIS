@@ -322,6 +322,50 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type), loadChildrenFromProvider));
         }
 
+        async Task<OASISResult<IEnumerable<IHolon>>> IOASISStorageProvider.LoadAllHolonsAsync(Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync(avatarId, includePublic, type), loadChildrenFromProvider));
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISStorageProvider.LoadAllHolons(Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(avatarId, includePublic, type), loadChildrenFromProvider));
+        }
+
+        async Task<OASISResult<IEnumerable<IHolon>>> IOASISStorageProvider.LoadHolonsForParentAsync(Guid id, Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(id, avatarId, includePublic, type), loadChildrenFromProvider));
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISStorageProvider.LoadHolonsForParent(Guid id, Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, avatarId, includePublic, type), loadChildrenFromProvider));
+        }
+
+        async Task<OASISResult<IEnumerable<IHolon>>> IOASISStorageProvider.LoadHolonsByMetaDataAsync(string metaKey, string metaValue, Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            var repoResult = await _holonRepository.GetHolonsByMetaDataAsync(metaKey, metaValue, avatarId, includePublic, type);
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider));
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISStorageProvider.LoadHolonsByMetaData(string metaKey, string metaValue, Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            var repoResult = _holonRepository.GetHolonsByMetaData(metaKey, metaValue, avatarId, includePublic, type);
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider));
+        }
+
+        async Task<OASISResult<IEnumerable<IHolon>>> IOASISStorageProvider.LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            var repoResult = await _holonRepository.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, avatarId, includePublic, type);
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider));
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISStorageProvider.LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, Guid avatarId, bool includePublic, HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, bool continueOnError, bool loadChildrenFromProvider, int version)
+        {
+            var repoResult = _holonRepository.GetHolonsByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, avatarId, includePublic, type);
+            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider));
+        }
+
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             // Holon.Id is the public, provider-independent OASIS identity. MongoDB's ObjectId is

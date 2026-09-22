@@ -329,6 +329,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
+        public IEnumerable<Holon> GetAllHolons(Guid avatarId, bool includePublic, HolonType holonType = HolonType.All)
+        {
+            var filter = Builders<Holon>.Filter.And(
+                BuildHolonTypeFilter(holonType),
+                BuildVisibilityFilter(avatarId, includePublic));
+            return _dbContext.Holon.Find(filter).ToList();
+        }
+
+        public async Task<IEnumerable<Holon>> GetAllHolonsAsync(Guid avatarId, bool includePublic, HolonType holonType = HolonType.All)
+        {
+            var filter = Builders<Holon>.Filter.And(
+                BuildHolonTypeFilter(holonType),
+                BuildVisibilityFilter(avatarId, includePublic));
+            return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
+        }
+
         public async Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType)
         {
             try
@@ -351,6 +367,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 throw;
             }
+        }
+
+        public IEnumerable<Holon> GetAllHolonsForParent(Guid id, Guid avatarId, bool includePublic, HolonType holonType)
+        {
+            var filter = Builders<Holon>.Filter.And(
+                BuildFilterForGetHolonsForParent(id, holonType),
+                BuildVisibilityFilter(avatarId, includePublic));
+            return _dbContext.Holon.Find(filter).ToList();
+        }
+
+        public async Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, Guid avatarId, bool includePublic, HolonType holonType)
+        {
+            var filter = Builders<Holon>.Filter.And(
+                BuildFilterForGetHolonsForParent(id, holonType),
+                BuildVisibilityFilter(avatarId, includePublic));
+            return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
         }
 
         /*
