@@ -70,8 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CardanoOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
 
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _networkId = networkId ?? throw new ArgumentNullException(nameof(networkId));

@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolybaseOASIS
             ProviderDescription = "Polybase decentralised Firebase provider — real-time reactive data on IPFS/Ethereum";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PolybaseOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
