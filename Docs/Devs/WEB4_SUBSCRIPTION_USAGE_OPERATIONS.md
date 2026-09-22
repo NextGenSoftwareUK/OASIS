@@ -2,35 +2,46 @@
 
 This runbook accompanies the [protocol and sequence diagram](WEB4_SUBSCRIPTION_USAGE_LEDGER.md). Code/build success does not replace the credential-dependent live release gates below. Never restore the retired authorize-request counter to work around a rollout failure.
 
+For the concise service-by-service variable list, use [Railway subscription configuration](SUBSCRIPTION_RAILWAY_CONFIGURATION.md).
+
 See the [dated validation record](WEB4_SUBSCRIPTION_USAGE_VALIDATION.md) for the tested revisions, exact local results and outstanding production gates.
 
 ## Configuration ownership
 
 | Variable | Where | Requirement |
 |---|---|---|
-| SUBSCRIPTION_MONGODB_CONNECTION_STRING | WEB4 | Explicit authenticated replica-set/sharded-cluster URI; snapshot transactions and journaled majority writes must work |
-| SUBSCRIPTION_MONGODB_DATABASE | WEB4 | Dedicated accounting database |
+| SUBSCRIPTION_MONGODB_CONNECTION_STRING | WEB4 | Optional protected override. When absent, WEB4 reuses `OASIS.StorageProviders.MongoDBOASIS.ConnectionString` from the deployed OASIS DNA. The resolved deployment must support snapshot transactions and journaled majority writes. |
+| SUBSCRIPTION_MONGODB_DATABASE | WEB4 | Optional override; defaults to dedicated `oasis_subscription_accounting` |
+| SUBSCRIPTION_LEDGER_INITIAL_STATE | WEB4 | For a verified new installation with no users or accounting records, set exactly `empty-new-installation`. WEB4 atomically refuses initialization if any ledger, billing or legacy source collection contains data. Omit for migrated installations. |
 | SUBSCRIPTION_SERVICE_KEY_WEB5 through WEB10 | WEB4 | Distinct randomly generated secrets, at least 32 bytes each |
 | SUBSCRIPTION_SERVICE_KEY_WEBn | Corresponding consumer only | Its own matching service credential |
 | WEB4_API_BASE_URL | WEB5–WEB10 | HTTPS authority URL; loopback HTTP is permitted for local tests |
-| SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING | WEB5–WEB10 | Durable Mongo store; no ephemeral files, memory queues or container-local database |
-| SUBSCRIPTION_OUTBOX_DATABASE | WEB5–WEB10 | Dedicated per-service database and least-privilege credentials |
+| SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING | WEB5–WEB10 | Optional override; defaults to the deployed OASIS DNA MongoDB connection |
+| SUBSCRIPTION_OUTBOX_DATABASE | WEB5–WEB10 | Optional override; defaults to `oasis_webN_subscription_outbox` for the consuming service |
 | SUBSCRIPTION_ADMIN_AVATAR_IDS | WEB4 | Comma-separated canonical avatar UUID allowlist; administrator JWT claim is also required |
-| SUBSCRIPTION_MIGRATION_APPROVAL_KEY | WEB4 and offline manifest signer | At least 32-byte approval secret; never give to consuming services |
+| SUBSCRIPTION_MIGRATION_APPROVAL_KEY | WEB4 and offline manifest signer | Required only when importing existing accounting state; at least 32 bytes and never given to consuming services |
 | SUBSCRIPTION_OTLP_METRICS_ENDPOINT | WEB4–WEB10 | Full operator-controlled HTTPS HTTP/protobuf metrics endpoint, e.g. collector /v1/metrics; HTTP only for loopback |
 | SUBSCRIPTION_OTLP_HEADERS | WEB4–WEB10 | Optional collector authentication headers, supplied as deployment secrets |
 | WEB6_USAGE_PRICE_CATALOGUE_JSON | WEB6 | Reviewed versioned provider/model rates plus input/output/fan-out reservation bounds |
-| STRIPE_SECRET_KEY | WEB4 reconciliation | Read access to the intended Stripe test/live account; never expose to consumers |
+| STRIPE_SECRET_KEY | WEB4 reconciliation | Optional protected override; otherwise reuses `OASIS.SubscriptionConfig.Stripe.SecretKey` |
 
 The telemetry exporter sends only the registered subscription meters. Accounting identity/operation IDs belong in restricted logs and audit queries, not high-cardinality metric labels. Configure the collector and alert routing before opening paid traffic. [Collector example](../../Docker/monitoring/subscription-otel-collector.yaml) and [Prometheus rules](../../Docker/monitoring/subscription-alerts.yaml) are checked-in operational assets; set their protected listening interfaces for your environment.
 
 No production rates are invented by this repository. WEB6's catalogue validates uniqueness, nonnegative decimal rates and that ReservationUsd covers every permitted provider call at the configured input/output limits. Unit/media adapters also require their reviewed rates and supported receipt contracts. The service's exact configuration model is `WEB6/...WebAPI/Services/Web6UsagePricing.cs`. Pin the catalogue version to the provider contract and retain old versions for audit.
 
+### MongoDB deployment layout
+
+The ledger does not require another MongoDB server. WEB4 may reuse the live MongoDB deployment already configured for `MongoDBOASIS`; it uses the official MongoDB driver against the separate database named by `SUBSCRIPTION_MONGODB_DATABASE`. Dedicated collections and roles are required because accounting needs cross-document transactions, purpose-specific unique indexes, Decimal128 money, immutable audit/evidence permissions and indexed reconciliation queries that the shared `holons` collection cannot enforce.
+
+Each consuming service uses a separate outbox database on the same deployment or another persistent transaction-capable deployment. Give WEB4 and every outbox a distinct least-privilege database user. Sharing the cluster is supported; sharing the accounting database, outbox databases or broad application roles is not.
+
 ## Cutover and release order
 
-1. Stop admission of billable work on the old consuming-service versions and drain in-flight calls. Preserve their pending work and database snapshots.
-2. Inventory existing WEB4 legacy monthly aggregates, old WEB6 usage keys, Holon subscription/order records, immutable provider evidence and Stripe records. Establish a reviewed opening-balance manifest. Old WEB6/Web4 counters can overlap; adding both without reconciliation double-counts usage. Missing historical token/cost evidence must be recorded as an uncertainty, not guessed. Retain the Holon export and its evidence digest; the Mongo inventory endpoint cannot discover records in an unrelated Holon provider.
-3. Run the authenticated opening-balance migration and verify every month/account against its retained source evidence. Preserve legacy records. The v2 authority must not start new balances at zero over existing accounting history.
+1. Stop admission of billable work on any old consuming-service versions and drain in-flight calls.
+2. Choose exactly one initialization path:
+   - **New installation with no users:** set `SUBSCRIPTION_LEDGER_INITIAL_STATE=empty-new-installation`. The first transactional write checks every ledger, billing and legacy source collection and records an immutable initialization marker only when all are empty. Any existing record fails closed.
+   - **Installation with existing users or accounting records:** inventory WEB4 legacy aggregates, old WEB6 usage keys, Holon subscription/order records, provider evidence and Stripe records, then run the reviewed signed opening-balance import. Never set the empty-installation value on this path.
+3. Verify the initialization marker and remove `SUBSCRIPTION_LEDGER_INITIAL_STATE` after the first successful deployment. The stored marker remains the durable fence.
 4. Provision required service credentials, durable outboxes, Mongo indexes/permissions, reviewed pricing and the OTLP collector. Test transactions against the actual replica set.
 5. Build the parent repository with the exact API Core, STAR ODK and WEB6 gitlinks recorded in `Docker/oasis-dependency-versions.env`. Change each affected submodule gitlink and manifest SHA together. Do not clone moving branch tips.
 6. Run all focused suites, all seven Release publishes and the dependency/source validators. Apply the documented Development → component main → parent master release workflow; feature branch tests alone do not authorize a production source-graph substitution.

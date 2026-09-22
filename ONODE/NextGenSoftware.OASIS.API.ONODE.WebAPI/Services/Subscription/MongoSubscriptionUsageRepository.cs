@@ -31,18 +31,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private readonly IMongoCollection<BsonDocument> _receipts;
         private readonly TimeProvider _time;
         private readonly ISubscriptionUsagePolicyProvider _policyProvider;
+        private readonly bool _initializeEmptyLedger;
         private static readonly TransactionOptions TransactionOptions = new(
             readConcern: ReadConcern.Snapshot, readPreference: ReadPreference.Primary, writeConcern: WriteConcern.WMajority.With(journal: true));
 
         public MongoSubscriptionUsageRepository(IConfiguration configuration) : this(
-            new MongoClient(RequiredSetting(configuration, "SUBSCRIPTION_MONGODB_CONNECTION_STRING")),
-            RequiredSetting(configuration, "SUBSCRIPTION_MONGODB_DATABASE"), TimeProvider.System) { }
+            new MongoClient(SubscriptionMongoConfiguration.ConnectionString(configuration)),
+            SubscriptionMongoConfiguration.DatabaseName(configuration), TimeProvider.System,
+            initializeEmptyLedger: SubscriptionMongoConfiguration.InitializeEmptyLedger(configuration)) { }
 
-        public MongoSubscriptionUsageRepository(IMongoClient client, string databaseName, TimeProvider time, ISubscriptionUsagePolicyProvider policyProvider = null)
+        public MongoSubscriptionUsageRepository(IMongoClient client, string databaseName, TimeProvider time,
+            ISubscriptionUsagePolicyProvider policyProvider = null, bool initializeEmptyLedger = false)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _time = time ?? throw new ArgumentNullException(nameof(time));
             _policyProvider = policyProvider ?? new SubscriptionUsagePolicyProvider();
+            _initializeEmptyLedger = initializeEmptyLedger;
             var database = client.GetDatabase(databaseName);
             _database = database;
             InitializeBillingIndexes();
@@ -63,10 +67,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             });
             _buckets.Indexes.CreateOne(new CreateIndexModel<SubscriptionUsageBucket>(Builders<SubscriptionUsageBucket>.IndexKeys.Ascending(x => x.UserId).Ascending(x => x.PeriodType).Ascending(x => x.Period), new CreateIndexOptions { Name = "ix_user_period", Unique = true }));
         }
-
-        private static string RequiredSetting(IConfiguration configuration, string key) =>
-            !string.IsNullOrWhiteSpace(configuration[key]) ? configuration[key]
-            : throw new InvalidOperationException($"{key} is required. Subscription accounting must use an explicitly configured transaction-capable MongoDB replica set.");
 
         public Task<(SubscriptionUsageEvent Event, SubscriptionUsageAggregate Aggregate)> AuthorizeAsync(
             SubscriptionUsageEvent usageEvent, int karma, CancellationToken cancellationToken)
