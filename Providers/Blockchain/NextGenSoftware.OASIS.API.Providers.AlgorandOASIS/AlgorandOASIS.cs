@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             ProviderName = "AlgorandOASIS";
             ProviderDescription = "Algorand pure-PoS blockchain provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AlgorandOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

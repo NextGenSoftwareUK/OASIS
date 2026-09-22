@@ -84,7 +84,7 @@ public partial class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvide
         this.ProviderName = nameof(RadixOASIS);
         this.ProviderDescription = "Radix DLT Blockchain Provider with Bridge Support";
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RadixOASIS);
-        this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
 
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _httpClient = new HttpClient();

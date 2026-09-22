@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Text.Json;
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS
                 : $"Data Source={database};motherduck_token={token}";
 
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MotherDuckOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

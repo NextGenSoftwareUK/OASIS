@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             this.ProviderName = "SOLIDOASIS";
             this.ProviderDescription = "SOLID (Social Linked Data) Provider — decentralized personal data storage in LDP pods";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
 
             _podServerUrl = (podServerUrl ?? "https://solidcommunity.net").TrimEnd('/');
             _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };

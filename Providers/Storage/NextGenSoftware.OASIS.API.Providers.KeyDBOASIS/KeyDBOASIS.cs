@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.KeyDBOASIS
             ProviderName = "KeyDBOASIS";
             ProviderDescription = "KeyDB provider (multithreaded Redis-compatible key-value store via StackExchange.Redis)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.KeyDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

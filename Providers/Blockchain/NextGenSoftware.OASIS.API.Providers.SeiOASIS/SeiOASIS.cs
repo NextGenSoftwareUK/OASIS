@@ -1,4 +1,4 @@
-using NextGenSoftware.OASIS.API.Core;
+﻿using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SeiOASIS
             ProviderName = "SeiOASIS";
             ProviderDescription = "Sei EVM Provider — High-Performance L1 (400ms finality)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SeiOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));

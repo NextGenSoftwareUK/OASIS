@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS
             ProviderName = "ReclaimProtocolOASIS";
             ProviderDescription = "Reclaim Protocol — ZK proof of Web2 data for OASIS avatars";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ReclaimProtocolOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

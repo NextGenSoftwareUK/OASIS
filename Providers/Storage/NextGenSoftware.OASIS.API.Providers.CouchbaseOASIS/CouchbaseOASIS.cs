@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS
             ProviderName = "CouchbaseOASIS";
             ProviderDescription = "Couchbase enterprise document database provider (CouchbaseNetClient SDK — with N1QL query and mobile sync)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CouchbaseOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

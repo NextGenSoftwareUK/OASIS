@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DragonflyOASIS
         {
             _connectionString = connectionString;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DragonflyOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

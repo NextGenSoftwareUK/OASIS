@@ -21,7 +21,7 @@
 //            this.ProviderName = "HoloWebOASIS";
 //            this.ProviderDescription = "HoloWeb Provider";
 //            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloWebOASIS);
-//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
 //        }
 
 //        #region OASISStorageProviderBase Abstract Methods Implementation

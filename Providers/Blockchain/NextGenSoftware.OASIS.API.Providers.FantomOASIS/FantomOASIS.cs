@@ -204,7 +204,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             ProviderName = "FantomOASIS";
             ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
