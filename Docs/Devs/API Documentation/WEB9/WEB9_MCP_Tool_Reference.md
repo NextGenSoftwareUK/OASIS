@@ -1,10 +1,5 @@
 # WEB9 MCP Tool Reference
 
-## Subscription protocol update (2026-09-22)
-
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
-
-
 The WEB9 Singularity Layer exposes **1 typed MCP tool** — a single endpoint that probes the entire OASIS stack in parallel and surfaces a unified health and status report. "The network observing itself."
 
 All tools return a JSON-serialised `OASISResult<T>` envelope. On success `isError` is `false` and data is in `result`. On failure `isError` is `true` and `message` describes the problem.
