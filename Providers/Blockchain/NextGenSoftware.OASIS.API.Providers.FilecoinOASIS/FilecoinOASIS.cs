@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
             ProviderDescription = "Filecoin decentralised storage network provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FilecoinOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Lotus JSON-RPC ───────────────────────────────────────────────────────

@@ -24,17 +24,14 @@ fixtures exist:
 This seeder is resumable: it verifies IDs saved in
 `%LOCALAPPDATA%/OASIS/our-world-geohotspot-quest-matrix.json` and continues from
 the first missing fixture. A `SUBSCRIPTION_AUTHORITY_UNAVAILABLE` response is a
-WEB4 authority failure, not an entitlement signal. Verify the complete
-authorize/start/settle protocol on an isolated development subscriber using
-the [usage runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md), and check the
-single-ID Mongo persistence mapping described in
+WEB4 deployment failure, not an entitlement signal. Verify
+`POST /api/subscription/authorize-request` on development WEB4 and deploy the
+Mongo usage-aggregate mapping fix described in
 [WEB4_SUBSCRIPTION_AUTHORITY.md](WEB4_SUBSCRIPTION_AUTHORITY.md) before rerunning.
-The retired authorize-request endpoint returns 410. Seed clients must support
-stable Idempotency-Key values before using the new consuming-service protocol.
 The development WEB5 deployment must also set
-`WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one`. Old WEB5 builds could
-use a production default and reject the development avatar token as an authority
-failure; the new SDK requires this URL explicitly.
+`WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one`; otherwise WEB5 uses
+the production default and rejects the development avatar token as an authority
+failure.
 
 Before a fresh manual pass, preview and then apply the scoped reset:
 

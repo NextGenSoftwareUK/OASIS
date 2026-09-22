@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,10 +49,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             this.ProviderDescription = "BlockStack Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlockStackOASIS);
             this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
-            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
-            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             _blockStackClient = new BlockStackClient();
             _contractAddress = contractAddress ?? Environment.GetEnvironmentVariable("BLOCKSTACK_CONTRACT_ADDRESS") ?? "SP000000000000000000002Q6VF78";
         }
