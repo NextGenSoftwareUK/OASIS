@@ -55,8 +55,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
-            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.EVMBlockchain);
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

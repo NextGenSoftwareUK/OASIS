@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WormholeOASIS
             ProviderName = "WormholeOASIS";
             ProviderDescription = "Wormhole cross-chain messaging and bridge provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WormholeOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

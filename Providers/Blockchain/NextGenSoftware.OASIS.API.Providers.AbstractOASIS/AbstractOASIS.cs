@@ -32,8 +32,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS
             ProviderName = "AbstractOASIS";
             ProviderDescription = "Abstract EVM L2 Provider — Consumer Gaming & NFT Chain (Ethereum-settled, ZK-proven)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AbstractOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

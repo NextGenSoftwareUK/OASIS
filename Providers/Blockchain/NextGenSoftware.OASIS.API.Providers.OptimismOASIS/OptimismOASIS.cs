@@ -145,7 +145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             this.ProviderName = "OptimismOASIS";
             this.ProviderDescription = "Optimism Provider - Ethereum Layer 2 scaling solution";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
@@ -179,8 +179,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             ProviderName = "OptimismOASIS";
             ProviderDescription = "Optimism Provider - Ethereum Layer 2 using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

@@ -13,8 +13,8 @@ public sealed class PolygonOASIS : Web3CoreOASISBaseProvider, IOASISDBStoragePro
         this.ProviderName = "PolygonOASIS";
         this.ProviderDescription = "Polygon Provider";
         this.ProviderType = new(Core.Enums.ProviderType.PolygonOASIS);
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.EVMBlockchain);
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
