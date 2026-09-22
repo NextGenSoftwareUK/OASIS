@@ -2,6 +2,8 @@
 
 This runbook accompanies the [protocol and sequence diagram](WEB4_SUBSCRIPTION_USAGE_LEDGER.md). Code/build success does not replace the credential-dependent live release gates below. Never restore the retired authorize-request counter to work around a rollout failure.
 
+See the [dated validation record](WEB4_SUBSCRIPTION_USAGE_VALIDATION.md) for the tested revisions, exact local results and outstanding production gates.
+
 ## Configuration ownership
 
 | Variable | Where | Requirement |
