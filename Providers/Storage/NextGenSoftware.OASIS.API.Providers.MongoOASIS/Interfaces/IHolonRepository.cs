@@ -27,8 +27,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<OASISResult<IHolon>> DeleteAsync(string providerKey);
         IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All);
         Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
+        IEnumerable<Holon> GetAllHolons(Guid avatarId, bool includePublic, HolonType holonType = HolonType.All);
+        Task<IEnumerable<Holon>> GetAllHolonsAsync(Guid avatarId, bool includePublic, HolonType holonType = HolonType.All);
         IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);
         Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);
+        IEnumerable<Holon> GetAllHolonsForParent(Guid id, Guid avatarId, bool includePublic, HolonType holonType);
+        Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, Guid avatarId, bool includePublic, HolonType holonType);
         IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType);
         //IEnumerable<Holon> GetAllHolonsForParentByCustomKey(string customKey, HolonType holonType);
@@ -38,8 +42,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         //Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType);
         OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType);
+        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, Guid avatarId, bool includePublic, HolonType holonType);
+        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, Guid avatarId, bool includePublic, HolonType holonType);
         OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType);
+        OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, Guid avatarId, bool includePublic, HolonType holonType);
+        Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, Guid avatarId, bool includePublic, HolonType holonType);
         Holon GetHolon(Guid id);
         Task<Holon> GetHolonAsync(Guid id);
         Holon GetHolon(string providerKey);
