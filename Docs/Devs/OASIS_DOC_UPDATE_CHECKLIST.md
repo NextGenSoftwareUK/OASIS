@@ -13,7 +13,7 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 | External memory adapters | 7 (Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate) |
 | MCP tools | **507** (371 WEB4 + 96 WEB5 + 40 WEB6) |
 | REST endpoints | 56 |
-| OASIS storage/network/identity providers | 220+ |
+| OASIS storage/network/identity providers | 229 |
 
 ---
 
