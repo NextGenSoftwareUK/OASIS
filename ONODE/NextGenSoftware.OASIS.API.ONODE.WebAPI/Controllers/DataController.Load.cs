@@ -544,9 +544,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
           OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
           var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
 
-          // Non-Wizards only see holons they own or that are explicitly public
+          // Avatar/visibility filter (Wizards bypass all filtering)
           if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
-              holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+          {
+              if (request.SearchOnlyForCurrentAvatar)
+                  holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+              else if (request.IncludePublic)
+                  holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+              else
+                  return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                      "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
+          }
 
           response.Result.Result = holons;
           ResetOASISSettings(request, configResult);
