@@ -89,6 +89,11 @@ try{
    SaveManifest
  }
  $eventTypes=@('ShowNarration','ShowImage','PlayAudio','PlayVideo','OpenWebsite','PlayAnimation','SpawnEntity','UnlockPortal','TeleportTo')
+ $questDescriptions=@{
+   triggers='IN-ORDER TRIGGER TEST: Only the current incomplete portal is visible. Objective 1 tests arrival within 20 m. Objective 2 tests remaining at the location for 8 seconds, permanent spawning, and a 20-second cooldown. Objective 3 tests gazing at an AR object/image for 5 seconds and unsafe-zone placement. Objective 4 tests touching an AR object/image, a per-player quantity of 2, and unsafe-zone placement.'
+   rewards='ANY-ORDER REWARD/EVENT TEST: All incomplete portals are visible and each objective progresses independently. Objective 1 grants the Violet Access Shard and fires ShowNarration, ShowImage, and PlayAudio. Objective 2 grants the first tagged GeoNFT, enforces a global quantity of 3, and fires PlayVideo, OpenWebsite, and PlayAnimation. Objective 3 grants the Amethyst Field Key plus the second tagged GeoNFT, uses unlimited global quantity with zero per-player limit and a 10-second cooldown, and fires SpawnEntity, UnlockPortal, and TeleportTo. Objective 4 grants the Purple Signal Crystal, disallows sharing, permits 2 collections per player, and has a 5-second cooldown.'
+   policies='ANY-ORDER SPAWN-POLICY TEST: All incomplete portals are visible and each objective progresses independently. Objective 1 proves finite global quantity 2 takes precedence over per-player quantity 5. Objective 2 proves no global cap plus unlimited per-player quantity (-1) with a 10-second cooldown. Objective 3 proves an exclusive/non-shareable, near-player, unsafe-zone spawn limited to 1 per player. Objective 4 proves a permanent, shareable, near-player dwell trigger (3 seconds) with a 30-second cooldown.'
+ }
  $questRows=@(Api $Web5BaseUrl 'quests/all-for-avatar/game')
  foreach($group in 'triggers','rewards','policies') {
    $title=switch($group){'triggers'{'GeoHotSpot Signals: Four Ways In'}'rewards'{'GeoHotSpot Rewards: Purple Protocol'}default{'GeoHotSpot Limits: Shared Ground'}}
@@ -107,7 +112,7 @@ try{
      $index++
    }
    $order=if($group-eq'triggers'){0}else{1}
-   $questBody=@{name=$title;description="Playable $group coverage for the GeoHotSpot API.";gameSource='Our World';status=1;createdByAvatarId=$avatar.id;objectiveCompletionOrder=$order;objectives=$objectives;metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.TestGroup'=$group}}
+   $questBody=@{name=$title;description=$questDescriptions[$group];gameSource='Our World';status=1;createdByAvatarId=$avatar.id;objectiveCompletionOrder=$order;objectives=$objectives;metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.TestGroup'=$group}}
    $quest=if($existing.Count-eq1){Api $Web5BaseUrl "quests/$($existing[0].id)" 'Put' $questBody}else{Api $Web5BaseUrl 'quests' 'Post' $questBody}
    $manifest.quests=@($manifest.quests|Where-Object group -ne $group)
    $manifest.quests+=@{group=$group;id="$($quest.id)";name=$title};SaveManifest
@@ -120,8 +125,14 @@ try{
  }
  foreach($fixtureQuest in $manifest.quests) {
    $verifiedQuest=Api $Web5BaseUrl "quests/$($fixtureQuest.id)"
+   if($null-eq$verifiedQuest.PSObject.Properties['objectives']) {
+     throw "Quest verification failed for '$($fixtureQuest.name)': WEB5 returned a quest without objectives: $(ConvertTo-Json $verifiedQuest -Depth 4 -Compress)"
+   }
    $expectedIds=@($manifest.hotspots|Where-Object group -eq $fixtureQuest.group|ForEach-Object {[string]$_.id})
    $actualIds=@($verifiedQuest.objectives|ForEach-Object {[string]$_.linkedGeoHotSpotId})
+   if([string]$verifiedQuest.description-ne[string]$questDescriptions[$fixtureQuest.group]) {
+     throw "Quest verification failed for '$($fixtureQuest.name)': the persisted rule description does not match the fixture contract."
+   }
    if($actualIds.Count-ne4 -or @($expectedIds|Where-Object {$_ -notin $actualIds}).Count-ne0) {
      throw "Quest verification failed for '$($fixtureQuest.name)': linked GeoHotSpot objectives do not match the manifest."
    }

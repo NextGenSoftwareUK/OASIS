@@ -53,6 +53,19 @@ inventory, and verifies the resulting zero-progress state.
 | Renewal Cycle: Living Echoes | `AnyOrder` | Three repeatable/cooldown portals may appear together; each objective progresses independently. |
 | Custodians of Scarcity | `InOrder` | Global precedence, globally unlimited and exclusive fixtures activate sequentially. |
 
+The three GeoHotSpot matrix quests deliberately use verbose in-game descriptions
+so a tester can see the precise contract without consulting source code:
+
+| Quest | Exact rules called out in its description |
+| --- | --- |
+| GeoHotSpot Signals: Four Ways In | In-order visibility; 20 m arrival; 8-second dwell with permanent spawn and 20-second cooldown; 5-second AR gaze with unsafe-zone placement; AR touch with quantity 2 and unsafe-zone placement. |
+| GeoHotSpot Rewards: Purple Protocol | Any-order visibility/independent progress; the exact inventory or GeoNFT reward for every objective; global, player, sharing, and cooldown limits; and all nine cross-game event types assigned across the objectives. |
+| GeoHotSpot Limits: Shared Ground | Any-order visibility/independent progress; finite-global-over-player precedence; unlimited per-player quantity; exclusive near-player unsafe-zone placement; and permanent/shareable near-player dwell with cooldown. |
+
+The seeder updates existing quests as well as creating missing ones and verifies
+that WEB5 persisted each exact description. This keeps the live labels synchronized
+with the executable fixture contract.
+
 ## GeoNFT rules and display metadata
 
 | Item | Rarity | Permanent | Shared | Global | Per player | Cooldown | Purpose |
