@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS
             ProviderName = "OrbitDBOASIS";
             ProviderDescription = "OrbitDB provider (decentralised IPFS-backed docstore via orbit-db-http-api)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OrbitDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
         }
 
         // ─── HTTP helpers ─────────────────────────────────────────────────────────
