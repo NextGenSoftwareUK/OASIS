@@ -101,7 +101,9 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+bool subscriptionUsageEnabled = string.Equals(builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+if (subscriptionUsageEnabled)
+    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", NextGenSoftware.OASIS.Web8.WebAPI.Middleware.SubscriptionPolicy.Resolve);
 
 var app = builder.Build();
 
@@ -146,7 +148,8 @@ app.UseRouting();
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web8.WebAPI.Middleware.ApiKeyMiddleware>();
-app.UseMiddleware<Web4UsageLedgerMiddleware>();
+if (subscriptionUsageEnabled)
+    app.UseMiddleware<Web4UsageLedgerMiddleware>();
 
 app.MapControllers();
 app.MapGraphQL();

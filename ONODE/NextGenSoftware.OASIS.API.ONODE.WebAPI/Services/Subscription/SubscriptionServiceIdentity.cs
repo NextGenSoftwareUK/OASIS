@@ -5,6 +5,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 {
@@ -35,6 +37,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         public static string RequireAdministrator(HttpContext context, IConfiguration configuration)
         {
+            if (context.Items["Avatar"] is IAvatar avatar && avatar.AvatarType?.Value == AvatarType.Wizard)
+                return avatar.Id.ToString("D");
+
             var principal = context.User;
             var id = principal?.FindFirstValue(ClaimTypes.NameIdentifier) ?? principal?.FindFirstValue("sub");
             if (principal?.Identity?.IsAuthenticated != true || !Guid.TryParseExact(id, "D", out var avatarId) ||

@@ -43,6 +43,8 @@ The ledger does not use the shared `holons` collection. It creates dedicated col
 
 ## New variables required for launch
 
+The code deploys with metering disabled by default. Do not set `SUBSCRIPTION_USAGE_ENABLED` during the first deployment. This activation gate exists so an incomplete Railway variable rollout cannot stop WEB5–WEB10 at startup.
+
 ### 1. Internal service credentials
 
 Generate six different random secrets of at least 32 bytes. Each secret is shared only between WEB4 and its named consuming service.
@@ -87,7 +89,7 @@ These are useful when their corresponding feature is enabled, but they are not r
 
 | Variable | When it is needed |
 |---|---|
-| `SUBSCRIPTION_ADMIN_AVATAR_IDS` on WEB4 | Administrative corrections, reconciliation imports or audited dead-letter recovery. The JWT must also carry the administrator claim. |
+| `SUBSCRIPTION_ADMIN_AVATAR_IDS` on WEB4 | Optional additional allowlist for dedicated subscription-admin JWTs. Existing authenticated `Wizard` avatars use the established OASIS administrator identity and do not require this setting. |
 | `SUBSCRIPTION_OTLP_METRICS_ENDPOINT` and `SUBSCRIPTION_OTLP_HEADERS` | Exporting subscription metrics to the deployed collector. |
 | `SUBSCRIPTION_MIGRATION_APPROVAL_KEY` | Only for an installation with existing users/accounting data that needs a signed opening-state import. It is not needed for this new empty installation. |
 | Stripe environment variables | Only when intentionally overriding the existing Stripe values from OASIS DNA. |
@@ -95,12 +97,14 @@ These are useful when their corresponding feature is enabled, but they are not r
 
 ## Deployment check
 
-1. Confirm `OASIS_DNA_JSON` contains the intended MongoDB value and the existing Stripe shared variables target the intended environment, without printing their values in logs.
-2. Add the six paired service credentials, `WEB4_API_BASE_URL` and the one-time empty-installation setting.
-3. Deploy WEB4 first, followed by WEB5–WEB10.
-4. Run one test subscription and one request through each enabled service using stable idempotency keys.
-5. Verify one WEB4 authorization, one settlement, one immutable audit trail and one outbox completion for each request.
+1. Deploy the code with `SUBSCRIPTION_USAGE_ENABLED` absent. Confirm every existing WEB4–WEB10 health endpoint remains available.
+2. Confirm `OASIS_DNA_JSON` contains the intended MongoDB value and the existing Stripe shared variables target the intended environment, without printing their values in logs.
+3. Add the six paired service credentials, `WEB4_API_BASE_URL` and the one-time empty-installation setting while metering remains disabled.
+4. Set `SUBSCRIPTION_USAGE_ENABLED=true` on WEB5 only. Verify startup, one authorization, one settlement, its immutable audit entry and outbox completion.
+5. Repeat activation and verification one service at a time for WEB6, WEB7, WEB8, WEB9 and WEB10. Stop at the first failed health or protocol check; already-disabled services remain operational.
 6. Confirm the `v1-opening-balance` marker has `InitializationMode=empty-new-installation`, then remove the first-launch setting.
 7. Run Stripe test checkout/webhook and reconciliation using the existing Stripe configuration before enabling paid traffic.
+
+`SUBSCRIPTION_USAGE_ENABLED=true` is intentionally strict: that service will refuse to start if its WEB4 URL, paired credential or OASIS DNA MongoDB connection is missing or invalid. This catches configuration mistakes during the controlled one-service activation without affecting services whose gate remains disabled.
 
 Never paste secrets into source control, pull requests, test reports or chat. Configure them as protected Railway variables or protected OASIS DNA values.
