@@ -605,6 +605,56 @@ public sealed class MongoLedgerTests : IAsyncLifetime
     }
 }
 
+public sealed class EmptyLedgerInitializationTests : IAsyncLifetime
+{
+    private readonly string _databaseName = "ledger_empty_init_" + Guid.NewGuid().ToString("N");
+    private MongoClient _client;
+
+    public Task InitializeAsync()
+    {
+        string uri = Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI");
+        if (string.IsNullOrWhiteSpace(uri))
+            throw new InvalidOperationException("SUBSCRIPTION_TEST_MONGODB_URI must point to a disposable replica set.");
+        _client = new MongoClient(uri);
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync() => _client == null ? Task.CompletedTask : _client.DropDatabaseAsync(_databaseName);
+
+    [Fact]
+    public async Task ExplicitEmptyInstallationCreatesFenceAndPermitsFirstSubscription()
+    {
+        var ledger = new MongoSubscriptionUsageRepository(_client, _databaseName, TimeProvider.System,
+            initializeEmptyLedger: true);
+        string user = Guid.NewGuid().ToString("D");
+
+        await ledger.SaveSubscriptionAsync(new SubscriptionRecord
+        {
+            UserId = user, PlanId = "free", Status = "free", CreatedAt = DateTime.UtcNow
+        });
+
+        var marker = await _client.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_usage_migrations")
+            .Find(new BsonDocument("_id", "v1-opening-balance")).SingleAsync();
+        Assert.Equal(SubscriptionMongoConfiguration.EmptyInstallation, marker["InitializationMode"].AsString);
+    }
+
+    [Fact]
+    public async Task EmptyInstallationRefusesAnyExistingLedgerOrBillingData()
+    {
+        await _client.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_records")
+            .InsertOneAsync(new BsonDocument { { "_id", Guid.NewGuid().ToString("D") }, { "PlanId", "free" } });
+        var ledger = new MongoSubscriptionUsageRepository(_client, _databaseName, TimeProvider.System,
+            initializeEmptyLedger: true);
+
+        var error = await Assert.ThrowsAsync<SubscriptionUsageConflictException>(() =>
+            ledger.SaveSubscriptionAsync(new SubscriptionRecord
+            {
+                UserId = Guid.NewGuid().ToString("D"), PlanId = "free", Status = "free", CreatedAt = DateTime.UtcNow
+            }));
+        Assert.Contains("EMPTY_LEDGER_INITIALIZATION_REFUSED", error.Message);
+    }
+}
+
 public sealed class IdentityAndValidationTests
 {
     [Theory]

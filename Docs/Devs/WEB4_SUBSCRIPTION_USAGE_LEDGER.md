@@ -56,6 +56,8 @@ Clients retain an Idempotency-Key across retries. The SDK derives a deterministi
 
 WEB4 commits operation state, UTC month/day buckets and audit deltas in one snapshot transaction with journaled majority acknowledgement. MongoDB must be a replica set or sharded cluster. Concurrent operations serialize on shared subscriber buckets. Unique operation and provider-receipt indexes prevent duplicate accounting; driver-labelled transaction conflicts and bounded duplicate-key creation retries are explicit protocol behavior.
 
+WEB4 can reuse the MongoDB deployment configured at `OASIS.StorageProviders.MongoDBOASIS.ConnectionString`; `SUBSCRIPTION_MONGODB_CONNECTION_STRING` is a protected deployment override. The ledger deliberately uses its own database and collections through the official MongoDB driver rather than the shared `holons` collection or the general `MongoDBOASIS` persistence abstraction. This is what permits accounting-only indexes, immutable evidence permissions, Decimal128 values and atomic operation/bucket/audit/subscription updates without changing normal Holon behavior.
+
 A unique service-outbox claim prevents duplicate provider execution across replicas. Repeated completed requests return operation status/conflict rather than rerunning effects. Arbitrary business response bodies are not replayed by this billing protocol; callers inspect operation and resource status. A new key requests new work.
 
 ## Measurement and calendar policy

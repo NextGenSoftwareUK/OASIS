@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LensOASIS
             ProviderDescription = "Lens Protocol decentralised social graph provider (GraphQL v2)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LensOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ──────────────────────────────────────────────────────────

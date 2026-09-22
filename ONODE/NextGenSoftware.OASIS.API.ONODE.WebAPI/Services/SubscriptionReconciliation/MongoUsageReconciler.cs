@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SubscriptionReconciliation;
 
@@ -27,8 +28,8 @@ public sealed class MongoUsageReconciler
     private static readonly ObservableGauge<long> LastSuccess = Meter.CreateObservableGauge("oasis.subscription.reconciliation.last_success_unixtime", () => Interlocked.Read(ref _lastSuccess), "s");
 
     public MongoUsageReconciler(IConfiguration configuration, TimeProvider timeProvider = null)
-        : this(new MongoClient(Required(configuration, "SUBSCRIPTION_MONGODB_CONNECTION_STRING")),
-            Required(configuration, "SUBSCRIPTION_MONGODB_DATABASE"), timeProvider) { }
+        : this(new MongoClient(SubscriptionMongoConfiguration.ConnectionString(configuration)),
+            SubscriptionMongoConfiguration.DatabaseName(configuration), timeProvider) { }
 
     public MongoUsageReconciler(IMongoClient client, string database, TimeProvider timeProvider = null)
     {
@@ -42,9 +43,6 @@ public sealed class MongoUsageReconciler
         _receipts = _database.GetCollection<UsageExternalReceipt>("subscription_usage_external_receipts");
         _reports = _database.GetCollection<UsageReconciliationReport>("subscription_usage_reconciliation");
     }
-
-    private static string Required(IConfiguration config, string name) =>
-        string.IsNullOrWhiteSpace(config[name]) ? throw new InvalidOperationException(name + " is required.") : config[name];
 
     public async Task InitializeAsync(CancellationToken ct)
     {
