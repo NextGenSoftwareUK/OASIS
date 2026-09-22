@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(AvatarType.Wizard)]
+    [Authorize]
     public partial class HyperDriveController : OASISControllerBase
     {
         private readonly OASISHyperDriveConfigManager _configManager;
