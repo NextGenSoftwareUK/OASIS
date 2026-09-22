@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS
             ProviderDescription = "LayerZero omnichain messaging provider — cross-chain messages as holons";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LayerZeroOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
