@@ -29,8 +29,10 @@ namespace NextGenSoftware.OASIS.Web7.WebAPI.Controllers
         public async Task<IActionResult> GetSession(Guid sessionId)
         {
             SymbiosisSessionManager manager = new SymbiosisSessionManager(AvatarId);
-            var result = await manager.GetSessionAsync(sessionId);
-            return result.IsError ? BadRequest(result) : Ok(result);
+            var sessionCheck = await manager.GetSessionAsync(sessionId);
+            if (!sessionCheck.IsError && sessionCheck.Result != null && sessionCheck.Result.AvatarId != AvatarId)
+                return StatusCode(403, new { error = "Unauthorized. You can only access your own symbiosis sessions." });
+            return sessionCheck.IsError ? BadRequest(sessionCheck) : Ok(sessionCheck);
         }
 
         /// <summary>Submits a batch of raw bio-signal samples and returns the freshly computed intention state.</summary>
@@ -39,6 +41,9 @@ namespace NextGenSoftware.OASIS.Web7.WebAPI.Controllers
         public async Task<IActionResult> SubmitSignals(Guid sessionId, [FromBody] List<BioSignalSample> samples)
         {
             SymbiosisSessionManager manager = new SymbiosisSessionManager(AvatarId);
+            var sessionCheck = await manager.GetSessionAsync(sessionId);
+            if (!sessionCheck.IsError && sessionCheck.Result != null && sessionCheck.Result.AvatarId != AvatarId)
+                return StatusCode(403, new { error = "Unauthorized. You can only submit signals to your own symbiosis sessions." });
             var result = await manager.SubmitSignalsAsync(sessionId, samples);
             return result.IsError ? BadRequest(result) : Ok(result);
         }
@@ -49,6 +54,9 @@ namespace NextGenSoftware.OASIS.Web7.WebAPI.Controllers
         public async Task<IActionResult> EndSession(Guid sessionId)
         {
             SymbiosisSessionManager manager = new SymbiosisSessionManager(AvatarId);
+            var sessionCheck = await manager.GetSessionAsync(sessionId);
+            if (!sessionCheck.IsError && sessionCheck.Result != null && sessionCheck.Result.AvatarId != AvatarId)
+                return StatusCode(403, new { error = "Unauthorized. You can only end your own symbiosis sessions." });
             var result = await manager.EndSessionAsync(sessionId);
             return result.IsError ? BadRequest(result) : Ok(result);
         }
