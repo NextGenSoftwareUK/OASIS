@@ -67,7 +67,7 @@ This tells each consuming service where to reserve and settle usage. Staging ser
 
 ### 3. WEB6 prices
 
-No Railway price variable is required. WEB6 already stores its provider/model prices in `ModelCatalogueManager`; subscription metering now uses that same versioned catalogue and derives safe request reservations from it. The catalogue is separate from Stripe plan prices: Stripe charges the customer for a plan, while WEB6 accounts for measured AI-provider usage.
+No Railway price variable is required. WEB6 stores its provider/model prices in the deployed `Configuration/web6-model-catalogue.json`; `ModelCatalogueManager` validates and loads it, and subscription metering derives safe request reservations from it. The catalogue is separate from Stripe plan prices: Stripe charges the customer for a plan, while WEB6 accounts for measured AI-provider usage. `WEB6_MODEL_CATALOGUE_PATH` is optional when deliberately mounting a different reviewed file.
 
 ### 4. First launch only
 

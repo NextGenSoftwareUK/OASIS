@@ -9,7 +9,7 @@ This is a tested coordinated release candidate, not a completed production rollo
 | OASIS implementation | 08351e61c; concurrent Development changes integrated in 26bb4bd81 |
 | API Core | 268891d061a39f82057f842f4863b3a43be424e0 |
 | STAR ODK | 45c33bd9ebabd3a6bd79c9cb0f25d835f6e5c206 |
-| WEB6 | fcc0cc639c7c1a3054195fe4d9d56c3601409add |
+| WEB6 | 8529ad6e07a64b09f763006c18e0ecadbdba6563 |
 
 The parent gitlinks and Docker/oasis-dependency-versions.env agree. Other deployed dependencies retain the manifest's existing pins. The parent merge preserves Development's Mongo single-ID regression and development URL diagnostics, adapted to the new bucket model and usage protocol, plus the concurrent quest fixture documentation.
 
@@ -28,7 +28,7 @@ Environment: Windows, .NET SDK 10.0.401, isolated MongoDB 8.0.15 replica set wit
 | Private outbox administrator authentication and Mongo requeue | 17 passed |
 | WEB5 and WEB7–WEB10 transport policies | 25 passed |
 | Existing WEB6 UsageMeteringTests | 10 passed |
-| WEB6 pricing, execution scope and audio verification | 26 executable assertions passed |
+| WEB6 external catalogue, pricing, execution scope and audio verification | 28 executable assertions passed |
 | WEB6 provider recovery and injected failures | 45 executable assertions passed |
 | Live-runner offline transport security | 5 passed |
 | WEB4, WEB5, WEB6, WEB7, WEB8, WEB9, WEB10 Release publishes | All seven passed |
@@ -48,7 +48,7 @@ The WEB4 Stripe dependency now explicitly selects [Stripe.NET 47.0.0](https://ww
 - The repository-wide solution-coverage script still fails for 51 projects already present in the original pinned source graph; zero newly added projects are uncovered. This is not a successful full-solution build. Existing NuGet/compiler warnings remain, including SharpCompress/Snappier advisories and older dependency constraints.
 - Credentialed staging protocol and real business endpoints, provider/model/modality receipt comparisons, paid failure/cancellation, process-crash and network-fault matrices, and Stripe lifecycle/invoice comparison are NOT RUN. The supplied offline/fake-provider tests do not substitute for them.
 - The operator confirmed this is a new installation with no users, so historical import is not part of this rollout. Set `SUBSCRIPTION_LEDGER_INITIAL_STATE=empty-new-installation` for the first WEB4 deployment; its transactional guard refuses any nonempty ledger, billing or legacy source collection. Remove the setting after the durable initialization marker is created. Existing installations still require the signed migration path.
-- Service/admin credentials, actual Mongo roles/capacity, telemetry ingestion and alert routing remain deployment prerequisites. WEB6 accounting reuses the existing versioned `ModelCatalogueManager` prices.
+- Service/admin credentials, actual Mongo roles/capacity, telemetry ingestion and alert routing remain deployment prerequisites. WEB6 accounting loads its versioned external `web6-model-catalogue.json`.
 - Specialized WEB6 adapters without measurement/recovery contracts remain gated before network execution. See WEB6/docs/SUBSCRIPTION_USAGE_PROTOCOL.md for the precise supported and rejected paths. HTTP SSE output is currently buffered until settlement acknowledgement; incremental HTTP streaming remains incomplete.
 - Stripe reconciliation currently covers the explicit ledger-cost-usd-v1 usage-only cost basis. Other retail markups, discounts, credits, taxes or whole-plan invoice comparisons require a defined billing projection before use.
 - Docker/Railway deployment and hosted validation are NOT RUN. Feature branches and draft PRs do not complete Development-to-production promotion. Follow the source-graph promotion policy after the remaining gates pass.
