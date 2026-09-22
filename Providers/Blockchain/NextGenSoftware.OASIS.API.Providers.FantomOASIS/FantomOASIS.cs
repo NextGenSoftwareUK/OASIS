@@ -171,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             this.ProviderName = "FantomOASIS";
             this.ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
@@ -204,8 +204,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             ProviderName = "FantomOASIS";
             ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
