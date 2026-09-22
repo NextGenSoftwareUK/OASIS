@@ -12,6 +12,7 @@ public class MongoSubscriptionUsageRepositoryTests
     {
         var classMap = BsonClassMap.LookupClassMap(typeof(SubscriptionUsageBucket));
         classMap.AllMemberMaps.Count(member => member.ElementName == "_id").Should().Be(1);
+        classMap.IdMemberMap.Should().NotBeNull();
         classMap.IdMemberMap.MemberName.Should().Be("Id");
     }
 
@@ -21,6 +22,7 @@ public class MongoSubscriptionUsageRepositoryTests
         var document = typeof(MongoSubscriptionUsageRepository).GetNestedType("UsageEventDocument", BindingFlags.NonPublic)!;
         var classMap = BsonClassMap.LookupClassMap(document);
         classMap.AllMemberMaps.Count(member => member.ElementName == "_id").Should().Be(1);
+        classMap.IdMemberMap.Should().NotBeNull();
         classMap.IdMemberMap.MemberName.Should().Be("Id");
     }
 }
