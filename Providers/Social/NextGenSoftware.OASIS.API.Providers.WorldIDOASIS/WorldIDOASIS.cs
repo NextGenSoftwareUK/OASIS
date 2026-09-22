@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WorldIDOASIS
             ProviderDescription = "World ID ZK-proof identity provider (nullifier_hash → Avatar, verification record → Holon)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WorldIDOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static Avatar MapNullifierToAvatar(string nullifierHash, string action = null, string signal = null)

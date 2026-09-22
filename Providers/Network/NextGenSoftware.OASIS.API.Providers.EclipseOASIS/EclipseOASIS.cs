@@ -35,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EclipseOASIS
             ProviderDescription = "Eclipse SVM L2 Provider — Solana VM on Ethereum settlement with Celestia DA";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EclipseOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

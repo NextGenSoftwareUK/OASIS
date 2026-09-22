@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiZkLoginOASIS
             ProviderDescription = "Sui zkLogin provider — Google/Apple OAuth to deterministic Sui address via zero-knowledge";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SuiZkLoginOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task<JsonElement> RpcAsync(string method, object[] rpcParams)

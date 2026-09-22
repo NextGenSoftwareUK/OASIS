@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LitProtocolOASIS
             ProviderDescription = "Lit Protocol threshold encryption provider (wallet → Avatar, encrypted content → Holon)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LitProtocolOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private static Avatar MapWalletToAvatar(string walletAddress, JsonElement? profile = null)
