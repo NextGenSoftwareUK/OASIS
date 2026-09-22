@@ -1,6 +1,6 @@
 # OASIS Provider Summary
 
-_227 unique providers across 9 categories — last updated: 2026-09-22 (category audit)_
+_227 unique providers across 9 categories — last updated: 2026-09-22 (capabilities audit)_
 
 > Provider count is derived directly from the `Providers/` directory tree.
 > Duplicate folder copies (Ceramic in Blockchain, MoralisDBOASIS in Blockchain, Arweave in Network) have been removed — each provider now lives in exactly one canonical folder.
@@ -10,6 +10,8 @@ _227 unique providers across 9 categories — last updated: 2026-09-22 (category
 ## Category Breakdown
 
 `ProviderCategory` enum value shown for each folder. The primary category is the most specific semantic label; providers that also implement `IOASISStorageProvider` or `IOASISNETProvider` are automatically included in storage/network queries regardless of primary category.
+
+Each provider also has a `ProviderCapabilities` list (secondary capabilities — renamed from `ProviderCategories`). This captures additional things the provider can do beyond its primary category. For example, a `Blockchain` provider may also list `NFT`, `SmartContract`, and `Storage` as capabilities. `ProviderManager` helper methods (`GetCloudProviders`, `GetSocialProviders`, `GetIdentityProviders`, `GetAIProviders`, `GetMapProviders`, `GetSpatialProviders`, `GetAllBlockchainProviders`, `GetAllEVMBlockchainProviders`) check both primary category and capabilities list so no providers are missed.
 
 | Folder | `ProviderCategory` | Providers |
 |---|---|---|
@@ -335,6 +337,7 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 
 ## Change History
 
+> **2026-09-22 (capabilities audit):** `ProviderCategories` renamed to `ProviderCapabilities` across all 227 providers, `IOASISProvider` interface, and `OASISProvider` base class. Secondary capabilities audited and filled in for all folders: Storage providers get `Network`; Cloud providers get `Storage`, `Network`; Identity providers get `Network`, `Storage`, `KeyManager`; Social/Maps providers get `Storage`, `Network`; Network providers get `Storage`. Blockchain providers with full VM capability (Algorand, Basechain, Cardano, MultiversX, Fhenix, Filecoin, TON, Galadriel) given `NFT`, `SmartContract`, `Storage`/`Network` capabilities. Bridge/infra providers (Axelar, Chainflip, Connext, deBridge, Espresso, Hyperlane, LayerZero V2, Stargate, Synapse, Wormhole) get `Network`; oracle/automation providers (ChainLink, Chainlink Functions, EigenLayer, Gelato, OpenZeppelin Defender) get `SmartContract`, `Network`. Template updated to use `Storage` as default example category. `HoloWebOASIS` and `Neo4jOASIS2` stray-line build errors fixed. Total: 227 providers.
 > **2026-09-22 (category audit):** ProviderCategory enum assignments corrected across all providers. `Social` added to enum. 12 Social providers → `Social`. 58 Blockchain folder providers split into `EVMBlockchain` (34 EVM-compatible) and `Blockchain` (24 non-EVM) — fixes missed `new(...)` syntax providers and promotes EVM chains from generic `Blockchain`. 16 Cloud → `Cloud`. 27 Network → `Network`. Storage folder → `Storage`/`StorageLocal`. Other folder fixed (GUN/OrbitDB → `Storage`, PLAN/Dapr/Temporal → `Network`, SEEDS/Urbit → `Application`). ProviderManager updated to use interface checks for activation; `GetCloudProviders`, `GetSocialProviders`, `GetIdentityProviders`, `GetAIProviders`, `GetMapProviders`, `GetSpatialProviders` and matching `IsProvider*` helpers added. GaladrielOASIS → `EVMBlockchain`. Duplicate folder copies removed (Ceramic/Blockchain, MoralisDBOASIS/Blockchain, Arweave/Network). Total: 227 providers.
 > **2026-09-21:** Added COSMOS submodule to Blockchain — updated to 220.
 > **2026-09-20d (+14):** Blockchain ×3 (OpenZeppelin Defender, Gelato, Chainlink Functions), Network ×5 (Covalent, Dune Analytics, Reservoir, Blockscout, Zapper), Spatial ×3 (Ready Player Me, Decentraland, The Sandbox), AI ×3 (Bittensor, Galadriel, Ritual). Previous: 206.

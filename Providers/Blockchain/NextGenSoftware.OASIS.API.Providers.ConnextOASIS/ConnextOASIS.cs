@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS
             ProviderDescription = "Connext Modular Cross-Chain Interoperability Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ConnextOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task<T> GetAsync<T>(string path)

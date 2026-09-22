@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS
             ProviderName = "EspressoSystemsOASIS"; ProviderDescription = "Espresso Systems decentralised sequencing and confirmed transactions provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EspressoSystemsOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
         private async Task<JObject> GetAsync(string path) { var r = await _http.GetAsync(path); r.EnsureSuccessStatusCode(); return JObject.Parse(await r.Content.ReadAsStringAsync()); }
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

@@ -1,4 +1,4 @@
-using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;using System.Collections.Generic;using System.Net.Http;using System.Text;using System.Threading.Tasks;using Newtonsoft.Json;using Newtonsoft.Json.Linq;using NextGenSoftware.OASIS.API.Core;using NextGenSoftware.OASIS.API.Core.Enums;using NextGenSoftware.OASIS.API.Core.Helpers;using NextGenSoftware.OASIS.API.Core.Holons;using NextGenSoftware.OASIS.API.Core.Interfaces;using NextGenSoftware.OASIS.API.Core.Interfaces.Search;using NextGenSoftware.OASIS.API.Core.Objects;using NextGenSoftware.OASIS.API.Core.Objects.Search;using NextGenSoftware.OASIS.Common;
+﻿using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;using System.Collections.Generic;using System.Net.Http;using System.Text;using System.Threading.Tasks;using Newtonsoft.Json;using Newtonsoft.Json.Linq;using NextGenSoftware.OASIS.API.Core;using NextGenSoftware.OASIS.API.Core.Enums;using NextGenSoftware.OASIS.API.Core.Helpers;using NextGenSoftware.OASIS.API.Core.Holons;using NextGenSoftware.OASIS.API.Core.Interfaces;using NextGenSoftware.OASIS.API.Core.Interfaces.Search;using NextGenSoftware.OASIS.API.Core.Objects;using NextGenSoftware.OASIS.API.Core.Objects.Search;using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.GaladrielOASIS
 {
     public class GaladrielOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
@@ -13,6 +13,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GaladrielOASIS
             ProviderName = "GaladrielOASIS"; ProviderDescription = "Galadriel EVM-compatible AI blockchain node provider.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.GaladrielOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
         private async Task<JObject> RpcAsync(string method, object[] parms = null)
         {

@@ -85,6 +85,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             this.ProviderDescription = "ChainLink Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ChainLinkOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
 
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         }

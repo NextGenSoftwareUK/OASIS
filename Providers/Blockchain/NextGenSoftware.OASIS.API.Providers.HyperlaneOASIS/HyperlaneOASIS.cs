@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS
             ProviderDescription = "Hyperlane Permissionless Cross-Chain Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HyperlaneOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         private async Task<T> GetAsync<T>(string path)
