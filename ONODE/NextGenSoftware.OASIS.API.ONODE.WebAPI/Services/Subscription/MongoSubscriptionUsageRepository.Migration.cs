@@ -20,8 +20,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         private async Task EnsureOpeningBalanceAsync(IClientSessionHandle session, CancellationToken ct)
         {
-            bool migrated = await _database.GetCollection<BsonDocument>("subscription_usage_migrations")
+            var migrations = _database.GetCollection<BsonDocument>("subscription_usage_migrations");
+            bool migrated = await migrations
                 .Find(session, new BsonDocument("_id", "v1-opening-balance")).AnyAsync(ct);
+            if (!migrated && _initializeEmptyLedger)
+            {
+                string[] protectedCollections = {
+                    "subscription_usage_aggregates", "subscription_usage_events", "subscription_usage_buckets",
+                    "subscription_usage_audit", "subscription_usage_receipts", "subscription_records",
+                    "subscription_orders", "subscription_billing_audit", "subscription_usage_external_receipts",
+                    "subscription_usage_reconciliation", "subscription_usage_legacy_archive"
+                };
+                foreach (string collection in protectedCollections)
+                    if (await _database.GetCollection<BsonDocument>(collection)
+                        .Find(session, FilterDefinition<BsonDocument>.Empty).Limit(1).AnyAsync(ct))
+                        throw new SubscriptionUsageConflictException(
+                            $"EMPTY_LEDGER_INITIALIZATION_REFUSED: {collection} already contains data. " +
+                            "Remove the empty-installation setting and use reviewed opening state.");
+
+                await migrations.InsertOneAsync(session, new BsonDocument {
+                    { "_id", "v1-opening-balance" }, { "InitializationMode", SubscriptionMongoConfiguration.EmptyInstallation },
+                    { "Actor", "deployment-configuration" }, { "CompletedAtUtc", _time.GetUtcNow().UtcDateTime }
+                }, cancellationToken: ct);
+                migrated = true;
+            }
             bool legacy = await _database.GetCollection<BsonDocument>("subscription_usage_events").Find(session, LegacyOperationFilter).AnyAsync(ct);
             if (legacy || !migrated)
                 throw new SubscriptionUsageConflictException("LEGACY_OPENING_BALANCE_REQUIRED: freeze legacy writers and finish the reviewed, signed opening-balance batches before reserving new usage.");
