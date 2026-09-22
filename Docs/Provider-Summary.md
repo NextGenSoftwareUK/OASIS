@@ -19,7 +19,7 @@ _227 unique providers across 9 categories — last updated: 2026-09-22 (category
 | Identity | `Identity` | 7 |
 | Maps | `Map` (most) · `Spatial` (Decentraland, Ready Player Me, The Sandbox) | 10 |
 | Network | `Network` | 48 |
-| Other | mixed | 11 |
+| Other | `Storage` (GUN, OrbitDB) · `Network` (Dapr, PLAN, Temporal) · `Application` (SEEDS, Urbit) · `AI` (IntelOpenVINO) · stubs (Cargo, ONION, Orion) | 11 |
 | Social | `Social` | 12 |
 | Storage | `Storage` (most) · `StorageLocal` (LocalFile, SQLite, DuckDB) | 65 |
 
@@ -226,19 +226,19 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 
 ### Other / Infrastructure (11) — mixed
 
-| Provider | Package | Description |
-|---|---|---|
-| Cargo | `NextGenSoftware.OASIS.API.Providers.CargoOASIS` | Cargo NFT minting & marketplace |
-| Dapr | `NextGenSoftware.OASIS.API.Providers.DaprOASIS` | Dapr distributed application runtime |
-| GUN | `NextGenSoftware.OASIS.API.Providers.GUNOASIS` | GUN decentralised graph database |
-| Intel OpenVINO | `NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS` | Intel OpenVINO AI/ML inference toolkit |
-| ONION Protocol | `NextGenSoftware.OASIS.API.Providers.ONION-Protocol` | Tor / Onion routing privacy network |
-| OrbitDB | `NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS` | OrbitDB peer-to-peer database (IPFS-based) |
-| Orion Protocol | `NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS` | Orion Protocol DEX aggregator |
-| PLAN | `NextGenSoftware.OASIS.API.Providers.PLANOASIS` | PLAN collaborative community platform |
-| SEEDS | `NextGenSoftware.OASIS.API.Providers.SEEDSOASIS` | SEEDS regenerative economy protocol |
-| Temporal | `NextGenSoftware.OASIS.API.Providers.TemporalOASIS` | Temporal workflow orchestration engine |
-| Urbit | `NextGenSoftware.OASIS.API.Providers.UrbitOASIS` | Urbit personal server OS & P2P network |
+| Provider | Package | Category | Description |
+|---|---|---|---|
+| Cargo | `NextGenSoftware.OASIS.API.Providers.CargoOASIS` | *(stub — no provider class yet)* | Cargo NFT minting & marketplace |
+| Dapr | `NextGenSoftware.OASIS.API.Providers.DaprOASIS` | `Network` | Dapr distributed application runtime |
+| GUN | `NextGenSoftware.OASIS.API.Providers.GUNOASIS` | `Storage` | GUN decentralised graph database |
+| Intel OpenVINO | `NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS` | `AI` | Intel OpenVINO AI/ML inference toolkit |
+| ONION Protocol | `NextGenSoftware.OASIS.API.Providers.ONION-Protocol` | *(stub — no provider class yet)* | Tor / Onion routing privacy network |
+| OrbitDB | `NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS` | `Storage` | OrbitDB peer-to-peer database (IPFS-based) |
+| Orion Protocol | `NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS` | *(stub — no ProviderCategory set)* | Orion Protocol DEX aggregator |
+| PLAN | `NextGenSoftware.OASIS.API.Providers.PLANOASIS` | `Network` | PLAN collaborative community platform |
+| SEEDS | `NextGenSoftware.OASIS.API.Providers.SEEDSOASIS` | `Application` | SEEDS regenerative economy protocol |
+| Temporal | `NextGenSoftware.OASIS.API.Providers.TemporalOASIS` | `Network` | Temporal workflow orchestration engine |
+| Urbit | `NextGenSoftware.OASIS.API.Providers.UrbitOASIS` | `Application` | Urbit personal server OS & P2P network |
 
 ---
 
@@ -335,8 +335,7 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 
 ## Change History
 
-> **2026-09-22 (category audit):** ProviderCategory enum assignments corrected across all 229 providers. `Social` added to enum. 12 Social providers updated to `ProviderCategory.Social`. 22 Blockchain, 16 Cloud, 27 Network, 60 Storage providers given correct primary categories. ProviderManager updated to use interface checks (IOASISStorageProvider / IOASISNETProvider) instead of category checks so all providers remain activatable. GaladrielOASIS corrected to `EVMBlockchain`. Duplicate folder copies removed (Ceramic/Blockchain, MoralisDBOASIS/Blockchain, Arweave/Network).
-> **2026-09-22:** Full recount from filesystem — 229 unique providers (232 entries, 3 cross-category). Previous docs incorrectly stated 220.
+> **2026-09-22 (category audit):** ProviderCategory enum assignments corrected across all providers. `Social` added to enum. 12 Social providers → `Social`. 58 Blockchain folder providers split into `EVMBlockchain` (34 EVM-compatible) and `Blockchain` (24 non-EVM) — fixes missed `new(...)` syntax providers and promotes EVM chains from generic `Blockchain`. 16 Cloud → `Cloud`. 27 Network → `Network`. Storage folder → `Storage`/`StorageLocal`. Other folder fixed (GUN/OrbitDB → `Storage`, PLAN/Dapr/Temporal → `Network`, SEEDS/Urbit → `Application`). ProviderManager updated to use interface checks for activation; `GetCloudProviders`, `GetSocialProviders`, `GetIdentityProviders`, `GetAIProviders`, `GetMapProviders`, `GetSpatialProviders` and matching `IsProvider*` helpers added. GaladrielOASIS → `EVMBlockchain`. Duplicate folder copies removed (Ceramic/Blockchain, MoralisDBOASIS/Blockchain, Arweave/Network). Total: 227 providers.
 > **2026-09-21:** Added COSMOS submodule to Blockchain — updated to 220.
 > **2026-09-20d (+14):** Blockchain ×3 (OpenZeppelin Defender, Gelato, Chainlink Functions), Network ×5 (Covalent, Dune Analytics, Reservoir, Blockscout, Zapper), Spatial ×3 (Ready Player Me, Decentraland, The Sandbox), AI ×3 (Bittensor, Galadriel, Ritual). Previous: 206.
 > **2026-09-20c (+4):** Network ×4 (NATS JetStream, Temporal, Dapr, Intel OpenVINO). Previous: 202.
