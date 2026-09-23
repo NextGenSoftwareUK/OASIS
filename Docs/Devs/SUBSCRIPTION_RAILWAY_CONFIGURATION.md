@@ -1,110 +1,175 @@
-# WEB4–WEB10 subscription ledger: Railway setup
+# WEB4-WEB10 subscription ledger: exact Railway runbook
 
-This is the short deployment checklist for the subscription usage ledger. It assumes the current new installation has no users or historical accounting data.
+Follow this checklist in Railway's **development** environment first. Do not enable production until the complete development test at the end passes.
 
-## Confirmed existing Railway production variables
+## What is already configured
 
-The production Railway environment already exposes these shared variables to all seven WEB4–WEB10 services:
+Railway already has `OASIS_DNA_JSON`, the existing `STRIPE_*` variables, and `GITHUB_PAT`. Keep them. Do not create another MongoDB connection or another set of Stripe variables. WEB4-WEB10 write `OASIS_DNA_JSON` to `/app/OASIS_DNA.json` and reuse its MongoDB connection.
 
-- `GITHUB_PAT`
-- `OASIS_DNA_JSON`
-- `STRIPE_PUBLISHABLE_KEY`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_WEBHOOK_TEST_TOKEN` (currently referenced only by one service)
+The ledger creates dedicated collections in the same MongoDB instance. It does not store accounting records in the shared `holons` collection.
 
-The Docker entrypoints for WEB4–WEB10 write `OASIS_DNA_JSON` to `/app/OASIS_DNA.json` before starting each service. The ledger therefore receives the same MongoDB configuration as the existing OASIS services. Existing Stripe environment variables take precedence over Stripe values in that DNA file. Do not add another MongoDB URI or another copy of the Stripe keys for the ledger.
-
-The screenshot supplied for this rollout shows only one shared variable in staging. Before staging validation, mirror the applicable DNA/Stripe shared variables into staging using staging values; never point staging at production Stripe or production customer data.
-
-## Existing settings that are reused
-
-Do not create duplicate Railway variables for these when they are already present in `OASIS_DNA_JSON` or the existing Railway shared environment:
-
-| Existing configuration | How the ledger uses it |
+| Owner | Default database |
 |---|---|
-| `OASIS.StorageProviders.MongoDBOASIS.ConnectionString` in `OASIS_DNA.json` | WEB4 accounting and WEB5–WEB10 durable outboxes connect to the existing MongoDB deployment. |
-| `OASIS.SubscriptionConfig.Stripe.SecretKey` | Checkout, canonical subscription reads and reconciliation. `STRIPE_SECRET_KEY` remains an optional protected override. |
-| `OASIS.SubscriptionConfig.Stripe.WebhookSecret` | Verification of Stripe webhook signatures. `STRIPE_WEBHOOK_SECRET` remains an optional protected override. |
-| `OASIS.SubscriptionConfig.Stripe.PriceBronze`, `PriceSilver`, `PriceGold`, `PriceEnterprise` | Existing Stripe price IDs. The corresponding `STRIPE_PRICE_*` variables remain optional overrides. |
+| WEB4 ledger and billing | `oasis_subscription_accounting` |
+| WEB5-WEB10 outboxes | `oasis_web5_subscription_outbox` through `oasis_web10_subscription_outbox` |
 
-The ledger does not use the shared `holons` collection. It creates dedicated collections in the `oasis_subscription_accounting` database on the existing MongoDB deployment. Each consuming service uses a fixed outbox database:
+WEB6 pricing is loaded from `Configuration/web6-model-catalogue.json`. No Railway price variable is required.
 
-| Service | Default outbox database |
-|---|---|
-| WEB5 | `oasis_web5_subscription_outbox` |
-| WEB6 | `oasis_web6_subscription_outbox` |
-| WEB7 | `oasis_web7_subscription_outbox` |
-| WEB8 | `oasis_web8_subscription_outbox` |
-| WEB9 | `oasis_web9_subscription_outbox` |
-| WEB10 | `oasis_web10_subscription_outbox` |
+## Add the required variables
 
-`SUBSCRIPTION_MONGODB_CONNECTION_STRING`, `SUBSCRIPTION_MONGODB_DATABASE`, `SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING` and `SUBSCRIPTION_OUTBOX_DATABASE` are optional overrides for deployments that intentionally isolate those stores. They are not required for the normal shared-cluster layout.
+### Step 1: generate six secrets
 
-## New variables required for launch
+Generate six different secrets of at least 32 random bytes. Temporarily label them `WEB5_SECRET` through `WEB10_SECRET`. Do not save their values in source control or this document.
 
-The code deploys with metering disabled by default. Do not set `SUBSCRIPTION_USAGE_ENABLED` during the first deployment. This activation gate exists so an incomplete Railway variable rollout cannot stop WEB5–WEB10 at startup.
+Run this PowerShell once for each secret:
 
-### 1. Internal service credentials
+```powershell
+$bytes = New-Object byte[] 48
+[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+[Convert]::ToBase64String($bytes)
+```
 
-Generate six different random secrets of at least 32 bytes. Each secret is shared only between WEB4 and its named consuming service.
+### Step 2: configure WEB4
 
-| Railway service | Variables to add |
-|---|---|
-| WEB4 | `SUBSCRIPTION_SERVICE_KEY_WEB5`, `SUBSCRIPTION_SERVICE_KEY_WEB6`, `SUBSCRIPTION_SERVICE_KEY_WEB7`, `SUBSCRIPTION_SERVICE_KEY_WEB8`, `SUBSCRIPTION_SERVICE_KEY_WEB9`, `SUBSCRIPTION_SERVICE_KEY_WEB10` |
-| WEB5 | `SUBSCRIPTION_SERVICE_KEY_WEB5` with the same WEB5 value stored on WEB4 |
-| WEB6 | `SUBSCRIPTION_SERVICE_KEY_WEB6` with the same WEB6 value stored on WEB4 |
-| WEB7 | `SUBSCRIPTION_SERVICE_KEY_WEB7` with the same WEB7 value stored on WEB4 |
-| WEB8 | `SUBSCRIPTION_SERVICE_KEY_WEB8` with the same WEB8 value stored on WEB4 |
-| WEB9 | `SUBSCRIPTION_SERVICE_KEY_WEB9` with the same WEB9 value stored on WEB4 |
-| WEB10 | `SUBSCRIPTION_SERVICE_KEY_WEB10` with the same WEB10 value stored on WEB4 |
-
-These credentials prevent another service or client from submitting fabricated usage to WEB4. Never reuse one service's value for another service.
-
-### 2. WEB4 address
-
-Add `WEB4_API_BASE_URL` to WEB5, WEB6, WEB7, WEB8, WEB9 and WEB10. Use the HTTPS base URL of the WEB4 service in that Railway environment.
-
-This tells each consuming service where to reserve and settle usage. Staging services must point to staging WEB4; production services must point to production WEB4.
-
-### 3. WEB6 prices
-
-No Railway price variable is required. WEB6 stores its provider/model prices in the deployed `Configuration/web6-model-catalogue.json`; `ModelCatalogueManager` validates and loads it, and subscription metering derives safe request reservations from it. The catalogue is separate from Stripe plan prices: Stripe charges the customer for a plan, while WEB6 accounts for measured AI-provider usage. `WEB6_MODEL_CATALOGUE_PATH` is optional when deliberately mounting a different reviewed file.
-
-### 4. First launch only
-
-Add this to WEB4:
+In Railway, select **development**, open **WEB4 OASIS API**, then **Variables**. Add:
 
 ```text
+SUBSCRIPTION_SERVICE_KEY_WEB5=<WEB5_SECRET>
+SUBSCRIPTION_SERVICE_KEY_WEB6=<WEB6_SECRET>
+SUBSCRIPTION_SERVICE_KEY_WEB7=<WEB7_SECRET>
+SUBSCRIPTION_SERVICE_KEY_WEB8=<WEB8_SECRET>
+SUBSCRIPTION_SERVICE_KEY_WEB9=<WEB9_SECRET>
+SUBSCRIPTION_SERVICE_KEY_WEB10=<WEB10_SECRET>
 SUBSCRIPTION_LEDGER_INITIAL_STATE=empty-new-installation
 ```
 
-On the first transactional ledger write, WEB4 checks that every ledger, billing and legacy source collection is empty. It records a durable initialization marker only when that check succeeds. If any record exists, startup accounting fails closed instead of silently treating existing usage as zero.
+The initialization setting is required once because this installation has no existing users or accounting records. It is not a historical migration. The first ledger write verifies that the collections are empty and creates a permanent initialization marker. If data unexpectedly exists, it fails without overwriting it.
 
-After the marker exists, remove `SUBSCRIPTION_LEDGER_INITIAL_STATE` from WEB4 and redeploy. Do not use this setting for an installation that already has users or accounting records.
+Do **not** add `SUBSCRIPTION_USAGE_ENABLED` to WEB4 yet.
 
-## Optional operational settings
+### Step 3: configure WEB5
 
-These are useful when their corresponding feature is enabled, but they are not required merely to connect the ledger:
+Open **WEB5 STAR API** > **Variables** and add:
 
-| Variable | When it is needed |
+```text
+WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one
+SUBSCRIPTION_SERVICE_KEY_WEB5=<the same WEB5_SECRET stored on WEB4>
+```
+
+Do not enable usage yet.
+
+### Step 4: configure WEB6
+
+Open **WEB6 AI API** > **Variables** and add:
+
+```text
+WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one
+SUBSCRIPTION_SERVICE_KEY_WEB6=<the same WEB6_SECRET stored on WEB4>
+```
+
+Do not enable usage yet.
+
+### Step 5: configure WEB7-WEB10
+
+Repeat the same pattern:
+
+| Railway service | URL variable | Matching secret variable |
+|---|---|---|
+| WEB7 SYMBIOTIC API | `WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one` | `SUBSCRIPTION_SERVICE_KEY_WEB7=<WEB7_SECRET>` |
+| WEB8 IGN API | `WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one` | `SUBSCRIPTION_SERVICE_KEY_WEB8=<WEB8_SECRET>` |
+| WEB9 SINGULARITY API | `WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one` | `SUBSCRIPTION_SERVICE_KEY_WEB9=<WEB9_SECRET>` |
+| WEB10 THE SOURCE API | `WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one` | `SUBSCRIPTION_SERVICE_KEY_WEB10=<WEB10_SECRET>` |
+
+Each consumer gets only its own secret. Its value must exactly match the same variable on WEB4. Never reuse one secret for multiple services.
+
+## Activate one service at a time
+
+Complete one step before moving to the next. If a service fails, remove its `SUBSCRIPTION_USAGE_ENABLED` variable or set it to `false`, redeploy it, and investigate before continuing.
+
+### Step 6: activate WEB5 only
+
+1. On WEB5, add `SUBSCRIPTION_USAGE_ENABLED=true`.
+2. Wait for Railway deployment to complete.
+3. Confirm `https://dev.api.starnet.oasisomniverse.one` returns HTTP `200`.
+4. Perform one authenticated WEB5 operation covered by subscription usage.
+5. In OPORTAL admin, confirm its authorization, settlement, usage event, audit record and completed WEB5 outbox operation.
+
+### Step 7: activate WEB6
+
+1. On WEB6, add `SUBSCRIPTION_USAGE_ENABLED=true`.
+2. Wait for deployment and confirm `https://dev.api.web6.oasisomniverse.one` is reachable.
+3. Perform one supported AI request.
+4. In OPORTAL, confirm its catalogue price, reservation, measured usage, settlement, audit record and completed WEB6 outbox operation.
+
+### Step 8: activate WEB7-WEB10
+
+Enable and test them individually in this order:
+
+1. WEB7: verify `https://dev.api.web7.oasisomniverse.one` and one metered operation.
+2. WEB8: verify `https://dev.api.web8.oasisomniverse.one` and one metered operation.
+3. WEB9: verify `https://dev.api.web9.oasisomniverse.one` and one metered operation.
+4. WEB10: verify `https://dev.api.web10.oasisomniverse.one` and one metered operation.
+
+After every operation, verify usage, audit and outbox records in OPORTAL before enabling the next service.
+
+### Step 9: enable WEB4 workers
+
+After WEB5-WEB10 have all passed:
+
+1. Add `SUBSCRIPTION_USAGE_ENABLED=true` to WEB4.
+2. Wait for deployment.
+3. Confirm `https://dev.api.web4.oasisomniverse.one` returns HTTP `200`.
+4. Without logging in, confirm these protected routes return `401`:
+   - `/api/subscription/admin/analytics`
+   - `/api/subscription/admin/outboxes`
+5. Log in to OPORTAL with a Wizard administrator and confirm all subscription admin pages load.
+
+### Step 10: remove the one-time initialization variable
+
+After the first successful metered operation appears in OPORTAL:
+
+1. Confirm the stored marker is `v1-opening-balance` with `InitializationMode=empty-new-installation`.
+2. Remove `SUBSCRIPTION_LEDGER_INITIAL_STATE` from WEB4.
+3. Redeploy WEB4.
+4. Confirm WEB4 is healthy and the existing ledger records remain visible.
+
+## Complete development test
+
+Use Stripe test mode:
+
+1. Create or select a test customer in OPORTAL.
+2. Start a test subscription through the existing Stripe checkout flow.
+3. Deliver the existing webhook to WEB4 and confirm the subscription becomes active.
+4. Run one metered operation from at least WEB5 and WEB6.
+5. Confirm reservations, settlements, immutable audit entries and completed outboxes.
+6. Confirm invoice and analytics screens show the same customer and usage.
+7. Run reconciliation and confirm there are no unexplained ledger-versus-Stripe differences.
+8. Restart WEB4 and one consumer. Confirm they remain healthy and no settled operation is charged twice.
+
+Do not merge `Development` to `master` until this entire test passes.
+
+## Production rollout
+
+After development passes:
+
+1. Merge OASIS `Development` to `master` using the repository promotion workflow.
+2. Merge tested OPORTAL `dev` to its production branch.
+3. Confirm production has the intended `OASIS_DNA_JSON` and Stripe variables.
+4. Generate six new production-only service secrets. Do not copy development secrets.
+5. Repeat Steps 2-10 with the production WEB4 URL.
+6. Activate and verify one consumer at a time.
+
+## Do not add these for the normal rollout
+
+| Variable | Why it is unnecessary |
 |---|---|
-| `SUBSCRIPTION_ADMIN_AVATAR_IDS` on WEB4 | Optional additional allowlist for dedicated subscription-admin JWTs. Existing authenticated `Wizard` avatars use the established OASIS administrator identity and do not require this setting. |
-| `SUBSCRIPTION_OTLP_METRICS_ENDPOINT` and `SUBSCRIPTION_OTLP_HEADERS` | Exporting subscription metrics to the deployed collector. |
-| `SUBSCRIPTION_MIGRATION_APPROVAL_KEY` | Only for an installation with existing users/accounting data that needs a signed opening-state import. It is not needed for this new empty installation. |
-| Stripe environment variables | Only when intentionally overriding the existing Stripe values from OASIS DNA. |
-| MongoDB environment variables | Only when intentionally using a different cluster or database from the documented defaults. |
+| `SUBSCRIPTION_MONGODB_CONNECTION_STRING` | Optional override; normal deployment reuses MongoDB from `OASIS_DNA_JSON`. |
+| `SUBSCRIPTION_MONGODB_DATABASE` | Optional override; WEB4 uses `oasis_subscription_accounting`. |
+| `SUBSCRIPTION_OUTBOX_MONGO_CONNECTION_STRING` | Optional override; consumers reuse the DNA MongoDB connection. |
+| `SUBSCRIPTION_OUTBOX_DATABASE` | Optional override; each consumer has a dedicated default. |
+| Duplicate Stripe keys or `STRIPE_PRICE_*` | Existing OASIS DNA and Railway Stripe settings are reused. |
+| `WEB6_MODEL_CATALOGUE_PATH` | The reviewed JSON catalogue is deployed at its default path. |
+| `SUBSCRIPTION_MIGRATION_APPROVAL_KEY` | Historical migration is unnecessary for this confirmed empty installation. |
+| `SUBSCRIPTION_ADMIN_AVATAR_IDS` | Existing authenticated Wizard administrators already qualify. |
 
-## Deployment check
-
-1. Deploy the code with `SUBSCRIPTION_USAGE_ENABLED` absent. Confirm every existing WEB4–WEB10 health endpoint remains available.
-2. Confirm `OASIS_DNA_JSON` contains the intended MongoDB value and the existing Stripe shared variables target the intended environment, without printing their values in logs.
-3. Add the six paired service credentials, `WEB4_API_BASE_URL` and the one-time empty-installation setting while metering remains disabled.
-4. Set `SUBSCRIPTION_USAGE_ENABLED=true` on WEB5 only. Verify startup, one authorization, one settlement, its immutable audit entry and outbox completion.
-5. Repeat activation and verification one service at a time for WEB6, WEB7, WEB8, WEB9 and WEB10. Stop at the first failed health or protocol check; already-disabled services remain operational.
-6. Confirm the `v1-opening-balance` marker has `InitializationMode=empty-new-installation`, then remove the first-launch setting.
-7. Run Stripe test checkout/webhook and reconciliation using the existing Stripe configuration before enabling paid traffic.
-
-`SUBSCRIPTION_USAGE_ENABLED=true` is intentionally strict: that service will refuse to start if its WEB4 URL, paired credential or OASIS DNA MongoDB connection is missing or invalid. This catches configuration mistakes during the controlled one-service activation without affecting services whose gate remains disabled.
-
-Never paste secrets into source control, pull requests, test reports or chat. Configure them as protected Railway variables or protected OASIS DNA values.
+Telemetry is a separate optional operational feature. Its collector settings are not part of initial ledger activation.
