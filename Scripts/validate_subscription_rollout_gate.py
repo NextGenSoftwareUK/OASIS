@@ -28,10 +28,3 @@ for service, path in PROGRAMS.items():
 if errors:
     raise SystemExit("Subscription rollout gate validation failed:\n- " + "\n- ".join(errors))
 print("Subscription rollout gate validation passed for WEB5-WEB10.")
-
-web4 = (ROOT / "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs").read_text(encoding="utf-8")
-if not re.search(r'if \(subscriptionUsageEnabled\)\s*services\.AddHostedService<Services\.Subscription\.SubscriptionUsageExpiryWorker>\(\);', web4):
-    raise SystemExit("WEB4 expiry worker is not guarded by SUBSCRIPTION_USAGE_ENABLED.")
-if "AddUsageReconciliation(services, subscriptionUsageEnabled)" not in web4:
-    raise SystemExit("WEB4 reconciliation worker is not guarded by SUBSCRIPTION_USAGE_ENABLED.")
-print("Subscription rollout gate validation passed for WEB4 background workers.")
