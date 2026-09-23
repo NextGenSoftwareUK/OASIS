@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         Console.WriteLine($"[OASIS BOOT] AutoFailOverProviders={providers?.AutoFailOverProviders}");
                         Console.WriteLine($"[OASIS BOOT] AutoFailOverEnabled={providers?.AutoFailOverEnabled}");
                         var mongoConn = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS?.StorageProviders?.MongoDBOASIS?.ConnectionString;
-                        Console.WriteLine($"[OASIS BOOT] MongoDB ConnectionString set: {!string.IsNullOrEmpty(mongoConn)}");
+                        Console.WriteLine($"[OASIS BOOT] MongoDB ConnectionString set: {!string.IsNullOrEmpty(mongoConn)} (first 20 chars: {mongoConn?.Substring(0, Math.Min(20, mongoConn?.Length ?? 0))})");
                     }
 
                     var failOverList = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetProviderAutoFailOverList();
