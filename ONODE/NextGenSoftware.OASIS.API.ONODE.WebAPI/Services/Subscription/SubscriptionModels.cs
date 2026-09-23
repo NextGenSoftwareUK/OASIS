@@ -1,22 +1,14 @@
 using System;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 {
-    [BsonIgnoreExtraElements]
     public class SubscriptionRecord
     {
-        [BsonId] public string UserId { get; set; }
-        public DateTime? StripeSubscriptionCreatedAtUtc { get; set; }
-        public DateTime? LastStripeEventCreatedAtUtc { get; set; }
-        public string LastStripeEventId { get; set; }
-        public long AuthorizationVersion { get; set; }
-        public DateTime? FreePlanActivatedAtUtc { get; set; }
+        public string UserId { get; set; }
         public string StripeCustomerId { get; set; }
         public string StripeSubscriptionId { get; set; }
-        public string PlanId { get; set; }
-        public string Status { get; set; } // active, cancelled, past_due, trialing, free
+        public string PlanId { get; set; } = "free";
+        public string Status { get; set; } = "active"; // active, cancelled, past_due, trialing, free
         public bool PayAsYouGoEnabled { get; set; }
         public DateTime? CurrentPeriodStart { get; set; }
         public DateTime? CurrentPeriodEnd { get; set; }
@@ -42,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PlanId { get; set; }
         public string StripeInvoiceId { get; set; }
         public string Description { get; set; }
-        [BsonRepresentation(BsonType.Decimal128)] public decimal Amount { get; set; }
+        public decimal Amount { get; set; }
         public string Currency { get; set; } = "USD";
         public string Status { get; set; } = "paid"; // paid, open, void, uncollectible
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
