@@ -4,13 +4,9 @@ Date: 2026-09-20
 
 ## Implementation status
 
-The September 22 protocol revision extends the initial implementation with authenticated service ownership, a durable execution-start boundary, shared WEB5–WEB10 outboxes, immutable audit, expiry/recovery, provider receipt deduplication, administrative corrections, historical opening-balance migration and reconciliation. `authorize-request` is retired. The prior implementation did not provide all of these guarantees; its presence alone was not proof of production billing correctness.
+The cutover described by this audit is implemented. WEB4 now provides authenticated `usage/authorize`, `usage/settle`, `usage/current`, and `usage/events` endpoints backed by a transactional MongoDB ledger with unique operation IDs. WEB6 now reserves before provider work and synchronously settles REST, token completion, SSE, OpenAI-compatible, WebSocket, GraphQL, gRPC, and MCP usage through WEB4. Caller-selected billing avatars, caller-selected plan/karma, the WEB6-local settings ledger, background usage writes, and the per-process quota middleware are removed from the active path. Disabled legacy blocks carry explicit supersession comments.
 
 The canonical operating guide, policy table, failure semantics, deployment variables, and verification commands are in [WEB4_SUBSCRIPTION_USAGE_LEDGER.md](WEB4_SUBSCRIPTION_USAGE_LEDGER.md).
-
-The [operations runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md) distinguishes automated protocol tests from credential-dependent provider, Stripe and deployed-environment release gates. Missing provider receipt contracts must reject work before cost is incurred; unsupported adapters and unrun live tests must not be described as complete production coverage.
-
-The sections below preserve the original September 20 findings and target design for audit history. References there to the "current" compatibility counter and old usage manager describe that historical snapshot, not the active protocol.
 
 ## Decision
 

@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FarcasterOASIS
             ProviderDescription = "Farcaster decentralised social protocol provider (via Neynar REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FarcasterOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ──────────────────────────────────────────────────────────

@@ -142,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests
             // This test exercises the real HolonManager persistence path.
             // Enable once a test OASIS provider is configured in CI.
             var logger = new Microsoft.Extensions.Logging.Abstractions.NullLogger<SubscriptionService>();
-            var service = new SubscriptionService(logger, new Moq.Mock<ISubscriptionUsageRepository>().Object, new Moq.Mock<ISubscriptionBillingRepository>().Object);
+            var service = new SubscriptionService(logger);
 
             var userId = Guid.NewGuid().ToString();
             var record = new SubscriptionRecord
@@ -163,10 +163,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests
         }
 
         [Fact(Skip = "Requires live HolonManager and OASIS provider — enable in integration CI")]
+        public async Task SubscriptionService_IncrementUsage_ShouldPersistCount()
+        {
+            var logger = new Microsoft.Extensions.Logging.Abstractions.NullLogger<SubscriptionService>();
+            var service = new SubscriptionService(logger);
+
+            var userId = Guid.NewGuid().ToString();
+            var now = DateTime.UtcNow;
+
+            await service.IncrementUsageAsync(userId);
+            await service.IncrementUsageAsync(userId);
+
+            var usage = await service.GetUsageAsync(userId, now.Year, now.Month);
+            usage.RequestCount.Should().Be(2);
+        }
+
+        [Fact(Skip = "Requires live HolonManager and OASIS provider — enable in integration CI")]
         public async Task SubscriptionService_AddOrder_ShouldPersistAndDeduplicate()
         {
             var logger = new Microsoft.Extensions.Logging.Abstractions.NullLogger<SubscriptionService>();
-            var service = new SubscriptionService(logger, new Moq.Mock<ISubscriptionUsageRepository>().Object, new Moq.Mock<ISubscriptionBillingRepository>().Object);
+            var service = new SubscriptionService(logger);
 
             var userId = Guid.NewGuid().ToString();
             var order = new OrderRecord

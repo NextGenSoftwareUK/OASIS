@@ -11,6 +11,7 @@ public class SubscriptionUsagePolicyTests
     [InlineData("silver", 100000, 500, 1000000, 50)]
     [InlineData("gold", 1000000, 2000, 5000000, 250)]
     [InlineData("enterprise", -1, 0, 0, 0)]
+    [InlineData("unknown", 1000, 20, 50000, 1)]
     public void EveryPlanHasOneAuthoritativePolicy(string plan, int monthly, int daily, long tokens, decimal budget)
     {
         var policy = SubscriptionService.GetUsagePolicy(plan, 0);

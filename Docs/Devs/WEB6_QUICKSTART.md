@@ -1,10 +1,5 @@
 # WEB6 Quick-Start Guide
 
-## Subscription protocol update (2026-09-22)
-
-WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
-
-
 WEB6 billable routes require a user-bound WEB4 bearer token. WEB4 authorizes and records subscription usage; a global WEB6 API key is not a substitute for subscriber identity. Set `WEB4_API_BASE_URL` for the WEB4 authority used by the WEB6 deployment. See [WEB4_SUBSCRIPTION_USAGE_LEDGER.md](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) for quota policy, usage endpoints, storage configuration, and verification.
 
 Get from zero to a running AI task in under 5 minutes.
