@@ -8,14 +8,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription;
 public class MongoSubscriptionUsageRepositoryTests
 {
     [Fact]
-    public void UsageAggregateDocument_MapsExactlyOneMongoId()
+    public void UsageBucket_MapsExactlyOneMongoId()
     {
-        Type aggregateDocumentType = typeof(MongoSubscriptionUsageRepository).GetNestedType(
-            "UsageAggregateDocument", BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("UsageAggregateDocument persistence type was not found.");
+        var classMap = BsonClassMap.LookupClassMap(typeof(SubscriptionUsageBucket));
+        classMap.AllMemberMaps.Count(member => member.ElementName == "_id").Should().Be(1);
+        classMap.IdMemberMap.Should().NotBeNull();
+        classMap.IdMemberMap.MemberName.Should().Be("Id");
+    }
 
-        BsonClassMap classMap = BsonClassMap.LookupClassMap(aggregateDocumentType);
-
+    [Fact]
+    public void UsageEventProjection_MapsExactlyOneMongoId()
+    {
+        var document = typeof(MongoSubscriptionUsageRepository).GetNestedType("UsageEventDocument", BindingFlags.NonPublic)!;
+        var classMap = BsonClassMap.LookupClassMap(document);
         classMap.AllMemberMaps.Count(member => member.ElementName == "_id").Should().Be(1);
         classMap.IdMemberMap.Should().NotBeNull();
         classMap.IdMemberMap.MemberName.Should().Be("Id");

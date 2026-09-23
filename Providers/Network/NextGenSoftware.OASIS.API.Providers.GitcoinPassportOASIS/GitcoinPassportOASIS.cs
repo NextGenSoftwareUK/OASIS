@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GitcoinPassportOASIS
             ProviderDescription = "Gitcoin Passport provider — sybil resistance and reputation stamps";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.GitcoinPassportOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

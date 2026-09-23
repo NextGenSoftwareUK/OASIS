@@ -1,5 +1,10 @@
 # OASIS Quick Start Guide
 
+## Subscription protocol update (2026-09-22)
+
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+
+
 ## 🚀 **Get Started with OASIS in 10 Minutes**
 
 This comprehensive quick start guide will help you understand and begin using the OASIS platform for building decentralized applications.
