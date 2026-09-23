@@ -69,11 +69,12 @@ public sealed class UsageReconciliationWorker : BackgroundService
 
 public static class UsageReconciliationRegistration
 {
-    public static IServiceCollection AddUsageReconciliation(this IServiceCollection services)
+    public static IServiceCollection AddUsageReconciliation(this IServiceCollection services, bool startWorker = true)
     {
         services.AddSingleton<MongoUsageReconciler>();
         services.AddHttpClient<StripeUsageEvidenceReader>(client => client.Timeout = TimeSpan.FromSeconds(30));
-        services.AddHostedService<UsageReconciliationWorker>();
+        if (startWorker)
+            services.AddHostedService<UsageReconciliationWorker>();
         return services;
     }
 }
