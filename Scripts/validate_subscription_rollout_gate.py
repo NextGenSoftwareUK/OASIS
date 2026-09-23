@@ -30,8 +30,15 @@ if errors:
 print("Subscription rollout gate validation passed for WEB5-WEB10.")
 
 web4 = (ROOT / "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs").read_text(encoding="utf-8")
-if not re.search(r'if \(subscriptionUsageEnabled\)\s*services\.AddHostedService<Services\.Subscription\.SubscriptionUsageExpiryWorker>\(\);', web4):
-    raise SystemExit("WEB4 expiry worker is not guarded by SUBSCRIPTION_USAGE_ENABLED.")
 if "AddUsageReconciliation(services, subscriptionUsageEnabled)" not in web4:
     raise SystemExit("WEB4 reconciliation worker is not guarded by SUBSCRIPTION_USAGE_ENABLED.")
+enabled_block = re.search(r'if \(subscriptionUsageEnabled\)\s*\{(?P<body>.*?)\}', web4, re.DOTALL)
+if not enabled_block:
+    raise SystemExit("WEB4 does not have a SUBSCRIPTION_USAGE_ENABLED service-registration block.")
+for registration in (
+    "AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>()",
+    "AddSubscriptionUsageTelemetry(services, Configuration, \"WEB4\")",
+):
+    if registration not in enabled_block.group("body"):
+        raise SystemExit(f"WEB4 registration is not rollout-gated: {registration}")
 print("Subscription rollout gate validation passed for WEB4 background workers.")

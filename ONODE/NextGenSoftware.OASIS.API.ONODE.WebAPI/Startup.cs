@@ -383,9 +383,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             if (subscriptionUsageEnabled)
+            {
                 services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
+            }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);
-            NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
             services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
