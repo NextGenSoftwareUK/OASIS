@@ -24,13 +24,13 @@
 
 ## Authentication
 
-All write endpoints require a JWT bearer token. Obtain a token via the WEB4 avatar authentication endpoint or the DID auth endpoint.
+All endpoints require a JWT bearer token. Obtain a token via the WEB4 avatar authentication endpoint or the DID auth endpoint.
 
 ```
 Authorization: Bearer <jwt-token>
 ```
 
-Read endpoints (GET) are open by default; write endpoints return `401 Unauthorized` without a valid token.
+All endpoints (GET and write) return `401 Unauthorized` without a valid token. The only exceptions are the discovery documents (`/.well-known/mcp.json`, `/.well-known/agent.json`) and the Prometheus metrics endpoint (`/metrics`), which are intentionally public.
 
 ---
 
