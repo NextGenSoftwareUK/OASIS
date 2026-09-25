@@ -40,7 +40,8 @@ $probe = Invoke-WebRequest -Method Post -Uri $grantUri -SkipHttpErrorCheck -Head
         deviceId = [Guid]::NewGuid(); requestedLifetimeMinutes = 60; requestedScopes = @('hyperdrive.sync')
     } | ConvertTo-Json)
 if ([int]$probe.StatusCode -lt 200 -or [int]$probe.StatusCode -ge 300) {
-    throw "Hosted ONODE offline-session-grant contract failed with HTTP $([int]$probe.StatusCode) at $grantUri."
+    $responseBody = $probe.Content
+    throw "Hosted ONODE offline-session-grant contract failed with HTTP $([int]$probe.StatusCode) at $grantUri. Response: $responseBody"
 }
 if ([string]::IsNullOrWhiteSpace($OfflineGrantPublicKey)) {
     throw 'OfflineGrantPublicKey is required after the deployed grant endpoint is available.'
