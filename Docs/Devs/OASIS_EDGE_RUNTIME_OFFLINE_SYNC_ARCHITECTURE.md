@@ -280,6 +280,11 @@ provider-neutral hosted contracts for operation application, feed/snapshot gener
 checkpoints, retention and fan-out. MongoOASIS is currently the most complete reference implementation and therefore
 the initial hosted production provider.
 
+An authoritative hosted provider implements the single composite `IHostedHyperDriveProvider` contract. That
+interface inherits the smaller sync, peer-binding, command, fan-out, maintenance, domain-mutation, change-capture and
+backfill contracts. The smaller interfaces let each hosted service depend only on the capability it uses; provider
+authors normally declare only the composite interface. MongoOASIS follows this model.
+
 Other providers may implement the whole hosted contract or an explicitly declared subset. HoloOASIS and future SQL,
 graph, blockchain or composite providers must pass the applicable conformance and fault-injection suites before
 advertising a capability. A provider suitable for immutable replication may not be suitable for high-volume device
