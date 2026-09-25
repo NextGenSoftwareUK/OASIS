@@ -25,10 +25,7 @@ using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
     public partial class MongoDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider,
-        IOASISSuperStar, IHostedHyperDriveSyncStore, IHostedHyperDrivePeerBindingStore,
-        IHostedHyperDriveFanOutStore, IHostedHyperDriveMaintenanceStore, IHostedHyperDriveCommandStore,
-        IHostedHyperDriveDomainMutationStore, IHostedHyperDriveDomainChangeCaptureStore,
-        IHostedHyperDriveDomainBackfillStore
+        IOASISSuperStar, IHostedHyperDriveProvider
     {
     }
 }
