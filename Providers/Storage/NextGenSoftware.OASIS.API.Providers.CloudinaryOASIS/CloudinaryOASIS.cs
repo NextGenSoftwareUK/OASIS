@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -76,8 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS
             ProviderName = "CloudinaryOASIS";
             ProviderDescription = "Cloudinary provider (cloud asset management via Cloudinary REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CloudinaryOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);

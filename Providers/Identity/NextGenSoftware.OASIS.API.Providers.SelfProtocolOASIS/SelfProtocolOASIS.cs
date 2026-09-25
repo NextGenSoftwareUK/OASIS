@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -44,9 +44,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS
             ProviderDescription = "Self Protocol ZK Identity Verification Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SelfProtocolOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Identity);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.KeyManager));
         }
 
         // Convenience constructor for testing without credentials

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
         {
             ProviderName = nameof(MidenOASIS);
             ProviderDescription = "Miden Privacy Provider with STARK Proofs";
-            this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

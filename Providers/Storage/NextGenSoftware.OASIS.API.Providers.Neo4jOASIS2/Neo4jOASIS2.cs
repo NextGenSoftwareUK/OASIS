@@ -34,7 +34,6 @@
 //            this.ProviderDescription = "Neo4j Provider";
 //            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
 //            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-//            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
 //            Host = host;
 //            Username = username;
 //            Password = password;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -69,8 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             ProviderName = "SolrOASIS";
             ProviderDescription = "Apache Solr provider (enterprise search platform via Solr JSON API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolrOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private async Task EnsureCollectionAsync(string collection)

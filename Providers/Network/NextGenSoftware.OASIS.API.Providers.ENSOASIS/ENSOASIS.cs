@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -36,8 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ENSOASIS
             ProviderName = "ENSOASIS";
             ProviderDescription = "Ethereum Name Service (ENS) Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ENSOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 

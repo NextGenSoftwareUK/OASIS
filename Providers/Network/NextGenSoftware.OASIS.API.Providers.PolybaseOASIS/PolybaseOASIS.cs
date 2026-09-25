@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -42,8 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolybaseOASIS
             ProviderName = "PolybaseOASIS";
             ProviderDescription = "Polybase decentralised Firebase provider — real-time reactive data on IPFS/Ethereum";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PolybaseOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

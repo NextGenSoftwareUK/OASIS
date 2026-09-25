@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -61,8 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             ProviderName = "ElasticsearchOASIS";
             ProviderDescription = "Elasticsearch / OpenSearch provider (REST API — full-text search and analytics over OASIS holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElasticsearchOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);

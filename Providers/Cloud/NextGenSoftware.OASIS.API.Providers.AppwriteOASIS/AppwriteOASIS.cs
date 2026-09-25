@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -64,9 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             ProviderName = "AppwriteOASIS";
             ProviderDescription = "Appwrite provider (Databases REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AppwriteOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

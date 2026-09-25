@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             this.ProviderName = "SQLLiteDBOASIS";
             this.ProviderDescription = "SQLLiteDBOASIS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
             _appDataContext = new DataContext(connectionString);
             _avatarDetailRepository = new AvatarDetailRepository(_appDataContext);

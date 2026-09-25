@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -178,7 +178,8 @@ public sealed partial class BaseOASIS : OASISStorageProviderBase, IOASISDBStorag
         _baseClient = new HttpClient();
         _isActivated = false;
         this.ProviderType = new(Core.Enums.ProviderType.BaseOASIS);
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.EVMBlockchain);
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

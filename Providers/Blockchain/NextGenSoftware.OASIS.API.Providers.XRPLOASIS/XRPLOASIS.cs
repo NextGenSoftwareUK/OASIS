@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -42,7 +42,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         ProviderName = "XRPLOASIS";
         ProviderDescription = "XRP Ledger provider for OASIS - stores data in transaction memos";
         ProviderType = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS);
-        ProviderCategory = new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Blockchain);
+        ProviderCategory = new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.StorageAndNetwork);
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Blockchain));
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Storage));
 

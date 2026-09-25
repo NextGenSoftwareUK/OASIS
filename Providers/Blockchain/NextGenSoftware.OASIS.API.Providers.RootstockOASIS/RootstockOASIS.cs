@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 using NextGenSoftware.Utilities;
@@ -14,8 +14,8 @@ public sealed class RootstockOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageP
         this.ProviderDescription = "Rootstock Provider";
         this.ProviderType = new(Core.Enums.ProviderType.RootstockOASIS);
 
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.EVMBlockchain);
-        this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));

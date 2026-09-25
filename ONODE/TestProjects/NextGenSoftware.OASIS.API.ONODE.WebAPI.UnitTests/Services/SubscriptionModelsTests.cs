@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Services
         {
             var record = new SubscriptionRecord();
 
-            record.PlanId.Should().Be("free");
-            record.Status.Should().Be("active");
+            record.PlanId.Should().BeNull();
+            record.Status.Should().BeNull();
             record.PayAsYouGoEnabled.Should().BeFalse();
             record.StripeCustomerId.Should().BeNull();
             record.StripeSubscriptionId.Should().BeNull();

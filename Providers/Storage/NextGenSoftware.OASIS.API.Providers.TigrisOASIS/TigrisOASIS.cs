@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -50,7 +50,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
             ProviderDescription = "Tigris Globally Distributed S3-Compatible Object Storage Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TigrisOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

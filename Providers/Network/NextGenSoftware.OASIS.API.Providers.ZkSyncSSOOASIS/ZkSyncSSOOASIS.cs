@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -41,8 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZkSyncSSOOASIS
             ProviderName = "ZkSyncSSOOASIS";
             ProviderDescription = "ZKsync SSO provider — passkey smart accounts on ZKsync Era";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ZkSyncSSOOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

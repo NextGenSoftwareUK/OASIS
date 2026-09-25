@@ -39,13 +39,11 @@ using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
-    public partial class HoloOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider,
-        NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization.IHyperDriveIdempotentReplicationTarget
+    public partial class HoloOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider
     {
         private const string HOLO_NETWORK_URI = "https://holo.host";
         private const string OASIS_HAPP_ID = "oasis";
-        public string OASISHAppPath { get; set; } = Path.Combine(AppContext.BaseDirectory,
-            "OASIS_hAPP", "oasis.happ");
+        private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
         private const string OASIS_HAPP_ROLE_NAME = "oasis";
         private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_avatar_by_id";
         private const string ZOME_LOAD_AVATAR_BY_USERNAME_FUNCTION = "get_avatar_by_username";
@@ -132,13 +130,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             Initialize();
         }
 
-        private void Initialize()
+        private async Task Initialize()
         {
             this.ProviderName = "HoloOASIS";
             this.ProviderDescription = "Holochain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
             DataHelper.UseReflection = this.UseHoloNETORMReflection;
             _avatarRepository = new AvatarRepository();

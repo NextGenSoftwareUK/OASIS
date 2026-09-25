@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -54,8 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS
             ProviderName = "CockroachDBOASIS";
             ProviderDescription = "CockroachDB provider (distributed SQL via Npgsql ADO.NET)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CockroachDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private NpgsqlConnection Open() { var conn = new NpgsqlConnection(_connectionString); conn.Open(); return conn; }

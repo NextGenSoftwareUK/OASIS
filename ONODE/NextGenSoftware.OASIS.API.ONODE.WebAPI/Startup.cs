@@ -66,11 +66,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // services.AddDbContext<DataContext>();
             services.AddCors();
-            services.AddHostedService<Services.HyperDrive.ONETHyperDriveSyncHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
-            services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
             // Add exception filter with configuration
             services.AddControllers(x =>
             {
@@ -385,12 +380,21 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             var offlineGrantSettings = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OfflineSessionGrants;
             if (offlineGrantSettings?.Enabled == true)
             {
-                // Construct now, not lazily on the first request: an enabled host with a missing/invalid key must not start.
+                // Construct during startup so an enabled deployment cannot accept traffic with a missing or invalid signing key.
                 var offlineGrantIssuer = new Services.HyperDriveOfflineSessionGrantIssuer(offlineGrantSettings);
                 services.AddSingleton<Services.IHyperDriveOfflineSessionGrantIssuer>(offlineGrantIssuer);
             }
-            services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository, Services.Subscription.MongoSubscriptionUsageRepository>();
+            services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
+            services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+            if (subscriptionUsageEnabled)
+            {
+                services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
+            }
+            Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);
             // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
             services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
@@ -615,7 +619,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
 
             app.UseEndpoints(endpoints =>
             {

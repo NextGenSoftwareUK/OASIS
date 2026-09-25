@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -64,9 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             ProviderName = "SupabaseOASIS";
             ProviderDescription = "Supabase provider (PostgREST REST API over PostgreSQL)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SupabaseOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

@@ -72,8 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
     }
 }

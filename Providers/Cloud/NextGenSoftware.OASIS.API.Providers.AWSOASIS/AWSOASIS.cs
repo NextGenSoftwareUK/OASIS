@@ -43,9 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             this.ProviderName = "AWSOASIS";
             this.ProviderDescription = "AWS Provider - Amazon Web Services cloud integration";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AWSOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _region = region ?? throw new ArgumentNullException(nameof(region));
             _accessKey = accessKey;
