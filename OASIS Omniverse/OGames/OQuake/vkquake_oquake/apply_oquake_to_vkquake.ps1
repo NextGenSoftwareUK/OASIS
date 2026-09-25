@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Copies OQuake + STAR files into vkQuake and patches host.c, pr_ext.c, sbar.c, gl_screen.c, pr_edict.c/pr_cx.c (monster kill hook), and the build (like ODOOM: full automation).
   Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\OQUAKE"
@@ -29,7 +29,7 @@ if ([string]::IsNullOrWhiteSpace($QuakeInstallDir)) {
 }
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OQuakeRoot = Split-Path -Parent $ScriptDir
-$OasisRoot = Split-Path -Parent $OQuakeRoot
+$OasisRoot = Split-Path -Parent (Split-Path -Parent $OQuakeRoot)
 $OGEngineClientRoot = Join-Path $OasisRoot "OGEngineClient"
 
 if (-not $VkQuakeSrc -or -not (Test-Path $VkQuakeSrc)) {
@@ -70,20 +70,24 @@ $versionDisplay = "1.0 (Build 1)"
 $versionDisplayPath = Join-Path $OQuakeVersion "version_display.txt"
 if (Test-Path $versionDisplayPath) { $versionDisplay = (Get-Content $versionDisplayPath -Raw).Trim() }
 
-# STAR DLL/LIB (prefer OQuake Code, then OGEngineClient publish)
-$StarDll = $null
-$StarLib = $null
-if (Test-Path (Join-Path $OQuakeCode "ogengine.dll")) {
-    $StarDll = Join-Path $OQuakeCode "ogengine.dll"
-    $StarLib = Join-Path $OQuakeCode "ogengine.lib"
-    if (-not (Test-Path $StarLib)) { $StarLib = $null }
+# The official native publish step deploys the matching header, library and dependencies here.
+$StarDll = Join-Path $OQuakeCode "ogengine.dll"
+$StarLib = Join-Path $OQuakeCode "ogengine.lib"
+if (-not ($IsCoreCLR -and -not $IsWindows)) {
+    foreach ($required in @($StarDll, $StarLib)) {
+        if (-not (Test-Path -LiteralPath $required)) { throw "Missing deployed native artifact: $required. Run the OGEngineClient publish script first." }
+    }
 }
-$StarPublishDir = Join-Path $OGEngineClientRoot "bin\Release\net9.0\win-x64\publish"
-if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "ogengine.dll"))) {
-    $StarDll = Join-Path $StarPublishDir "ogengine.dll"
-    $StarLibDir = Join-Path $OGEngineClientRoot "bin\Release\net9.0\win-x64\native"
-    $StarLib = Join-Path $StarLibDir "ogengine.lib"
-    if (-not (Test-Path $StarLib)) { $StarLib = $null }
+
+& (Join-Path $ScriptDir 'patch_oquake_offline_menu.ps1') -QuakeDir $QuakeDir
+
+function Clear-OQuakeBuildCache([string]$Directory) {
+    $root = [IO.Path]::GetFullPath($VkQuakeSrc).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $target = [IO.Path]::GetFullPath($Directory)
+    if (-not $target.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Build-cache directory escaped the selected engine checkout: $target"
+    }
+    Remove-Item -LiteralPath $target -Recurse -Force
 }
 
 # star_sync API is exported from ogengine.dll; only header is copied for declarations.
@@ -94,22 +98,24 @@ $files = @(
     @{ Src = Join-Path $OQuakeCode "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "pr_ext_oquake.c"; Dest = "pr_ext_oquake.c" },
     @{ Src = Join-Path $OGEngineClientRoot "ogengine.h"; Dest = "ogengine.h" },
-    @{ Src = Join-Path $starSyncRoot "star_sync.h"; Dest = "star_sync.h" }
+    @{ Src = Join-Path $starSyncRoot "ogengine_sync.h"; Dest = "ogengine_sync.h" }
 )
 $copied = 0
 foreach ($f in $files) {
-    if (Test-Path $f.Src) {
-        Copy-Item -Path $f.Src -Destination (Join-Path $QuakeDir $f.Dest) -Force
-        $copied++
-    }
+    if (-not (Test-Path -LiteralPath $f.Src)) { throw "Required integration source missing: $($f.Src)" }
+    Copy-Item -LiteralPath $f.Src -Destination (Join-Path $QuakeDir $f.Dest) -Force
+    $copied++
 }
-if ($StarDll) {
+Copy-Item -Path (Join-Path $OasisRoot "OGLib/*.h") -Destination $QuakeDir -Force
+if (Test-Path -LiteralPath $StarDll) {
     Copy-Item -Path $StarDll -Destination (Join-Path $QuakeDir "ogengine.dll") -Force
     $copied++
     if ($StarLib -and (Test-Path $StarLib)) {
         Copy-Item -Path $StarLib -Destination (Join-Path $QuakeDir "ogengine.lib") -Force
         $copied++
     }
+    $sqlite = Join-Path $OQuakeCode "e_sqlite3.dll"
+    if (Test-Path -LiteralPath $sqlite) { Copy-Item -LiteralPath $sqlite -Destination $QuakeDir -Force }
 }
 
 # Copy custom face image into Quake install dir so HUD can load gfx/face_anorak.
@@ -215,7 +221,7 @@ if (Test-Path $HostC) {
             )
             foreach ($dir in $buildDirs) {
                 if (Test-Path $dir) {
-                    Remove-Item -Recurse -Force $dir
+                    Clear-OQuakeBuildCache $dir
                     break
                 }
             }
@@ -286,7 +292,7 @@ extern void PF_OQuake_OnPickupLeftOnFloor (void);
             (Join-Path $VkQuakeSrc "build")
         )
         foreach ($dir in $buildDirs) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (pr_ext.c patched)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache (pr_ext.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -320,7 +326,7 @@ if (Test-Path $SbarC) {
     if ($sbarPatched) {
         Set-Content $SbarC $content -NoNewline
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (sbar.c patched)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache (sbar.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -364,7 +370,7 @@ if (Test-Path $ClInputC) {
     if ($clInputPatched) {
         Set-Content $ClInputC $content -NoNewline
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (cl_input.c patched)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache (cl_input.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -393,7 +399,7 @@ if (Test-Path $KeysC) {
     if ($keysPatched) {
         Set-Content $KeysC $content -NoNewline
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (keys.c patched)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache (keys.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -773,36 +779,36 @@ if ($RevertMonsterHook) {
         $path = Join-Path $QuakeDir $cFile
         if (Remove-MonsterHookFromFile -FilePath $path -FileLabel $cFile) {
             foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-                if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+                if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
             }
         }
     }
     $path = Join-Path $QuakeDir "pr_edict.c"
     if (Remove-MonsterHookFromInsideEDFree -FilePath $path -FileLabel "pr_edict.c") {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
     $path = Join-Path $QuakeDir "pr_cmds.c"
     if (Remove-MonsterHookFromPF_Remove -FilePath $path -FileLabel "pr_cmds.c") {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
     if (Remove-MonsterHookFromPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
     if (Remove-MonsterHookFromPF_sv_WriteByte -FilePath $path -FileLabel "pr_cmds.c") {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
     Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
         if (Remove-MonsterHookFromFile -FilePath $_.FullName -FileLabel $_.Name) {
             foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-                if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+                if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
             }
         }
     }
@@ -838,7 +844,7 @@ if ($RevertMonsterHook) {
     }
     if ($monsterHookAdded) {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (monster hook inside ED_Free + pr_cmds makestatic)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache (monster hook inside ED_Free + pr_cmds makestatic)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -866,7 +872,7 @@ if (Test-Path $GlScreenC) {
     if ($glPatched) {
         Set-Content $GlScreenC $content -NoNewline
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (gl_screen.c patched)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Clear-OQuakeBuildCache $dir; Write-Host "[OQuake] Cleared build cache (gl_screen.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -918,7 +924,7 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Removed star_sync.c from project (use star_sync exports from ogengine.dll only)" -ForegroundColor Green
     }
-    if ($projContent -notmatch 'star_api\.lib') {
+    if ($projContent -notmatch 'ogengine\.lib') {
         if ($projContent -match '<AdditionalDependencies>([^<]*)</AdditionalDependencies>') {
             $projContent = $projContent -replace '(<AdditionalDependencies>)([^<]*)(</AdditionalDependencies>)', "`$1`$2;ogengine.lib`$3"
             $vcxprojChanged = $true
@@ -926,7 +932,7 @@ foreach ($vcxproj in $vcxprojPaths) {
         }
     }
     # Client exports ogengine_refresh_avatar_profile (see OGEngineClient obj/.../native/ogengine.def). Linker must use the deployed lib in vkQuake\Quake.
-    if ($projContent -match 'star_api\.lib' -and $projContent -notmatch 'AdditionalLibraryDirectories.*\.\.\\\.\.\\Quake') {
+    if ($projContent -match 'ogengine\.lib' -and $projContent -notmatch 'AdditionalLibraryDirectories.*\.\.\\\.\.\\Quake') {
         $projContent = $projContent -replace '(<AdditionalDependencies>[^<]*</AdditionalDependencies>)([\s\S]*?)(</Link>)', "`$1`r`n      <AdditionalLibraryDirectories>..\..\Quake;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>`r`n`$2`$3"
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added AdditionalLibraryDirectories ..\..\Quake so linker uses deployed ogengine.lib in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
@@ -955,17 +961,10 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Removed OQUAKE_OGENGINE_TRACKER_STUBS so ogengine_set_active_quest uses real DLL (quest/objective will persist)" -ForegroundColor Green
     }
-    # Define OQUAKE_OGENGINE_SESSION_IMPL so oquake_ogengine_integration.c provides JWT/session APIs by forwarding to ogengine.dll at runtime. Use when ogengine.lib does not export them (e.g. NativeAOT trimmer).
-    if ($projContent -notmatch 'OQUAKE_OGENGINE_SESSION_IMPL') {
-        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_OGENGINE_SESSION_IMPL;`$2`$3"
+    # Shipped native symbols are mandatory; remove obsolete optional-resolution shims.
+    if ($projContent -match 'OQUAKE_OGENGINE_(SESSION|REFRESH_AVATAR_PROFILE)_IMPL') {
+        $projContent = $projContent -replace 'OQUAKE_OGENGINE_(SESSION|REFRESH_AVATAR_PROFILE)_IMPL;?', ''
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added OQUAKE_OGENGINE_SESSION_IMPL (forward ogengine_set_saved_session, ogengine_restore_session, get_current_username, get_current_jwt from DLL at runtime)" -ForegroundColor Green
-    }
-    # Define OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL so oquake_ogengine_integration.c provides ogengine_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked ogengine.lib does not export this symbol.
-    if ($projContent -notmatch 'OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL') {
-        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL;`$2`$3"
-        $vcxprojChanged = $true
-        Write-Host "[OQuake] Added OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL (provides ogengine_refresh_avatar_profile when lib does not)" -ForegroundColor Green
     }
     if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
 }
@@ -974,24 +973,34 @@ foreach ($vcxproj in $vcxprojPaths) {
 $mesonBuildPath = Join-Path $VkQuakeSrc "meson.build"
 if (Test-Path $mesonBuildPath) {
     $mesonContent = Get-Content $mesonBuildPath -Raw
+    $mesonChanged = $false
+    $legacyMeson = '# OQuake (injected by apply_oquake_to_vkquake.ps1): add integration sources + OGEngineClient when present'
+    $currentMeson = '# OQuake (injected by apply_oquake_to_vkquake.ps1): add integration sources + star_api when present'
+    $legacyStart = $mesonContent.IndexOf($legacyMeson, [StringComparison]::Ordinal)
+    $currentStart = $mesonContent.IndexOf($currentMeson, [StringComparison]::Ordinal)
+    if ($legacyStart -ge 0 -and $currentStart -gt $legacyStart) {
+        $mesonContent = $mesonContent.Remove($legacyStart, $currentStart - $legacyStart)
+        $mesonChanged = $true
+    }
     if ($mesonContent -notmatch "oquake_ogengine_integration\.c") {
         $mesonBlock = @"
 
 # OQuake (injected by apply_oquake_to_vkquake.ps1): add integration sources + star_api when present
 if import('fs').exists(join_paths(meson.source_root(), 'Quake', 'oquake_ogengine_integration.c'))
     srcs += ['Quake/oquake_ogengine_integration.c', 'Quake/pr_ext_oquake.c']
-    deps += cc.find_library('star_api', dirs: join_paths(meson.source_root(), 'Quake'), required: true)
-    cflags += ['-DOASIS_STAR_API', '-DOQUAKE_OGENGINE_SESSION_IMPL', '-DOQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL']
+    deps += cc.find_library('ogengine', dirs: join_paths(meson.source_root(), 'Quake'), required: true)
+    cflags += ['-DOASIS_STAR_API', '-DOASIS_STAR_SYNC_IN_CLIENT']
 endif
 
 "@
         $mesonContent = $mesonContent -replace "(\r?\nendif\s*\r?\n)(\r?\nif get_option\('use_codec_wave'\)\.enabled\(\))", "`$1$mesonBlock`$2"
-        Set-Content -Path $mesonBuildPath -Value $mesonContent -NoNewline
+        $mesonChanged = $true
         Write-Host "[OQuake] Patched meson.build: added OQuake sources and star_api for Linux/macOS build" -ForegroundColor Green
         $buildDir = Join-Path $VkQuakeSrc "build"
         if (Test-Path $buildDir) {
-            Remove-Item -Recurse -Force $buildDir
+            Clear-OQuakeBuildCache $buildDir
             Write-Host "[OQuake] Cleared build dir so meson reconfigures with OQuake sources" -ForegroundColor Yellow
         }
     }
+    if ($mesonChanged) { Set-Content -Path $mesonBuildPath -Value $mesonContent -NoNewline }
 }

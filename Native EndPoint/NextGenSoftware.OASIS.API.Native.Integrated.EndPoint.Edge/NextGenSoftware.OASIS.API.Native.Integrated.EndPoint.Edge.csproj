@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <PackageId>NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge</PackageId>
+    <Description>Native facade for the Unity-compatible OASIS Edge Runtime.</Description>
+    <Version>1.0.0</Version>
+    <Nullable>disable</Nullable>
+    <CopyLocalLockFileAssemblies Condition="'$(TargetFramework)' == 'netstandard2.1'">true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime/NextGenSoftware.OASIS.Edge.Runtime.csproj" />
+    <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime/NextGenSoftware.OASIS.Edge.ONET.Runtime.csproj" />
+    <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.ONET/NextGenSoftware.OASIS.ONET.csproj" />
+  </ItemGroup>
+</Project>

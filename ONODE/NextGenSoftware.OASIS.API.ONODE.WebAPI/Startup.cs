@@ -377,6 +377,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
+            var offlineGrantSettings = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OfflineSessionGrants;
+            if (offlineGrantSettings?.Enabled == true)
+            {
+                // Construct during startup so an enabled deployment cannot accept traffic with a missing or invalid signing key.
+                var offlineGrantIssuer = new Services.HyperDriveOfflineSessionGrantIssuer(offlineGrantSettings);
+                services.AddSingleton<Services.IHyperDriveOfflineSessionGrantIssuer>(offlineGrantIssuer);
+            }
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());

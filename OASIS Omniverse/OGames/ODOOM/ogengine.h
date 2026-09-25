@@ -10,8 +10,16 @@
 extern "C" {
 #endif
 
+#ifndef __cplusplus
 #include <stdbool.h>
+#endif
+#if defined(_MSC_VER)
+typedef signed __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef signed __int64 int64_t;
+#else
 #include <stdint.h>
+#endif
 #include <stddef.h>
 
 typedef struct {
@@ -22,11 +30,32 @@ typedef struct {
     int timeout_seconds;
     /* Optional: which game binary is running (e.g. "ODOOM", "OQUAKE") for cross-game quest tracker rows. NULL = use quest/objective metadata + last progress only. */
     const char* client_game_source;
-    /* 0 = remote (HTTP WEB5/WEB4). 1 = native in-process OASIS (requires a star_api build that embeds HyperDrive; default library returns OGENGINE_ERROR_INIT_FAILED). */
+    /* 0 = remote (HTTP WEB5/WEB4). 1 = native in-process OASIS (requires a ogengine build that embeds HyperDrive; default library returns OGENGINE_ERROR_INIT_FAILED). */
     int32_t transport;
     /* Optional: UTF-8 path to OASIS_DNA.json for native transport (for future native host). */
     const char* oasis_dna_path;
 } ogengine_config_t;
+
+#define OGENGINE_EDGE_CONFIG_VERSION 1u
+typedef struct {
+    uint32_t struct_size;
+    uint32_t version;
+    int32_t offline_sync_enabled; /* -1 = OASIS DNA/default, 0 = remote-only, 1 = enabled. */
+    const char* device_id; /* Optional; empty generates and atomically persists <database_path>.device-id. */
+    const char* database_path;
+    const char* offline_grant_public_key;
+    const char* offline_scopes_csv;
+    int32_t offline_grant_lifetime_minutes;
+} ogengine_edge_config_t;
+
+typedef struct {
+    int32_t configured;
+    int32_t initialized;
+    int32_t connectivity;       /* 0 offline, 1 connecting, 2 online */
+    int32_t synchronization;    /* 0 idle, 1 synchronizing, 2 synchronized, 3 pending, 4 error */
+    int64_t pending_operation_count;
+    int64_t last_successful_sync_unix_seconds;
+} ogengine_edge_status_t;
 
 typedef struct {
     char id[64];
@@ -35,7 +64,7 @@ typedef struct {
     char game_source[64];
     char item_type[64];
     char nft_id[128];  /* NFTId from MetaData when item is linked to NFTHolon; empty when not an NFT item */
-    char geo_nft_id[128]; /* GeoNFT placement identity; empty when not geographically collected */
+    char geo_nft_id[128]; /* GeoNFT placement ID; mutually exclusive with nft_id */
     int quantity;      /* Stack size. API increments if item exists and stack=1; otherwise new item gets this. */
 } ogengine_item_t;
 
@@ -56,13 +85,25 @@ typedef enum {
 
 typedef void (*ogengine_callback_t)(ogengine_result_t result, void* user_data);
 
-/** Operation type for ogengine_set_operation_callback. Game can run "profile loaded" only when type is OGENGINE_OP_PROFILE_LOADED. Other values (1-27) identify get_avatar_id, has_item, get_inventory, etc.; see StarApiClient.cs StarApiOp* constants. */
+/** Operation type for ogengine_set_operation_callback. Game can run "profile loaded" only when type is OGENGINE_OP_PROFILE_LOADED. Other values (1-27) identify get_avatar_id, has_item, get_inventory, etc.; see OGEngineClient.cs StarApiOp* constants. */
 #define OGENGINE_OP_PROFILE_LOADED 0
 #define OGENGINE_OP_GET_INVENTORY 3
 #define OGENGINE_OP_QUESTS_CACHE_REFRESHED 28
 typedef void (*ogengine_operation_callback_t)(ogengine_result_t result, int operation_type, void* user_data);
 
 ogengine_result_t ogengine_init(const ogengine_config_t* config);
+/** Configure the integrated Edge runtime before ogengine_init. Additive/versioned so the original init ABI remains stable. */
+ogengine_result_t ogengine_configure_edge(const ogengine_edge_config_t* config);
+/** Read current connectivity/synchronization state without blocking. */
+ogengine_result_t ogengine_get_edge_status(ogengine_edge_status_t* status);
+/** Bit 0: Edge included in this release. Bit 1: enabled for this session. */
+int ogengine_get_edge_capabilities(void);
+/** Request a background settings change. Disable is refused while durable operations are pending. */
+ogengine_result_t ogengine_request_offline_sync(int enabled, int synchronize_first);
+/** 0 pending/none, 1 completed (enabled receives state), -1 failed (get_last_error). */
+int ogengine_poll_offline_sync_change(int* enabled);
+/** Dequeue a shared runtime notification on the UI thread. Buffer must hold >=256 bytes. 1 event, 0 empty, -1 invalid buffer. */
+int ogengine_poll_edge_notification(char* message, size_t size);
 void ogengine_set_quest_progress_cache_refresh(int mode);
 ogengine_result_t ogengine_authenticate(const char* username, const char* password);
 /** Same as ogengine_authenticate but on success writes JWT to jwt_buf (for oasisstar.json). jwt_buf can be NULL. */
@@ -160,9 +201,10 @@ void ogengine_queue_monster_kill(const char* engine_name, const char* display_na
 void ogengine_queue_quest_level_time(const char* game_source, int level_elapsed_seconds);
 /** Get last known avatar XP (from get-current-avatar or after add-xp). Returns 0 if not loaded. Write to *xp_out; pass NULL to skip. Returns 1 if value is valid, 0 otherwise. */
 int ogengine_get_avatar_xp(int* xp_out);
+/** Get last known avatar karma score (from get-current-avatar). Writes to *karma_out; pass NULL to skip. Returns 1 if valid, 0 otherwise. */
 int ogengine_get_avatar_karma(long* karma_out);
-/* REDUNDANT: removed. Use ogengine_refresh_avatar_profile() only. */
-/* void ogengine_refresh_avatar_xp(void); */
+/** Legacy ABI alias for ogengine_refresh_avatar_profile. */
+void ogengine_refresh_avatar_xp(void);
 /** Kick off avatar profile refresh (XP + quest/objective) in background; callback when done. Call on beam-in. */
 void ogengine_refresh_avatar_profile(void);
 /** Get last active quest ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise. */
@@ -180,30 +222,72 @@ int ogengine_consume_last_mint_result(char* item_name_out, size_t item_name_size
 int ogengine_consume_last_background_error(char* buf, size_t size);
 /** Consume one STAR log message for the game console. Returns 1 if a message was copied to buf, 0 otherwise. Call from game pump each frame. */
 int ogengine_consume_console_log(char* buf, size_t size);
-/** Append a line to star_api.log (same file as C# StarApiLog). Use from game code so door-check and other STAR debug messages appear in the log for pasting. message can be NULL (no-op). */
+/** Append a line to ogengine.log (same file as C# StarApiLog). Use from game code so door-check and other STAR debug messages appear in the log for pasting. message can be NULL (no-op). */
 void ogengine_log_to_file(const char* message);
-/** Enable (1) or disable (0) STAR API debug logging in the client. When on, quest and other API requests log URI and response to star_api.log and console. Call when user toggles "star debug on|off". */
+/** Enable (1) or disable (0) STAR API debug logging in the client. When on, quest and other API requests log URI and response to ogengine.log and console. Call when user toggles "star debug on|off". */
 void ogengine_set_debug(int enabled);
 void ogengine_set_callback(ogengine_callback_t callback, void* user_data);
 /** Optional: set callback with operation_type so game only reacts to profile-loaded. If set, profile refresh uses this; else uses ogengine_set_callback. */
 void ogengine_set_operation_callback(ogengine_operation_callback_t callback, void* user_data);
 
-/* Cross-game teleportation */
-int  ogengine_poll_teleport_request(char* out_map, size_t map_len, float* out_x, float* out_y, float* out_z);
+/* ---- Cross-game portal / teleport API ----------------------------------------
+ * These functions implement the OASIS Portal system so players can warp between
+ * OGames.  Call ogengine_poll_teleport_request each frame (or from the same tick
+ * that calls ogengine_sync_pump / ogengine_sync_tick).  On receipt, perform the
+ * game-native warp then call ogengine_confirm_teleport_arrival so the STAR relay
+ * knows the client has arrived and clears the pending request.
+ * ogengine_request_teleport initiates an outgoing warp to another OGame.
+ * ----------------------------------------------------------------------------- */
+
+/** Poll for a pending incoming teleport request from another OGame.
+ *  Returns 1 if a request is waiting; out_map, out_x/y/z are filled in.
+ *  out_map receives the target map name (null-terminated, up to map_len bytes).
+ *  Returns 0 when no request is pending (out args are unchanged). */
+int ogengine_poll_teleport_request(char* out_map, size_t map_len, float* out_x, float* out_y, float* out_z);
+
+/** Confirm that the local player has been warped to the requested position.
+ *  Call immediately after performing the game-native teleport move so the STAR
+ *  relay clears the pending request and notifies the source OGame. */
 void ogengine_confirm_teleport_arrival(void);
+
+/** Initiate an outgoing OASIS Portal teleport to another OGame.
+ *  target_game: canonical game ID (e.g. "ODOOM", "OQUAKE").
+ *  target_map:  map/level name in that game.
+ *  x/y/z:       spawn position in target-game coordinates (0 = use default). */
 void ogengine_request_teleport(const char* target_game, const char* target_map, float x, float y, float z);
 
-/* Cross-game entity spawning */
-int  ogengine_poll_spawn_event(char* out_entity_id, size_t id_len, float* out_x, float* out_y, float* out_z);
+/* ---- Cross-game spawn-event API ----------------------------------------------
+ * The STAR relay can instruct a game to spawn an entity (e.g. a monster or
+ * object imported from another OGame).  Poll each frame after sync_pump/tick.
+ * On receipt, spawn the entity in game-native code, then confirm so the relay
+ * removes the event from the queue.
+ * ----------------------------------------------------------------------------- */
+
+/** Poll for a pending cross-game spawn event.
+ *  Returns 1 if an event is waiting; out_entity_id, out_x/y/z are filled in.
+ *  out_entity_id receives the OASIS entity ID (null-terminated, up to id_len bytes).
+ *  Returns 0 when no event is pending (out args are unchanged). */
+int ogengine_poll_spawn_event(char* out_entity_id, size_t id_len, float* out_x, float* out_y, float* out_z);
+
+/** Confirm that the spawn event has been handled.
+ *  Call after the entity has been spawned in the game world so the relay removes
+ *  the event from the queue and notifies the originating OGame. */
 void ogengine_confirm_spawn(const char* entity_id);
 
-/* Cross-game event polling (ShowNarration, PlayAudio, PlayVideo, OpenWebsite, UnlockPortal) */
-int  ogengine_poll_cross_game_event(char* out_json, size_t json_len);
+/* ---- Cross-game event polling -----------------------------------------------
+ * Poll for queued cross-game events (ShowNarration, PlayAudio, PlayVideo,
+ * OpenWebsite, UnlockPortal) from quest progress responses.  Call each frame.
+ * Returns 1 and writes event JSON to out_json if an event is queued; 0 otherwise. */
+int ogengine_poll_cross_game_event(char* out_json, size_t json_len);
 
-/* Inventory grant polling */
-int  ogengine_poll_inventory_grant(char* out_guid, size_t guid_len);
+/* ---- Inventory grant polling ------------------------------------------------
+ * Poll for a pending inventory grant (item GUID) from the STAR relay.
+ * Returns 1 and writes GUID to out_guid (null-terminated) if found; 0 otherwise. */
+int ogengine_poll_inventory_grant(char* out_guid, size_t guid_len);
 
-/* Portal unlock notification */
+/* ---- Portal unlock notification ---------------------------------------------
+ * Notify OGEditor/OmniverseKernel that the named OASIS portal has been unlocked.
+ * Writes oasis_portal_unlock_{portalId}.json to %TEMP% for OGEditor pickup. */
 void ogengine_notify_portal_unlock(const char* portal_id);
 
 #ifdef __cplusplus

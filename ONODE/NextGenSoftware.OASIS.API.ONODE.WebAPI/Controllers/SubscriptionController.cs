@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -428,6 +429,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
         // ── My Subscriptions ─────────────────────────────────────────────────
 
+        [Authorize]
         [HttpGet("subscriptions/me")]
         public async Task<ActionResult> GetMySubscriptions()
         {
@@ -463,6 +465,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Orders ───────────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpGet("orders/me")]
         public async Task<ActionResult> GetMyOrders()
         {
@@ -476,6 +479,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Pay-as-you-go ────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpPost("toggle-pay-as-you-go")]
         public async Task<IActionResult> TogglePayAsYouGo([FromBody] TogglePayAsYouGoRequest request)
         {
@@ -501,6 +505,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Usage ─────────────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpGet("usage")]
         public async Task<IActionResult> GetUsage()
         {
@@ -543,6 +548,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── HyperDrive ───────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpPost("update-hyperdrive-config")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateHyperDriveConfig([FromBody] UpdateHyperDriveConfigRequest request)
         {
@@ -582,6 +588,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("hyperdrive-usage")]
         public async Task<ActionResult<OASISResult<HyperDriveUsageDto>>> GetHyperDriveUsage()
         {
@@ -623,6 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new OASISResult<HyperDriveUsageDto> { Result = dto, Message = "HyperDrive usage retrieved." });
         }
 
+        [Authorize]
         [HttpPost("check-hyperdrive-quota")]
         public async Task<ActionResult<OASISResult<QuotaCheckResult>>> CheckHyperDriveQuota([FromBody] QuotaCheckRequest request)
         {

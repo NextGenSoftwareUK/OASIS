@@ -24,6 +24,14 @@ fixtures exist:
 This seeder is resumable: it verifies IDs saved in
 `%LOCALAPPDATA%/OASIS/our-world-geohotspot-quest-matrix.json` and continues from
 the first missing fixture. A `SUBSCRIPTION_AUTHORITY_UNAVAILABLE` response is a
+WEB4 deployment failure, not an entitlement signal. Verify
+`POST /api/subscription/authorize-request` on development WEB4 and deploy the
+Mongo usage-aggregate mapping fix described in
+[WEB4_SUBSCRIPTION_AUTHORITY.md](WEB4_SUBSCRIPTION_AUTHORITY.md) before rerunning.
+The development WEB5 deployment must also set
+`WEB4_API_BASE_URL=https://dev.api.web4.oasisomniverse.one`; otherwise WEB5 uses
+the production default and rejects the development avatar token as an authority
+failure.
 WEB4 authority failure, not an entitlement signal. Verify the complete
 authorize/start/settle protocol on an isolated development subscriber using
 the [usage runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md), and check the
@@ -55,6 +63,32 @@ inventory, and verifies the resulting zero-progress state.
 | Celestial Garden: Follow the Sequence | `InOrder` | Only the current objective portal appears; the next becomes active after the current one completes. |
 | Renewal Cycle: Living Echoes | `AnyOrder` | Three repeatable/cooldown portals may appear together; each objective progresses independently. |
 | Custodians of Scarcity | `InOrder` | Global precedence, globally unlimited and exclusive fixtures activate sequentially. |
+
+Each GeoNFT quest's live description expands that summary into its exact test
+contract:
+
+| Quest | Exact rules called out in its description |
+| --- | --- |
+| Chromatic Canopy: Any Path | All portals visible; independent objective completion; all three fixtures non-permanent/shareable, no global cap, one collection per player, and no cooldown; objective and final quest animations. |
+| Celestial Garden: Follow the Sequence | Current portal only; Moonlit Reed permanent with 30-second cooldown; Prism Bloom exclusive with two collections; Verdant Starfruit global quantity 5 overriding player quantity 1; completion animations. |
+| Renewal Cycle: Living Echoes | All portals visible; Solar Lotus immediate permanent respawn; Tideglass Moss permanent 20-second respawn; Echo Seed unlimited per-player supply with 10-second cooldown; completion animations. |
+| Custodians of Scarcity | Current portal only; Crystal Thistle global 2 overriding player 5; Obsidian Pod global unlimited overriding player zero with 15-second cooldown; Silver Lichen exclusive, two collections, 5-second cooldown; completion animations. |
+
+The seeder reconciles descriptions on existing quests and fails verification if
+WEB5 does not return the exact persisted text.
+
+The three GeoHotSpot matrix quests deliberately use verbose in-game descriptions
+so a tester can see the precise contract without consulting source code:
+
+| Quest | Exact rules called out in its description |
+| --- | --- |
+| GeoHotSpot Signals: Four Ways In | In-order visibility; 20 m arrival; 8-second dwell with permanent spawn and 20-second cooldown; 5-second AR gaze with unsafe-zone placement; AR touch with quantity 2 and unsafe-zone placement. |
+| GeoHotSpot Rewards: Purple Protocol | Any-order visibility/independent progress; the exact inventory or GeoNFT reward for every objective; global, player, sharing, and cooldown limits; and all nine cross-game event types assigned across the objectives. |
+| GeoHotSpot Limits: Shared Ground | Any-order visibility/independent progress; finite-global-over-player precedence; unlimited per-player quantity; exclusive near-player unsafe-zone placement; and permanent/shareable near-player dwell with cooldown. |
+
+The seeder updates existing quests as well as creating missing ones and verifies
+that WEB5 persisted each exact description. This keeps the live labels synchronized
+with the executable fixture contract.
 
 ## GeoNFT rules and display metadata
 

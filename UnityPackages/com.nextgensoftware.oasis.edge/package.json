@@ -1,0 +1,26 @@
+{
+  "name": "com.nextgensoftware.oasis.edge",
+  "version": "1.0.0",
+  "displayName": "OGEngineClient for Unity",
+  "description": "The shared OGEngineClient with the integrated OASIS Edge Runtime, durable SQLite state, HyperDrive offline synchronization, ONET support and secure mobile session storage.",
+  "unity": "2022.3",
+  "unityRelease": "62f3",
+  "documentationUrl": "https://github.com/NextGenSoftwareUK/OASIS/tree/Development/OASIS%20Omniverse/OGEngineClient",
+  "changelogUrl": "https://github.com/NextGenSoftwareUK/OASIS/blob/Development/UnityPackages/com.nextgensoftware.oasis.edge/CHANGELOG.md",
+  "licensesUrl": "https://github.com/NextGenSoftwareUK/OASIS/blob/Development/UnityPackages/com.nextgensoftware.oasis.edge/LICENSE.md",
+  "keywords": [
+    "OASIS",
+    "OGEngineClient",
+    "offline-first",
+    "synchronization",
+    "SQLite",
+    "ONET"
+  ],
+  "dependencies": {
+    "com.unity.modules.androidjni": "1.0.0"
+  },
+  "author": {
+    "name": "NextGen Software Ltd",
+    "url": "https://oasisomniverse.one"
+  }
+}

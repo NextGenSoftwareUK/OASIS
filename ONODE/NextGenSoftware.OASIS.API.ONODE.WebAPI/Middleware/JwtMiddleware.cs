@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
     public class JwtMiddleware
     {
         public const string ValidatedPrincipalKey = "OASIS.ValidatedPrincipal";
+        public const string AuthenticationErrorItemKey = "OASIS.AuthenticationError";
         private readonly RequestDelegate _next;
         public JwtMiddleware(RequestDelegate next) { _next = next; }
 
@@ -28,8 +29,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var security = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security;
                 principal = OasisJwtValidation.Validate(header.Parameter, security?.SecretKey, security?.Oidc?.Issuer);
             }
-            catch (Exception ex) when (ex is SecurityTokenException || ex is ArgumentException)
-            { await Reject(context, 401, "INVALID_TOKEN", "The token is invalid or expired."); return; }
+            catch (Exception ex) when (ex is SecurityTokenException || ex is ArgumentException || ex is InvalidOperationException)
+            {
+                // Authentication policy belongs to the endpoint/filter. Continuing without an authenticated
+                // principal lets the HyperDrive exchange validate its signed offline-session grant while
+                // authorized bearer-only endpoints are still rejected by their authorization filter.
+                context.Items[AuthenticationErrorItemKey] = ex.Message;
+                await _next(context);
+                return;
+            }
             var id = Guid.Parse(principal.FindFirst("sub").Value);
             var avatar = await Program.AvatarManager.LoadAvatarAsync(id);
             if (avatar.IsError)

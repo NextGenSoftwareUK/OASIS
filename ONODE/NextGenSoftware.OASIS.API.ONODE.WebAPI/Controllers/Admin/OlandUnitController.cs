@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AvatarType.Wizard)]
     public class OLandUnitController : OASISControllerBase
     {
         private readonly IOlandService _olandService;
