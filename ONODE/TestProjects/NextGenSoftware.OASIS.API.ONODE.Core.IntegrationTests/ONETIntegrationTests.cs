@@ -9,6 +9,8 @@ using FluentAssertions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using NextGenSoftware.OASIS.ONET;
+using NextGenSoftware.OASIS.Common;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests;
@@ -162,6 +164,51 @@ public class ONETIntegrationTests
         finally
         {
             await node.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task TwoONETNodes_AuthenticatedFramedRequestResponse_RoundTripsOverTcp()
+    {
+        using var keyA = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var keyB = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var publicA = Convert.ToBase64String(keyA.ExportSubjectPublicKeyInfo());
+        var privateA = Convert.ToBase64String(keyA.ExportPkcs8PrivateKey());
+        var publicB = Convert.ToBase64String(keyB.ExportSubjectPublicKeyInfo());
+        var privateB = Convert.ToBase64String(keyB.ExportPkcs8PrivateKey());
+        var idA = Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(publicA))).ToLowerInvariant();
+        var idB = Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(publicB))).ToLowerInvariant();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+
+        (await nodeA.StartNetworkAsync()).IsError.Should().BeFalse();
+        (await nodeB.StartNetworkAsync()).IsError.Should().BeFalse();
+        try
+        {
+            nodeA.RegisterLocalNodeIdentity(idA, publicA, privateA);
+            nodeB.RegisterLocalNodeIdentity(idB, publicB, privateB);
+            nodeA.RegisterNodePublicKey(idB, publicB);
+            nodeB.RegisterNodePublicKey(idA, publicA);
+            (await nodeA.ConnectToNodeAsync(idB, $"127.0.0.1:{nodeB.ListenPort}")).IsError.Should().BeFalse();
+            (await nodeB.ConnectToNodeAsync(idA, $"127.0.0.1:{nodeA.ListenPort}")).IsError.Should().BeFalse();
+
+            var channelA = new ONETTcpApplicationMessageChannel(nodeA);
+            var channelB = new ONETTcpApplicationMessageChannel(nodeB);
+            using var endpointA = new ONETRequestResponseEndpoint(channelA);
+            using var endpointB = new ONETRequestResponseEndpoint(channelB);
+            endpointB.RegisterHandler("integration.echo", (request, _) =>
+                Task.FromResult(new OASISResult<string> { Result = request.PayloadJson }));
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            var response = await endpointA.RequestAsync(idB, "integration.echo", "wire-payload", timeout.Token);
+
+            response.IsError.Should().BeFalse(response.Message);
+            response.Result.Should().Be("wire-payload");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
         }
     }
 

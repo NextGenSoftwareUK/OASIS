@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # OQuake - vkQuake + OASIS STAR API. Cross-platform (Linux, macOS) build; equivalent of "BUILD_OQUAKE.bat" on Windows.
 # Supports: Windows (use BUILD_OQUAKE.bat), Linux, macOS (use this script).
 # Usage: ./BUILD_OQUAKE.sh [ run ] [ batch ]
@@ -23,7 +23,7 @@ if [[ "${OASIS_SCRIPT_NO_PAUSE:-}" != "1" ]]; then
 fi
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OMNIVERSE="$(cd "$HERE/.." && pwd)"
+OMNIVERSE="$(cd "$HERE/../.." && pwd)"
 OGENGINECLIENT="$OMNIVERSE/OGEngineClient"
 OQUAKE_INTEGRATION="$HERE"
 OQUAKE_CODE="$HERE/Code"
@@ -81,26 +81,18 @@ fi
 
 # STAR API: Linux .so, macOS .dylib
 STAR_SO=""
-for so in "$OQUAKE_CODE/libstar_api.so" "$OQUAKE_INTEGRATION/libstar_api.so" "$OQUAKE_CODE/libstar_api.dylib" "$OQUAKE_INTEGRATION/libstar_api.dylib"; do
+for so in "$OQUAKE_CODE/ogengine.so" "$OQUAKE_INTEGRATION/ogengine.so" "$OQUAKE_CODE/ogengine.dylib" "$OQUAKE_INTEGRATION/ogengine.dylib"; do
   if [[ -f "$so" ]]; then
     STAR_SO="$so"
     break
   fi
 done
 if [[ -z "$STAR_SO" ]]; then
-  for so in "$OQUAKE_INTEGRATION/star_api.so" "$OQUAKE_CODE/star_api.so" "$OQUAKE_INTEGRATION/star_api.dylib" "$OQUAKE_CODE/star_api.dylib"; do
-    if [[ -f "$so" ]]; then
-      STAR_SO="$so"
-      break
-    fi
-  done
-fi
-if [[ -z "$STAR_SO" ]]; then
   case "$(uname -s)" in
     Darwin) [[ "$(uname -m)" == "arm64" ]] && RID="osx-arm64" || RID="osx-x64" ;;
     *)      RID="linux-x64" ;;
   esac
-  for name in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
+  for name in ogengine.so ogengine.dylib; do
     if [[ -f "$OGENGINECLIENT/bin/Release/net10.0/$RID/publish/$name" ]]; then
       STAR_SO="$OGENGINECLIENT/bin/Release/net10.0/$RID/publish/$name"
       break
@@ -108,7 +100,7 @@ if [[ -z "$STAR_SO" ]]; then
   done
 fi
 if [[ -z "$STAR_SO" || ! -f "$STAR_SO" ]]; then
-  echo "ERROR: STAR API native library (libstar_api.so / libstar_api.dylib) missing after deploy. Check OGEngineClient build."
+  echo "ERROR: OGEngine native library missing after deploy. Check OGEngineClient build."
   exit 1
 fi
 
@@ -161,6 +153,7 @@ if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c"
     [[ -f "$OQUAKE_CODE/oquake_ogengine_integration.h" ]] && cp -f "$OQUAKE_CODE/oquake_ogengine_integration.h" "$QUAKE_DIR/"
     [[ -f "$OQUAKE_CODE/ogengine_sync.h" ]] && cp -f "$OQUAKE_CODE/ogengine_sync.h" "$QUAKE_DIR/"
     cp -f "$OGENGINECLIENT/ogengine.h" "$QUAKE_DIR/"
+    cp -f "$OMNIVERSE/OGLib/"*.h "$QUAKE_DIR/"
   fi
   # Stage anorak HUD face (same as apply script): Images/ is canonical; pwsh path may be skipped above.
   if [[ -f "$HERE/Images/face_anorak.png" ]]; then
@@ -264,4 +257,3 @@ if [[ $RUN_AFTER_BUILD -eq 1 ]] && [[ -x "$OQUAKE_INTEGRATION/build/OQUAKE" ]]; 
   cd "$OQUAKE_INTEGRATION/build"
   exec ./OQUAKE -basedir "$OQUAKE_BASEDIR"
 fi
-

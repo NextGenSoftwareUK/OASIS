@@ -66,6 +66,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // services.AddDbContext<DataContext>();
             services.AddCors();
+            services.AddHostedService<Services.HyperDrive.ONETHyperDriveSyncHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
             // Add exception filter with configuration
             services.AddControllers(x =>
             {
@@ -377,6 +382,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
+            var offlineGrantSettings = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OfflineSessionGrants;
+            if (offlineGrantSettings?.Enabled == true)
+            {
+                // Construct now, not lazily on the first request: an enabled host with a missing/invalid key must not start.
+                var offlineGrantIssuer = new Services.HyperDriveOfflineSessionGrantIssuer(offlineGrantSettings);
+                services.AddSingleton<Services.IHyperDriveOfflineSessionGrantIssuer>(offlineGrantIssuer);
+            }
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository, Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
             // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable

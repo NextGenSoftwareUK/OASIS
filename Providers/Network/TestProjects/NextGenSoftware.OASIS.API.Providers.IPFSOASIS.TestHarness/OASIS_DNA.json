@@ -143,5 +143,221 @@
         "LookUpIPFSAddress": ""
       }
     }
-  }
+  ,
+      "OfflineSessionGrants": {
+        "Enabled": false,
+        "SigningPrivateKeyEnvironmentVariable": "OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY",
+        "SigningPublicKey": "",
+        "MaximumLifetimeMinutes": 1440,
+        "AllowedScopes": []
+      },
+    "OASISHyperDriveConfig": null,
+    "HyperDriveMode": "Legacy",
+    "ReplicationRules": {
+      "Mode": "Auto",
+      "IsEnabled": true,
+      "MaxReplicationsPerMonth": 1000,
+      "CostThreshold": 10.0,
+      "FreeProvidersOnly": true,
+      "GasFeeThreshold": 0.01,
+      "ReplicationTriggers": [],
+      "ProviderRules": [],
+      "DataTypeRules": [],
+      "ScheduleRules": [],
+      "CostOptimization": {
+        "IsEnabled": true,
+        "MaxCostPerReplication": 0.01,
+        "MaxCostPerMonth": 10.0,
+        "PreferredFreeProviders": [],
+        "AvoidHighGasProviders": true,
+        "GasFeeThreshold": 0.01,
+        "CostAlertThreshold": 5.0
+      },
+      "IntelligentSelection": {
+        "IsEnabled": true,
+        "Algorithm": "Intelligent",
+        "Weights": {
+          "Cost": 0.3,
+          "Performance": 0.3,
+          "Reliability": 0.2,
+          "Security": 0.1,
+          "Geographic": 0.05,
+          "Availability": 0.05
+        },
+        "LearningEnabled": true,
+        "AdaptationSpeed": "Medium",
+        "OptimizationGoals": []
+      }
+    },
+    "FailoverRules": {
+      "Mode": "Auto",
+      "IsEnabled": true,
+      "MaxFailoversPerMonth": 100,
+      "CostThreshold": 5.0,
+      "FreeProvidersOnly": true,
+      "GasFeeThreshold": 0.01,
+      "FailoverTriggers": [],
+      "ProviderRules": [],
+      "IntelligentSelection": {
+        "IsEnabled": true,
+        "Algorithm": "Intelligent",
+        "Weights": {
+          "Cost": 0.3,
+          "Performance": 0.3,
+          "Reliability": 0.2,
+          "Security": 0.1,
+          "Geographic": 0.05,
+          "Availability": 0.05
+        },
+        "LearningEnabled": true,
+        "AdaptationSpeed": "Medium",
+        "OptimizationGoals": []
+      },
+      "EscalationRules": []
+    },
+    "SubscriptionConfig": {
+      "PlanType": "Free",
+      "MaxReplicationsPerMonth": 100,
+      "MaxFailoversPerMonth": 10,
+      "MaxRequestsPerMonth": 1000,
+      "MaxStorageGB": 1,
+      "PayAsYouGoEnabled": false,
+      "CostPerReplication": 0.01,
+      "CostPerFailover": 0.05,
+      "CostPerGB": 0.1,
+      "Currency": "USD",
+      "BillingCycle": "Monthly",
+      "UsageAlerts": [],
+      "QuotaNotifications": [],
+      "Stripe": {
+        "SecretKey": "",
+        "PublishableKey": "",
+        "WebhookSecret": "",
+        "PriceBronze": "",
+        "PriceSilver": "",
+        "PriceGold": "",
+        "PriceEnterprise": ""
+      }
+    },
+    "DataPermissions": {
+      "AvatarPermissions": {
+        "IsEnabled": true,
+        "Fields": [],
+        "DefaultPermission": "Read",
+        "ProviderOverrides": {}
+      },
+      "HolonPermissions": {
+        "IsEnabled": true,
+        "HolonTypes": [],
+        "DefaultPermission": "Read",
+        "ProviderOverrides": {}
+      },
+      "ProviderPermissions": {
+        "IsEnabled": true,
+        "Providers": []
+      },
+      "FieldLevelPermissions": {
+        "IsEnabled": true,
+        "Rules": []
+      },
+      "AccessControl": {
+        "IsEnabled": true,
+        "AuthenticationRequired": true,
+        "AuthorizationLevel": "Authenticated",
+        "EncryptionLevel": "Standard",
+        "AuditLogging": true,
+        "AccessPolicies": []
+      }
+    },
+    "IntelligentMode": {
+      "IsEnabled": true,
+      "AutoOptimization": true,
+      "CostAwareness": true,
+      "PerformanceOptimization": true,
+      "SecurityOptimization": true,
+      "LearningEnabled": true,
+      "AdaptationSpeed": "Medium",
+      "OptimizationGoals": []
+    },
+    "ONET": {
+      "BootstrapServers": [
+        "https://api.web4.oasisomniverse.one"
+      ],
+      "NetworkType": "Internal",
+      "NodeId": "",
+      "NodePublicKey": "",
+      "NodePrivateKey": "",
+      "TcpPort": 38470,
+      "EnableMDNS": true,
+      "AutoRegisterOnBootstrap": false
+    },
+    "OASISSystemAccountId": "",
+    "OASISAPIURL": "https://api.web4.oasisomniverse.one",
+    "NetworkId": "onet01",
+    "SettingsLookupHolonId": "00000000-0000-0000-0000-000000000000",
+    "StatsCacheEnabled": false,
+    "StatsCacheTtlSeconds": 45,
+    "Web6": {
+      "DefaultProvider": "Auto",
+      "DefaultOpenServModel": "gpt-5.4",
+      "DefaultRoutingPriority": "cost",
+      "DefaultRoutingFallbackEnabled": true,
+      "OpenServ": {
+        "BaseUrl": "https://inference-api.openserv.ai/v1/chat/completions",
+        "DefaultModel": "gpt-5.4",
+        "AvailableModels": [
+          "gpt-5.5",
+          "gpt-5.4",
+          "gpt-5.4-mini",
+          "gpt-5.4-nano",
+          "o3",
+          "o3-mini",
+          "o3-pro",
+          "o4-mini",
+          "claude-opus-4.6",
+          "claude-sonnet-4.6",
+          "claude-haiku-4.5",
+          "gemini-flash-latest",
+          "gemini-pro-latest",
+          "gemma-4-26b-a4b-it",
+          "gemma-4-31b-it",
+          "grok-4.3",
+          "grok-4.20",
+          "qwen3.6-flash",
+          "qwen3.6-max-preview",
+          "deepseek-v4-pro",
+          "deepseek-v4-flash"
+        ]
+      },
+      "FAHRN": {
+        "EMAAlpha": 0.2,
+        "DefaultDispatchMode": "Serial",
+        "AutoSeedOpenServAgentsOnStartup": true,
+        "MaxDecomposedSubProblems": 3
+      },
+      "HolonicBraid": {
+        "AutoPersistWinningPlan": true
+      },
+      "HolonicMemory": {
+        "DefaultRetentionPolicy": "Default",
+        "RecordDispatchOutcomes": true
+      },
+      "PreferOpenServ": false,
+      "EnableFAHRN": false,
+      "EnableHolonicBraid": false,
+      "ApiKeys": {
+        "OpenAI": "",
+        "Anthropic": "",
+        "Gemini": "",
+        "Groq": "",
+        "Mistral": "",
+        "Cohere": "",
+        "XAI": "",
+        "DeepSeek": "",
+        "HuggingFace": "",
+        "AzureOpenAI": "",
+        "StabilityAI": "",
+        "OpenServ": ""
+      }
+    }}
 }
