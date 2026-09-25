@@ -494,10 +494,15 @@ entity/change and capture checkpoint. A later capture of an Edge-originated writ
 version and advances its source checkpoint without emitting a duplicate change. Malformed or unowned source
 documents are written to `HyperDriveDomainCaptureDeadLetters` and surfaced as an error count; they are never
 silently skipped. A fresh empty database is initialized at an explicit replica-set operation time. An existing
-non-empty `Holon` collection fails startup with `MONGO_DOMAIN_CAPTURE_BACKFILL_REQUIRED` until the online backfill
-migration is run, preventing a deployment from pretending that historical state was captured.
+non-empty domain is initialized by the online backfill before capture starts, preventing a deployment from pretending
+that historical state was captured.
 
-For an existing Mongo deployment, run the migration before enabling `EnableHostedSync` on the upgraded ONODE:
+When `EnableHostedSync` starts against an existing Mongo deployment, the domain-capture worker automatically runs
+the same online, lease-protected migration before beginning change capture. Multiple ONODE replicas coordinate through
+the migration lease; replicas that do not own it wait until the owning replica completes. Invalid historical documents,
+missing replica-set support or failure to enable pre-images still fail visibly and prevent capture from starting.
+
+The migration can also be run explicitly before deployment when operators want to separate it from application startup:
 
 ```powershell
 $env:OASIS_MONGO_REPLICA_SET_CONNECTION = '<replica-set connection string>'
