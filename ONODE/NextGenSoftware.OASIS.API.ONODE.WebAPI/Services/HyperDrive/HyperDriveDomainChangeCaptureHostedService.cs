@@ -39,18 +39,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
                 throw new InvalidOperationException(providerResult?.Message ??
                     "The default domain change-capture provider could not be activated.");
-            if (!(providerResult.Result is IHostedHyperDriveDomainChangeCaptureStore captureStore))
+            if (!(providerResult.Result is IHostedHyperDriveProvider hostedProvider))
                 throw new InvalidOperationException(
-                    $"Hosted synchronization is enabled but provider '{providerResult.Result.ProviderName}' does not implement durable domain change capture.");
+                    $"Hosted synchronization is enabled but provider '{providerResult.Result.ProviderName}' does not implement the complete hosted HyperDrive provider contract.");
+
+            await EnsureDomainCaptureInitializedAsync(hostedProvider, stoppingToken).ConfigureAwait(false);
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var captured = await captureStore.CaptureNextDomainChangesAsync(100, TimeSpan.FromSeconds(2),
+                var captured = await hostedProvider.CaptureNextDomainChangesAsync(100, TimeSpan.FromSeconds(2),
                     stoppingToken).ConfigureAwait(false);
                 if (captured.IsError)
                 {
-                    if (captured.ErrorCode == "MONGO_DOMAIN_CAPTURE_BACKFILL_REQUIRED")
-                        throw new InvalidOperationException(captured.Message);
                     _logger.LogError("HyperDrive domain capture failed ({Code}): {Message}",
                         captured.ErrorCode, captured.Message);
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
@@ -60,6 +60,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     _logger.LogError(
                         "HyperDrive domain capture quarantined {RejectedCount} mutations. Inspect HyperDriveDomainCaptureDeadLetters before release.",
                         captured.Result.RejectedCount);
+            }
+        }
+
+        private async Task EnsureDomainCaptureInitializedAsync(IHostedHyperDriveDomainBackfillStore store,
+            CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var backfill = await store.BackfillDomainStateAsync(250, stoppingToken).ConfigureAwait(false);
+                if (backfill != null && !backfill.IsError && backfill.Result?.CaptureInitialized == true)
+                {
+                    _logger.LogInformation(
+                        "HyperDrive domain capture initialized; {ProjectedCount} existing records were projected.",
+                        backfill.Result.ProjectedCount);
+                    return;
+                }
+
+                if (backfill?.ErrorCode == "MONGO_DOMAIN_BACKFILL_LEASE_UNAVAILABLE")
+                {
+                    _logger.LogInformation(
+                        "Another ONODE replica is initializing HyperDrive domain capture; waiting for its migration lease.");
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                throw new InvalidOperationException(
+                    $"HyperDrive domain capture initialization failed ({backfill?.ErrorCode ?? "DOMAIN_BACKFILL_NO_RESULT"}): " +
+                    (backfill?.Message ?? "The provider returned no initialized backfill result."), backfill?.Exception);
             }
         }
     }
