@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.ONET\NextGenSoftware.OASIS.ONET.csproj" />
   </ItemGroup>
 
 </Project>

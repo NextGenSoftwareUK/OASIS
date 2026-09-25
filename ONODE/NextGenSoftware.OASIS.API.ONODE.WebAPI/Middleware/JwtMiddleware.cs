@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -18,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
     public class JwtMiddleware
     {
+        public const string AuthenticationErrorItemKey = "OASIS.AuthenticationError";
         private readonly RequestDelegate _next;
         
         public JwtMiddleware(RequestDelegate next)
@@ -64,33 +62,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             }
             catch (Exception ex)
             {
-                var exceptionResponse = new OASISResult<string>()
-                {
-                    Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
-                };
-
-                OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/json";
-
-                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                //byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject("test error"));
-
-               // await context.Response.Body.WriteAsync(body);
-                //await context.Response.Body.WriteAsync(body);
-                //await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
-
-                try
-                {
-                    //context.Response.ContentLength = body.Length;
-
-                    //if (context.Response.Body.CanRead)
-                    //    context.Response.ContentLength = context.Response.Body.Length;
-                }
-                catch (Exception)
-                {
-                    // Ignore exceptions during response body reading
-                }
+                // Authentication policy belongs to the endpoint/filter. Mutating the response here and
+                // continuing the pipeline left a stale 401 status even when an endpoint subsequently
+                // authenticated with another explicitly supported credential (for example an Edge grant).
+                context.Items[AuthenticationErrorItemKey] = ex.Message;
             }
         }
     }
