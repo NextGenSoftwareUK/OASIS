@@ -11,6 +11,7 @@ public sealed class HostedMongoProviderContractTests
     {
         var providerType = typeof(MongoProvider);
 
+        Assert.True(typeof(IHostedHyperDriveProvider).IsAssignableFrom(providerType));
         Assert.True(typeof(IHostedHyperDriveSyncStore).IsAssignableFrom(providerType));
         Assert.True(typeof(IHostedHyperDrivePeerBindingStore).IsAssignableFrom(providerType));
         Assert.True(typeof(IHostedHyperDriveFanOutStore).IsAssignableFrom(providerType));
