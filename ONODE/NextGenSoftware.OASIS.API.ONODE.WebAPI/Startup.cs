@@ -56,7 +56,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            // Configuration-backed services are registered before the request pipeline is built, so the
+            // middleware cannot be responsible for loading DNA needed by dependency injection.
+            var dnaLoadResult = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.LoadDNA();
+            if (dnaLoadResult == null || dnaLoadResult.IsError || dnaLoadResult.Result == null)
+                throw new InvalidOperationException(
+                    $"OASIS DNA must load before service registration. {dnaLoadResult?.Message ?? "No load result was returned."}");
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
