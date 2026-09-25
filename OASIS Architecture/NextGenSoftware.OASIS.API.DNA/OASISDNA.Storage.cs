@@ -260,6 +260,12 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SubscriptionConfig
     {
+        /// <summary>
+        /// Enables the legacy process-local HyperDrive quota counter. Disabled by default because this counter
+        /// has no authenticated subscription identity; hosted runtimes must enforce quotas through the
+        /// authoritative subscription service instead of sharing one process-wide allowance.
+        /// </summary>
+        public bool EnforceLocalQuota { get; set; } = false;
         public string PlanType { get; set; } = "Free";
         public int MaxReplicationsPerMonth { get; set; } = 100;
         public int MaxFailoversPerMonth { get; set; } = 10;

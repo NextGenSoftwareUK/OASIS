@@ -18,6 +18,21 @@ $cvarinfoTxt = "$src/wadsrc/static/cvarinfo.txt"
 $odoomCvarinfo = Join-Path $odoomRoot "odoom_cvarinfo.txt"
 $doomItemsMapinfo = "$src/wadsrc/static/mapinfo/doomitems.txt"
 $commonMapinfo = "$src/wadsrc/static/mapinfo/common.txt"
+# Install the canonical settings menu through the engine's normal MENUDEF parser.
+$menuDef = "$src/wadsrc/static/menudef.txt"
+$edgeMenuSource = Join-Path $odoomRoot "odoom_edge_menudef.txt"
+if (-not (Test-Path -LiteralPath $menuDef) -or -not (Test-Path -LiteralPath $edgeMenuSource)) {
+    throw "The engine MENUDEF and canonical ODOOM offline settings menu are required."
+}
+$menu = [IO.File]::ReadAllText($menuDef)
+if ($menu -notmatch 'Submenu "OASIS Offline Sync"') {
+    $anchor = 'OptionMenu "OptionsMenu" protected\s*\{'
+    if ($menu -notmatch $anchor) { throw "ODOOM OptionsMenu anchor changed; update the integration patch." }
+    $menu = [regex]::Replace($menu, $anchor, '$0' + "`n`tSubmenu `"OASIS Offline Sync`", `"OASISOfflineOptions`"", 1)
+}
+$menu = [regex]::Replace($menu, '(?s)// OASIS_EDGE_MENU_BEGIN.*?// OASIS_EDGE_MENU_END\s*', '')
+$menu += "`n// OASIS_EDGE_MENU_BEGIN`n" + [IO.File]::ReadAllText($edgeMenuSource) + "`n// OASIS_EDGE_MENU_END`n"
+[IO.File]::WriteAllText($menuDef, $menu)
 if (Test-Path (Join-Path $odoomRoot "generate_odoom_version.ps1")) {
     & (Join-Path $odoomRoot "generate_odoom_version.ps1") -Root $odoomRoot
 }
@@ -726,21 +741,22 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 4a. CMake: ensure OASIS_STAR_API and ODOOM_OGENGINE_SESSION_IMPL are passed when -DOASIS_STAR_API=ON. Add option OASIS_STAR_SYNC_IN_CLIENT (use star_sync from DLL; when ON, do not compile star_sync.c). Only patch the existing if(OASIS_STAR_API) block at top of root CMake; do NOT insert before add_subdirectory (that caused hundreds of duplicate blocks).
+# 4a. CMake: require the shipped native ABI and select its star_sync exports.
 $cmakeRoot = "$src\CMakeLists.txt"
 if (Test-Path $cmakeRoot) {
     $cmakeContent = Get-Content $cmakeRoot -Raw
     $cmakeChanged = $false
     if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*') {
         if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*OGENGINE_DIR') {
-            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*OGENGINE_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_OGENGINE_SESSION_IMPL)`r`n`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2`$3"
+            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*OGENGINE_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API)`r`n`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2`$3"
             $cmakeChanged = $true
-            $changes += "cmake(OASIS_STAR_API, ODOOM_OGENGINE_SESSION_IMPL defines)"
+            $changes += "cmake(OASIS_STAR_API define)"
         }
-    } elseif ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'ODOOM_OGENGINE_SESSION_IMPL') {
-        $cmakeContent = $cmakeContent -replace 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)', 'add_compile_definitions(OASIS_STAR_API ODOOM_OGENGINE_SESSION_IMPL)'
+    }
+    if ($cmakeContent -match 'ODOOM_OGENGINE_SESSION_IMPL') {
+        $cmakeContent = $cmakeContent -replace '\s*ODOOM_OGENGINE_SESSION_IMPL', ''
         $cmakeChanged = $true
-        $changes += "cmake(ODOOM_OGENGINE_SESSION_IMPL define)"
+        $changes += "cmake(remove obsolete session shim)"
     }
     if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'option\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT') {
         $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(add_compile_definitions|set\s*\(\s*OGENGINE_DIR)', "`$1`$2option(OASIS_STAR_SYNC_IN_CLIENT `"Use star_sync from ogengine.dll (C#) instead of compiling star_sync.c`" OFF)`r`n`$2`$3"
@@ -748,7 +764,7 @@ if (Test-Path $cmakeRoot) {
         $changes += "cmake(option OASIS_STAR_SYNC_IN_CLIENT)"
     }
     if ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*' -and $cmakeContent -notmatch 'if\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT\s*\)') {
-        $cmakeContent = $cmakeContent -replace '(add_compile_definitions\s*\(\s*OASIS_STAR_API\s+ODOOM_OGENGINE_SESSION_IMPL\s*\)\s*\r?\n)(\s*)', "`$1`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2"
+        $cmakeContent = $cmakeContent -replace '(add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)', "`$1`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2"
         $cmakeChanged = $true
         $changes += "cmake(OASIS_STAR_SYNC_IN_CLIENT define when ON)"
     }
@@ -769,6 +785,11 @@ foreach ($cmakePath in $cmakeFiles) {
     if (-not (Test-Path $cmakePath)) { continue }
     $cmakeContent = Get-Content $cmakePath -Raw
     $cmakeChanged = $false
+    if ($cmakeContent -match 'target_link_libraries\s*\(\s*zdoom\s+star_api') {
+        $cmakeContent = $cmakeContent -replace '(target_link_libraries\s*\(\s*zdoom\s+)star_api', '${1}ogengine'
+        $cmakeChanged = $true
+        $changes += "cmake(link canonical ogengine library)"
+    }
     if ($cmakeContent -match 'uzdoom_ogengine_integration\.cpp' -and $cmakeContent -notmatch 'STAR_SYNC_SRC') {
         if ($cmakeContent -match '\r?\n\s*project\s*\([^)]*\)\s*\r?\n') {
             $cmakeContent = $cmakeContent -replace '(\r?\n\s*project\s*\([^)]*\)\s*\r?\n)', "`$1`$starSyncSrcBlock`r`n"
@@ -784,11 +805,9 @@ foreach ($cmakePath in $cmakeFiles) {
             $cmakeContent = $cmakeContent -replace '(\buzdoom_ogengine_integration\.cpp\b)\s*\r?\n\s*star_sync\.c', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
             $cmakeChanged = $true
         }
-        if ($cmakeChanged) {
-            Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline
-            $changes += "cmake(star_sync.c conditional on OASIS_STAR_SYNC_IN_CLIENT)"
-        }
+        $changes += "cmake(star_sync.c conditional on OASIS_STAR_SYNC_IN_CLIENT)"
     }
+    if ($cmakeChanged) { Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline }
 }
 
 # 5. Register ODOOM OQUAKE actors in ZScript compile list

@@ -10,6 +10,29 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         [Required]
         public bool IsEnabled { get; set; } = true;
 
+        /// <summary>
+        /// Enables the client/Edge durable local store and automatic hosted synchronization. This is enabled by
+        /// default. When disabled, clients use their explicitly supported remote-only execution path and cannot
+        /// promise offline continuity. Disabling must be rejected while durable operations are still pending.
+        /// </summary>
+        public bool OfflineSyncEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Enables the durable hosted synchronization API and provider fan-out worker. When enabled,
+        /// startup requires the default provider to implement the complete hosted sync contracts.
+        /// </summary>
+        public bool EnableHostedSync { get; set; } = false;
+
+        /// <summary>Runs retention-watermark compaction for the hosted durable change feed.</summary>
+        public bool EnableSyncHistoryCompaction { get; set; } = true;
+
+        [Range(1, 10080)]
+        public int SyncHistoryCompactionIntervalMinutes { get; set; } = 60;
+
+        /// <summary>Devices unseen for this many days no longer hold back the retention watermark.</summary>
+        [Range(1, 3650)]
+        public int InactiveSyncDeviceRetentionDays { get; set; } = 30;
+
         [Required]
         public string DefaultStrategy { get; set; } = "Auto";
 

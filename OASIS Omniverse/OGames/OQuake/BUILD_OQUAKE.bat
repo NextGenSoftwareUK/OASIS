@@ -1,5 +1,6 @@
-﻿@echo off
+@echo off
 setlocal EnableDelayedExpansion
+if /i "%~1"=="batch" set "OASIS_BAT_NO_PAUSE=1"
 REM OQuake - vkQuake + OASIS STAR API. Credit: Novum/vkQuake (GPL-2.0). See CREDITS_AND_LICENSE.md.
 REM Usage: BUILD_OQUAKE.bat [ run | batch ]
 REM   (none) = prompt clean/incremental, then copy, patch, build
@@ -37,7 +38,7 @@ if exist "%HERE%..\..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
     ) else (
         call "%HERE%..\..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
     )
-    if errorlevel 1 (echo [OQuake] OGEngineClient build/deploy failed. & pause & exit /b 1)
+    if errorlevel 1 (echo [OQuake] OGEngineClient build/deploy failed. & if not "%OASIS_BAT_NO_PAUSE%"=="1" pause & exit /b 1)
 ) else (
     echo [OQuake] BUILD_AND_DEPLOY_STAR_CLIENT.bat not found in parent folder - using existing ogengine.dll/lib if present.
     echo [OQuake] To build OGEngineClient, run from "OASIS Omniverse\OQuake" or copy ogengine.dll and ogengine.lib into %HERE%Code\
@@ -52,34 +53,11 @@ if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 
 REM --- STAR API (deploy already ran above; prefer freshly built client so vkQuake links current exports) ---
-set "STAR_DLL="
-set "STAR_LIB="
-REM Prefer net9.0; check both bin\Release and bin\x64\Release (VS/platform can output to x64)
-if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\x64\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OGENGINECLIENT%\bin\Release\net8.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net8.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net8.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net8.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%Code\ogengine.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%Code\ogengine.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%Code\ogengine.lib"
-if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\ogengine.lib"
-if not defined STAR_DLL (
-    echo ogengine.dll missing after deploy. Check OGEngineClient build.
-    pause
-    exit /b 1
-)
-
-if not exist "%OGENGINECLIENT%\ogengine.h" (echo ogengine.h not found: %OGENGINECLIENT% & pause & exit /b 1)
+set "STAR_DLL=%OQUAKE_INTEGRATION%Code\ogengine.dll"
+set "STAR_LIB=%OQUAKE_INTEGRATION%Code\ogengine.lib"
+if not exist "%STAR_DLL%" (echo OGEngineClient deployment missing: %STAR_DLL% & exit /b 1)
+if not exist "%STAR_LIB%" (echo OGEngineClient import library missing: %STAR_LIB% & exit /b 1)
+if not exist "%OGENGINECLIENT%\ogengine.h" (echo ogengine.h not found: %OGENGINECLIENT% & if not "%OASIS_BAT_NO_PAUSE%"=="1" pause & exit /b 1)
 
 REM --- star_sync declarations only (implementation comes from ogengine.dll exports). ---
 set "OGENGINECLIENT=%HERE%..\..\OGEngineClient"
@@ -117,12 +95,17 @@ if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" goto :done
 echo.
 echo [OQuake] Patching vkQuake source...
 set "APPLY_PS1=%OQUAKE_INTEGRATION%vkquake_oquake\apply_oquake_to_vkquake.ps1"
-if exist "%APPLY_PS1%" powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%"
+if not exist "%APPLY_PS1%" (echo OQuake integration patch script is missing. & exit /b 1)
+set "APPLY_OPTIONS="
+if "%OASIS_BAT_NO_PAUSE%"=="1" set "APPLY_OPTIONS=-SkipQuakeInstallPrompt"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%" %APPLY_OPTIONS%
+if errorlevel 1 exit /b 1
 REM Ensure vkQuake always has latest header and integration sources (apply script copies these too; this guarantees after bat run)
 copy /Y "%OQUAKE_CODE%oquake_ogengine_integration.c" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%OQUAKE_CODE%oquake_ogengine_integration.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%OQUAKE_CODE%oquake_version.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%HERE%..\..\OGLib\*.h" "%VKQUAKE_SRC%\Quake\" >nul
 if exist "%OQUAKE_CODE%ogengine_sync.h" copy /Y "%OQUAKE_CODE%ogengine_sync.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\ogengine.dll" >nul
 if defined STAR_LIB copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\ogengine.lib" >nul
@@ -137,7 +120,10 @@ if "%DO_FULL_CLEAN%"=="1" if defined VKQUAKE_SRC (
 echo [OQuake] Building engine...
 if not defined VULKAN_SDK (
     if exist "C:\VulkanSDK\" for /f "delims=" %%D in ('dir /b /ad /o-n "C:\VulkanSDK\*" 2^>nul') do (
-        if exist "C:\VulkanSDK\%%D\Include\vulkan\vulkan.h" set "VULKAN_SDK=C:\VulkanSDK\%%D" & goto :vulkan_ok
+        if exist "C:\VulkanSDK\%%D\Include\vulkan\vulkan.h" (
+            set "VULKAN_SDK=C:\VulkanSDK\%%D"
+            goto :vulkan_ok
+        )
     )
     if exist "C:\VulkanSDK\1.3.296.0\Include\vulkan\vulkan.h" set "VULKAN_SDK=C:\VulkanSDK\1.3.296.0"
     if exist "C:\VulkanSDK\1.3.250.0\Include\vulkan\vulkan.h" set "VULKAN_SDK=C:\VulkanSDK\1.3.250.0"
@@ -145,7 +131,7 @@ if not defined VULKAN_SDK (
 :vulkan_ok
 if not defined VULKAN_SDK (
     echo Vulkan SDK not found. Install from https://vulkan.lunarg.com/sdk/home and restart this script.
-    pause
+    if not "%OASIS_BAT_NO_PAUSE%"=="1" pause
     exit /b 1
 )
 
@@ -161,7 +147,7 @@ where msbuild >nul 2>nul || (
 if defined VSDEVCMD call "!VSDEVCMD!" -arch=amd64
 where msbuild >nul 2>nul || (
     echo MSBuild not in PATH. Open "Developer Command Prompt for VS" or "x64 Native Tools Command Prompt" and run this script again.
-    pause
+    if not "%OASIS_BAT_NO_PAUSE%"=="1" pause
     exit /b 1
 )
 msbuild "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" /p:Configuration=Release /p:Platform=x64 /v:m
@@ -213,6 +199,7 @@ if not exist "%VKQUAKE_EXE%" (
 echo [OQuake] Copying files to build folder...
 for %%A in ("%VKQUAKE_EXE%") do set "EXE_DIR=%%~dpA"
 copy /Y "%STAR_DLL%" "!EXE_DIR!" >nul
+if exist "%OQUAKE_INTEGRATION%Code\e_sqlite3.dll" copy /Y "%OQUAKE_INTEGRATION%Code\e_sqlite3.dll" "!EXE_DIR!" >nul
 set "QUAKE_ENGINE_EXE=%VKQUAKE_EXE%"
 if not exist "%OQUAKE_INTEGRATION%\build" mkdir "%OQUAKE_INTEGRATION%\build"
 copy /Y "%VKQUAKE_EXE%" "%OQUAKE_INTEGRATION%\build\OQUAKE.exe"
