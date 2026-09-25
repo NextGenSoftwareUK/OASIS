@@ -38,6 +38,34 @@ public sealed class HttpHyperDriveSyncTransportTests
     }
 
     [Fact]
+    public async Task ReadsAspNetStringEnumResponse()
+    {
+        const string response = """
+            {"isError":false,"result":{"protocolVersion":3,"operationResults":[{"operationId":"00000000-0000-0000-0000-000000000001","disposition":"Accepted","resultVersionId":"00000000-0000-0000-0000-000000000002"}],"remoteChanges":[],"hasMoreRemoteChanges":false}}
+            """;
+        var client = new HttpClient(new Handler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        { Content = new StringContent(response, Encoding.UTF8, "application/json") }))
+        { BaseAddress = new Uri("https://onode.test/") };
+
+        var result = await new HttpHyperDriveSyncTransport(client).ExchangeAsync(new SyncExchangeRequest(), default);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.OperationResults.Single().Disposition.Should().Be(SyncOperationDisposition.Accepted);
+    }
+
+    [Fact]
+    public async Task NonJsonServerFailureReportsStatusAndResponseBody()
+    {
+        var client = new HttpClient(new Handler(_ => new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        { Content = new StringContent("upstream application error") })) { BaseAddress = new Uri("https://onode.test/") };
+
+        var result = await new HttpHyperDriveSyncTransport(client).ExchangeAsync(new SyncExchangeRequest(), default);
+
+        result.ErrorCode.Should().Be("HYPERDRIVE_HTTP_INVALID_JSON");
+        result.Message.Should().Contain("HTTP 500").And.Contain("upstream application error");
+    }
+
+    [Fact]
     public async Task NetworkFailureLeavesExplicitOfflineSafeError()
     {
         var client = new HttpClient(new Handler(_ => throw new HttpRequestException("offline")))

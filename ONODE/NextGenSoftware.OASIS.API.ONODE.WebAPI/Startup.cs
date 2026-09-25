@@ -389,6 +389,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 var offlineGrantIssuer = new Services.HyperDriveOfflineSessionGrantIssuer(offlineGrantSettings);
                 services.AddSingleton<Services.IHyperDriveOfflineSessionGrantIssuer>(offlineGrantIssuer);
             }
+            services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
