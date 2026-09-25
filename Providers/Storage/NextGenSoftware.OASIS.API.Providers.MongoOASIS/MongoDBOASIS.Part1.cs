@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -29,11 +29,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private AvatarRepository _avatarRepository = null;
         private HolonRepository _holonRepository = null;
         private SearchRepository _searchRepository = null;
+        private readonly IHostedMongoSyncFaultInjector _hostedSyncFaultInjector;
 
         public string ConnectionString { get; set; }
         public string DBName { get; set; }
         public bool IsVersionControlEnabled { get; set; }
-        private IHostedMongoSyncFaultInjector _hostedSyncFaultInjector;
 
         public MongoDBOASIS(string connectionString, string dbName) : base()
         {
@@ -72,8 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             // MongoDB serializers are process-global. Provider construction can happen
             // repeatedly during failover, tests, and host reconfiguration, so registration
@@ -239,28 +238,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
             => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.RefreshTokens.Any(r => r.Token == refreshToken)));
-
-        public OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(
-                x => x.ProviderWallets.Values.Any(wallets => wallets.Any(wallet => wallet.PublicKey == publicKey))));
-
-        public async Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(
-                x => x.ProviderWallets.Values.Any(wallets => wallets.Any(wallet => wallet.PublicKey == publicKey))));
-
-        public OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey, int version = 0)
-            => CreateRemotePrivateKeyLookupError();
-
-        public Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey, int version = 0)
-            => Task.FromResult(CreateRemotePrivateKeyLookupError());
-
-        private static OASISResult<IAvatar> CreateRemotePrivateKeyLookupError()
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result,
-                "MongoDBOASIS cannot load an avatar by private key because private keys are intentionally never persisted to remote storage providers. Use a local storage provider that owns the encrypted wallet secret.");
-            return result;
-        }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {

@@ -32,8 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             this.ProviderName = "Neo4jOASIS";
             this.ProviderDescription = "Neo4j Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             Host = host;
             Username = username;

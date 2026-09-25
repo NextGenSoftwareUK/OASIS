@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -59,8 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS
             ProviderName = "RedisOASIS";
             ProviderDescription = "Redis provider (high-performance in-memory key-value store via StackExchange.Redis)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RedisOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

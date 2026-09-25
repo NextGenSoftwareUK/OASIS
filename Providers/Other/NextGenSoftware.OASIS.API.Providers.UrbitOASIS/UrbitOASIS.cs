@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UrbitOASIS
             ProviderName = "UrbitOASIS";
             ProviderDescription = "Urbit peer-to-peer personal server OS provider (HTTP airlock)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.UrbitOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Application);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

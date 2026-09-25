@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -59,8 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             ProviderName = "TypesenseOASIS";
             ProviderDescription = "Typesense provider (fast fuzzy-search engine via REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TypesenseOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);

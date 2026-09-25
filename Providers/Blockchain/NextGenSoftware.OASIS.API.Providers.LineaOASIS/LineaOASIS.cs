@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
@@ -33,7 +33,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LineaOASIS
             ProviderName = "LineaOASIS";
             ProviderDescription = "Linea zkEVM L2 Provider — ConsenSys / MetaMask-Integrated ZK Rollup";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LineaOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

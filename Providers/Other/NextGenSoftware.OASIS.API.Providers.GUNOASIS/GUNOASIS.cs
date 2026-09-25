@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GUNOASIS
             ProviderName = "GUNOASIS";
             ProviderDescription = "GUN provider (decentralised real-time graph database via GUN relay HTTP API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.GUNOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         // ─── GUN HTTP helpers ─────────────────────────────────────────────────────

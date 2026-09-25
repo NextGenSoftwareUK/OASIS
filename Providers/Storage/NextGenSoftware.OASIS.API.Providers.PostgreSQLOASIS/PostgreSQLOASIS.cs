@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -80,8 +80,7 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
             ProviderName = "PostgreSQLOASIS";
             ProviderDescription = "PostgreSQL provider (Npgsql ADO.NET, JSON blob storage per row)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PostgreSQLOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────

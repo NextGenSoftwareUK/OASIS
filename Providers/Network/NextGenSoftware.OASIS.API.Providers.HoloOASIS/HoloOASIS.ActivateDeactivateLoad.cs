@@ -72,14 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     {
                         if (HoloNETClientAppAgent == null)
                         {
-                            if (!File.Exists(OASISHAppPath))
-                            {
-                                OASISErrorHandling.HandleError(ref result,
-                                    $"The configured OASIS hApp does not exist at '{OASISHAppPath}'.");
-                                result.ErrorCode = "HOLO_HAPP_NOT_FOUND";
-                                return result;
-                            }
-                            InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASISHAppPath, OASIS_HAPP_ROLE_NAME);
+                            InstallEnableSignAttachAndConnectToHappEventArgs installedAppResult = await HoloNETClientAdmin.InstallEnableSignAttachAndConnectToHappAsync(OASIS_HAPP_ID, OASIS_HAPP_PATH, OASIS_HAPP_ROLE_NAME);
 
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {

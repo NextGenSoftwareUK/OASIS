@@ -89,19 +89,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 : Builders<Holon>.Filter.Or(filters);
         }
 
-        // Visibility filter: own holons, or own + public holons. Empty avatarId = no restriction.
-        private static FilterDefinition<Holon> BuildVisibilityFilter(Guid avatarId, bool includePublic)
-        {
-            if (avatarId == Guid.Empty)
-                return Builders<Holon>.Filter.Empty;
-            var avatarIdStr = avatarId.ToString();
-            var ownFilter = Builders<Holon>.Filter.Eq(x => x.CreatedByAvatarId, avatarIdStr);
-            if (!includePublic)
-                return ownFilter;
-            var publicFilter = Builders<Holon>.Filter.Eq(x => x.IsPublic, true);
-            return Builders<Holon>.Filter.Or(ownFilter, publicFilter);
-        }
-
         public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
@@ -277,92 +264,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 result.Exception = ex;
             }
 
-            return result;
-        }
-
-        // ── Visibility-scoped MetaData overloads (native MongoDB query filtering) ──
-
-        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, Guid avatarId, bool includePublic, HolonType holonType)
-        {
-            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
-            try
-            {
-                var filter = Builders<Holon>.Filter.And(
-                    BuildHolonTypeFilter(holonType),
-                    BuildMetaDataFilter(metaKey, metaValue),
-                    BuildVisibilityFilter(avatarId, includePublic));
-                result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error in GetHolonsByMetaDataAsync (visibility). Reason: {ex}";
-                LoggingManager.Log(result.Message, LogType.Error);
-                result.Exception = ex;
-            }
-            return result;
-        }
-
-        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, Guid avatarId, bool includePublic, HolonType holonType)
-        {
-            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
-            try
-            {
-                var filter = Builders<Holon>.Filter.And(
-                    BuildHolonTypeFilter(holonType),
-                    BuildMetaDataFilter(metaKey, metaValue),
-                    BuildVisibilityFilter(avatarId, includePublic));
-                result.Result = _dbContext.Holon.Find(filter).ToList();
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error in GetHolonsByMetaData (visibility). Reason: {ex}";
-                LoggingManager.Log(result.Message, LogType.Error);
-                result.Exception = ex;
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, Guid avatarId, bool includePublic, HolonType holonType)
-        {
-            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
-            try
-            {
-                var filter = Builders<Holon>.Filter.And(
-                    BuildHolonTypeFilter(holonType),
-                    BuildMetaDataMultiFilter(metaKeyValuePairs, metaKeyValuePairMatchMode),
-                    BuildVisibilityFilter(avatarId, includePublic));
-                result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error in GetHolonsByMetaDataAsync (visibility, multi). Reason: {ex}";
-                LoggingManager.Log(result.Message, LogType.Error);
-                result.Exception = ex;
-            }
-            return result;
-        }
-
-        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, Guid avatarId, bool includePublic, HolonType holonType)
-        {
-            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
-            try
-            {
-                var filter = Builders<Holon>.Filter.And(
-                    BuildHolonTypeFilter(holonType),
-                    BuildMetaDataMultiFilter(metaKeyValuePairs, metaKeyValuePairMatchMode),
-                    BuildVisibilityFilter(avatarId, includePublic));
-                result.Result = _dbContext.Holon.Find(filter).ToList();
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error in GetHolonsByMetaData (visibility, multi). Reason: {ex}";
-                LoggingManager.Log(result.Message, LogType.Error);
-                result.Exception = ex;
-            }
             return result;
         }
 

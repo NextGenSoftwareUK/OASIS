@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -42,8 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LensV2OASIS
             ProviderName = "LensV2OASIS";
             ProviderDescription = "Lens Protocol v2 social graph provider — profiles and publications as holons";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LensV2OASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

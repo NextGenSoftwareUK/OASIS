@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -60,10 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FhenixOASIS
             ProviderName = "FhenixOASIS";
             ProviderDescription = "Fhenix FHE L2 provider — privacy-preserving on-chain computation";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FhenixOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

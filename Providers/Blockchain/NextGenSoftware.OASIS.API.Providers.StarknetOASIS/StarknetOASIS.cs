@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -43,7 +43,7 @@ public sealed partial class StarknetOASIS : OASISStorageProviderBase,
         ProviderName = nameof(StarknetOASIS);
         ProviderDescription = "Starknet privacy provider for cross-chain swaps";
         ProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.StarknetOASIS);
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

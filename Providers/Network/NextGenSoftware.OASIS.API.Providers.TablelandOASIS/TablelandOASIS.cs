@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
             ProviderName = "TablelandOASIS";
             ProviderDescription = "Tableland SQL-on-Chain Data Layer Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TablelandOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }

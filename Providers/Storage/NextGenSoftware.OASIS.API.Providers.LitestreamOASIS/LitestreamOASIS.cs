@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -55,8 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS
             ProviderName = "LitestreamOASIS";
             ProviderDescription = "Litestream provider (continuously replicated SQLite via Microsoft.Data.Sqlite)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LitestreamOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private async Task<SqliteConnection> OpenAsync() { var c = new SqliteConnection(_connectionString); await c.OpenAsync(); return c; }

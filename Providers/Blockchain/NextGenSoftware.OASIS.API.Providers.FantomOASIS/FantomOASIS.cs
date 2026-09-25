@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -171,6 +171,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             this.ProviderName = "FantomOASIS";
             this.ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
@@ -199,7 +204,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             ProviderName = "FantomOASIS";
             ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

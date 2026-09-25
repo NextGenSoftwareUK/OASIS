@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -64,8 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             ProviderName = "OpenSearchOASIS";
             ProviderDescription = "OpenSearch provider (AWS open-source search and analytics engine via REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OpenSearchOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private async Task EnsureIndexAsync(string index)

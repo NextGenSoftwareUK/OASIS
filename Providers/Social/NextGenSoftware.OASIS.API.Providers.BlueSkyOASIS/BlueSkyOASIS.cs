@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -53,8 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS
             ProviderName = "BlueSkyOASIS";
             ProviderDescription = "BlueSky / AT Protocol decentralised social provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlueSkyOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

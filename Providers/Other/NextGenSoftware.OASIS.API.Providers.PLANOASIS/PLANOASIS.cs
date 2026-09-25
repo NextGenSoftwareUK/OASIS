@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             this.ProviderName = "PLANOASIS";
             this.ProviderDescription = "PLAN Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PLANOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             
             _apiBaseUrl = apiBaseUrl;
             _apiKey = apiKey;

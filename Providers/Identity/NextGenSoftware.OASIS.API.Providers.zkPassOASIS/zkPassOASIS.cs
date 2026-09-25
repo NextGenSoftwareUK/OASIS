@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -55,9 +55,6 @@ namespace NextGenSoftware.OASIS.API.Providers.zkPassOASIS
             ProviderDescription = "Chainflip native cross-chain swap provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.zkPassOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Identity);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.KeyManager));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

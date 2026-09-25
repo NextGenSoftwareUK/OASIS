@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             this.ProviderName = "SuiOASIS";
             this.ProviderDescription = "Sui Provider - High-performance blockchain platform";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SuiOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _network = network ?? throw new ArgumentNullException(nameof(network));
