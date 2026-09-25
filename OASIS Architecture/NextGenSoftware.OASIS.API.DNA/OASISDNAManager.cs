@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -44,12 +46,14 @@ namespace NextGenSoftware.OASIS.API.DNA
             return AppPathHelper.GetUserDataSubDirectory("oasis-star-cli", "DNA");
         }
 
+#if !NETSTANDARD2_1
         private static OASISResult<OASISDNA> GetSystemOASISDNA()
         {
             OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
             result.Result = JsonConvert.DeserializeObject<OASISDNA>(FileEncryption.DecryptFile(SYSTEMOASISDNAPath, DNALoader.DNALoader.GetSystemOASISDNAKey(), DNALoader.DNALoader.GetSystemOASISDNAIV()));
             return result;
         }
+#endif
 
         public static OASISResult<OASISDNA> LoadDNA()
         {
@@ -83,6 +87,13 @@ namespace NextGenSoftware.OASIS.API.DNA
                         {
                             string json = r.ReadToEnd();
                             OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+
+                            if (!TryValidateRuntimeConfiguration(OASISDNA, out string hyperDriveError))
+                            {
+                                OASISDNA = null;
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{hyperDriveError}");
+                                return result;
+                            }
 
                         //OASISResult<OASISDNA> OASISDNAResult = GetSystemOASISDNA();
 
@@ -180,6 +191,12 @@ namespace NextGenSoftware.OASIS.API.DNA
                         {
                             string json = await r.ReadToEndAsync();
                             OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+                            if (!TryValidateRuntimeConfiguration(OASISDNA, out string hyperDriveError))
+                            {
+                                OASISDNA = null;
+                                OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.LoadDNA. Reason: {hyperDriveError}");
+                                return result;
+                            }
                             result.Result = OASISDNA;
                             RecordLastResolvedOasisDnaPath(effectivePath);
                         }
@@ -192,6 +209,48 @@ namespace NextGenSoftware.OASIS.API.DNA
             }
 
             return result;
+        }
+
+        private static bool TryValidateRuntimeConfiguration(OASISDNA dna, out string error)
+        {
+            error = null;
+            if (dna?.OASIS == null)
+            {
+                error = "The required OASIS configuration object is missing.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(dna.OASIS.HyperDriveMode))
+                dna.OASIS.HyperDriveMode = HyperDriveModes.Legacy;
+
+            if (dna.OASIS.HyperDriveMode != HyperDriveModes.Legacy &&
+                dna.OASIS.HyperDriveMode != HyperDriveModes.V2)
+            {
+                error = $"Unsupported HyperDriveMode '{dna.OASIS.HyperDriveMode}'. Valid values are '{HyperDriveModes.Legacy}' and '{HyperDriveModes.V2}'.";
+                return false;
+            }
+
+            var onet = dna.OASIS.ONET;
+            if (onet != null)
+            {
+                onet.CapabilityRegistryNodeIds = (onet.CapabilityRegistryNodeIds ?? new List<string>())
+                    .Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim())
+                    .Distinct(StringComparer.Ordinal).ToList();
+                if (onet.CapabilityRegistryQuorum < 1 ||
+                    (onet.CapabilityRegistryNodeIds.Count > 0 &&
+                     onet.CapabilityRegistryQuorum > onet.CapabilityRegistryNodeIds.Count))
+                {
+                    error = "ONET CapabilityRegistryQuorum must be at least one and cannot exceed CapabilityRegistryNodeIds count.";
+                    return false;
+                }
+                if (onet.CapabilityRegistryReconciliationSeconds < 5)
+                {
+                    error = "ONET CapabilityRegistryReconciliationSeconds must be at least 5.";
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -297,7 +356,11 @@ namespace NextGenSoftware.OASIS.API.DNA
             string candidate = null;
             try
             {
+#if NETSTANDARD2_1
+                string proc = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+#else
                 string proc = Environment.ProcessPath;
+#endif
                 if (!string.IsNullOrEmpty(proc))
                 {
                     string starDir = Path.GetDirectoryName(proc);

@@ -571,6 +571,13 @@
                 "StabilityAI": "",
                 "OpenServ": ""
             }
+        },
+        "OfflineSessionGrants": {
+            "Enabled": false,
+            "SigningPrivateKeyEnvironmentVariable": "OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY",
+            "SigningPublicKey": "",
+            "MaximumLifetimeMinutes": 1440,
+            "AllowedScopes": []
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal EnableExtensions
 REM ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
 REM Usage: BUILD ODOOM.bat [ run ] [ nosprites ]
@@ -27,6 +27,7 @@ echo [ODOOM][INFO] Build log saved: "%ODOOM_BUILD_LOG%"
 exit /b %ODOOM_BUILD_EXIT%
 
 :main
+if /i "%~1"=="batch" set "OASIS_BAT_NO_PAUSE=1"
 
 REM ODOOM source (fork of UZDoom). Default path after folder rename: C:\Source\ODOOM.
 set "UZDOOM_SRC=C:\Source\ODOOM"
@@ -57,15 +58,15 @@ REM Set to 1 to always build and deploy OGEngineClient before building (script s
 set "BUILD_STAR_CLIENT=0"
 set "QUAKE_PAK0=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK0.PAK"
 set "QUAKE_PAK1=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK1.PAK"
-if /i not "%~1"=="run" (
+if /i not "%~1"=="run" if /i not "%~1"=="batch" (
     echo.
     set /p "BUILD_CHOICE=  Full clean/rebuild [C] or incremental build [I]? [I]: "
 )
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
-if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1" & set "BUILD_STAR_CLIENT=1"
-if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
-if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
-if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
+if /i "%BUILD_CHOICE%"=="C" (set "DO_FULL_CLEAN=1" & set "BUILD_STAR_CLIENT=1")
+if /i "%~1"=="nosprites" (set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1")
+if /i "%~2"=="nosprites" (set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1")
+if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" if /i not "%~1"=="batch" (
     echo.
     set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build [Y/N]? [Y]: "
     if not defined SPRITE_CHOICE set "SPRITE_CHOICE=Y"
@@ -81,8 +82,8 @@ if "%DO_SPRITE_REGEN%"=="0" (
 
 REM --- Prerequisites ---
 if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
-    echo ODOOM source (UZDoom fork) not found: %UZDOOM_SRC%
-    echo Edit UZDOOM_SRC at top of script (default: C:\Source\ODOOM).
+    echo ODOOM source ^(UZDoom fork^) not found: %UZDOOM_SRC%
+    echo Edit UZDOOM_SRC at top of script ^(default: C:\Source\ODOOM^).
     pause
     exit /b 1
 )
@@ -93,7 +94,7 @@ if "%BUILD_STAR_CLIENT%"=="1" (
 ) else (
     call "%HERE%..\..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
 )
-if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
+if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & if not "%OASIS_BAT_NO_PAUSE%"=="1" pause & exit /b 1)
 if not exist "%ODOOM_INTEGRATION%\ogengine.dll" (
     echo star_api not found: %ODOOM_INTEGRATION%
     echo Run BUILD_AND_DEPLOY_STAR_CLIENT.bat from OASIS Omniverse, or copy ogengine.dll and ogengine.lib into the ODOOM folder.
@@ -135,6 +136,7 @@ echo [ODOOM][INFO] OASIS sprite source: %OASIS_SPRITES_SRC%
 copy /Y "%ODOOM_INTEGRATION%uzdoom_ogengine_integration.cpp" "%UZDOOM_SRC%\src\uzdoom_ogengine_integration.cpp" >nul
 copy /Y "%ODOOM_INTEGRATION%uzdoom_ogengine_integration.h" "%UZDOOM_SRC%\src\uzdoom_ogengine_integration.h" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%UZDOOM_SRC%\src\ogengine.h" >nul
+copy /Y "%HERE%..\..\OGLib\*.h" "%UZDOOM_SRC%\src\" >nul
 if exist "%ODOOM_INTEGRATION%ogengine_sync.c" copy /Y "%ODOOM_INTEGRATION%ogengine_sync.c" "%UZDOOM_SRC%\src\ogengine_sync.c" >nul
 if exist "%ODOOM_INTEGRATION%ogengine_sync.h" copy /Y "%ODOOM_INTEGRATION%ogengine_sync.h" "%UZDOOM_SRC%\src\ogengine_sync.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h" >nul
@@ -248,18 +250,18 @@ goto :after_quake_monsters
 :missing_quake_pak0
 echo "[ODOOM][ERROR] Quake pak0 not found for MDL sprite generation."
 echo "[ODOOM][ERROR] Expected path: %QUAKE_PAK0%"
-pause
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause
 exit /b 1
 
 :missing_quake_pak1
 echo "[ODOOM][ERROR] Quake pak1 not found for MDL sprite generation."
 echo "[ODOOM][ERROR] Expected path: %QUAKE_PAK1%"
-pause
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause
 exit /b 1
 
 :mdlgen_failed
 echo "[ODOOM][ERROR] Failed to generate one or more Doom-profile OQ monster sprite sets."
-pause
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause
 exit /b 1
 
 :after_quake_monsters
@@ -319,7 +321,10 @@ cd /d "%UZDOOM_SRC%"
 if not exist build mkdir build
 cd build
 set "OGENGINE_DIR=%OGENGINECLIENT%"
-set "OGENGINE_LIB_DIR=%DOOM_FOLDER%"
+REM Canonicalize the library directory without a trailing backslash. A trailing
+REM backslash before CMake's closing quote escapes that quote and folds every
+REM following -D option into the linker search path.
+for %%I in ("%DOOM_FOLDER%.") do set "OGENGINE_LIB_DIR=%%~fI"
 REM Use short (8.3) paths for cmake so paths with spaces (e.g. OASIS Omniverse) do not break the linker
 for %%I in ("%OGENGINE_DIR%") do set "OGENGINE_DIR_CMAKE=%%~sI"
 for %%I in ("%OGENGINE_LIB_DIR%") do set "OGENGINE_LIB_DIR_CMAKE=%%~sI"
@@ -342,11 +347,12 @@ if errorlevel 1 (echo "[ODOOM][ERROR] Build failed." & pause & exit /b 1)
 echo.
 echo [ODOOM][STEP] Packaging output...
 REM Package current OASFACE texture into odoom_face.pk3 for standalone distribution
-echo [ODOOM][STEP] Packaging OASIS beamed-in face (OASFACE)...
+echo [ODOOM][STEP] Packaging OASIS beamed-in face ^(OASFACE^)...
 "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%create_odoom_face_pk3.py"
 if errorlevel 1 echo [ODOOM][WARN] OASFACE pk3 generation failed - beamed-in face may be missing.
 
 copy /Y "%DOOM_FOLDER%\ogengine.dll" "%UZDOOM_SRC%\build\Release\ogengine.dll" >nul
+if exist "%DOOM_FOLDER%\e_sqlite3.dll" copy /Y "%DOOM_FOLDER%\e_sqlite3.dll" "%UZDOOM_SRC%\build\Release\e_sqlite3.dll" >nul
 if not exist "%ODOOM_INTEGRATION%build" mkdir "%ODOOM_INTEGRATION%build"
 xcopy "%UZDOOM_SRC%\build\Release\*" "%ODOOM_INTEGRATION%build" /Y /I /Q /E >nul
 copy /Y "%UZDOOM_SRC%\build\Release\uzdoom.exe" "%ODOOM_INTEGRATION%build\ODOOM.exe" >nul
@@ -386,4 +392,4 @@ if /i "%~1"=="run" (
         start "" "%UZDOOM_SRC%\build\Release\uzdoom.exe"
     )
 )
-pause
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause
