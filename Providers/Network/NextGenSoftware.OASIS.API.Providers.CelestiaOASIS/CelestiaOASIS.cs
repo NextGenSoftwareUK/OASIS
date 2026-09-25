@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CelestiaOASIS
             ProviderName = "CelestiaOASIS";
             ProviderDescription = "Celestia Modular DA Layer Provider — blob submission and retrieval";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CelestiaOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }

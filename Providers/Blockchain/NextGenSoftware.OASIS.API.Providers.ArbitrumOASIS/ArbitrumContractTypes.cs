@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -373,7 +373,8 @@ public sealed class ArbitrumOASIS_Web3Core : Web3CoreOASISBaseProvider,
         ProviderName = "ArbitrumOASIS";
         ProviderDescription = "Arbitrum Provider - Ethereum Layer 2 scaling solution using Web3Core";
         ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS);
-        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain);
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

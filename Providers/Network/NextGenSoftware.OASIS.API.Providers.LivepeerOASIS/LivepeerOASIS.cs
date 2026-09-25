@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LivepeerOASIS
             ProviderName = "LivepeerOASIS";
             ProviderDescription = "Livepeer Decentralised Video Transcoding Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LivepeerOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }

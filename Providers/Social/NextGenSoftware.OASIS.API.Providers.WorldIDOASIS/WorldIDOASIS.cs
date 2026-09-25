@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -41,8 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WorldIDOASIS
             ProviderName = "WorldIDOASIS";
             ProviderDescription = "World ID ZK-proof identity provider (nullifier_hash → Avatar, verification record → Holon)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WorldIDOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

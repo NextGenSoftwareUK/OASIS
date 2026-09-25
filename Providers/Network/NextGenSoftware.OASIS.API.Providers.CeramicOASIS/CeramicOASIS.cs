@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -59,8 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CeramicOASIS
             ProviderName = "CeramicOASIS";
             ProviderDescription = "Ceramic Network provider — decentralised identity (W3C DID) and mutable data streams";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CeramicOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             this.ProviderName = "BlockStackOASIS";
             this.ProviderDescription = "BlockStack Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlockStackOASIS);
-            this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

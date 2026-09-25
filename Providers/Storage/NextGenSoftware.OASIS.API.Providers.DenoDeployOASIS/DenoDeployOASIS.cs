@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -59,8 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
             ProviderName = "DenoDeployOASIS";
             ProviderDescription = "Deno Deploy edge serverless provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DenoDeployOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         // ── Lifecycle ─────────────────────────────────────────────────────────

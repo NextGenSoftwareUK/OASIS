@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -61,8 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LensOASIS
             ProviderName = "LensOASIS";
             ProviderDescription = "Lens Protocol decentralised social graph provider (GraphQL v2)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LensOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 

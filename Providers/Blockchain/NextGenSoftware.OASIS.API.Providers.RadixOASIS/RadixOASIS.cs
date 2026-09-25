@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +62,7 @@ public partial class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvide
         this.ProviderName = nameof(RadixOASIS);
         this.ProviderDescription = "Radix DLT Blockchain Provider with Bridge Support";
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RadixOASIS);
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
@@ -84,7 +84,7 @@ public partial class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvide
         this.ProviderName = nameof(RadixOASIS);
         this.ProviderDescription = "Radix DLT Blockchain Provider with Bridge Support";
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RadixOASIS);
-        this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+        this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _httpClient = new HttpClient();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -82,7 +82,8 @@ public sealed partial class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBSt
         this.ProviderName = "ArbitrumOASIS";
         this.ProviderDescription = "Arbitrum Provider";
         this.ProviderType = new(Core.Enums.ProviderType.ArbitrumOASIS);
-        this.ProviderCategory = new(Core.Enums.ProviderCategory.EVMBlockchain);
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

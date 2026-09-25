@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -41,8 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DiscordOASIS
             ProviderName = "DiscordOASIS";
             ProviderDescription = "Discord REST API v10 provider (guild members → Avatars, messages/channels → Holons)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DiscordOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
