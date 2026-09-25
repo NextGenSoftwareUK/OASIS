@@ -17,13 +17,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Singleton;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public partial class MongoDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar
+    public partial class MongoDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IHostedHyperDriveSyncStore, IHostedHyperDrivePeerBindingStore, IHostedHyperDriveFanOutStore, IHostedHyperDriveMaintenanceStore, IHostedHyperDriveCommandStore, IHostedHyperDriveDomainMutationStore, IHostedHyperDriveDomainChangeCaptureStore, IHostedHyperDriveDomainBackfillStore
     {
     }
 }

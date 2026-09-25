@@ -33,9 +33,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public string ConnectionString { get; set; }
         public string DBName { get; set; }
         public bool IsVersionControlEnabled { get; set; }
+        private IHostedMongoSyncFaultInjector _hostedSyncFaultInjector;
 
         public MongoDBOASIS(string connectionString, string dbName) : base()
         {
+            Init(connectionString, dbName);
+        }
+
+        public MongoDBOASIS(string connectionString, string dbName,
+            IHostedMongoSyncFaultInjector hostedSyncFaultInjector) : base()
+        {
+            _hostedSyncFaultInjector = hostedSyncFaultInjector ??
+                throw new ArgumentNullException(nameof(hostedSyncFaultInjector));
             Init(connectionString, dbName);
         }
 
@@ -230,6 +239,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
             => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.RefreshTokens.Any(r => r.Token == refreshToken)));
+
+        public OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey, int version = 0)
+            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(
+                x => x.ProviderWallets.Values.Any(wallets => wallets.Any(wallet => wallet.PublicKey == publicKey))));
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey, int version = 0)
+            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(
+                x => x.ProviderWallets.Values.Any(wallets => wallets.Any(wallet => wallet.PublicKey == publicKey))));
+
+        public OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey, int version = 0)
+            => CreateRemotePrivateKeyLookupError();
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey, int version = 0)
+            => Task.FromResult(CreateRemotePrivateKeyLookupError());
+
+        private static OASISResult<IAvatar> CreateRemotePrivateKeyLookupError()
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            OASISErrorHandling.HandleError(ref result,
+                "MongoDBOASIS cannot load an avatar by private key because private keys are intentionally never persisted to remote storage providers. Use a local storage provider that owns the encrypted wallet secret.");
+            return result;
+        }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
