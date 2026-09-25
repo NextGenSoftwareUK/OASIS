@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OQuake - OASIS STAR API Integration Implementation
  *
  * Integrates Quake with the OASIS STAR API so keys collected in ODOOM
@@ -89,34 +89,9 @@ ogengine_result_t ogengine_send_item_to_avatar(const char* target_username_or_av
 ogengine_result_t ogengine_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 #endif
 
-/* When OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL is defined, provide ogengine_refresh_avatar_profile (forward to DLL at runtime). Use when the linked ogengine.lib does not export it (e.g. Native AOT import lib quirk or old lib). Remove the define once the lib exports it. */
-#ifdef OQUAKE_OGENGINE_REFRESH_AVATAR_PROFILE_IMPL
-#ifdef _WIN32
-void ogengine_refresh_avatar_profile(void) {
-	typedef void (__cdecl *fn_t)(void);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("ogengine.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "ogengine_refresh_avatar_profile");
-	}
-	if (fn) fn();
-}
-#else
-/* RTLD_NEXT: dlopen(NULL)+dlsym resolves this same symbol in the executable → infinite recursion. NEEDED is often star_api.so, not libstar_api.so. */
-void ogengine_refresh_avatar_profile(void) {
-	typedef void (*fn_t)(void);
-	static fn_t real_fn;
-	if (!real_fn)
-		real_fn = (fn_t)dlsym(RTLD_NEXT, "ogengine_refresh_avatar_profile");
-	if (real_fn)
-		real_fn();
-}
-#endif
-#endif
-
-/* OGLib: runtime session forwarders, config, beamin, cross-game utilities. */
-#define OGLIB_SESSION_IMPL
-#include "../../OGLib/oglib.h"
+/* Mandatory native exports are linked from the matching OGEngineClient import library. */
+#include "oglib.h"
+#include "oglib_edge.h"
 
 #ifdef OQUAKE_DRAW_STRING_COLORED
 /* Optional: engine provides Draw_StringColored(cbx, x, y, palette_index, str) so quest tracker title can use a different text colour. */
@@ -180,13 +155,16 @@ static void OQ_AddItemLogCb(const char* item_name, int success, const char* erro
 }
 
 static ogengine_config_t g_star_config;
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
+static ogengine_edge_status_t g_edge_status;
 static int g_star_initialized = 0;
 /** 1 only after user has run "star beamin" and it succeeded (or async auth callback). Used to gate mint/add so we do not mint shells/shotgun etc. at startup before beamin. */
 static int g_star_beamed_in = 0;
 /** Obsolete: was used to avoid calling ogengine_refresh_avatar_xp() twice; now we only call ogengine_refresh_avatar_profile() on beam-in. */
 static int g_star_refresh_xp_called_this_session = 0;
 /** Set by STAR API callback when profile refresh (XP + active quest/objective) completes. Main thread reads this in OQuake_STAR_PollItems and restores tracker + invalidates quest cache. */
-static volatile int g_star_profile_loaded_pending = 0;
+static atomic_uint32_t g_star_profile_loaded_pending = {0};
+static atomic_uint32_t g_star_profile_error_pending = {0};
 /** True when async SSO auth was started (star beamin); cleared when OQ_OnAuthDone runs or timeout. Used to show timeout error if callback never fires. */
 static int g_star_async_auth_pending = 0;
 /* Wall-clock start for async beamin; do not use frame counts (high FPS caused ~7s false timeouts). */
@@ -1335,9 +1313,9 @@ static void OQ_StarApiOperationCallback(ogengine_result_t result, int operation_
         ogengine_log_to_file(buf);
     }
     if (operation_type == OGENGINE_OP_PROFILE_LOADED && result == OGENGINE_SUCCESS)
-        g_star_profile_loaded_pending = 1;
+        Atomic_StoreUInt32(&g_star_profile_loaded_pending, 1);
     if (operation_type == OGENGINE_OP_PROFILE_LOADED && result != OGENGINE_SUCCESS) {
-        Con_Printf("Session restore failed (session may have expired). Use 'star beamin' to log in again.\n");
+        Atomic_StoreUInt32(&g_star_profile_error_pending, 1);
     }
     if (operation_type == OGENGINE_OP_GET_INVENTORY) {
         ogengine_item_list_t* list = NULL;
@@ -2162,6 +2140,7 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         return 0;
     }
     json[len] = 0;
+    oglib_edge_load_json(&g_edge_settings, json);
     
     char value[256];
     int loaded = 0;
@@ -2360,6 +2339,7 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     const char *send_addr = oquake_star_send_to_address_after_minting.string;
     
     fprintf(f, "{\n");
+    oglib_edge_save_json(f, &g_edge_settings);
     fprintf(f, "  \"config_file\": \"%s\",\n", config_file && config_file[0] ? config_file : "json");
     fprintf(f, "  \"star_transport\": \"%s\",\n", (oquake_star_transport.string && oquake_star_transport.string[0]) ? oquake_star_transport.string : "remote");
     fprintf(f, "  \"ogengine_url\": \"%s\",\n", star_url ? star_url : "");
@@ -3369,6 +3349,7 @@ void OQuake_STAR_Init(void) {
     g_star_config.avatar_id = config_avatar_id;
     
     g_star_config.timeout_seconds = 30;
+    g_star_config.client_game_source = "OQUAKE";
     {
         const char *tr = oquake_star_transport.string;
         g_star_config.transport = (tr && q_strcasecmp(tr, "native") == 0) ? 1 : 0;
@@ -3376,7 +3357,8 @@ void OQuake_STAR_Init(void) {
     g_star_config.oasis_dna_path = (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) ? oquake_oasis_dna_path.string : NULL;
 
     printf("\n********** GAME LOAD **********\n");
-    result = ogengine_init(&g_star_config);
+    result = oglib_edge_configure(&g_edge_settings);
+    if (result == OGENGINE_SUCCESS) result = ogengine_init(&g_star_config);
     if (result != OGENGINE_SUCCESS) {
         printf("OQuake STAR API: Failed to initialize: %s\n", ogengine_get_last_error());
     } else {
@@ -3429,11 +3411,10 @@ void OQuake_STAR_Init(void) {
             }
         } else if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
-            g_star_beamed_in = 1;
-            OQ_ResetCrossGameBeamTransferState();
-            ogengine_refresh_avatar_profile();
-            ogengine_log_to_file("[OQuake] Init (API key+avatar_id): beamed_in=1, profile refresh started");
-            printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
+            g_star_beamed_in = 0;
+            q_strlcpy(g_star_username, "Beaming in...", sizeof(g_star_username));
+            if (ogengine_restore_session() != OGENGINE_SUCCESS)
+                Con_Printf("Beam-in failed: %s\n", ogengine_get_last_error());
         } else if (g_oq_saved_jwt[0]) {
             /* Restore session from oasisstar.json so user stays logged in between sessions. */
             ogengine_log_to_file("\n********** OASIS SESSION RESTORE START **********");
@@ -4150,6 +4131,18 @@ static void OQ_PollCaptureItemStatsBaseline(
     *poll_prev_valid = 1;
 }
 
+int OQuake_STAR_OfflineSyncMode(void) {
+    int capabilities = ogengine_get_edge_capabilities();
+    return !(capabilities & 1) ? -1 : (capabilities & 2) ? 1 : 0;
+}
+
+void OQuake_STAR_OfflineSyncCommand(const char* command) {
+    char message[512];
+    oglib_edge_command(command, message, sizeof(message));
+    OQ_SetToastMessage(message);
+    Con_Printf("[OASIS] %s\n", message);
+}
+
 /* Frame-based item/stats poll so pickups are reported even when sbar isn't drawn. Call from Host_Frame. */
 void OQuake_STAR_PollItems(void) {
     extern client_state_t cl;
@@ -4164,11 +4157,34 @@ void OQuake_STAR_PollItems(void) {
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     ogengine_sync_pump();
+    {
+        char message[512];
+        int changed = oglib_edge_finish_change(&g_edge_settings, message, sizeof(message));
+        if (changed != 0) {
+            if (changed == 1) OQ_SaveStarConfigToFiles();
+            OQ_SetToastMessage(message);
+            Con_Printf("[OASIS] %s\n", message);
+        }
+    }
+    if (Atomic_LoadUInt32(&g_star_profile_error_pending)) {
+        Atomic_StoreUInt32(&g_star_profile_error_pending, 0);
+        g_star_beamed_in = 0;
+        g_star_username[0] = 0;
+        Con_Printf("Beam-in failed: %s\n", ogengine_get_last_error());
+        OQ_SetToastMessage(ogengine_get_last_error());
+    }
+    ogengine_get_edge_status(&g_edge_status);
+    if (g_star_beamed_in && !ogengine_sync_auth_in_progress()) {
+        char notification[256];
+        if (ogengine_poll_edge_notification(notification, sizeof(notification)) == 1) {
+            OQ_SetToastMessage(notification);
+            Con_Printf("[OASIS] %s\n", notification);
+        }
+    }
 
     /* --- cross-game spawn poll --- */
     {
         char entity_id[128];
-        char entity_category[64];
         float sx, sy, sz;
         if (ogengine_poll_spawn_event(entity_id, sizeof(entity_id), &sx, &sy, &sz))
         {
@@ -4190,7 +4206,7 @@ void OQuake_STAR_PollItems(void) {
                     if (f)
                     {
                         pr_global_struct->self = EDICT_TO_PROG(ent);
-                        PR_ExecuteProgram(f - pr_functions);
+                        PR_ExecuteProgram(f - qcvm->functions);
                     }
                     SV_LinkEdict(ent, false);
                     oglib_log(OGLIB_LOG_INFO, "OASIS SpawnEvent: spawned %s at %.0f/%.0f/%.0f", entity_id, ox, oy, oz);
@@ -4274,30 +4290,13 @@ void OQuake_STAR_PollItems(void) {
     /* Keep movement bind capture in sync every frame so closing a popup still restores WASD if the HUD draw path did not run (Linux / loading / menu). */
     OQ_UpdatePopupInputCapture();
 
-    /* If async auth was started but callback never fired (hang, or ogengine_sync_pump never runs e.g. missing host.c patch), wall-clock timeout. */
-    if (g_star_async_auth_pending) {
-        extern double realtime;
-        double elapsed = realtime - g_star_async_auth_start_realtime;
-        if (elapsed > OQ_BEAMIN_ASYNC_TIMEOUT_SEC) {
-            g_star_async_auth_pending = 0;
-            g_star_auth_timed_out = 1;  /* Ignore late callback from this attempt so retry can proceed */
-            ogengine_sync_auth_force_reset();  /* Clear star_sync state so "star beamin" again is allowed */
-            {
-                char logb[512];
-                q_snprintf(logb, sizeof(logb),
-                    "[OQuake] Beamin: TIMEOUT after %.1fs — no main-thread auth callback (ogengine_sync_pump never ran). Fix: OQuake_STAR_PollItems() must run every frame in vkQuake host.c after CL_ReadFromServer (BUILD_OQUAKE.sh unix patch or apply_oquake_to_vkquake.ps1). URIs can be correct; this is not a WEB4/WEB5 port issue.",
-                    elapsed);
-                ogengine_log_to_file(logb);
-            }
-            Con_Printf("Beam-in failed: timeout (no response from server).\n");
-            OQ_SetToastMessage("Beam-in failed: timeout (no response from server).");
-        }
-    }
-
     /* When profile refresh (XP + active quest/objective) completed, restore tracker from cache and invalidate quest list so it refetches. */
-    if (g_star_profile_loaded_pending) {
-        g_star_profile_loaded_pending = 0;
-        g_star_beamed_in = 1;  /* Set for both auth callback and saved-session restore paths. */
+    if (Atomic_LoadUInt32(&g_star_profile_loaded_pending)) {
+        Atomic_StoreUInt32(&g_star_profile_loaded_pending, 0);
+        g_star_beamed_in = 1;  /* Validated profile and Edge composition completed. */
+        ogengine_get_current_username(g_star_username, sizeof(g_star_username));
+        OQ_ApplyBeamFacePreference();
+        OQ_SaveStarConfigToFiles();
         {
             char qid[64] = {0};
             char oid[64] = {0};
@@ -4579,6 +4578,10 @@ void OQuake_STAR_Console_f(void) {
         return;
     }
     const char* sub = Cmd_Argv(1);
+    if (strcmp(sub, "offline") == 0) {
+        OQuake_STAR_OfflineSyncCommand(argc > 2 ? Cmd_Argv(2) : "status");
+        return;
+    }
     if (!sub) {
         Con_Printf("Error: No subcommand provided.\n");
         return;
@@ -4843,7 +4846,8 @@ void OQuake_STAR_Console_f(void) {
             g_star_config.transport = (tr && q_strcasecmp(tr, "native") == 0) ? 1 : 0;
         }
         g_star_config.oasis_dna_path = (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) ? oquake_oasis_dna_path.string : NULL;
-        ogengine_result_t r = ogengine_init(&g_star_config);
+        ogengine_result_t r = oglib_edge_configure(&g_edge_settings);
+        if (r == OGENGINE_SUCCESS) r = ogengine_init(&g_star_config);
         if (r != OGENGINE_SUCCESS) {
             Con_Printf("Beamin failed - init: %s\n", ogengine_get_last_error());
             return;
@@ -4905,28 +4909,10 @@ void OQuake_STAR_Console_f(void) {
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
-            /* Obsolete: ogengine_refresh_avatar_xp() redundant; use ogengine_refresh_avatar_profile() on beam-in (done in SSO beamin path). */
-            // if (!g_star_refresh_xp_called_this_session) {
-            //     g_star_refresh_xp_called_this_session = 1;
-            //     ogengine_refresh_avatar_xp();
-            // }
-            ogengine_refresh_avatar_profile();
-            g_star_beamed_in = 1;
-            OQ_ResetCrossGameBeamTransferState();
-            ogengine_log_to_file("[OQuake] Beamin (API key): profile refresh started");
-            // Try to get username from avatar_id or use a default
-            if (g_star_config.avatar_id) {
-                q_strlcpy(g_star_username, "API User", sizeof(g_star_username));
-            }
-            /* Save API key and avatar ID to CVARs if they came from env */
-            if (api_key && !oquake_ogengine_key.string[0]) {
-                Cvar_Set("oquake_ogengine_key", api_key);
-            }
-            if (avatar_id && !oquake_star_avatar_id.string[0]) {
-                Cvar_Set("oquake_star_avatar_id", avatar_id);
-            }
-            OQ_ApplyBeamFacePreference();
-            Con_Printf("Logged in with API key. Cross-game assets enabled.\n");
+            g_star_beamed_in = 0;
+            q_strlcpy(g_star_username, "Beaming in...", sizeof(g_star_username));
+            if (ogengine_restore_session() != OGENGINE_SUCCESS)
+                Con_Printf("Beam-in failed: %s\n", ogengine_get_last_error());
             return;
         }
         Con_Printf("Set STAR_USERNAME/STAR_PASSWORD or OGENGINE_KEY/STAR_AVATAR_ID and try again.\n");
@@ -6983,6 +6969,11 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     }
     /* Draw at bottom-left; label is "Beamed In Avatar:" (not "Beamed In Avatar 2") */
     OQ_DrawStr(cbx, 8, glheight - OQ_PY(24), status);
+    if (g_star_beamed_in) {
+        char edge_status[96];
+        oglib_edge_status_text(&g_edge_status, ogengine_get_edge_capabilities(), edge_status, sizeof(edge_status));
+        OQ_DrawStr(cbx, 8, glheight - OQ_PY(36), edge_status);
+    }
 }
 
 void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {

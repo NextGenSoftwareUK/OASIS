@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <PackageId>NextGenSoftware.OASIS.Edge.Runtime</PackageId>
+    <Description>Unity-compatible, offline-first OASIS Edge Runtime composition.</Description>
+    <Version>1.0.0</Version>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NextGenSoftware.OASIS.HyperDrive.Synchronization/NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
+    <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.csproj" />
+  </ItemGroup>
+</Project>

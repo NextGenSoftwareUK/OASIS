@@ -119,6 +119,9 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ## 🚀 **Revolutionary Systems Documentation**
 
 ### **OASIS HyperDrive**
+- **[OASIS Edge Runtime & Offline Sync Architecture](./OASIS_EDGE_RUNTIME_OFFLINE_SYNC_ARCHITECTURE.md)** - Canonical, code-audited design for mobile offline operation, durable synchronization, hosted ONODE integration, provider roles and ONET transport boundaries
+- **[Our World Offline-First Delivery Plan](./OUR_WORLD_OFFLINE_PLAN.md)** - Narrow Android/Unity milestone, audited live API surface, acceptance criteria, implementation order and deferred full-API backlog
+- **[OGEngineClient Unity Asset Store Release](./OGENGINECLIENT_UNITY_ASSET_STORE_RELEASE.md)** - Public package identity, automated UPM/Unity/Android gates, listing disclosures and manual Publisher Portal checklist
 - **[OASIS HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)** - Complete HyperDrive documentation
 - **Features**: 100% uptime, auto-failover, auto-load balancing, auto-replication
 - **Benefits**: Impossible to shutdown, intelligent routing, geographic optimization

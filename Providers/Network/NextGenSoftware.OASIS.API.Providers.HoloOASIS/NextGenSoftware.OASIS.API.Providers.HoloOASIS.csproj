@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+	  <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
+	  <LangVersion>latest</LangVersion>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.HoloOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Holochain OASIS Provider</Product>
@@ -44,11 +45,21 @@
 
   <ItemGroup>
     <None Remove="OASIS_hAPP\oasis.happ" />
+    <None Remove="OASIS_hAPP\build-manifest.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="OASIS_hAPP\oasis.happ">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+      <PackagePath>contentFiles/any/any/OASIS_hAPP/oasis.happ</PackagePath>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    <Content Include="OASIS_hAPP\build-manifest.json" Condition="Exists('OASIS_hAPP\build-manifest.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>True</Pack>
+      <PackagePath>contentFiles/any/any/OASIS_hAPP/build-manifest.json</PackagePath>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
   </ItemGroup>
 
