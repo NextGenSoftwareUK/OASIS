@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             ProviderName = "EOSIOOASIS";
             ProviderDescription = "EOSIO Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
-            this.ProviderCategory = new(Core.Enums.ProviderCategory.Blockchain);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));

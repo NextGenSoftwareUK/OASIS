@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -55,7 +55,6 @@ namespace NextGenSoftware.OASIS.API.Providers.VercelKVOASIS
             ProviderDescription = "Chainflip native cross-chain swap provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.VercelKVOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

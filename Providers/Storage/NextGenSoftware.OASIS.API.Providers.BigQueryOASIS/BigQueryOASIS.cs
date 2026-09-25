@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Text.Json;
@@ -47,8 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             _projectId = projectId;
             _dataset = dataset;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BigQueryOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Text.Json;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
         {
             _connectionString = connectionString;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DuckDBOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

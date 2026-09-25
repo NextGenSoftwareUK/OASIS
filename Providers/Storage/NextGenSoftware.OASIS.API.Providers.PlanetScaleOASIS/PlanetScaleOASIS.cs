@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -52,8 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             ProviderName = "PlanetScaleOASIS";
             ProviderDescription = "PlanetScale provider (serverless MySQL via MySqlConnector ADO.NET)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PlanetScaleOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         // ─── Connection helpers ───────────────────────────────────────────────────
