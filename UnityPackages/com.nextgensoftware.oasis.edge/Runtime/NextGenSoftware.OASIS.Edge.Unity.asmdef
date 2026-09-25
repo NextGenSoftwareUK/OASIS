@@ -1,0 +1,16 @@
+{
+  "name": "NextGenSoftware.OASIS.Edge.Unity",
+  "rootNamespace": "NextGenSoftware.OASIS.Edge.Unity",
+  "references": [
+    "UnityEngine.AndroidJNIModule"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -121,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.YourProviderOASIS
             this.ProviderName = "YourProviderOASIS";
             this.ProviderDescription = "Your Custom Provider Description";
             this.ProviderType = new EnumValue<ProviderType>(ProviderType.YourProviderOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage); // choose the most specific category: Storage, Network, Blockchain, EVMBlockchain, Cloud, Social, Identity, AI, Map, Spatial, etc.
             
             // Parse custom parameters
             ParseCustomParams(customParams);
@@ -303,7 +303,7 @@ Create a `DNA.json` file for your provider:
   "ProviderName": "YourProviderOASIS",
   "ProviderDescription": "Your Custom Provider",
   "ProviderType": "YourProviderOASIS",
-  "ProviderCategory": "StorageAndNetwork",
+  "ProviderCategory": "Storage",
   "IsEnabled": true,
   "Priority": 1,
         "CustomParams": "connectionString=your-test-connection-string;apiKey=your-test-api-key;testMode=true",

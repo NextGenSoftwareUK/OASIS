@@ -283,6 +283,10 @@ NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 
+# Generated deployment credentials. Public companion fragments may be committed deliberately;
+# private signing material must remain outside source control.
+*.secrets.env
+
 # Local API launcher state
 /Scripts/.local_api_processes.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json

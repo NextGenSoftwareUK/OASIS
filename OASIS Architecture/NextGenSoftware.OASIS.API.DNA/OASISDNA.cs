@@ -6,9 +6,15 @@ using NextGenSoftware.OASIS.API.Core.Configuration;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
+    public static class HyperDriveModes
+    {
+        public const string Legacy = "Legacy";
+        public const string V2 = "OASISHyperDrive2";
+    }
+
     public class OASISDNA
     {
-        public OASIS OASIS { get; set; }
+        public OASIS OASIS { get; set; } = new OASIS();
     }
 
     public class OASIS
@@ -26,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public Web6Settings Web6 { get; set; } = new Web6Settings();
         
         // HyperDrive mode switch: "Legacy" or "OASISHyperDrive2"
-        public string HyperDriveMode { get; set; } = "Legacy";
+        public string HyperDriveMode { get; set; } = HyperDriveModes.Legacy;
         
         // Enhanced HyperDrive Configuration
         public ReplicationRulesConfig ReplicationRules { get; set; } = new ReplicationRulesConfig();
@@ -36,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public IntelligentModeConfig IntelligentMode { get; set; } = new IntelligentModeConfig();
         
         public ONETConfig ONET { get; set; } = new ONETConfig();
+        public OfflineSessionGrantSettings OfflineSessionGrants { get; set; } = new OfflineSessionGrantSettings();
 
         public string OASISSystemAccountId { get; set; }
         public string OASISAPIURL { get; set; }
@@ -46,6 +53,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         // Stats caching controls
         public bool StatsCacheEnabled { get; set; } = false;
         public int StatsCacheTtlSeconds { get; set; } = 45;
+    }
+
+    public class OfflineSessionGrantSettings
+    {
+        /// <summary>Enables authenticated issuance of signed, device-bound Edge Runtime offline grants.</summary>
+        public bool Enabled { get; set; }
+        /// <summary>Name of the environment variable containing the base64 PKCS#8 ECDSA P-256 private key. The private key is never stored in OASISDNA.</summary>
+        public string SigningPrivateKeyEnvironmentVariable { get; set; } = "OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY";
+        /// <summary>Base64 SubjectPublicKeyInfo for the signing key, pinned into Edge client release configuration.</summary>
+        public string SigningPublicKey { get; set; } = string.Empty;
+        /// <summary>Maximum grant lifetime. Requested lifetimes must be positive and are capped at this value.</summary>
+        public int MaximumLifetimeMinutes { get; set; } = 1440;
+        /// <summary>Exact scopes this ONODE is authorized to issue. Empty means no scopes can be issued.</summary>
+        public List<string> AllowedScopes { get; set; } = new List<string>();
     }
 
     /// <summary>

@@ -233,5 +233,27 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// If empty, the check is skipped (open registration). Set a strong random value in production.
         /// </summary>
         public string ONETApiKey { get; set; } = "";
+
+        /// <summary>
+        /// Starts the authenticated ONET application channel and hosts HyperDrive synchronization on this
+        /// ONODE. Enable only on nodes whose default provider implements hosted sync and peer bindings.
+        /// </summary>
+        public bool EnableHyperDriveSyncHost { get; set; } = false;
+
+        /// <summary>
+        /// ProviderType names this node is explicitly permitted to advertise for remote ONET routing.
+        /// A provider is advertised only when it is also registered, activated and healthy. Empty means
+        /// no provider capabilities are remotely advertised.
+        /// </summary>
+        public List<string> RemotelyAdvertisedProviderTypes { get; set; } = new List<string>();
+
+        /// <summary>Authenticated ONET node ids of peer capability registries used for signed-lease gossip.</summary>
+        public List<string> CapabilityRegistryNodeIds { get; set; } = new List<string>();
+
+        /// <summary>Minimum peer registry responses required for each reconciliation cycle.</summary>
+        public int CapabilityRegistryQuorum { get; set; } = 1;
+
+        /// <summary>Interval between capability-registry reconciliation cycles.</summary>
+        public int CapabilityRegistryReconciliationSeconds { get; set; } = 30;
     }
 }

@@ -93,6 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        [Authorize(AvatarType.Wizard)]
         [HttpPut("mode")]
         public async Task<ActionResult<OASISResult<bool>>> SetHyperDriveMode([FromBody] string mode)
         {
@@ -117,6 +118,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Updates the HyperDrive configuration
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPut("config")]
         public ActionResult<OASISResult<bool>> UpdateConfiguration([FromBody] OASISHyperDriveConfig config)
         {
@@ -147,6 +149,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Validates the current configuration
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("config/validate")]
         public ActionResult<OASISResult<bool>> ValidateConfiguration()
         {
@@ -168,6 +171,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Resets configuration to defaults
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("config/reset")]
         public ActionResult<OASISResult<bool>> ResetConfiguration()
         {
@@ -319,6 +323,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Records a request for performance tracking
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("record-request")]
         public ActionResult<OASISResult<bool>> RecordRequest([FromBody] RecordRequestModel request)
         {
@@ -353,6 +358,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Records connection activity
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("record-connection")]
         public ActionResult<OASISResult<bool>> RecordConnection([FromBody] RecordConnectionModel request)
         {
@@ -382,6 +388,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Updates geographic information for a provider
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPut("geographic/{providerType}")]
         public ActionResult<OASISResult<bool>> UpdateGeographicInfo(ProviderType providerType, [FromBody] GeographicInfo geoInfo)
         {
@@ -411,6 +418,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Updates cost analysis for a provider
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPut("cost/{providerType}")]
         public ActionResult<OASISResult<bool>> UpdateCostAnalysis(ProviderType providerType, [FromBody] CostAnalysis costAnalysis)
         {
@@ -440,6 +448,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Resets metrics for a specific provider
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("metrics/{providerType}/reset")]
         public ActionResult<OASISResult<bool>> ResetProviderMetrics(ProviderType providerType)
         {
@@ -467,6 +476,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Resets all metrics
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("metrics/reset-all")]
         public ActionResult<OASISResult<bool>> ResetAllMetrics()
         {

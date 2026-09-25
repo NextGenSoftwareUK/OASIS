@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     //[Route("api/[mapping]")]
     [Route("api/map")]
     [ApiController]
+    [Authorize]
     public class MapController : OASISControllerBase
     {
         private MapManager _mapManager;

@@ -167,6 +167,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-karma-akashic-records-for-avatar/{avatarId}")]
         public OASISResult<IEnumerable<IKarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<IKarmaAkashicRecord>>() { IsError = true, Message = "Unauthorized. You can only access your own karma records." };
             OASISResult<IAvatarDetail> avatarResult = Program.AvatarManager.LoadAvatarDetail(avatarId);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
@@ -214,6 +216,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (offset < 0) offset = 0;
 
             Guid targetAvatarId = avatarId ?? AvatarId;
+
+            if (targetAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<ActivityFeedEntry>> { IsError = true, Message = "Unauthorized. You can only access your own activity feed." };
 
             if (targetAvatarId == Guid.Empty)
                 return new OASISResult<IEnumerable<ActivityFeedEntry>>
@@ -493,6 +498,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-karma-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetKarmaStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>>() { IsError = true, Message = "Unauthorized. You can only access your own karma stats." };
             return await KarmaManager.Instance.GetKarmaStatsAsync(avatarId);
         }
 
@@ -512,6 +519,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-karma-history/{avatarId}")]
         public async Task<OASISResult<List<KarmaTransaction>>> GetKarmaHistory(Guid avatarId, int limit = 50, int offset = 0)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<KarmaTransaction>>() { IsError = true, Message = "Unauthorized. You can only access your own karma history." };
             return await KarmaManager.Instance.GetKarmaHistoryAsync(avatarId, limit, offset);
         }
 

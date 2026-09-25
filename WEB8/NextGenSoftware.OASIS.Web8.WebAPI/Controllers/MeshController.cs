@@ -35,6 +35,9 @@ namespace NextGenSoftware.OASIS.Web8.WebAPI.Controllers
         public async Task<IActionResult> AddLink([FromQuery] Guid nodeAId, [FromQuery] Guid nodeBId, [FromQuery] double latencyMs = 50)
         {
             GalacticMeshManager manager = new GalacticMeshManager(AvatarId);
+            var nodeCheck = await manager.GetNodeAsync(nodeAId);
+            if (!nodeCheck.IsError && nodeCheck.Result != null && nodeCheck.Result.OwnerAvatarId != AvatarId)
+                return StatusCode(403, new { error = "Unauthorized. You can only add links from nodes you own." });
             var result = await manager.AddLinkAsync(nodeAId, nodeBId, latencyMs);
             return result.IsError ? BadRequest(result) : Ok(result);
         }
@@ -44,6 +47,9 @@ namespace NextGenSoftware.OASIS.Web8.WebAPI.Controllers
         public async Task<IActionResult> Heartbeat(Guid nodeId)
         {
             GalacticMeshManager manager = new GalacticMeshManager(AvatarId);
+            var nodeCheck = await manager.GetNodeAsync(nodeId);
+            if (!nodeCheck.IsError && nodeCheck.Result != null && nodeCheck.Result.OwnerAvatarId != AvatarId)
+                return StatusCode(403, new { error = "Unauthorized. You can only send heartbeats for nodes you own." });
             var result = await manager.HeartbeatAsync(nodeId);
             return result.IsError ? BadRequest(result) : Ok(result);
         }
@@ -63,6 +69,9 @@ namespace NextGenSoftware.OASIS.Web8.WebAPI.Controllers
         public async Task<IActionResult> SendMessage([FromBody] MeshMessage message)
         {
             GalacticMeshManager manager = new GalacticMeshManager(AvatarId);
+            var nodeCheck = await manager.GetNodeAsync(message.SourceNodeId);
+            if (!nodeCheck.IsError && nodeCheck.Result != null && nodeCheck.Result.OwnerAvatarId != AvatarId)
+                return StatusCode(403, new { error = "Unauthorized. You can only send messages from nodes you own." });
             var result = await manager.SendMessageAsync(message);
             return result.IsError ? BadRequest(result) : Ok(result);
         }
