@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         private bool _isRegisterMetaDataSerializer = false;
         private bool _isRegisterSTARNETDNADiscriminator = false;
         private static readonly SerializerRegister _register = new SerializerRegister();
+        private static readonly object _registrationLock = new object();
 
         public static SerializerRegister GetInstance()
         {
@@ -52,16 +53,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         {
             if (_isRegisterSTARNETDNADiscriminator) return;
 
-            if (!BsonClassMap.IsClassMapRegistered(typeof(STARNETDNA)))
+            lock (_registrationLock)
             {
-                BsonClassMap.RegisterClassMap<STARNETDNA>(cm =>
+                if (!BsonClassMap.IsClassMapRegistered(typeof(STARNETDNA)))
                 {
-                    cm.SetDiscriminator("STARNETDNA");
-                    cm.AutoMap();
-                });
-            }
+                    BsonClassMap.RegisterClassMap<STARNETDNA>(cm =>
+                    {
+                        cm.SetDiscriminator("STARNETDNA");
+                        cm.AutoMap();
+                    });
+                }
 
-            _isRegisterSTARNETDNADiscriminator = true;
+                _isRegisterSTARNETDNADiscriminator = true;
+            }
         }
     }
 }
