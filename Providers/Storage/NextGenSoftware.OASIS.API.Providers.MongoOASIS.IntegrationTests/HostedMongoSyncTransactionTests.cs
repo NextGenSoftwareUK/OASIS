@@ -301,7 +301,7 @@ public sealed class HostedMongoSyncTransactionTests
             {
                 await client.GetDatabase("admin").RunCommandAsync<BsonDocument>(new BsonDocument
                 {
-                    { "replSetStepDown", 10 }, { "force", true }
+                    { "replSetStepDown", 60 }, { "force", true }
                 });
             }
             catch (MongoException)
