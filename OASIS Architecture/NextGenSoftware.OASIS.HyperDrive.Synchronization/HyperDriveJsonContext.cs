@@ -17,6 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronizatio
     [JsonSerializable(typeof(OASISResult<bool>))]
     [JsonSerializable(typeof(HyperDriveCommandOutcome))]
     [JsonSerializable(typeof(HyperDriveQuestProgressCommand))]
+    [JsonSerializable(typeof(HyperDriveQuestProgressProjection))]
     [JsonSerializable(typeof(HyperDriveInventoryGrantCommand))]
     [JsonSerializable(typeof(HyperDriveGeoNftCollectionCommand))]
     [JsonSerializable(typeof(HyperDriveAvatarProjection))]

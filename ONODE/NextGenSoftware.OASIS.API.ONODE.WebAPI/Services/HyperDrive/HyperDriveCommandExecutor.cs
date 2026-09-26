@@ -2,6 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -103,7 +104,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     operationId: DeriveChildOperationId(command.OperationId, rewardId)).ConfigureAwait(false);
                 RejectIfError(granted?.IsError == true, "QUEST_REWARD_REJECTED", granted?.Message);
             }
-            return applied.Result;
+            return new HyperDriveQuestProgressProjection
+            {
+                QuestId = command.EntityId,
+                AvatarId = command.AvatarId,
+                QuestCompleted = applied.Result.QuestCompleted,
+                ObjectivesCompleted = applied.Result.ObjectivesCompleted,
+                CompletedObjectiveIds = applied.Result.CompletedObjectives.Select(x => x.Id).ToArray(),
+                CompletedQuestId = applied.Result.CompletedQuestId,
+                CompletedQuestTitle = applied.Result.CompletedQuestTitle,
+                PercentComplete = applied.Result.PercentComplete,
+                Message = applied.Result.Message,
+                InventoryItemsToGrant = applied.Result.InventoryItemsToGrant.ToArray(),
+                CrossGameEventsToDispatch = applied.Result.CrossGameEventsToDispatch.Select(x =>
+                    new HyperDriveCrossGameEventProjection
+                    {
+                        EventType = x.EventType, TargetGame = x.TargetGame, TargetMap = x.TargetMap,
+                        EntityClassname = x.EntityClassname, SpawnCount = x.SpawnCount,
+                        EntityCategory = x.EntityCategory, PortalId = x.PortalId,
+                        NarrationText = x.NarrationText, AudioUrl = x.AudioUrl, AudioTitle = x.AudioTitle,
+                        VideoUrl = x.VideoUrl, VideoTitle = x.VideoTitle, WebsiteUrl = x.WebsiteUrl,
+                        ImageUrl = x.ImageUrl, ImageTitle = x.ImageTitle, AnimationKey = x.AnimationKey
+                    }).ToArray()
+            };
         }
 
         private async Task<object> ExecuteQuestLifecycleAsync(HostedSyncCommandItem command)
