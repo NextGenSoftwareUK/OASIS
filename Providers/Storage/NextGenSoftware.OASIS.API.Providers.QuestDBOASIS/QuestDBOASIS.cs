@@ -97,7 +97,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             using var conn = OpenConnection();
             // QuestDB WAL DEDUP: a stable timestamp and id form the table's upsert key.
             using var cmd = new NpgsqlCommand(
-                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, to_timestamp(0));",
+                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, " +
+                "to_timestamp('1970-01-01T00:00:00.000000Z', 'yyyy-MM-ddTHH:mm:ss.SSSUUUZ'));",
                 conn);
             cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
