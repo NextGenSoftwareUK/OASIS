@@ -113,22 +113,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 await EnsureSyncInitializedAsync(cancellationToken).ConfigureAwait(false);
                 using var session = await Database.MongoClient.StartSessionAsync(cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
-                session.StartTransaction();
-                try
+                bool completedCommand = await session.WithTransactionAsync(async (transactionSession,
+                    transactionCancellationToken) =>
                 {
                     var commands = Database.MongoDB.GetCollection<BsonDocument>(SyncCommandsCollection);
                     var leaseFilter = Builders<BsonDocument>.Filter.Eq("_id", operationId.ToString("D")) &
                         Builders<BsonDocument>.Filter.Eq("status", "processing") &
                         Builders<BsonDocument>.Filter.Eq("leaseOwner", workerId) &
                         Builders<BsonDocument>.Filter.Gt("leaseUntilUtc", DateTime.UtcNow);
-                    var command = await commands.Find(session, leaseFilter).FirstOrDefaultAsync(cancellationToken)
+                    var command = await commands.Find(transactionSession, leaseFilter)
+                        .FirstOrDefaultAsync(transactionCancellationToken)
                         .ConfigureAwait(false);
                     if (command == null)
-                    {
-                        await session.AbortTransactionAsync(cancellationToken).ConfigureAwait(false);
-                        return CommandError(result, "MONGO_COMMAND_LEASE_LOST",
-                            "The hosted command lease is missing, expired, or owned by another worker.");
-                    }
+                        return false;
 
                     Guid avatarId = Guid.Parse(command["avatarId"].AsString);
                     Guid entityId = Guid.Parse(command["entityId"].AsString);
@@ -137,16 +134,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     string payload = JsonSerializer.Serialize(outcome);
                     string entityKey = AvatarEntityKey(avatarId, HyperDriveEntityTypes.CommandResult, operationId);
                     DateTime changedUtc = outcome.CompletedUtc;
-                    await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection).ReplaceOneAsync(session,
+                    await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection).ReplaceOneAsync(transactionSession,
                         Builders<BsonDocument>.Filter.Eq("_id", entityKey), new BsonDocument
                         {
                             { "_id", entityKey }, { "avatarId", avatarId.ToString("D") }, { "audience", "avatar" },
                             { "entityType", HyperDriveEntityTypes.CommandResult },
                             { "entityId", operationId.ToString("D") }, { "versionId", versionId.ToString("D") },
                             { "isDeleted", false }, { "payloadJson", payload }, { "changedUtc", changedUtc }
-                        }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
-                    long sequence = await NextChangeSequenceAsync(session, cancellationToken).ConfigureAwait(false);
-                    await Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection).InsertOneAsync(session,
+                        }, new ReplaceOptions { IsUpsert = true }, transactionCancellationToken).ConfigureAwait(false);
+                    long sequence = await NextChangeSequenceAsync(transactionSession, transactionCancellationToken).ConfigureAwait(false);
+                    await Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection).InsertOneAsync(transactionSession,
                         new BsonDocument
                         {
                             { "_id", sequence }, { "sequence", sequence },
@@ -156,26 +153,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             { "versionId", versionId.ToString("D") },
                             { "previousVersionId", Guid.Empty.ToString("D") }, { "payloadJson", payload },
                             { "changedUtc", changedUtc }
-                        }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        }, cancellationToken: transactionCancellationToken).ConfigureAwait(false);
                     if (outcome.Succeeded && !string.IsNullOrWhiteSpace(outcome.ResultJson))
                     {
                         using (JsonDocument.Parse(outcome.ResultJson)) { }
                         string commandEntityKey = AvatarEntityKey(avatarId, commandEntityType, entityId);
                         var commandEntity = await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection)
-                            .Find(session, Builders<BsonDocument>.Filter.Eq("_id", commandEntityKey))
-                            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+                            .Find(transactionSession, Builders<BsonDocument>.Filter.Eq("_id", commandEntityKey))
+                            .FirstOrDefaultAsync(transactionCancellationToken).ConfigureAwait(false);
                         Guid previousVersionId = commandEntity == null
                             ? Guid.Empty : Guid.Parse(commandEntity["versionId"].AsString);
-                        await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection).ReplaceOneAsync(session,
+                        await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection).ReplaceOneAsync(transactionSession,
                             Builders<BsonDocument>.Filter.Eq("_id", commandEntityKey), new BsonDocument
                             {
                                 { "_id", commandEntityKey }, { "avatarId", avatarId.ToString("D") },
                                 { "audience", "avatar" }, { "entityType", commandEntityType },
                                 { "entityId", entityId.ToString("D") }, { "versionId", versionId.ToString("D") },
                                 { "isDeleted", false }, { "payloadJson", outcome.ResultJson }, { "changedUtc", changedUtc }
-                            }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
-                        long entitySequence = await NextChangeSequenceAsync(session, cancellationToken).ConfigureAwait(false);
-                        await Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection).InsertOneAsync(session,
+                            }, new ReplaceOptions { IsUpsert = true }, transactionCancellationToken).ConfigureAwait(false);
+                        long entitySequence = await NextChangeSequenceAsync(transactionSession, transactionCancellationToken).ConfigureAwait(false);
+                        await Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection).InsertOneAsync(transactionSession,
                             new BsonDocument
                             {
                                 { "_id", entitySequence }, { "sequence", entitySequence },
@@ -185,25 +182,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                                 { "kind", (int)SyncOperationKind.Upsert }, { "versionId", versionId.ToString("D") },
                                 { "previousVersionId", previousVersionId.ToString("D") },
                                 { "payloadJson", outcome.ResultJson }, { "changedUtc", changedUtc }
-                            }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            }, cancellationToken: transactionCancellationToken).ConfigureAwait(false);
                     }
-                    var completed = await commands.UpdateOneAsync(session, leaseFilter,
+                    var completed = await commands.UpdateOneAsync(transactionSession, leaseFilter,
                         Builders<BsonDocument>.Update.Set("status", "completed")
                             .Set("completedUtc", changedUtc).Set("leaseOwner", BsonNull.Value)
-                            .Set("leaseUntilUtc", BsonNull.Value), cancellationToken: cancellationToken)
+                            .Set("leaseUntilUtc", BsonNull.Value), cancellationToken: transactionCancellationToken)
                         .ConfigureAwait(false);
                     if (completed.ModifiedCount != 1)
                         throw new InvalidOperationException("The command lease changed before completion committed.");
-                    await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
-                    result.Result = true;
-                    result.IsSaved = true;
-                }
-                catch
+                    return true;
+                }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (!completedCommand)
                 {
-                    if (session.IsInTransaction)
-                        await session.AbortTransactionAsync(cancellationToken).ConfigureAwait(false);
-                    throw;
+                    return CommandError(result, "MONGO_COMMAND_LEASE_LOST",
+                        "The hosted command lease is missing, expired, or owned by another worker.");
                 }
+                result.Result = true;
+                result.IsSaved = true;
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
