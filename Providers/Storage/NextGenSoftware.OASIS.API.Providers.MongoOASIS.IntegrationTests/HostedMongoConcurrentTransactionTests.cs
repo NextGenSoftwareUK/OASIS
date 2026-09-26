@@ -13,8 +13,8 @@ public sealed class HostedMongoConcurrentTransactionTests
     [Fact]
     public async Task PublicIdentityIndexAllowsLegacyUnkeyedHistory()
     {
-        string connectionString = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION_STRING")
-            ?? throw new InvalidOperationException("OASIS_MONGO_REPLICA_SET_CONNECTION_STRING is required.");
+        string connectionString = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION")
+            ?? throw new InvalidOperationException("OASIS_MONGO_REPLICA_SET_CONNECTION is required.");
         string databaseName = "oasis_identity_migration_" + Guid.NewGuid().ToString("N")[..12];
         var client = new MongoClient(connectionString);
         try
@@ -56,8 +56,8 @@ public sealed class HostedMongoConcurrentTransactionTests
     [Fact]
     public async Task ConcurrentWritersRetrySharedChangeSequenceTransactions()
     {
-        string connectionString = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION_STRING")
-            ?? throw new InvalidOperationException("OASIS_MONGO_REPLICA_SET_CONNECTION_STRING is required.");
+        string connectionString = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION")
+            ?? throw new InvalidOperationException("OASIS_MONGO_REPLICA_SET_CONNECTION is required.");
         string databaseName = "oasis_sync_concurrent_" + Guid.NewGuid().ToString("N")[..12];
         var client = new MongoClient(connectionString);
         try
