@@ -8,7 +8,7 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  NODE_VERSION: '18.x'
+  NODE_VERSION: '24.x'
 
 jobs:
   # Guards against the failure mode that let ~200 projects accumulate 1000+ compile
@@ -22,20 +22,20 @@ jobs:
       run:
         working-directory: OASIS
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -128,6 +128,9 @@ jobs:
             image: mongo:7
             ports: 27017:27017
             wait: 27017
+            test_env: |
+              MONGODBOASIS_CONNECTIONSTRING=mongodb://127.0.0.1:27017
+              MONGODBOASIS_DBNAME=oasis_ci
           - name: CouchDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.IntegrationTests
             image: couchdb:3
@@ -216,6 +219,8 @@ jobs:
             ports: 5432:5432
             wait: 5432
             docker_args: -e POSTGRES_PASSWORD=password -e POSTGRES_DB=oasis
+            test_env: |
+              PGVECTOR_CONN=Host=127.0.0.1;Port=5432;Database=oasis;Username=postgres;Password=password
 
           # Analytical and time-series stores.
           - name: ClickHouse
@@ -223,7 +228,9 @@ jobs:
             image: clickhouse/clickhouse-server:24-alpine
             ports: 8123:8123
             wait: 8123
-            docker_args: --ulimit nofile=262144:262144
+            docker_args: --ulimit nofile=262144:262144 -e CLICKHOUSE_DB=oasis
+            test_env: |
+              CLICKHOUSE_CONN=Host=127.0.0.1;Port=8123;Database=oasis;Username=default;Password=
           - name: QuestDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests
             image: questdb/questdb:latest
@@ -259,20 +266,20 @@ jobs:
               MINIO_SECRET_KEY=minioadmin
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -326,7 +333,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -337,19 +344,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -376,7 +383,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -387,19 +394,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -421,21 +428,27 @@ jobs:
       matrix:
         include:
           - project: NextGenSoftware.OASIS.STAR
+            project_file: NextGenSoftware.OASIS.STAR.csproj
             test: NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj
           - project: NextGenSoftware.OASIS.STAR.CLI
+            project_file: NextGenSoftware.OASIS.STAR.CLI.csproj
             test: NextGenSoftware.OASIS.STAR.CLI.UnitTests/NextGenSoftware.OASIS.STAR.CLI.UnitTests.csproj
           - project: NextGenSoftware.OASIS.STAR.CLI.Lib
+            project_file: NextGenSoftware.OASIS.STAR.CLI.Lib.csproj
             test: NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests.csproj
           - project: NextGenSoftware.OASIS.STAR.STARDNA
+            project_file: NextGenSoftware.OASIS.STAR.DNA.csproj
             test: NextGenSoftware.OASIS.STAR.STARDNA.UnitTests/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests.csproj
           - project: NextGenSoftware.OASIS.STAR.WebAPI
+            project_file: NextGenSoftware.OASIS.STAR.WebAPI.csproj
             test: NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj
           - project: NextGenSoftware.OASIS.STAR.WebUI
+            project_file: NextGenSoftware.OASIS.STAR.WebUI.csproj
             test: ''
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -446,27 +459,27 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project_file }}"
     
     - name: Build
-      run: dotnet build "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project_file }}" --no-restore
     
     - name: Test
       if: matrix.test != ''
@@ -480,7 +493,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -491,19 +504,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -530,20 +543,20 @@ jobs:
     name: Test OGEngineClient
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         path: OASIS
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -561,7 +574,7 @@ jobs:
         '
 
     - name: Upload STARAPIClient test artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: ogengineclient-test-results
@@ -576,7 +589,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -587,19 +600,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -617,7 +630,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -628,19 +641,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -659,7 +672,7 @@ jobs:
         dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" --configuration Release --no-build --output ./packages
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: oasispackages
         path: ./packages/
@@ -672,7 +685,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -683,19 +696,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -716,7 +729,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -727,19 +740,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -761,7 +774,7 @@ jobs:
     
     steps:
     - name: Checkout OASIS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: OASIS
         # All eight submodules are private, so the default GITHUB_TOKEN cannot
@@ -772,19 +785,19 @@ jobs:
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Checkout NextGenSoftware-Libraries
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
         path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: holochain-open-dev/holochain-client-csharp
         path: holochain-client-csharp
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -799,7 +812,7 @@ jobs:
       run: reportgenerator -reports:"./coverage/**/coverage.cobertura.xml" -targetdir:"./coverage/report" -reporttypes:"Html"
     
     - name: Upload coverage reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-report
         path: ./coverage/report/
