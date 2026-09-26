@@ -12,6 +12,8 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
         public int MaximumOperationsPerExchange { get; set; } = 100;
         public int MaximumRemoteChangesPerExchange { get; set; } = 100;
         public int MaximumExchangesPerRun { get; set; } = 20;
+        /// <summary>Delay between pulls while accepted commands await their durable hosted outcomes.</summary>
+        public TimeSpan CommandOutcomePollInterval { get; set; } = TimeSpan.FromMilliseconds(500);
         public TimeSpan HostedServiceRecoveryInterval { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan MaximumHostedServiceRecoveryInterval { get; set; } = TimeSpan.FromMinutes(5);
     }

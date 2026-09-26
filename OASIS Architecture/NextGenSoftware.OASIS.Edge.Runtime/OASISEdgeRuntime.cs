@@ -49,6 +49,8 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             if (string.IsNullOrWhiteSpace(options.DatabasePath)) throw new ArgumentException("A database path is required.", nameof(options));
             if (options.MaximumOperationsPerExchange <= 0 || options.MaximumRemoteChangesPerExchange <= 0 || options.MaximumExchangesPerRun <= 0)
                 throw new ArgumentException("Edge synchronization limits must be greater than zero.", nameof(options));
+            if (options.CommandOutcomePollInterval <= TimeSpan.Zero)
+                throw new ArgumentException("The command-outcome polling interval must be greater than zero.", nameof(options));
             if (options.HostedServiceRecoveryInterval <= TimeSpan.Zero)
                 throw new ArgumentException("The hosted-service recovery interval must be greater than zero.", nameof(options));
             if (options.MaximumHostedServiceRecoveryInterval < options.HostedServiceRecoveryInterval)
@@ -354,6 +356,13 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                         if (unsent.IsError) return Error<SyncCycleResult>(unsent.ErrorCode, unsent.Message);
                         if (unsent.Result > 0)
                             continue;
+                        if (pending.Result > 0 && unresolved.Result.Count == 0 &&
+                            cycle.Result.RejectedOperationCount == 0)
+                        {
+                            await Task.Delay(_options.CommandOutcomePollInterval, effectiveCancellation)
+                                .ConfigureAwait(false);
+                            continue;
+                        }
                         bool connectivityChangedAfterPendingCheck;
                         lock (_connectivityGate)
                         {
