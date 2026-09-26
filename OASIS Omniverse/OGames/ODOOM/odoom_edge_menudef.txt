@@ -1,0 +1,14 @@
+OptionMenu "OASISOfflineOptions"
+{
+    Title "OASIS Offline Sync"
+    StaticText "Changes are saved automatically."
+    StaticText "Pending actions must sync before disabling."
+    StaticText " "
+    Command "Show current status", "star offline status"
+    Command "Enable offline sync", "star offline on"
+    Command "Disable offline sync", "star offline off"
+    Command "Sync now and disable", "star offline sync-and-off"
+    Command "Cancel / back", "menu_options"
+    StaticText " "
+    StaticText "Remote-Only releases cannot enable offline sync."
+}

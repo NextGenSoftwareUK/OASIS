@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS
             ProviderDescription = "BlueSky / AT Protocol decentralised social provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlueSkyOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Activation ──────────────────────────────────────────────────────────

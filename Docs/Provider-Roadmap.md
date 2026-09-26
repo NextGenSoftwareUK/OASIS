@@ -1,6 +1,6 @@
 # OASIS Provider Inventory & Roadmap
 
-_Last updated: 2026-09-13_
+_Last updated: 2026-09-22 — 229 unique providers. See [Provider-Summary.md](Provider-Summary.md) for the authoritative full list derived from the filesystem._
 
 ---
 

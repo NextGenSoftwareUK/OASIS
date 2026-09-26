@@ -52,6 +52,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ITransactionResponse>> BurnToken([FromBody] BurnWeb4TokenRequest request)
         {
+            if (request.BurntByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Unauthorized. You can only burn tokens for your own avatar." };
             return await WalletManager.BurnTokenAsync(request);
         }
 
@@ -70,6 +72,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ITransactionResponse>> LockToken([FromBody] LockWeb4TokenRequest request)
         {
+            if (request.LockedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Unauthorized. You can only lock tokens for your own avatar." };
             return await WalletManager.LockTokenAsync(request);
         }
 
@@ -88,6 +92,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ITransactionResponse>> UnlockToken([FromBody] UnlockWeb4TokenRequest request)
         {
+            if (request.UnlockedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Unauthorized. You can only unlock tokens for your own avatar." };
             return await WalletManager.UnlockTokenAsync(request);
         }
 
@@ -106,6 +112,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IProviderWallet>> ImportWalletUsingSecretPhraseById(Guid avatarId, [FromBody] string secretPhrase,
             ProviderType providerType = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only import wallets for your own avatar." };
             return await WalletManager.ImportWalletUsingSecretPhaseByIdAsync(avatarId, secretPhrase, providerType);
         }
 
@@ -119,6 +127,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IProviderWallet>> ImportWalletUsingSecretPhraseByUsername(string username, [FromBody] string secretPhrase,
             ProviderType providerType = ProviderType.Default)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only import wallets for your own avatar." };
             return await WalletManager.ImportWalletUsingSecretPhaseByUsernameAsync(username, secretPhrase, providerType);
         }
 
@@ -132,6 +142,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IProviderWallet>> ImportWalletUsingSecretPhraseByEmail(string email, [FromBody] string secretPhrase,
             ProviderType providerType = ProviderType.Default)
         {
+            if (email != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only import wallets for your own avatar." };
             return await WalletManager.ImportWalletUsingSecretPhaseByEmailAsync(email, secretPhrase, providerType);
         }
     }

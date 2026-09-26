@@ -25,30 +25,33 @@ namespace NextGenSoftware.OASIS.Web7.WebAPI.Middleware
         public async Task Invoke(HttpContext context)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            if (token != null)
-                await AttachAvatarToContext(context, token);
+            if (token != null && !await AttachAvatarToContext(context, token)) return;
             await _next(context);
         }
 
-        private async Task AttachAvatarToContext(HttpContext context, string token)
+        private async Task<bool> AttachAvatarToContext(HttpContext context, string token)
         {
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.SecretKey);
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                context.User = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = "OASIS",
+                    ValidIssuer = string.IsNullOrEmpty(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Oidc?.Issuer) ? "OASIS" : OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Oidc.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = "OASIS",
+                    ValidAudience = string.IsNullOrEmpty(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Oidc?.Issuer) ? "OASIS" : OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Oidc.Issuer,
+                    ValidateLifetime = true,
+                    RequireExpirationTime = true,
+                    RequireSignedTokens = true,
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                context.Items["AvatarId"] = id;
 
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
 
@@ -69,9 +72,10 @@ namespace NextGenSoftware.OASIS.Web7.WebAPI.Middleware
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                try { await context.Response.Body.WriteAsync(body); } catch { }
-                return;
+                await context.Response.Body.WriteAsync(body);
+                return false;
             }
+            return true;
         }
     }
 }

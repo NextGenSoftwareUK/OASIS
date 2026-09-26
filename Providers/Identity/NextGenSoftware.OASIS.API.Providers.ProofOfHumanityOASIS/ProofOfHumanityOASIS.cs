@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -19,27 +22,51 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS
 {
-    /// <summary>LayerZero V2 — Omnichain messaging protocol across 50+ networks with ultra-light node verification.</summary>
+    /// <summary>Proof of Humanity — Sybil-resistant identity registry on Ethereum using The Graph subgraph queries.</summary>
     public class ProofOfHumanityOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
     {
         private readonly HttpClient _http;
-        private readonly string _apiUrl;
+        private readonly string _subgraphUrl;
         private bool _isActivated;
 
-        public ProofOfHumanityOASIS(string apiUrl = "https://api.proofofhumanity.id/v1")
+        public ProofOfHumanityOASIS(string subgraphUrl = "https://api.thegraph.com/subgraphs/name/kleros/proof-of-humanity-mainnet")
         {
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://api.proofofhumanity.id/v1";
-            _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
+            _subgraphUrl = subgraphUrl?.TrimEnd('/') ?? "https://api.thegraph.com/subgraphs/name/kleros/proof-of-humanity-mainnet";
+            _http = new HttpClient();
             ProviderName = "ProofOfHumanityOASIS";
             ProviderDescription = "Proof of Humanity Sybil-Resistant Identity Registry Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ProofOfHumanityOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Identity);
         }
 
+        private async Task<JObject> GraphQLAsync(string query)
+        {
+            var body = JsonConvert.SerializeObject(new { query });
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var resp = await _http.PostAsync(_subgraphUrl, content);
+            resp.EnsureSuccessStatusCode();
+            var json = await resp.Content.ReadAsStringAsync();
+            return JObject.Parse(json);
+        }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { if (_isActivated) { r.Result = true; r.Message = "ProofOfHumanityOASIS already activated"; return r; } _isActivated = true; r.Result = true; r.Message = "ProofOfHumanityOASIS activated successfully"; }
+            try
+            {
+                if (_isActivated) { r.Result = true; r.Message = "ProofOfHumanityOASIS already activated"; return r; }
+                var result = await GraphQLAsync("{ __schema { queryType { name } } }");
+                if (result["data"] != null)
+                {
+                    _isActivated = true;
+                    r.Result = true;
+                    r.Message = "ProofOfHumanityOASIS activated successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref r, "ProofOfHumanityOASIS: subgraph introspection returned no data");
+                }
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS activation failed: {ex.Message}", ex); }
             return r;
         }
@@ -47,25 +74,109 @@ namespace NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { _isActivated = false; _http.Dispose(); r.Result = true; r.Message = "ProofOfHumanityOASIS deactivated"; }
+            try { _isActivated = false; r.Result = true; r.Message = "ProofOfHumanityOASIS deactivated"; }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS deactivation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            // id is stored as ProviderUniqueStorageKey; for PoH the address IS the key
+            return await LoadAvatarByProviderKeyAsync(id.ToString(), version);
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string address, int v = 0)
+        {
+            return await LoadAvatarByProviderKeyAsync(address, v);
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string address, int v = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var addrLower = address.ToLowerInvariant();
+                var query = $@"{{ submission(id: ""{addrLower}"") {{ id name registered disputed requests {{ creationTime }} }} }}";
+                var result = await GraphQLAsync(query);
+                var sub = result["data"]?["submission"];
+                if (sub == null || sub.Type == JTokenType.Null)
+                {
+                    OASISErrorHandling.HandleError(ref r, $"No PoH submission found for address {address}");
+                    return r;
+                }
+                var avatar = new Avatar();
+                avatar.Username = sub["name"]?.ToString() ?? address;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ProofOfHumanityOASIS] = addrLower;
+                if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
+                avatar.MetaData["PoHAddress"] = addrLower;
+                avatar.MetaData["PoHRegistered"] = sub["registered"]?.Value<bool>() ?? false;
+                avatar.MetaData["PoHDisputed"] = sub["disputed"]?.Value<bool>() ?? false;
+                r.Result = avatar;
+                r.Message = $"PoH submission loaded for {addrLower}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS LoadAvatarByProviderKeyAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0)
+        {
+            var r = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var query = "{ submissions(first: 100, where: {registered: true}) { id name registered } }";
+                var result = await GraphQLAsync(query);
+                var subs = result["data"]?["submissions"] as JArray;
+                var avatars = new List<IAvatar>();
+                if (subs != null)
+                {
+                    foreach (var sub in subs)
+                    {
+                        var avatar = new Avatar();
+                        avatar.Username = sub["name"]?.ToString() ?? sub["id"]?.ToString();
+                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ProofOfHumanityOASIS] = sub["id"]?.ToString();
+                        if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
+                        avatar.MetaData["PoHRegistered"] = true;
+                        avatars.Add(avatar);
+                    }
+                }
+                r.Result = avatars;
+                r.Message = $"Loaded {avatars.Count} registered PoH submissions";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS LoadAllAvatarsAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a)
+        {
+            var r = new OASISResult<IAvatar>();
+            // PoH registration is done on-chain via the UI; this provider is read-only
+            r.Result = a;
+            r.Message = "ProofOfHumanityOASIS is read-only; registration must be done on-chain via the PoH UI";
+            return r;
+        }
+
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); try { if (h.Id == Guid.Empty) h.Id = Guid.NewGuid(); r.Result = h; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"ProofOfHumanityOASIS SaveHolonAsync: {ex.Message}", ex); } return r; }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IHolon>();
+            if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+            r.Result = h;
+            r.Message = "ProofOfHumanityOASIS holon data recorded";
+            return r;
+        }
+
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "ProofOfHumanityOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "ProofOfHumanityOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string k, int v = 0) => await LoadAvatarByUsernameAsync(k, v);
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }

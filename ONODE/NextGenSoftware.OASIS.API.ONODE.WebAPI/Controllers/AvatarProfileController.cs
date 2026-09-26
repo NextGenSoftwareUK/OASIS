@@ -166,6 +166,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-id/{id:guid}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             try
             {
                 var response = HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
@@ -375,6 +377,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-id/{id}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id)
         {
+            if (id != Avatar?.Id && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own UMA data." }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.GetAvatarUmaJsonByIdAsync(id));
         }
 
@@ -390,6 +394,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username)
         {
+            if (username != Avatar?.Username && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own UMA data." }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.GetAvatarUmaJsonByUsernameAsync(username));
         }
 
@@ -405,6 +411,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email)
         {
+            if (email != Avatar?.Email && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own UMA data." }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await AvatarManager.GetAvatarUmaJsonByEmailAsync(email));
         }
 
@@ -541,6 +549,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("add-karma-to-avatar/{avatarId}")]
         public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
+            if (avatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<KarmaAkashicRecord>() { Result = null, IsError = true, Message = "Unauthorized. You may only award karma to your own avatar." }, HttpStatusCode.Unauthorized);
             try
             {
                 var result = await AvatarManager.AddKarmaToAvatarAsync(avatarId, (KarmaTypePositive)Enum.Parse(typeof(KarmaTypePositive), addKarmaToAvatarRequest.KarmaType), (KarmaSourceType)Enum.Parse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType), addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc, null);
@@ -564,6 +574,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("remove-karma-from-avatar/{avatarId}")]
         public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
+            if (avatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<KarmaAkashicRecord>() { Result = null, IsError = true, Message = "Unauthorized. You may only remove karma from your own avatar." }, HttpStatusCode.Unauthorized);
             try
             {
                 var result = await AvatarManager.RemoveKarmaFromAvatarAsync(avatarId, (KarmaTypeNegative)Enum.Parse(typeof(KarmaTypeNegative), addKarmaToAvatarRequest.KarmaType), (KarmaSourceType)Enum.Parse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType), addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc, null);

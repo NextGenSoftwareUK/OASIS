@@ -45,7 +45,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonTypeEnum, version);
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                response.Result.Result = (Holon)result.Result;
+                var holon = (Holon)result.Result;
+
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
+                    && holon.CreatedByAvatarId != AvatarId && !holon.IsPublic)
+                    return TestDataHelper.CreateErrorResponse<Holon>(
+                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+
+                response.Result.Result = holon;
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
             }
             catch (Exception ex)
@@ -70,7 +77,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey,
             string holonType = "All", bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
-            string childHolonType = "All", int version = 0)
+            string childHolonType = "All", int version = 0,
+            bool searchOnlyForCurrentAvatar = true, bool includePublic = true)
         {
             var response = new OASISHttpResponseMessage<IEnumerable<Holon>>();
             OASISHttpResponseMessage<IEnumerable<Holon>> validatedResponse;
@@ -88,7 +96,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     0, childHolonTypeEnum, version);
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList();
+                var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
+
+                if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    if (searchOnlyForCurrentAvatar)
+                        holons = holons.Where(h => h.CreatedByAvatarId == AvatarId).ToList();
+                    else if (includePublic)
+                        holons = holons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                    else
+                        return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>(
+                            "Forbidden. Returning all holons requires a Wizard avatar.", null, System.Net.HttpStatusCode.Forbidden);
+                }
+
+                response.Result.Result = holons;
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
             }
             catch (Exception ex)
@@ -102,11 +123,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("load-holons-for-parent-by-providerkey/{providerKey}/{holonType}")]
-        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey, string holonType)
+        public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParentByProviderKey(string providerKey, string holonType,
+            bool searchOnlyForCurrentAvatar = true, bool includePublic = true)
         {
             return await LoadHolonsForParentByProviderKey(providerKey, holonType,
                 loadChildren: true, recursive: true, maxChildDepth: 0, continueOnError: true,
-                loadChildrenFromProvider: false, childHolonType: "All", version: 0);
+                loadChildrenFromProvider: false, childHolonType: "All", version: 0,
+                searchOnlyForCurrentAvatar: searchOnlyForCurrentAvatar, includePublic: includePublic);
         }
 
 
@@ -127,6 +150,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var response = new OASISHttpResponseMessage<Holon>();
             try
             {
+                // Ownership check before delete
+                if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    var existing = await HolonManager.LoadHolonAsync(providerKey);
+                    if (existing == null || existing.IsError || existing.Result == null)
+                        return TestDataHelper.CreateErrorResponse<Holon>("Holon not found.", null, System.Net.HttpStatusCode.NotFound);
+                    if (existing.Result.CreatedByAvatarId != AvatarId)
+                        return TestDataHelper.CreateErrorResponse<Holon>("Forbidden. You do not have permission to delete this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                }
+
                 var result = await HolonManager.DeleteHolonAsync(providerKey, AvatarId, softDelete);
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);

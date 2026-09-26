@@ -49,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-holochain-agentids-for-avatar")]
         public OASISResult<List<string>> GetHolochainAgentIdsForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access your own Holochain agent IDs." };
             try
             {
                 OASISResult<List<string>> result = null;
@@ -104,6 +106,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-holochain-agent-private-keys-for-avatar")]
         public OASISResult<List<string>> GetHolochainAgentPrivateKeysForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access your own private keys." };
             return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, ProviderType.HoloOASIS);
         }
 
@@ -153,6 +157,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-holo-fuel-balance-for-avatar")]
         public OASISResult<string> GetHoloFuelBalanceForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own HoloFuel balance." };
             return new();
         }
 
@@ -167,6 +173,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{holochainAgentId}")]
         public OASISResult<IProviderWallet> LinkHolochainAgentIdToAvatar(Guid walletId, Guid avatarId, string holochainAgentId, ProviderType providerToLoadSaveAvatarTo = ProviderType.Default)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only link agent IDs to your own avatar." };
             return KeyManager.LinkProviderPublicKeyToAvatarById(walletId, avatarId, ProviderType.HoloOASIS, holochainAgentId, null, providerToLoadAvatarFrom: providerToLoadSaveAvatarTo);
             //return Program.AvatarManager.LinkPublicProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentId);
         }

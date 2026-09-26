@@ -1,12 +1,17 @@
 ﻿# STAR API: remote vs native transport — architecture notes
 
+The versioned Edge Runtime ABI used by ODOOM and OQuake is documented separately in
+[OGENGINE_EDGE_NATIVE_GAMES_MILESTONE.md](OGENGINE_EDGE_NATIVE_GAMES_MILESTONE.md), including durable gameplay,
+settings, notifications, and release validation.
+
 **Purpose:** Capture the decision space for **in-process OASIS** (`star_transport: native`) versus the shipped **HTTP client** (`remote`), so future work does not re-derive size, AOT, and split-build trade-offs from chat history.
 
 **Status (repo):**
 
 - **Remote:** Default. `OASIS Omniverse/OGEngineClient` (NativeAOT `star_api`) talks to WEB5/WEB4 over HTTP.
 - **Native flag:** Games and `ogengine_config_t` expose `transport` / `oasis_dna_path`; the **default** `star_api` build returns **`InitFailed`** with an explicit message for `native` (no silent fallback) — see policy in `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md`.
-- **DNA / HyperDrive plumbing:** `AutoFailOverLocalProviders` + `AutoFailOverLocalProvidersEnabled` on `StorageProviderSettings`; `ProviderManager` local list + `ActivateNextLocalAutoFailOverStorageProvider()`; `OASISBootLoader` loads from DNA. Native host code should call the activation helper when offline/local failover is required; **automatic offline detection + background resync** is **not** wired in the slim client.
+- **Edge Runtime:** the managed, Unity-compatible Edge Runtime, durable SQLite store, HyperDrive sync protocol and Edge Native Integrated Endpoint are wrapped by the platform-neutral `NextGenSoftware.OGEngine.Client.Edge` assembly. Our World consumes that OGEngineClient assembly through its thin Unity binding. NativeAOT C-ABI routing for ODOOM/OQuake remains to be migrated.
+- **DNA / legacy local-provider plumbing:** `AutoFailOverLocalProviders` + `AutoFailOverLocalProvidersEnabled` on `StorageProviderSettings`; `ProviderManager` local list + `ActivateNextLocalAutoFailOverStorageProvider()`; `OASISBootLoader` loads from DNA. This is not a substitute for the durable Edge journal/reconciliation protocol.
 
 ---
 
@@ -14,7 +19,7 @@
 
 | Aspect | Shipped `OGEngineClient` (`star_api`) |
 |--------|--------------------------------------|
-| TFM | `net9.0` |
+| TFM | `net10.0` |
 | Publish | **NativeAOT** (`PublishAot`), `IlcTrimMode` **copy** (stability over minimal size) |
 | References | **OASIS Common** + prebuilt **API.Contracts** DLL (AOT-friendly reference pattern) |
 | Does **not** reference | **API.Core**, **OASISBootLoader**, provider projects |
@@ -45,29 +50,83 @@ Bringing that **into the same NativeAOT binary** as today’s `star_api` means:
 
 ---
 
-## Design options (avoid duplicating *behavior*)
+## Agreed target architecture
 
-1. **Single fat `star_api`**  
-   One NativeAOT binary with Core + BootLoader (+ providers). **Simplest to ship one file**; **hardest** for AOT size and compatibility unless the provider set is **radically narrowed**.
+The standard OGEngineClient always composes Edge Runtime, its durable local store and HyperDrive synchronization. All
+supported operations use that one local-first path. Connectivity changes only synchronization state:
 
-2. **Base + optional native artifact (recommended direction)**  
-   - Keep **current `star_api`** as the **default / slim** line for games.  
-   - Add **`ogengine_native`** (second native library) **or** a small **host process** that exposes the **same C ABI** (`ogengine_init`, etc.) but links **OASIS runtime** (possibly **subset** of providers aligned with `AutoFailOverLocalProviders`).  
-   - Games choose DLL at deploy time or via launcher, **or** `dlopen` the native build when `star_transport` is native.
+- **Online:** local execution plus prompt synchronization with a hosted ONODE.
+- **Offline:** the same local execution path, with durable pending operations.
+- **Reconnecting:** local operation continues while HyperDrive resumes exchange.
+- **Synchronized:** local and hosted state have converged.
 
-3. **Shared library (no duplicated quest/inventory logic)**  
-   Extract **shared C#** (DTO mapping, validation, error codes, optional shared HTTP client helpers) into a **library** referenced by both **slim AOT** and **native host**. Only **composition roots** differ (HTTP vs BootLoader), not necessarily all business rules.
+Games and applications do not switch between `remote` and `native`, and a failed hosted request does not invoke a
+parallel fallback implementation. Edge is already the execution path; hosted transport loss changes its state and
+leaves its durable journal pending. HTTPS versus ONET remains an internal synchronization transport choice with
+identical protocol semantics.
 
-**Duplication is optional:** prefer **one shared “STAR client core”** assembly + two hosts, rather than forking two full copies of `StarApiClient.cs`.
+`OGEngine.Shared` owns reusable DTO mapping, validation, error codes and state transitions. Native games use the
+stable C ABI; Unity uses a managed adapter over the same shared contracts and Edge components. The Full OASIS
+BootLoader and full provider graph are not pulled into mobile/game clients.
+
+The shared assembly also owns the canonical WEB4 authentication protocol and is included in both release profiles.
+ODOOM/OQuake's NativeAOT client and Our World's managed Unity client therefore use the same endpoint normalization,
+single-flight request, nested-envelope parsing, JWT/avatar extraction and safe error mapping. Host-specific behavior
+starts only after that result: native games initialize WEB5 and warm caches, while Unity presents `Beaming In...` and
+hands the authenticated identity to the Edge session lifecycle.
 
 ---
 
-## Recommendation (for when implementation resumes)
+## Packaging decision
 
-- **Treat shipped NativeAOT `star_api` as the baseline** for most users and CI/game pipelines.  
-- **Implement native** as a **separate build product** (or host) unless a **scoped spike** proves that a **minimal** provider-only graph meets size and AOT constraints in **one** binary.  
-- Align the **native** dependency set with **local/offline** DNA (`AutoFailOverLocalProviders`) rather than pulling the **entire** BootLoader `.csproj` as-is into AOT without analysis.  
-- Wire **offline / online** transitions in the **native host**: call `ProviderManager.ActivateNextLocalAutoFailOverStorageProvider()` when policy says “local only”; use existing **HyperDrive / replication** APIs for **resync** when connectivity returns — **explicit**, not hidden fallbacks in the HTTP client.
+- The standard shipped OGEngineClient includes Edge Runtime and is the baseline for Our World, ODOOM, OQuake and
+  future clients.
+- Edge remains a separately testable internal package/component because Unity/IL2CPP and native games have different
+  composition roots; that boundary does not make Edge optional at runtime.
+- Compose the existing Edge Runtime, durable store and hosted sync transport rather than the Full BootLoader graph.
+- Let Unity reference the managed OGEngineClient package/API and compile it through IL2CPP. It need not load the
+  Windows-style NativeAOT binary: managed, C ABI and future web bindings are runtime-specific bindings over the same
+  OGEngineClient behavior owner, not separate clients.
+- Retire the standard client's user-facing `remote`/`native` selection once migration is complete. Configuration may
+  select HTTPS or ONET synchronization transport, but never online versus offline behavior.
+- A special remote-only build may exist for a proven constrained or unsupported target, but it is a distinct artifact,
+  not a fallback inside the standard client.
+- Drive connectivity transitions through Edge Runtime's state machine and durable outbox, not legacy provider
+  activation calls or process-memory OGEngine queues.
+
+Offline sync is enabled by default but can be explicitly disabled through
+`OASIS.OASISHyperDriveConfig.OfflineSyncEnabled` and the host application's settings UI. Disabling is a lifecycle
+recomposition into remote-only operation, not a response to transport failure. It is rejected while the durable
+outbox is non-empty unless the user first synchronizes; local state is preserved by default.
+
+The release pipeline produces **OGEngineClient Edge** as the standard artifact and **OGEngineClient Remote-Only** as
+an exceptional minimum-footprint artifact without Edge/SQLite binaries. Both derive from the same shared contracts
+and C ABI. Capability metadata makes the difference explicit; the Remote-Only artifact cannot enable offline sync.
+
+### Measured artifact snapshot (2026-09-23)
+
+| Artifact | Local raw size | Interpretation |
+|---|---:|---|
+| Existing Windows NativeAOT OGEngine DLLs | 5.53-6.97 MiB | Slim remote client; build outputs differ |
+| Entire manifested Unity Edge package | 22.81 MiB | Includes native SQLite binaries for every supported desktop/mobile platform |
+| Android ARM64 Edge dependencies | about 3.92 MiB | 2.23 MiB managed set plus 1.69 MiB ARM64 SQLite before compression/stripping/deduplication |
+| OASIS-owned managed Edge assemblies | about 0.29 MiB | Contracts, synchronization, store, runtime, ONET and endpoint assemblies |
+
+These are disk artifacts only. Physical-device RAM, database growth, CPU, radio and battery measurements remain a
+release requirement.
+
+### Public component boundary
+
+`OASISEdgeAPI` remains a supported low-level facade for applications that only require the Edge Runtime, durable
+local store and HyperDrive protocol. `OGEngineEdgeClient` composes that facade and is the standard integration for
+OASIS products. It adds the stable product contract on which authentication, avatars, quests, inventory, NFTs,
+Karma, status notifications, configuration and language bindings converge. First-party games must not bypass
+OGEngineClient and independently recreate those rules.
+
+The same source tree produces both profiles. Edge inclusion is a build capability; `OfflineSyncEnabled` is a runtime
+preference available only when that capability exists. The Edge build defaults it to enabled and accepts explicit
+OASIS DNA or host-UI changes. The Remote-Only build excludes the Edge/SQLite assemblies and reports the capability as
+unavailable. Network loss never changes either setting.
 
 ---
 
