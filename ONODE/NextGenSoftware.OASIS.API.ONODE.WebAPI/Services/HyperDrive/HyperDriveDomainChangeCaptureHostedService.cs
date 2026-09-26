@@ -15,27 +15,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     public sealed class HyperDriveDomainChangeCaptureHostedService : BackgroundService
     {
         private readonly ILogger<HyperDriveDomainChangeCaptureHostedService> _logger;
+        private readonly HyperDriveHostedProviderAccessor _providerAccessor;
 
         public HyperDriveDomainChangeCaptureHostedService(
-            ILogger<HyperDriveDomainChangeCaptureHostedService> logger) => _logger = logger;
+            ILogger<HyperDriveDomainChangeCaptureHostedService> logger,
+            HyperDriveHostedProviderAccessor providerAccessor)
+        {
+            _logger = logger;
+            _providerAccessor = providerAccessor;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (OASISBootLoader.OASISBootLoader.OASISDNA == null)
-            {
-                var boot = await OASISBootLoader.OASISBootLoader.BootOASISASync(false).ConfigureAwait(false);
-                if (boot == null || boot.IsError || !boot.Result)
-                    throw new InvalidOperationException(boot?.Message ??
-                        "OASIS could not boot for HyperDrive domain change capture.");
-            }
-            if (OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.OASISHyperDriveConfig?.EnableHostedSync != true)
+            if (NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OASISHyperDriveConfig?.EnableHostedSync != true)
             {
                 _logger.LogInformation("Hosted HyperDrive domain change capture is disabled in OASIS DNA.");
                 return;
             }
 
-            var providerResult = await OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync()
-                .ConfigureAwait(false);
+            var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
                 throw new InvalidOperationException(providerResult?.Message ??
                     "The default domain change-capture provider could not be activated.");

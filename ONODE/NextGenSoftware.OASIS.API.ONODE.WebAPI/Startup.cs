@@ -389,6 +389,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 var offlineGrantIssuer = new Services.HyperDriveOfflineSessionGrantIssuer(offlineGrantSettings);
                 services.AddSingleton<Services.IHyperDriveOfflineSessionGrantIssuer>(offlineGrantIssuer);
             }
+            services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
+            services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
