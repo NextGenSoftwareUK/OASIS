@@ -147,7 +147,7 @@ jobs:
         shell: bash
         env:
           OASIS_MONGO_REPLICA_SET_CONNECTION: 'mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0&retryWrites=true&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000'
-          OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY: artifacts/hosted-mongo-kill-coordination
+          OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY: ${{ github.workspace }}/OASIS/artifacts/hosted-mongo-kill-coordination
         run: |
           set -euo pipefail
           rm -rf "$OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY"
