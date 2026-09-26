@@ -1,102 +1,171 @@
-name: Publish MCP Server (NuGet + npm)
+name: Build and Publish MCP Server
 
 on:
+  pull_request:
+    branches: [Development, master]
+    paths:
+      - ".github/workflows/publish-mcp.yml"
+      - "Docker/oasis-dependency-versions.env"
+      - "WEB6/**"
+      - "WEB7/**"
+      - "WEB8/**"
+      - "WEB9/**"
+      - "WEB10/**"
+      - "OASIS Architecture/**"
+      - "ONODE/**"
+      - "STAR ODK/**"
+      - "Providers/**"
+      - "HoloNET-ORM"
+  push:
+    branches: [Development]
+    paths:
+      - ".github/workflows/publish-mcp.yml"
+      - "Docker/oasis-dependency-versions.env"
+      - "WEB6/**"
+      - "WEB7/**"
+      - "WEB8/**"
+      - "WEB9/**"
+      - "WEB10/**"
+      - "OASIS Architecture/**"
+      - "ONODE/**"
+      - "STAR ODK/**"
+      - "Providers/**"
+      - "HoloNET-ORM"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish (e.g. 2.0.0)'
+        description: "SemVer version to publish (for example 2.0.2)"
         required: true
-        default: '2.0.0'
+        default: "2.0.2"
+      publish:
+        description: "Publish GitHub, NuGet, and npm releases after every build passes"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcp-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
-  # ── Build native binaries for all platforms ──────────────────────────────
+  validate-release-input:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version must be valid SemVer without a leading v"
+            exit 1
+          fi
+
   build-binaries:
+    name: Build ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            rid: win-x64
-            artifact: oasis-mcp-win-x64.exe
-          - os: ubuntu-latest
-            rid: linux-x64
-            artifact: oasis-mcp-linux-x64
-          - os: ubuntu-latest
-            rid: linux-arm64
-            artifact: oasis-mcp-linux-arm64
-          - os: macos-latest
-            rid: osx-x64
-            artifact: oasis-mcp-osx-x64
-          - os: macos-latest
-            rid: osx-arm64
-            artifact: oasis-mcp-osx-arm64
-
-    runs-on: ${{ matrix.os }}
-
+          - { os: windows-latest, rid: win-x64, artifact: oasis-mcp-win-x64.exe }
+          - { os: ubuntu-latest, rid: linux-x64, artifact: oasis-mcp-linux-x64 }
+          - { os: ubuntu-24.04-arm, rid: linux-arm64, artifact: oasis-mcp-linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64, artifact: oasis-mcp-osx-x64 }
+          - { os: macos-latest, rid: osx-arm64, artifact: oasis-mcp-osx-arm64 }
     steps:
-      - name: Checkout OASIS
-        uses: actions/checkout@v4
+      - name: Checkout the exact OASIS source graph
+        uses: actions/checkout@v7
         with:
           path: OASIS
-
-      - name: Checkout OASIS-WEB6
-        uses: actions/checkout@v4
-        with:
-          repository: NextGenSoftwareUK/OASIS-WEB6
-          path: OASIS-WEB6
+          submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
-      - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
-        with:
-          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: NextGenSoftware-Libraries
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        working-directory: OASIS
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
 
-      - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+      - uses: actions/setup-python@v7
         with:
-          repository: holochain-open-dev/holochain-client-csharp
-          path: holochain-client-csharp
-
-      - uses: actions/setup-dotnet@v4
+          python-version: "3.x"
+      - name: Validate dependency pins
+        working-directory: OASIS
+        run: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+      - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.x'
-
+          dotnet-version: "10.0.x"
       - name: Publish single-file binary
         run: >
           dotnet publish
-          OASIS-WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
-          -c Release
-          -r ${{ matrix.rid }}
-          -p:PublishSingleFile=true
-          -p:SelfContained=true
-          -p:PublishTrimmed=false
+          OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          -c Release -r ${{ matrix.rid }}
+          -p:PublishSingleFile=true -p:SelfContained=true -p:PublishTrimmed=false
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:IncludeAllContentForSelfExtract=true
           -o publish/${{ matrix.rid }}
-
-      - name: Rename binary
+      - name: Verify and rename binary
         shell: bash
         run: |
+          set -euo pipefail
           src="publish/${{ matrix.rid }}/NextGenSoftware.OASIS.MCP.Server"
           [ -f "${src}.exe" ] && src="${src}.exe"
+          test -s "$src"
           cp "$src" "${{ matrix.artifact }}"
-
-      - uses: actions/upload-artifact@v4
+      - name: Smoke-test the packaged MCP protocol
+        run: python OASIS/Scripts/test_mcp_release_binary.py "${{ matrix.artifact }}"
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
+          if-no-files-found: error
 
-  # ── Create GitHub release and attach binaries ────────────────────────────
-  release:
-    needs: build-binaries
+  validate-npm-package:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout the exact OASIS source graph
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - name: Verify npm release contents
+        working-directory: OASIS/WEB6/npm
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s bin/oasis-mcp.js
+          test -s install.js
+          npm pack --dry-run
 
-      - uses: actions/download-artifact@v4
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: [validate-release-input, build-binaries, validate-npm-package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
         with:
           path: binaries
           merge-multiple: true
-
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -105,128 +174,78 @@ jobs:
           body: |
             ## OASIS MCP Server v${{ inputs.version }}
 
-            ### Install
-
-            **npm (no .NET SDK required):**
-            ```bash
-            npm install -g @oasisomniverse/mcp-server
-            ```
-
-            **NuGet dotnet tool (.NET 8+ SDK required):**
-            ```bash
-            dotnet tool install -g NextGenSoftware.OASIS.MCP.Server
-            ```
-
-            **Build from source:**
-            ```bash
-            git clone https://github.com/NextGenSoftwareUK/OASIS.git
-            cd OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server
-            dotnet build -c Release
-            ```
-
-            ### IDE Configuration (after install)
-            ```json
-            {
-              "mcpServers": {
-                "oasis": {
-                  "command": "oasis-mcp",
-                  "env": {
-                    "OASIS_API_URL": "https://api.oasisplatform.world",
-                    "OASIS_MCP_LICENSE_KEY": "your-license-key"
-                  }
-                }
-              }
-            }
-            ```
+            Install with `npm install -g @oasisomniverse/mcp-server` or
+            `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`.
           files: binaries/*
+          fail_on_unmatched_files: true
           draft: false
           prerelease: false
 
-  # ── Publish NuGet tool package ────────────────────────────────────────────
   publish-nuget:
-    needs: build-binaries
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: release
     runs-on: windows-latest
-    permissions:
-      id-token: write
-
+    timeout-minutes: 90
     steps:
-      - name: Checkout OASIS
-        uses: actions/checkout@v4
+      - name: Checkout the exact OASIS source graph
+        uses: actions/checkout@v7
         with:
           path: OASIS
-
-      - name: Checkout OASIS-WEB6
-        uses: actions/checkout@v4
-        with:
-          repository: NextGenSoftwareUK/OASIS-WEB6
-          path: OASIS-WEB6
+          submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-
-      - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        working-directory: OASIS
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
         with:
-          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: NextGenSoftware-Libraries
-
-      - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
-        with:
-          repository: holochain-open-dev/holochain-client-csharp
-          path: holochain-client-csharp
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.x'
-
+          dotnet-version: "10.0.x"
       - name: Pack MCP Server
         run: >
           dotnet pack
-          OASIS-WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
-          -c Release
-          -p:Version=${{ inputs.version }}
-          -o OASIS/nupkgs
-
-      - name: Get NuGet token via Trusted Publishing
-        id: get-token
-        shell: pwsh
-        run: |
-          $response = Invoke-RestMethod `
-            -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=api.nuget.org" `
-            -Headers @{ Authorization = "Bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN" }
-          echo "NUGET_TOKEN=$($response.value)" >> $env:GITHUB_OUTPUT
-
+          OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          -c Release -p:Version=${{ inputs.version }} -o OASIS/nupkgs
       - name: Push to NuGet.org
         shell: pwsh
         run: |
-          dotnet nuget push OASIS\nupkgs\*.nupkg `
-            --source https://api.nuget.org/v3/index.json `
-            --api-key ${{ steps.get-token.outputs.NUGET_TOKEN }} `
-            --skip-duplicate
+          Get-ChildItem OASIS/nupkgs/*.nupkg |
+            Where-Object { $_.Name -notlike "*.symbols.nupkg" } |
+            ForEach-Object {
+              dotnet nuget push $_.FullName `
+                --source https://api.nuget.org/v3/index.json `
+                --api-key "${{ secrets.NUGET_API_KEY }}" `
+                --skip-duplicate
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
 
-  # ── Publish npm package ───────────────────────────────────────────────────
   publish-npm:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
     needs: release
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - name: Checkout OASIS-WEB6
-        uses: actions/checkout@v4
+      - name: Checkout the exact WEB6 release source
+        uses: actions/checkout@v7
         with:
-          repository: NextGenSoftwareUK/OASIS-WEB6
-          path: OASIS-WEB6
+          path: OASIS
+          submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
       - name: Set version
         run: npm version ${{ inputs.version }} --no-git-tag-version
-        working-directory: OASIS-WEB6/npm
-
-      - name: Publish to npm
+        working-directory: OASIS/WEB6/npm
+      - name: Publish to npm with trusted publishing
         run: npm publish --access public
-        working-directory: OASIS-WEB6/npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: OASIS/WEB6/npm
