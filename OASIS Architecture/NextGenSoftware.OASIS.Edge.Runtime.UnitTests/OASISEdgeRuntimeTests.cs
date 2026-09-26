@@ -77,6 +77,28 @@ public sealed class OASISEdgeRuntimeTests : IDisposable
     }
 
     [Fact]
+    public async Task AcceptedCommandKeepsPullingUntilDurableOutcomeArrives()
+    {
+        var operationId = Guid.NewGuid();
+        var transport = new DelayedCommandOutcomeTransport(operationId);
+        using var runtime = CreateRuntime(transport);
+        await runtime.SaveLocalAsync(new EdgeLocalMutation
+        {
+            OperationId = operationId, DeviceId = _deviceId, AvatarId = _avatarId,
+            EntityId = Guid.NewGuid(), EntityType = HyperDriveEntityTypes.InventoryItem,
+            Kind = SyncOperationKind.Command, LocalVersionId = Guid.NewGuid(),
+            PayloadJson = "{}", CreatedUtc = DateTime.UtcNow
+        }, default);
+
+        var synchronized = await runtime.SetConnectivityAsync(true, default);
+
+        synchronized.IsError.Should().BeFalse(synchronized.Message);
+        transport.CallCount.Should().Be(3);
+        runtime.Status.PendingOperationCount.Should().Be(0);
+        runtime.Status.Synchronization.Should().Be(EdgeSynchronizationState.Synchronized);
+    }
+
+    [Fact]
     public async Task HostedConnectivityIsNotReportedOnlineUntilExchangeSucceeds()
     {
         var transport = new ControlledTransport();
@@ -556,6 +578,37 @@ public sealed class OASISEdgeRuntimeTests : IDisposable
             NextPullCheckpoint = "conflict-checkpoint",
             RemoteChanges = Array.Empty<SyncRemoteChange>()
         }));
+    }
+
+    private sealed class DelayedCommandOutcomeTransport : IHyperDriveSyncTransport
+    {
+        private readonly Guid _operationId;
+        public DelayedCommandOutcomeTransport(Guid operationId) => _operationId = operationId;
+        public int CallCount { get; private set; }
+        public Task<OASISResult<SyncExchangeResponse>> ExchangeAsync(SyncExchangeRequest request,
+            CancellationToken cancellationToken)
+        {
+            CallCount++;
+            var changes = CallCount < 3 ? Array.Empty<SyncRemoteChange>() : new[]
+            {
+                new SyncRemoteChange
+                {
+                    ChangeId = "outcome", EntityId = _operationId,
+                    EntityType = HyperDriveEntityTypes.CommandResult, Kind = SyncOperationKind.Upsert,
+                    VersionId = Guid.NewGuid(), PayloadJson = "{\"succeeded\":true}",
+                    ChangedUtc = DateTime.UtcNow
+                }
+            };
+            return Task.FromResult(new OASISResult<SyncExchangeResponse>(new SyncExchangeResponse
+            {
+                OperationResults = request.Operations.Select(x => new SyncOperationResult
+                {
+                    OperationId = x.OperationId, Disposition = SyncOperationDisposition.Accepted,
+                    ResultVersionId = x.VersionId
+                }).ToArray(),
+                RemoteChanges = changes, NextPullCheckpoint = CallCount.ToString()
+            }));
+        }
     }
 
     private sealed class GrantTransport : IHyperDriveSyncTransport, IHyperDriveOfflineSessionGrantTransport,

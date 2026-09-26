@@ -136,24 +136,33 @@ public sealed class OASISEdgeNativeEndpointTests
             CancellationToken cancellationToken)
         {
             Assert.Equal("/api/hyperdrive/sync/exchange", request.RequestUri.AbsolutePath);
-            LastRequest = JsonSerializer.Deserialize<SyncExchangeRequest>(
+            var currentRequest = JsonSerializer.Deserialize<SyncExchangeRequest>(
                 await request.Content.ReadAsStringAsync(cancellationToken),
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             ExchangeCount++;
-            var operation = Assert.Single(LastRequest.Operations);
+            if (currentRequest.Operations.Count != 0)
+                LastRequest = currentRequest;
+            var operation = LastRequest == null ? null : Assert.Single(LastRequest.Operations);
             var response = new OASISResult<SyncExchangeResponse>(new SyncExchangeResponse
             {
-                NextPullCheckpoint = "1",
-                OperationResults = new[]
+                NextPullCheckpoint = ExchangeCount.ToString(),
+                OperationResults = currentRequest.Operations.Select(x => new SyncOperationResult
                 {
-                    new SyncOperationResult
+                    OperationId = x.OperationId,
+                    Disposition = SyncOperationDisposition.Accepted,
+                    ResultVersionId = x.VersionId
+                }).ToArray(),
+                RemoteChanges = currentRequest.Operations.Count != 0 || operation == null
+                    ? Array.Empty<SyncRemoteChange>() : new[]
                     {
-                        OperationId = operation.OperationId,
-                        Disposition = SyncOperationDisposition.Accepted,
-                        ResultVersionId = operation.VersionId
+                        new SyncRemoteChange
+                        {
+                            ChangeId = "command-outcome", EntityId = operation.OperationId,
+                            EntityType = HyperDriveEntityTypes.CommandResult,
+                            Kind = SyncOperationKind.Upsert, VersionId = Guid.NewGuid(),
+                            PayloadJson = "{\"succeeded\":true}", ChangedUtc = DateTime.UtcNow
+                        }
                     }
-                },
-                RemoteChanges = Array.Empty<SyncRemoteChange>()
             });
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
