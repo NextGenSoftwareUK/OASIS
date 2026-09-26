@@ -34,7 +34,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 throw new InvalidOperationException("OfflineSessionGrants.MaximumLifetimeMinutes must be greater than zero.");
             if (string.IsNullOrWhiteSpace(settings.SigningPrivateKeyEnvironmentVariable))
                 throw new InvalidOperationException("OfflineSessionGrants.SigningPrivateKeyEnvironmentVariable is required.");
-            if (string.IsNullOrWhiteSpace(settings.SigningPublicKey))
+            string encodedPublicKey = string.IsNullOrWhiteSpace(settings.SigningPublicKeyEnvironmentVariable)
+                ? settings.SigningPublicKey
+                : (environmentReader ?? Environment.GetEnvironmentVariable)(settings.SigningPublicKeyEnvironmentVariable);
+            if (string.IsNullOrWhiteSpace(encodedPublicKey))
                 throw new InvalidOperationException("OfflineSessionGrants.SigningPublicKey is required so Edge releases can pin the grant issuer identity.");
 
             _allowedScopes = new HashSet<string>((settings.AllowedScopes ?? new List<string>())
@@ -52,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 key.ImportPkcs8PrivateKey(_privateKey, out int bytesRead);
                 if (bytesRead != _privateKey.Length || key.KeySize != 256)
                     throw new InvalidOperationException("The offline-grant signing key must be one PKCS#8 ECDSA P-256 key.");
-                byte[] configuredPublicKey = Convert.FromBase64String(settings.SigningPublicKey);
+                byte[] configuredPublicKey = Convert.FromBase64String(encodedPublicKey);
                 byte[] derivedPublicKey = key.ExportSubjectPublicKeyInfo();
                 if (!CryptographicOperations.FixedTimeEquals(configuredPublicKey, derivedPublicKey))
                     throw new InvalidOperationException("OfflineSessionGrants.SigningPublicKey does not match the configured private signing key.");

@@ -61,6 +61,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool Enabled { get; set; }
         /// <summary>Name of the environment variable containing the base64 PKCS#8 ECDSA P-256 private key. The private key is never stored in OASISDNA.</summary>
         public string SigningPrivateKeyEnvironmentVariable { get; set; } = "OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY";
+        /// <summary>Optional environment variable containing the base64 SubjectPublicKeyInfo. Use this to pin a different signing identity per deployment environment.</summary>
+        public string SigningPublicKeyEnvironmentVariable { get; set; } = string.Empty;
         /// <summary>Base64 SubjectPublicKeyInfo for the signing key, pinned into Edge client release configuration.</summary>
         public string SigningPublicKey { get; set; } = string.Empty;
         /// <summary>Maximum grant lifetime. Requested lifetimes must be positive and are capped at this value.</summary>
