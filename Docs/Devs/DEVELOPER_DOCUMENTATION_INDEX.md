@@ -124,6 +124,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ## 🚀 **Revolutionary Systems Documentation**
 
 ### **OASIS HyperDrive**
+- **[Three-game Edge release artifact map](./THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md)** - Canonical locations for Our World, ODOOM and OQuake source, release commands, tests, outputs, deployment, backups and cleanup
 - **[OASIS Edge Runtime & Offline Sync Architecture](./OASIS_EDGE_RUNTIME_OFFLINE_SYNC_ARCHITECTURE.md)** - Canonical, code-audited design for mobile offline operation, durable synchronization, hosted ONODE integration, provider roles and ONET transport boundaries
 - **[Our World Offline-First Delivery Plan](./OUR_WORLD_OFFLINE_PLAN.md)** - Narrow Android/Unity milestone, audited live API surface, acceptance criteria, implementation order and deferred full-API backlog
 - **[OGEngineClient Unity Asset Store Release](./OGENGINECLIENT_UNITY_ASSET_STORE_RELEASE.md)** - Public package identity, automated UPM/Unity/Android gates, listing disclosures and manual Publisher Portal checklist
