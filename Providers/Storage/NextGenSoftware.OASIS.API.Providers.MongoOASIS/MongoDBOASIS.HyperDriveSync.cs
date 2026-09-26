@@ -39,26 +39,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 await EnsureSyncInitializedAsync(cancellationToken).ConfigureAwait(false);
                 using (var session = await Database.MongoClient.StartSessionAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
                 {
-                    session.StartTransaction();
-                    try
+                    var operationResults = await session.WithTransactionAsync(async (transactionSession, transactionCancellationToken) =>
                     {
-                        var operationResults = new List<SyncOperationResult>(operations.Count);
+                        var transactionResults = new List<SyncOperationResult>(operations.Count);
                         foreach (var operation in operations)
-                            operationResults.Add(await ApplyOperationAsync(session, authenticatedAvatarId, deviceId, operation, cancellationToken).ConfigureAwait(false));
+                            transactionResults.Add(await ApplyOperationAsync(transactionSession, authenticatedAvatarId, deviceId,
+                                operation, transactionCancellationToken).ConfigureAwait(false));
 
                         await InjectHostedSyncFaultAsync(HostedMongoSyncTransactionBoundary.BatchReadyToCommit,
-                            cancellationToken).ConfigureAwait(false);
-
-                        await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
-                        result.Result = new HostedSyncOperationBatchResult { OperationResults = operationResults };
-                        result.IsSaved = true;
-                    }
-                    catch
-                    {
-                        if (session.IsInTransaction)
-                            await session.AbortTransactionAsync(cancellationToken).ConfigureAwait(false);
-                        throw;
-                    }
+                            transactionCancellationToken).ConfigureAwait(false);
+                        return transactionResults;
+                    }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    result.Result = new HostedSyncOperationBatchResult { OperationResults = operationResults };
+                    result.IsSaved = true;
                 }
             }
             catch (OperationCanceledException) { throw; }
