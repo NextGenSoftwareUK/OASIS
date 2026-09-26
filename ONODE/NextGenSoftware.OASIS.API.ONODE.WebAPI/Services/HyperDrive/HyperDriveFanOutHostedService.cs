@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             }
         }
 
-        private static IReadOnlyList<IHyperDriveIdempotentReplicationTarget> ResolveTargets(
+        private IReadOnlyList<IHyperDriveIdempotentReplicationTarget> ResolveTargets(
             IOASISStorageProvider sourceProvider)
         {
             var targets = new List<IHyperDriveIdempotentReplicationTarget>();
@@ -76,8 +76,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     throw new InvalidOperationException($"Configured replication provider '{providerType.Name}' is not registered.");
                 if (ReferenceEquals(provider, sourceProvider)) continue;
                 if (!(provider is IHyperDriveIdempotentReplicationTarget target))
-                    throw new InvalidOperationException(
-                        $"Configured replication provider '{provider.ProviderName}' does not implement the idempotent HyperDrive replication contract.");
+                {
+                    _logger.LogWarning(
+                        "Replication provider {ProviderName} does not advertise the hosted idempotent fan-out capability and will remain on the legacy replication path.",
+                        provider.ProviderName);
+                    continue;
+                }
                 targets.Add(target);
             }
             return targets;
