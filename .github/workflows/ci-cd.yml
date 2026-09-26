@@ -115,6 +115,8 @@ jobs:
             image: ghcr.io/microsoft/garnet:latest
             ports: 6379:6379
             wait: 6379
+            test_env: |
+              GARNET_CONN=127.0.0.1:6379
 
           - name: Memcached
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS.IntegrationTests
