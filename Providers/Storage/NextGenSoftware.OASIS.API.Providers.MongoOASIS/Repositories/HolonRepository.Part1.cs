@@ -25,17 +25,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public async Task EnsurePublicIdentityIndexAsync()
         {
+            var canonicalRecord = Builders<Holon>.Filter.Exists("ProviderUniqueStorageKey.0", true);
             var index = new CreateIndexModel<Holon>(
                 Builders<Holon>.IndexKeys.Ascending(x => x.HolonId),
-                new CreateIndexOptions { Name = "ux_holon_public_identity", Unique = true });
+                new CreateIndexOptions<Holon>
+                {
+                    Name = "ux_holon_public_identity", Unique = true,
+                    PartialFilterExpression = canonicalRecord
+                });
             await _dbContext.Holon.Indexes.CreateOneAsync(index);
         }
 
         public void EnsurePublicIdentityIndex()
         {
+            var canonicalRecord = Builders<Holon>.Filter.Exists("ProviderUniqueStorageKey.0", true);
             var index = new CreateIndexModel<Holon>(
                 Builders<Holon>.IndexKeys.Ascending(x => x.HolonId),
-                new CreateIndexOptions { Name = "ux_holon_public_identity", Unique = true });
+                new CreateIndexOptions<Holon>
+                {
+                    Name = "ux_holon_public_identity", Unique = true,
+                    PartialFilterExpression = canonicalRecord
+                });
             _dbContext.Holon.Indexes.CreateOne(index);
         }
 
