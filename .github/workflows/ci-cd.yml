@@ -373,8 +373,6 @@ jobs:
             test: TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj
           - project: NextGenSoftware.OASIS.API.ONODE.WebAPI
             test: TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj
-          - project: NextGenSoftware.OASIS.API.ONODE.OPORTAL
-            test: ''
     
     steps:
     - name: Checkout OASIS
@@ -511,24 +509,21 @@ jobs:
     
     - name: Restore dependencies
       run: |
-        dotnet restore "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj"
-        dotnet restore "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj"
-        dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj"
-        dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj"
+        dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj"
+        dotnet restore "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj"
+        dotnet restore "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj"
     
     - name: Build
       run: |
-        dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-restore
-        dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj" --no-restore
-        dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-restore
-        dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-restore
+        dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-restore
+        dotnet build "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-restore
+        dotnet build "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-restore
     
     - name: Run Integration Tests
       run: |
-        dotnet test "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
-        dotnet test "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj" --no-build --verbosity normal
-        dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
-        dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
 
   # STARAPIClient Unit + Integration + Harness
   test-starapi-client:
@@ -537,8 +532,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        path: OASIS
         submodules: recursive
         token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v4
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -547,8 +549,8 @@ jobs:
 
     - name: Run OGEngineClient test suites
       run: |
-        dotnet test "OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
-        dotnet test "OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
+        dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
+        dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
 
     - name: Upload STARAPIClient test artifacts
       uses: actions/upload-artifact@v4
