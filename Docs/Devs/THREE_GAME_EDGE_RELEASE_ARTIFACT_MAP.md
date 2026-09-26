@@ -30,6 +30,21 @@ Run commands from the OASIS repository root.
 | Our World validation APK | `powershell -File Scripts\validate_our_world_android_build.ps1` | `pwsh -File Scripts/validate_our_world_android_build.ps1` | `artifacts/our-world-android-validation` |
 | Signed Our World APK/AAB | `Scripts\build_our_world_android_app_bundle.bat` | `Scripts/build_our_world_android_app_bundle.sh` | `artifacts/our-world-release` |
 
+## Published release locations
+
+| Product | Published location | CI / local candidate location |
+|---|---|---|
+| OASIS MCP standalone binaries | [OASIS GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases), under tags named `mcp-v<version>` | The `oasis-mcp-<runtime>` artifacts on the `Publish MCP Server` workflow run |
+| OASIS MCP npm package | [`@oasisomniverse/mcp-server`](https://www.npmjs.com/package/@oasisomniverse/mcp-server) | `WEB6/npm` |
+| OASIS MCP .NET tool | [`NextGenSoftware.OASIS.MCP.Server`](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server) | `WEB6/NextGenSoftware.OASIS.MCP.Server/bin/Release` and the workflow's temporary `nupkgs` directory |
+| ONODE Manager installers | [OASIS GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases), under tags named `onode-manager-v<version>` | `release/win-x64`, `release/osx-x64`, and `release/linux-x64` in the release workflow |
+| Our World signed Android release | Distribution store selected by the release operator | `artifacts/our-world-release` |
+| ODOOM | Distribution store selected by the release operator | `OASIS Omniverse/OGames/ODOOM/build` |
+| OQuake | Distribution store selected by the release operator | `OASIS Omniverse/OGames/OQuake/build` |
+| Unity Edge package | Unity Asset Store release process | `artifacts/unity-store-candidate` or `artifacts/unity-current` |
+
+The MCP workflow is `.github/workflows/publish-mcp.yml`. Pull requests and normal branch pushes build and protocol-test all five native binaries, but do not publish them. A release operator dispatches the workflow with an exact version and `publish=true`; only after every build and package check passes does it create the GitHub release and publish npm and NuGet packages.
+
 The signing script reads `artifacts/our-world-release-secrets/android-signing.secrets.env`. That ignored file and all private keys must stay outside Git. The deployed ONODE reads `OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY`; each environment also sets `OASIS_OFFLINE_GRANT_SIGNING_PUBLIC_KEY`. The client release embeds only the matching public key in `omniverse_host_config.json`.
 
 ## Tests and reports
