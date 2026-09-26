@@ -115,8 +115,10 @@ jobs:
           for attempt in {1..60}; do
             for container_port in 'oasis-mongo-1 27017' 'oasis-mongo-2 27018' 'oasis-mongo-3 27019'; do
               read -r container port <<< "$container_port"
-              if docker exec "$container" mongosh --quiet --port "$port" --eval "db.hello().isWritablePrimary" | grep -q '^true$'; then
-                echo "Replica-set primary elected on port $port."
+              healthy_members="$(docker exec "$container" mongosh --quiet --port "$port" --eval \
+                "try { const states = rs.status().members.map(m => m.stateStr); print(states.filter(s => s === 'PRIMARY').length === 1 && states.filter(s => s === 'SECONDARY').length === 2 ? 'ready' : 'waiting') } catch (e) { print('waiting') }" 2>/dev/null || true)"
+              if [ "$healthy_members" = 'ready' ]; then
+                echo "Replica set has one primary and two election-ready secondaries."
                 exit 0
               fi
             done
