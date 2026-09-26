@@ -1,4 +1,4 @@
-# STAR OAPP Builder - Complete Documentation
+﻿# STAR OAPP Builder - Complete Documentation
 
 ## 📋 **Overview**
 
@@ -595,7 +595,7 @@ import { OAPPBuilder } from '@oasis/oapp-builder-client';
 
 const builder = new OAPPBuilder({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world'
+  baseUrl: 'https://api.starnet.oasisomniverse.one'
 });
 ```
 

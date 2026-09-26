@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.DNA.UnitTests
 
             // Assert
             dna.Should().NotBeNull();
+            dna.OASIS.Should().NotBeNull("a default DNA object must be safe for configuration consumers");
         }
 
         [Fact]
@@ -37,9 +38,11 @@ namespace NextGenSoftware.OASIS.API.DNA.UnitTests
         {
             // Act
             var dna = new OASISDNA();
+            var prop = typeof(OASISDNA).GetProperty("OASIS");
 
             // Assert
-            dna.Should().HaveProperty("OASIS");
+            prop.Should().NotBeNull();
+            prop!.GetValue(dna).Should().Be(dna.OASIS);
         }
 
         [Fact]
@@ -50,6 +53,90 @@ namespace NextGenSoftware.OASIS.API.DNA.UnitTests
 
             // Assert
             oasis.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void HyperDriveOfflineSync_ShouldBeEnabledByDefault()
+        {
+            new NextGenSoftware.OASIS.API.Core.Configuration.OASISHyperDriveConfig()
+                .OfflineSyncEnabled.Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void LoadDNA_ShouldHonorExplicitOfflineSyncSetting(bool enabled)
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"oasis-dna-{Guid.NewGuid():N}.json");
+            try
+            {
+                File.WriteAllText(path,
+                    $"{{\"OASIS\":{{\"OASISHyperDriveConfig\":{{\"OfflineSyncEnabled\":{enabled.ToString().ToLowerInvariant()}}}}}}}");
+
+                var result = OASISDNAManager.LoadDNA(path);
+
+                result.IsError.Should().BeFalse(result.Message);
+                result.Result!.OASIS.OASISHyperDriveConfig.OfflineSyncEnabled.Should().Be(enabled);
+            }
+            finally
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
+        [Fact]
+        public void LoadDNA_ShouldRejectUnknownHyperDriveMode()
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"oasis-dna-{Guid.NewGuid():N}.json");
+            try
+            {
+                File.WriteAllText(path, "{\"OASIS\":{\"HyperDriveMode\":\"TypoMode\"}}");
+
+                var result = OASISDNAManager.LoadDNA(path);
+
+                result.IsError.Should().BeTrue();
+                result.Message.Should().Contain("Unsupported HyperDriveMode");
+                OASISDNAManager.OASISDNA.Should().BeNull();
+            }
+            finally
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
+        [Theory]
+        [InlineData(HyperDriveModes.Legacy)]
+        [InlineData(HyperDriveModes.V2)]
+        public void LoadDNA_ShouldAcceptDocumentedHyperDriveModes(string mode)
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"oasis-dna-{Guid.NewGuid():N}.json");
+            try
+            {
+                File.WriteAllText(path, $"{{\"OASIS\":{{\"HyperDriveMode\":\"{mode}\"}}}}");
+
+                var result = OASISDNAManager.LoadDNA(path);
+
+                result.IsError.Should().BeFalse(result.Message);
+                result.Result!.OASIS.HyperDriveMode.Should().Be(mode);
+            }
+            finally
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
+        [Fact]
+        public void LoadDNA_ShouldRejectCapabilityRegistryQuorumLargerThanRegistrySet()
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"oasis-dna-{Guid.NewGuid():N}.json");
+            try
+            {
+                File.WriteAllText(path, "{\"OASIS\":{\"ONET\":{\"CapabilityRegistryNodeIds\":[\"registry-a\"],\"CapabilityRegistryQuorum\":2}}}");
+                var result = OASISDNAManager.LoadDNA(path);
+                result.IsError.Should().BeTrue();
+                result.Message.Should().Contain("CapabilityRegistryQuorum");
+            }
+            finally { if (File.Exists(path)) File.Delete(path); }
         }
     }
 }

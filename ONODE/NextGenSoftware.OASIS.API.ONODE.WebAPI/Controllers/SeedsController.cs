@@ -76,6 +76,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -114,7 +115,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-seed-transaction")]
         public async Task<OASISResult<SeedTransaction>> SaveSeedTransaction([FromBody] SaveSeedTransactionRequest request)
         {
+            if (request == null)
+                return new OASISResult<SeedTransaction> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with AvatarUserName, Amount, and optional AvatarId, Memo." };
             var targetAvatarId = request.AvatarId == Guid.Empty ? AvatarId : request.AvatarId;
+            if (targetAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<SeedTransaction> { IsError = true, Message = "Unauthorized. You can only save seed transactions for your own avatar." };
             return await SeedsManager.SaveSeedTransactionAsync(targetAvatarId, request.AvatarUserName, request.Amount, request.Memo);
         }
 
@@ -125,6 +130,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("avatar/{avatarId}/transactions")]
         public async Task<OASISResult<IEnumerable<SeedTransaction>>> GetSeedTransactionsForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IEnumerable<SeedTransaction>> { IsError = true, Message = "Unauthorized. You can only access your own seed transactions." };
             return await SeedsManager.LoadSeedTransactionsForAvatarAsync(avatarId);
         }
 

@@ -1,4 +1,4 @@
-namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
+namespace NextGenSoftware.OASIS.API.Contracts.Enums
 {
     /// <summary>
     /// Map Provider Type Enum
@@ -8,7 +8,11 @@ namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
     {
         MapBox,
         WRLD3D,
-        GoMap
+        GoMap,
+        NianticLightship,
+        GoogleMaps,
+        MapLibre,
+        HEREMaps
     }
 }
 

@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <AssemblyName>NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness</AssemblyName>
     <RootNamespace>NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -11,8 +11,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\NextGenSoftware.OASIS.API.Providers.TelegramOASIS.csproj" />
-    <ProjectReference Include="..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

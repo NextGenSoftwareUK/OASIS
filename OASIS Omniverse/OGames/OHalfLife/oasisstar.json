@@ -1,0 +1,37 @@
+{
+  "game": "OHalfLife",
+  "engine": "Xash3D FWGS / HLSDK",
+  "star_api_url": "https://star-api.oasisplatform.world/api",
+
+  "monsters": [
+    { "classname": "headcrab",          "display_name": "Headcrab",             "xp": 10  },
+    { "classname": "zombie",            "display_name": "Zombie",               "xp": 20  },
+    { "classname": "barnacle",          "display_name": "Barnacle",             "xp": 5   },
+    { "classname": "snark",             "display_name": "Snark",                "xp": 5   },
+    { "classname": "houndeye",          "display_name": "Houndeye",             "xp": 15  },
+    { "classname": "bullsquid",         "display_name": "Bullsquid",            "xp": 25  },
+    { "classname": "islave",            "display_name": "Vortigaunt",           "xp": 30  },
+    { "classname": "human_grunt",       "display_name": "HECU Marine",          "xp": 20  },
+    { "classname": "controller",        "display_name": "Alien Controller",     "xp": 35  },
+    { "classname": "agrunt",            "display_name": "Alien Grunt",          "xp": 40  },
+    { "classname": "female_assassin",   "display_name": "Alien Assassin",       "xp": 40  },
+    { "classname": "turret",            "display_name": "Auto-Turret",          "xp": 15  },
+    { "classname": "miniturret",        "display_name": "Mini-Turret",          "xp": 10  },
+    { "classname": "sentry",            "display_name": "Sentry",               "xp": 10  },
+    { "classname": "ichthyosaur",       "display_name": "Ichthyosaur",          "xp": 45  },
+    { "classname": "tentacle",          "display_name": "Tentacle",             "xp": 50  },
+    { "classname": "apache",            "display_name": "Apache Helicopter",    "xp": 60  },
+    { "classname": "osprey",            "display_name": "Osprey Transport",     "xp": 40  },
+    { "classname": "gargantua",         "display_name": "Gargantua",            "xp": 100 },
+    { "classname": "gonarch",           "display_name": "Gonarch",              "xp": 200 },
+    { "classname": "nihilanth",         "display_name": "Nihilanth",            "xp": 500 }
+  ],
+
+  "key_items": [
+    { "classname": "item_suit",         "display_name": "HEV Suit",             "oasis_tag": "OASIS_ITEM_HEV_SUIT"     },
+    { "classname": "item_longjump",     "display_name": "Long Jump Module",     "oasis_tag": "OASIS_ITEM_LONGJUMP"     },
+    { "classname": "weapon_egon",       "display_name": "Egon Gun",             "oasis_tag": "OASIS_ITEM_EGON_GUN"     },
+    { "classname": "weapon_gauss",      "display_name": "Gauss Gun",            "oasis_tag": "OASIS_ITEM_GAUSS_GUN"    },
+    { "classname": "weapon_rpg",        "display_name": "RPG Launcher",         "oasis_tag": "OASIS_ITEM_RPG"          }
+  ]
+}

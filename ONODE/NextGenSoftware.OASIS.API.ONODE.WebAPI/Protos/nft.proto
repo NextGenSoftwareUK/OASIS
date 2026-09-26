@@ -1,0 +1,48 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service NftService {
+  rpc CollectNFT(NftJsonRequest) returns (JsonResponse);
+  rpc LoadWeb4NftById(NftByIdRequest) returns (JsonResponse);
+  rpc LoadWeb4NftByHash(NftByHashRequest) returns (JsonResponse);
+  rpc LoadAllWeb4NFTsForAvatar(NftByAvatarRequest) returns (JsonResponse);
+  rpc LoadAllWeb4NFTsForMintAddress(NftByAddressRequest) returns (JsonResponse);
+  rpc LoadAllWeb4GeoNFTsForAvatar(NftByAvatarRequest) returns (JsonResponse);
+  rpc LoadAllGeoNFTsForMintAddress(NftByAddressRequest) returns (JsonResponse);
+  rpc LoadAllWeb4NFTs(NftEmptyRequest) returns (JsonResponse);
+  rpc LoadAllGeoNFTs(NftEmptyRequest) returns (JsonResponse);
+  rpc SendNFT(NftJsonRequest) returns (JsonResponse);
+  rpc MintNft(NftJsonRequest) returns (JsonResponse);
+  rpc UpdateWeb4Nft(NftJsonRequest) returns (JsonResponse);
+  rpc PlaceGeoNFT(NftJsonRequest) returns (JsonResponse);
+  rpc MintAndPlaceGeoNFT(NftJsonRequest) returns (JsonResponse);
+  rpc RemintNft(NftJsonRequest) returns (JsonResponse);
+  rpc ImportWeb3NFT(NftJsonRequest) returns (JsonResponse);
+  rpc ImportWeb4NFTFromFile(ImportNftFromFileRequest) returns (JsonResponse);
+  rpc ImportWeb4NFT(ImportNftByAvatarRequest) returns (JsonResponse);
+  rpc ExportWeb4NFTToFile(ExportNftRequest) returns (JsonResponse);
+  rpc ExportWeb4NFT(ExportNftObjectRequest) returns (JsonResponse);
+  rpc LoadWeb3NftById(NftByIdRequest) returns (JsonResponse);
+  rpc LoadWeb3NftByHash(NftByHashRequest) returns (JsonResponse);
+  rpc LoadAllWeb3NFTsForAvatar(NftByAvatarRequest) returns (JsonResponse);
+  rpc LoadAllWeb3NFTsForMintAddress(NftByAddressRequest) returns (JsonResponse);
+  rpc LoadAllWeb3NFTs(NftEmptyRequest) returns (JsonResponse);
+  rpc CreateWeb4NFTCollection(NftJsonRequest) returns (JsonResponse);
+  rpc SearchWeb4NFTs(SearchNftRequest) returns (JsonResponse);
+  rpc SearchWeb4GeoNFTs(SearchNftRequest) returns (JsonResponse);
+  rpc SearchWeb4NFTCollections(SearchNftRequest) returns (JsonResponse);
+}
+
+message NftEmptyRequest {}
+message NftByIdRequest { string id = 1; string provider_type = 2; }
+message NftByHashRequest { string hash = 1; string provider_type = 2; }
+message NftByAvatarRequest { string avatar_id = 1; string provider_type = 2; }
+message NftByAddressRequest { string mint_wallet_address = 1; string provider_type = 2; }
+message NftJsonRequest { string json = 1; string provider_type = 2; }
+message ImportNftFromFileRequest { string imported_by_avatar_id = 1; string file_path = 2; string provider_type = 3; }
+message ImportNftByAvatarRequest { string imported_by_avatar_id = 1; string json = 2; string provider_type = 3; }
+message ExportNftRequest { string nft_id = 1; string export_path = 2; string provider_type = 3; }
+message ExportNftObjectRequest { string json = 1; string export_path = 2; string provider_type = 3; }
+message SearchNftRequest { string search_term = 1; string avatar_id = 2; bool search_only_current_avatar = 3; string provider_type = 4; }

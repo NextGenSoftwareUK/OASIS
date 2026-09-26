@@ -4,6 +4,17 @@
 
 The DNA system is the core mechanism that enables STARNETHolons to be linked together as dependencies. This system allows for unlimited combinations of STARNETHolons, creating unique and complex applications, games, and experiences.
 
+## ⚠️ **Updating OASISDNA.json**
+
+Whenever you need to update the `OASISDNA.json` file, you must remember to update it in **two places**:
+
+- `NextGenSoftware.OASIS.API.ONODE.WebAPI`
+- `NextGenSoftware.OASIS.STAR`
+
+If you add a new section or item to the OASISDNA file, also remember to add it to the **`OASISDNA.cs`** file so the C# model stays in sync.
+
+---
+
 ## 🧬 **DNA System Architecture**
 
 ### **Core Concept**

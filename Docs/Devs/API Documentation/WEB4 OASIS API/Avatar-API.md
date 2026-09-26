@@ -3,6 +3,7 @@
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)
+- [Controller Structure](#controller-structure)
 - [Avatar Management](#avatar-management)
 - [Avatar Operations](#avatar-operations)
 - [Avatar Analytics](#avatar-analytics)
@@ -12,6 +13,18 @@
 ## Overview
 
 The Avatar API provides comprehensive avatar management services for the OASIS ecosystem. It handles avatar creation, customization, management, and analytics with support for multiple avatar types, real-time updates, and advanced security features.
+
+## Controller Structure
+
+The avatar API surface is split across three focused controllers, all mounted on `[Route("api/avatar")]` so the public URL contract is unchanged:
+
+| Controller | File | Responsibility |
+|---|---|---|
+| `AvatarAuthController` | `Controllers/AvatarAuthController.cs` | Registration, email verify, JWT auth, DID auth, token refresh/revoke, password reset |
+| `AvatarProfileController` | `Controllers/AvatarProfileController.cs` | Profile CRUD, portraits, karma, XP, quests, UMA, search, get-all/get-by-* |
+| `AvatarAdminController` | `Controllers/AvatarAdminController.cs` | Session management, inventory management |
+
+The legacy `AvatarController.cs` is retained as an archive with key-management code commented out for reference.
 
 ## Avatar Management
 

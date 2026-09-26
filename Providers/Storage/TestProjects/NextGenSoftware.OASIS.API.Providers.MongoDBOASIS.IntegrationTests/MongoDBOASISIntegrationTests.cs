@@ -1,138 +1,80 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
-using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests;
+
+[TestClass]
+public class MongoDBOASISIntegrationTests
 {
-    [TestClass]
-    public class MongoDBOASISIntegrationTests
+    private MongoDBOASIS _provider = null!;
+
+    [TestInitialize]
+    public void Setup()
     {
-        private MongoDBOASIS _provider;
+        _provider = new MongoDBOASIS(Require("MONGODBOASIS_CONNECTIONSTRING"), Require("MONGODBOASIS_DBNAME"));
+        var activated = _provider.ActivateProvider();
+        Assert.IsFalse(activated.IsError, activated.Message);
+        Assert.IsTrue(_provider.IsProviderActivated, "MongoDBOASIS did not remain activated.");
+    }
 
-        [TestInitialize]
-        public void Setup()
-        {
-            _provider = new MongoDBOASIS();
-        }
+    [TestMethod]
+    public async Task SaveAndLoadAvatar_RoundTrips()
+    {
+        var avatar = NewAvatar();
+        var saved = await _provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        var loaded = await _provider.LoadAvatarAsync(avatar.Id);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.IsNotNull(loaded.Result);
+        Assert.AreEqual(avatar.Username, loaded.Result.Username);
+        Assert.AreEqual(avatar.Email, loaded.Result.Email);
+    }
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
+    [TestMethod]
+    public async Task LoadAvatarByUsername_FindsSavedAvatar()
+    {
+        var avatar = NewAvatar();
+        var saved = await _provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        var loaded = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.IsNotNull(loaded.Result);
+        Assert.AreEqual(avatar.Id, loaded.Result.Id);
+    }
 
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
+    [TestMethod]
+    public async Task SaveAndLoadHolon_RoundTrips()
+    {
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS Mongo IT {Guid.NewGuid():N}", Description = "Portable loopback MongoDB integration round trip" };
+        var saved = await _provider.SaveHolonAsync(holon);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        var loaded = await _provider.LoadHolonAsync(holon.Id);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.IsNotNull(loaded.Result);
+        Assert.AreEqual(holon.Name, loaded.Result.Name);
+        Assert.AreEqual(holon.Description, loaded.Result.Description);
+        var deleted = await _provider.DeleteHolonAsync(holon.Id);
+        Assert.IsFalse(deleted.IsError, deleted.Message);
+    }
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
+    [TestCleanup]
+    public void Cleanup()
+    {
+        if (_provider?.IsProviderActivated == true)
+            _provider.DeActivateProvider();
+    }
 
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
-        {
-            // Arrange
-            var avatarId = Guid.NewGuid();
+    private static Avatar NewAvatar() => new()
+    {
+        Id = Guid.NewGuid(), Username = $"oasis-mongo-it-{Guid.NewGuid():N}",
+        Email = $"oasis-mongo-it-{Guid.NewGuid():N}@test.local", FirstName = "Mongo", LastName = "Integration"
+    };
 
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+    private static string Require(string name)
+    {
+        var value = Environment.GetEnvironmentVariable(name);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(value), $"{name} must identify a disposable loopback MongoDB instance.");
+        return value!;
     }
 }

@@ -35,13 +35,13 @@ namespace NextGenSoftware.OASIS.Common
         public int DeletedCount { get; set; }
         public bool HasAnyHolonsChanged { get; set; }
 
-        public List<string> InnerMessages = new List<string>();
-        public List<string> StackTraces = new List<string>();
+        public List<string> InnerMessages { get; set; } = new List<string>();
+        public List<string> StackTraces { get; set; } = new List<string>();
 
         [JsonIgnore]
         public Exception Exception { get; set; }
 
-        public Dictionary<string, string> MetaData = new Dictionary<string, string>();
+        public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>();
 
         public string ErrorCode { get; set; }
 

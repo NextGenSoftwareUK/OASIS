@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service WalletService {
+  rpc GetWalletsForAvatarById (GetWalletsForAvatarByIdRequest) returns (JsonResponse);
+  rpc GetWalletsForAvatarByUsername (GetWalletsForAvatarByUsernameRequest) returns (JsonResponse);
+  rpc GetWalletsForAvatarByEmail (GetWalletsForAvatarByEmailRequest) returns (JsonResponse);
+  rpc CreateWallet (CreateWalletRequest) returns (JsonResponse);
+  rpc CreateWalletByUsername (CreateWalletByUsernameRequest) returns (JsonResponse);
+  rpc CreateWalletByEmail (CreateWalletByEmailRequest) returns (JsonResponse);
+}
+
+message GetWalletsForAvatarByIdRequest { string avatar_id = 1; bool show_only_default = 2; }
+message GetWalletsForAvatarByUsernameRequest { string username = 1; bool show_only_default = 2; }
+message GetWalletsForAvatarByEmailRequest { string email = 1; }
+message CreateWalletRequest {
+  string avatar_id = 1;
+  string name = 2;
+  string description = 3;
+  string wallet_provider_type = 4;
+}
+message CreateWalletByUsernameRequest {
+  string username = 1;
+  string name = 2;
+  string description = 3;
+  string wallet_provider_type = 4;
+}
+message CreateWalletByEmailRequest {
+  string email = 1;
+  string name = 2;
+  string description = 3;
+  string wallet_provider_type = 4;
+}
+
+

@@ -1,0 +1,57 @@
+// OASIS Omniverse entity definitions for TrenchBroom / NetRadiant companion editors
+// Auto-generated — edit oasis_star_assets.json and re-run the generator to update.
+// Add this file path to your game config FGD list in TrenchBroom preferences.
+
+// ───────────────────────────────────────────────────────────
+// OASIS Portal — cross-game teleporter
+// ───────────────────────────────────────────────────────────
+@PointClass size(-8 -8 -8, 8 8 8) color(0 200 255) = oasis_portal : "OASIS cross-game teleporter"
+[
+    target_game(choices) : "Target OGame ID" : "ODOOM" =
+    [
+        "ODOOM"      : "ODOOM (Doom/Doom2)"
+        "OQUAKE"     : "OQUAKE (Quake)"
+        "OQUAKE2"    : "OQUAKE2 (Quake 2)"
+        "OQUAKE2-RTX": "OQUAKE2-RTX (Q2 RTX)"
+        "OQUAKE3"    : "OQUAKE3 (Quake 3)"
+        "ODOOM3"     : "ODOOM3 (Doom 3 classic)"
+        "ODOOM3-BFG" : "ODOOM3-BFG (Doom 3 BFG)"
+        "ODUKE3D"    : "ODUKE3D (Duke Nukem 3D)"
+        "ODUKE3D-RT" : "ODUKE3D-RT (Duke 3D RT)"
+        "OWOLF3D"    : "OWOLF3D (Wolfenstein 3D)"
+    ]
+    target_map(string)  : "Target map name (e.g. e1m1, map01, base1)" : ""
+    spawn_x(float)      : "Spawn X in target map" : 0
+    spawn_y(float)      : "Spawn Y in target map" : 0
+    spawn_z(float)      : "Spawn Z in target map" : 64
+    label(string)       : "Portal display label (shown in HUD)" : "Portal"
+    portal_id(string)   : "Unique portal ID (auto-set by OGEngine Editor)" : ""
+]
+
+// ───────────────────────────────────────────────────────────
+// OASIS Spawn — cross-game entity spawn point
+// ───────────────────────────────────────────────────────────
+@PointClass size(-16 -16 -16, 16 16 16) color(255 140 0) = oasis_spawn : "Cross-game entity spawn point"
+[
+    oasset_id(string)    : "OGAsset catalog ID (e.g. oasset_quake_shambler)" : ""
+    spawn_flags(integer) : "Native spawn flags for target game" : 0
+    respawn(choices)     : "Respawn on death?" : 0 =
+    [
+        0 : "No (one-time)"
+        1 : "Yes (respawn)"
+    ]
+]
+
+// ───────────────────────────────────────────────────────────
+// OASIS Quest Trigger — objective binding
+// ───────────────────────────────────────────────────────────
+@SolidClass = oasis_objective_trigger : "OASIS quest objective trigger brush"
+[
+    quest_id(string)     : "STAR API quest GUID" : ""
+    objective_id(string) : "STAR API objective GUID" : ""
+    trigger_once(choices): "Fire once only?" : 1 =
+    [
+        0 : "Every activation"
+        1 : "Once per session"
+    ]
+]

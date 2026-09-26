@@ -3,6 +3,7 @@
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)
+- [Known Issues & Fixes](#known-issues--fixes)
 - [Network Management](#network-management)
 - [Node Operations](#node-operations)
 - [Network Analytics](#network-analytics)
@@ -12,6 +13,48 @@
 ## Overview
 
 The ONET API provides comprehensive network management services for the OASIS ecosystem. It handles network operations, node management, routing, and analytics with support for multiple protocols, real-time updates, and advanced security features.
+
+## Known Issues & Fixes (all resolved as of 2026-09-15)
+
+### ONETProtocol sync-over-async deadlock (fixed)
+
+**File:** `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/ONET/ONETProtocol.cs`
+
+The `ONETProtocol` constructor previously called `Task.Run(InitializeAsync).GetAwaiter().GetResult()` which caused a deadlock in ASP.NET Core's synchronisation context — the network could silently fail to initialise on startup without throwing. The fix moves `await InitializeAsync()` to the top of `StartNetworkAsync()` where it runs properly async before the security and routing layers start.
+
+### ONETManager DNA init + cross-platform key export (fixed)
+
+**File:** `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/ONET/ONETManager.cs` — commit `4e538d9`
+
+Three bugs were masking each other in `InitializeAsync`:
+
+1. `_oasisdna` private field was never assigned from the constructor argument — only the base-class `OASISDNA` property was set, so keypair generation wrote `NodeId` to an object the caller didn't hold a reference to.
+2. `ExportECPrivateKey` (SEC1) throws `CryptographicException` on Windows CNG — replaced with `ExportPkcs8PrivateKey` which works cross-platform.
+3. `LoadOASISDNAAsync` was unconditionally called and silently replaced any injected DNA with the file on disk. Now the disk load only runs when no DNA was injected via the constructor.
+
+### ONETDiscovery public key bootstrap (fixed)
+
+**File:** `ONET/ONETDiscovery.cs` / `ONETDiscovery.Helpers.cs`
+
+`NodeInfo` now carries a `PublicKey` field. When peers are learned via peer-exchange, `OnPeerKeyDiscovered` fires so `ONETSecurity` can register the key immediately rather than waiting for a direct connection.
+
+### ONETRouting authenticated PING (fixed)
+
+**File:** `ONET/ONETRouting.cs` / `ONETProtocol.cs`
+
+`ONETRouting` exposes `BuildAuthenticatedPing` delegate; `ONETProtocol` wires it to send `ONET_PING <nodeId> <sig>\n`, so PINGs are signed and verifiable rather than anonymous.
+
+### ONETDiscovery Kademlia seeding (fixed)
+
+**File:** `ONET/ONETDiscovery.cs`
+
+`DiscoverAvailableNodesAsync` now calls `_kademliaTable?.AddNode` for each discovered peer, so the DHT routing table is populated as peers are found rather than requiring a separate seeding step.
+
+### ONETManager DataDirectory wiring (fixed)
+
+**File:** `ONET/ONETManager.cs`
+
+Constructor now reads `oasisdna.OASIS.DataDirectory` and passes it to `OASISHyperDrive` so HyperDrive storage is rooted at the configured directory rather than a hard-coded default.
 
 ## Network Management
 

@@ -29,6 +29,8 @@ All responses are wrapped in `OASISResult<T>`.
 - **Load Web4 NFT by ID**
   - `GET /api/nft/load-nft-by-id/{id}`
   - `GET /api/nft/load-nft-by-id/{id}/{providerType}/{setGlobally}`
+  - `GET /api/nft/load-geo-nft-by-id/{id}` — loads the typed WEB4 GeoNFT placement contract, including location and spawn rules
+  - `GET /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}`
 
 - **Load Web4 NFT by On-Chain Hash**
   - `GET /api/nft/load-nft-by-hash/{hash}`
@@ -131,6 +133,36 @@ All responses are wrapped in `OASISResult<T>`.
 - **Create Web4 NFT Collection**
   - `POST /api/nft/create-web4-nft-collection`
   - Body: `ICreateWeb4NFTCollectionRequest`
+
+- **Create Collection NFT** *(Solana/Metaplex on-chain)*
+  - `POST /api/nft/create-collection-nft`
+  - Auth: required
+  - Body:
+    ```json
+    {
+      "title": "My Collection",
+      "symbol": "MYCOL",
+      "metadataUri": "https://arweave.net/your-collection-metadata.json",
+      "initialSize": 0,
+      "onChainProvider": "SolanaOASIS"
+    }
+    ```
+  - Returns: `OASISResult<IWeb3NFTTransactionResponse>` — `Web3NFT.NFTTokenAddress` = collection mint address; `VerifyCollectionTransactionHash` = SetCollectionSize tx hash
+  - **Why:** Mints a Metaplex collection parent NFT with `collectionDetails` set. Required for the Helius DAS API (used by Phantom on mainnet) to group child NFTs under the Collections tab.
+
+- **Set Collection Size** *(Solana/Metaplex on-chain)*
+  - `POST /api/nft/set-collection-size`
+  - Auth: required
+  - Body:
+    ```json
+    {
+      "collectionMintAddress": "<collection-mint-pubkey>",
+      "size": 1,
+      "onChainProvider": "SolanaOASIS"
+    }
+    ```
+  - Returns: `OASISResult<string>` — the transaction signature
+  - **Why:** Sends Metaplex Token Metadata instruction 33 (`SetCollectionSize`) to add `collectionDetails` to an existing collection NFT that was minted without it. Without this, Helius DAS will not recognise it as a collection parent and Phantom will not show child NFTs under Collections.
 
 - **Search Web4 NFTs**
   - `GET /api/nft/search-web4-nfts/{searchTerm}/{avatarId}`
