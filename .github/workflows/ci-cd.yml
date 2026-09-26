@@ -258,7 +258,7 @@ jobs:
           # Object storage.
           - name: MinIO
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests
-            image: quay.io/minio/minio:latest
+            image: minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
             ports: 9000:9000
             wait: 9000
             docker_args: -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin
