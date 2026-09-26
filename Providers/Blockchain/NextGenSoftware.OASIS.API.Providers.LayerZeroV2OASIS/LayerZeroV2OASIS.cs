@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -23,23 +27,43 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
     public class LayerZeroV2OASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
     {
         private readonly HttpClient _http;
-        private readonly string _apiUrl;
+        private readonly string _scanApiUrl;
+        private readonly string _rpcUrl;
         private bool _isActivated;
 
-        public LayerZeroV2OASIS(string apiUrl = "https://api.layerzero.network/v2")
+        public LayerZeroV2OASIS(string scanApiUrl = "https://scan.layerzero.network/api", string rpcUrl = "")
         {
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://api.layerzero.network/v2";
-            _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
+            _scanApiUrl = scanApiUrl?.TrimEnd('/') ?? "https://scan.layerzero.network/api";
+            _rpcUrl = rpcUrl ?? "";
+            _http = new HttpClient { BaseAddress = new Uri(_scanApiUrl + "/") };
+            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "LayerZeroV2OASIS";
             ProviderDescription = "LayerZero V2 Cross-Chain Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LayerZeroV2OASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
         }
 
+        private async Task<T> GetAsync<T>(string path)
+        {
+            var response = await _http.GetAsync(path);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { if (_isActivated) { r.Result = true; r.Message = "LayerZeroV2OASIS already activated"; return r; } _isActivated = true; r.Result = true; r.Message = "LayerZeroV2OASIS activated successfully"; }
+            try
+            {
+                if (_isActivated) { r.Result = true; r.Message = "LayerZeroV2OASIS already activated"; return r; }
+                // Health check: hit scan API root
+                var response = await _http.GetAsync("messages?limit=1");
+                response.EnsureSuccessStatusCode();
+                _isActivated = true;
+                r.Result = true;
+                r.Message = "LayerZeroV2OASIS activated successfully — scan API reachable";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS activation failed: {ex.Message}", ex); }
             return r;
         }
@@ -52,13 +76,67 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
             return r;
         }
 
+        // LoadHolonAsync(string key): treat key as tx hash → GET /messages/tx/{key}
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                var json = await GetAsync<JObject>($"messages/tx/{Uri.EscapeDataString(key)}");
+                var holon = new Holon();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.LayerZeroV2OASIS] = key;
+                if (json != null)
+                {
+                    holon.Name = json["guid"]?.ToString() ?? key;
+                    if (holon.MetaData == null) holon.MetaData = new Dictionary<string, object>();
+                    holon.MetaData["layerzero_guid"] = json["guid"]?.ToString() ?? "";
+                    holon.MetaData["layerzero_status"] = json["status"]?.ToString() ?? "";
+                    holon.MetaData["layerzero_src_chain"] = json["srcChainId"]?.ToString() ?? "";
+                    holon.MetaData["layerzero_dst_chain"] = json["dstChainId"]?.ToString() ?? "";
+                    holon.MetaData["layerzero_tx_hash"] = key;
+                    holon.MetaData["layerzero_raw"] = json.ToString();
+                }
+                r.Result = holon;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS LoadHolonAsync(key) failed for key={key}: {ex.Message}", ex); }
+            return r;
+        }
+
+        // SaveHolonAsync: serialize holon to JSON payload, record as pending cross-chain message
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+                // Serialize the holon as a payload that would be sent cross-chain
+                var payload = JsonConvert.SerializeObject(new
+                {
+                    holonId = h.Id.ToString(),
+                    holonName = h.Name,
+                    holonType = h.HolonType.ToString(),
+                    createdAt = DateTime.UtcNow,
+                    data = h.MetaData
+                });
+                // Assign a pending provider key (a real send requires signer + EVM node)
+                var pendingKey = $"pending-lz-{h.Id}";
+                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.LayerZeroV2OASIS] = pendingKey;
+                if (h.MetaData == null) h.MetaData = new Dictionary<string, object>();
+                h.MetaData["layerzero_pending_payload"] = payload;
+                h.MetaData["layerzero_note"] = "Stored as LayerZero cross-chain payload — actual send() requires EVM signer";
+                r.Result = h;
+                r.Message = "Stored as LayerZero cross-chain payload";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS SaveHolonAsync failed: {ex.Message}", ex); }
+            return r;
+        }
+
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); try { if (h.Id == Guid.Empty) h.Id = Guid.NewGuid(); r.Result = h; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"LayerZeroV2OASIS SaveHolonAsync: {ex.Message}", ex); } return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
@@ -72,7 +150,6 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }

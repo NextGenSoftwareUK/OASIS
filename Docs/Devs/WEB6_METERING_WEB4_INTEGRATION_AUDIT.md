@@ -2,6 +2,16 @@
 
 Date: 2026-09-20
 
+## Implementation status
+
+The September 22 protocol revision extends the initial implementation with authenticated service ownership, a durable execution-start boundary, shared WEB5–WEB10 outboxes, immutable audit, expiry/recovery, provider receipt deduplication, administrative corrections, historical opening-balance migration and reconciliation. `authorize-request` is retired. The prior implementation did not provide all of these guarantees; its presence alone was not proof of production billing correctness.
+
+The canonical operating guide, policy table, failure semantics, deployment variables, and verification commands are in [WEB4_SUBSCRIPTION_USAGE_LEDGER.md](WEB4_SUBSCRIPTION_USAGE_LEDGER.md).
+
+The [operations runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md) distinguishes automated protocol tests from credential-dependent provider, Stripe and deployed-environment release gates. Missing provider receipt contracts must reject work before cost is incurred; unsupported adapters and unrun live tests must not be described as complete production coverage.
+
+The sections below preserve the original September 20 findings and target design for audit history. References there to the "current" compatibility counter and old usage manager describe that historical snapshot, not the active protocol.
+
 ## Decision
 
 WEB4 must own subscription entitlements, quota policy, usage authorization, durable usage events, aggregates, overages, and billing-facing totals for every OASIS API. WEB6 should retain only provider-specific measurement: extracting token counts and provider charges, estimating a charge when a provider supplies none, and reporting that measurement to WEB4.

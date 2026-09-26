@@ -170,10 +170,10 @@ try {
     }
 
     $questDefinitions = @(
-        @{ key='any-order'; name='Chromatic Canopy: Any Path'; description='Collect three unusual nature specimens in whichever order you choose.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'any') },
-        @{ key='in-order'; name='Celestial Garden: Follow the Sequence'; description='Collect Moonlit Reed, Prism Bloom and Verdant Starfruit in that exact order.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'ordered') },
-        @{ key='respawn-any-order'; name='Renewal Cycle: Living Echoes'; description='Collect three renewable specimens in any order and observe their distinct cooldown rules.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'respawn') },
-        @{ key='limits-in-order'; name='Custodians of Scarcity'; description='Follow the sequence through global precedence, unlimited global supply and an exclusive claim.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'limits') }
+        @{ key='any-order'; name='Chromatic Canopy: Any Path'; description='ANY-ORDER BASIC COLLECTION TEST: All three incomplete portals are visible and each objective completes independently. Aurora Fern, Cobalt Mushroom, and Ember Orchid are non-permanent, shareable placements with no global cap, a limit of 1 collection per player, and no cooldown. Each collection must complete only its matching objective and fire the objective-complete animation; the third completed objective also fires the quest-complete animation.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'any') },
+        @{ key='in-order'; name='Celestial Garden: Follow the Sequence'; description='IN-ORDER VISIBILITY AND LIMIT TEST: Only the current incomplete portal is visible. Objective 1 collects Moonlit Reed, a permanent/shareable spawn with a 30-second cooldown and limit 1 per player. Objective 2 collects Prism Bloom, a non-permanent exclusive placement allowing 2 collections to its claiming player. Objective 3 collects Verdant Starfruit, a shareable spawn whose finite global quantity of 5 takes precedence over its per-player quantity of 1. Each objective fires objective-complete; the final objective also fires quest-complete.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'ordered') },
+        @{ key='respawn-any-order'; name='Renewal Cycle: Living Echoes'; description='ANY-ORDER RESPAWN TEST: All three incomplete portals are visible and progress independently. Objective 1 collects Solar Lotus, a permanent/shareable unlimited spawn with immediate respawn. Objective 2 collects Tideglass Moss, a permanent/shareable unlimited spawn with a 20-second cooldown. Objective 3 collects Echo Seed, a non-permanent/shareable spawn with unlimited per-player quantity (-1) and a 10-second personal cooldown. Each objective fires objective-complete; the third completed objective also fires quest-complete.'; order=0; fixtures=@($fixtures | Where-Object quest -eq 'respawn') },
+        @{ key='limits-in-order'; name='Custodians of Scarcity'; description='IN-ORDER PRECEDENCE AND EXCLUSIVITY TEST: Only the current incomplete portal is visible. Objective 1 collects Crystal Thistle and proves finite global quantity 2 overrides per-player quantity 5. Objective 2 collects Obsidian Pod and proves unlimited global quantity (-1) overrides zero per-player quantity, with a 15-second cooldown. Objective 3 collects Silver Lichen, an exclusive/non-shareable placement allowing its claiming player 2 collections with a 5-second cooldown. Each objective fires objective-complete; the final objective also fires quest-complete.'; order=1; fixtures=@($fixtures | Where-Object quest -eq 'limits') }
     )
     $allQuests = @(Invoke-OasisApi $Web5BaseUrl 'quests/all-for-avatar/game')
     foreach ($definition in $questDefinitions) {
@@ -189,10 +189,16 @@ try {
         }
         if ($existing.Count -eq 1) {
             $persisted = Invoke-OasisApi $Web5BaseUrl "quests/$($existing[0].id)"
+            $requiresUpdate = $false
             if ([Guid]$persisted.createdByAvatarId -eq [Guid]::Empty) {
                 $persisted.createdByAvatarId = $avatar.id
-                $persisted = Invoke-OasisApi $Web5BaseUrl "quests/$($persisted.id)" 'Put' $persisted
+                $requiresUpdate = $true
             }
+            if ([string]$persisted.description -ne [string]$definition.description) {
+                $persisted.description = $definition.description
+                $requiresUpdate = $true
+            }
+            if ($requiresUpdate) { $persisted = Invoke-OasisApi $Web5BaseUrl "quests/$($persisted.id)" 'Put' $persisted }
             if ([string]$persisted.createdByAvatarId -ne [string]$avatar.id) { throw "Quest $($persisted.id) has the wrong creator." }
             Write-Host "Reusing quest $($definition.name) ($($persisted.id))"
             continue
@@ -217,6 +223,8 @@ try {
         if ($matches.Count -ne 1) { throw "Expected one visible '$($definition.name)' quest; found $($matches.Count)." }
         $expectedOrder = if ($definition.order -eq 0) { 'AnyOrder' } else { 'InOrder' }
         if ([string]$matches[0].objectiveCompletionOrder -ne $expectedOrder) { throw "$($definition.name) did not persist $expectedOrder." }
+        $verifiedQuest = Invoke-OasisApi $Web5BaseUrl "quests/$($matches[0].id)"
+        if ([string]$verifiedQuest.description -ne [string]$definition.description) { throw "$($definition.name) did not persist its exact rule description." }
     }
     $fixtureCount = @($manifest.fixtures | Where-Object { $_.key -in @($fixtures.key) }).Count
     if ($fixtureCount -ne $fixtures.Count) { throw "Expected $($fixtures.Count) fixture records; found $fixtureCount." }

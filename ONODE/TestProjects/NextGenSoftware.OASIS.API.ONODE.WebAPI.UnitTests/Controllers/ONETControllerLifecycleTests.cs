@@ -175,6 +175,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             public override Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
                 => Task.FromResult(new OASISResult<OASISDNA> { Result = new OASISDNA(), IsError = false });
 
+            public override Task<OASISResult<bool>> StartNetworkAsync()
+                => Task.FromResult(new OASISResult<bool>(true));
+
+            public override Task<OASISResult<bool>> StopNetworkAsync()
+                => Task.FromResult(new OASISResult<bool>(true));
+
             public override void RegisterNodePublicKey(string nodeId, string publicKey) { }
         }
     }

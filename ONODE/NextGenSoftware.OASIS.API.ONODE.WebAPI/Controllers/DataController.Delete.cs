@@ -43,6 +43,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
+            // Ownership check: load first, then verify creator or Wizard
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+            {
+                var existing = await HolonManager.LoadHolonAsync(request.Id);
+                if (existing == null || existing.IsError || existing.Result == null)
+                    return TestDataHelper.CreateErrorResponse<IHolon>("Holon not found.", null, System.Net.HttpStatusCode.NotFound);
+                if (existing.Result.CreatedByAvatarId != AvatarId)
+                    return TestDataHelper.CreateErrorResponse<IHolon>("Forbidden. You do not have permission to delete this holon.", null, System.Net.HttpStatusCode.Forbidden);
+            }
+
             OASISResult<IHolon> response = await HolonManager.DeleteHolonAsync(request.Id, AvatarId, request.SoftDelete);
             ResetOASISSettings(request, configResult);
 
