@@ -162,7 +162,7 @@ The HyperDrive is the intelligent multi-provider orchestration layer — it sits
 | Setting | Status | Description |
 |---|---|---|
 | `IsEnabled` | 🔧 (bypassed by Legacy mode) | Master switch for HyperDrive. |
-| `EnableHostedSync` | `false` | Enables the durable v2 sync API and ordered fan-out worker. When true, ONODE startup fails unless its default provider implements the authoritative sync store and durable fan-out contracts. |
+| `EnableHostedSync` | `false` | Enables the durable v2 sync API and hosted command/change-capture workers. When true, ONODE startup fails unless its default provider implements the authoritative sync contracts. The ordered provider fan-out worker runs only when `AutoReplicationEnabled` is also true. |
 | `EnableSyncHistoryCompaction` | `true` | Runs the hosted retention-watermark compactor when hosted sync is enabled. Startup fails if the authoritative provider lacks the maintenance contract. |
 | `SyncHistoryCompactionIntervalMinutes` | `60` | Interval between hosted change-feed compaction passes (1–10,080 minutes). |
 | `InactiveSyncDeviceRetentionDays` | `30` | Devices unseen for this period stop holding back compaction. Returning stale devices receive an authoritative snapshot before deltas resume. |
