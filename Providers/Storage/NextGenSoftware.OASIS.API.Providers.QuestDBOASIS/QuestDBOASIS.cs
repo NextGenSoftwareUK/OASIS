@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 {
@@ -84,8 +85,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             using var cmd = new NpgsqlCommand(
                 $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, now());",
                 conn);
-            cmd.Parameters.AddWithValue("id", id);
-            cmd.Parameters.AddWithValue("data", Ser(obj));
+            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
+            cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -93,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         {
             using var conn = OpenConnection();
             using var cmd = new NpgsqlCommand($"SELECT data FROM {table} WHERE id = @id LIMIT 1;", conn);
-            cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             using var reader = await cmd.ExecuteReaderAsync();
             if (!reader.Read()) return default;
             return Des<T>(reader.GetString(0));
@@ -104,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             using var conn = OpenConnection();
             var sql = $"SELECT data FROM {table}" + (whereClause != null ? $" WHERE {whereClause}" : "") + " LIMIT 1000;";
             using var cmd = new NpgsqlCommand(sql, conn);
-            if (paramName != null && paramValue != null) cmd.Parameters.AddWithValue(paramName, paramValue);
+            if (paramName != null && paramValue != null) cmd.Parameters.AddWithValue(paramName, NpgsqlDbType.Varchar, paramValue);
             using var reader = await cmd.ExecuteReaderAsync();
             var list = new List<T>();
             while (reader.Read())
@@ -119,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         {
             using var conn = OpenConnection();
             using var cmd = new NpgsqlCommand($"DELETE FROM {table} WHERE id = @id;", conn);
-            cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             await cmd.ExecuteNonQueryAsync();
         }
 
