@@ -131,7 +131,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     }
 
                     Guid avatarId = Guid.Parse(command["avatarId"].AsString);
+                    Guid entityId = Guid.Parse(command["entityId"].AsString);
                     Guid versionId = Guid.Parse(command["versionId"].AsString);
+                    string commandEntityType = command["entityType"].AsString;
                     string payload = JsonSerializer.Serialize(outcome);
                     string entityKey = AvatarEntityKey(avatarId, HyperDriveEntityTypes.CommandResult, operationId);
                     DateTime changedUtc = outcome.CompletedUtc;
@@ -155,6 +157,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             { "previousVersionId", Guid.Empty.ToString("D") }, { "payloadJson", payload },
                             { "changedUtc", changedUtc }
                         }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    if (outcome.Succeeded && !string.IsNullOrWhiteSpace(outcome.ResultJson))
+                    {
+                        using (JsonDocument.Parse(outcome.ResultJson)) { }
+                        string commandEntityKey = AvatarEntityKey(avatarId, commandEntityType, entityId);
+                        var commandEntity = await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection)
+                            .Find(session, Builders<BsonDocument>.Filter.Eq("_id", commandEntityKey))
+                            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+                        Guid previousVersionId = commandEntity == null
+                            ? Guid.Empty : Guid.Parse(commandEntity["versionId"].AsString);
+                        await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection).ReplaceOneAsync(session,
+                            Builders<BsonDocument>.Filter.Eq("_id", commandEntityKey), new BsonDocument
+                            {
+                                { "_id", commandEntityKey }, { "avatarId", avatarId.ToString("D") },
+                                { "audience", "avatar" }, { "entityType", commandEntityType },
+                                { "entityId", entityId.ToString("D") }, { "versionId", versionId.ToString("D") },
+                                { "isDeleted", false }, { "payloadJson", outcome.ResultJson }, { "changedUtc", changedUtc }
+                            }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
+                        long entitySequence = await NextChangeSequenceAsync(session, cancellationToken).ConfigureAwait(false);
+                        await Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection).InsertOneAsync(session,
+                            new BsonDocument
+                            {
+                                { "_id", entitySequence }, { "sequence", entitySequence },
+                                { "changeId", $"command-entity:{operationId:D}" },
+                                { "avatarId", avatarId.ToString("D") }, { "audience", "avatar" },
+                                { "entityType", commandEntityType }, { "entityId", entityId.ToString("D") },
+                                { "kind", (int)SyncOperationKind.Upsert }, { "versionId", versionId.ToString("D") },
+                                { "previousVersionId", previousVersionId.ToString("D") },
+                                { "payloadJson", outcome.ResultJson }, { "changedUtc", changedUtc }
+                            }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    }
                     var completed = await commands.UpdateOneAsync(session, leaseFilter,
                         Builders<BsonDocument>.Update.Set("status", "completed")
                             .Set("completedUtc", changedUtc).Set("leaseOwner", BsonNull.Value)

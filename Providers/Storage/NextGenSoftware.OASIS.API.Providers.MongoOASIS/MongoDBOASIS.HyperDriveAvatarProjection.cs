@@ -3,6 +3,7 @@ using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
+using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -59,6 +60,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         IsUsable = item.IsUsable,
                         IsTradeable = item.IsTradeable
                     }).ToArray()
+            };
+        }
+
+        internal static object CreateEdgeHolonProjection(Holon holon)
+        {
+            if (holon == null || holon.HolonId == Guid.Empty)
+                throw new ArgumentException("A persisted holon with its public OASIS identity is required.", nameof(holon));
+            if (holon.HolonType != NextGenSoftware.OASIS.API.Core.Enums.HolonType.InventoryItem)
+                return holon;
+
+            return new HyperDriveInventoryItemProjection
+            {
+                Id = holon.HolonId,
+                Name = holon.Name,
+                Description = holon.Description,
+                Quantity = 1
             };
         }
 
