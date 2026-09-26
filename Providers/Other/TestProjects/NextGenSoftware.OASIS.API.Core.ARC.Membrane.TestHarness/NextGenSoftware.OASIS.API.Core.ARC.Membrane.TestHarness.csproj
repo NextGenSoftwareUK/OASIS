@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core.ARC.Membrane\NextGenSoftware.OASIS.API.Core.ARC.Membrane.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Core.ARC.Membrane\NextGenSoftware.OASIS.API.Core.ARC.Membrane.csproj" />
   </ItemGroup>
 
 </Project>
