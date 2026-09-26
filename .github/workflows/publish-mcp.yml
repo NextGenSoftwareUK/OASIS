@@ -76,8 +76,8 @@ jobs:
         include:
           - { os: windows-latest, rid: win-x64, artifact: oasis-mcp-win-x64.exe }
           - { os: ubuntu-latest, rid: linux-x64, artifact: oasis-mcp-linux-x64 }
-          - { os: ubuntu-latest, rid: linux-arm64, artifact: oasis-mcp-linux-arm64 }
-          - { os: macos-latest, rid: osx-x64, artifact: oasis-mcp-osx-x64 }
+          - { os: ubuntu-24.04-arm, rid: linux-arm64, artifact: oasis-mcp-linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64, artifact: oasis-mcp-osx-x64 }
           - { os: macos-latest, rid: osx-arm64, artifact: oasis-mcp-osx-arm64 }
     steps:
       - name: Checkout the exact OASIS source graph
