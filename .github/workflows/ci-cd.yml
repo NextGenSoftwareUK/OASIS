@@ -78,18 +78,12 @@ jobs:
   # touching nothing, because each provider falls back to a localhost default that
   # is not listening - so a broken provider looks identical to a working one.
   #
-  # NON-BLOCKING FOR NOW (continue-on-error). These tests have never been run
-  # against a live backend, so the first runs are a survey, not a gate. Once a
-  # backend has gone green, move its name into the required list below and drop
-  # continue-on-error - at that point a regression in that provider fails the build.
-  #
   # Backends that need a paid account or a cloud endpoint (Algolia, Pinecone,
   # Zilliz, Snowflake, BigQuery, Redshift, Databricks, MotherDuck, Xata, Upstash,
   # LanceDB Cloud) are deliberately absent: there is nothing to stand up locally.
   provider-integration:
     name: Provider Integration (${{ matrix.backend.name }})
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
