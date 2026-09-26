@@ -2,6 +2,14 @@
 
 Status: canonical architecture and implementation tracker, based on the source tree as inspected on 2026-09-23.
 
+## HyperDrive execution modes and the unified V2 pipeline
+
+`OASIS.HyperDriveMode` remains the explicit compatibility boundary. `Legacy` keeps the established manager execution paths unchanged. `V2` uses the same `ProviderManager` enable flags and ordered provider lists for load balancing, failover, and replication, while avoiding request-time mutation of the global current provider.
+
+When hosted synchronization is disabled, successful V2 mutations replicate directly through the configured `AutoReplicationProviders` list, matching Legacy policy. When `OASISHyperDriveConfig.EnableHostedSync` is enabled, V2 defers mutation replication to the durable hosted pipeline: the authoritative provider persists the change, domain capture records it in the ordered outbox, and the fan-out worker selects compatible targets from the same `ProviderManager` replication list. Offline game commands enter that same ordered change and fan-out pipeline. This prevents ordinary manager writes and offline commands from running separate replication systems.
+
+The existing flags remain authoritative in V2: `AutoLoadBalanceEnabled` controls provider selection, `AutoFailOverEnabled` controls traversal of `AutoFailOverProviders`, and `AutoReplicationEnabled` controls both direct replication and durable hosted fan-out. Provider list order is preserved.
+
 ## OGEngineClient native boundary
 
 The native boundary is additive and versioned. `ogengine_configure_edge` accepts
