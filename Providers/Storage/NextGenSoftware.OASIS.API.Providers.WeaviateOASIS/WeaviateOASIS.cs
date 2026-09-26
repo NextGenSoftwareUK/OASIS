@@ -123,8 +123,12 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
 
         private async Task UpsertObjectAsync(string className, string id, Dictionary<string, object?> props)
         {
-            // Weaviate uses deterministic UUIDs for upsert; PUT /v1/objects/{class}/{id} creates or replaces
-            await WeaviatePutAsync($"/v1/objects/{className}/{id}", new { @class = className, id, properties = props });
+            var body = new { @class = className, id, properties = props };
+            var existing = await GetObjectAsync(className, id);
+            if (existing == null)
+                await WeaviatePostAsync("/v1/objects", body);
+            else
+                await WeaviatePutAsync($"/v1/objects/{className}/{id}", body);
         }
 
         private async Task<JsonElement?> GetObjectAsync(string className, string id)

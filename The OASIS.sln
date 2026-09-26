@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebAPI", "ONODE\NextGenSoftware.OASIS.API.ONode.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebAPI", "ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NextGenSoftware.Holochain.hApp.OurWorld.External.Partial", "NextGenSoftware.Holochain.hApp.OurWorld.External.Partial", "{B1CB8DBD-3775-40B9-A5AF-88E71EAC6BC1}"
 EndProject

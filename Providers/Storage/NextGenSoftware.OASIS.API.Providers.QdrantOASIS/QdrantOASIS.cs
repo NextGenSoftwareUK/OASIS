@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         private async Task UpsertPointAsync(string collection, string id, Dictionary<string, object?> payload)
         {
-            await QdrantPostAsync($"/collections/{collection}/points?wait=true", new
+            await QdrantPutAsync($"/collections/{collection}/points?wait=true", new
             {
                 points = new[] { new { id, vector = ZeroVector(), payload } }
             });
