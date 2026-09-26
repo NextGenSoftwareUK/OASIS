@@ -4,6 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj" />
+    <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj" />
   </ItemGroup>
 </Project>
