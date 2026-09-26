@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
             };
             var result = await _provider.SaveAvatarAsync(avatar);
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
+            Assert.IsFalse(result.IsError, result.Message);
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
             };
             var result = await _provider.SaveHolonAsync(holon);
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
+            Assert.IsFalse(result.IsError, result.Message);
         }
 
         [TestMethod]

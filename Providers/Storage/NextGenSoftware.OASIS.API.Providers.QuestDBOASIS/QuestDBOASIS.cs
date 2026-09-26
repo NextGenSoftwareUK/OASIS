@@ -75,6 +75,23 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                     $"CREATE TABLE IF NOT EXISTS {table} (id VARCHAR, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(id);",
                     conn);
                 await cmd.ExecuteNonQueryAsync();
+
+                // QuestDB applies DDL asynchronously. Activation is complete only
+                // when subsequent connections can address every provider table.
+                var readyAt = DateTime.UtcNow.AddSeconds(10);
+                while (true)
+                {
+                    try
+                    {
+                        using var readiness = new NpgsqlCommand($"SELECT count(*) FROM {table};", conn);
+                        await readiness.ExecuteScalarAsync();
+                        break;
+                    }
+                    catch (PostgresException) when (DateTime.UtcNow < readyAt)
+                    {
+                        await Task.Delay(100);
+                    }
+                }
             }
         }
 
