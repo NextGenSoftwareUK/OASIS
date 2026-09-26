@@ -104,7 +104,10 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                 conn);
             cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
-            cmd.Parameters.AddWithValue("ts", NpgsqlDbType.Timestamp, DateTime.UnixEpoch);
+            cmd.Parameters.AddWithValue(
+                "ts",
+                NpgsqlDbType.Timestamp,
+                DateTime.SpecifyKind(DateTime.UnixEpoch, DateTimeKind.Unspecified));
             await cmd.ExecuteNonQueryAsync();
         }
 
