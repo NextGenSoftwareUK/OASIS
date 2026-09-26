@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
@@ -44,13 +46,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
+        run: dotnet restore "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
 
       - name: Build
-        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-restore
+        run: dotnet build "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-restore
 
       - name: Run unit tests
-        run: dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-build --logger "trx;LogFileName=unit-results.trx" --results-directory TestResults
+        run: dotnet test "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-build --logger "trx;LogFileName=unit-results.trx" --results-directory TestResults
 
       - name: Upload unit test results
         uses: actions/upload-artifact@v4
@@ -68,6 +70,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
@@ -87,13 +91,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj"
+        run: dotnet restore "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj"
 
       - name: Build
-        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-restore
+        run: dotnet build "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-restore
 
       - name: Run integration tests
-        run: dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-build --logger "trx;LogFileName=integration-results.trx" --results-directory TestResults
+        run: dotnet test "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-build --logger "trx;LogFileName=integration-results.trx" --results-directory TestResults
 
       - name: Upload integration test results
         uses: actions/upload-artifact@v4
@@ -111,6 +115,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
@@ -130,13 +136,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
+        run: dotnet restore "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
 
       - name: Build
-        run: dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-restore
+        run: dotnet build "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-restore
 
       - name: Run WebAPI unit tests
-        run: dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-build --logger "trx;LogFileName=webapi-unit-results.trx" --results-directory TestResults
+        run: dotnet test "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-build --logger "trx;LogFileName=webapi-unit-results.trx" --results-directory TestResults
 
       - name: Upload WebAPI unit test results
         uses: actions/upload-artifact@v4
