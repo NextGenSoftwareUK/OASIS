@@ -34,6 +34,12 @@ jobs:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
@@ -258,7 +264,7 @@ jobs:
           # Object storage.
           - name: MinIO
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests
-            image: minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
+            image: ghcr.io/coollabsio/minio:RELEASE.2025-04-22T22-12-26Z
             ports: 9000:9000
             wait: 9000
             docker_args: -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin
