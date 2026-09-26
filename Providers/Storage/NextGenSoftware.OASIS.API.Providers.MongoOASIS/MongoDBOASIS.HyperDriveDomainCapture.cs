@@ -357,8 +357,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             using (var session = await Database.MongoClient.StartSessionAsync(cancellationToken: cancellationToken)
                 .ConfigureAwait(false))
             {
-                session.StartTransaction();
-                try
+                var transactionResult = await session.WithTransactionAsync(async (transactionSession,
+                    transactionCancellationToken) =>
                 {
                     string rejection = null;
                     if (holon == null || holon.HolonId == Guid.Empty)
@@ -385,18 +385,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     {
                         string sourceKey = holon?.Id ?? $"missing:{Guid.NewGuid():N}";
                         await Database.MongoDB.GetCollection<BsonDocument>(DomainCaptureDeadLettersCollection)
-                            .ReplaceOneAsync(session, Builders<BsonDocument>.Filter.Eq("_id", $"backfill:{sourceKey}"),
+                            .ReplaceOneAsync(transactionSession, Builders<BsonDocument>.Filter.Eq("_id", $"backfill:{sourceKey}"),
                                 new BsonDocument
                                 {
                                     { "_id", $"backfill:{sourceKey}" }, { "source", HolonCaptureId },
                                     { "sourceKey", sourceKey }, { "reason", rejection },
                                     { "capturedUtc", DateTime.UtcNow }
-                                }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
-                        await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
-                        result.Result = false;
-                        result.IsSaved = true;
-                        result.Message = "DOMAIN_CAPTURE_REJECTED";
-                        return result;
+                                }, new ReplaceOptions { IsUpsert = true }, transactionCancellationToken).ConfigureAwait(false);
+                        return false;
                     }
 
                     Guid versionId = holon.VersionId == Guid.Empty
@@ -405,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     string entityType = EntityTypeForHolon(holon);
                     string entityKey = AvatarEntityKey(avatarId, entityType, holon.HolonId);
                     await Database.MongoDB.GetCollection<BsonDocument>(SyncEntitiesCollection)
-                        .ReplaceOneAsync(session, Builders<BsonDocument>.Filter.Eq("_id", entityKey),
+                        .ReplaceOneAsync(transactionSession, Builders<BsonDocument>.Filter.Eq("_id", entityKey),
                             new BsonDocument
                             {
                                 { "_id", entityKey }, { "avatarId", avatarId.ToString("D") },
@@ -416,14 +412,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                                 { "isDeleted", holon.DeletedDate != DateTime.MinValue },
                                 { "payloadJson", payload == null ? BsonNull.Value : payload },
                                 { "changedUtc", holon.ModifiedDate == DateTime.MinValue ? holon.CreatedDate : holon.ModifiedDate }
-                            }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
+                            }, new ReplaceOptions { IsUpsert = true }, transactionCancellationToken).ConfigureAwait(false);
                     string changeId = $"backfill:{HolonCaptureId}:{holon.Id}";
                     var changes = Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection);
-                    if (!await changes.Find(session, Builders<BsonDocument>.Filter.Eq("changeId", changeId))
-                        .AnyAsync(cancellationToken).ConfigureAwait(false))
+                    if (!await changes.Find(transactionSession, Builders<BsonDocument>.Filter.Eq("changeId", changeId))
+                        .AnyAsync(transactionCancellationToken).ConfigureAwait(false))
                     {
-                        long sequence = await NextChangeSequenceAsync(session, cancellationToken).ConfigureAwait(false);
-                        await changes.InsertOneAsync(session, new BsonDocument
+                        long sequence = await NextChangeSequenceAsync(transactionSession, transactionCancellationToken).ConfigureAwait(false);
+                        await changes.InsertOneAsync(transactionSession, new BsonDocument
                             {
                                 { "_id", sequence }, { "sequence", sequence }, { "changeId", changeId },
                                 { "avatarId", avatarId.ToString("D") },
@@ -436,30 +432,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                                 { "previousVersionId", Guid.Empty.ToString("D") },
                                 { "payloadJson", payload == null ? BsonNull.Value : payload },
                                 { "changedUtc", holon.ModifiedDate == DateTime.MinValue ? holon.CreatedDate : holon.ModifiedDate }
-                            }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            }, cancellationToken: transactionCancellationToken).ConfigureAwait(false);
                     }
                     await Database.MongoDB.GetCollection<BsonDocument>(DomainCaptureIdentityCollection)
-                        .ReplaceOneAsync(session, Builders<BsonDocument>.Filter.Eq("_id", holon.Id),
+                        .ReplaceOneAsync(transactionSession, Builders<BsonDocument>.Filter.Eq("_id", holon.Id),
                             new BsonDocument
                             {
                                 { "_id", holon.Id }, { "avatarId", avatarId.ToString("D") },
                                 { "entityId", holon.HolonId.ToString("D") }, { "entityType", entityType },
                                 { "versionId", versionId.ToString("D") }
-                            }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
+                            }, new ReplaceOptions { IsUpsert = true }, transactionCancellationToken).ConfigureAwait(false);
                     await Database.MongoDB.GetCollection<BsonDocument>(DomainCaptureDeadLettersCollection)
-                        .DeleteOneAsync(session,
+                        .DeleteOneAsync(transactionSession,
                             Builders<BsonDocument>.Filter.Eq("_id", $"backfill:{holon.Id}"),
-                            new DeleteOptions(), cancellationToken).ConfigureAwait(false);
-                    await session.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
-                    result.Result = true;
-                    result.IsSaved = true;
-                }
-                catch
-                {
-                    if (session.IsInTransaction)
-                        await session.AbortTransactionAsync(cancellationToken).ConfigureAwait(false);
-                    throw;
-                }
+                            new DeleteOptions(), transactionCancellationToken).ConfigureAwait(false);
+                    return true;
+                }, cancellationToken: cancellationToken).ConfigureAwait(false);
+                result.Result = transactionResult;
+                result.IsSaved = true;
+                if (!transactionResult)
+                    result.Message = "DOMAIN_CAPTURE_REJECTED";
             }
             return result;
         }
