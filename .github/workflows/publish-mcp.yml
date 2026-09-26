@@ -81,7 +81,7 @@ jobs:
           - { os: macos-latest, rid: osx-arm64, artifact: oasis-mcp-osx-arm64 }
     steps:
       - name: Checkout the exact OASIS source graph
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
@@ -98,13 +98,13 @@ jobs:
           git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
           git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - name: Validate dependency pins
         working-directory: OASIS
         run: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
       - name: Publish single-file binary
@@ -126,7 +126,7 @@ jobs:
           cp "$src" "${{ matrix.artifact }}"
       - name: Smoke-test the packaged MCP protocol
         run: python OASIS/Scripts/test_mcp_release_binary.py "${{ matrix.artifact }}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
@@ -137,12 +137,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout the exact OASIS source graph
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
@@ -162,7 +162,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: binaries
           merge-multiple: true
@@ -188,7 +188,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout the exact OASIS source graph
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
@@ -203,7 +203,7 @@ jobs:
           git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
           git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
           git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
       - name: Pack MCP Server
@@ -234,12 +234,12 @@ jobs:
       id-token: write
     steps:
       - name: Checkout the exact WEB6 release source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
