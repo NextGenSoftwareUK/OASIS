@@ -13,10 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests
         private static readonly string connStr = Environment.GetEnvironmentVariable("CHROMA_URL") ?? "http://localhost:8000";
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             _provider = new ChromaOASIS(connStr);
-            _provider.ActivateProvider();
+            var result = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(result.IsError, result.Message);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         [TestMethod]

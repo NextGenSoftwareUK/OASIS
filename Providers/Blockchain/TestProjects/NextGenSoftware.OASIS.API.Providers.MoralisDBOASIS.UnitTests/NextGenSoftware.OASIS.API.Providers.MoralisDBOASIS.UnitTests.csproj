@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.MoralisOASIS\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.csproj" />
   </ItemGroup>
 
 </Project>

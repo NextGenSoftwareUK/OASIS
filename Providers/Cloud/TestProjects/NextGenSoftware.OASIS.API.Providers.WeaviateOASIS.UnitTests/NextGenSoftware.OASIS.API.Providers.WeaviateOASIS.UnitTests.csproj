@@ -13,6 +13,6 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj" />
+    <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS\NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj" />
   </ItemGroup>
 </Project>

@@ -32,7 +32,7 @@
 - Multiple bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj" />
   
     <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>

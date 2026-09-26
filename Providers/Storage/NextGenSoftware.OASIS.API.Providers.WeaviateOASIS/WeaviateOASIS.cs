@@ -69,6 +69,13 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var raw = await resp.Content.ReadAsStringAsync();
             if (!resp.IsSuccessStatusCode && resp.StatusCode != System.Net.HttpStatusCode.NotFound)
                 throw new Exception($"Weaviate GET {path} → {(int)resp.StatusCode}: {raw}");
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                using var notFound = JsonDocument.Parse("{}");
+                return notFound.RootElement.Clone();
+            }
+            if (string.IsNullOrWhiteSpace(raw))
+                throw new Exception($"Weaviate GET {path} returned an empty successful response.");
             using var doc = JsonDocument.Parse(raw);
             return doc.RootElement.Clone();
         }

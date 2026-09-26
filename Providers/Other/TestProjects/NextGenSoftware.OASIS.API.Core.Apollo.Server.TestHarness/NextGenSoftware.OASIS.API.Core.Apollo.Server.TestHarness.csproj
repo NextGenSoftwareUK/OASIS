@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj" />
   </ItemGroup>
 
 </Project>

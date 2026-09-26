@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" />
   </ItemGroup>
 
 </Project>

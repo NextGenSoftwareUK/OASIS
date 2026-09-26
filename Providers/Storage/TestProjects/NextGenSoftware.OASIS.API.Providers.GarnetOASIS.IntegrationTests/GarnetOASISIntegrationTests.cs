@@ -13,10 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
         private static readonly string connStr = Environment.GetEnvironmentVariable("GARNET_CONN") ?? "localhost:3278";
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             _provider = new GarnetOASIS(connStr);
-            _provider.ActivateProvider();
+            var result = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(result.IsError, result.Message);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         [TestMethod]
