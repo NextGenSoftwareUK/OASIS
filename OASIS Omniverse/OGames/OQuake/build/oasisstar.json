@@ -1,4 +1,4 @@
-﻿{
+{
   "config_file": "json",
   "star_transport": "remote",
   "ogengine_url": "https://dev.api.starnet.oasisomniverse.one",
@@ -23,9 +23,6 @@
   "use_powerup_on_pickup": 0,
   "nft_provider": "SolanaOASIS",
   "send_to_address_after_minting": "",
-  "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY5Y2NmNWIyLTM5OTEtNDJlYy04MTU1LTY1Yjk0YjJlMGYwYyIsIm5iZiI6MTc3NTUyNDE3OSwiZXhwIjoxNzc1NTI1MDc5LCJpYXQiOjE3NzU1MjQxNzl9.-uYLIM_yO_RS0J3C6yFn5ZuzBeaAwqS5lzlKTF3z648",
-  "refresh_token": "7AD4671B89E4DF184A898FC30592F45A5C5A8BDD28AE3FEED15943D74DC6F3E256B12A14A235C835",
   "mint_monster_oquake_dog": 0,
   "mint_monster_oquake_zombie": 0,
   "mint_monster_oquake_fish": 0,
