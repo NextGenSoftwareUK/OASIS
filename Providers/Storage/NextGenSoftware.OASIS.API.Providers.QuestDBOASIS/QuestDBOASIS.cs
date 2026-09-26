@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
             {
                 using var cmd = new NpgsqlCommand(
-                    $"CREATE TABLE IF NOT EXISTS {table} (id VARCHAR, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(id);",
+                    $"CREATE TABLE IF NOT EXISTS {table} (id SYMBOL, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id);",
                     conn);
                 await cmd.ExecuteNonQueryAsync();
 
@@ -98,12 +98,13 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         private async Task UpsertAsync(string table, string id, object obj)
         {
             using var conn = OpenConnection();
-            // QuestDB WAL DEDUP: INSERT is idempotent when UPSERT KEYS(id) is set
+            // QuestDB WAL DEDUP: a stable timestamp and id form the table's upsert key.
             using var cmd = new NpgsqlCommand(
-                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, now());",
+                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, @ts);",
                 conn);
             cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
+            cmd.Parameters.AddWithValue("ts", NpgsqlDbType.Timestamp, DateTime.UnixEpoch);
             await cmd.ExecuteNonQueryAsync();
         }
 
