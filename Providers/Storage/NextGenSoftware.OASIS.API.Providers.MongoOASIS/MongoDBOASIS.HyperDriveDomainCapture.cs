@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.Common;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
@@ -20,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private const string DomainCaptureIdentityCollection = "HyperDriveDomainCaptureIdentity";
         private const string DomainCaptureDeadLettersCollection = "HyperDriveDomainCaptureDeadLetters";
         private const string DomainCaptureLeasesCollection = "HyperDriveDomainCaptureLeases";
-        private const string HolonCaptureId = "holon-v3";
+        private const string HolonCaptureId = "holon-v4";
         private readonly string _domainCaptureWorkerId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
 
         private async Task<OASISResult<HostedDomainBackfillResult>> BackfillHolonDomainStateAsync(
@@ -72,6 +73,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         "Another process owns the domain-backfill lease.", null);
                     return result;
                 }
+                await NormalizeLegacyInventoryPayloadsAsync(SyncEntitiesCollection, cancellationToken)
+                    .ConfigureAwait(false);
+                await NormalizeLegacyInventoryPayloadsAsync(SyncChangesCollection, cancellationToken)
+                    .ConfigureAwait(false);
                 var hello = await Database.MongoClient.GetDatabase("admin")
                     .RunCommandAsync<BsonDocument>(new BsonDocument("hello", 1), cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
@@ -163,6 +168,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     "Existing OASIS domain state was not prepared for hosted capture.", ex);
             }
             return result;
+        }
+
+        private async Task NormalizeLegacyInventoryPayloadsAsync(string collectionName,
+            CancellationToken cancellationToken)
+        {
+            var collection = Database.MongoDB.GetCollection<BsonDocument>(collectionName);
+            var filter = Builders<BsonDocument>.Filter.Eq("entityType", HyperDriveEntityTypes.InventoryItem) &
+                Builders<BsonDocument>.Filter.Type("payloadJson", BsonType.String);
+            var documents = await collection.Find(filter).ToListAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var document in documents)
+            {
+                var payload = BsonDocument.Parse(document["payloadJson"].AsString);
+                if (!payload.TryGetValue(nameof(HyperDriveInventoryItemProjection.ItemType), out var itemType) ||
+                    !itemType.IsString)
+                    continue;
+                if (!Enum.TryParse(itemType.AsString, true, out InventoryItemType parsed) ||
+                    !Enum.IsDefined(typeof(InventoryItemType), parsed))
+                    throw new InvalidOperationException(
+                        $"Inventory sync payload '{document["_id"]}' contains unknown item type '{itemType.AsString}'.");
+                payload[nameof(HyperDriveInventoryItemProjection.ItemType)] = (int)parsed;
+                await collection.UpdateOneAsync(Builders<BsonDocument>.Filter.Eq("_id", document["_id"]),
+                    Builders<BsonDocument>.Update.Set("payloadJson", payload.ToJson()),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task<OASISResult<HostedDomainChangeCaptureResult>> CaptureNextHolonDomainChangesAsync(
