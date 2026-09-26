@@ -23,12 +23,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
     /// OASIS provider for QuestDB — high-performance time-series database via PostgreSQL wire protocol.
     ///
     /// Tables: oasis_avatars, oasis_avatar_details, oasis_holons
-    /// Schema: id (VARCHAR PK), data (VARCHAR JSON blob), created_at TIMESTAMP
-    /// Upsert:  INSERT INTO ... ON CONFLICT(id) DO UPDATE SET data = EXCLUDED.data
-    ///          QuestDB uses partitioned tables; deduplication is via DEDUP ON (id)
-    ///          We use a simple approach: DELETE + INSERT for upsert semantics.
-    /// Note:    QuestDB does not support UPDATE/DELETE in all modes; WAL mode supports it.
-    ///          This provider targets WAL mode QuestDB 7+.
+    /// Schema: id (SYMBOL), data (VARCHAR JSON blob), ts (designated TIMESTAMP)
+    /// Upsert:  WAL deduplication uses the stable (ts, id) key required by QuestDB.
+    ///          A native QuestDB timestamp expression avoids PostgreSQL timezone semantics.
     /// </summary>
     public class QuestDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
@@ -100,14 +97,10 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             using var conn = OpenConnection();
             // QuestDB WAL DEDUP: a stable timestamp and id form the table's upsert key.
             using var cmd = new NpgsqlCommand(
-                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, @ts);",
+                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, to_timestamp(0));",
                 conn);
             cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
-            cmd.Parameters.AddWithValue(
-                "ts",
-                NpgsqlDbType.Timestamp,
-                DateTime.SpecifyKind(DateTime.UnixEpoch, DateTimeKind.Unspecified));
             await cmd.ExecuteNonQueryAsync();
         }
 
