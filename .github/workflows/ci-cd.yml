@@ -368,11 +368,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [
-          'NextGenSoftware.OASIS.API.ONODE.Core',
-          'NextGenSoftware.OASIS.API.ONODE.WebAPI',
-          'NextGenSoftware.OASIS.API.ONODE.OPORTAL'
-        ]
+        include:
+          - project: NextGenSoftware.OASIS.API.ONODE.Core
+            test: TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj
+          - project: NextGenSoftware.OASIS.API.ONODE.WebAPI
+            test: TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.API.ONODE.OPORTAL
+            test: ''
     
     steps:
     - name: Checkout OASIS
@@ -410,7 +412,8 @@ jobs:
       run: dotnet build "OASIS/ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "OASIS/ONODE/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      if: matrix.test != ''
+      run: dotnet test "OASIS/ONODE/${{ matrix.test }}" --configuration Release --verbosity normal
 
   # Build and Test STAR ODK Projects
   test-star-odk:
@@ -418,14 +421,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [
-          'NextGenSoftware.OASIS.STAR',
-          'NextGenSoftware.OASIS.STAR.CLI',
-          'NextGenSoftware.OASIS.STAR.CLI.Lib',
-          'NextGenSoftware.OASIS.STAR.STARDNA',
-          'NextGenSoftware.OASIS.STAR.WebAPI',
-          'NextGenSoftware.OASIS.STAR.WebUI'
-        ]
+        include:
+          - project: NextGenSoftware.OASIS.STAR
+            test: NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.CLI
+            test: NextGenSoftware.OASIS.STAR.CLI.UnitTests/NextGenSoftware.OASIS.STAR.CLI.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.CLI.Lib
+            test: NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.STARDNA
+            test: NextGenSoftware.OASIS.STAR.STARDNA.UnitTests/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.WebAPI
+            test: NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.WebUI
+            test: ''
     
     steps:
     - name: Checkout OASIS
@@ -463,7 +471,8 @@ jobs:
       run: dotnet build "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "OASIS/STAR ODK/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      if: matrix.test != ''
+      run: dotnet test "OASIS/STAR ODK/${{ matrix.test }}" --configuration Release --verbosity normal
 
   # Integration Tests
   integration-tests:
@@ -681,7 +690,8 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore
+      working-directory: OASIS
+      run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Security scan
       working-directory: OASIS
