@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -55,43 +56,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public async Task AuthorizeRequest_ForwardsAuthenticatedAvatarAndNormalizedService()
+        public void AuthorizeRequest_ReturnsGoneWithoutCallingSubscriptionService()
         {
-            var userId = Guid.NewGuid();
-            SetAuthenticatedUser(userId);
-            _svc.Setup(s => s.AuthorizeAndIncrementRequestAsync(userId.ToString(), "WEB6"))
-                .ReturnsAsync(new SubscriptionAuthorizationDecision
-                {
-                    Allowed = true,
-                    StatusCode = 200,
-                    PlanId = "enterprise",
-                    Limit = -1,
-                    Remaining = -1
-                });
-
-            var result = await _ctrl.AuthorizeRequest(new AuthorizeSubscriptionRequest
-            {
-                ConsumingService = " web6 "
-            });
-
-            result.Should().BeOfType<OkObjectResult>();
-            _svc.Verify(s => s.AuthorizeAndIncrementRequestAsync(userId.ToString(), "WEB6"), Times.Once);
+            var result = _ctrl.AuthorizeRequest(new AuthorizeSubscriptionRequest { ConsumingService = "WEB6" });
+            result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(410);
+            _svc.VerifyNoOtherCalls();
         }
-
-        [Fact]
-        public async Task AuthorizeRequest_RejectsUnknownConsumer()
-        {
-            SetAuthenticatedUser(Guid.NewGuid());
-
-            var result = await _ctrl.AuthorizeRequest(new AuthorizeSubscriptionRequest
-            {
-                ConsumingService = "OTHER"
-            });
-
-            result.Should().BeOfType<BadRequestObjectResult>();
-            _svc.Verify(s => s.AuthorizeAndIncrementRequestAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
         // ── POST /api/subscription/checkout/session ──────────────────────────
 
         [Fact]
@@ -349,6 +319,85 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             result!.StatusCode.Should().Be(400);
         }
 
+        [Fact]
+        public async Task StripeWebhook_TestTokenCannotBypassRealSignatureVerification()
+        {
+            string previous = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_TEST_TOKEN");
+            Environment.SetEnvironmentVariable("STRIPE_WEBHOOK_TEST_TOKEN", "obsolete-token");
+            try
+            {
+                var controller = new SubscriptionController(new ConfigurationBuilder().AddInMemoryCollection(
+                    new Dictionary<string, string> { ["STRIPE_WEBHOOK_SECRET"] = "whsec_test" }).Build(), _svc.Object);
+                var context = new DefaultHttpContext();
+                context.Request.Headers["X-Webhook-Test-Token"] = "obsolete-token";
+                context.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes("{\"id\":\"evt_forged\",\"type\":\"checkout.session.completed\"}"));
+                controller.ControllerContext = new ControllerContext { HttpContext = context };
+                (await controller.StripeWebhook()).Should().BeOfType<BadRequestObjectResult>();
+                _svc.VerifyNoOtherCalls();
+            }
+            finally { Environment.SetEnvironmentVariable("STRIPE_WEBHOOK_TEST_TOKEN", previous); }
+        }
+
+        [Fact]
+        public async Task StripeWebhook_InvalidSignatureNeverUsesRawJsonPayload()
+        {
+            var controller = new SubscriptionController(new ConfigurationBuilder().AddInMemoryCollection(
+                new Dictionary<string, string> { ["STRIPE_WEBHOOK_SECRET"] = "whsec_test" }).Build(), _svc.Object);
+            var context = new DefaultHttpContext();
+            context.Request.Headers["Stripe-Signature"] = "t=1234567890,v1=forged";
+            context.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes("{\"id\":\"evt_forged\",\"type\":\"checkout.session.completed\"}"));
+            controller.ControllerContext = new ControllerContext { HttpContext = context };
+            (await controller.StripeWebhook()).Should().BeOfType<BadRequestObjectResult>();
+            _svc.VerifyNoOtherCalls();
+        }
+        [Fact]
+        public async Task PaidCheckoutCannotUseRequestSuppliedAvatarIdentity()
+        {
+            var controller = new SubscriptionController(new ConfigurationBuilder().AddInMemoryCollection(
+                new Dictionary<string, string> { ["STRIPE_SECRET_KEY"] = "sk_test_unused" }).Build(), _svc.Object);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            var result = await controller.CreateCheckoutSession(new SubscriptionController.CreateCheckoutSessionRequest {
+                PlanId = "bronze", AvatarId = Guid.NewGuid().ToString() });
+            result.Should().BeOfType<UnauthorizedObjectResult>();
+            _svc.VerifyNoOtherCalls();
+        }
+        [Theory]
+        [InlineData("invoice.paid", "price_bronze", "bronze")]
+        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze")]
+        [InlineData("invoice.paid", "price_retired", null)]
+        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan)
+        {
+            string user = Guid.NewGuid().ToString();
+            _svc.Setup(x => x.GetSubscriptionByStripeSubscriptionIdAsync("sub_current"))
+                .ReturnsAsync(new SubscriptionRecord { UserId = user, PlanId = "silver", Status = "active" });
+            var billing = new Mock<ISubscriptionBillingRepository>();
+            OrderRecord captured = null;
+            billing.Setup(x => x.ApplyStripeEventAsync(It.IsAny<string>(), It.IsAny<string>(), user, It.IsAny<DateTime>(),
+                It.IsAny<Func<CancellationToken, Task<SubscriptionRecord>>>(), It.IsAny<OrderRecord>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, DateTime, Func<CancellationToken, Task<SubscriptionRecord>>, OrderRecord, CancellationToken>(
+                    (_, _, _, _, _, order, _) => captured = order).ReturnsAsync(true);
+            var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string> {
+                ["STRIPE_WEBHOOK_SECRET"] = "whsec_test", ["STRIPE_PRICE_BRONZE"] = "price_bronze", ["STRIPE_PRICE_SILVER"] = "price_silver"
+            }).Build();
+            var controller = new SubscriptionController(config, _svc.Object, billingRepository: billing.Object);
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            string body = System.Text.Json.JsonSerializer.Serialize(new {
+                id = "evt_invoice_paid", @object = "event", type = eventType, created = timestamp, api_version = "2025-02-24.acacia",
+                request = new { id = "req_paid_invoice", idempotency_key = (string)null },
+                data = new { @object = new { id = "in_actual", @object = "invoice", subscription = "sub_current", paid = true,
+                    status = "paid", currency = "usd", amount_paid = 1234, created = timestamp,
+                    lines = new { @object = "list", data = new[] { new { id = "il_one", @object = "line_item", price = new { id = invoicePrice, @object = "price" } } } } } }
+            });
+            using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes("whsec_test"));
+            string signature = Convert.ToHexStringLower(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(timestamp + "." + body)));
+            var context = new DefaultHttpContext();
+            context.Request.Headers["Stripe-Signature"] = $"t={timestamp},v1={signature}";
+            context.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
+            controller.ControllerContext = new ControllerContext { HttpContext = context };
+            (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>();
+            captured.Should().NotBeNull(); captured.PlanId.Should().Be(expectedPlan);
+            captured.Amount.Should().Be(12.34m); captured.StripeInvoiceId.Should().Be("in_actual");
+        }
         // ── Helpers ──────────────────────────────────────────────────────────
 
         private void SetUnauthenticated()
@@ -363,6 +412,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
 
             var httpCtx = new DefaultHttpContext();
             httpCtx.Items["Avatar"] = avatarMock.Object;
+            httpCtx.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[] { new System.Security.Claims.Claim("sub", userId.ToString()) }, "Bearer"));
             _ctrl.ControllerContext = new ControllerContext { HttpContext = httpCtx };
         }
     }

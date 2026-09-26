@@ -12,11 +12,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         private bool _isRegisterGuidBsonSerializer = false;
         private bool _isRegisterMetaDataSerializer = false;
         private bool _isRegisterSTARNETDNADiscriminator = false;
-        private static SerializerRegister _register;
+        private static readonly SerializerRegister _register = new SerializerRegister();
+        private static readonly object _registrationLock = new object();
 
         public static SerializerRegister GetInstance()
         {
-            return _register ??= new SerializerRegister();
+            return _register;
         }
 
         public SerializerRegister()
@@ -29,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         public void RegisterGuidBsonSerializer()
         {
             if (_isRegisterGuidBsonSerializer) return;
-            BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
+            BsonSerializer.TryRegisterSerializer(new GuidSerializer(BsonType.String));
             _isRegisterGuidBsonSerializer = true;
         }
 
@@ -38,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
             if (_isRegisterMetaDataSerializer) return;
             
             // Register custom serializer for Dictionary<string, object> to handle JsonElement deserialization
-            BsonSerializer.RegisterSerializer(typeof(Dictionary<string, object>), new MetaDataDictionarySerializer());
+            BsonSerializer.TryRegisterSerializer(typeof(Dictionary<string, object>), new MetaDataDictionarySerializer());
             
             _isRegisterMetaDataSerializer = true;
         }
@@ -52,16 +53,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         {
             if (_isRegisterSTARNETDNADiscriminator) return;
 
-            if (!BsonClassMap.IsClassMapRegistered(typeof(STARNETDNA)))
+            lock (_registrationLock)
             {
-                BsonClassMap.RegisterClassMap<STARNETDNA>(cm =>
+                if (!BsonClassMap.IsClassMapRegistered(typeof(STARNETDNA)))
                 {
-                    cm.SetDiscriminator("STARNETDNA");
-                    cm.AutoMap();
-                });
-            }
+                    BsonClassMap.RegisterClassMap<STARNETDNA>(cm =>
+                    {
+                        cm.SetDiscriminator("STARNETDNA");
+                        cm.AutoMap();
+                    });
+                }
 
-            _isRegisterSTARNETDNADiscriminator = true;
+                _isRegisterSTARNETDNADiscriminator = true;
+            }
         }
     }
 }

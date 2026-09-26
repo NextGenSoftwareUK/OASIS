@@ -157,11 +157,15 @@ Complete documentation for every setting in `OASIS_DNA.json`. Status column indi
 
 The HyperDrive is the intelligent multi-provider orchestration layer — it sits above the raw `StorageProviders` config and applies scoring-based provider selection.
 
-> **Note:** `HyperDriveMode` is set to `"Legacy"` at the top level, which means HyperDrive is bypassed and the older `StorageProviders` auto-failover/load-balance logic is used instead. All settings below are read but not actively applied until `HyperDriveMode` is changed to `"HyperDrive"`.
+> **Note:** `HyperDriveMode` defaults to `"Legacy"`, which uses the older manager-specific provider paths. The only other valid value is `"OASISHyperDrive2"`. DNA loading rejects unknown values instead of silently selecting a different runtime.
 
 | Setting | Status | Description |
 |---|---|---|
 | `IsEnabled` | 🔧 (bypassed by Legacy mode) | Master switch for HyperDrive. |
+| `EnableHostedSync` | `false` | Enables the durable v2 sync API and hosted command/change-capture workers. When true, ONODE startup fails unless its default provider implements the authoritative sync contracts. The ordered provider fan-out worker runs only when `AutoReplicationEnabled` is also true. |
+| `EnableSyncHistoryCompaction` | `true` | Runs the hosted retention-watermark compactor when hosted sync is enabled. Startup fails if the authoritative provider lacks the maintenance contract. |
+| `SyncHistoryCompactionIntervalMinutes` | `60` | Interval between hosted change-feed compaction passes (1–10,080 minutes). |
+| `InactiveSyncDeviceRetentionDays` | `30` | Devices unseen for this period stop holding back compaction. Returning stale devices receive an authoritative snapshot before deltas resume. |
 | `DefaultStrategy` | `Auto` | How to pick a provider: `Auto`, `Performance`, `Cost`, `Geographic`, `RoundRobin`. |
 | `AutoFailoverEnabled` | `true` | HyperDrive-level failover (separate from StorageProviders failover). |
 | `AutoReplicationEnabled` | `true` | HyperDrive-level replication. |
@@ -196,7 +200,7 @@ The HyperDrive is the intelligent multi-provider orchestration layer — it sits
 | Value | Effect |
 |---|---|
 | `"Legacy"` | **Current setting.** Uses the StorageProviders auto-failover/load-balance logic. HyperDrive config above is ignored. |
-| `"HyperDrive"` | Activates the full intelligent provider orchestration above. |
+| `"OASISHyperDrive2"` | Activates the v2 direct-provider routing pipeline. Keep this opt-in until the migration and release gates in `OASIS_EDGE_RUNTIME_OFFLINE_SYNC_ARCHITECTURE.md` pass. |
 
 ---
 
@@ -249,10 +253,11 @@ Controls billing tiers, quotas, and payment integration for OPORTAL subscribers.
 
 | Setting | Current Value | Status | Description |
 |---|---|---|---|
+| `EnforceLocalQuota` | `false` | ✅ | Explicit opt-in for the legacy node-local HyperDrive counter. Leave false for hosted APIs, which must use authenticated subscription authority; the local counter has no avatar/subscription identity and must not be used as a shared hosted quota. |
 | `PlanType` | `null` | ✅ | The active plan for this node/instance. Null = Free. Set dynamically per avatar by the SubscriptionService. |
 | `MaxReplicationsPerMonth` | `100` | ✅ | How many cross-provider replications the free plan allows per month. |
 | `MaxFailoversPerMonth` | `10` | ✅ | Free plan failover cap. |
-| `MaxRequestsPerMonth` | `1000` | ✅ | Free plan API call limit per month. Enforced by `SubscriptionMiddleware`. |
+| `MaxRequestsPerMonth` | `1000` | ✅ | Request limit used only when `EnforceLocalQuota` is explicitly enabled. Hosted enforcement belongs to the authenticated subscription authority. |
 | `MaxStorageGB` | `1` | ✅ | Free plan HyperDrive storage cap (GB). |
 | `PayAsYouGoEnabled` | `false` | ✅ | When `true`, requests beyond plan quota are charged at overage rates instead of blocked. |
 | `CostPerReplication` | `0.0` | ⚠️ | Overage cost per replication (used when PayAsYouGo is on). Zero = not yet priced. |
@@ -336,13 +341,18 @@ ONET is the OASIS peer-to-peer network that allows ONODE instances to discover a
 | Setting | Current Value | Status | Description |
 |---|---|---|---|
 | `BootstrapServers` | `["https://dev.api.web4..."]` | ✅ | Known nodes used to bootstrap P2P discovery. Must point to live API in production. |
-| `NetworkType` | `Internal` | ✅ | `Internal` = trusted private network. `Public` = open P2P. |
+| `NetworkType` | `Internal` | ✅ | `Internal` uses the built-in Kademlia/mDNS/TCP transport; `HoloNET` uses the configured Holochain conductor. |
 | `NodeId` | `""` | ⚠️ | Unique identifier for this node. Empty = auto-generated at startup. Set explicitly for stable node identity. |
 | `NodePublicKey` | `""` | ⚠️ | This node's public key for P2P authentication. Empty = auto-generated. |
 | `NodePrivateKey` | `""` | ⚠️ | This node's private key. Empty = auto-generated. **If set, keep secret.** |
 | `TcpPort` | `38470` | ✅ | Port for direct node-to-node TCP connections. Must be open in firewall/Railway. |
 | `EnableMDNS` | `true` | ✅ | Local network discovery via mDNS (useful on LAN, no effect in Railway/cloud). |
 | `AutoRegisterOnBootstrap` | `true` | ✅ | Automatically announces this node to bootstrap servers on startup. |
+| `EnableHyperDriveSyncHost` | `false` | 🔧 | Hosts authenticated HyperDrive v3 synchronization over ONET. Enable only when the default provider implements the hosted sync and durable peer-binding contracts. |
+| `RemotelyAdvertisedProviderTypes` | `[]` | 🔒 | Explicit allow-list of `ProviderType` names eligible for signed ONET capability advertisements. A listed provider is emitted only while registered and activated, and is suppressed when HyperDrive measurements exceed the health error-rate policy; empty advertises no provider routing capability. |
+| `CapabilityRegistryNodeIds` | `[]` | 🔒 | Authenticated peer ONET node IDs from which a Full ONODE pulls independently signed capability leases. Empty disables server-to-server registry reconciliation. |
+| `CapabilityRegistryQuorum` | `1` | 🔒 | Minimum peer registries that must answer each reconciliation cycle. DNA loading rejects zero or a value larger than the configured peer set. |
+| `CapabilityRegistryReconciliationSeconds` | `30` | ✅ | Signed-lease reconciliation interval; values below five seconds are rejected. |
 
 ---
 
@@ -490,3 +500,14 @@ Checkout flow: `POST /v1/billing/checkout` → SubscriptionService creates a Str
 | 🟠 Low | `EnableFAHRN: false` and `EnableHolonicBraid: false` — powerful features ready but off |
 | 🟠 Low | `SettingsLookupHolonId` is all zeros — DNA-from-network feature not yet wired |
 | 🟠 Low | Ethereum/Arbitrum/Rootstock/Polygon all use shared test private keys — need separate mainnet keys before going live on those chains |
+### `OASIS.OfflineSessionGrants`
+
+Controls signed, device-bound authorization for Edge Runtime offline sessions. `Enabled` activates issuance;
+`AllowedScopes` is an explicit allow-list; `MaximumLifetimeMinutes` caps every request;
+`SigningPrivateKeyEnvironmentVariable` names the environment variable containing a base64 PKCS#8 ECDSA P-256
+private key; and `SigningPublicKey` is the matching base64 SubjectPublicKeyInfo pinned into Edge client releases.
+The private key is never stored in DNA. When enabled, ONODE startup fails if either key is malformed, the public and
+private keys do not match, the lifetime is invalid, or the scope allow-list is empty.
+Include `hyperdrive.sync` only for clients that must automatically synchronize after an offline restart. The scope is
+accepted solely by the HyperDrive exchange endpoint and remains bound to the signed avatar/device pair; it does not
+authorize any general REST API.

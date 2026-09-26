@@ -190,6 +190,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Records analytics data
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("analytics/record")]
         public ActionResult<OASISResult<bool>> RecordAnalyticsData([FromBody] AnalyticsDataPoint dataPoint)
         {
@@ -218,6 +219,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Records performance data for AI training
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("ai/record-performance")]
         public ActionResult<OASISResult<bool>> RecordPerformanceData([FromBody] PerformanceDataPoint dataPoint)
         {
@@ -246,6 +248,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Records failure event
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("failover/record-failure")]
         public ActionResult<OASISResult<bool>> RecordFailureEvent([FromBody] FailureEvent failureEvent)
         {
@@ -326,6 +329,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Initiates preventive failover
         /// </summary>
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("failover/preventive")]
         public ActionResult<OASISResult<bool>> InitiatePreventiveFailover([FromBody] List<ProviderType> highRiskProviders)
         {

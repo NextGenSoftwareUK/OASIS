@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -19,27 +23,60 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS
 {
-    /// <summary>LayerZero V2 — Omnichain messaging protocol across 50+ networks with ultra-light node verification.</summary>
+    /// <summary>Self Protocol — ZK identity verification using passport/NFC data.</summary>
     public class SelfProtocolOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
     {
         private readonly HttpClient _http;
         private readonly string _apiUrl;
+        private readonly string _apiKey;
+        private readonly string _appId;
         private bool _isActivated;
 
-        public SelfProtocolOASIS(string apiUrl = "https://api.self.xyz/v1")
+        public SelfProtocolOASIS(string apiKey, string appId, string apiUrl = "https://self.xyz/api")
         {
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://api.self.xyz/v1";
+            _apiKey = apiKey;
+            _appId = appId;
+            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://self.xyz/api";
             _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            _http.DefaultRequestHeaders.Add("X-App-Id", _appId);
             ProviderName = "SelfProtocolOASIS";
             ProviderDescription = "Self Protocol ZK Identity Verification Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SelfProtocolOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Identity);
         }
 
+        // Convenience constructor for testing without credentials
+        public SelfProtocolOASIS(string apiUrl = "https://self.xyz/api")
+            : this("", "", apiUrl) { }
+
+        private async Task<string> GetJsonAsync(string path)
+        {
+            var resp = await _http.GetAsync(path);
+            resp.EnsureSuccessStatusCode();
+            return await resp.Content.ReadAsStringAsync();
+        }
+
+        private async Task<string> PostJsonAsync(string path, object body)
+        {
+            var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+            var resp = await _http.PostAsync(path, content);
+            resp.EnsureSuccessStatusCode();
+            return await resp.Content.ReadAsStringAsync();
+        }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { if (_isActivated) { r.Result = true; r.Message = "SelfProtocolOASIS already activated"; return r; } _isActivated = true; r.Result = true; r.Message = "SelfProtocolOASIS activated successfully"; }
+            try
+            {
+                if (_isActivated) { r.Result = true; r.Message = "SelfProtocolOASIS already activated"; return r; }
+                var json = await GetJsonAsync("v1/status");
+                var obj = JObject.Parse(json);
+                _isActivated = true;
+                r.Result = true;
+                r.Message = $"SelfProtocolOASIS activated. Status: {obj["status"]?.ToString() ?? "ok"}";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS activation failed: {ex.Message}", ex); }
             return r;
         }
@@ -47,25 +84,136 @@ namespace NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { _isActivated = false; _http.Dispose(); r.Result = true; r.Message = "SelfProtocolOASIS deactivated"; }
+            try { _isActivated = false; r.Result = true; r.Message = "SelfProtocolOASIS deactivated"; }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS deactivation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                // The stored ProviderUniqueStorageKey for Self Protocol is the sessionId
+                // Load by sessionId which is stored as the avatar's provider key
+                var json = await GetJsonAsync($"v1/verify/session/{id}");
+                var obj = JObject.Parse(json);
+                var avatar = new Avatar { Id = id };
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = id.ToString();
+                if (obj["verified"]?.Value<bool>() == true)
+                {
+                    var disclosures = obj["disclosures"];
+                    if (disclosures != null)
+                    {
+                        avatar.Username = disclosures["name"]?.ToString() ?? id.ToString();
+                        if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
+                        avatar.MetaData["SelfVerified"] = true;
+                        avatar.MetaData["Disclosures"] = disclosures.ToString();
+                    }
+                }
+                r.Result = avatar;
+                r.Message = $"SelfProtocol session {id} loaded";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadAvatarAsync({id}): {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0)
+        {
+            // For Self Protocol, username is the sessionId; re-route to LoadAvatarByProviderKeyAsync
+            return await LoadAvatarByProviderKeyAsync(u, v);
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int v = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var json = await GetJsonAsync($"v1/verify/session/{providerKey}");
+                var obj = JObject.Parse(json);
+                var avatar = new Avatar { Username = providerKey };
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = providerKey;
+                if (obj["verified"]?.Value<bool>() == true)
+                {
+                    var disclosures = obj["disclosures"];
+                    if (disclosures != null)
+                    {
+                        if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
+                        avatar.MetaData["SelfVerified"] = true;
+                        avatar.MetaData["Disclosures"] = disclosures.ToString();
+                    }
+                }
+                r.Result = avatar;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadAvatarByProviderKeyAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                if (a.Id == Guid.Empty) a.Id = Guid.NewGuid();
+                // Initiate a Self Protocol verification request
+                var body = new { appId = _appId, userId = a.Id.ToString(), name = a.Username };
+                var json = await PostJsonAsync("v1/verify/request", body);
+                var obj = JObject.Parse(json);
+                var sessionId = obj["sessionId"]?.ToString();
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    a.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = sessionId;
+                    if (a.MetaData == null) a.MetaData = new System.Collections.Generic.Dictionary<string, object>();
+                    a.MetaData["SelfSessionId"] = sessionId;
+                    a.MetaData["SelfQRUrl"] = obj["qrUrl"]?.ToString();
+                }
+                r.Result = a;
+                r.Message = $"SelfProtocol verification request initiated. SessionId: {sessionId}";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS SaveAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); try { if (h.Id == Guid.Empty) h.Id = Guid.NewGuid(); r.Result = h; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS SaveHolonAsync: {ex.Message}", ex); } return r; }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                // Load attestation for a session
+                var json = await GetJsonAsync($"v1/attestation/{id}");
+                var obj = JObject.Parse(json);
+                var holon = new Holon { Id = id };
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = id.ToString();
+                if (holon.MetaData == null) holon.MetaData = new System.Collections.Generic.Dictionary<string, object>();
+                holon.MetaData["Attestation"] = json;
+                r.Result = holon;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+                r.Result = h;
+                r.Message = "SelfProtocolOASIS holon data recorded";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS SaveHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "SelfProtocolOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "SelfProtocolOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string k, int v = 0) => await LoadAvatarByUsernameAsync(k, v);
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }

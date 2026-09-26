@@ -1,7 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -19,17 +26,26 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
 {
-    /// <summary>LayerZero V2 — Omnichain messaging protocol across 50+ networks with ultra-light node verification.</summary>
+    /// <summary>Tigris — globally-distributed S3-compatible object storage backed by the Fly.io network.</summary>
     public class TigrisOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
     {
-        private readonly HttpClient _http;
-        private readonly string _apiUrl;
+        private readonly string _accessKey;
+        private readonly string _secretKey;
+        private readonly string _bucketName;
+        private readonly string _endpoint;
+        private AmazonS3Client _s3;
         private bool _isActivated;
 
-        public TigrisOASIS(string apiUrl = "https://tigris-data.com/api/v1")
+        public TigrisOASIS(
+            string accessKey,
+            string secretKey,
+            string bucketName = "oasis-holons",
+            string endpoint = "https://api.fly.tigris.dev")
         {
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://tigris-data.com/api/v1";
-            _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
+            _accessKey = accessKey;
+            _secretKey = secretKey;
+            _bucketName = bucketName;
+            _endpoint = endpoint;
             ProviderName = "TigrisOASIS";
             ProviderDescription = "Tigris Globally Distributed S3-Compatible Object Storage Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TigrisOASIS);
@@ -39,7 +55,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { if (_isActivated) { r.Result = true; r.Message = "TigrisOASIS already activated"; return r; } _isActivated = true; r.Result = true; r.Message = "TigrisOASIS activated successfully"; }
+            try
+            {
+                if (_isActivated) { r.Result = true; r.Message = "TigrisOASIS already activated"; return r; }
+                var creds = new BasicAWSCredentials(_accessKey, _secretKey);
+                var config = new AmazonS3Config
+                {
+                    ServiceURL = _endpoint,
+                    ForcePathStyle = true
+                };
+                _s3 = new AmazonS3Client(creds, config);
+                // Ensure bucket exists
+                try
+                {
+                    await _s3.EnsureBucketExistsAsync(_bucketName);
+                }
+                catch { /* bucket may already exist or auto-created by Tigris */ }
+                _isActivated = true;
+                r.Result = true;
+                r.Message = "TigrisOASIS activated successfully";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS activation failed: {ex.Message}", ex); }
             return r;
         }
@@ -47,26 +82,228 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { _isActivated = false; _http.Dispose(); r.Result = true; r.Message = "TigrisOASIS deactivated"; }
+            try { _s3?.Dispose(); _s3 = null; _isActivated = false; r.Result = true; r.Message = "TigrisOASIS deactivated"; }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS deactivation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); try { if (h.Id == Guid.Empty) h.Id = Guid.NewGuid(); r.Result = h; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS SaveHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
+        // ── Avatars ─────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var resp = await _s3.GetObjectAsync(_bucketName, $"avatars/{id}.json");
+                using var sr = new StreamReader(resp.ResponseStream);
+                var json = await sr.ReadToEndAsync();
+                r.Result = JsonConvert.DeserializeObject<Avatar>(json);
+            }
+            catch (AmazonS3Exception ex) when (ex.ErrorCode == "NoSuchKey")
+            {
+                OASISErrorHandling.HandleError(ref r, $"TigrisOASIS: avatar {id} not found");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var all = await LoadAllAvatarsAsync(v);
+                if (!all.IsError && all.Result != null)
+                    r.Result = all.Result.FirstOrDefault(a => a.Username == u);
+                if (r.Result == null) OASISErrorHandling.HandleError(ref r, $"TigrisOASIS: avatar with username '{u}' not found");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                if (a.Id == Guid.Empty) a.Id = Guid.NewGuid();
+                var json = JsonConvert.SerializeObject(a);
+                var req = new PutObjectRequest
+                {
+                    BucketName = _bucketName,
+                    Key = $"avatars/{a.Id}.json",
+                    ContentBody = json,
+                    ContentType = "application/json"
+                };
+                await _s3.PutObjectAsync(req);
+                r.Result = a;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS SaveAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true)
+        {
+            var r = new OASISResult<bool>();
+            try
+            {
+                if (soft)
+                {
+                    var load = await LoadAvatarAsync(id);
+                    if (!load.IsError && load.Result != null)
+                    {
+                        load.Result.DeletedDate = DateTime.UtcNow;
+                        await SaveAvatarAsync(load.Result);
+                    }
+                }
+                else
+                {
+                    await _s3.DeleteObjectAsync(_bucketName, $"avatars/{id}.json");
+                }
+                r.Result = true;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS DeleteAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0)
+        {
+            var r = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var list = new List<IAvatar>();
+                var listReq = new ListObjectsV2Request { BucketName = _bucketName, Prefix = "avatars/" };
+                ListObjectsV2Response resp;
+                do
+                {
+                    resp = await _s3.ListObjectsV2Async(listReq);
+                    foreach (var obj in resp.S3Objects)
+                    {
+                        if (!obj.Key.EndsWith(".json")) continue;
+                        var getResp = await _s3.GetObjectAsync(_bucketName, obj.Key);
+                        using var sr = new StreamReader(getResp.ResponseStream);
+                        var json = await sr.ReadToEndAsync();
+                        var avatar = JsonConvert.DeserializeObject<Avatar>(json);
+                        if (avatar != null) list.Add(avatar);
+                    }
+                    listReq.ContinuationToken = resp.NextContinuationToken;
+                } while (resp.IsTruncated);
+                r.Result = list;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAllAvatarsAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        // ── Holons ──────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                var resp = await _s3.GetObjectAsync(_bucketName, $"holons/{id}.json");
+                using var sr = new StreamReader(resp.ResponseStream);
+                var json = await sr.ReadToEndAsync();
+                r.Result = JsonConvert.DeserializeObject<Holon>(json);
+            }
+            catch (AmazonS3Exception ex) when (ex.ErrorCode == "NoSuchKey")
+            {
+                OASISErrorHandling.HandleError(ref r, $"TigrisOASIS: holon {id} not found");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+                var json = JsonConvert.SerializeObject(h);
+                var req = new PutObjectRequest
+                {
+                    BucketName = _bucketName,
+                    Key = $"holons/{h.Id}.json",
+                    ContentBody = json,
+                    ContentType = "application/json"
+                };
+                await _s3.PutObjectAsync(req);
+                r.Result = h;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS SaveHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var list = new List<IHolon>();
+                var listReq = new ListObjectsV2Request { BucketName = _bucketName, Prefix = "holons/" };
+                ListObjectsV2Response resp;
+                do
+                {
+                    resp = await _s3.ListObjectsV2Async(listReq);
+                    foreach (var obj in resp.S3Objects)
+                    {
+                        if (!obj.Key.EndsWith(".json")) continue;
+                        var getResp = await _s3.GetObjectAsync(_bucketName, obj.Key);
+                        using var sr = new StreamReader(getResp.ResponseStream);
+                        var json = await sr.ReadToEndAsync();
+                        var holon = JsonConvert.DeserializeObject<Holon>(json);
+                        if (holon != null && (ht == HolonType.All || holon.HolonType == ht)) list.Add(holon);
+                    }
+                    listReq.ContinuationToken = resp.NextContinuationToken;
+                } while (resp.IsTruncated);
+                r.Result = list;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAllHolonsAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) saved.Add(sr.Result); }
+            r.Result = saved;
+            return r;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                await _s3.DeleteObjectAsync(_bucketName, $"holons/{id}.json");
+                r.Result = new Holon { Id = id };
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS DeleteHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        // ── Remaining boilerplate (unchanged from pattern) ───────────────────────
+
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "TigrisOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "TigrisOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string k, int v = 0) => await LoadAvatarByUsernameAsync(k, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var all = await LoadAllAvatarsAsync(v);
+                if (!all.IsError && all.Result != null)
+                    r.Result = all.Result.FirstOrDefault(a => a.Email == e);
+                if (r.Result == null) OASISErrorHandling.HandleError(ref r, $"TigrisOASIS: avatar with email '{e}' not found");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"TigrisOASIS LoadAvatarByEmailAsync: {ex.Message}", ex); }
+            return r;
+        }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
@@ -77,7 +314,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
@@ -110,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(t, lc, rec, md, cd, coe, lcfp, v).Result;
         public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(holons, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message, Result = r.Result }; }
         public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;

@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     //  [Route("api/[search]")]
     [Route("api/[controller]")]
     [ApiController]
-
+    [Authorize]
     //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
     [EnableCors()]
     public class SearchController : OASISControllerBase

@@ -288,8 +288,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.FantomOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj", "{542ADBED-B10A-4F35-8125-6C10D6572B7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.MoralisOASIS\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.csproj", "{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NEAROASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj", "{0EC9BA42-321C-4515-8F89-A7FA4CD2DE59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.OptimismOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj", "{EF83B945-10BB-4952-8364-08683DC12550}"
@@ -485,12 +483,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.TestHarness", "Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.TestHarness.csproj", "{C751D23F-B11A-4A25-8C01-31F1B3271972}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests", "Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj", "{728530CC-AB78-4F48-92A8-6DA3656DD91D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.IntegrationTests", "Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.IntegrationTests.csproj", "{E1A7680F-259C-462E-90CD-D4902AA27811}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.TestHarness", "Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.TestHarness.csproj", "{E3CB2D4A-6250-451C-86AF-28EF60202580}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.UnitTests", "Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.UnitTests\NextGenSoftware.OASIS.API.Providers.MoralisDBOASIS.UnitTests.csproj", "{DF9978CC-6A40-4445-A293-F23BA625AAF0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests", "Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj", "{00FA682A-D9E7-4615-AFB7-98DC63A20263}"
 EndProject
@@ -3575,24 +3567,6 @@ Global
 		{542ADBED-B10A-4F35-8125-6C10D6572B7B}.Release|x64.Build.0 = Release|Any CPU
 		{542ADBED-B10A-4F35-8125-6C10D6572B7B}.Release|x86.ActiveCfg = Release|Any CPU
 		{542ADBED-B10A-4F35-8125-6C10D6572B7B}.Release|x86.Build.0 = Release|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Debug|x64.Build.0 = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Debug|x86.Build.0 = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Linux|x64.Build.0 = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Linux|x86.Build.0 = Debug|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Release|x64.ActiveCfg = Release|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Release|x64.Build.0 = Release|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Release|x86.ActiveCfg = Release|Any CPU
-		{F1FB4A83-82D8-47C1-8D68-F226B84D71AE}.Release|x86.Build.0 = Release|Any CPU
 		{0EC9BA42-321C-4515-8F89-A7FA4CD2DE59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0EC9BA42-321C-4515-8F89-A7FA4CD2DE59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EC9BA42-321C-4515-8F89-A7FA4CD2DE59}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -5357,60 +5331,6 @@ Global
 		{728530CC-AB78-4F48-92A8-6DA3656DD91D}.Release|x64.Build.0 = Release|Any CPU
 		{728530CC-AB78-4F48-92A8-6DA3656DD91D}.Release|x86.ActiveCfg = Release|Any CPU
 		{728530CC-AB78-4F48-92A8-6DA3656DD91D}.Release|x86.Build.0 = Release|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Debug|x64.Build.0 = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Debug|x86.Build.0 = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Linux|x64.Build.0 = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Linux|x86.Build.0 = Debug|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Release|x64.ActiveCfg = Release|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Release|x64.Build.0 = Release|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Release|x86.ActiveCfg = Release|Any CPU
-		{E1A7680F-259C-462E-90CD-D4902AA27811}.Release|x86.Build.0 = Release|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Debug|x64.Build.0 = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Debug|x86.Build.0 = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Linux|x64.Build.0 = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Linux|x86.Build.0 = Debug|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Release|x64.ActiveCfg = Release|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Release|x64.Build.0 = Release|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Release|x86.ActiveCfg = Release|Any CPU
-		{E3CB2D4A-6250-451C-86AF-28EF60202580}.Release|x86.Build.0 = Release|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Debug|x64.Build.0 = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Debug|x86.Build.0 = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Linux|x64.Build.0 = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Linux|x86.Build.0 = Debug|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Release|x64.ActiveCfg = Release|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Release|x64.Build.0 = Release|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Release|x86.ActiveCfg = Release|Any CPU
-		{DF9978CC-6A40-4445-A293-F23BA625AAF0}.Release|x86.Build.0 = Release|Any CPU
 		{00FA682A-D9E7-4615-AFB7-98DC63A20263}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{00FA682A-D9E7-4615-AFB7-98DC63A20263}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00FA682A-D9E7-4615-AFB7-98DC63A20263}.Debug|x64.ActiveCfg = Debug|Any CPU

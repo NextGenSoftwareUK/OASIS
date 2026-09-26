@@ -1,0 +1,20 @@
+<linker>
+  <assembly fullname="NextGenSoftware.OGEngine.Shared" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge" preserve="all" />
+  <assembly fullname="NextGenSoftware.OGEngine.Client.Edge" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.Edge.Runtime" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.Edge.ONET.Runtime" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.ONET" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.HyperDrive.Synchronization" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS" preserve="all" />
+  <assembly fullname="NextGenSoftware.OASIS.Contracts" preserve="all" />
+  <!-- These libraries activate providers and materialize persisted envelopes through
+       reflection.  A successful IL2CPP compile is not sufficient evidence that the
+       linker retained those runtime-only entry points. -->
+  <assembly fullname="Microsoft.Data.Sqlite" preserve="all" />
+  <assembly fullname="SQLitePCLRaw.batteries_v2" preserve="all" />
+  <assembly fullname="SQLitePCLRaw.core" preserve="all" />
+  <assembly fullname="SQLitePCLRaw.provider.e_sqlite3" preserve="all" />
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
+  <assembly fullname="System.Text.Json" preserve="all" />
+</linker>

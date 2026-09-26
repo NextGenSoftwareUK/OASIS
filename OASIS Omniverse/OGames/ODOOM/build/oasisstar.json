@@ -1,4 +1,4 @@
-﻿{
+{
   "star_transport": "remote",
   "ogengine_url": "https://dev.api.starnet.oasisomniverse.one",
   "oasis_api_url": "https://dev.api.web4.oasisomniverse.one",
@@ -52,9 +52,5 @@
   "mint_monster_oquake_spawn": 1,
   "mint_monster_oquake_knight": 1,
   "mint_monster_oquake_scrag": 1,
-  "mint_monster_oquake_shub": 1,
-  "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY5Y2NmNWIyLTM5OTEtNDJlYy04MTU1LTY1Yjk0YjJlMGYwYyIsIm5iZiI6MTc3NTI5MzI2MywiZXhwIjoxNzc1Mjk0MTYzLCJpYXQiOjE3NzUyOTMyNjN9.KoXFG0yCMRtze3LzUYLBrVqcV_CMqR2GT9a7JYYt6EQ",
-  "refresh_token": "D4B09798CC405D7529279A65290985DE06EC4C1DE9685C31EA9A27D2A6309FC1F9AB97406BADA434"
-
+  "mint_monster_oquake_shub": 1
 }

@@ -8,6 +8,8 @@ namespace NextGenSoftware.OASIS.Web8.Core.Models
     {
         public Guid Id { get; set; }
 
+        public Guid OwnerAvatarId { get; set; }
+
         public string Name { get; set; }
 
         public NodeType Type { get; set; }

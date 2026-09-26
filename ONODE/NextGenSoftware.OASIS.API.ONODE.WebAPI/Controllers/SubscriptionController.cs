@@ -1,8 +1,10 @@
 using System;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +24,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly OASISSub.ISubscriptionService _subscriptionService;
+        private readonly OASISSub.ISubscriptionUsageRepository _usageRepository;
+        private readonly OASISSub.ISubscriptionBillingRepository _billingRepository;
 
         // Canonical plan definitions — single source of truth for the whole controller
         private static readonly List<PlanDto> Plans = new()
@@ -88,10 +92,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             .Where(p => p.MaxRequestsPerMonth > 0)
             .ToDictionary(p => p.Id, p => p.MaxRequestsPerMonth);
 
-        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService)
+        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService, OASISSub.ISubscriptionUsageRepository usageRepository = null, OASISSub.ISubscriptionBillingRepository billingRepository = null)
         {
             _configuration = configuration;
             _subscriptionService = subscriptionService;
+            _usageRepository = usageRepository;
+            _billingRepository = billingRepository;
         }
 
         // ── Plans ────────────────────────────────────────────────────────────
@@ -102,22 +108,129 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { Result = Plans, IsError = false, Message = "Plans loaded successfully" });
         }
 
-        /// <summary>Authoritatively checks the WEB4 subscription and atomically records one WEB5-WEB10 request.</summary>
-        [Microsoft.AspNetCore.Authorization.Authorize]
+        /// <summary>The retired counter route never authorizes or records usage.</summary>
         [HttpPost("authorize-request")]
-        public async Task<ActionResult> AuthorizeRequest([FromBody] AuthorizeSubscriptionRequest request)
+        public ActionResult AuthorizeRequest([FromBody] AuthorizeSubscriptionRequest request) =>
+            StatusCode(410, new { IsError = true, Code = "USAGE_PROTOCOL_REQUIRED", Message = "Use usage/authorize, usage/start and usage/settle with the shared WEB4 usage SDK." });
+
+        /// <summary>Reserve against the authenticated avatar and independently authenticated consuming service.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/authorize")]
+        public async Task<ActionResult> AuthorizeUsage([FromBody] UsageAuthorizationRequest request)
         {
             var userId = GetCurrentUserId();
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { IsError = true, Message = "User not authenticated." });
-            if (request == null || string.IsNullOrWhiteSpace(request.ConsumingService))
-                return BadRequest(new { IsError = true, Message = "ConsumingService is required." });
-            var consumingService = request.ConsumingService.Trim().ToUpperInvariant();
-            if (consumingService is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10"))
-                return BadRequest(new { IsError = true, Message = "ConsumingService must be WEB5, WEB6, WEB7, WEB8, WEB9, or WEB10." });
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            try
+            {
+                if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION" });
+                OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
+                var decision = await _subscriptionService.AuthorizeUsageAsync(userId, await GetCurrentKarmaAsync(userId), request, HttpContext.RequestAborted);
+                return StatusCode(decision.StatusCode, decision);
+            }
+            catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION", ex.Message }); }
+        }
 
-            var decision = await _subscriptionService.AuthorizeAndIncrementRequestAsync(userId, consumingService);
-            return Ok(decision);
+        /// <summary>Marks the durable execution boundary; a provider must never execute without this acknowledgement.</summary>
+        [HttpPost("usage/start")]
+        public async Task<ActionResult> StartUsage([FromBody] UsageStartRequest request)
+        {
+            try
+            {
+                if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_START" });
+                OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
+                return Ok(await _usageRepository.StartAsync(request, HttpContext.RequestAborted));
+            }
+            catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_USAGE_START", ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { IsError = true, Code = "USAGE_OPERATION_NOT_FOUND", ex.Message }); }
+            catch (OASISSub.SubscriptionUsageConflictException ex) { return Conflict(new { IsError = true, Code = "OPERATION_ID_CONFLICT", ex.Message }); }
+        }
+
+        /// <summary>Service credentials authorize durable outbox delivery after the original avatar JWT expires.</summary>
+        [HttpPost("usage/settle")]
+        public async Task<ActionResult> SettleUsage([FromBody] UsageSettlementRequest request)
+        {
+            try
+            {
+                if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_SETTLEMENT" });
+                OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
+                return Ok(await _subscriptionService.SettleUsageAsync(request.UserId, request, HttpContext.RequestAborted));
+            }
+            catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_USAGE_SETTLEMENT", ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { IsError = true, Code = "USAGE_OPERATION_NOT_FOUND", ex.Message }); }
+            catch (OASISSub.SubscriptionUsageConflictException ex) { return Conflict(new { IsError = true, Code = "OPERATION_ID_CONFLICT", ex.Message }); }
+        }
+
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/admin/corrections")]
+        public async Task<ActionResult> CorrectUsage([FromBody] OASISSub.UsageCorrectionRequest request)
+        {
+            try
+            {
+                string actor = OASISSub.SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
+                return Ok(await _usageRepository.CorrectAsync(actor, request, HttpContext.RequestAborted));
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { IsError = true, Code = "ADMINISTRATOR_REQUIRED", ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_CORRECTION", ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new { IsError = true, Code = "USAGE_OPERATION_NOT_FOUND", ex.Message }); }
+            catch (OASISSub.SubscriptionUsageConflictException ex) { return Conflict(new { IsError = true, Code = "CORRECTION_CONFLICT", ex.Message }); }
+        }
+
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/admin/migration/inventory")]
+        public async Task<ActionResult> GetUsageMigrationInventory()
+        {
+            try
+            {
+                OASISSub.SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
+                return Ok(await _usageRepository.GetMigrationInventoryAsync(HttpContext.RequestAborted));
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { IsError = true, Code = "ADMINISTRATOR_REQUIRED", ex.Message }); }
+        }
+
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("usage/admin/migration/opening-balance")]
+        public async Task<ActionResult> ImportUsageOpeningBalance([FromBody] OASISSub.UsageOpeningBalanceManifest manifest)
+        {
+            try
+            {
+                string actor = OASISSub.SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
+                OASISSub.UsageMigrationSignature.RequireApproval(manifest, actor, _configuration);
+                return Ok(new { MigrationId = await _usageRepository.ImportOpeningBalanceAsync(actor, manifest, HttpContext.RequestAborted) });
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { IsError = true, Code = "MIGRATION_APPROVAL_REQUIRED", ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_OPENING_BALANCE", ex.Message }); }
+            catch (OASISSub.SubscriptionUsageConflictException ex) { return Conflict(new { IsError = true, Code = "MIGRATION_CONFLICT", ex.Message }); }
+        }
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/audit")]
+        public async Task<ActionResult> GetUsageAudit([FromQuery] string beforeId = null, [FromQuery] int limit = 100)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            try { return Ok(await _usageRepository.GetAuditAsync(userId, beforeId, limit, HttpContext.RequestAborted)); }
+            catch (ArgumentException ex) { return BadRequest(new { IsError = true, Code = "INVALID_AUDIT_CURSOR", ex.Message }); }
+        }
+        /// <summary>Returns authoritative subscription usage; plan and karma are never accepted from the caller.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/current")]
+        public async Task<ActionResult> GetAuthoritativeUsage()
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            return Ok(await _subscriptionService.GetUsageSummaryAsync(userId, await GetCurrentKarmaAsync(userId), HttpContext.RequestAborted));
+        }
+
+        /// <summary>Returns the authenticated avatar's operation projections; usage/audit returns immutable history.</summary>
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("usage/events")]
+        public async Task<ActionResult> GetUsageEvents([FromQuery] int limit = 100)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+            return Ok(await _subscriptionService.GetUsageEventsAsync(userId, limit, HttpContext.RequestAborted));
         }
 
         // ── Checkout ─────────────────────────────────────────────────────────
@@ -159,15 +272,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             try
             {
-                var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
-                    ?? _configuration["STRIPE_SECRET_KEY"]
-                    ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.SecretKey;
+                var secretKey = OASISSub.SubscriptionStripeConfiguration.SecretKey(_configuration);
                 if (string.IsNullOrWhiteSpace(secretKey))
                     return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
                 StripeConfiguration.ApiKey = secretKey;
 
-                var avatarId = GetCurrentUserId() ?? request.AvatarId ?? "anonymous";
+                var avatarId = GetCurrentUserId();
+                if (!Guid.TryParseExact(avatarId, "D", out _)) return Unauthorized(new { IsError = true, Message = "An authenticated avatar is required for checkout." });
                 var priceId = GetStripePriceId(plan.Id);
                 if (string.IsNullOrWhiteSpace(priceId))
                     return StatusCode(500, new { IsError = true, Message = $"No Stripe Price ID configured for plan '{plan.Id}'. Set STRIPE_PRICE_{plan.Id.ToUpper()} environment variable." });
@@ -183,6 +295,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     SuccessUrl = (request.SuccessUrl ?? "https://oasisomniverse.one/checkout/success") + "?subscribed=1",
                     CancelUrl = request.CancelUrl ?? "https://oasisomniverse.one/checkout/cancel",
                     CustomerEmail = request.CustomerEmail,
+                    SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = new Dictionary<string, string> { { "avatar_id", avatarId }, { "plan_id", plan.Id } } },
                     Metadata = new Dictionary<string, string>
                     {
                         { "avatar_id", avatarId },
@@ -216,28 +329,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             using (var reader = new System.IO.StreamReader(Request.Body))
                 body = await reader.ReadToEndAsync();
 
-            // Test-harness bypass: STRIPE_WEBHOOK_TEST_TOKEN lets automated E2E tests skip
-            // real Stripe signature verification by supplying a shared secret token instead.
-            // Only works when the env var is set (never set it in production).
-            var testToken = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_TEST_TOKEN");
-            var incomingTestToken = Request.Headers["X-Webhook-Test-Token"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(testToken) && incomingTestToken == testToken)
-            {
-                try
-                {
-                    var evt = JsonConvert.DeserializeObject<Event>(body);
-                    var diag = evt != null ? await HandleStripeEventAsync(evt, body) : "null_event";
-                    return Ok(new { processed = true, diag });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, $"Internal error (test mode): {ex.Message}");
-                }
-            }
-
-            var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
-                ?? _configuration["STRIPE_WEBHOOK_SECRET"]
-                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe?.WebhookSecret;
+            var webhookSecret = OASISSub.SubscriptionStripeConfiguration.WebhookSecret(_configuration);
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Webhook secret not configured.");
 
@@ -245,30 +337,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrEmpty(signature))
                 return BadRequest("Missing Stripe-Signature header.");
 
-            // Validate signature first; if EventConverter NRE-crashes during SDK deserialize,
-            // fall back to parsing the raw body ourselves (signature was already verified).
-            Event stripeEvent = null;
-            try
-            {
-                stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false);
-            }
-            catch (StripeException ex)
-            {
-                return BadRequest($"Stripe error: {ex.Message}");
-            }
-            catch
-            {
-                // Stripe.net EventConverter can NRE on synthetic/test payloads after the
-                // signature is valid — parse raw body instead.
-            }
-
-            if (stripeEvent == null)
-            {
-                try { stripeEvent = JsonConvert.DeserializeObject<Event>(body); } catch { }
-                // stripeEvent may still be null if the SDK converter crashed —
-                // HandleStripeEventAsync uses rawBody as fallback and handles null stripeEvent.
-            }
-
+            Event stripeEvent;
+            try { stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false); }
+            catch (Exception ex) when (ex is StripeException || ex is JsonException || ex is ArgumentException)
+            { return BadRequest(new { IsError = true, Code = "INVALID_STRIPE_WEBHOOK", ex.Message }); }
             try
             {
                 var diag = await HandleStripeEventAsync(stripeEvent, body);
@@ -280,173 +352,84 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task<string> HandleStripeEventAsync(Event stripeEvent, string rawBody = null)
+        private async Task<string> HandleStripeEventAsync(Event stripeEvent, string rawBody)
         {
-            // Always parse the raw body — the Stripe SDK may return null Data or empty Metadata
-            // for synthetic test payloads even when signature verification succeeds.
-            Newtonsoft.Json.Linq.JObject rawJson = null;
-            Newtonsoft.Json.Linq.JObject rawDataObject = null;
-            if (rawBody != null)
-            {
-                try
-                {
-                    rawJson = Newtonsoft.Json.Linq.JObject.Parse(rawBody);
-                    rawDataObject = rawJson?["data"]?["object"] as Newtonsoft.Json.Linq.JObject;
-                }
-                catch { }
-            }
-
-            // Use event type from SDK (preferred) or raw JSON if SDK didn't deserialize it
-            var eventType = stripeEvent?.Type ?? rawJson?["type"]?.ToString();
-            if (string.IsNullOrEmpty(eventType)) return "no_event_type";
-
-            switch (eventType)
+            if (stripeEvent == null || string.IsNullOrWhiteSpace(stripeEvent.Type) || string.IsNullOrWhiteSpace(stripeEvent.Id))
+                throw new InvalidOperationException("A signed Stripe event with a type and immutable event id is required.");
+            string subscriptionId;
+            string userId;
+            Invoice invoice = null;
+            switch (stripeEvent.Type)
             {
                 case "checkout.session.completed":
-                    return await OnCheckoutCompletedAsync(stripeEvent?.Data?.Object as Stripe.Checkout.Session, rawDataObject);
+                    var checkout = RequireStripeObject<Stripe.Checkout.Session>(stripeEvent);
+                    subscriptionId = checkout.SubscriptionId;
+                    userId = checkout.Metadata?.GetValueOrDefault("avatar_id");
+                    break;
                 case "customer.subscription.created":
                 case "customer.subscription.updated":
-                    await OnSubscriptionUpdatedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
-                    return "subscription_updated";
                 case "customer.subscription.deleted":
-                    await OnSubscriptionDeletedAsync(stripeEvent?.Data?.Object as Stripe.Subscription, rawDataObject);
-                    return "subscription_deleted";
+                    var subscription = RequireStripeObject<Stripe.Subscription>(stripeEvent);
+                    subscriptionId = subscription.Id;
+                    userId = subscription.Metadata?.GetValueOrDefault("avatar_id");
+                    if (string.IsNullOrEmpty(userId))
+                        userId = (await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id))?.UserId;
+                    break;
+                case "invoice.paid":
                 case "invoice.payment_succeeded":
-                    await OnPaymentSucceededAsync(stripeEvent?.Data?.Object as Invoice);
-                    return "payment_succeeded";
                 case "invoice.payment_failed":
-                    await OnPaymentFailedAsync(stripeEvent?.Data?.Object as Invoice);
-                    return "payment_failed";
-                default:
-                    return $"unhandled_{eventType}";
+                    invoice = RequireStripeObject<Invoice>(stripeEvent);
+                    if (string.IsNullOrWhiteSpace(invoice.SubscriptionId)) return "non_subscription_invoice";
+                    subscriptionId = invoice.SubscriptionId;
+                    userId = (await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscriptionId))?.UserId;
+                    if (string.IsNullOrEmpty(userId))
+                    {
+                        var invoiceSubscription = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: HttpContext.RequestAborted);
+                        userId = invoiceSubscription.Metadata?.GetValueOrDefault("avatar_id");
+                    }
+                    break;
+                default: return "unhandled_" + stripeEvent.Type;
             }
-        }
-
-        private async Task<string> OnCheckoutCompletedAsync(Stripe.Checkout.Session session, Newtonsoft.Json.Linq.JObject raw = null)
-        {
-            // Always prefer raw JSON for metadata — Stripe SDK may not populate Metadata
-            // when the payload is synthetic (test harness) or uses non-standard field names.
-            var rawMeta = raw?["metadata"];
-            var avatarId = session?.Metadata?.GetValueOrDefault("avatar_id")
-                        ?? rawMeta?["avatar_id"]?.ToString();
-            var planId = session?.Metadata?.GetValueOrDefault("plan_id")
-                      ?? rawMeta?["plan_id"]?.ToString();
-
-            if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId))
-                return $"early_exit:avatarId={avatarId ?? "null"},planId={planId ?? "null"},rawNull={raw == null},rawMeta={rawMeta?.ToString() ?? "null"}";
-
-            var customerId     = session?.CustomerId     ?? raw?["customer"]?.ToString();
-            var subscriptionId = session?.SubscriptionId ?? raw?["subscription"]?.ToString();
-            var sessionId      = session?.Id             ?? raw?["id"]?.ToString();
-
-            bool isValidGuid = Guid.TryParse(avatarId, out _);
-            if (!isValidGuid)
-                return $"invalid_guid:avatarId={avatarId},planId={planId}";
-
-            await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
+            if (!Guid.TryParseExact(userId, "D", out _) || string.IsNullOrWhiteSpace(subscriptionId))
+                throw new InvalidOperationException("Stripe subscription ownership has not been established; retry after its verified subscription metadata or legacy snapshot is available.");
+            OASISSub.OrderRecord order = null;
+            if (stripeEvent.Type is "invoice.paid" or "invoice.payment_succeeded")
             {
-                UserId = avatarId,
-                PlanId = planId,
-                Status = "active",
-                StripeCustomerId = customerId,
-                StripeSubscriptionId = subscriptionId,
-                CurrentPeriodStart = DateTime.UtcNow,
-                CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1)
-            });
-
-            var plan = Plans.FirstOrDefault(p => p.Id == planId);
-            await _subscriptionService.AddOrderAsync(new OASISSub.OrderRecord
-            {
-                UserId = avatarId,
-                PlanId = planId,
-                Description = $"{plan?.Name ?? planId} — monthly subscription",
-                Amount = plan?.PriceMonthly ?? 0m,
-                Currency = "USD",
-                Status = "paid",
-                StripeInvoiceId = sessionId
-            });
-            return $"ok:avatarId={avatarId},planId={planId}";
-        }
-
-        private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
-        {
-            if (subscription == null) return;
-            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
-                      ?? await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(subscription.CustomerId);
-            if (record == null) return;
-
-            var planId = subscription.Items?.Data?.FirstOrDefault()?.Price?.Metadata?.GetValueOrDefault("plan_id")
-                      ?? record.PlanId;
-
-            record.Status = subscription.Status;
-            record.PlanId = planId;
-            record.StripeCustomerId = subscription.CustomerId;
-            record.StripeSubscriptionId = subscription.Id;
-            record.CurrentPeriodStart = subscription.CurrentPeriodStart;
-            record.CurrentPeriodEnd = subscription.CurrentPeriodEnd;
-            await _subscriptionService.UpsertSubscriptionAsync(record);
-        }
-
-        private async Task OnSubscriptionDeletedAsync(Stripe.Subscription subscription, Newtonsoft.Json.Linq.JObject raw = null)
-        {
-            string subscriptionId, customerId;
-
-            if (subscription != null)
-            {
-                subscriptionId = subscription.Id;
-                customerId = subscription.CustomerId;
+                if (invoice.Status != "paid" || !invoice.Paid || invoice.Currency != "usd")
+                    throw new InvalidOperationException("This billing catalogue requires a paid USD invoice with an actual Stripe amount.");
+                var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
+                order = new OASISSub.OrderRecord { UserId = userId, PlanId = invoicedPlans.Count == 1 ? invoicedPlans[0].Id : null, StripeInvoiceId = invoice.Id, Amount = invoice.AmountPaid / 100m,
+                    Currency = "USD", Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
             }
-            else if (raw != null)
+            string fingerprint = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawBody)));
+            bool applied = await _billingRepository.ApplyStripeEventAsync(stripeEvent.Id, fingerprint, userId, stripeEvent.Created, async ct =>
             {
-                subscriptionId = raw["id"]?.ToString();
-                customerId = raw["customer"]?.ToString();
-            }
-            else return;
+                var canonical = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: ct);
+                var matchingPlans = Plans.Where(plan => canonical.Items?.Data?.Any(item => item.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(item.Price?.Id)) == true).ToList();
+                if (matchingPlans.Count != 1) throw new InvalidOperationException("Canonical Stripe subscription must match exactly one configured OASIS plan price.");
+                var canonicalOwner = canonical.Metadata?.GetValueOrDefault("avatar_id");
+                if (!string.IsNullOrEmpty(canonicalOwner) && canonicalOwner != userId)
+                    throw new InvalidOperationException("Canonical Stripe metadata does not match the established avatar owner.");
 
-            var record = (string.IsNullOrEmpty(subscriptionId) ? null : await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscriptionId))
-                      ?? (string.IsNullOrEmpty(customerId) ? null : await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(customerId));
-            if (record == null) return;
-
-            record.Status = "cancelled";
-            await _subscriptionService.UpsertSubscriptionAsync(record);
+                return new OASISSub.SubscriptionRecord { UserId = userId, PlanId = matchingPlans[0].Id, Status = canonical.Status,
+                    StripeCustomerId = canonical.CustomerId, StripeSubscriptionId = canonical.Id, StripeSubscriptionCreatedAtUtc = canonical.Created,
+                    CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CreatedAt = canonical.Created };
+            }, order, HttpContext.RequestAborted);
+            return applied ? "applied" : "already_applied";
         }
 
-        private async Task OnPaymentSucceededAsync(Invoice invoice)
+        private static T RequireStripeObject<T>(Event stripeEvent) where T : class =>
+            stripeEvent.Data?.Object as T ?? throw new InvalidOperationException("Signed Stripe event contains an unexpected or incomplete object schema.");
+
+        private IStripeClient StripeClient()
         {
-            if (invoice?.SubscriptionId == null) return;
-            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(invoice.SubscriptionId);
-            if (record == null) return;
-
-            record.Status = "active";
-            record.CurrentPeriodStart = invoice.PeriodStart;
-            record.CurrentPeriodEnd = invoice.PeriodEnd;
-            await _subscriptionService.UpsertSubscriptionAsync(record);
-
-            var plan = Plans.FirstOrDefault(p => p.Id == record.PlanId);
-            await _subscriptionService.AddOrderAsync(new OASISSub.OrderRecord
-            {
-                UserId = record.UserId,
-                PlanId = record.PlanId,
-                Description = $"{plan?.Name ?? record.PlanId} — renewal",
-                Amount = (invoice.AmountPaid / 100m),
-                Currency = invoice.Currency?.ToUpperInvariant() ?? "USD",
-                Status = "paid",
-                StripeInvoiceId = invoice.Id
-            });
+            string secret = OASISSub.SubscriptionStripeConfiguration.SecretKey(_configuration);
+            if (string.IsNullOrWhiteSpace(secret)) throw new InvalidOperationException("STRIPE_SECRET_KEY is required to read canonical subscription state.");
+            return new StripeClient(secret);
         }
-
-        private async Task OnPaymentFailedAsync(Invoice invoice)
-        {
-            if (invoice?.SubscriptionId == null) return;
-            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(invoice.SubscriptionId);
-            if (record == null) return;
-
-            record.Status = "past_due";
-            await _subscriptionService.UpsertSubscriptionAsync(record);
-        }
-
         // ── My Subscriptions ─────────────────────────────────────────────────
 
+        [Authorize]
         [HttpGet("subscriptions/me")]
         public async Task<ActionResult> GetMySubscriptions()
         {
@@ -482,6 +465,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Orders ───────────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpGet("orders/me")]
         public async Task<ActionResult> GetMyOrders()
         {
@@ -495,6 +479,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Pay-as-you-go ────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpPost("toggle-pay-as-you-go")]
         public async Task<IActionResult> TogglePayAsYouGo([FromBody] TogglePayAsYouGoRequest request)
         {
@@ -520,6 +505,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── Usage ─────────────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpGet("usage")]
         public async Task<IActionResult> GetUsage()
         {
@@ -562,6 +548,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── HyperDrive ───────────────────────────────────────────────────────
 
+        [Authorize]
         [HttpPost("update-hyperdrive-config")]
         public async Task<ActionResult<OASISResult<bool>>> UpdateHyperDriveConfig([FromBody] UpdateHyperDriveConfigRequest request)
         {
@@ -601,6 +588,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("hyperdrive-usage")]
         public async Task<ActionResult<OASISResult<HyperDriveUsageDto>>> GetHyperDriveUsage()
         {
@@ -642,6 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new OASISResult<HyperDriveUsageDto> { Result = dto, Message = "HyperDrive usage retrieved." });
         }
 
+        [Authorize]
         [HttpPost("check-hyperdrive-quota")]
         public async Task<ActionResult<OASISResult<QuotaCheckResult>>> CheckHyperDriveQuota([FromBody] QuotaCheckRequest request)
         {
@@ -690,12 +679,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private string GetCurrentUserId()
         {
-            if (HttpContext.Items.TryGetValue("Avatar", out var avatarObj) && avatarObj is IAvatar avatar)
-                return avatar.Id.ToString();
-
-            // Fallback: JWT sub claim
-            return User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                ?? User?.FindFirst("sub")?.Value;
+            if (User?.Identity?.IsAuthenticated != true) return null;
+            string claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            if (!Guid.TryParseExact(claim, "D", out var authenticatedId)) return null;
+            if (HttpContext.Items.TryGetValue("Avatar", out var value) && value is IAvatar avatar && avatar.Id != authenticatedId) return null;
+            return authenticatedId.ToString("D");
+        }
+        private static async Task<int> GetCurrentKarmaAsync(string userId)
+        {
+            if (!Guid.TryParse(userId, out var avatarId)) return 0;
+            var result = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            if (result.IsError || result.Result == null)
+                throw new InvalidOperationException($"Unable to load authoritative karma for subscription usage: {result.Message}");
+            return result.Result.Karma > int.MaxValue ? int.MaxValue : (int)Math.Max(0, result.Result.Karma);
         }
 
         private static decimal OveragePriceFor(string planId) => planId switch
@@ -732,15 +728,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         private string GetStripePriceId(string planId)
         {
-            var stripe = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.SubscriptionConfig?.Stripe;
-            return planId.ToLower() switch
-            {
-                "bronze"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_BRONZE")     ?? _configuration["STRIPE_PRICE_BRONZE"]     ?? stripe?.PriceBronze,
-                "silver"     => Environment.GetEnvironmentVariable("STRIPE_PRICE_SILVER")     ?? _configuration["STRIPE_PRICE_SILVER"]     ?? stripe?.PriceSilver,
-                "gold"       => Environment.GetEnvironmentVariable("STRIPE_PRICE_GOLD")       ?? _configuration["STRIPE_PRICE_GOLD"]       ?? stripe?.PriceGold,
-                "enterprise" => Environment.GetEnvironmentVariable("STRIPE_PRICE_ENTERPRISE") ?? _configuration["STRIPE_PRICE_ENTERPRISE"] ?? stripe?.PriceEnterprise,
-                _            => null
-            };
+            return OASISSub.SubscriptionStripeConfiguration.PriceId(_configuration, planId);
         }
 
         // ── OLD: auto-create Stripe Products/Prices on first checkout ──────────

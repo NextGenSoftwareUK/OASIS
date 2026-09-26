@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -147,6 +148,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (holonResult == null || holonResult.IsError || holonResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Unable to load holon {holonId}. Reason: {holonResult?.Message}");
+                    return result;
+                }
+
+                if (holonResult.Result.CreatedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Unauthorized. You can only share holons that you created.");
                     return result;
                 }
 
