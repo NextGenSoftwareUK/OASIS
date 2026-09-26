@@ -27,9 +27,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OASISHyperDriveConfig?.EnableHostedSync != true)
+            var config = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OASISHyperDriveConfig;
+            if (config?.EnableHostedSync != true)
             {
                 _logger.LogInformation("Durable hosted HyperDrive synchronization is disabled in OASIS DNA.");
+                return;
+            }
+            if (!config.AutoReplicationEnabled)
+            {
+                _logger.LogInformation("HyperDrive provider fan-out is disabled in OASIS DNA.");
                 return;
             }
 
