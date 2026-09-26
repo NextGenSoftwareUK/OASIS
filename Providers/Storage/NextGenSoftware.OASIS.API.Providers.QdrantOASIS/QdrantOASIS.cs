@@ -105,10 +105,15 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         private float[] ZeroVector() => new float[_vectorSize];
 
+        private static bool HasOkStatus(JsonElement response) =>
+            response.TryGetProperty("status", out var status) &&
+            status.ValueKind == JsonValueKind.String &&
+            status.GetString() == "ok";
+
         private async Task EnsureCollectionAsync(string name)
         {
             var info = await QdrantGetAsync($"/collections/{name}");
-            if (info.TryGetProperty("status", out var st) && st.GetString() == "ok") return;
+            if (HasOkStatus(info)) return;
             await QdrantPutAsync($"/collections/{name}", new
             {
                 vectors = new { size = _vectorSize, distance = "Cosine" }
@@ -126,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         private async Task<JsonElement?> GetPointAsync(string collection, string id)
         {
             var result = await QdrantGetAsync($"/collections/{collection}/points/{id}");
-            if (result.TryGetProperty("status", out var st) && st.GetString() == "ok"
+            if (HasOkStatus(result)
                 && result.TryGetProperty("result", out var r) && r.ValueKind != JsonValueKind.Null)
                 return r;
             return null;
