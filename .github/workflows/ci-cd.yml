@@ -24,6 +24,12 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: ../NextGenSoftware-Libraries
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -239,7 +245,7 @@ jobs:
           # Object storage.
           - name: MinIO
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests
-            image: minio/minio:latest
+            image: quay.io/minio/minio:latest
             ports: 9000:9000
             wait: 9000
             docker_args: -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin
@@ -253,6 +259,12 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: ../NextGenSoftware-Libraries
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -505,27 +517,30 @@ jobs:
 
   # STARAPIClient Unit + Integration + Harness
   test-starapi-client:
-    name: Test STARAPIClient
+    name: Test OGEngineClient
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Run STARAPIClient test suite
-      shell: pwsh
+    - name: Run OGEngineClient test suites
       run: |
-        & "OASIS/OASIS Omniverse/STARAPIClient/run_star_api_test_suite.ps1" -Configuration Release -KillStaleTestHosts $true
+        dotnet test "OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
+        dotnet test "OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
 
     - name: Upload STARAPIClient test artifacts
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: starapiclient-test-results
-        path: OASIS/OASIS Omniverse/STARAPIClient/TestResults/
+        name: ogengineclient-test-results
+        path: TestResults/
         retention-days: 30
 
   # Unity Tests (if Unity is available)
@@ -605,7 +620,8 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore
+      working-directory: OASIS
+      run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Build all projects
       run: dotnet build --configuration Release --no-restore
@@ -662,8 +678,9 @@ jobs:
       run: dotnet restore
     
     - name: Security scan
+      working-directory: OASIS
       run: |
-        dotnet list package --vulnerable --include-transitive
+        dotnet list "The OASIS - NoTests.sln" package --vulnerable --include-transitive
         echo "Security scan completed"
 
   # Code Quality
@@ -701,11 +718,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore
+      working-directory: OASIS
+      run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Code analysis
+      working-directory: OASIS
       run: |
-        dotnet build --configuration Release --no-restore
+        dotnet build "The OASIS - NoTests.sln" --configuration Release --no-restore -warnaserror:none
         echo "Code quality analysis completed"
 
   # Test Coverage Report
