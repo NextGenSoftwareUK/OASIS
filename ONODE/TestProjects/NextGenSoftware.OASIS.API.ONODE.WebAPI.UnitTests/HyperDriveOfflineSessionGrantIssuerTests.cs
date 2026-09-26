@@ -156,6 +156,30 @@ public sealed class HyperDriveOfflineSessionGrantIssuerTests
         Assert.Contains("does not match", exception.Message);
     }
 
+    [Fact]
+    public async Task EnvironmentPublicKeyOverridesDnaForDeploymentSpecificIdentity()
+    {
+        using var signingKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var dnaKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var settings = Settings(new[] { "world.read" }, dnaKey);
+        settings.SigningPublicKeyEnvironmentVariable = "TEST_OFFLINE_GRANT_PUBLIC_KEY";
+        string privateKey = Convert.ToBase64String(signingKey.ExportPkcs8PrivateKey());
+        string publicKey = Convert.ToBase64String(signingKey.ExportSubjectPublicKeyInfo());
+        var issuer = new HyperDriveOfflineSessionGrantIssuer(settings, name => name switch
+        {
+            "TEST_OFFLINE_GRANT_KEY" => privateKey,
+            "TEST_OFFLINE_GRANT_PUBLIC_KEY" => publicKey,
+            _ => null
+        });
+
+        Guid device = Guid.NewGuid();
+        var issued = await issuer.IssueAsync(Guid.NewGuid(), new IssueHyperDriveOfflineSessionGrantRequest
+        { DeviceId = device, RequestedLifetimeMinutes = 30, RequestedScopes = new[] { "world.read" } }, default);
+        var validated = await issuer.ValidateAsync(issued.Result, "world.read", device, default);
+
+        Assert.False(validated.IsError);
+    }
+
     private static HyperDriveOfflineSessionGrantIssuer CreateIssuer(ECDsa key, params string[] scopes) =>
         new(Settings(scopes, key), _ => Convert.ToBase64String(key.ExportPkcs8PrivateKey()));
 
