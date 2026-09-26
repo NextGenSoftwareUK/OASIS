@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private const string DomainCaptureIdentityCollection = "HyperDriveDomainCaptureIdentity";
         private const string DomainCaptureDeadLettersCollection = "HyperDriveDomainCaptureDeadLetters";
         private const string DomainCaptureLeasesCollection = "HyperDriveDomainCaptureLeases";
-        private const string HolonCaptureId = "holon-v2";
+        private const string HolonCaptureId = "holon-v3";
         private readonly string _domainCaptureWorkerId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
 
         private async Task<OASISResult<HostedDomainBackfillResult>> BackfillHolonDomainStateAsync(
