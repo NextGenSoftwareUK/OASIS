@@ -5,7 +5,7 @@
 
 ## What Is WEB6?
 
-WEB6 is OASIS's unified AI gateway — a single API key that gives you access to **98 AI providers and hundreds of models**, with intelligent routing, multi-agent reasoning, and privacy-first options built in.
+WEB6 is OASIS's unified AI gateway — a single API key that gives you access to **100 AI providers and hundreds of models**, with intelligent routing, multi-agent reasoning, and privacy-first options built in.
 
 Think of it like OpenRouter, but with three key differences:
 1. **You own your infrastructure** — no third-party middleman, no data leaving your control
@@ -85,7 +85,7 @@ WEB6 passes through provider costs at **exactly** what they charge — no markup
 
 | Feature | OpenRouter | WEB6 |
 |---|---|---|
-| Number of providers | 600+ | 98 (growing rapidly) |
+| Number of providers | 600+ | 100 (growing rapidly) |
 | Single API key | ✅ | ✅ |
 | Pick any model per request | ✅ | ✅ |
 | Uncensored models | Some | ✅ Venice + OrcaRouter (default-able) |
@@ -162,7 +162,7 @@ GET /v1/models
 # Only models reachable on the Bronze plan
 GET /v1/models?plan=Bronze
 
-# All 98 providers with capabilities and tier
+# All 100 providers with capabilities and tier
 GET /v1/providers
 
 # Live health probe of every provider

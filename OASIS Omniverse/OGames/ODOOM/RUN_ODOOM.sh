@@ -40,26 +40,12 @@ if [[ -z "$ODOOM_EXE" ]]; then
 fi
 
 ODOOM_DIR="$(dirname "$ODOOM_EXE")"
-# Ensure libstar_api.so (or .dylib) is in the same dir as the executable; binary is linked against libstar_api
-if [[ ! -f "$ODOOM_DIR/libstar_api.so" && ! -f "$ODOOM_DIR/libstar_api.dylib" ]]; then
-  if [[ -f "$ODOOM_DIR/star_api.so" ]]; then
-    ln -sf star_api.so "$ODOOM_DIR/libstar_api.so" 2>/dev/null || cp -f "$ODOOM_DIR/star_api.so" "$ODOOM_DIR/libstar_api.so"
-  elif [[ -f "$ODOOM_DIR/star_api.dylib" ]]; then
-    ln -sf star_api.dylib "$ODOOM_DIR/libstar_api.dylib" 2>/dev/null || cp -f "$ODOOM_DIR/star_api.dylib" "$ODOOM_DIR/libstar_api.dylib"
-  elif [[ -f "$HERE/libstar_api.so" ]]; then
-    cp -f "$HERE/libstar_api.so" "$ODOOM_DIR/"
-  elif [[ -f "$HERE/star_api.so" ]]; then
-    cp -f "$HERE/star_api.so" "$ODOOM_DIR/libstar_api.so"
-  elif [[ -f "$HERE/libstar_api.dylib" ]]; then
-    cp -f "$HERE/libstar_api.dylib" "$ODOOM_DIR/"
-  elif [[ -f "$HERE/star_api.dylib" ]]; then
-    cp -f "$HERE/star_api.dylib" "$ODOOM_DIR/libstar_api.dylib"
-  else
-    echo "ERROR: libstar_api.so not found in $ODOOM_DIR or $HERE. Run ./BUILD_ODOOM.sh first to build and copy the STAR API library." >&2
-    exit 1
-  fi
+# The canonical NativeAOT library must be packaged next to the executable.
+if [[ ! -f "$ODOOM_DIR/ogengine.so" && ! -f "$ODOOM_DIR/ogengine.dylib" ]]; then
+  echo "ERROR: ogengine native library not found in $ODOOM_DIR. Run ./BUILD_ODOOM.sh first." >&2
+  exit 1
 fi
-# So the loader finds libstar_api next to the executable (Linux/macOS don't search . by default)
+# Linux/macOS do not search the executable directory by default.
 export LD_LIBRARY_PATH="$ODOOM_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 [[ "$(uname -s)" == "Darwin" ]] && export DYLD_LIBRARY_PATH="$ODOOM_DIR${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
 
