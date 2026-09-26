@@ -147,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 .AddItemToAvatarInventoryAsync(command.AvatarId, item, operationId: command.OperationId)
                 .ConfigureAwait(false);
             RejectIfError(applied?.IsError == true, "INVENTORY_GRANT_REJECTED", applied?.Message);
-            return applied.Result;
+            return ProjectInventoryItem(applied.Result);
         }
 
         private async Task<object> ExecuteGeoNftCollectionAsync(HostedSyncCommandItem command)
@@ -175,7 +175,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 .CollectGeoNFTInventoryAsync(command.AvatarId, nft, item, operationId: command.OperationId)
                 .ConfigureAwait(false);
             RejectIfError(applied?.IsError == true, "GEONFT_COLLECTION_REJECTED", applied?.Message);
-            return applied.Result;
+            return ProjectInventoryItem(applied.Result);
+        }
+
+        private static HyperDriveInventoryItemProjection ProjectInventoryItem(IInventoryItem item)
+        {
+            if (item == null)
+                throw new HyperDriveCommandRejectedException("INVENTORY_RESULT_MISSING",
+                    "The inventory command completed without returning its authoritative item.");
+            return new HyperDriveInventoryItemProjection
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Quantity = item.Quantity,
+                GameSource = item.GameSource,
+                ItemType = (int)item.ItemType,
+                NftId = item.NftId,
+                GeoNftId = item.GeoNFTId,
+                Rarity = item.Rarity,
+                MaxQuantity = item.MaxQuantity,
+                Weight = item.Weight,
+                IsUsable = item.IsUsable,
+                IsTradeable = item.IsTradeable
+            };
         }
 
         private static T Deserialize<T>(HostedSyncCommandItem command)
