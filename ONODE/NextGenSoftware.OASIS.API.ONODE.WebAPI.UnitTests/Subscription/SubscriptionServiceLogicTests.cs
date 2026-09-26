@@ -17,17 +17,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         // ── SubscriptionRecord defaults ──────────────────────────────────────
 
         [Fact]
-        public void SubscriptionRecord_DefaultPlanId_IsFree()
+        public void SubscriptionRecord_RequiresExplicitPlan()
         {
             var record = new SubscriptionRecord();
-            record.PlanId.Should().Be("free");
+            record.PlanId.Should().BeNull();
         }
 
         [Fact]
-        public void SubscriptionRecord_DefaultStatus_IsActive()
+        public void SubscriptionRecord_RequiresExplicitStatus()
         {
             var record = new SubscriptionRecord();
-            record.Status.Should().Be("active");
+            record.Status.Should().BeNull();
         }
 
         // ── UsageRecord ──────────────────────────────────────────────────────

@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using NATS.Client.Core;
+using NATS.Client.JetStream;
+using NATS.Client.KeyValueStore;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -19,17 +24,18 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
 {
-    /// <summary>NATS JetStream — high-throughput persistent pub/sub messaging; agents subscribe to subjects and respond via reply subjects.</summary>
+    /// <summary>NATS JetStream — high-throughput persistent messaging with KV store, object store, and streams.</summary>
     public class NATSJetStreamOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
-        private readonly HttpClient _http;
-        private readonly string _apiUrl;
+        private readonly string _natsUrl;
+        private NatsConnection _nats;
+        private INatsKVStore _avatarKv;
+        private INatsKVStore _holonKv;
         private bool _isActivated;
 
-        public NATSJetStreamOASIS(string apiUrl = "nats://localhost:4222")
+        public NATSJetStreamOASIS(string natsUrl = "nats://localhost:4222")
         {
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "nats://localhost:4222";
-            _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
+            _natsUrl = natsUrl;
             ProviderName = "NATSJetStreamOASIS";
             ProviderDescription = "NATS JetStream High-Throughput Messaging Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NATSJetStreamOASIS);
@@ -39,7 +45,18 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { if (_isActivated) { r.Result = true; r.Message = "NATSJetStreamOASIS already activated"; return r; } _isActivated = true; r.Result = true; r.Message = "NATSJetStreamOASIS activated successfully"; }
+            try
+            {
+                if (_isActivated) { r.Result = true; r.Message = "NATSJetStreamOASIS already activated"; return r; }
+                _nats = new NatsConnection(new NatsOpts { Url = _natsUrl });
+                await _nats.ConnectAsync();
+                var js = _nats.CreateJetStreamContext();
+                _avatarKv = await js.CreateKeyValueStoreAsync(new NatsKVConfig("oasis-avatars"));
+                _holonKv  = await js.CreateKeyValueStoreAsync(new NatsKVConfig("oasis-holons"));
+                _isActivated = true;
+                r.Result = true;
+                r.Message = "NATSJetStreamOASIS activated successfully";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS activation failed: {ex.Message}", ex); }
             return r;
         }
@@ -47,26 +64,189 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var r = new OASISResult<bool>();
-            try { _isActivated = false; _http.Dispose(); r.Result = true; r.Message = "NATSJetStreamOASIS deactivated"; }
+            try
+            {
+                if (_nats != null) { await _nats.DisposeAsync(); _nats = null; }
+                _avatarKv = null; _holonKv = null; _isActivated = false;
+                r.Result = true; r.Message = "NATSJetStreamOASIS deactivated";
+            }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS deactivation failed: {ex.Message}", ex); }
             return r;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IHolon>(); try { if (h.Id == Guid.Empty) h.Id = Guid.NewGuid(); r.Result = h; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS SaveHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
+        private static byte[] ToJsonBytes(object obj) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj));
+
+        // ── Avatars ─────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var entry = await _avatarKv.GetEntryAsync<byte[]>($"avatar.{id}");
+                if (entry?.Value == null) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: avatar {id} not found"); return r; }
+                r.Result = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(entry.Value));
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var all = await LoadAllAvatarsAsync(v);
+                if (!all.IsError && all.Result != null)
+                    r.Result = all.Result.FirstOrDefault(a => a.Username == u);
+                if (r.Result == null) OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: avatar '{u}' not found");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                if (a.Id == Guid.Empty) a.Id = Guid.NewGuid();
+                await _avatarKv.PutAsync($"avatar.{a.Id}", ToJsonBytes(a));
+                r.Result = a;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS SaveAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true)
+        {
+            var r = new OASISResult<bool>();
+            try
+            {
+                if (soft)
+                {
+                    var load = await LoadAvatarAsync(id);
+                    if (!load.IsError && load.Result != null)
+                    {
+                        load.Result.DeletedDate = DateTime.UtcNow;
+                        await SaveAvatarAsync(load.Result);
+                    }
+                }
+                else
+                {
+                    await _avatarKv.DeleteAsync($"avatar.{id}");
+                }
+                r.Result = true;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS DeleteAvatarAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0)
+        {
+            var r = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var list = new List<IAvatar>();
+                await foreach (var key in _avatarKv.GetKeysAsync())
+                {
+                    var entry = await _avatarKv.GetEntryAsync<byte[]>(key);
+                    if (entry?.Value == null) continue;
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(entry.Value));
+                    if (avatar != null) list.Add(avatar);
+                }
+                r.Result = list;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAllAvatarsAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        // ── Holons ──────────────────────────────────────────────────────────────
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                var entry = await _holonKv.GetEntryAsync<byte[]>($"holon.{id}");
+                if (entry?.Value == null) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: holon {id} not found"); return r; }
+                r.Result = JsonConvert.DeserializeObject<Holon>(Encoding.UTF8.GetString(entry.Value));
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
+                await _holonKv.PutAsync($"holon.{h.Id}", ToJsonBytes(h));
+                r.Result = h;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS SaveHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0)
+        {
+            var r = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var list = new List<IHolon>();
+                await foreach (var key in _holonKv.GetKeysAsync())
+                {
+                    var entry = await _holonKv.GetEntryAsync<byte[]>(key);
+                    if (entry?.Value == null) continue;
+                    var holon = JsonConvert.DeserializeObject<Holon>(Encoding.UTF8.GetString(entry.Value));
+                    if (holon != null && (ht == HolonType.All || holon.HolonType == ht)) list.Add(holon);
+                }
+                r.Result = list;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAllHolonsAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false)
+        {
+            var r = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) saved.Add(sr.Result); }
+            r.Result = saved; return r;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var r = new OASISResult<IHolon>();
+            try
+            {
+                await _holonKv.DeleteAsync($"holon.{id}");
+                r.Result = new Holon { Id = id };
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS DeleteHolonAsync: {ex.Message}", ex); }
+            return r;
+        }
+
+        // ── Remaining boilerplate ────────────────────────────────────────────────
+
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "NATSJetStreamOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "NATSJetStreamOASIS does not support avatar detail storage"); return r; }
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string k, int v = 0) => await LoadAvatarByUsernameAsync(k, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0)
+        {
+            var r = new OASISResult<IAvatar>();
+            try
+            {
+                var all = await LoadAllAvatarsAsync();
+                if (!all.IsError && all.Result != null) r.Result = all.Result.FirstOrDefault(a => a.Email == e);
+                if (r.Result == null) OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: avatar with email '{e}' not found");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAvatarByEmailAsync: {ex.Message}", ex); }
+            return r;
+        }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
@@ -77,7 +257,6 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
@@ -110,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(t, lc, rec, md, cd, coe, lcfp, v).Result;
         public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(holons, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message, Result = r.Result }; }
         public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;

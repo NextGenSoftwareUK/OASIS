@@ -1,7 +1,7 @@
 ﻿/**
  * OASIS STAR API - Generic game integration layer (async auth, async inventory, local-item sync)
  *
- * Use this from OQUAKE, ODOOM, or any game that links against star_api. It provides:
+ * Use this from OQUAKE, ODOOM, or any game that links against ogengine. It provides:
  * - Async authentication (background thread; completion via callback from main thread)
  * - Async inventory refresh (background thread; completion via callback from main thread)
  * - Async send item (background thread; completion via callback from main thread)
@@ -10,11 +10,11 @@
  * All completion callbacks are invoked on the main thread when you call ogengine_sync_pump().
  * Call ogengine_sync_pump() once per frame; no per-frame polling of individual operations.
  *
- * Include star_api.h before this header.
+ * Include ogengine.h before this header.
  *
  * Build options:
- * - Default: ogengine_sync_* are exported from star_api.dll (C# implementation). Do NOT compile
- *   star_sync.c; link only star_api. BUILD ODOOM / BUILD_OQUAKE set this by default.
+ * - Default: ogengine_sync_* are exported from ogengine.dll (C# implementation). Do NOT compile
+ *   star_sync.c; link only ogengine. BUILD ODOOM / BUILD_OQUAKE set this by default.
  * - To use the C implementation instead: set OASIS_STAR_SYNC_IN_CLIENT=0 and rebuild, or
  *   undefine OASIS_STAR_SYNC_IN_CLIENT and add star_sync.c to the build again.
  * - If you get LNK2001 for ogengine_queue_quest_level_time: either link with a STAR API build

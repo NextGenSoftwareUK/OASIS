@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
 # Cross-platform (Linux, macOS) build; equivalent of "BUILD ODOOM.bat" on Windows.
 # Usage: ./BUILD_ODOOM.sh [ run | batch ] [ nosprites ]
@@ -40,7 +40,7 @@ if [[ "${1:-}" == "run" ]]; then
 fi
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OMNIVERSE="$(cd "$HERE/.." && pwd)"
+OMNIVERSE="$(cd "$HERE/../.." && pwd)"
 OGENGINECLIENT="$OMNIVERSE/OGEngineClient"
 ODOOM_INTEGRATION="$HERE"
 DOOM_FOLDER="$ODOOM_INTEGRATION"
@@ -169,8 +169,8 @@ else
   fi
 fi
 # Linux: .so; macOS: .dylib
-if [[ ! -f "$ODOOM_INTEGRATION/libstar_api.so" && ! -f "$ODOOM_INTEGRATION/star_api.so" && ! -f "$ODOOM_INTEGRATION/libstar_api.dylib" && ! -f "$ODOOM_INTEGRATION/star_api.dylib" ]]; then
-  echo "ERROR: star_api not found in $ODOOM_INTEGRATION (expected libstar_api.so / .dylib or star_api.so / .dylib after deploy)."
+if [[ ! -f "$ODOOM_INTEGRATION/ogengine.so" && ! -f "$ODOOM_INTEGRATION/ogengine.dylib" ]]; then
+  echo "ERROR: ogengine native library not found in $ODOOM_INTEGRATION after deploy."
   exit 1
 fi
 if [[ ! -f "$OGENGINECLIENT/ogengine.h" ]]; then
@@ -189,6 +189,7 @@ echo "[ODOOM][STEP] Installing integration files..."
 cp -f "$ODOOM_INTEGRATION/uzdoom_ogengine_integration.cpp" "$UZDOOM_SRC/src/"
 cp -f "$ODOOM_INTEGRATION/uzdoom_ogengine_integration.h" "$UZDOOM_SRC/src/"
 cp -f "$OGENGINECLIENT/ogengine.h" "$UZDOOM_SRC/src/"
+cp -f "$OMNIVERSE/OGLib/"*.h "$UZDOOM_SRC/src/"
 [[ -f "$ODOOM_INTEGRATION/ogengine_sync.c" ]] && cp -f "$ODOOM_INTEGRATION/ogengine_sync.c" "$UZDOOM_SRC/src/"
 [[ -f "$ODOOM_INTEGRATION/ogengine_sync.h" ]] && cp -f "$ODOOM_INTEGRATION/ogengine_sync.h" "$UZDOOM_SRC/src/"
 cp -f "$ODOOM_INTEGRATION/odoom_branding.h" "$UZDOOM_SRC/src/"
@@ -341,14 +342,14 @@ echo "[ODOOM][STEP] Configuring CMake and STAR API..."
 mkdir -p "$UZDOOM_SRC/build"
 cd "$UZDOOM_SRC/build"
 
-# On Linux/macOS we pass OGENGINE_DIR (header) and OGENGINE_LIB_DIR (folder containing libstar_api.so / libstar_api.dylib)
+# On Linux/macOS we pass OGENGINE_DIR and the folder containing the canonical NativeAOT library.
 OGENGINE_DIR="$OGENGINECLIENT"
 OGENGINE_LIB_DIR="$DOOM_FOLDER"
 PYTHON3_EXE="${PYTHON3_EXE:-$(command -v python3 || command -v python)}"
 
-# Copy STAR API lib into build/ and build/src/ so the linker finds it (link runs from build/src/; -lstar_api needs libstar_api.so).
+# Copy the native library into build/ and build/src/ so the linker finds it.
 STAR_LIB_SRC=""
-for lib in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
+for lib in ogengine.so ogengine.dylib; do
   if [[ -f "$OGENGINE_LIB_DIR/$lib" ]]; then
     STAR_LIB_SRC="$OGENGINE_LIB_DIR/$lib"
     break
@@ -358,8 +359,8 @@ if [[ -z "$STAR_LIB_SRC" || ! -f "$STAR_LIB_SRC" ]]; then
   echo "ERROR: No STAR API library in $OGENGINE_LIB_DIR. Run BUILD_ODOOM.sh from ODOOM folder (it deploys STAR API first)."
   exit 1
 fi
-STAR_LIB_NAME="libstar_api.so"
-[[ "$STAR_LIB_SRC" == *.dylib ]] && STAR_LIB_NAME="libstar_api.dylib"
+STAR_LIB_NAME="ogengine.so"
+[[ "$STAR_LIB_SRC" == *.dylib ]] && STAR_LIB_NAME="ogengine.dylib"
 mkdir -p "$UZDOOM_SRC/build/src"
 for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
   cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
@@ -372,7 +373,7 @@ else
   CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=ON"
   echo "[ODOOM][INFO] Using star_sync from star_api - default"
 fi
-# Add both ODOOM folder and build/src to link path so -lstar_api resolves
+# Add both ODOOM folder and build/src to the linker path.
 CMAKE_LINK_FLAGS="-L\"$UZDOOM_SRC/build/src\" -L\"$OGENGINE_LIB_DIR\""
 cmake .. \
   -G "Unix Makefiles" \
@@ -387,7 +388,7 @@ cmake .. \
 echo ""
 echo "[ODOOM][STEP] Building..."
 NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
-# Ensure linker finds libstar_api.so at link time (in case CMake does not pass our -L flags)
+# Ensure the linker finds ogengine at link time.
 export LIBRARY_PATH="$UZDOOM_SRC/build/src:$OGENGINE_LIB_DIR${LIBRARY_PATH:+:$LIBRARY_PATH}"
 cmake --build . -j${NPROC}
 
@@ -440,20 +441,13 @@ else
 fi
 cp -f "$ODOOM_BIN" "$ODOOM_INTEGRATION/build/ODOOM"
 chmod +x "$ODOOM_INTEGRATION/build/ODOOM"
-# Deploy STAR API shared lib next to executable; binary is linked against libstar_api.so / libstar_api.dylib
-for so in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
+# Deploy the native library next to the executable.
+for so in ogengine.so ogengine.dylib; do
   if [[ -f "$ODOOM_INTEGRATION/$so" ]]; then
     cp -f "$ODOOM_INTEGRATION/$so" "$ODOOM_INTEGRATION/build/"
     break
   fi
 done
-# Ensure libstar_api.so (or .dylib) exists so the loader finds it (in case deploy produced only star_api.so)
-if [[ ! -f "$ODOOM_INTEGRATION/build/libstar_api.so" && -f "$ODOOM_INTEGRATION/build/star_api.so" ]]; then
-  cp -f "$ODOOM_INTEGRATION/build/star_api.so" "$ODOOM_INTEGRATION/build/libstar_api.so"
-fi
-if [[ ! -f "$ODOOM_INTEGRATION/build/libstar_api.dylib" && -f "$ODOOM_INTEGRATION/build/star_api.dylib" ]]; then
-  cp -f "$ODOOM_INTEGRATION/build/star_api.dylib" "$ODOOM_INTEGRATION/build/libstar_api.dylib"
-fi
 [[ -f "$ODOOM_INTEGRATION/odoom_face.pk3" ]] && cp -f "$ODOOM_INTEGRATION/odoom_face.pk3" "$ODOOM_INTEGRATION/build/"
 
 # Create XDG IWAD directory so user can copy doom2.wad etc. without creating folders by hand

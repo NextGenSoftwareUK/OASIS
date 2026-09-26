@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -96,6 +97,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("karma-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetKarmaStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             try
             {
                 OASISResult<Dictionary<string, object>> result = null;
@@ -152,6 +155,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("karma-history/{avatarId}")]
         public async Task<OASISResult<List<Dictionary<string, object>>>> GetKarmaHistory(Guid avatarId, int limit = 50)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<Dictionary<string, object>>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             return await Program.StatsManager.GetKarmaHistoryAsync(avatarId, limit);
         }
 
@@ -164,6 +169,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("gift-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetGiftStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             return await Program.StatsManager.GetGiftStatsAsync(avatarId);
         }
 
@@ -176,6 +183,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("chat-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetChatStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             return await Program.StatsManager.GetChatStatsAsync(avatarId);
         }
 
@@ -188,6 +197,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("key-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetKeyStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             return await Program.StatsManager.GetKeyStatsAsync(avatarId);
         }
 
@@ -200,6 +211,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("leaderboard-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetLeaderboardStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             return await Program.StatsManager.GetLeaderboardStatsAsync(avatarId);
         }
 
@@ -223,6 +236,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("achievement-stats/{avatarId}")]
         public async Task<OASISResult<Dictionary<string, object>>> GetAchievementStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Unauthorized. You can only access your own stats." };
             var avatarResult = await Program.AvatarManager.LoadAvatarAsync(avatarId);
             if (avatarResult.IsError || avatarResult.Result == null)
                 return new OASISResult<Dictionary<string, object>> { IsError = true, Message = "Avatar not found." };

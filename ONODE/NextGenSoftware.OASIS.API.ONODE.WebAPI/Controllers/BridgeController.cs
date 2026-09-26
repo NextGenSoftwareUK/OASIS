@@ -49,6 +49,7 @@ public class BridgeController : OASISControllerBase
     /// <param name="request">Order creation request with token details</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Order creation response with transaction details</returns>
+    [Authorize]
     [HttpPost("orders")]
     [ProducesResponseType(typeof(CreateBridgeOrderResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -87,6 +88,7 @@ public class BridgeController : OASISControllerBase
     /// <param name="orderId">Unique identifier of the order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Order balance and status information</returns>
+    [Authorize]
     [HttpGet("orders/{orderId:guid}/check-balance")]
     [ProducesResponseType(typeof(BridgeOrderBalanceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -205,6 +207,7 @@ public class BridgeController : OASISControllerBase
     /// <summary>
     /// Creates a private bridge order with viewing key audit and proof verification enabled.
     /// </summary>
+    [Authorize]
     [HttpPost("orders/private")]
     [ProducesResponseType(typeof(CreateBridgeOrderResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -237,6 +240,7 @@ public class BridgeController : OASISControllerBase
     /// <summary>
     /// Records a viewing key for auditability/compliance.
     /// </summary>
+    [Authorize]
     [HttpPost("viewing-keys/audit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -266,6 +270,7 @@ public class BridgeController : OASISControllerBase
     /// <summary>
     /// Verifies a submitted zero-knowledge proof payload.
     /// </summary>
+    [Authorize]
     [HttpPost("proofs/verify")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

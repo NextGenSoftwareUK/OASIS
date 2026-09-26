@@ -1416,6 +1416,9 @@ class OASISInventoryOverlayHandler : EventHandler
 		// XP (and karma if non-zero) at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
 		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
+		CVar edgeStatusCv = CVar.FindCVar("odoom_star_edge_status");
+		if (beamedVar != null && beamedVar.GetInt() != 0 && edgeStatusCv != null)
+			screen.DrawText(f, Font.CR_GRAY, 2, 14, edgeStatusCv.GetString(), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		CVar karmaVar = CVar.FindCVar("odoom_star_avatar_karma");
 		CVar showXpCv = CVar.FindCVar("odoom_hud_show_xp");
 		int showXpHud = (showXpCv != null) ? showXpCv.GetInt() : 1;

@@ -69,6 +69,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-eosio-account-name-for-avatar")]
         public OASISResult<List<string>> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<List<string>> { IsError = true, Message = "Unauthorized. You can only access your own EOSIO accounts." };
             try
             {
                 OASISResult<List<string>> result = null;
@@ -124,6 +126,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-eosio-account-private-key-for-avatar")]
         public OASISResult<string> GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own private keys." };
             return new(EOSIOOASIS.GetEOSIOAccountPrivateKeyForAvatar(avatarId));
         }
 
@@ -191,6 +195,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-eosio-account-for-avatar")]
         public OASISResult<GetAccountResponseDto> GetEOSIOAccountForAvatar(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<GetAccountResponseDto> { IsError = true, Message = "Unauthorized. You can only access your own EOSIO account." };
             return new(EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
         }
 
@@ -243,6 +249,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-balance-for-avatar")]
         public OASISResult<string> GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<string> { IsError = true, Message = "Unauthorized. You can only access your own balance." };
             return new(EOSIOOASIS.GetBalanceForAvatar(avatarId, code, symbol));
         }
 
@@ -257,6 +265,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public OASISResult<IProviderWallet> LinkEOSIOAccountToAvatar(Guid walletId, Guid avatarId, string eosioAccountName, string walletAddress)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only link accounts to your own avatar." };
             return KeyManager.LinkProviderPublicKeyToAvatarById(walletId, avatarId, ProviderType.EOSIOOASIS, eosioAccountName, walletAddress);
         }
     }

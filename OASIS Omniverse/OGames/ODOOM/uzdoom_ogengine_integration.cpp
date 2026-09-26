@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ODOOM - OASIS STAR API Integration Implementation
  *
  * Build this file as part of ODOOM (UZDoom) with STAR API from OGEngineClient.
@@ -14,24 +14,6 @@
 
 #include "uzdoom_ogengine_integration.h"
 #include "ogengine.h"
-#ifndef OGENGINE_HAS_SEND_ITEM
-/* Forward declare send-item API when using an older ogengine.h (e.g. in UZDoom tree). Link with updated ogengine.lib. */
-extern "C" {
-ogengine_result_t ogengine_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
-ogengine_result_t ogengine_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
-}
-#endif
-#ifndef OGENGINE_HAS_QUEUE_PICKUP_WITH_MINT
-/* Forward declare when ogengine.h is old or from a tree that lacks it. Link with updated ogengine.lib. */
-extern "C" {
-void ogengine_queue_pickup_with_mint(const char* item_name, const char* description, const char* game_source, const char* item_type, int do_mint, const char* provider, const char* send_to_address_after_minting, int quantity);
-}
-#endif
-#ifndef OGENGINE_HAS_CONSUME_LAST_MINT
-extern "C" {
-int ogengine_consume_last_mint_result(char* item_name_out, size_t item_name_size, char* nft_id_out, size_t nft_id_size, char* hash_out, size_t hash_size);
-}
-#endif
 #include "ogengine_sync.h"
 /* C linkage for deliver_result (from star_sync; ensure visible when header is from alternate path). */
 extern "C" void ogengine_sync_inventory_deliver_result(ogengine_item_list_t* list, ogengine_result_t result, const char* error_msg);
@@ -131,11 +113,20 @@ extern "C" void ogengine_sync_inventory_deliver_result(ogengine_item_list_t* lis
 /* Forward declaration so code before the definition (e.g. ODOOM_SaveJsonConfig) can call StarLogInfo. */
 static void StarLogInfo(const char* fmt, ...);
 
-/* OGLib: runtime session forwarders, config, beamin, cross-game utilities. */
-#define OGLIB_SESSION_IMPL
-#include "../../OGLib/oglib.h"
+/* Mandatory native exports are linked from the matching OGEngineClient import library. */
+#include "oglib.h"
+#include "oglib_edge.h"
+#include <atomic>
+
+static void oasis_open_url(const char* url);
 
 static ogengine_config_t g_star_config;
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
+static ogengine_edge_status_t g_edge_status = {};
+static bool g_star_restore_pending = false;
+static std::atomic<int> g_star_profile_error_pending{0};
+CVAR(String, odoom_star_edge_status, "", 0)
+static void ODOOM_SetToastMessage(const char* msg);
 /** 0 = merge quest progress into local STAR client cache (no GET). 1 = full GET all quests after each progress. From oasisstar.json quest_progress_refresh. */
 static int g_odoom_quest_progress_cache_refresh = 0;
 static bool g_star_initialized = false;
@@ -151,7 +142,7 @@ static bool g_star_logged_missing_auth_config = false;
 /** Set true when restore-session path runs; frame pump sets tracker to "Loading..." once CVars are safe. */
 static bool g_odoom_pending_loading_tracker = false;
 /** Set true when STAR API invokes operation callback with ProfileLoaded success; frame pump then fills tracker from cache (audit: single source of truth for "profile loaded"). */
-static bool g_odoom_profile_loaded_pending = false;
+static std::atomic<bool> g_odoom_profile_loaded_pending{false};
 /** Set true when operation_callback(OGENGINE_OP_GET_INVENTORY) fires; frame pump then applies cache to CVars. */
 static bool g_odoom_inventory_refresh_pending = false;
 /** Set true when an objective was just completed (keycard/console); frame pump refreshes tracker on next frame. */
@@ -581,11 +572,17 @@ static bool ODOOM_TryApplyCrossGameBeamInTransfers(void) {
 static bool ODOOM_LoadJsonConfig(const char* json_path) {
 	FILE* f = fopen(json_path, "r");
 	if (!f) return false;
-	char json[4096] = {0};
+	char json[32768] = {0};
 	size_t len = fread(json, 1, sizeof(json) - 1, f);
+	if (len == sizeof(json) - 1 && fgetc(f) != EOF) {
+		fclose(f);
+		StarLogInfo("ODOOM: oasisstar.json exceeds the supported 32 KiB configuration size.");
+		return false;
+	}
 	fclose(f);
 	if (len == 0) return false;
 	json[len] = '\0';
+	oglib_edge_load_json(&g_edge_settings, json);
 	bool loaded = false;
 	char value[256];
 	if (ODOOM_ExtractJsonValue(json, "ogengine_url", value, (int)sizeof(value))) {
@@ -760,6 +757,7 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	const char* star_url = (const char*)odoom_ogengine_url;
 	const char* oasis_url = (const char*)odoom_oasis_api_url;
 	fprintf(f, "{\n");
+	oglib_edge_save_json(f, &g_edge_settings);
 	fprintf(f, "  \"star_transport\": \"%s\",\n", (const char*)odoom_star_transport && ((const char*)odoom_star_transport)[0] ? (const char*)odoom_star_transport : "remote");
 	fprintf(f, "  \"ogengine_url\": \"%s\",\n", star_url ? star_url : "");
 	fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
@@ -1984,7 +1982,7 @@ static void ODOOM_StarApiOperationCallback(ogengine_result_t result, int operati
 	if (operation_type == OGENGINE_OP_PROFILE_LOADED && result == OGENGINE_SUCCESS)
 		g_odoom_profile_loaded_pending = true;
 	if (operation_type == OGENGINE_OP_PROFILE_LOADED && result != OGENGINE_SUCCESS)
-		Printf(PRINT_NONOTIFY, "Session restore failed (session may have expired). Use 'star beamin' to log in again.\n");
+		g_star_profile_error_pending = (int)result;
 	if (operation_type == OGENGINE_OP_GET_INVENTORY) {
 		ogengine_item_list_t* list = nullptr;
 		if (result == OGENGINE_SUCCESS)
@@ -2382,6 +2380,45 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	}
 
 	ogengine_sync_pump();
+	{
+		char message[512];
+		int changed = oglib_edge_finish_change(&g_edge_settings, message, sizeof(message));
+		if (changed != 0) {
+			if (changed == 1) ODOOM_SaveStarConfigToFiles();
+			ODOOM_SetToastMessage(message);
+			Printf(PRINT_NONOTIFY, "[OASIS] %s\n", message);
+		}
+	}
+	if (g_star_profile_error_pending.exchange(0)) {
+		g_star_restore_pending = false;
+		g_star_initialized = false;
+		g_star_init_failed_this_session = true;
+		odoom_star_username = "";
+		Printf(PRINT_NONOTIFY, "Beam-in failed: %s\n", ogengine_get_last_error());
+	}
+	if (g_star_restore_pending && g_odoom_profile_loaded_pending) {
+		g_star_restore_pending = false;
+		g_star_initialized = true;
+		g_star_just_beamed_in = true;
+		char name[256] = {};
+		ogengine_get_current_username(name, sizeof(name));
+		g_star_effective_username = name;
+		odoom_star_username = name;
+		ODOOM_SaveStarConfigToFiles();
+	}
+	if (g_star_client_ready) {
+		ogengine_get_edge_status(&g_edge_status);
+		char edge_status[96];
+		oglib_edge_status_text(&g_edge_status, ogengine_get_edge_capabilities(), edge_status, sizeof(edge_status));
+		odoom_star_edge_status = edge_status;
+	}
+	if (g_star_initialized && !g_star_async_auth_pending && !g_star_restore_pending) {
+		char notification[256];
+		if (ogengine_poll_edge_notification(notification, sizeof(notification)) == 1) {
+			ODOOM_SetToastMessage(notification);
+			Printf(PRINT_NONOTIFY, "[OASIS] %s\n", notification);
+		}
+	}
 
 	/* --- cross-game spawn poll --- */
 	{
@@ -2456,30 +2493,6 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		{
 			oglib_log(OGLIB_LOG_INFO, "OASIS InventoryGrant: %s — inventory refresh triggered", item_guid);
 			ogengine_get_inventory(NULL);
-		}
-	}
-
-	/* If async auth was started but callback never fired (e.g. hang/timeout), show error once after ~30 s. */
-	if (g_star_async_auth_pending) {
-		g_star_async_auth_pending_frames++;
-		if (g_star_async_auth_pending_frames > 35 * 30) {  /* 30 s at 35 fps */
-			g_star_async_auth_pending = false;
-			g_star_init_failed_this_session = true;  /* Same as auth callback failure: no silent retry storm. */
-			odoom_star_username = "";
-			if (!g_star_beamin_timeout_was_shown) {
-				g_star_beamin_timeout_was_shown = true;
-				static char s_timeout_msg[128];
-				std::snprintf(s_timeout_msg, sizeof(s_timeout_msg), "Beam-in failed: timeout (no response from server).");
-				Printf(PRINT_NONOTIFY, "%s\n", s_timeout_msg);
-				FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
-				FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
-				if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String && toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
-					UCVarValue vMsg; vMsg.String = s_timeout_msg;
-					toastMsgCv->SetGenericRep(vMsg, CVAR_String);
-					UCVarValue vFrames; vFrames.Int = 175;
-					toastFramesCv->SetGenericRep(vFrames, CVAR_Int);
-				}
-			}
 		}
 	}
 
@@ -3561,6 +3574,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	const bool logVerbose = verbose;
 	if (g_star_initialized)
 		return true;
+	if (g_star_restore_pending) return false;
 	/* After explicit beam out, do not auto re-auth on door/touch; only "star beamin" or startup can auth again. */
 	if (!logVerbose && g_star_user_beamed_out) {
 		return false;
@@ -3625,7 +3639,8 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 
 	if (!g_star_client_ready) {
 		if (logVerbose) StarLogInfo("Calling ogengine_init...");
-		ogengine_result_t init_result = ogengine_init(&g_star_config);
+		ogengine_result_t init_result = oglib_edge_configure(&g_edge_settings);
+		if (init_result == OGENGINE_SUCCESS) init_result = ogengine_init(&g_star_config);
 		if (init_result != OGENGINE_SUCCESS) {
 			g_star_init_failed_this_session = true;
 			if (logVerbose) StarLogError("ogengine_init failed: %s", ogengine_get_last_error());
@@ -3674,24 +3689,17 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		return false; /* Result will be applied in ODOOM_OnAuthDone or timeout. */
 	}
 
-	// API key + avatar mode: accept credentials and start inventory in background (no blocking call).
+	// API-key sessions go through the same validated profile/Edge composition as saved sessions.
 	if (HasValue(g_star_config.api_key) && HasValue(g_star_config.avatar_id)) {
-		g_star_initialized = true;
-		ODOOM_ResetCrossGameBeamTransferState();
-		g_star_init_failed_this_session = false;
-		g_star_logged_runtime_auth_failure = false;
-		g_star_logged_missing_auth_config = false;
-		if (!g_star_effective_username.empty())
-			odoom_star_username = g_star_effective_username.c_str();
-		else if (!g_star_effective_avatar_id.empty())
-			odoom_star_username = g_star_effective_avatar_id.c_str();
-		else
-			odoom_star_username = "Avatar";
-		StarApplyBeamFacePreference();
-		if (logVerbose) StarLogInfo("Beam-in (API key/avatar).");
-		return true;
+		if (ogengine_restore_session() != OGENGINE_SUCCESS) {
+			g_star_init_failed_this_session = true;
+			StarLogError("Beam-in failed: %s", ogengine_get_last_error());
+			return false;
+		}
+		g_star_restore_pending = true;
+		odoom_star_username = "Beaming in...";
+		return false;
 	}
-
 	// Restore session from oasisstar.json so user stays logged in between sessions.
 	if (g_odoom_saved_jwt[0]) {
 		if (logVerbose) StarLogInfo("\n********** OASIS SESSION RESTORE START **********");
@@ -3701,19 +3709,17 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 				ogengine_set_refresh_token(g_odoom_saved_refresh_token);
 			result = ogengine_restore_session();
 			if (result == OGENGINE_SUCCESS) {
-				g_star_initialized = true;
+				g_star_restore_pending = true;
 				ODOOM_ResetCrossGameBeamTransferState();
 				g_star_init_failed_this_session = false;
 				g_star_logged_runtime_auth_failure = false;
 				g_star_logged_missing_auth_config = false;
 				if (g_odoom_saved_username[0])
 					g_star_effective_username = g_odoom_saved_username;
-				odoom_star_username = g_star_effective_username.empty() ? "Avatar" : g_star_effective_username.c_str();
-				StarApplyBeamFacePreference();
-				ogengine_refresh_avatar_profile();
+				odoom_star_username = "Beaming in...";
 				g_odoom_pending_loading_tracker = true;  /* Frame pump will set "Loading..." when CVars are ready */
 				if (logVerbose) StarLogInfo("Restoring saved session for %s.", g_odoom_saved_username[0] ? g_odoom_saved_username : "(avatar)");
-				return true;
+				return false;
 			}
 		}
 		if (logVerbose) StarLogError("Saved session invalid: %s", ogengine_get_last_error());
@@ -4486,6 +4492,12 @@ CCMD(star)
 		return;
 	}
 	const char* sub = argv[1];
+	if (strcmp(sub, "offline") == 0) {
+		char message[512];
+		oglib_edge_command(argv.argc() > 2 ? argv[2] : "status", message, sizeof(message));
+		Printf("%s\n", message);
+		return;
+	}
 	if (strcmp(sub, "pickup") == 0) {
 		Printf("\n");
 		if (argv.argc() >= 4 && strcmp(argv[2], "ifmax") == 0) {

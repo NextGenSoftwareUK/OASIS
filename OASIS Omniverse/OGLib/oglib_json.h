@@ -97,7 +97,7 @@ static inline int oglib_json_write_kv(char* buf, size_t buf_size,
 }
 
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 #endif /* OGLIB_JSON_H */

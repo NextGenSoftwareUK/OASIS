@@ -72,7 +72,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
 
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                response.Result.Result = (Holon)result.Result;
+                var holon = (Holon)result.Result;
+
+                // Non-Wizards may only access holons they created or that are explicitly public
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
+                    && holon.CreatedByAvatarId != AvatarId && !holon.IsPublic)
+                    return TestDataHelper.CreateErrorResponse<Holon>(
+                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+
+                response.Result.Result = holon;
 
                 return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
             }
@@ -267,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 {
                     // Cap recursive depth to prevent full-tree loads from exhausting process memory
                 int safeMaxChildDepth = request.MaxChildDepth > 0 ? Math.Min(request.MaxChildDepth, 5) : 0;
-                result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, safeMaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
 
                     ResetOASISSettings(request, configResult);
 
@@ -282,10 +290,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     var holons = Mapper.Convert<IHolon, Holon>(result.Result);
                     var list = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
                     response.Result.Result = list;
-
-                    // Ensure serialization never sees a lazy enumerable (avoids "Error while copying content to a stream")
-                    if (response.Result?.Result != null && !(response.Result.Result is IList<Holon>))
-                        response.Result.Result = response.Result.Result.ToList();
 
                     return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
                 }
@@ -522,10 +526,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //    return new OASISResult<IEnumerable<Holon>>() { IsError = true, Message = $"The FromProviderType is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-          OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, 0, childHolonType, request.Version);
+          OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadHolonsForParentAsync(request.Id, holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, 0, childHolonType, request.Version, avatarId: AvatarId, includePublic: request.IncludePublic);
 
           OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-          response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
+          var holons = Mapper.Convert<IHolon, Holon>(result.Result)?.ToList() ?? new List<Holon>();
+          response.Result.Result = holons;
           ResetOASISSettings(request, configResult);
 
           return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
