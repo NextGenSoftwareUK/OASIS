@@ -14,9 +14,11 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
         private static readonly string Host = Environment.GetEnvironmentVariable("WEAVIATE_HOST") ?? "http://localhost:8080";
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             _provider = new WeaviateOASIS(Host);
+            var activated = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError, activated.Message);
         }
 
         [TestMethod]
