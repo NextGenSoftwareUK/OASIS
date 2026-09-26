@@ -13,10 +13,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             _next = next;
 
-            if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
-                OASISBootLoader.OASISBootLoader.BootOASIS(); // Will default to OASIS_DNA.json
-                //OASISBootLoader.OASISBootLoader.BootOASIS("OASIS_DNA.json");
-
             QuestStatsStatsManagerIntegration.RegisterWithStatsManager();
 
             //OASISProviderManager.OASISSettings = OASISSettings.Value;

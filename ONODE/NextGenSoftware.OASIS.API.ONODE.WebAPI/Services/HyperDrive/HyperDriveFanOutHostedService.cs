@@ -15,28 +15,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     public sealed class HyperDriveFanOutHostedService : BackgroundService
     {
         private readonly ILogger<HyperDriveFanOutHostedService> _logger;
+        private readonly HyperDriveHostedProviderAccessor _providerAccessor;
         private readonly string _workerId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
 
-        public HyperDriveFanOutHostedService(ILogger<HyperDriveFanOutHostedService> logger) =>
+        public HyperDriveFanOutHostedService(ILogger<HyperDriveFanOutHostedService> logger,
+            HyperDriveHostedProviderAccessor providerAccessor)
+        {
             _logger = logger;
+            _providerAccessor = providerAccessor;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (OASISBootLoader.OASISBootLoader.OASISDNA == null)
-            {
-                var boot = await OASISBootLoader.OASISBootLoader.BootOASISASync(false).ConfigureAwait(false);
-                if (boot == null || boot.IsError || !boot.Result)
-                    throw new InvalidOperationException(boot?.Message ?? "OASIS could not boot for HyperDrive fan-out.");
-            }
-
-            if (OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.OASISHyperDriveConfig?.EnableHostedSync != true)
+            if (NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OASISHyperDriveConfig?.EnableHostedSync != true)
             {
                 _logger.LogInformation("Durable hosted HyperDrive synchronization is disabled in OASIS DNA.");
                 return;
             }
 
-            var providerResult = await OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync()
-                .ConfigureAwait(false);
+            var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
                 throw new InvalidOperationException(providerResult?.Message ?? "The default hosted sync provider could not be activated.");
             if (!(providerResult.Result is IHostedHyperDriveSyncStore))

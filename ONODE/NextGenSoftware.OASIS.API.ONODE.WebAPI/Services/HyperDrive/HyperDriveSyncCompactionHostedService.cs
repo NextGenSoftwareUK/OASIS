@@ -10,29 +10,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     public sealed class HyperDriveSyncCompactionHostedService : BackgroundService
     {
         private readonly ILogger<HyperDriveSyncCompactionHostedService> _logger;
+        private readonly HyperDriveHostedProviderAccessor _providerAccessor;
 
         public HyperDriveSyncCompactionHostedService(
-            ILogger<HyperDriveSyncCompactionHostedService> logger) => _logger = logger;
+            ILogger<HyperDriveSyncCompactionHostedService> logger,
+            HyperDriveHostedProviderAccessor providerAccessor)
+        {
+            _logger = logger;
+            _providerAccessor = providerAccessor;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (OASISBootLoader.OASISBootLoader.OASISDNA == null)
-            {
-                var boot = await OASISBootLoader.OASISBootLoader.BootOASISASync(false).ConfigureAwait(false);
-                if (boot == null || boot.IsError || !boot.Result)
-                    throw new InvalidOperationException(boot?.Message ??
-                        "OASIS could not boot for HyperDrive sync-history compaction.");
-            }
-
-            var config = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.OASISHyperDriveConfig;
+            var config = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OASISHyperDriveConfig;
             if (config?.EnableHostedSync != true || !config.EnableSyncHistoryCompaction)
             {
                 _logger.LogInformation("HyperDrive sync-history compaction is disabled in OASIS DNA.");
                 return;
             }
 
-            var providerResult = await OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync()
-                .ConfigureAwait(false);
+            var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
                 throw new InvalidOperationException(providerResult?.Message ??
                     "The default hosted sync provider could not be activated for compaction.");
