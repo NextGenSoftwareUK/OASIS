@@ -1454,4 +1454,14 @@ OASIS Omniverse/ODOOM/star_api.dll
 OASIS Omniverse/ODOOM/odoom_version_generated.h
 OASIS Omniverse/ODOOM/odoom_version.txt
 OASIS Omniverse/ODOOM/about.txt
+
+# Native game build outputs copied by local ODOOM/OQuake build scripts
+OASIS Omniverse/OGames/ODOOM/**/e_sqlite3.dll
+OASIS Omniverse/OGames/ODOOM/**/ogengine.dll
+OASIS Omniverse/OGames/ODOOM/**/ogengine.lib
+OASIS Omniverse/OGames/ODOOM/build/ogengine.h
+OASIS Omniverse/OGames/OQuake/**/e_sqlite3.dll
+OASIS Omniverse/OGames/OQuake/**/ogengine.dll
+OASIS Omniverse/OGames/OQuake/**/ogengine.lib
+OASIS Omniverse/OGames/OQuake/build/ogengine.h
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
