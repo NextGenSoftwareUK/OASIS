@@ -99,6 +99,32 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task V2ManagerUsesItsInjectedProviderWhenTheOperationProviderIsDefault()
+    {
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var current = CreateActiveProvider(ProviderType.MongoDBOASIS, "current-mongo");
+        var injected = CreateActiveProvider(ProviderType.IPFSOASIS, "injected-ipfs");
+        var holonId = Guid.NewGuid();
+        var holon = new Mock<IHolon>().Object;
+        current.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        injected.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon> { Result = holon });
+        providerManager.RegisterProvider(current.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(current.Object).IsError.Should().BeFalse();
+
+        var manager = new HolonManager(injected.Object, dna, providerManager);
+        var result = await manager.LoadHolonAsync(holonId);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeSameAs(holon);
+        injected.Verify(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0), Times.Once);
+        current.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+        providerManager.CurrentStorageProviderType.Value.Should().Be(ProviderType.MongoDBOASIS);
+    }
+
+    [Fact]
     public void LegacyAvatarKarmaUsesOnlyTheManagersInjectedRuntime()
     {
         var avatar = new AvatarDetail { Id = Guid.NewGuid() };
