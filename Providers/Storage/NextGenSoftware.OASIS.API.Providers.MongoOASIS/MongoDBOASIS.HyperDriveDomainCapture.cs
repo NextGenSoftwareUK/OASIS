@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private const string DomainCaptureIdentityCollection = "HyperDriveDomainCaptureIdentity";
         private const string DomainCaptureDeadLettersCollection = "HyperDriveDomainCaptureDeadLetters";
         private const string DomainCaptureLeasesCollection = "HyperDriveDomainCaptureLeases";
-        private const string HolonCaptureId = "holon-v1";
+        private const string HolonCaptureId = "holon-v2";
         private readonly string _domainCaptureWorkerId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
 
         private async Task<OASISResult<HostedDomainBackfillResult>> BackfillHolonDomainStateAsync(
@@ -341,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     {
                         try
                         {
-                            payload = JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                            payload = JsonSerializer.Serialize(CreateEdgeHolonProjection(holon), new JsonSerializerOptions
                             {
                                 ReferenceHandler = ReferenceHandler.IgnoreCycles,
                                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -388,7 +388,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                                 { "payloadJson", payload == null ? BsonNull.Value : payload },
                                 { "changedUtc", holon.ModifiedDate == DateTime.MinValue ? holon.CreatedDate : holon.ModifiedDate }
                             }, new ReplaceOptions { IsUpsert = true }, cancellationToken).ConfigureAwait(false);
-                    string changeId = $"backfill:{holon.Id}";
+                    string changeId = $"backfill:{HolonCaptureId}:{holon.Id}";
                     var changes = Database.MongoDB.GetCollection<BsonDocument>(SyncChangesCollection);
                     if (!await changes.Find(session, Builders<BsonDocument>.Filter.Eq("changeId", changeId))
                         .AnyAsync(cancellationToken).ConfigureAwait(false))
@@ -501,7 +501,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         {
                             try
                             {
-                                payload = JsonSerializer.Serialize(change.FullDocument,
+                                payload = JsonSerializer.Serialize(CreateEdgeHolonProjection(change.FullDocument),
                                     new JsonSerializerOptions
                                     {
                                         ReferenceHandler = ReferenceHandler.IgnoreCycles,
