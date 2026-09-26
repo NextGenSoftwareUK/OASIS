@@ -168,10 +168,11 @@ jobs:
           Prepared by `.github/workflows/promote-development-to-master.yml`. Review the application diff and required checks before merging. Merging this pull request deploys production.
           EOF
 
-          existing=$(gh pr list --base master --head "$TARGET_BRANCH" --state open --json number --jq '.[0].number // empty')
+          existing=$(gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&base=master&head=${GITHUB_REPOSITORY_OWNER}:${TARGET_BRANCH}" --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
-            gh pr edit "$existing" --title 'Promote Development to master' --body-file /tmp/promotion-body.md
-            url=$(gh pr view "$existing" --json url --jq .url)
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/pulls/${existing}" \
+              -f title='Promote Development to master' -F body=@/tmp/promotion-body.md > /tmp/promotion-pr.json
+            url=$(jq -r .html_url /tmp/promotion-pr.json)
           else
             url=$(gh pr create --base master --head "$TARGET_BRANCH" \
               --title 'Promote Development to master' --body-file /tmp/promotion-body.md)
