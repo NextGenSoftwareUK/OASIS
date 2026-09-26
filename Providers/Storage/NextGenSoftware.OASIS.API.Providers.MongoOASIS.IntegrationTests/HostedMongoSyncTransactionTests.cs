@@ -293,6 +293,10 @@ public sealed class HostedMongoSyncTransactionTests
             var first = await provider.ApplyOperationsAsync(avatarId, deviceId, new[] { operation }, default);
             Assert.False(first.IsError, first.Message);
 
+            var beforeStepDown = await client.GetDatabase("admin").WithReadPreference(ReadPreference.Primary)
+                .RunCommandAsync<BsonDocument>(new BsonDocument("hello", 1));
+            string previousPrimary = beforeStepDown["primary"].AsString;
+
             try
             {
                 await client.GetDatabase("admin").RunCommandAsync<BsonDocument>(new BsonDocument
@@ -304,7 +308,7 @@ public sealed class HostedMongoSyncTransactionTests
             {
                 // The old primary is allowed to close the command connection while stepping down.
             }
-            await WaitForWritablePrimaryAsync(client, TimeSpan.FromSeconds(60));
+            await WaitForWritablePrimaryAsync(client, TimeSpan.FromSeconds(60), previousPrimary);
 
             var replay = await provider.ApplyOperationsAsync(avatarId, deviceId, new[] { operation }, default);
             Assert.False(replay.IsError, replay.Message);
@@ -660,7 +664,8 @@ public sealed class HostedMongoSyncTransactionTests
         cancellationToken.ThrowIfCancellationRequested();
     }
 
-    private static async Task WaitForWritablePrimaryAsync(MongoClient client, TimeSpan timeout)
+    private static async Task WaitForWritablePrimaryAsync(MongoClient client, TimeSpan timeout,
+        string? excludedPrimary = null)
     {
         DateTime deadline = DateTime.UtcNow.Add(timeout);
         Exception? lastError = null;
@@ -670,7 +675,12 @@ public sealed class HostedMongoSyncTransactionTests
             {
                 var hello = await client.GetDatabase("admin").WithReadPreference(ReadPreference.Primary)
                     .RunCommandAsync<BsonDocument>(new BsonDocument("hello", 1));
-                if (hello.TryGetValue("isWritablePrimary", out var writable) && writable.ToBoolean()) return;
+                bool isWritable = hello.TryGetValue("isWritablePrimary", out var writable) && writable.ToBoolean();
+                string primary = hello.TryGetValue("primary", out var primaryValue) && primaryValue.IsString
+                    ? primaryValue.AsString
+                    : string.Empty;
+                if (isWritable && (excludedPrimary == null ||
+                    !string.Equals(primary, excludedPrimary, StringComparison.OrdinalIgnoreCase))) return;
             }
             catch (MongoException ex) { lastError = ex; }
             await Task.Delay(250);
