@@ -8,6 +8,7 @@ import json
 import queue
 import subprocess
 import threading
+from pathlib import Path
 
 
 def read_line(stream, timeout_seconds: int) -> str:
@@ -43,8 +44,9 @@ def main() -> int:
     parser.add_argument("--minimum-tools", type=int, default=500)
     args = parser.parse_args()
 
+    binary = Path(args.binary).resolve(strict=True)
     process = subprocess.Popen(
-        [args.binary],
+        [str(binary)],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
