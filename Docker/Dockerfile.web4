@@ -41,6 +41,8 @@ WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
 RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+RUN test -f /app/publish/DNA/STAR_DNA.json
+
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
