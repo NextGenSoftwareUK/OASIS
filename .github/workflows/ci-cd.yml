@@ -727,8 +727,32 @@ jobs:
     - name: Security scan
       working-directory: OASIS
       run: |
-        dotnet list "The OASIS - NoTests.sln" package --vulnerable --include-transitive
-        echo "Security scan completed"
+        dotnet list "The OASIS - NoTests.sln" package --vulnerable --include-transitive --format json > vulnerable-packages.json
+        python3 - <<'PY'
+        import json
+        import sys
+
+        with open("vulnerable-packages.json", encoding="utf-8") as stream:
+            report = json.load(stream)
+
+        vulnerable = []
+        for project in report.get("projects", []):
+            for framework in project.get("frameworks", []):
+                for scope in ("topLevelPackages", "transitivePackages"):
+                    for package in framework.get(scope, []):
+                        for advisory in package.get("vulnerabilities", []):
+                            vulnerable.append(
+                                f"{project['path']}: {package['id']} {package['resolvedVersion']} "
+                                f"[{advisory['severity']}] {advisory['advisoryurl']}"
+                            )
+
+        if vulnerable:
+            print("Vulnerable NuGet packages were found:", file=sys.stderr)
+            print("\n".join(vulnerable), file=sys.stderr)
+            sys.exit(1)
+
+        print("Security scan completed with no vulnerable NuGet packages.")
+        PY
 
   # Code Quality
   code-quality:
