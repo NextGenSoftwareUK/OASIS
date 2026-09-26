@@ -617,11 +617,14 @@ public sealed class HostedMongoSyncTransactionTests
 
     private static string NewDatabaseName(string scenario)
     {
-        string name = $"hd_{scenario}_{Guid.NewGuid():N}";
-        if (name.Length > 63)
+        const int maximumDatabaseNameLength = 38;
+        string prefix = $"hd_{scenario}_";
+        int suffixLength = maximumDatabaseNameLength - prefix.Length;
+        if (suffixLength <= 0)
             throw new ArgumentOutOfRangeException(nameof(scenario), scenario,
-                "MongoDB database names cannot exceed 63 characters.");
-        return name;
+                $"Hosted MongoDB database names cannot exceed {maximumDatabaseNameLength} characters.");
+
+        return prefix + Guid.NewGuid().ToString("N")[..suffixLength];
     }
 
     private static SyncOperation CreateOperation(Guid avatarId, Guid deviceId, string payloadJson) => new()
