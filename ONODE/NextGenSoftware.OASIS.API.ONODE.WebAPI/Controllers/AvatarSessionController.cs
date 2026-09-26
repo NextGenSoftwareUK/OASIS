@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.Common;
@@ -29,6 +30,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<AvatarSessionManagement>), StatusCodes.Status200OK)]
         public async Task<OASISResult<AvatarSessionManagement>> GetAvatarSessions(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarSessionManagement> { IsError = true, Message = "Unauthorized. You can only access your own sessions." };
             return await AvatarManager.GetAvatarSessionsAsync(avatarId);
         }
 
@@ -41,6 +44,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<AvatarSessionStats>), StatusCodes.Status200OK)]
         public async Task<OASISResult<AvatarSessionStats>> GetAvatarSessionStats(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarSessionStats> { IsError = true, Message = "Unauthorized. You can only access your own sessions." };
             return await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
         }
 
@@ -54,6 +59,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<AvatarSession>> CreateAvatarSession(Guid avatarId, [FromBody] CreateSessionRequest request)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarSession> { IsError = true, Message = "Unauthorized. You can only manage your own sessions." };
             return await AvatarManager.CreateAvatarSessionAsync(avatarId, request);
         }
 
@@ -67,6 +74,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<AvatarSession>> UpdateAvatarSession(Guid avatarId, string sessionId, [FromBody] UpdateSessionRequest request)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarSession> { IsError = true, Message = "Unauthorized. You can only manage your own sessions." };
             return await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, request);
         }
 
@@ -79,6 +88,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         public async Task<OASISResult<bool>> LogoutAvatarSessions(Guid avatarId, [FromBody] List<string> sessionIds)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<bool> { IsError = true, Message = "Unauthorized. You can only manage your own sessions." };
             return await AvatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
         }
 
@@ -91,6 +102,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         public async Task<OASISResult<bool>> LogoutAllAvatarSessions(Guid avatarId)
         {
+            if (avatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<bool> { IsError = true, Message = "Unauthorized. You can only manage your own sessions." };
             return await AvatarManager.LogoutAllAvatarSessionsAsync(avatarId);
         }
 

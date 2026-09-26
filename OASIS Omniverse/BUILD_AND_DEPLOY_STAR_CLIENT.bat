@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 REM Build OGEngineClient and deploy ogengine.dll, ogengine.lib, ogengine.h to game folders.
 REM Build is skipped if ogengine.dll is up to date (no C#/csproj changes). Use -ForceBuild to always rebuild.
 REM Optional: -RunSmokeTest to compile and run the C smoke test after deploy.
@@ -24,11 +24,10 @@ echo.
 powershell -ExecutionPolicy Bypass -File "OGEngineClient\Scripts\publish_and_deploy_star_api.ps1" %*
 set "EXIT_CODE=%ERRORLEVEL%"
 
-endlocal
 echo.
 echo ========================================
 echo   Press any key to exit
 echo ========================================
 if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
 
-exit /b %EXIT_CODE%
+endlocal & exit /b %EXIT_CODE%

@@ -56,7 +56,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            // Configuration-backed services are registered before the request pipeline is built, so the
+            // middleware cannot be responsible for loading DNA needed by dependency injection.
+            var dnaLoadResult = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.LoadDNA();
+            if (dnaLoadResult == null || dnaLoadResult.IsError || dnaLoadResult.Result == null)
+                throw new InvalidOperationException(
+                    $"OASIS DNA must load before service registration. {dnaLoadResult?.Message ?? "No load result was returned."}");
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
@@ -377,7 +382,30 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
+            var offlineGrantSettings = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.OfflineSessionGrants;
+            if (offlineGrantSettings?.Enabled == true)
+            {
+                // Construct during startup so an enabled deployment cannot accept traffic with a missing or invalid signing key.
+                var offlineGrantIssuer = new Services.HyperDriveOfflineSessionGrantIssuer(offlineGrantSettings);
+                services.AddSingleton<Services.IHyperDriveOfflineSessionGrantIssuer>(offlineGrantIssuer);
+            }
+            services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
+            services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveCommandHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
+            services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
+            services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
+            services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+            if (subscriptionUsageEnabled)
+            {
+                services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
+            }
+            Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);
             // Use distributed counter for multi-pod safety; falls back to in-process when storage is unavailable
             services.AddSingleton<Services.IHerzCounterService, Services.DistributedHerzCounterService>();
             services.AddSingleton<Services.IQeaSealService, Services.QeaSealService>();
@@ -602,7 +630,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
 
             app.UseEndpoints(endpoints =>
             {

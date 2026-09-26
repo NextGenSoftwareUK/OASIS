@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <PackageId>NextGenSoftware.OASIS.Edge.ONET.Runtime</PackageId>
+    <Description>Unity-compatible Edge ONODE composition over OASIS Edge Runtime and ONET.</Description>
+    <Version>1.0.0</Version>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NextGenSoftware.OASIS.Edge.Runtime/NextGenSoftware.OASIS.Edge.Runtime.csproj" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.ONET/NextGenSoftware.OASIS.ONET.csproj" />
+  </ItemGroup>
+</Project>

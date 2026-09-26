@@ -36,8 +36,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TablelandOASIS
             ProviderDescription = "Tableland SQL-on-Chain Data Layer Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TablelandOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

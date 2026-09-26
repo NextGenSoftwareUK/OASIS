@@ -15,7 +15,7 @@ extern ogengine_result_t ogengine_send_item_to_clan(const char*, const char*, in
 
 /* Optional stub for ogengine_queue_quest_level_time when not linking ogengine.dll (e.g. vkQuake with older lib).
  * Define OGENGINE_PROVIDE_QUEST_LEVEL_TIME_STUB in the build to resolve LNK2001; otherwise link with a
- * STAR API build that exports this (StarApiClient.cs UnmanagedCallersOnly). */
+ * STAR API build that exports this (OGEngineClient.cs UnmanagedCallersOnly). */
 #ifdef OGENGINE_PROVIDE_QUEST_LEVEL_TIME_STUB
 void ogengine_queue_quest_level_time(const char* game_source, int level_elapsed_seconds)
 {

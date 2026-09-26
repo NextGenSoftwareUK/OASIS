@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("purchase-oland")]
         public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOland(PurchaseOlandRequest request)
         {
+            if (request.AvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                return new OASISResult<PurchaseOlandResponse>() { IsError = true, Message = "Unauthorized. You can only purchase OLand for your own avatar." };
             return await OLandManager.PurchaseOlandAsync(request);
         }
 

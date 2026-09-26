@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS.Entities
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; } = new Dictionary<ProviderType, string>();
         public bool IsActive { get; set; }
+        public bool IsPublic { get; set; } = false;
 
         //  [BsonRepresentation(BsonType.ObjectId)]
         public string CreatedByAvatarId { get; set; }

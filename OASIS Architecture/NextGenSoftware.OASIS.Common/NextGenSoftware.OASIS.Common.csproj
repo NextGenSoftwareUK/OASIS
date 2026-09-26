@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -33,6 +34,8 @@
 - Multiple bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 <ItemGroup>
+    <Compile Remove="OASISResult.cs" />
+    <ProjectReference Include="../NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
     <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj" />
     <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
   

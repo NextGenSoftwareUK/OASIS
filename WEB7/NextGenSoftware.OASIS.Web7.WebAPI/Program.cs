@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using System.Reflection;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -95,6 +96,10 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+bool subscriptionUsageEnabled = string.Equals(builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+if (subscriptionUsageEnabled)
+    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB7", NextGenSoftware.OASIS.Web7.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -134,10 +139,12 @@ app.Use(async (context, next) =>
     }
 });
 
+app.UseRouting();
 app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.ApiKeyMiddleware>();
-app.UseMiddleware<NextGenSoftware.OASIS.Web7.WebAPI.Middleware.SubscriptionMiddleware>();
+if (subscriptionUsageEnabled)
+    app.UseMiddleware<Web4UsageLedgerMiddleware>();
 
 app.MapControllers();
 app.MapGraphQL();

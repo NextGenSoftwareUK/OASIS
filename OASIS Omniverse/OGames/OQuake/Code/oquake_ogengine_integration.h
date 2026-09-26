@@ -25,6 +25,9 @@ typedef struct cb_context_s cb_context_t;
 
 void OQuake_STAR_Init(void);
 void OQuake_STAR_Cleanup(void);
+/** Settings menu queries and actions; changes are persisted only after the native runtime accepts them. */
+int OQuake_STAR_OfflineSyncMode(void); /* -1 unavailable, 0 disabled, 1 enabled */
+void OQuake_STAR_OfflineSyncCommand(const char* command);
 void OQuake_STAR_OnKeyPickup(const char* key_name);
 /** Only report pickups when in_real_game is 1 (e.g. sv.active && !cls.demoplayback). Use from engine to avoid tracking during demos/menu. */
 void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items, int in_real_game);
