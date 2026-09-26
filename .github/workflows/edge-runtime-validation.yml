@@ -51,11 +51,13 @@ jobs:
         with:
           path: OASIS
           submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout OASIS Holochain hApp source
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - uses: DeterminateSystems/nix-installer-action@v17
       - name: Build and test pinned HoloOASIS hApp
         shell: pwsh
@@ -75,11 +77,13 @@ jobs:
         with:
           path: OASIS
           submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -203,11 +207,13 @@ jobs:
         with:
           path: OASIS
           submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
@@ -218,6 +224,7 @@ jobs:
         with:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
