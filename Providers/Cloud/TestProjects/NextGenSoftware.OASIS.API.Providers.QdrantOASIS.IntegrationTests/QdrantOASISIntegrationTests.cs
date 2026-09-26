@@ -14,9 +14,11 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests
         private static readonly string Host = Environment.GetEnvironmentVariable("QDRANT_HOST") ?? "http://localhost:6333";
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             _provider = new QdrantOASIS(Host);
+            var activated = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError, activated.Message);
         }
 
         [TestMethod]
