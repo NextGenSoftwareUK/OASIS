@@ -30,8 +30,9 @@ $grantUri = $OnodeBaseUrl.TrimEnd('/') + '/api/hyperdrive/sync/offline-session-g
 $networkCredential = $Credential.GetNetworkCredential()
 $auth = Invoke-RestMethod -Method Post -Uri $authUri -ContentType 'application/json' -Body (
     @{ username = $networkCredential.UserName; password = $networkCredential.Password } | ConvertTo-Json)
-$bearer = Find-PropertyValue $auth @('jwtToken', 'JwtToken', 'token', 'Token')
-$avatarId = Find-PropertyValue $auth @('id', 'Id', 'avatarId', 'AvatarId')
+$authenticatedAvatar = if ($auth.result -and $auth.result.result) { $auth.result.result } else { $auth }
+$bearer = Find-PropertyValue $authenticatedAvatar @('jwtToken', 'JwtToken', 'token', 'Token')
+$avatarId = Find-PropertyValue $authenticatedAvatar @('avatarId', 'AvatarId', 'id', 'Id')
 if (-not $bearer -or -not $avatarId) { throw 'Authentication did not return the required bearer token and avatar id.' }
 
 # Fail at the deployed contract boundary before requiring release-only test inputs.
