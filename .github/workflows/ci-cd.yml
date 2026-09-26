@@ -547,10 +547,18 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    - name: Start Linux Secret Service
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes dbus-x11 gnome-keyring libsecret-tools
+
     - name: Run OGEngineClient test suites
       run: |
-        dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
-        dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
+        dbus-run-session -- bash -euo pipefail -c '
+          eval "$(printf "%s" "oasis-ci-keyring" | gnome-keyring-daemon --unlock --components=secrets)"
+          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
+          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
+        '
 
     - name: Upload STARAPIClient test artifacts
       uses: actions/upload-artifact@v4
