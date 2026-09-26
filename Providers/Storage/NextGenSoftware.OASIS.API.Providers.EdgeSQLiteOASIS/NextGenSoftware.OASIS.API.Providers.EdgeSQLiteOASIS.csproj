@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS</PackageId>
+    <Description>Lightweight durable SQLite state and HyperDrive synchronization journal for OASIS Edge Runtime.</Description>
+    <Version>1.0.0</Version>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.6" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
+    <!-- Restore the official mobile native archives for deterministic Unity package staging.
+         They are packaging inputs only; the netstandard runtime continues to initialize bundle_e_sqlite3 once. -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.13" GeneratePathProperty="true" PrivateAssets="all" IncludeAssets="none" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.ios" Version="2.1.13" GeneratePathProperty="true" PrivateAssets="all" IncludeAssets="none" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization/NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
+    <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
+  </ItemGroup>
+</Project>

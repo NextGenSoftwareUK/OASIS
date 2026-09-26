@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UrbitOASIS
             ProviderDescription = "Urbit peer-to-peer personal server OS provider (HTTP airlock)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.UrbitOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
         // ─── Auth ─────────────────────────────────────────────────────────────────

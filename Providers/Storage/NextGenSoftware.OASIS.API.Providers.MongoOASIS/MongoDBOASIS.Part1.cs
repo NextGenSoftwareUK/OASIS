@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private AvatarRepository _avatarRepository = null;
         private HolonRepository _holonRepository = null;
         private SearchRepository _searchRepository = null;
+        private readonly IHostedMongoSyncFaultInjector _hostedSyncFaultInjector;
 
         public string ConnectionString { get; set; }
         public string DBName { get; set; }
@@ -36,6 +37,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public MongoDBOASIS(string connectionString, string dbName) : base()
         {
+            Init(connectionString, dbName);
+        }
+
+        public MongoDBOASIS(string connectionString, string dbName,
+            IHostedMongoSyncFaultInjector hostedSyncFaultInjector) : base()
+        {
+            _hostedSyncFaultInjector = hostedSyncFaultInjector ??
+                throw new ArgumentNullException(nameof(hostedSyncFaultInjector));
             Init(connectionString, dbName);
         }
 

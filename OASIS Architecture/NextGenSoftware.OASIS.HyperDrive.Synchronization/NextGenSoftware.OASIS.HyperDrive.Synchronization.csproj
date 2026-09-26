@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <PackageId>NextGenSoftware.OASIS.HyperDrive.Synchronization</PackageId>
+    <Description>Portable HyperDrive synchronization protocol, coordinator and HTTP transport shared by full and Edge OASIS runtimes.</Description>
+    <Version>1.0.0</Version>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/Synchronization/SyncContracts.cs" Link="SyncContracts.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/Synchronization/SyncInterfaces.cs" Link="SyncInterfaces.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/Synchronization/HyperDriveSyncCoordinator.cs" Link="HyperDriveSyncCoordinator.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Core/Managers/OASIS HyperDrive/Synchronization/HttpHyperDriveSyncTransport.cs" Link="HttpHyperDriveSyncTransport.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
+  </ItemGroup>
+</Project>

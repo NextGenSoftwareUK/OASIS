@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -17,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/v1/onet")]
+    [Authorize(AvatarType.Wizard)]
     public class ONETController : OASISControllerBase
     {
         private readonly ILogger<ONETController> _logger;
