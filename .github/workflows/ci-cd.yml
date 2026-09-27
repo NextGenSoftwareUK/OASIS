@@ -833,7 +833,26 @@ jobs:
     - name: Run tests with coverage
       working-directory: OASIS
       run: |
-        dotnet test "The OASIS.sln" --collect:"XPlat Code Coverage" --results-directory ./coverage
+        test_projects=(
+          "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.API.DNA.UnitTests/NextGenSoftware.OASIS.API.DNA.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.Common.UnitTests/NextGenSoftware.OASIS.Common.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj"
+          "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
+          "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.UnitTests/NextGenSoftware.OASIS.STAR.CLI.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj"
+        )
+
+        for project in "${test_projects[@]}"; do
+          dotnet test "$project" \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage
+        done
     
     - name: Generate coverage report
       working-directory: OASIS
