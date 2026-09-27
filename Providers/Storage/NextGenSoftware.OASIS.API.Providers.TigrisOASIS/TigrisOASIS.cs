@@ -8,6 +8,7 @@ using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Util;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -65,12 +66,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TigrisOASIS
                     ForcePathStyle = true
                 };
                 _s3 = new AmazonS3Client(creds, config);
-                // Ensure bucket exists
-                try
-                {
-                    await _s3.EnsureBucketExistsAsync(_bucketName);
-                }
-                catch { /* bucket may already exist or auto-created by Tigris */ }
+                if (!await AmazonS3Util.DoesS3BucketExistV2Async(_s3, _bucketName))
+                    await _s3.PutBucketAsync(new PutBucketRequest { BucketName = _bucketName });
                 _isActivated = true;
                 r.Result = true;
                 r.Message = "TigrisOASIS activated successfully";

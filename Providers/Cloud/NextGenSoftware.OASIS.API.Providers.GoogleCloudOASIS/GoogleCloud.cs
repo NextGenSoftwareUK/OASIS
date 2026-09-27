@@ -60,5 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             _enableFirestore = enableFirestore;
             _enableBigQuery = enableBigQuery;
         }
+
+        public string GetProviderVersion() => "1.0.0";
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
 using NATS.Client.KeyValueStore;
+using NATS.Net;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -50,9 +51,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
                 if (_isActivated) { r.Result = true; r.Message = "NATSJetStreamOASIS already activated"; return r; }
                 _nats = new NatsConnection(new NatsOpts { Url = _natsUrl });
                 await _nats.ConnectAsync();
-                var js = _nats.CreateJetStreamContext();
-                _avatarKv = await js.CreateKeyValueStoreAsync(new NatsKVConfig("oasis-avatars"));
-                _holonKv  = await js.CreateKeyValueStoreAsync(new NatsKVConfig("oasis-holons"));
+                var kv = _nats.CreateKeyValueStoreContext();
+                _avatarKv = await kv.CreateStoreAsync("oasis-avatars");
+                _holonKv  = await kv.CreateStoreAsync("oasis-holons");
                 _isActivated = true;
                 r.Result = true;
                 r.Message = "NATSJetStreamOASIS activated successfully";
@@ -84,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             try
             {
                 var entry = await _avatarKv.GetEntryAsync<byte[]>($"avatar.{id}");
-                if (entry?.Value == null) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: avatar {id} not found"); return r; }
+                if (entry.Value == null) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: avatar {id} not found"); return r; }
                 r.Result = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(entry.Value));
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadAvatarAsync: {ex.Message}", ex); }
@@ -151,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
                 await foreach (var key in _avatarKv.GetKeysAsync())
                 {
                     var entry = await _avatarKv.GetEntryAsync<byte[]>(key);
-                    if (entry?.Value == null) continue;
+                    if (entry.Value == null) continue;
                     var avatar = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(entry.Value));
                     if (avatar != null) list.Add(avatar);
                 }
@@ -169,7 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             try
             {
                 var entry = await _holonKv.GetEntryAsync<byte[]>($"holon.{id}");
-                if (entry?.Value == null) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: holon {id} not found"); return r; }
+                if (entry.Value == null) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS: holon {id} not found"); return r; }
                 r.Result = JsonConvert.DeserializeObject<Holon>(Encoding.UTF8.GetString(entry.Value));
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"NATSJetStreamOASIS LoadHolonAsync: {ex.Message}", ex); }
@@ -198,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
                 await foreach (var key in _holonKv.GetKeysAsync())
                 {
                     var entry = await _holonKv.GetEntryAsync<byte[]>(key);
-                    if (entry?.Value == null) continue;
+                    if (entry.Value == null) continue;
                     var holon = JsonConvert.DeserializeObject<Holon>(Encoding.UTF8.GetString(entry.Value));
                     if (holon != null && (ht == HolonType.All || holon.HolonType == ht)) list.Add(holon);
                 }
