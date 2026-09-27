@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS
 {
@@ -453,12 +455,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS
                 var filtered = new List<IHolon>();
                 foreach (var h in allR.Result ?? new List<IHolon>())
                 {
-                    bool match = mm == MetaKeyValuePairMatchMode.MatchAll;
+                    bool match = mm == MetaKeyValuePairMatchMode.All;
                     foreach (var kv in m)
                     {
                         var val = h.MetaData.ContainsKey(kv.Key) ? h.MetaData[kv.Key]?.ToString() ?? "" : "";
                         bool kvMatch = val.Equals(kv.Value, StringComparison.OrdinalIgnoreCase);
-                        if (mm == MetaKeyValuePairMatchMode.MatchAll) match = match && kvMatch;
+                        if (mm == MetaKeyValuePairMatchMode.All) match = match && kvMatch;
                         else if (kvMatch) { match = true; break; }
                     }
                     if (match) filtered.Add(h);
@@ -544,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS
             try
             {
                 EnsureApiKey();
-                var q = sp?.SearchQuery ?? "";
+                var q = sp?.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
                 var holons = new List<IHolon>();
                 // Try searching users by email
                 var json = await GetAsync($"users?limit=50");
