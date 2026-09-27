@@ -75,7 +75,6 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.1" />
 	  <PackageReference Include="AutoMapper" Version="16.2.0" />
-	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.12.0" />
     <!-- Force resolution of .Logging.Abstractions to 10.0.0 across the whole graph.
