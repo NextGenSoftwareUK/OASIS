@@ -187,6 +187,12 @@ _pkginfo.txt
 ClientBin/
 ~$*
 *~
+# Unity Package Manager reserves these suffixes for public documentation and
+# samples. They are release inputs, rather than editor backup files.
+!UnityPackages/com.nextgensoftware.oasis.edge/Documentation~/
+!UnityPackages/com.nextgensoftware.oasis.edge/Documentation~/**
+!UnityPackages/com.nextgensoftware.oasis.edge/Samples~/
+!UnityPackages/com.nextgensoftware.oasis.edge/Samples~/**
 *.dbmdl
 *.dbproj.schemaview
 *.jfm
