@@ -18,7 +18,7 @@ The OASIS platform provides a revolutionary three-tier API architecture (as of J
 │  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
 │  │ • 99 AI Providers Unified (OpenAI, Anthropic, Gemini…)   │ │
 │  │ • DID/Verifiable Credentials (W3C standard)               │ │
-│  │ • 259 MCP tools · 56 REST Endpoints · v2.0                │ │
+│  │ • 507 MCP tools · 56 REST Endpoints · v2.0                │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  WEB5 STAR API (Gamification & Business Layer)                 │
