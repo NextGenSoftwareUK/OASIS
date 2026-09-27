@@ -17,13 +17,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness
             try
             {
                 // Configuration for Telegram Provider
-                string botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo";
-                string webhookUrl = "https://oasisweb4.one/api/telegram/webhook";
-                string mongoConnectionString = "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4";
+                string botToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN")
+                    ?? throw new InvalidOperationException("TELEGRAM_BOT_TOKEN is required.");
+                string webhookUrl = Environment.GetEnvironmentVariable("TELEGRAM_WEBHOOK_URL")
+                    ?? throw new InvalidOperationException("TELEGRAM_WEBHOOK_URL is required.");
+                string mongoConnectionString = Environment.GetEnvironmentVariable("TELEGRAM_MONGODB_CONNECTION_STRING")
+                    ?? throw new InvalidOperationException("TELEGRAM_MONGODB_CONNECTION_STRING is required.");
 
                 // Initialize provider
                 Console.WriteLine("Initializing TelegramOASIS provider...");
-                var provider = new TelegramOASIS(botToken, webhookUrl, mongoConnectionString);
+                var provider = new TelegramOASISProvider(botToken, webhookUrl, mongoConnectionString);
 
                 // Test provider activation
                 Console.WriteLine("Testing provider activation...");
@@ -74,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness
             Console.ReadKey();
         }
 
-        static async Task TestAvatarLinking(TelegramOASIS provider)
+        static async Task TestAvatarLinking(TelegramOASISProvider provider)
         {
             Console.WriteLine("--- Testing Avatar Linking ---");
             
@@ -124,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness
             Console.WriteLine("");
         }
 
-        static async Task TestGroupOperations(TelegramOASIS provider)
+        static async Task TestGroupOperations(TelegramOASISProvider provider)
         {
             Console.WriteLine("--- Testing Group Operations ---");
             
@@ -188,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness
             Console.WriteLine("");
         }
 
-        static async Task TestAchievementOperations(TelegramOASIS provider)
+        static async Task TestAchievementOperations(TelegramOASISProvider provider)
         {
             Console.WriteLine("--- Testing Achievement Operations ---");
             
@@ -256,7 +259,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.TestHarness
             Console.WriteLine("");
         }
 
-        static async Task TestTelegramMessaging(TelegramOASIS provider)
+        static async Task TestTelegramMessaging(TelegramOASISProvider provider)
         {
             Console.WriteLine("--- Testing Telegram Messaging ---");
             

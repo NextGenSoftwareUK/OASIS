@@ -25,24 +25,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -55,24 +55,24 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -103,7 +103,7 @@ jobs:
           --outputDir release/win-x64
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-windows
           path: release/win-x64/
@@ -114,24 +114,24 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -162,7 +162,7 @@ jobs:
           --outputDir release/osx-x64
 
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-macos
           path: release/osx-x64/
@@ -173,24 +173,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -221,7 +221,7 @@ jobs:
           --outputDir release/linux-x64
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-linux
           path: release/linux-x64/
@@ -232,7 +232,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: artifacts/
 
