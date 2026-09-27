@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS
 {
@@ -357,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS
             var r = new OASISResult<ISearchResults>();
             try
             {
-                var q = sp?.SearchQuery ?? "";
+                var q = sp?.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
                 var arr = await GetArrayAsync($"search?q={Uri.EscapeDataString(q)}");
                 var holons = new List<IHolon>();
                 foreach (var item in arr)
