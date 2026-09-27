@@ -16,9 +16,9 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
 
-**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 507 MCP tools and 56 REST endpoints natively to any of these frameworks.
+**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 528 MCP tools and 56 REST endpoints natively to any of these frameworks.
 
-**Protocols**: MCP (507 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
+**Protocols**: MCP (528 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
 
 **Why no competitor can replicate it**:
 - OpenAI, Anthropic, and Google sell single-provider model access — they have structural incentives not to route to competitors
@@ -77,7 +77,7 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ---
 
-### WEB6-USP-5: 507 MCP tools — Largest Production MCP Surface
+### WEB6-USP-5: 528 MCP tools — Largest Production MCP Surface
 
 **What it is**: 250 typed named tools across WEB4 (102), WEB5 (96), WEB6 (31), WEB7 (8), WEB8 (9), WEB9 (2), WEB10 (2) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
 
