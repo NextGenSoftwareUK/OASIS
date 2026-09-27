@@ -501,7 +501,7 @@ Ensure the server has `app.UseWebSockets()` enabled (it does by default). Check 
 ## See also
 
 - [WEB6 REST API Reference](WEB6_REST_API_Reference.md) — full endpoint docs with request/response shapes
-- [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) — all 111 tool parameters and returns
+- [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) — detailed examples plus the complete 516-command catalog
 - [WEB6 GitHub README](../../../../WEB6/README.md)
 - [MCP Server README](../../../../WEB6/NextGenSoftware.OASIS.MCP.Server/README.md)
 - [WEB4 API Docs](../WEB4%20OASIS%20API/README.md)
