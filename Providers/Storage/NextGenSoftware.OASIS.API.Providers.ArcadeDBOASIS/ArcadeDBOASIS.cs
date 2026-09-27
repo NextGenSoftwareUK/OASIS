@@ -65,15 +65,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                // Create the database (already-exists returns an error code we ignore).
-                await _http.PostAsync($"{_baseUrl}/api/v1/server",
-                    Json(new { command = $"create database {Database}" }));
+                var existsResponse = await _http.GetAsync($"{_baseUrl}/api/v1/exists/{Database}");
+                await EnsureSuccessAsync(existsResponse);
+                using var existsDocument = JsonDocument.Parse(await existsResponse.Content.ReadAsStringAsync());
+                if (!existsDocument.RootElement.GetProperty("result").GetBoolean())
+                {
+                    var createResponse = await _http.PostAsync($"{_baseUrl}/api/v1/server",
+                        Json(new { command = $"create database {Database}" }));
+                    await EnsureSuccessAsync(createResponse);
+                }
 
                 foreach (var type in new[] { CollAvatars, CollAvatarDetails, CollHolons })
                 {
-                    await CommandAsync($"CREATE DOCUMENT TYPE {type} IF NOT EXISTS");
-                    await CommandAsync($"CREATE PROPERTY {type}.oasisId STRING IF NOT EXISTS");
-                    await CommandAsync($"CREATE INDEX IF NOT EXISTS ON {type} (oasisId) UNIQUE");
+                    await ExecuteCommandAsync($"CREATE DOCUMENT TYPE {type} IF NOT EXISTS");
+                    foreach (var property in new[] { "oasisId", "doc", "username", "email", "parentHolonId" })
+                        await ExecuteCommandAsync($"CREATE PROPERTY {type}.{property} IF NOT EXISTS STRING");
+                    await ExecuteCommandAsync($"CREATE INDEX IF NOT EXISTS ON {type} (oasisId) UNIQUE");
                 }
 
                 IsProviderActivated = true;
@@ -523,11 +530,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
         private StringContent Json(object o)
             => new StringContent(JsonSerializer.Serialize(o), Encoding.UTF8, "application/json");
 
+        private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode) return;
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"ArcadeDB returned {(int)response.StatusCode} ({response.ReasonPhrase}): {body}");
+        }
+
         private static string Esc(string v) => v.Replace("'", "''");
 
         private async Task<HttpResponseMessage> CommandAsync(string sql)
             => await _http.PostAsync($"{_baseUrl}/api/v1/command/{Database}",
                 Json(new { language = "sql", command = sql }));
+
+        private async Task ExecuteCommandAsync(string sql)
+        {
+            var response = await CommandAsync(sql);
+            await EnsureSuccessAsync(response);
+        }
 
         private async Task<List<T>> QueryAsync<T>(string sql) where T : class
         {
@@ -579,14 +599,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS
 
             var sql = $@"UPDATE {type} SET oasisId = '{Esc(id)}', doc = '{Esc(json)}', username = '{Esc(username)}', email = '{Esc(email)}', parentHolonId = '{Esc(parent)}' UPSERT WHERE oasisId = '{Esc(id)}'";
             var resp = await CommandAsync(sql);
-            resp.EnsureSuccessStatusCode();
+            await EnsureSuccessAsync(resp);
         }
 
         private async Task DeleteDocAsync(string type, string id)
         {
             var resp = await CommandAsync($"DELETE FROM {type} WHERE oasisId = '{Esc(id)}'");
             if (resp.StatusCode != System.Net.HttpStatusCode.NotFound)
-                resp.EnsureSuccessStatusCode();
+                await EnsureSuccessAsync(resp);
         }
 
         private async Task<T?> FindOneAsync<T>(string type, string field, string value) where T : class

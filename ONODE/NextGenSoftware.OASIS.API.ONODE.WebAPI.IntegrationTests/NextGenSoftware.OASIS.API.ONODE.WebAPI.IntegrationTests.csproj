@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\Default\OASIS_DNA.json" Link="OASIS_DNA.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
   </ItemGroup>
 

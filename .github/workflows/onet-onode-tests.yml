@@ -22,26 +22,26 @@ jobs:
 
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -55,7 +55,7 @@ jobs:
         run: dotnet test "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj" --no-build --logger "trx;LogFileName=unit-results.trx" --results-directory TestResults
 
       - name: Upload unit test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-test-results
@@ -67,26 +67,26 @@ jobs:
 
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -100,7 +100,7 @@ jobs:
         run: dotnet test "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests.csproj" --no-build --logger "trx;LogFileName=integration-results.trx" --results-directory TestResults
 
       - name: Upload integration test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: integration-test-results
@@ -112,26 +112,26 @@ jobs:
 
     steps:
       - name: Checkout OASIS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -145,7 +145,7 @@ jobs:
         run: dotnet test "OASIS/ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj" --no-build --logger "trx;LogFileName=webapi-unit-results.trx" --results-directory TestResults
 
       - name: Upload WebAPI unit test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: webapi-unit-test-results

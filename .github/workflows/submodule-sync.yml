@@ -55,7 +55,7 @@ jobs:
             echo "Skipping ${{ matrix.branch }} - run requested '$requested'."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.gate.outputs.skip == 'false'
         with:
           ref: ${{ matrix.branch }}

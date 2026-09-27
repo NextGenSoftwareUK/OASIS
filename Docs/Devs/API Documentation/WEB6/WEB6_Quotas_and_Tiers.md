@@ -257,17 +257,9 @@ Used when no provider-specific rate applies. Mid-market figures covering several
 
 ### Token pricing coverage
 
-`UsageMeteringManager._pricing` holds **46 model rates across 28 providers**, including
-OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI, DeepSeek, Cerebras, Together,
-Perplexity, Venice, OrcaRouter, OpenRouter, DeepInfra, Fireworks, SambaNova, Hyperbolic,
-AWS Bedrock, Azure OpenAI and Google Vertex, plus explicit $0 entries for every local
-runtime.
+Pricing is now driven by the external model catalogue at `NextGenSoftware.OASIS.Web6.Core/Configuration/web6-model-catalogue.json` (loaded by `ModelCatalogueManager`; converted to ledger rates by `Web6UsagePricing`). The catalogue holds **88 model entries across 26 providers** as of 2026-09-22. Bump the `version` field whenever catalogue prices change. `WEB6_MODEL_CATALOGUE_PATH` overrides the default path for operators mounting a reviewed file.
 
-**The remaining providers have no published rate** and fall back to a coarse per-provider
-figure ($0.005/1k default, $0.010 Anthropic, $0.005 OpenAI, $0.002 Gemini, $0.001 Groq).
-Those are the entries the learner is there to fix: any of them that reports a cost will
-converge on its true rate within 5 calls. Ones that never report a cost keep the fallback
-and should be filled in by hand as their price lists are checked.
+Providers not in the catalogue fall back to a coarse per-provider figure ($0.005/1k default, $0.010 Anthropic, $0.005 OpenAI, $0.002 Gemini, $0.001 Groq). Add explicit entries for any provider whose cost is known to avoid the fallback.
 
 ## 8. Quota Alerts
 
