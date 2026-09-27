@@ -19,6 +19,9 @@ on:
       - 'ONODE/**'
       - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
       - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/build_holooasis_happ.ps1'
+      - 'Scripts/holo_happ_provenance.ps1'
+      - 'Scripts/holo_happ_provenance_paths.txt'
       - 'Scripts/EdgeReleaseInspector/**'
       - '.github/workflows/edge-runtime-validation.yml'
   push:
@@ -40,6 +43,9 @@ on:
       - 'ONODE/**'
       - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
       - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/build_holooasis_happ.ps1'
+      - 'Scripts/holo_happ_provenance.ps1'
+      - 'Scripts/holo_happ_provenance_paths.txt'
       - 'Scripts/EdgeReleaseInspector/**'
       - '.github/workflows/edge-runtime-validation.yml'
 
