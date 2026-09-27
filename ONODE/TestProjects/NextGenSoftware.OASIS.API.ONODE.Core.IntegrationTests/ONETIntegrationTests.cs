@@ -288,6 +288,102 @@ public class ONETIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task ONETConsensus_ProposalReachesQuorum_FiresConsensusReachedEvent()
+    {
+        // Arrange: 3-node consensus, 67% threshold = 2/3 must approve.
+        var consensus = new ONETConsensus(storageProvider: null);
+        await consensus.InitializeAsync();
+        await consensus.AddConsensusNodeAsync("node1", stake: 10, capabilities: new());
+        await consensus.AddConsensusNodeAsync("node2", stake: 10, capabilities: new());
+        await consensus.AddConsensusNodeAsync("node3", stake: 10, capabilities: new());
+
+        var reachedIds = new System.Collections.Concurrent.ConcurrentBag<string>();
+        consensus.ConsensusReached += (_, e) => reachedIds.Add(e.ConsensusId);
+
+        var propResult = await consensus.ProposeAsync("node1", "test.action", new { value = 42 });
+        propResult.IsError.Should().BeFalse();
+        var proposalId = propResult.Result;
+
+        // 2 approvals out of 3 = 66.7% — just below threshold; add a 3rd to push to 100%
+        await consensus.VoteAsync(proposalId, "node1", approve: true);
+        await consensus.VoteAsync(proposalId, "node2", approve: true);
+        await consensus.VoteAsync(proposalId, "node3", approve: true);
+
+        // Wait up to 5 s for the consensus loop to process the proposal.
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (!reachedIds.Contains(proposalId) && DateTime.UtcNow < deadline)
+            await Task.Delay(100);
+
+        reachedIds.Should().Contain(proposalId, "ConsensusReached must fire once quorum is reached");
+        await consensus.StopAsync();
+    }
+
+    [Fact]
+    public async Task ONETConsensus_ProposalRejectedByMajority_FiresConsensusFailedEvent()
+    {
+        // Arrange: 4-node consensus; 3 reject — participation ≥ 50% and approval < 67% → rejected.
+        var consensus = new ONETConsensus(storageProvider: null);
+        await consensus.InitializeAsync();
+        await consensus.AddConsensusNodeAsync("node1", stake: 10, capabilities: new());
+        await consensus.AddConsensusNodeAsync("node2", stake: 10, capabilities: new());
+        await consensus.AddConsensusNodeAsync("node3", stake: 10, capabilities: new());
+        await consensus.AddConsensusNodeAsync("node4", stake: 10, capabilities: new());
+
+        var failedReasons = new System.Collections.Concurrent.ConcurrentBag<string>();
+        consensus.ConsensusFailed += (_, e) => failedReasons.Add(e.Reason);
+
+        var propResult = await consensus.ProposeAsync("node1", "test.action", new { value = 99 });
+        propResult.IsError.Should().BeFalse();
+        var proposalId = propResult.Result;
+
+        // 1 approve, 3 reject → 25% approval, 100% participation → rejected
+        await consensus.VoteAsync(proposalId, "node1", approve: true);
+        await consensus.VoteAsync(proposalId, "node2", approve: false);
+        await consensus.VoteAsync(proposalId, "node3", approve: false);
+        await consensus.VoteAsync(proposalId, "node4", approve: false);
+
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (!failedReasons.Any(r => r.Contains(proposalId)) && DateTime.UtcNow < deadline)
+            await Task.Delay(100);
+
+        failedReasons.Should().Contain(r => r.Contains(proposalId), "ConsensusFailed must fire when proposal is rejected");
+        await consensus.StopAsync();
+    }
+
+    [Fact]
+    public async Task ONETManager_GetNetworkStatsAsync_IncludesLatencyAndThroughput()
+    {
+        var dna = new OASISDNA();
+        dna.OASIS.ONET = new ONETConfig
+        {
+            TcpPort = GetFreeTcpPort(),
+            BootstrapServers = new List<string>(),
+            AutoRegisterOnBootstrap = false
+        };
+
+        var mgr = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await mgr.InitializeAsync();
+        await mgr.StartNetworkAsync();
+
+        try
+        {
+            var statsResult = await mgr.GetNetworkStatsAsync();
+            statsResult.IsError.Should().BeFalse(statsResult.Message);
+
+            var stats = statsResult.Result;
+            stats.Should().ContainKey("avgLatencyMs");
+            stats.Should().ContainKey("throughputMbps");
+            stats.Should().ContainKey("listenPort");
+            stats.Should().ContainKey("consensusState");
+            ((int)stats["listenPort"]).Should().Be(dna.OASIS.ONET.TcpPort);
+        }
+        finally
+        {
+            await mgr.StopNetworkAsync();
+        }
+    }
+
     private static int GetFreeTcpPort()
     {
         var listener = new TcpListener(IPAddress.Loopback, 0);
