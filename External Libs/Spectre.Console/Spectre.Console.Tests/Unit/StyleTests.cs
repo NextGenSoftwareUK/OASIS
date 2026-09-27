@@ -281,15 +281,17 @@ namespace Spectre.Console.Tests.Unit
             [InlineData("rgb(255)", "Invalid RGB color 'rgb(255)'.")]
             [InlineData("rgb(255,255)", "Invalid RGB color 'rgb(255,255)'.")]
             [InlineData("rgb(255,255,255", "Invalid RGB color 'rgb(255,255,255'.")]
-            [InlineData("rgb(A,B,C)", "Invalid RGB color 'rgb(A,B,C)'. Input string was not in a correct format.")]
-            public void Should_Return_Error_If_Rgb_Color_Is_Invalid(string style, string expected)
+            [InlineData("rgb(A,B,C)", "Invalid RGB color 'rgb(A,B,C)'.")]
+            public void Should_Return_Error_If_Rgb_Color_Is_Invalid(string style, string expectedPrefix)
             {
                 // Given, When
                 var result = Record.Exception(() => Style.Parse(style));
 
                 // Then
                 result.ShouldNotBeNull();
-                result.Message.ShouldBe(expected);
+                // Int32.Parse exception wording varies between supported .NET runtimes.
+                // The Spectre-owned context must remain stable regardless of that wording.
+                result.Message.ShouldStartWith(expectedPrefix);
             }
         }
 
