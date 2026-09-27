@@ -2,6 +2,8 @@
 
 For a normal release, use the **Promote Development to master** GitHub Actions workflow. Do not open a direct `Development` to `master` pull request: a direct merge can copy Development submodule pointers and Development Railway pins into production.
 
+The purpose and output of every workflow are documented in [OASIS CI/CD, Tests, Artifacts, and Releases](./CI_CD_WORKFLOWS_AND_RELEASES.md).
+
 ## A. Start the promotion
 
 1. Open the OASIS repository on GitHub.
