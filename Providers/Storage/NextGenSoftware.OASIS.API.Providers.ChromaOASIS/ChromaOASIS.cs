@@ -25,10 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
     /// collections by id. Each Avatar/Holon is stored as a document whose text body is
     /// the serialised JSON, with lookup fields mirrored into metadata for `where` filters.
     ///
-    /// Create:  POST {base}/api/v1/collections           {{ name, get_or_create:true }}
-    /// Upsert:  POST {base}/api/v1/collections/{id}/upsert
-    /// Get:     POST {base}/api/v1/collections/{id}/get   {{ ids | where }}
-    /// Delete:  POST {base}/api/v1/collections/{id}/delete {{ ids }}
+    /// Uses Chroma's tenant/database-scoped v2 collection and record endpoints.
     /// </summary>
     public class ChromaOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
@@ -40,15 +37,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
 
         private readonly HttpClient _http;
         private readonly string _baseUrl;
+        private readonly string _tenant;
+        private readonly string _database;
         private readonly Dictionary<string, string> _collectionIds = new();
 
         private const string CollAvatars = "oasis_avatars";
         private const string CollAvatarDetails = "oasis_avatar_details";
         private const string CollHolons = "oasis_holons";
 
-        public ChromaOASIS(string baseUrl = "http://localhost:8000")
+        public ChromaOASIS(string baseUrl = "http://localhost:8000", string tenant = "default_tenant", string database = "default_database")
         {
             _baseUrl = baseUrl.TrimEnd('/');
+            _tenant = tenant;
+            _database = database;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ChromaOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
@@ -511,13 +512,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         private StringContent Json(object o)
             => new StringContent(JsonSerializer.Serialize(o), Encoding.UTF8, "application/json");
 
+        private string CollectionsUrl
+            => $"{_baseUrl}/api/v2/tenants/{Uri.EscapeDataString(_tenant)}/databases/{Uri.EscapeDataString(_database)}/collections";
+
+        private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode) return;
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Chroma returned {(int)response.StatusCode} ({response.ReasonPhrase}): {body}");
+        }
+
         private async Task<string> ResolveCollectionIdAsync(string name)
         {
             if (_collectionIds.TryGetValue(name, out var cached)) return cached;
 
-            var resp = await _http.PostAsync($"{_baseUrl}/api/v1/collections",
+            var resp = await _http.PostAsync(CollectionsUrl,
                 Json(new { name, get_or_create = true }));
-            resp.EnsureSuccessStatusCode();
+            await EnsureSuccessAsync(resp);
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             var id = doc.RootElement.GetProperty("id").GetString()!;
@@ -559,7 +570,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         private async Task<T?> GetDocAsync<T>(string collection, string id) where T : class
         {
             var cid = await ResolveCollectionIdAsync(collection);
-            var resp = await _http.PostAsync($"{_baseUrl}/api/v1/collections/{cid}/get",
+            var resp = await _http.PostAsync($"{CollectionsUrl}/{cid}/get",
                 Json(new { ids = new[] { id }, include = new[] { "documents", "metadatas" } }));
             if (!resp.IsSuccessStatusCode) return null;
             var json = await resp.Content.ReadAsStringAsync();
@@ -578,17 +589,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 metadatas = new[] { ToMetadata(obj, id) },
                 embeddings = new[] { new[] { 0.0f } }
             };
-            var resp = await _http.PostAsync($"{_baseUrl}/api/v1/collections/{cid}/upsert", Json(body));
-            resp.EnsureSuccessStatusCode();
+            var resp = await _http.PostAsync($"{CollectionsUrl}/{cid}/upsert", Json(body));
+            await EnsureSuccessAsync(resp);
         }
 
         private async Task DeleteDocAsync(string collection, string id)
         {
             var cid = await ResolveCollectionIdAsync(collection);
-            var resp = await _http.PostAsync($"{_baseUrl}/api/v1/collections/{cid}/delete",
+            var resp = await _http.PostAsync($"{CollectionsUrl}/{cid}/delete",
                 Json(new { ids = new[] { id } }));
             if (resp.StatusCode != System.Net.HttpStatusCode.NotFound)
-                resp.EnsureSuccessStatusCode();
+                await EnsureSuccessAsync(resp);
         }
 
         private async Task<List<T>> GetWhereAsync<T>(string collection, object? where, int limit) where T : class
@@ -598,7 +609,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
                 ? new { limit, include = new[] { "documents", "metadatas" } }
                 : (object)new { where, limit, include = new[] { "documents", "metadatas" } };
 
-            var resp = await _http.PostAsync($"{_baseUrl}/api/v1/collections/{cid}/get", Json(body));
+            var resp = await _http.PostAsync($"{CollectionsUrl}/{cid}/get", Json(body));
             if (!resp.IsSuccessStatusCode) return new List<T>();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);

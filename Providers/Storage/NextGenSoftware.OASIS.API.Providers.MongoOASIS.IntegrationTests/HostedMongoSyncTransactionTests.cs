@@ -515,8 +515,8 @@ public sealed class HostedMongoSyncTransactionTests
 
             var ownerFeed = await provider.ReadChangesAsync(ownerId, Guid.NewGuid(), null, Guid.Empty, 0, 100, default);
             Assert.False(ownerFeed.IsError, ownerFeed.Message);
-            var avatar = Assert.Single(ownerFeed.Result.Changes.Where(x => x.EntityType == HyperDriveEntityTypes.Avatar));
-            var detail = Assert.Single(ownerFeed.Result.Changes.Where(x => x.EntityType == HyperDriveEntityTypes.AvatarDetail));
+            var avatar = Assert.Single(ownerFeed.Result.Changes, x => x.EntityType == HyperDriveEntityTypes.Avatar);
+            var detail = Assert.Single(ownerFeed.Result.Changes, x => x.EntityType == HyperDriveEntityTypes.AvatarDetail);
             using var avatarJson = JsonDocument.Parse(avatar.PayloadJson);
             using var detailJson = JsonDocument.Parse(detail.PayloadJson);
             Assert.Equal("edge-owner", avatarJson.RootElement.GetProperty("Username").GetString());
