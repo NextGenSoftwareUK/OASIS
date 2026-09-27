@@ -14,6 +14,8 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $holoNetRoot = (Resolve-Path (Join-Path $repoRoot '..\holochain-client-csharp')).Path
 $holoHAppRoot = Join-Path (Split-Path $repoRoot -Parent) 'OASIS-Holochain-hApp'
 $artifactsPath = Join-Path $repoRoot $ArtifactsDirectory
+$sourcePathsFile = Join-Path $PSScriptRoot 'holo_happ_provenance_paths.txt'
+. (Join-Path $PSScriptRoot 'holo_happ_provenance.ps1')
 $hostedMongoSyncReportPath = if ([string]::IsNullOrWhiteSpace($HostedMongoSyncReport)) { $null } else {
     [IO.Path]::GetFullPath((Join-Path $repoRoot $HostedMongoSyncReport))
 }
@@ -53,26 +55,6 @@ function Assert-NoForbiddenProjectDependency {
     }
 }
 
-function Get-HoloHAppSourceDigest {
-    param([Parameter(Mandatory)][string]$SourceRoot)
-    $sourcePathsFile = Join-Path $PSScriptRoot 'holo_happ_provenance_paths.txt'
-    $sourcePaths = Get-Content -LiteralPath $sourcePathsFile | Where-Object { ![string]::IsNullOrWhiteSpace($_) }
-    $files = foreach ($relativePath in $sourcePaths) {
-        $path = Join-Path $SourceRoot $relativePath
-        if (Test-Path -LiteralPath $path -PathType Leaf) { Get-Item -LiteralPath $path }
-        elseif (Test-Path -LiteralPath $path -PathType Container) { Get-ChildItem -LiteralPath $path -File -Recurse }
-        else { throw "Required Holochain hApp source path is missing: $path" }
-    }
-    $lines = $files | Sort-Object FullName | ForEach-Object {
-        $relative = [IO.Path]::GetRelativePath($SourceRoot, $_.FullName).Replace('\', '/')
-        "$relative=$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)"
-    }
-    $bytes = [Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))
-    $sha = [Security.Cryptography.SHA256]::Create()
-    try { return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-', '') }
-    finally { $sha.Dispose() }
-}
-
 function Assert-HoloHAppArtifactMatchesSource {
     $happPath = Join-Path $repoRoot 'Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\OASIS_hAPP\oasis.happ'
     $manifestPath = Join-Path $repoRoot 'Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\OASIS_hAPP\build-manifest.json'
@@ -90,7 +72,7 @@ function Assert-HoloHAppArtifactMatchesSource {
     if ($manifest.sourceCommit -ne $sourceCommit) {
         throw "The bundled HoloOASIS hApp manifest belongs to commit '$($manifest.sourceCommit)', not checked-out source '$sourceCommit'."
     }
-    $sourceDigest = Get-HoloHAppSourceDigest $holoHAppRoot
+    $sourceDigest = Get-HoloHAppSourceDigest -SourceRoot $holoHAppRoot -SourcePathsFile $sourcePathsFile
     $artifactDigest = (Get-FileHash -LiteralPath $happPath -Algorithm SHA256).Hash
     if ($manifest.sourceSha256 -ne $sourceDigest) {
         throw "The bundled HoloOASIS hApp was not built from the current hApp source tree. Run Scripts/build_holooasis_happ.ps1."
@@ -115,7 +97,7 @@ $projects = @{
     StarCli = Join-Path $repoRoot 'STAR ODK\NextGenSoftware.OASIS.STAR.CLI\NextGenSoftware.OASIS.STAR.CLI.csproj'
     HoloUnity = Join-Path $repoRoot 'Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj'
     HoloClient = Join-Path $holoNetRoot 'NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj'
-    HoloOrm = Join-Path $holoNetRoot 'NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj'
+    HoloOrm = Join-Path $repoRoot 'HoloNET-ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj'
     Mongo = Join-Path $repoRoot 'Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj'
     HyperDriveMigration = Join-Path $repoRoot 'Tools\NextGenSoftware.OASIS.HyperDrive.Migration\NextGenSoftware.OASIS.HyperDrive.Migration.csproj'
     OnetTests = Join-Path $repoRoot 'ONODE\TestProjects\NextGenSoftware.OASIS.API.ONODE.Core.UnitTests\NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.csproj'
