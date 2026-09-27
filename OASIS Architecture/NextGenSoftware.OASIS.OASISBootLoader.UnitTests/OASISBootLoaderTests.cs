@@ -18,22 +18,32 @@ namespace NextGenSoftware.OASIS.OASISBootLoader.UnitTests
         }
 
         [Fact]
-        public void OASISBootLoader_ShouldHaveBootMethod()
+        public void OASISBootLoader_ShouldExposeBootOASISMethod()
         {
             // Arrange
             var bootLoaderType = typeof(OASISBootLoader);
-            var method = bootLoaderType.GetMethod("Boot", Type.EmptyTypes);
+            var method = bootLoaderType.GetMethod(
+                nameof(OASISBootLoader.BootOASIS),
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: new[] { typeof(bool) },
+                modifiers: null);
 
             // Assert
             method.Should().NotBeNull();
         }
 
         [Fact]
-        public void OASISBootLoader_ShouldHaveShutdownMethod()
+        public void OASISBootLoader_ShouldExposeShutdownOASISMethod()
         {
             // Arrange
             var bootLoaderType = typeof(OASISBootLoader);
-            var method = bootLoaderType.GetMethod("Shutdown", Type.EmptyTypes);
+            var method = bootLoaderType.GetMethod(
+                nameof(OASISBootLoader.ShutdownOASIS),
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: Type.EmptyTypes,
+                modifiers: null);
 
             // Assert
             method.Should().NotBeNull();
