@@ -146,6 +146,9 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
       - name: Verify npm release contents
         working-directory: OASIS/WEB6/npm
         shell: bash
@@ -153,6 +156,12 @@ jobs:
           set -euo pipefail
           test -s bin/oasis-mcp.js
           test -s install.js
+          test -s README.md
+          test -s MCP_TOOL_CATALOG.md
+          cmp README.md ../NextGenSoftware.OASIS.MCP.Server/README.md
+          cmp MCP_TOOL_CATALOG.md ../NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md
+          python ../Scripts/generate_mcp_tool_catalog.py
+          git diff --exit-code -- ../NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md MCP_TOOL_CATALOG.md
           npm pack --dry-run
 
   release:
@@ -171,11 +180,7 @@ jobs:
         with:
           tag_name: mcp-v${{ inputs.version }}
           name: OASIS MCP Server v${{ inputs.version }}
-          body: |
-            ## OASIS MCP Server v${{ inputs.version }}
-
-            Install with `npm install -g @oasisomniverse/mcp-server` or
-            `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`.
+          body_path: OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
           files: binaries/*
           fail_on_unmatched_files: true
           draft: false
