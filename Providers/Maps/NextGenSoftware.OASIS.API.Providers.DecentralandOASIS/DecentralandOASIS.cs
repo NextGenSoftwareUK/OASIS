@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.DecentralandOASIS
 {
@@ -367,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DecentralandOASIS
             var r = new OASISResult<ISearchResults>();
             try
             {
-                var q = sp?.SearchQuery ?? "";
+                var q = sp?.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
                 var holons = new List<IHolon>();
                 // Try as Ethereum address (profile lookup)
                 if (q.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
