@@ -22,6 +22,7 @@ on:
       - 'Scripts/build_holooasis_happ.ps1'
       - 'Scripts/holo_happ_provenance.ps1'
       - 'Scripts/holo_happ_provenance_paths.txt'
+      - 'UnityPackages/com.nextgensoftware.oasis.edge/**'
       - 'Scripts/EdgeReleaseInspector/**'
       - '.github/workflows/edge-runtime-validation.yml'
   push:
@@ -46,6 +47,7 @@ on:
       - 'Scripts/build_holooasis_happ.ps1'
       - 'Scripts/holo_happ_provenance.ps1'
       - 'Scripts/holo_happ_provenance_paths.txt'
+      - 'UnityPackages/com.nextgensoftware.oasis.edge/**'
       - 'Scripts/EdgeReleaseInspector/**'
       - '.github/workflows/edge-runtime-validation.yml'
 
