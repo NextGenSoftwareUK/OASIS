@@ -515,8 +515,8 @@ public sealed class HostedMongoSyncTransactionTests
 
             var ownerFeed = await provider.ReadChangesAsync(ownerId, Guid.NewGuid(), null, Guid.Empty, 0, 100, default);
             Assert.False(ownerFeed.IsError, ownerFeed.Message);
-            var avatar = Assert.Single(ownerFeed.Result.Changes.Where(x => x.EntityType == HyperDriveEntityTypes.Avatar));
-            var detail = Assert.Single(ownerFeed.Result.Changes.Where(x => x.EntityType == HyperDriveEntityTypes.AvatarDetail));
+            var avatar = Assert.Single(ownerFeed.Result.Changes, x => x.EntityType == HyperDriveEntityTypes.Avatar);
+            var detail = Assert.Single(ownerFeed.Result.Changes, x => x.EntityType == HyperDriveEntityTypes.AvatarDetail);
             using var avatarJson = JsonDocument.Parse(avatar.PayloadJson);
             using var detailJson = JsonDocument.Parse(detail.PayloadJson);
             Assert.Equal("edge-owner", avatarJson.RootElement.GetProperty("Username").GetString());
@@ -617,11 +617,14 @@ public sealed class HostedMongoSyncTransactionTests
 
     private static string NewDatabaseName(string scenario)
     {
-        string name = $"hd_{scenario}_{Guid.NewGuid():N}";
-        if (name.Length > 63)
+        const int maximumDatabaseNameLength = 38;
+        string prefix = $"hd_{scenario}_";
+        int suffixLength = maximumDatabaseNameLength - prefix.Length;
+        if (suffixLength <= 0)
             throw new ArgumentOutOfRangeException(nameof(scenario), scenario,
-                "MongoDB database names cannot exceed 63 characters.");
-        return name;
+                $"Hosted MongoDB database names cannot exceed {maximumDatabaseNameLength} characters.");
+
+        return prefix + Guid.NewGuid().ToString("N")[..suffixLength];
     }
 
     private static SyncOperation CreateOperation(Guid avatarId, Guid deviceId, string payloadJson) => new()

@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 {
@@ -22,12 +23,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
     /// OASIS provider for QuestDB — high-performance time-series database via PostgreSQL wire protocol.
     ///
     /// Tables: oasis_avatars, oasis_avatar_details, oasis_holons
-    /// Schema: id (VARCHAR PK), data (VARCHAR JSON blob), created_at TIMESTAMP
-    /// Upsert:  INSERT INTO ... ON CONFLICT(id) DO UPDATE SET data = EXCLUDED.data
-    ///          QuestDB uses partitioned tables; deduplication is via DEDUP ON (id)
-    ///          We use a simple approach: DELETE + INSERT for upsert semantics.
-    /// Note:    QuestDB does not support UPDATE/DELETE in all modes; WAL mode supports it.
-    ///          This provider targets WAL mode QuestDB 7+.
+    /// Schema: id (SYMBOL), data (VARCHAR JSON blob), ts (designated TIMESTAMP)
+    /// Upsert:  WAL deduplication uses the stable (ts, id) key required by QuestDB.
+    ///          A native QuestDB timestamp expression avoids PostgreSQL timezone semantics.
     /// </summary>
     public class QuestDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
@@ -71,21 +69,39 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
             {
                 using var cmd = new NpgsqlCommand(
-                    $"CREATE TABLE IF NOT EXISTS {table} (id VARCHAR, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(id);",
+                    $"CREATE TABLE IF NOT EXISTS {table} (id SYMBOL, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id);",
                     conn);
                 await cmd.ExecuteNonQueryAsync();
+
+                // QuestDB applies DDL asynchronously. Activation is complete only
+                // when subsequent connections can address every provider table.
+                var readyAt = DateTime.UtcNow.AddSeconds(10);
+                while (true)
+                {
+                    try
+                    {
+                        using var readiness = new NpgsqlCommand($"SELECT count(*) FROM {table};", conn);
+                        await readiness.ExecuteScalarAsync();
+                        break;
+                    }
+                    catch (PostgresException) when (DateTime.UtcNow < readyAt)
+                    {
+                        await Task.Delay(100);
+                    }
+                }
             }
         }
 
         private async Task UpsertAsync(string table, string id, object obj)
         {
             using var conn = OpenConnection();
-            // QuestDB WAL DEDUP: INSERT is idempotent when UPSERT KEYS(id) is set
+            // QuestDB WAL DEDUP: a stable timestamp and id form the table's upsert key.
             using var cmd = new NpgsqlCommand(
-                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, now());",
+                $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, " +
+                "to_timestamp('1970-01-01T00:00:00.000000Z', 'yyyy-MM-ddTHH:mm:ss.SSSUUUZ'));",
                 conn);
-            cmd.Parameters.AddWithValue("id", id);
-            cmd.Parameters.AddWithValue("data", Ser(obj));
+            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
+            cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -93,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         {
             using var conn = OpenConnection();
             using var cmd = new NpgsqlCommand($"SELECT data FROM {table} WHERE id = @id LIMIT 1;", conn);
-            cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             using var reader = await cmd.ExecuteReaderAsync();
             if (!reader.Read()) return default;
             return Des<T>(reader.GetString(0));
@@ -104,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             using var conn = OpenConnection();
             var sql = $"SELECT data FROM {table}" + (whereClause != null ? $" WHERE {whereClause}" : "") + " LIMIT 1000;";
             using var cmd = new NpgsqlCommand(sql, conn);
-            if (paramName != null && paramValue != null) cmd.Parameters.AddWithValue(paramName, paramValue);
+            if (paramName != null && paramValue != null) cmd.Parameters.AddWithValue(paramName, NpgsqlDbType.Varchar, paramValue);
             using var reader = await cmd.ExecuteReaderAsync();
             var list = new List<T>();
             while (reader.Read())
@@ -119,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         {
             using var conn = OpenConnection();
             using var cmd = new NpgsqlCommand($"DELETE FROM {table} WHERE id = @id;", conn);
-            cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -661,7 +677,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
 
-        private static bool Contains(string source, string query)
+        private static bool Contains(string? source, string query)
             => !string.IsNullOrEmpty(source) && source.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
 
         private static bool MetaDataMatches(IHolon holon, Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode)

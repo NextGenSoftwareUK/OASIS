@@ -10,12 +10,15 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     [TestClass]
     public class GoogleCloudOASISProviderTests
     {
-        private GoogleCloudOASIS _provider;
+        private GoogleCloudOASIS _provider = null!;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new GoogleCloudOASIS();
+            _provider = new GoogleCloudOASIS(
+                enableStorage: false,
+                enableFirestore: false,
+                enableBigQuery: false);
         }
 
         [TestMethod]
@@ -25,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.GoogleCloudOASIS, providerType);
+            Assert.AreEqual(ProviderType.GoogleCloudOASIS, providerType.Value);
         }
 
         [TestMethod]
