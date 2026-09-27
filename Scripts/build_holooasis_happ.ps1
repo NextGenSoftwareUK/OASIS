@@ -52,7 +52,8 @@ if (!(Test-Path -LiteralPath $sourceArtifact -PathType Leaf)) {
     throw "The Holochain build completed without producing '$sourceArtifact'."
 }
 
-$sourcePaths = @('Cargo.toml', 'Cargo.lock', 'package.json', 'package-lock.json', 'flake.nix', 'flake.lock', 'dnas', 'tests', 'workdir/happ.yaml')
+$sourcePathsFile = Join-Path $PSScriptRoot 'holo_happ_provenance_paths.txt'
+$sourcePaths = Get-Content -LiteralPath $sourcePathsFile | Where-Object { ![string]::IsNullOrWhiteSpace($_) }
 $files = foreach ($relativePath in $sourcePaths) {
     $path = Join-Path $sourceRoot $relativePath
     if (Test-Path -LiteralPath $path -PathType Leaf) { Get-Item -LiteralPath $path }

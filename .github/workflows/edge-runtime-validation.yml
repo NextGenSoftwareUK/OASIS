@@ -47,13 +47,13 @@ jobs:
   build-holooasis-happ:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout OASIS Holochain hApp source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
@@ -63,7 +63,7 @@ jobs:
         shell: pwsh
         working-directory: OASIS
         run: ./Scripts/build_holooasis_happ.ps1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: verified-holooasis-happ
           path: |
@@ -73,18 +73,18 @@ jobs:
   validate-hosted-mongo-sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Build hosted domain migration tool
@@ -198,7 +198,7 @@ jobs:
           touch "$OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY/continue"
           wait "$test_pid"
           trap - EXIT
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: hosted-mongo-sync-evidence
@@ -209,36 +209,36 @@ jobs:
     needs: [build-holooasis-happ, validate-hosted-mongo-sync]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
       - name: Checkout OASIS Holochain hApp source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: verified-holooasis-happ
           path: OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: hosted-mongo-sync-evidence
           path: OASIS/artifacts/hosted-mongo-ci
@@ -249,7 +249,7 @@ jobs:
           ./Scripts/validate_edge_runtime_release.ps1
           -HostedMongoSyncReport artifacts/hosted-mongo-ci/hosted-mongo-sync.trx
           -HostedMongoProcessKillReport artifacts/hosted-mongo-ci/hosted-mongo-process-kill.trx
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: edge-runtime-release-evidence
           path: OASIS/artifacts/edge-release-validation/*

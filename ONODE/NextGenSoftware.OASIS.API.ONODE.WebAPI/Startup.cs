@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
                     x.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true));
                 });
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
                 // Resolve conflicting actions (e.g. two controllers sharing the same route prefix)
