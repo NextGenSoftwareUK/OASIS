@@ -8,6 +8,8 @@ $destinationDirectory = Join-Path $repoRoot 'Providers/Network/NextGenSoftware.O
 $sourceArtifact = Join-Path $sourceRoot 'workdir/oasis.happ'
 $destinationArtifact = Join-Path $destinationDirectory 'oasis.happ'
 $manifestPath = Join-Path $destinationDirectory 'build-manifest.json'
+$sourcePathsFile = Join-Path $PSScriptRoot 'holo_happ_provenance_paths.txt'
+. (Join-Path $PSScriptRoot 'holo_happ_provenance.ps1')
 
 if (!(Test-Path -LiteralPath $sourceRoot -PathType Container)) {
     throw "Checkout NextGenSoftwareUK/OASIS-Holochain-hApp beside OASIS at '$sourceRoot'."
@@ -51,23 +53,11 @@ finally { Pop-Location }
 if (!(Test-Path -LiteralPath $sourceArtifact -PathType Leaf)) {
     throw "The Holochain build completed without producing '$sourceArtifact'."
 }
-
-$sourcePaths = @('Cargo.toml', 'Cargo.lock', 'package.json', 'package-lock.json', 'flake.nix', 'flake.lock', 'dnas', 'tests', 'workdir/happ.yaml')
-$files = foreach ($relativePath in $sourcePaths) {
-    $path = Join-Path $sourceRoot $relativePath
-    if (Test-Path -LiteralPath $path -PathType Leaf) { Get-Item -LiteralPath $path }
-    elseif (Test-Path -LiteralPath $path -PathType Container) { Get-ChildItem -LiteralPath $path -File -Recurse }
-    else { throw "Required Holochain hApp source path is missing: $path" }
+$sourceStatus = & git -C $sourceRoot status --porcelain
+if ($LASTEXITCODE -ne 0 -or $sourceStatus) {
+    throw 'The Holochain hApp build changed tracked source files; commit the generated source change before packaging.'
 }
-$lines = $files | Sort-Object FullName | ForEach-Object {
-    $relative = [IO.Path]::GetRelativePath($sourceRoot, $_.FullName).Replace('\', '/')
-    "$relative=$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)"
-}
-$sha = [Security.Cryptography.SHA256]::Create()
-try {
-    $sourceDigest = ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))))).Replace('-', '')
-}
-finally { $sha.Dispose() }
+$sourceDigest = Get-HoloHAppSourceDigest -SourceRoot $sourceRoot -SourcePathsFile $sourcePathsFile
 
 New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
 Copy-Item -LiteralPath $sourceArtifact -Destination $destinationArtifact -Force

@@ -1,4 +1,4 @@
-﻿
+
 # OASIS API RELEASE HISTORY
 
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
@@ -1124,7 +1124,7 @@ Way too many changes to list here, there were numerous internal releases between
 - **ONET/ONODE system** (Phases 1–7 completed): P2P ONET bootstrap/registration with NodeId keypair generation; ONODEService supervisor with Velopack auto-update; Avalonia system-tray app with Metrics/Network/Audit tabs and toast notifications; ONODE Manager CLI extensions; Web4 Holon bridge endpoints; SQLite metrics history; WebSocket push; SkiaSharp icon generation; rate limiting; audit log; active-nodes endpoint; provider management; GitHub Actions release workflow; comprehensive unit and integration test coverage for both ONET and ONODE.
 - **DID SSO & 3-layer password encryption**: avatar passwords now protected by three encryption layers (BCrypt hash + AES256 + Rijndael); full Decentralised Identity (DID) SSO support added including a DID challenge nonce endpoint (GET /api/avatar/did-challenge/{did}); pluggable DID nonce store with InMemory (default) and Redis (multi-node) backends.
 - **Critical security fix**: BCrypt password hashing now applied in all update-by-id/email/username endpoints (was previously only applied on register/authenticate).
-- **WEB6 AI layer** introduced: 250+ MCP tools across WEB4–WEB10; full WEB6 REST API reference and MCP tool reference documentation; Leela AI added as a WEB6 AI provider.
+- **WEB6 AI layer** introduced: 516 MCP tools across WEB4–WEB10; full WEB6 REST API reference and MCP tool reference documentation; Leela AI added as a WEB6 AI provider.
 - **WEB7–WEB10 documentation** added covering architecture, API docs and MCP tool references for all layers.
 - **Subscription system**: built from scratch replacing all mock stubs; persists via HolonManager; Stripe keys loaded from env vars with OASISDNA fallback; SubscriptionMiddleware.
 - **Wizard account overrides**: Wizards can now pass MintedByAvatarId to mint NFTs on behalf of other avatars; VerificationToken returned in register response for Wizard flows; SuppressVerificationEmail per-request param.
