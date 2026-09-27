@@ -51,9 +51,16 @@ jobs:
       - name: Submodule pointers must match the branch rule
         # master pins each submodule at its main; Development pins each at its Development.
         # Master deploys to Azure, so a pointer off main would ship unreleased code.
+        env:
+          OASIS_TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
         run: |
-          git submodule foreach --quiet 'git fetch origin --quiet || true'
-          python3 Scripts/check_submodule_branches.py
+          if [ "$OASIS_TARGET_BRANCH" = "Development" ]; then
+            export OASIS_SUBMODULE_BRANCH=Development
+          else
+            export OASIS_SUBMODULE_BRANCH=main
+          fi
+          git submodule foreach --quiet 'git fetch origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet'
+          python3 Scripts/check_submodule_branches.py "$(git rev-parse HEAD)" "$OASIS_TARGET_BRANCH"
 
       - name: Railway Dockerfiles must use the shared dependency manifest
         run: python3 Scripts/validate_railway_dependency_manifest.py
