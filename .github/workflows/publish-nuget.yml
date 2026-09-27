@@ -9,27 +9,27 @@ jobs:
 
     steps:
       - name: Checkout OASIS2
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: OASIS2
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout OASIS-WEB6
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/OASIS-WEB6
           path: OASIS-WEB6
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Checkout NextGenSoftware-Libraries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
           path: holochain-client-csharp
@@ -37,7 +37,7 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.x'
 
