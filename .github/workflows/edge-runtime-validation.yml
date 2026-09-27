@@ -267,6 +267,8 @@ jobs:
           -HostedMongoSyncReport artifacts/hosted-mongo-ci/hosted-mongo-sync.trx
           -HostedMongoProcessKillReport artifacts/hosted-mongo-ci/hosted-mongo-process-kill.trx
       - uses: actions/upload-artifact@v7
+        if: always()
         with:
           name: edge-runtime-release-evidence
           path: OASIS/artifacts/edge-release-validation/*
+          if-no-files-found: warn

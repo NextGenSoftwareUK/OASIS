@@ -73,6 +73,10 @@ $unityProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
     '-logFile', $logPath
 ) -WindowStyle Hidden -Wait -PassThru
 if ($unityProcess.ExitCode -ne 0) {
+    if (Test-Path -LiteralPath $logPath -PathType Leaf) {
+        Write-Host "--- Unity Edge validation log ---"
+        Get-Content -LiteralPath $logPath | Write-Host
+    }
     throw "Unity Edge package validation failed with exit code $($unityProcess.ExitCode). See '$logPath'."
 }
 $errors = Select-String -LiteralPath $logPath -Pattern 'error CS\d+|Assembly .* will not be loaded|Failed to resolve packages' -CaseSensitive:$false
@@ -88,6 +92,10 @@ $androidProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
 ) -WindowStyle Hidden -Wait -PassThru
 if ($androidProcess.ExitCode -ne 0 -or
     -not (Select-String -LiteralPath $androidLogPath -Pattern 'OASIS_EDGE_ANDROID_BUILD_VALIDATION_PASSED' -Quiet)) {
+    if (Test-Path -LiteralPath $androidLogPath -PathType Leaf) {
+        Write-Host "--- Unity Android validation log ---"
+        Get-Content -LiteralPath $androidLogPath | Write-Host
+    }
     throw "Unity Android Edge package validation failed. See '$androidLogPath'."
 }
 Write-Host "Unity Edge package compiled successfully. Log: $logPath"
