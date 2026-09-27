@@ -62,7 +62,7 @@ application built on WEB4/WEB5 into an adaptive, self-improving system:
     Cohere, xAI, Ollama, HuggingFace, DeepSeek, and more — one unified API
 -   **DID/Verifiable Credentials**: W3C DID (did:key, did:web, did:ethr,
     did:ion) — enterprise-grade compliance built in
--   **507 MCP tools · 56 REST Endpoints**: the largest production MCP surface
+-   **528 MCP tools · 56 REST Endpoints**: the largest production MCP surface
     area of any AI platform
 
 ------------------------------------------------------------------------
