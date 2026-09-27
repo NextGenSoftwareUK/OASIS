@@ -1,6 +1,7 @@
 name: Edge Runtime validation
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/**'
