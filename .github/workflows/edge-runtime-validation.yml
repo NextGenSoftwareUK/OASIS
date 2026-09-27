@@ -240,6 +240,13 @@ jobs:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Install pinned Unity editor and Android modules
+        uses: RageAgainstThePixel/unity-setup@3da1aae07f5635ff478d3ad7f29782b3aea88258 # v2.6.0
+        with:
+          version-file: None
+          unity-version: 2022.3.62f3 (e9b2a6e6c3a0)
+          build-targets: Android
+          cache-installation: true
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
@@ -256,6 +263,7 @@ jobs:
         working-directory: OASIS
         run: >-
           ./Scripts/validate_edge_runtime_release.ps1
+          -UnityEditor "${{ env.UNITY_EDITOR_PATH }}"
           -HostedMongoSyncReport artifacts/hosted-mongo-ci/hosted-mongo-sync.trx
           -HostedMongoProcessKillReport artifacts/hosted-mongo-ci/hosted-mongo-process-kill.trx
       - uses: actions/upload-artifact@v7

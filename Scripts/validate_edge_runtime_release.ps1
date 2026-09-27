@@ -4,6 +4,7 @@ param(
     [string]$Configuration = 'Release',
     [ValidateSet('SqliteMvp', 'HoloEnabled')]
     [string]$Profile = 'HoloEnabled',
+    [string]$UnityEditor = 'C:\Program Files\Unity\Hub\Editor\2022.3.62f3\Editor\Unity.exe',
     [string]$ArtifactsDirectory = 'artifacts/edge-release-validation',
     [string]$HostedMongoSyncReport,
     [string]$HostedMongoProcessKillReport
@@ -180,8 +181,8 @@ Copy-Item -LiteralPath $unityPackageManifest -Destination (Join-Path $artifactsP
     ([IO.Path]::GetRelativePath($repoRoot, $unityPackageArchive))
 & (Join-Path $repoRoot 'Scripts\validate_edge_unity_package.ps1') -PackageDirectory `
     ([IO.Path]::GetRelativePath($repoRoot, $unityPackageDirectory)) -LogDirectory `
-    ([IO.Path]::GetRelativePath($repoRoot, $artifactsPath))
-& (Join-Path $repoRoot 'Scripts\validate_our_world_edge_integration.ps1')
+    ([IO.Path]::GetRelativePath($repoRoot, $artifactsPath)) -UnityEditor $UnityEditor
+& (Join-Path $repoRoot 'Scripts\validate_our_world_edge_integration.ps1') -UnityEditor $UnityEditor
 
 $packages = @(Get-ChildItem -LiteralPath $artifactsPath -Filter '*.nupkg' -File)
 $expectedPackagePrefixes = @(
