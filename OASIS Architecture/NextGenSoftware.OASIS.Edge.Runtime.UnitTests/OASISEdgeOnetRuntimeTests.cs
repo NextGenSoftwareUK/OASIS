@@ -70,8 +70,7 @@ public sealed class OASISEdgeOnetRuntimeTests
             Assert.True(capabilityRegistry.TryGetCurrent(nodeId, out var advertised));
             Assert.Contains(advertised.Providers, x => x.ProviderType == "EdgeSQLiteOASIS");
             Assert.Equal(EdgeSynchronizationState.Synchronized, runtime.EdgeRuntime.Status.Synchronization);
-            await Task.Delay(140);
-            Assert.True(edgeChannel.CapabilityPublishCount >= 2);
+            await WaitUntilAsync(() => edgeChannel.CapabilityPublishCount >= 2, TimeSpan.FromSeconds(5));
         }
         finally
         {
@@ -146,7 +145,7 @@ public sealed class OASISEdgeOnetRuntimeTests
 
             var started = await runtime.StartAsync(identity, new OnlineMonitor(), default);
             var duplicateStart = await runtime.StartAsync(identity, new OnlineMonitor(), default);
-            await Task.Delay(110);
+            await WaitUntilAsync(() => edgeChannel.CapabilityPublishCount >= 2, TimeSpan.FromSeconds(5));
 
             Assert.True(started.IsError);
             Assert.NotEqual(EdgeConnectivityState.Online, runtime.EdgeRuntime.Status.Connectivity);
@@ -163,16 +162,26 @@ public sealed class OASISEdgeOnetRuntimeTests
         }
     }
 
+    private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (!condition() && DateTime.UtcNow < deadline)
+            await Task.Delay(10);
+        Assert.True(condition(), $"Condition was not satisfied within {timeout}.");
+    }
+
     private sealed class LoopbackChannel : IONETApplicationMessageChannel
     {
+        private int _capabilityPublishCount;
         public LoopbackChannel(string localNodeId) => LocalNodeId = localNodeId;
         public string LocalNodeId { get; }
         public LoopbackChannel? Peer { get; set; }
-        public int CapabilityPublishCount { get; private set; }
+        public int CapabilityPublishCount => Volatile.Read(ref _capabilityPublishCount);
         public event EventHandler<ONETApplicationMessage>? MessageReceived;
         public Task<OASISResult<bool>> SendAsync(ONETApplicationMessage message, CancellationToken cancellationToken)
         {
-            if (message.Envelope.Operation == ONETCapabilityPublisher.OperationName) CapabilityPublishCount++;
+            if (message.Envelope.Operation == ONETCapabilityPublisher.OperationName)
+                Interlocked.Increment(ref _capabilityPublishCount);
             if (Peer == null)
                 return Task.FromResult(new OASISResult<bool>
                 { IsError = true, ErrorCount = 1, ErrorCode = "ONET_CHANNEL_UNAVAILABLE", Message = "No peer." });
