@@ -88,11 +88,13 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 ## Quick grep to find stale numbers
 
 ```bash
-grep -rn "99 provider\|17 orchestrat\|20+ AI\|250 MCP\|259 MCP\|6 orchestrat" \
+grep -rn "99 provider\|17 orchestrat\|20+ AI\|250 MCP\|259 MCP\|507 MCP\|6 orchestrat" \
   C:/Source/OASIS/Docs \
   C:/Source/OASIS/WEB6 \
   C:/Source/Web6Site \
-  C:/Source/OASIS/oasisweb4.com
+  C:/Source/oasisweb4.com \
+  C:/Source/OASISLearnWebsite \
+  C:/Source/OASISOmniverseSite
 ```
 
 ---
