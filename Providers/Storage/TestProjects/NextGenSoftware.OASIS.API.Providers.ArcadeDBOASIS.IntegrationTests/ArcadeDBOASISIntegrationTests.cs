@@ -13,10 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests
         private static readonly string connStr = Environment.GetEnvironmentVariable("ARCADEDB_URL") ?? "http://localhost:2480";
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
             _provider = new ArcadeDBOASIS(connStr, Environment.GetEnvironmentVariable("ARCADEDB_USER") ?? "root", Environment.GetEnvironmentVariable("ARCADEDB_PASS") ?? "playwithdata");
-            _provider.ActivateProvider();
+            var result = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(result.IsError, result.Message);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         [TestMethod]
