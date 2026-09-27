@@ -1,0 +1,9 @@
+Cargo.toml
+Cargo.lock
+package.json
+package-lock.json
+flake.nix
+flake.lock
+dnas/oasis/workdir/dna.yaml
+dnas/oasis/zomes
+workdir/happ.yaml
