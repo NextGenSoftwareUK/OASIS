@@ -73,13 +73,66 @@ Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime
 ----------------------------------------------------------------------------------------------------------------------------
 ## 2.0.0 (20/07/26)
 
-Major WEB5 release aligning STAR with the expanded production OASIS platform.
+Major WEB5 transport and identity-contract release.
 
 ### What's new in 2.0.0
 
+- Added gRPC endpoints to WEB5 and configured HTTP/1.1 plus HTTP/2 hosting for the WEB4-WEB10 Railway services.
+- Added the WEB5 Hot Chocolate GraphQL endpoint with broad STAR-domain coverage and corrected schema namespaces, types and method signatures.
+- Expanded the shared WEB4 GraphQL foundation used by STAR across HyperDrive, providers, ONET, ONODE, wallets, bridge, competition and settings.
+- Enforced username/email uniqueness during avatar updates, repaired Avatar/AvatarDetail synchronization and corrected the Id/AvatarId contract across ONODE consumers.
+- Repaired ONODE Manager and ONODE Service build/runtime integration needed by the STAR/ONET stack.
+
+### Full changelog
+
+Every distinct non-merge change from the final 1.4.0 version point through 2.0.0 is listed below.
+
+<details>
+<summary>Complete commit inventory (29 distinct changes)</summary>
+
+- [fb084c0](https://github.com/NextGenSoftwareUK/OASIS/commit/fb084c0daca859d855788929d7a9f2e0b57e97e6) bumped STAR API to v2.0.0.
+- [0c33488](https://github.com/NextGenSoftwareUK/OASIS/commit/0c33488210a595789d1572ed57d0bf66982efc9a) Fix Web5 STAR ODK GraphQL cosmic type namespaces and method signatures
+- [e8536a5](https://github.com/NextGenSoftwareUK/OASIS/commit/e8536a5a039ea9d884520c167779c7d30dfce0d7) Complete Web4 GraphQL to 100% REST coverage - Bridge, HyperDrive, Competition, Settings, Wallet, Seeds, Provider, ONET, ONODE
+- [86543f5](https://github.com/NextGenSoftwareUK/OASIS/commit/86543f58035b0ab67d04adaa61fc1f48d4c3f801) Expand Web4 GraphQL to near-100% REST coverage
+- [073f7d8](https://github.com/NextGenSoftwareUK/OASIS/commit/073f7d817bbd5de5b839436da40cffc1648bb412) Expand Web4 GraphQL schema with missing queries and mutations
+- [e7a8ea3](https://github.com/NextGenSoftwareUK/OASIS/commit/e7a8ea31049cdaaebb2aabff92cb4b28b8afc20c) Expand Web5 and Web6 GraphQL schemas with full domain coverage
+- [5f288f7](https://github.com/NextGenSoftwareUK/OASIS/commit/5f288f74197b5ab72d1d59f950b2fffe582cc985) Move MapGraphQL before MapControllers in Web4 UseEndpoints to match Web5-10 ordering
+- [c280950](https://github.com/NextGenSoftwareUK/OASIS/commit/c280950c42d427932e638c2ec906acbd5e160ffc) Register AvatarType and HolonType with Hot Chocolate to fix GraphQL schema init and /graphql 404
+- [bb652d7](https://github.com/NextGenSoftwareUK/OASIS/commit/bb652d73b3350f927cbfff763725e074fe469d60) Add Web4 ONODE gRPC proto files
+- [1f364c1](https://github.com/NextGenSoftwareUK/OASIS/commit/1f364c14721660e03ad38c42bed365501b86b619) Configure Kestrel Http1AndHttp2 on Railway PORT for gRPC support across Web4-Web10
+- [4229287](https://github.com/NextGenSoftwareUK/OASIS/commit/42292874871d27b224863ec1c9331b0ec8bbfcac) Add Hot Chocolate GraphQL endpoint to Web5/STAR ODK WebAPI
+- [6af6abf](https://github.com/NextGenSoftwareUK/OASIS/commit/6af6abf03ad73ab16f0a476cf03602e4dd558cf1) Add Hot Chocolate GraphQL endpoint to Web4/ONODE WebAPI
+- [c5ea44a](https://github.com/NextGenSoftwareUK/OASIS/commit/c5ea44a9d4944eaba242b9d7dbca3feabe7098fc) Add gRPC endpoints to Web5/STAR ODK WebAPI
+- [ab63433](https://github.com/NextGenSoftwareUK/OASIS/commit/ab6343334952060938d32d7bd85cc3baae71c77a) Fix Guid.TryParse duplicate variable names in DataHelper (AvatarDetail + Holon conversions)
+- [a3e339d](https://github.com/NextGenSoftwareUK/OASIS/commit/a3e339d567c3c222e61314cbb8ed6d01b82d78bb) Fix username/email sync: early return on conflict; add Avatar->AvatarDetail sync in SaveAvatarAsync
+- [aff79bb](https://github.com/NextGenSoftwareUK/OASIS/commit/aff79bb0b307ec6df9e4b22b33e9a734fba3e259) Fix username/email uniqueness: use HandleError not HandleWarning so portal sees isError:true
+- [18831d7](https://github.com/NextGenSoftwareUK/OASIS/commit/18831d7f29a273e263e096f59273c2c99105f651) remove redundant projects
+- [48f991a](https://github.com/NextGenSoftwareUK/OASIS/commit/48f991a421978f591064cfaece111c3ced269d75) Warn when ONET node joins with DID auth enabled but non-Redis nonce store
+- [4a42d9e](https://github.com/NextGenSoftwareUK/OASIS/commit/4a42d9e5ef009886d608d8e9a051b9692eac938f) Fix ONODEService build: qualify System.IO.File to avoid ControllerBase.File clash; fix MetricsCollector.PerService -> Current
+- [14e6848](https://github.com/NextGenSoftwareUK/OASIS/commit/14e6848388748a8b6917b952960882da040e9d6d) Fix ONODE Manager build errors: rename StatusColour method, fix Axis.LabelsPaint, Screens.Primary, AsyncRelayCommand
+- [82dd5e5](https://github.com/NextGenSoftwareUK/OASIS/commit/82dd5e5993761e0c5305ace9044d10719a2235ec) Fix ONODE WebAPI build: restore AvatarId on IAvatar/Avatar, update .AvatarId usages in Core to .Id
+- [86675fa](https://github.com/NextGenSoftwareUK/OASIS/commit/86675fa30ba28d81b3d1d8cc6830ca66cbe432c6) Fix ONODE Manager: downgrade CommunityToolkit.Mvvm to 8.4.2 (8.5.0 does not exist on NuGet)
+- [e229e05](https://github.com/NextGenSoftwareUK/OASIS/commit/e229e054e029c6bb24c20200ab2d3a7d399c0530) Remove AvatarId from IAvatar and Avatar: use Id only
+- [455fbff](https://github.com/NextGenSoftwareUK/OASIS/commit/455fbffe0daa894ad7597b5ec6d430e56dff4157) Fix CS0535: restore AvatarId implementation on Avatar to satisfy IAvatar interface
+- [a7931bf](https://github.com/NextGenSoftwareUK/OASIS/commit/a7931bf393d954bb7e375f5ade6b4d1b2dafe35a) Fix username/email uniqueness checks: bypass HyperDrive failover, use current provider
+- [2136dbe](https://github.com/NextGenSoftwareUK/OASIS/commit/2136dbeaef8ff899808466692854bc7640634437) Fix ONODE Manager: update CommunityToolkit.Mvvm to 8.5.0 for .NET 10 source gen compatibility, pin Velopack to 0.0.869
+- [46e48d4](https://github.com/NextGenSoftwareUK/OASIS/commit/46e48d4f6647477f1a26e8afa4671fa4aedb9fd6) Security: enforce username and email uniqueness on avatar update
+- [ee10089](https://github.com/NextGenSoftwareUK/OASIS/commit/ee100890fed891dc9f0d97bebb9a12fad27300d6) Comment out Avatar.AvatarId temp workaround — use base.Id (serialised as id)
+- [b394d86](https://github.com/NextGenSoftwareUK/OASIS/commit/b394d8637ac8d3d5d58f0f77c2f425e95985390a) Revert "Fix UpdateAvatarDetailAsync missing Title, FirstName, LastName"
+
+</details>
+
+[Compare the complete 1.4.0 to 2.0.0 source range](https://github.com/NextGenSoftwareUK/OASIS/compare/d7f105da5e265184b2dad53d9fda5c672f48f19e...fb084c0daca859d855788929d7a9f2e0b57e97e6)
+----------------------------------------------------------------------------------------------------------------------------
+## 3.0.0 (21/08/26)
+
+Major WEB5 release aligning STAR with the expanded production OASIS platform and independent repository graph.
+
+### What's new in 3.0.0
+
 - Expanded the provider graph with Arweave permanent storage, Lens and Urbit social integrations, Stellar, Azure Storage, SQL Server, Oracle and the accompanying API registration, capabilities, Swagger and documentation updates.
 - Replaced remaining provider placeholders with real network, storage, database and Web3 implementations and repaired provider contracts, activation and runtime integration.
-- Hardened avatar registration and account management: Wizard assignment protection, non-fatal verification-email delivery, wallet and verification handling, authenticated routes, password hashing and clearer boot/provider diagnostics.
+- Hardened avatar registration and account management: Wizard assignment protection, verification-email delivery, wallet and verification handling, authenticated routes, password hashing and clearer boot/provider diagnostics.
 - Corrected NFT and GeoNFT mutability, metadata-freezing, collection, inventory and controller behavior across WEB4 and STAR consumers.
 - Improved subscription persistence and API behavior and fixed production routing, controller discovery, Swagger generation and deployment configuration.
 - Split STAR ODK, WEB6, API.Core, ONODE.Core, OGEngineClient and ONODE services into independently versioned private repositories, with exact parent gitlinks and deployment dependency pins.
@@ -87,7 +140,7 @@ Major WEB5 release aligning STAR with the expanded production OASIS platform.
 
 ### Full changelog
 
-This inventory is generated from every distinct non-merge commit touching STAR ODK or its WEB4, provider, ONET and Edge dependencies between the 2.0.0 and 3.0.0 version points.
+Every distinct non-merge STAR or dependent platform change between the 2.0.0 and 3.0.0 version points is listed below.
 
 <details>
 <summary>Complete commit inventory (244 distinct changes)</summary>
@@ -339,25 +392,24 @@ This inventory is generated from every distinct non-merge commit touching STAR O
 
 </details>
 
-[Compare the complete OASIS source range](https://github.com/NextGenSoftwareUK/OASIS/compare/fb084c0daca859d855788929d7a9f2e0b57e97e6...a5657b3bd8eab2f307b69152c016c2b286ec4c08)
+[Compare the complete 2.0.0 to 3.0.0 source range](https://github.com/NextGenSoftwareUK/OASIS/compare/fb084c0daca859d855788929d7a9f2e0b57e97e6...a5657b3bd8eab2f307b69152c016c2b286ec4c08)
 ----------------------------------------------------------------------------------------------------------------------------
-## 3.0.0 (21/08/26)
+## 3.2.0 (27/09/26)
 
-Major WEB5 release establishing the independently versioned STAR API and its production dependency graph.
+WEB5 release unifying HyperDrive v2, ONET and offline game synchronization across the production OASIS platform.
 
-### What's new in 3.0.0
+### What's new in 3.2.0
 
-- Completed the STAR ODK/WEB5 move to its dedicated repository while keeping exact OASIS gitlinks and Railway deployment pins synchronized.
-- Expanded and hardened production providers across AI, blockchain, network, identity, maps, permanent storage, social graph and enterprise database categories, with real API implementations and contract tests.
-- Added major WEB5 quest, GeoNFT, shared inventory and game-integration work used by Our World, ODOOM, OQUAKE and OGEngineClient.
-- Integrated HyperDrive v2, ONET persistence and consensus improvements, offline session grants and synchronization foundations while preserving the selected-provider architecture.
-- Strengthened avatar identity, authentication, JSON contracts, subscription and Stripe behavior, provider management and persistence lifecycle invariants.
-- Updated the .NET/package graph, security dependencies, CI runtimes, Docker/Railway deployment graph and coordinated release tooling.
+- Added shared inventory, GeoNFT collection and quest-progress contracts and integrations for Our World, ODOOM, OQUAKE and OGEngineClient.
+- Integrated HyperDrive v2 provider selection, replication/failover, hosted-provider support, ONET persistence and offline session grants into a coordinated synchronization design.
+- Expanded and hardened production providers across AI, blockchain, network, identity, maps, storage, social and database categories with real API implementations and contract tests.
+- Strengthened avatar identity, authentication, JSON contracts, subscription/Stripe behavior, provider management and persistence lifecycle invariants.
 - Added broader unit, integration and live coverage for providers, ONET, subscriptions, quest progress, inventory and cross-game synchronization.
+- Updated packages, security dependencies, CI runtimes, Railway dependency pins and global/individual release automation.
 
 ### Full changelog
 
-The OASIS parent inventory covers every distinct non-merge change touching STAR or its WEB4/provider/ONET/Edge dependencies. The STAR inventory covers every distinct non-merge commit in the dedicated STAR repository through the 3.2.0 source point.
+The first inventory covers every distinct non-merge OASIS parent/dependency change from 3.0.0 to 3.2.0. The second covers the corresponding dedicated STAR repository changes.
 
 <details>
 <summary>Complete commit inventory (288 distinct changes)</summary>
@@ -711,11 +763,8 @@ The OASIS parent inventory covers every distinct non-merge change touching STAR 
 
 </details>
 
-[Compare the complete OASIS parent range](https://github.com/NextGenSoftwareUK/OASIS/compare/a5657b3bd8eab2f307b69152c016c2b286ec4c08...8b3e8431d88e833ab3fb79d59602e7004a2ad040)
+[Compare the OASIS parent range](https://github.com/NextGenSoftwareUK/OASIS/compare/a5657b3bd8eab2f307b69152c016c2b286ec4c08...8b3e8431d88e833ab3fb79d59602e7004a2ad040)
 
 [Compare the dedicated STAR source range](https://github.com/NextGenSoftwareUK/STAR-ODK/compare/fa92ce8e6ec1e5e0a96e9f09875e4294c4126f04...5c53d7fb12f72bade7209fe3223618c8cf9da3c5)
-----------------------------------------------------------------------------------------------------------------------------
-## 3.2.0 (27/09/26)
 
-- Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
 - Published by the automated OASIS global release process after CI validation.
