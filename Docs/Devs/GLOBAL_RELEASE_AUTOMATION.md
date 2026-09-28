@@ -58,6 +58,7 @@ WEB5 and WEB6 source histories live in their owning private submodules, while th
 - `Docs/API/WEB6-AI-API-RELEASE-HISTORY.md`
 
 The release planner updates both copies in the same preparation PR, and Publish rejects a release if their SHA-256 hashes differ.
+All three Swagger histories are ordered chronologically by semantic version, with the oldest release at the top and the newest at the bottom. The release planner appends new entries and the automation test rejects an out-of-order or missing required history.
 
 WEB7, WEB8, WEB9 and WEB10 are deliberately outside this option. The automation checks that their API versions did not move.
 
