@@ -67,13 +67,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
         public static string OASISRuntimeVersion { get; set; } = "5.0.0";
-        public static string OASISAPIVersion { get; set; } = "5.0.0";
+        public static string OASISAPIVersion { get; set; } = "5.2.0";
         public static string COSMICVersion { get; set; } = "2.2.2";
         public static string STARODKVersion { get; set; } = "4.0.0";
         public static string STARRuntimeVersion { get; set; } = "4.0.0";
         public static string STARNETVersion { get; set; } = "2.5.0";
-        public static string STARAPIVersion { get; set; } = "3.0.0";
-        public static string WEB6APIVersion { get; set; } = "3.0.0";
+        public static string STARAPIVersion { get; set; } = "3.2.0";
+        public static string WEB6APIVersion { get; set; } = "3.2.0";
         public static string WEB7APIVersion { get; set; } = "1.0.0";
         public static string WEB8APIVersion { get; set; } = "1.0.0";
         public static string WEB9APIVersion { get; set; } = "1.0.0";
