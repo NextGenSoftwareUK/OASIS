@@ -84,10 +84,23 @@ function Assert-PackageMetadata($PackageProjects) {
 
 function Get-LatestNuGetVersion([string]$PackageId) {
     if ($Offline) { return $null }
-    $url = "https://api.nuget.org/v3-flatcontainer/$($PackageId.ToLowerInvariant())/index.json"
+    $url = "https://api.nuget.org/v3/registration5-semver1/$($PackageId.ToLowerInvariant())/index.json"
     try {
-        $response = Invoke-RestMethod -Uri $url -Method Get
-        return @($response.versions | Where-Object { $_ -match '^\d+\.\d+\.\d+$' } | ForEach-Object { [version]$_ } | Sort-Object -Descending | Select-Object -First 1)[0].ToString()
+        $response = Invoke-RestMethod -Uri $url -Method Get -Headers @{ 'User-Agent' = 'OASIS-global-release' }
+        $entries = foreach ($page in $response.items) {
+            if ($page.items) { $page.items.catalogEntry }
+            else {
+                $expanded = Invoke-RestMethod -Uri $page.'@id' -Method Get -Headers @{ 'User-Agent' = 'OASIS-global-release' }
+                $expanded.items.catalogEntry
+            }
+        }
+        $latest = @($entries |
+            Where-Object { $_.listed -ne $false -and $_.version -match '^\d+\.\d+\.\d+$' } |
+            ForEach-Object { [version]$_.version } |
+            Sort-Object -Descending |
+            Select-Object -First 1)
+        if ($latest.Count -eq 0) { return $null }
+        return $latest[0].ToString()
     }
     catch {
         if ($_.Exception.Response.StatusCode.value__ -eq 404) { return $null }
@@ -168,7 +181,10 @@ function Set-ProjectVersionForPacking([string]$Path, [string]$Version) {
 function Get-PlannedPackageVersion($Project) {
     $sourceVersion = Get-SourceVersion $Project
     $publishedVersion = Get-LatestNuGetVersion $Project.PackageId
-    if (-not $publishedVersion) { return $sourceVersion }
+    if (-not $publishedVersion) {
+        if ($Offline) { return $sourceVersion }
+        return '1.0.0'
+    }
     $baseline = if ([version]$publishedVersion -gt [version]$sourceVersion) { $publishedVersion } else { $sourceVersion }
     return Get-NextPatchVersion $baseline
 }
