@@ -201,11 +201,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $notes = 'Docs/Releases/GLOBAL_RELEASE_NOTES.md'
-          if ('${{ inputs.oasis_runtime }}' -eq 'true') { gh release create 'OASIS-Runtime-v${{ needs.plan.outputs.oasis_version }}' 'artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip' --title 'OASIS Runtime v${{ needs.plan.outputs.oasis_version }}' --notes-file $notes --verify-tag=false }
-          if ('${{ inputs.star_runtime }}' -eq 'true') { gh release create 'STAR-ODK-Runtime-v${{ needs.plan.outputs.star_version }}' 'artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.zip' --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file $notes --verify-tag=false }
-          if ('${{ inputs.ogengine_client }}' -eq 'true') { gh release create 'OGEngineClient-v${{ needs.plan.outputs.ogengine_version }}' 'artifacts/global-release/assets/OGEngineClient.v${{ needs.plan.outputs.ogengine_version }}.zip' --title 'OGEngineClient v${{ needs.plan.outputs.ogengine_version }}' --notes-file $notes --verify-tag=false }
-          if ('${{ inputs.native_endpoint }}' -eq 'true') { gh release create 'Native-Endpoint-v${{ needs.plan.outputs.native_version }}' 'artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip' --title 'OASIS API Integrated Native Endpoint v${{ needs.plan.outputs.native_version }}' --notes-file $notes --verify-tag=false }
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') { gh release create 'OASIS-Runtime-v${{ needs.plan.outputs.oasis_version }}' 'artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip' --title 'OASIS Runtime v${{ needs.plan.outputs.oasis_version }}' --notes-file 'Docs/Releases/OASIS_RUNTIME_RELEASE_NOTES.md' --verify-tag=false }
+          if ('${{ inputs.star_runtime }}' -eq 'true') { gh release create 'STAR-ODK-Runtime-v${{ needs.plan.outputs.star_version }}' 'artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.zip' --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'Docs/Releases/STAR_ODK_RUNTIME_RELEASE_NOTES.md' --verify-tag=false }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') { gh release create 'OGEngineClient-v${{ needs.plan.outputs.ogengine_version }}' 'artifacts/global-release/assets/OGEngineClient.v${{ needs.plan.outputs.ogengine_version }}.zip' --title 'OGEngineClient v${{ needs.plan.outputs.ogengine_version }}' --notes-file 'Docs/Releases/OGENGINECLIENT_RELEASE_NOTES.md' --verify-tag=false }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') { gh release create 'Native-Endpoint-v${{ needs.plan.outputs.native_version }}' 'artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip' --title 'OASIS API Integrated Native Endpoint v${{ needs.plan.outputs.native_version }}' --notes-file 'Docs/Releases/NATIVE_ENDPOINT_RELEASE_NOTES.md' --verify-tag=false }
 
   mcp:
     if: inputs.mcp_server
