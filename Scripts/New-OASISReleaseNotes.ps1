@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('OASISRuntime', 'STARRuntime', 'OGEngineClient', 'NativeEndpoint', 'MCPServer')]
+    [ValidateSet('OASISRuntime', 'STARRuntime', 'OGEngineClient', 'NativeEndpoint', 'MCPServer', 'OurWorld', 'ODOOM', 'OQUAKE')]
     [string]$Component,
     [Parameter(Mandatory)]
     [ValidatePattern('^\d+\.\d+\.\d+$')]
@@ -38,6 +38,18 @@ $definitions = @{
         Paths = @('WEB6/NextGenSoftware.OASIS.MCP.Server', 'WEB6/npm', 'WEB6/NextGenSoftware.OASIS.Web6.Core', 'WEB7', 'WEB8', 'WEB9', 'WEB10')
         Intro = 'The OASIS MCP Server exposes the typed WEB4-WEB10 API surface to MCP clients through native executables, NuGet and npm distributions.'
     }
+    OurWorld = @{
+        Title = 'Our World'; Repository = 'NextGenSoftwareUK/Our-World'; Branch = 'main'
+        Intro = 'Our World is the Unity geospatial OASIS game that connects real-world GeoNFT discovery with shared avatar identity, inventory, quests and online/offline progression.'
+    }
+    ODOOM = @{
+        Title = 'ODOOM'; Repository = 'NextGenSoftwareUK/ODOOM'; Branch = 'trunk'
+        Intro = 'ODOOM is the OASIS-integrated UZDoom game client, with shared STAR identity, inventory, quests and cross-game progression through OGEngineClient.'
+    }
+    OQUAKE = @{
+        Title = 'OQUAKE'; Repository = 'NextGenSoftwareUK/OQUAKE'; Branch = 'master'
+        Intro = 'OQUAKE is the OASIS-integrated vkQuake game client, with shared STAR identity, inventory, quests and cross-game progression through OGEngineClient.'
+    }
 }
 
 $definition = $definitions[$Component]
@@ -47,19 +59,42 @@ $targetTag = switch ($Component) {
     OGEngineClient { "OGEngineClient-v$Version" }
     NativeEndpoint { "Native-Endpoint-v$Version" }
     MCPServer { "mcp-v$Version" }
+    OurWorld { "v$Version" }
+    ODOOM { "v$Version" }
+    OQUAKE { "v$Version" }
 }
 
-$tagCandidates = foreach ($tag in @(& git -C $repoRoot tag --list)) {
-    foreach ($prefix in $definition.Prefixes) {
-        if ($tag -match ('^' + [regex]::Escape($prefix) + '(?<version>\d+\.\d+\.\d+)$') -and $tag -ne $targetTag) {
-            [pscustomobject]@{ Tag = $tag; Version = [version]$Matches.version }
+$external = [bool]$definition.Repository
+$releaseRepository = if ($external) { $definition.Repository } else { 'NextGenSoftwareUK/OASIS' }
+if ($external) {
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw "gh is required to generate $Component release notes." }
+    $releases = @((gh api "repos/$releaseRepository/releases?per_page=100" | ConvertFrom-Json))
+    $tagCandidates = foreach ($release in $releases) {
+        if (-not $release.draft -and -not $release.prerelease -and $release.tag_name -match '^v(?<version>\d+\.\d+\.\d+)$' -and $release.tag_name -ne $targetTag) {
+            [pscustomobject]@{ Tag = $release.tag_name; Version = [version]$Matches.version }
+        }
+    }
+}
+else {
+    $tagCandidates = foreach ($tag in @(& git -C $repoRoot tag --list)) {
+        foreach ($prefix in $definition.Prefixes) {
+            if ($tag -match ('^' + [regex]::Escape($prefix) + '(?<version>\d+\.\d+\.\d+)$') -and $tag -ne $targetTag) {
+                [pscustomobject]@{ Tag = $tag; Version = [version]$Matches.version }
+            }
         }
     }
 }
 $previous = @($tagCandidates | Sort-Object Version -Descending | Select-Object -First 1)
 $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
-$logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $definition.Paths
-$allCommits = @(& git @logArgs | ForEach-Object {
+$rawCommits = if ($external) {
+    if ($previous.Count -gt 0) { @((gh api "repos/$releaseRepository/compare/$($previous[0].Tag)...$($definition.Branch)" | ConvertFrom-Json).commits | ForEach-Object { "$($_.sha)`t$((($_.commit.message -split "`n", 2)[0]))" }) }
+    else { @((gh api "repos/$releaseRepository/commits?sha=$($definition.Branch)&per_page=100" | ConvertFrom-Json) | ForEach-Object { "$($_.sha)`t$((($_.commit.message -split "`n", 2)[0]))" }) }
+}
+else {
+    $logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $definition.Paths
+    @(& git @logArgs)
+}
+$allCommits = @($rawCommits | ForEach-Object {
     $parts = $_ -split "`t", 2
     $subject = if ($parts.Count -eq 2) { $parts[1] -replace '^\s*[-*]\s*', '' } else { '' }
     if ($subject -and $subject -notmatch '^(Promote |Merge |chore: bump submodule|chore: update submodule)') {
@@ -78,7 +113,7 @@ function Add-CommitSection([Text.StringBuilder]$Builder, [string]$Heading, $Item
     [void]$Builder.AppendLine()
     foreach ($item in $Items) {
         $short = $item.Sha.Substring(0, 7)
-        [void]$Builder.AppendLine("- $($item.Subject) ([`$short`](https://github.com/NextGenSoftwareUK/OASIS/commit/$($item.Sha)))".Replace('$short', $short))
+        [void]$Builder.AppendLine("- $($item.Subject) ([`$short`](https://github.com/$releaseRepository/commit/$($item.Sha)))".Replace('$short', $short))
     }
     [void]$Builder.AppendLine()
 }
@@ -113,7 +148,7 @@ else {
 [void]$builder.AppendLine('## Full changelog')
 [void]$builder.AppendLine()
 if ($previous.Count -gt 0) {
-    [void]$builder.AppendLine("[$($previous[0].Tag)...$targetTag](https://github.com/NextGenSoftwareUK/OASIS/compare/$($previous[0].Tag)...$targetTag)")
+    [void]$builder.AppendLine("[$($previous[0].Tag)...$targetTag](https://github.com/$releaseRepository/compare/$($previous[0].Tag)...$targetTag)")
 }
 else {
     [void]$builder.AppendLine('This is the first release under this component tag series; the commit list above is the component changelog for the initial version.')

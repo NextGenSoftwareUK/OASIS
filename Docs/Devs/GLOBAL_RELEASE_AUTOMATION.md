@@ -21,14 +21,14 @@ The following application releases are also represented in the same plan, with t
 
 | Optional component | Release owner | Current automation |
 |---|---|---|
-| Our World | `NextGenSoftwareUK/Our-World` plus the Unity project assembled by the OASIS release scripts | Version planning is complete. Publishing is guarded until its owning repository has a canonical signed Unity release workflow. |
-| ODOOM | `NextGenSoftwareUK/ODOOM` | Version planning is complete. Publishing is guarded until its owning repository packages the tested UZDoom/OGEngine binaries. |
-| OQUAKE | `NextGenSoftwareUK/OQUAKE` | Version planning is complete. Publishing is guarded until its owning repository packages the tested vkQuake/OGEngine binaries. |
+| Our World | `NextGenSoftwareUK/Our-World` | Builds the Unity 2022.3.62f3 Windows player through `CIBuilder`, verifies the player output and publishes the packaged build. Requires the repository's Unity license secrets. |
+| ODOOM | `NextGenSoftwareUK/ODOOM` | Builds Windows x64 with `OASIS_STAR_API=ON`, verifies `uzdoom.exe` and `star_api.dll`, and publishes the integrated package. |
+| OQUAKE | `NextGenSoftwareUK/OQUAKE` | Builds the Linux x64 distribution, verifies vkQuake and `OGEngineClient.so`, and publishes the integrated package. |
 | OIDE | `NextGenSoftwareUK/OIDE` | Creates the next `vX.Y.Z` tag on `main`; the existing three-platform OIDE release workflow builds and publishes it. |
 | ONODE Manager | This repository's `release-onode-manager.yml` | Dispatches the Windows/macOS/Linux Velopack workflow. Its first canonical release is `onode-manager-v1.0.0`; later plans advance only this product-specific stable tag series. |
 | OASIS HyperDrive Client | `NextGenSoftwareUK/OASIS-HyperDrive-Client` | Dispatches its Windows/Linux/macOS workflow. Its first stable release is `v1.0.0`; prereleases do not advance the monthly stable version. |
 
-The game guard is deliberate: it prevents a source-only GitHub tag from being presented as a finished game release. Once the three owning repositories expose their canonical signed release workflows, replace the guard with the same explicit workflow dispatch used by OIDE, ONODE Manager and HyperDrive Client.
+The global workflow generates component-specific, version-specific game notes from each owning repository and dispatches that repository's canonical release workflow. A game release is created only after its integrated executable and required OGEngine runtime library have been built and verified.
 
 The workflow builds every selected output before publishing. If a build or metadata validation fails, publishing does not start for that job. NuGet versions are calculated from the greater of the source project version and the latest **listed** stable version on NuGet.org. GitHub release versions use the greater of the source version and the latest matching public release tag. Existing packages advance by one patch. Every package absent from NuGet starts at `1.0.0`, independently of the assembly/API version declared by its source project.
 
@@ -77,7 +77,7 @@ Each component offers `Automatic` (default), `Patch`, `Minor`, `Major` and `Manu
 
 1. Open **Actions → Global OASIS Release → Run workflow** on `master`.
 2. Leave all release components selected, or turn off components intentionally omitted from that month's release.
-3. Optional application releases are off by default (`optional_components` is `none`). Replace it with a comma-separated list using `our_world`, `odoom`, `oquake`, `oide`, `onode_manager`, and/or `hyperdrive_client`. OIDE, ONODE Manager, and HyperDrive Client dispatch established workflows. Our World, ODOOM, and OQUAKE currently stop publication with a clear guard until their owning release workflows exist.
+3. Optional application releases are off by default (`optional_components` is `none`). Replace it with a comma-separated list using `our_world`, `odoom`, `oquake`, `oide`, `onode_manager`, and/or `hyperdrive_client`. Each selected external product dispatches its owning repository's canonical workflow.
 4. Keep `publish` enabled for the real release. Disable it for a complete pack/build rehearsal.
 
 API version/history advancement is intentionally a source-preparation operation rather than an ephemeral GitHub runner change. Run the local command below, commit the parent and submodule history changes, pass CI, promote to `master`, and then run the publishing workflow.
