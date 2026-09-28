@@ -21,14 +21,16 @@ The following application releases are also represented in the same plan, with t
 
 | Optional component | Release owner | Current automation |
 |---|---|---|
-| Our World | `NextGenSoftwareUK/Our-World` | Atomically builds Android APK, iOS Xcode project, Windows, Linux, macOS and tvOS Xcode project artifacts from Unity 2022.3.62f3. Requires the repository's Unity license secrets. |
-| ODOOM | `NextGenSoftwareUK/ODOOM` | Builds Windows x64, Linux x64 and macOS x64 with the current platform-specific OGEngineClient NativeAOT runtime and SQLite dependency, verifies every package, then publishes atomically. |
-| OQUAKE | `NextGenSoftwareUK/OQUAKE` | Builds Windows x64, Linux x64 and macOS x64 with the current platform-specific OGEngineClient NativeAOT runtime and SQLite dependency, verifies every package, then publishes atomically. |
+| Our World | `NextGenSoftwareUK/Our-World` | Atomically builds Android APK, iOS Xcode project, Windows, Linux, macOS and tvOS Xcode project artifacts from Unity 2022.3.62f3. Its hosted workflow currently cannot import the Unity Personal entitlement XML because GameCI requires a legacy ULF; use a supported route in the [three-game release map](THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md#our-world-unity-licensing-blocker). |
+| ODOOM | `NextGenSoftwareUK/ODOOM` | Builds Windows x64, Linux x64 and macOS with the current platform-specific OGEngineClient NativeAOT runtime and SQLite dependency, verifies every package, then publishes atomically. The full non-publishing matrix passed on 28 September 2026. |
+| OQUAKE | `NextGenSoftwareUK/OQUAKE` | Builds Windows x64, Linux x64 and macOS arm64 with the current platform-specific OGEngineClient NativeAOT runtime and SQLite dependency, verifies every package, then publishes atomically. The full non-publishing matrix passed on 28 September 2026. |
 | OIDE | `NextGenSoftwareUK/OIDE` | Creates the next `vX.Y.Z` tag on `main`; the existing three-platform OIDE release workflow builds and publishes it. |
 | ONODE Manager | This repository's `release-onode-manager.yml` | Dispatches the Windows/macOS/Linux Velopack workflow. Its first canonical release is `onode-manager-v1.0.0`; later plans advance only this product-specific stable tag series. |
 | OASIS HyperDrive Client | `NextGenSoftwareUK/OASIS-HyperDrive-Client` | Dispatches its Windows/Linux/macOS workflow. Its first stable release is `v1.0.0`; prereleases do not advance the monthly stable version. |
 
 The global workflow generates component-specific, version-specific game notes from each owning repository and dispatches that repository's canonical release workflow. A game release is created only after its integrated executable and required OGEngine runtime library have been built and verified.
+
+The dated distinction between passing rehearsals and permanent public downloads is recorded in the [three-game release validation and distribution snapshot](THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md#release-validation-status-28-september-2026). A green run with `publish=false` is build evidence, not a public release.
 
 The workflow builds every selected output before publishing. If a build or metadata validation fails, publishing does not start for that job. NuGet versions are calculated from the greater of the source project version and the latest **listed** stable version on NuGet.org. GitHub release versions use the greater of the source version and the latest matching public release tag. Existing packages advance by one patch. Every package absent from NuGet starts at `1.0.0`, independently of the assembly/API version declared by its source project.
 
