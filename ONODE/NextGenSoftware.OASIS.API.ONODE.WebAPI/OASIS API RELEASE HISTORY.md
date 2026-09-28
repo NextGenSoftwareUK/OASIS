@@ -1,11 +1,6 @@
 
 # OASIS API RELEASE HISTORY
 
-----------------------------------------------------------------------------------------------------------------------------
-## 5.2.0 (27/09/26)
-
-- Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
-- Published by the automated OASIS global release process after CI validation.
 
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
 Then when we do a release, this file will be linked to the Swagger documentation. The file is also linked to the WIKI and GitHub Documentation.
@@ -1063,6 +1058,15 @@ Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime
 Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
 
 ----------------------------------------------------------------------------------------------------------------------------
+## 4.0.0 (17/09/25)
+
+- Established the reorganised WEB4 solution and API filesystem used by the modern OASIS platform.
+- Centralised the public API version in OASISBootLoader and surfaced it during API startup.
+- Consolidated the provider, manager, controller and contract projects into the current deployable structure.
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/commits/054e961ec0114fee55b5bb2231b1cf614ec3aaed
+
+----------------------------------------------------------------------------------------------------------------------------
 ## 4.4.4 (21/12/25)
 
 Way too many changes to list here, there were numerous internal releases between v3.3.3 and v4.4.4, some of these changes are listed below:
@@ -1099,6 +1103,23 @@ Way too many changes to list here, there were numerous internal releases between
 Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v3.3.1...OASIS-Runtime-v4.4.4
 
 Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
+
+----------------------------------------------------------------------------------------------------------------------------
+## 4.5.0 (22/02/26)
+
+- Delivered the first working cross-game ODOOM/OQUAKE inventory exchange through WEB4 and the native game integration layer.
+- Added the shared avatar, inventory and provider behavior needed by the initial OASIS Omniverse game clients.
+- Advanced the API after the 4.4 provider expansion and validated the integrated game flow.
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v4.4.4...b969fdeab2ce6930a2ae2496ef38680b5dec52d0
+
+----------------------------------------------------------------------------------------------------------------------------
+## 4.5.1 (04/04/26)
+
+- Prepared and validated the WEB4 API and runtime for the public 4.5.1 release.
+- Included the native STAR/OGEngine game-client integration, cross-platform build work and accumulated fixes since 4.5.0.
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/b969fdeab2ce6930a2ae2496ef38680b5dec52d0...21a6d9118016c86adc4c6c2de45101163a2a3454
 
 ----------------------------------------------------------------------------------------------------------------------------
 
@@ -1144,3 +1165,9 @@ Way too many changes to list here, there were numerous internal releases between
 - Various performance improvements, bug fixes and misc improvements.
 
 Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v4.6.0...OASIS-Runtime-v5.0.0
+
+----------------------------------------------------------------------------------------------------------------------------
+## 5.2.0 (27/09/26)
+
+- Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
+- Published by the automated OASIS global release process after CI validation.
