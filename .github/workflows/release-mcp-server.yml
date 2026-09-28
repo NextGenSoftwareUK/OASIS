@@ -1,0 +1,46 @@
+name: Release — MCP Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Preview produces a plan; Publish releases after review
+        required: true
+        type: choice
+        default: Preview
+        options: [Preview, Publish]
+      version_mode:
+        description: Semantic version selection
+        required: true
+        type: choice
+        default: Automatic
+        options: [Automatic, Patch, Minor, Major, Manual]
+      manual_version:
+        description: Stable X.Y.Z value required for Manual
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch-shared-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch the shared release implementation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OPERATION: ${{ inputs.operation }}
+        run: |
+          set -euo pipefail
+          publish=false
+          [[ "$OPERATION" == Publish ]] && publish=true
+          gh workflow run global-release.yml --repo ${{ github.repository }} --ref master \
+            -f publish="$publish" -f nuget_packages=false \
+            -f oasis_runtime=false -f star_runtime=false \
+            -f ogengine_client=false -f native_endpoint=false \
+            -f mcp_server=true -f optional_components='none' \
+            -f version_mode='${{ inputs.version_mode }}' -f manual_version='${{ inputs.manual_version }}'
+          echo "The shared Global OASIS Release run was dispatched for Release — MCP Server." >> "$GITHUB_STEP_SUMMARY"
