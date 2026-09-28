@@ -2,7 +2,7 @@
 
 STAR API Client is now **OGEngineClient**, the native game integration layer for the WEB4 OASIS API and WEB5 STAR API.
 
-## What changed
+## What's new in v2.0.2
 
 - Added production shared inventory, GeoNFT and quest synchronization across Our World, ODOOM and OQUAKE.
 - Added offline session grants and durable reconnect synchronization through the unified Edge/ONET/HyperDrive v2 pipeline.
