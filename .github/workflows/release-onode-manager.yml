@@ -20,8 +20,31 @@ env:
   SERVICE_PROJECT: ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Service/NextGenSoftware.OASIS.ONODE.Service.csproj
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      package_version: ${{ steps.version.outputs.package_version }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
+    steps:
+      - id: version
+        name: Resolve canonical package version and release tag
+        shell: bash
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${REQUESTED_VERSION:-${REF_NAME#onode-manager-v}}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo '::error::ONODE Manager version must be stable SemVer (for example 1.0.0).'
+            exit 1
+          fi
+          echo "package_version=$version" >> "$GITHUB_OUTPUT"
+          echo "release_tag=onode-manager-v$version" >> "$GITHUB_OUTPUT"
+
   # ── Unit tests ────────────────────────────────────────────────────────────
   test:
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Checkout OASIS
@@ -51,7 +74,7 @@ jobs:
 
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
   build-windows:
-    needs: [test]
+    needs: [prepare, test]
     runs-on: windows-latest
     steps:
       - name: Checkout OASIS
@@ -97,7 +120,7 @@ jobs:
         run: >
           vpk pack
           --packId "ONODEManager"
-          --packVersion "${{ inputs.version || github.ref_name }}"
+          --packVersion "${{ needs.prepare.outputs.package_version }}"
           --packDir  publish/win-x64
           --mainExe  NextGenSoftware.OASIS.ONODE.Manager.exe
           --outputDir release/win-x64
@@ -110,7 +133,7 @@ jobs:
 
   # ── macOS (DMG via Velopack) ───────────────────────────────────────────────
   build-macos:
-    needs: [test]
+    needs: [prepare, test]
     runs-on: macos-latest
     steps:
       - name: Checkout OASIS
@@ -156,7 +179,7 @@ jobs:
         run: >
           vpk pack
           --packId "ONODEManager"
-          --packVersion "${{ inputs.version || github.ref_name }}"
+          --packVersion "${{ needs.prepare.outputs.package_version }}"
           --packDir  publish/osx-x64
           --mainExe  NextGenSoftware.OASIS.ONODE.Manager
           --outputDir release/osx-x64
@@ -169,7 +192,7 @@ jobs:
 
   # ── Linux (AppImage via Velopack) ─────────────────────────────────────────
   build-linux:
-    needs: [test]
+    needs: [prepare, test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout OASIS
@@ -215,7 +238,7 @@ jobs:
         run: >
           vpk pack
           --packId "ONODEManager"
-          --packVersion "${{ inputs.version || github.ref_name }}"
+          --packVersion "${{ needs.prepare.outputs.package_version }}"
           --packDir  publish/linux-x64
           --mainExe  NextGenSoftware.OASIS.ONODE.Manager
           --outputDir release/linux-x64
@@ -228,7 +251,7 @@ jobs:
 
   # ── Create GitHub Release ─────────────────────────────────────────────────
   release:
-    needs: [build-windows, build-macos, build-linux]
+    needs: [prepare, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -239,8 +262,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.version || github.ref_name }}
-          name: "ONODE Manager ${{ inputs.version || github.ref_name }}"
+          tag_name: ${{ needs.prepare.outputs.release_tag }}
+          name: "ONODE Manager v${{ needs.prepare.outputs.package_version }}"
           body: |
             ## ONODE Manager Release
 
