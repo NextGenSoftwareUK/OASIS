@@ -128,7 +128,12 @@ jobs:
           EXISTING=$(gh pr list --head "$SYNC_BRANCH" --base "$TARGET" --state open --json number --jq '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
             echo "PR #${EXISTING} already open - the force push updated it."
-            gh pr edit "$EXISTING" --body-file /tmp/pr-body.md
+            # `gh pr edit` uses GraphQL fields that require read:org for an
+            # organisation repository. Updating the pull request body through
+            # the REST endpoint only requires this workflow's repository scope.
+            gh api --method PATCH \
+              "repos/${GITHUB_REPOSITORY}/pulls/${EXISTING}" \
+              --raw-field "body=$(cat /tmp/pr-body.md)" >/dev/null
           else
             gh pr create --base "$TARGET" --head "$SYNC_BRANCH" \
               --title "chore(submodules): sync ${TARGET} pointers" \
