@@ -7,7 +7,7 @@ on:
         description: Publish after all builds pass
         required: true
         type: boolean
-        default: true
+        default: false
       nuget_packages:
         description: Release all first-party NuGet packages
         required: true
@@ -43,6 +43,17 @@ on:
         required: true
         type: string
         default: none
+      version_mode:
+        description: Automatic, Patch, Minor, Major, or Manual for selected components
+        required: true
+        type: choice
+        default: Automatic
+        options: [Automatic, Patch, Minor, Major, Manual]
+      manual_version:
+        description: Stable X.Y.Z value required when version_mode is Manual
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -91,6 +102,9 @@ jobs:
           -OIDE $${{ contains(inputs.optional_components, 'oide') }}
           -ONODEManager $${{ contains(inputs.optional_components, 'onode_manager') }}
           -HyperDriveClient $${{ contains(inputs.optional_components, 'hyperdrive_client') }}
+          -VersionMode '${{ inputs.version_mode }}'
+          -ManualVersion '${{ inputs.manual_version }}'
+          -AllowBlockedPlan $${{ !inputs.publish }}
       - id: versions
         name: Export planned versions
         shell: pwsh
@@ -107,10 +121,31 @@ jobs:
           "oide_version=$($plan.releaseVersions.oide)" >> $env:GITHUB_OUTPUT
           "onode_manager_version=$($plan.releaseVersions.onodeManager)" >> $env:GITHUB_OUTPUT
           "hyperdrive_client_version=$($plan.releaseVersions.hyperDriveClient)" >> $env:GITHUB_OUTPUT
+      - name: Render preview summary and release notes
+        shell: pwsh
+        run: |
+          $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
+          New-Item artifacts/global-release/release-notes -ItemType Directory -Force | Out-Null
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OASISRuntime -Version $plan.releaseVersions.oasisRuntime -OutputPath artifacts/global-release/release-notes/oasis-runtime.md }
+          if ('${{ inputs.star_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version $plan.releaseVersions.starRuntime -OutputPath artifacts/global-release/release-notes/star-runtime.md }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version $plan.releaseVersions.ogEngineClient -OutputPath artifacts/global-release/release-notes/ogengine-client.md }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version $plan.releaseVersions.nativeEndpoint -OutputPath artifacts/global-release/release-notes/native-endpoint.md }
+          if ('${{ inputs.mcp_server }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component MCPServer -Version $plan.releaseVersions.mcpServer -OutputPath artifacts/global-release/release-notes/mcp-server.md }
+          "## Global release preview" >> $env:GITHUB_STEP_SUMMARY
+          "Source: ``$($plan.sourceCommit)``  " >> $env:GITHUB_STEP_SUMMARY
+          "Version mode: **$($plan.versionSelection.mode)**" >> $env:GITHUB_STEP_SUMMARY
+          "| Component | Selected | Proposed version |" >> $env:GITHUB_STEP_SUMMARY
+          "|---|---:|---:|" >> $env:GITHUB_STEP_SUMMARY
+          foreach ($property in $plan.releaseVersions.PSObject.Properties) { "| $($property.Name) | $($plan.components.($property.Name) -eq $true) | $($property.Value) |" >> $env:GITHUB_STEP_SUMMARY }
+          if (@($plan.versionDecisions).Count) { "`n### Version decisions" >> $env:GITHUB_STEP_SUMMARY; foreach ($decision in $plan.versionDecisions) { "- **$($decision.bump)**: ``$($decision.current)`` → ``$($decision.proposed)`` for $($decision.scope). $($decision.reason)" >> $env:GITHUB_STEP_SUMMARY } }
+          if (@($plan.blockers).Count) { "`n### Publication blockers" >> $env:GITHUB_STEP_SUMMARY; foreach ($blocker in $plan.blockers) { "- $blocker" >> $env:GITHUB_STEP_SUMMARY } }
+          foreach ($note in Get-ChildItem artifacts/global-release/release-notes -Filter '*.md') { "`n---`n" >> $env:GITHUB_STEP_SUMMARY; Get-Content $note.FullName >> $env:GITHUB_STEP_SUMMARY }
       - uses: actions/upload-artifact@v7
         with:
           name: global-release-plan
-          path: artifacts/global-release/release-plan.json
+          path: |
+            artifacts/global-release/release-plan.json
+            artifacts/global-release/release-notes/*.md
 
   nuget:
     if: inputs.nuget_packages
