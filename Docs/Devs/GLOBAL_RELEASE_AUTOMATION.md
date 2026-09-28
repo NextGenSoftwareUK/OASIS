@@ -32,7 +32,11 @@ The game guard is deliberate: it prevents a source-only GitHub tag from being pr
 
 The workflow builds every selected output before publishing. If a build or metadata validation fails, publishing does not start for that job. NuGet versions are calculated from the greater of the source project version and the latest **listed** stable version on NuGet.org. GitHub release versions use the greater of the source version and the latest matching public release tag. Existing packages advance by one patch. Every package absent from NuGet starts at `1.0.0`, independently of the assembly/API version declared by its source project.
 
-Runtime GitHub releases use separate checked-in notes for OASIS Runtime, STAR ODK Runtime, OGEngineClient and Native Integrated Endpoint. Update the corresponding file under `Docs/Releases` as part of release preparation; the workflow never reuses the platform-wide notes for those component releases.
+Runtime GitHub releases use separate generated notes for OASIS Runtime, STAR ODK Runtime, OGEngineClient, Native Integrated Endpoint and MCP Server. `Scripts/New-OASISReleaseNotes.ps1` starts with the component introduction, finds its previous release tag, reads commits affecting that component, groups the version-specific features/fixes/other changes, and ends with that component's compare link. The workflow never reuses platform-wide notes for component releases.
+
+Every NuGet package receives the same structure in its embedded `PackageReleaseNotes`: package description, target version, changes to that project since its latest listed NuGet publication, and a package-path changelog link. A package with no prior listed version receives initial-release contents and starts at `1.0.0`.
+
+When WEB4-WEB6 API advancement is explicitly enabled, the Swagger-linked release-history files are updated independently. Each new entry contains the API introduction, commits affecting that API since its previous related release tag, and a full comparison link. WEB7-WEB10 histories and versions are not advanced by this option.
 
 ## WEB4-WEB6 API versions and Swagger histories
 

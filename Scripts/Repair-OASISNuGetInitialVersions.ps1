@@ -1,10 +1,12 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Pack', 'PublishAndUnlist')]
+    [ValidateSet('Pack', 'PublishAndUnlist', 'Unlist')]
     [string]$Operation = 'Pack',
     [string]$ManifestPath = (Join-Path $PSScriptRoot '..\Docs\Releases\NUGET_INITIAL_VERSION_REPAIR_2026-09-28.json'),
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\artifacts\nuget-initial-version-repair'),
-    [string]$NuGetApiKey = $env:NUGET_API_KEY
+    [string]$NuGetApiKey = $env:NUGET_API_KEY,
+    [ValidateRange(1, 60)]
+    [int]$MutationDelaySeconds = 2
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,8 +18,8 @@ if (-not $manifestPath.StartsWith($repoRoot, [StringComparison]::OrdinalIgnoreCa
     throw "Repair manifest must be inside the repository: $manifestPath"
 }
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw "Repair manifest not found: $manifestPath" }
-if ($Operation -eq 'PublishAndUnlist' -and [string]::IsNullOrWhiteSpace($NuGetApiKey)) {
-    throw 'NUGET_API_KEY is required for PublishAndUnlist.'
+if ($Operation -in @('PublishAndUnlist', 'Unlist') -and [string]::IsNullOrWhiteSpace($NuGetApiKey)) {
+    throw "NUGET_API_KEY is required for $Operation."
 }
 
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
@@ -41,10 +43,11 @@ function Set-ProjectVersion([string]$Path, [string]$Version) {
     [IO.File]::WriteAllText($Path, $content, [Text.UTF8Encoding]::new($false))
 }
 
-New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
-Get-ChildItem -LiteralPath $outputDirectory -Filter '*.nupkg' -File | Remove-Item -Force
-$originalProjects = @{}
-try {
+if ($Operation -ne 'Unlist') {
+    New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+    Get-ChildItem -LiteralPath $outputDirectory -Filter '*.nupkg' -File | Remove-Item -Force
+    $originalProjects = @{}
+    try {
     foreach ($package in $packages) {
         $projectPath = [IO.Path]::GetFullPath((Join-Path $repoRoot $package.project))
         if (-not $projectPath.StartsWith($repoRoot, [StringComparison]::OrdinalIgnoreCase)) { throw "Project escapes repository: $($package.project)" }
@@ -63,14 +66,14 @@ try {
         & dotnet pack $projectPath -c Release -o $outputDirectory --nologo
         if ($LASTEXITCODE -ne 0) { throw "Packing $($package.packageId) $($package.correctVersion) failed." }
     }
-}
-finally {
-    foreach ($entry in $originalProjects.GetEnumerator()) { [IO.File]::WriteAllBytes($entry.Key, $entry.Value) }
-}
+    }
+    finally {
+        foreach ($entry in $originalProjects.GetEnumerator()) { [IO.File]::WriteAllBytes($entry.Key, $entry.Value) }
+    }
 
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-$built = @{}
-foreach ($file in Get-ChildItem -LiteralPath $outputDirectory -Filter '*.nupkg' -File | Where-Object Name -notlike '*.symbols.nupkg') {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $built = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $outputDirectory -Filter '*.nupkg' -File | Where-Object Name -notlike '*.symbols.nupkg') {
     $archive = [IO.Compression.ZipFile]::OpenRead($file.FullName)
     try {
         $nuspecEntry = @($archive.Entries | Where-Object FullName -like '*.nuspec')
@@ -84,11 +87,12 @@ foreach ($file in Get-ChildItem -LiteralPath $outputDirectory -Filter '*.nupkg' 
         $built[$id] = $file.FullName
     }
     finally { $archive.Dispose() }
+    }
+    foreach ($package in $packages) {
+        if (-not $built.ContainsKey($package.packageId)) { throw "No 1.0.0 package was built for $($package.packageId)." }
+    }
+    if ($built.Count -ne $packages.Count) { throw "Built $($built.Count) packages for a $($packages.Count)-package manifest." }
 }
-foreach ($package in $packages) {
-    if (-not $built.ContainsKey($package.packageId)) { throw "No 1.0.0 package was built for $($package.packageId)." }
-}
-if ($built.Count -ne $packages.Count) { throw "Built $($built.Count) packages for a $($packages.Count)-package manifest." }
 
 if ($Operation -eq 'Pack') {
     Write-Host "Validated $($built.Count) corrected NuGet packages at version 1.0.0."
@@ -96,15 +100,19 @@ if ($Operation -eq 'Pack') {
 }
 
 # Publish every corrected package before unlisting any bad version. This keeps the repair atomic from a consumer's perspective.
-foreach ($package in $packages) {
-    & dotnet nuget push $built[$package.packageId] --source https://api.nuget.org/v3/index.json --api-key $NuGetApiKey --skip-duplicate
-    if ($LASTEXITCODE -ne 0) { throw "Publishing $($package.packageId) 1.0.0 failed; no versions were unlisted." }
+if ($Operation -eq 'PublishAndUnlist') {
+    foreach ($package in $packages) {
+        & dotnet nuget push $built[$package.packageId] --source https://api.nuget.org/v3/index.json --api-key $NuGetApiKey --skip-duplicate
+        if ($LASTEXITCODE -ne 0) { throw "Publishing $($package.packageId) 1.0.0 failed; no versions were unlisted." }
+        Start-Sleep -Seconds $MutationDelaySeconds
+    }
 }
 foreach ($package in $packages) {
     foreach ($version in @($package.erroneousVersions)) {
         & dotnet nuget delete $package.packageId $version --source https://api.nuget.org/v3/index.json --api-key $NuGetApiKey --non-interactive
         if ($LASTEXITCODE -ne 0) { throw "Unlisting $($package.packageId) $version failed." }
+        Start-Sleep -Seconds $MutationDelaySeconds
     }
 }
 
-Write-Host "Published $($packages.Count) corrected 1.0.0 packages and unlisted every manifest-recorded erroneous version."
+Write-Host "Verified the corrected package set and unlisted every manifest-recorded erroneous version."
