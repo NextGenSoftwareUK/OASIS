@@ -308,13 +308,13 @@ jobs:
           New-Item artifacts/game-release-notes -ItemType Directory -Force | Out-Null
           if ('${{ contains(inputs.optional_components, 'our_world') }}' -eq 'true') {
             ./Scripts/New-OASISReleaseNotes.ps1 -Component OurWorld -Version '${{ needs.plan.outputs.our_world_version }}' -OutputPath artifacts/game-release-notes/our-world.md
-            gh workflow run release.yml --repo NextGenSoftwareUK/Our-World --ref main -f version='${{ needs.plan.outputs.our_world_version }}' -F release_notes=@artifacts/game-release-notes/our-world.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/Our-World --ref main -f version='${{ needs.plan.outputs.our_world_version }}' -F release_notes=@artifacts/game-release-notes/our-world.md -f publish=true
           }
           if ('${{ contains(inputs.optional_components, 'odoom') }}' -eq 'true') {
             ./Scripts/New-OASISReleaseNotes.ps1 -Component ODOOM -Version '${{ needs.plan.outputs.odoom_version }}' -OutputPath artifacts/game-release-notes/odoom.md
-            gh workflow run release.yml --repo NextGenSoftwareUK/ODOOM --ref trunk -f version='${{ needs.plan.outputs.odoom_version }}' -F release_notes=@artifacts/game-release-notes/odoom.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/ODOOM --ref trunk -f version='${{ needs.plan.outputs.odoom_version }}' -F release_notes=@artifacts/game-release-notes/odoom.md -f publish=true
           }
           if ('${{ contains(inputs.optional_components, 'oquake') }}' -eq 'true') {
             ./Scripts/New-OASISReleaseNotes.ps1 -Component OQUAKE -Version '${{ needs.plan.outputs.oquake_version }}' -OutputPath artifacts/game-release-notes/oquake.md
-            gh workflow run release.yml --repo NextGenSoftwareUK/OQUAKE --ref master -f version='${{ needs.plan.outputs.oquake_version }}' -F release_notes=@artifacts/game-release-notes/oquake.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/OQUAKE --ref master -f version='${{ needs.plan.outputs.oquake_version }}' -F release_notes=@artifacts/game-release-notes/oquake.md -f publish=true
           }
