@@ -72,6 +72,13 @@ try {
         }
     }
 
+    $web5History = Get-Content -LiteralPath (Join-Path $repoRoot 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md') -Raw
+    foreach ($boundary in @(
+        'compare/d7f105da5e265184b2dad53d9fda5c672f48f19e...fb084c0daca859d855788929d7a9f2e0b57e97e6',
+        'compare/fb084c0daca859d855788929d7a9f2e0b57e97e6...a5657b3bd8eab2f307b69152c016c2b286ec4c08',
+        'compare/a5657b3bd8eab2f307b69152c016c2b286ec4c08...8b3e8431d88e833ab3fb79d59602e7004a2ad040')) {
+        if (-not $web5History.Contains($boundary)) { throw "WEB5 history is missing exact version boundary: $boundary" }
+    }
     $releaseScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Invoke-OASISGlobalRelease.ps1') -Raw
     if ($releaseScript -match 'Select-Object -First 100') { throw 'API release notes must not truncate their version changelog.' }
     if (-not $releaseScript.Contains('--format=%H%x09%s')) { throw 'API release notes must retain commit identities for linked changelogs.' }
