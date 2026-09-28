@@ -210,6 +210,9 @@ jobs:
   mcp:
     if: inputs.mcp_server
     needs: plan
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/publish-mcp.yml
     with:
       version: ${{ needs.plan.outputs.mcp_version }}
