@@ -373,7 +373,6 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         $history.Version = $updates[$history.Key]
         $path = Join-Path $repoRoot $history.Path
         $existing = Get-Content -LiteralPath $path -Raw
-        $headingEnd = $existing.IndexOf("`n", $existing.IndexOf("`n") + 1) + 1
         $previousTags = foreach ($tag in @(& git -C $history.GitRoot tag --list)) {
             foreach ($prefix in $history.Prefixes) {
                 if ($tag -match ('^' + [regex]::Escape($prefix) + '(?<version>\d+\.\d+\.\d+)$')) { [pscustomobject]@{ Tag = $tag; Version = [version]$Matches.version } }
@@ -388,7 +387,8 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         $changeText = $changes -join "`n"
         $changelog = if ($previous.Count -gt 0) { "https://github.com/$($history.Repository)/compare/$($previous[0].Tag)...HEAD" } else { 'Initial API release; the list above is the complete version changelog.' }
         $entry = "`n----------------------------------------------------------------------------------------------------------------------------`n## $($history.Version) ($date)`n`n$($history.Intro)`n`n### What's new in $($history.Version)`n`n$changeText`n`n### Full changelog`n`n$changelog`n`n- Published by the automated OASIS global release process after CI validation.`n"
-        $updated = $existing.Insert($headingEnd, $entry)
+        # Release histories are chronological documents: oldest at the top, newest at the bottom.
+        $updated = $existing.TrimEnd() + "`n" + $entry
         Set-TextPreservingUtf8Bom $path $updated
         if ($history.PublicPath) {
             $publicPath = Join-Path $repoRoot $history.PublicPath

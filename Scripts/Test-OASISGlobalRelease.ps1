@@ -56,6 +56,21 @@ try {
             throw "Swagger does not link to its public release history: $($history.Program)"
         }
     }
+    $chronologicalHistories = @(
+        @{ Path = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md'; Required = @('4.0.0','4.5.0','4.5.1','5.2.0') },
+        @{ Path = 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md'; Required = @('2.0.0','3.0.0','3.2.0') },
+        @{ Path = 'Docs/API/WEB6-AI-API-RELEASE-HISTORY.md'; Required = @('1.0.0','2.0.0','3.2.0') }
+    )
+    foreach ($history in $chronologicalHistories) {
+        $historyText = Get-Content -LiteralPath (Join-Path $repoRoot $history.Path) -Raw
+        $versions = @([regex]::Matches($historyText, '(?m)^## (?<version>\d+\.\d+\.\d+)') | ForEach-Object { [version]$_.Groups['version'].Value })
+        for ($index = 1; $index -lt $versions.Count; $index++) {
+            if ($versions[$index] -lt $versions[$index - 1]) { throw "Release history is not oldest-to-newest: $($history.Path)" }
+        }
+        foreach ($required in $history.Required) {
+            if ([version]$required -notin $versions) { throw "Release history is missing ${required}: $($history.Path)" }
+        }
+    }
 }
 finally {
     if (Test-Path -LiteralPath $testOutput) { Remove-Item -LiteralPath $testOutput -Recurse -Force }
