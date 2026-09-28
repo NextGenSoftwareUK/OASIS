@@ -1,4 +1,4 @@
-name: Release — ONODE Manager
+name: Publish — ONODE Manager Binaries
 
 on:
   push:

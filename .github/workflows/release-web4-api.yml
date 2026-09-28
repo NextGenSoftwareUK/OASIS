@@ -1,0 +1,38 @@
+name: Release — WEB4 API
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Preview creates a preparation PR; Publish releases merged master
+        required: true
+        type: choice
+        default: Preview
+        options: [Preview, Publish]
+      version_mode:
+        description: Semantic version selection
+        required: true
+        type: choice
+        default: Automatic
+        options: [Automatic, Patch, Minor, Major, Manual]
+      manual_version:
+        description: Stable X.Y.Z value required for Manual
+        required: false
+        type: string
+        default: ''
+      release_notes:
+        description: Optional user-visible summary added to generated Git history notes
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  release:
+    uses: ./.github/workflows/reusable-api-release.yml
+    with:
+      api: WEB4
+      operation: ${{ inputs.operation }}
+      version_mode: ${{ inputs.version_mode }}
+      manual_version: ${{ inputs.manual_version }}
+      release_notes: ${{ inputs.release_notes }}
+    secrets: inherit
