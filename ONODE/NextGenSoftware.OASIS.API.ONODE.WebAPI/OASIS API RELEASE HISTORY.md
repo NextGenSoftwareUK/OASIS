@@ -1,6 +1,12 @@
 
 # OASIS API RELEASE HISTORY
 
+----------------------------------------------------------------------------------------------------------------------------
+## 5.2.0 (27/09/26)
+
+- Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
+- Published by the automated OASIS global release process after CI validation.
+
 This needs to be updated whenever we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
 Then when we do a release, this file will be linked to the Swagger documentation. The file is also linked to the WIKI and GitHub Documentation.
 
