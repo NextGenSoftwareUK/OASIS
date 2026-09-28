@@ -43,6 +43,31 @@ function Set-ProjectVersion([string]$Path, [string]$Version) {
     [IO.File]::WriteAllText($Path, $content, [Text.UTF8Encoding]::new($false))
 }
 
+function Get-ListedNuGetVersions([string]$PackageId) {
+    $index = Invoke-RestMethod "https://api.nuget.org/v3/registration5-semver1/$($PackageId.ToLowerInvariant())/index.json"
+    $entries = foreach ($page in $index.items) {
+        $items = if ($page.items) { $page.items } else { (Invoke-RestMethod $page.'@id').items }
+        foreach ($item in $items) { $item.catalogEntry }
+    }
+    return @($entries | Where-Object { $_.listed -ne $false } | ForEach-Object { $_.version })
+}
+
+function Invoke-NuGetUnlist([string]$PackageId, [string]$Version) {
+    $uri = "https://www.nuget.org/api/v2/package/$PackageId/$Version"
+    while ($true) {
+        $response = Invoke-WebRequest -Uri $uri -Method Delete -Headers @{ 'X-NuGet-ApiKey' = $NuGetApiKey; 'User-Agent' = 'OASIS-NuGet-initial-version-repair' } -SkipHttpErrorCheck
+        if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 300) { return }
+        $retryAfter = [string]$response.Headers['Retry-After']
+        if ($response.StatusCode -eq 403 -and $retryAfter -match '^\d+$') {
+            $waitSeconds = [int]$retryAfter + 5
+            Write-Host "NuGet quota reached while unlisting $PackageId $Version; honoring Retry-After and waiting $waitSeconds seconds."
+            Start-Sleep -Seconds $waitSeconds
+            continue
+        }
+        throw "Unlisting $PackageId $Version failed with HTTP $($response.StatusCode): $($response.Content)"
+    }
+}
+
 if ($Operation -ne 'Unlist') {
     New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
     Get-ChildItem -LiteralPath $outputDirectory -Filter '*.nupkg' -File | Remove-Item -Force
@@ -108,9 +133,14 @@ if ($Operation -eq 'PublishAndUnlist') {
     }
 }
 foreach ($package in $packages) {
+    $listedVersions = @(Get-ListedNuGetVersions $package.packageId)
     foreach ($version in @($package.erroneousVersions)) {
-        & dotnet nuget delete $package.packageId $version --source https://api.nuget.org/v3/index.json --api-key $NuGetApiKey --non-interactive
-        if ($LASTEXITCODE -ne 0) { throw "Unlisting $($package.packageId) $version failed." }
+        if ($version -notin $listedVersions) {
+            Write-Host "$($package.packageId) $version is already unlisted."
+            continue
+        }
+        Invoke-NuGetUnlist $package.packageId $version
+        Write-Host "$($package.packageId) $version was unlisted successfully."
         Start-Sleep -Seconds $MutationDelaySeconds
     }
 }
