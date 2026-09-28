@@ -54,7 +54,7 @@ Version/history changes must be committed and pass CI before publishing from `ma
 
 1. Open **Actions → Global OASIS Release → Run workflow** on `master`.
 2. Leave all release components selected, or turn off components intentionally omitted from that month's release.
-3. Optional application releases are off by default. Enable OIDE, ONODE Manager or HyperDrive Client when wanted. Our World, ODOOM and OQUAKE currently stop with a clear guard until their owning release workflows exist.
+3. Optional application releases are off by default. Enter a comma-separated list in `optional_components` using `our_world`, `odoom`, `oquake`, `oide`, `onode_manager`, and/or `hyperdrive_client`. OIDE, ONODE Manager, and HyperDrive Client dispatch established workflows. Our World, ODOOM, and OQUAKE currently stop publication with a clear guard until their owning release workflows exist.
 4. Keep `publish` enabled for the real release. Disable it for a complete pack/build rehearsal.
 
 API version/history advancement is intentionally a source-preparation operation rather than an ephemeral GitHub runner change. Run the local command below, commit the parent and submodule history changes, pass CI, promote to `master`, and then run the publishing workflow.
