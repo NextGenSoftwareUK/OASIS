@@ -30,7 +30,9 @@ The following application releases are also represented in the same plan, with t
 
 The game guard is deliberate: it prevents a source-only GitHub tag from being presented as a finished game release. Once the three owning repositories expose their canonical signed release workflows, replace the guard with the same explicit workflow dispatch used by OIDE, ONODE Manager and HyperDrive Client.
 
-The workflow builds every selected output before publishing. If a build or metadata validation fails, publishing does not start for that job. NuGet versions are calculated from the greater of the source project version and the latest stable version on NuGet.org. GitHub release versions use the greater of the source version and the latest matching public release tag. Existing packages advance by one patch; a package absent from NuGet starts at its declared source version.
+The workflow builds every selected output before publishing. If a build or metadata validation fails, publishing does not start for that job. NuGet versions are calculated from the greater of the source project version and the latest **listed** stable version on NuGet.org. GitHub release versions use the greater of the source version and the latest matching public release tag. Existing packages advance by one patch. Every package absent from NuGet starts at `1.0.0`, independently of the assembly/API version declared by its source project.
+
+Runtime GitHub releases use separate checked-in notes for OASIS Runtime, STAR ODK Runtime, OGEngineClient and Native Integrated Endpoint. Update the corresponding file under `Docs/Releases` as part of release preparation; the workflow never reuses the platform-wide notes for those component releases.
 
 ## WEB4-WEB6 API versions and Swagger histories
 
