@@ -5,6 +5,12 @@
     <PackageId>NextGenSoftware.OASIS.HyperDrive.Synchronization</PackageId>
     <Description>Portable HyperDrive synchronization protocol, coordinator and HTTP transport shared by full and Edge OASIS runtimes.</Description>
     <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS; HyperDrive; Synchronization; Offline; Edge; Unity; Replication</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>

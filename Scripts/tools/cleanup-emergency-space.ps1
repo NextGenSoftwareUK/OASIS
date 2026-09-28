@@ -16,6 +16,7 @@ Features:
 - Optional hibernation disable
 - Optional recycle bin purge
 - Optional Downloads cleanup
+- Compacts WSL virtual disks after shutting WSL down cleanly
 
 Usage:
   powershell -ExecutionPolicy Bypass -File .\cleanup-emergency-space.ps1
@@ -38,6 +39,8 @@ param(
     [switch]$KeepNuGet,
     [switch]$KeepCursor,
     [switch]$KeepJetBrains,
+    [switch]$KeepWSLVhdx,
+    [switch]$KeepOASISTemporaryArtifacts,
     [switch]$ClearSteamCache,
     [switch]$ClearBattleNetCache
 )
@@ -135,6 +138,19 @@ $tempPaths = @(
 
 foreach ($p in $tempPaths) {
     Empty-Directory $p
+}
+
+# =========================================================
+# OASIS GENERATED BUILD / RELEASE OUTPUTS
+# =========================================================
+
+if (!$KeepOASISTemporaryArtifacts) {
+    $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+    Log "Cleaning disposable OASIS validation artifacts under $repoRoot..."
+    @(
+        (Join-Path $repoRoot 'artifacts\global-release-validation'),
+        (Join-Path $repoRoot 'artifacts\global-release-optional-version-check')
+    ) | ForEach-Object { Remove-OASISPathSafely $_ $repoRoot }
 }
 
 # =========================================================
@@ -399,6 +415,32 @@ if ($Aggressive) {
     }
     else {
         DISM /Online /Cleanup-Image /StartComponentCleanup
+    }
+}
+
+function Remove-OASISPathSafely($path, $repoRoot) {
+    $resolvedRoot = [IO.Path]::GetFullPath($repoRoot).TrimEnd('\') + '\'
+    $resolvedPath = [IO.Path]::GetFullPath($path)
+    if (!$resolvedPath.StartsWith($resolvedRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to clean path outside the OASIS repository: $resolvedPath"
+    }
+    Remove-Safely $resolvedPath
+}
+
+# =========================================================
+# WSL VIRTUAL DISK COMPACTION
+# =========================================================
+
+if (!$KeepWSLVhdx) {
+
+    Log "Compacting WSL virtual disks..."
+
+    $wslCompactionScript = Join-Path $PSScriptRoot "compact-wsl-vhdx.ps1"
+    try {
+        & $wslCompactionScript -DryRun:$DryRun -ErrorAction Stop
+    }
+    catch {
+        throw "WSL virtual disk compaction failed: $($_.Exception.Message)"
     }
 }
 
