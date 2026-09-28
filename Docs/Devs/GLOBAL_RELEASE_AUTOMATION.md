@@ -52,6 +52,13 @@ The same operation adds matching entries to the release-history files linked by 
 - `STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/STAR API RELEASE HISTORY.md`
 - `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/WEB6 API RELEASE HISTORY.md`
 
+WEB5 and WEB6 source histories live in their owning private submodules, while their Swagger links point to public synchronized copies in this repository:
+
+- `Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md`
+- `Docs/API/WEB6-AI-API-RELEASE-HISTORY.md`
+
+The release planner updates both copies in the same preparation PR, and Publish rejects a release if their SHA-256 hashes differ.
+
 WEB7, WEB8, WEB9 and WEB10 are deliberately outside this option. The automation checks that their API versions did not move.
 
 Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.2.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
