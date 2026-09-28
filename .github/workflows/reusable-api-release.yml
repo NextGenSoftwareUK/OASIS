@@ -44,6 +44,7 @@ jobs:
             artifacts/global-release/release-plan.json
             OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs
             **/*RELEASE HISTORY.md
+            Docs/API/*.md
       - name: Create release-preparation pull request
         shell: pwsh
         env:
@@ -71,7 +72,7 @@ jobs:
             [IO.File]::WriteAllText((Resolve-Path 'Docker/oasis-dependency-versions.env'), $manifest, [Text.UTF8Encoding]::new($false))
           }
           git checkout -b $branch
-          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' 'Docker/oasis-dependency-versions.env' 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md' 'STAR ODK' 'WEB6'
+          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' 'Docker/oasis-dependency-versions.env' 'Docs/API' 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md' 'STAR ODK' 'WEB6'
           git commit -m "Prepare ${{ inputs.api }} API release"
           git push origin $branch
           $body = "Generated from reviewed release mode **${{ inputs.version_mode }}**. The diff contains only the selected API version, its Swagger-linked release history, and any required exact dependency pin."
@@ -109,6 +110,12 @@ jobs:
           $version=[regex]::Match($boot,"$($item[0]) \{ get; set; \} = `"(?<v>\d+\.\d+\.\d+)`"").Groups['v'].Value
           if (-not $version) { throw 'Could not resolve API version.' }
           if (-not (Select-String -LiteralPath $item[2] -SimpleMatch "## $version")) { throw 'Swagger release history does not contain the current API version.' }
+          if ('${{ inputs.api }}' -in @('WEB5','WEB6')) {
+            $publicHistory = if ('${{ inputs.api }}' -eq 'WEB5') { 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md' } else { 'Docs/API/WEB6-AI-API-RELEASE-HISTORY.md' }
+            if ((Get-FileHash -Algorithm SHA256 $item[2]).Hash -ne (Get-FileHash -Algorithm SHA256 $publicHistory).Hash) {
+              throw "The private source history and public Swagger history differ: $publicHistory"
+            }
+          }
           $historyText = Get-Content -LiteralPath $item[2] -Raw
           $entry = [regex]::Match($historyText, "(?ms)^## $([regex]::Escape($version)).*?(?=^## |^-{20,}|\z)").Value.Trim()
           if (-not $entry) { throw 'Could not extract the current API release-history entry.' }

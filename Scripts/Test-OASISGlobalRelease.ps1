@@ -39,6 +39,23 @@ try {
         if (-not $content.Contains($expected)) { throw "WEB7-WEB10 version changed unexpectedly: $expected" }
     }
     Write-Host "Global release automation tests passed for $($plan.packages.Count) packages."
+
+    $publicHistories = @(
+        @{ Source = 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/STAR API RELEASE HISTORY.md'; Public = 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md'; Program = 'STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Program.cs' },
+        @{ Source = 'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/WEB6 API RELEASE HISTORY.md'; Public = 'Docs/API/WEB6-AI-API-RELEASE-HISTORY.md'; Program = 'WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Program.cs' }
+    )
+    foreach ($history in $publicHistories) {
+        $sourcePath = Join-Path $repoRoot $history.Source
+        $publicPath = Join-Path $repoRoot $history.Public
+        $programPath = Join-Path $repoRoot $history.Program
+        if ((Get-FileHash -Algorithm SHA256 $sourcePath).Hash -ne (Get-FileHash -Algorithm SHA256 $publicPath).Hash) {
+            throw "Public API release history is out of sync: $($history.Public)"
+        }
+        $expectedUrl = "https://github.com/NextGenSoftwareUK/OASIS/blob/master/$($history.Public.Replace(' ', '%20'))"
+        if (-not (Select-String -LiteralPath $programPath -SimpleMatch $expectedUrl)) {
+            throw "Swagger does not link to its public release history: $($history.Program)"
+        }
+    }
 }
 finally {
     if (Test-Path -LiteralPath $testOutput) { Remove-Item -LiteralPath $testOutput -Recurse -Force }
