@@ -28,6 +28,7 @@ NUGET_PACKAGES=1
 CURSOR_DB_RESET=1
 JETBRAINS_LOCAL=1
 FORCE=0
+OASIS_TEMP_ARTIFACTS=1
 
 usage() {
   cat <<'EOF'
@@ -41,6 +42,7 @@ Options:
   --keep-cursor-global-db    Do not remove state.vscdb (+ wal/shm); still removes .backup + UI caches
   --keep-jetbrains-local     Do not remove ~/.local/share/JetBrains
   --force                    Proceed even if cursor/rider processes are running (risky)
+  --keep-oasis-temp-artifacts Keep disposable OASIS validation-plan directories
   -h, --help                 This help
 EOF
 }
@@ -55,6 +57,7 @@ while [[ $# -gt 0 ]]; do
     --cursor-reset-global-db) CURSOR_DB_RESET=1 ;;       # legacy: same as default
     --jetbrains-local) JETBRAINS_LOCAL=1 ;;             # legacy: same as default
     --force) FORCE=1 ;;
+    --keep-oasis-temp-artifacts) OASIS_TEMP_ARTIFACTS=0 ;;
     -h|--help) usage; exit 0 ;;
     *)
       echo "Unknown option: $1" >&2
@@ -103,6 +106,14 @@ if [[ $FORCE -eq 0 ]]; then
 fi
 
 log "Starting (DRY_RUN=$DRY_RUN)..."
+
+# --- Disposable OASIS validation outputs (release packages are preserved) ---
+repo_root="$(cd "$SCRIPT_DIR/../.." && pwd)"
+if [[ $OASIS_TEMP_ARTIFACTS -eq 1 ]]; then
+  log "Cleaning disposable OASIS validation artifacts under $repo_root ..."
+  run_rm_rf "$repo_root/artifacts/global-release-validation"
+  run_rm_rf "$repo_root/artifacts/global-release-optional-version-check"
+fi
 
 # --- NuGet (CLI + XDG locations) ---
 # Note: `dotnet nuget locals all --clear` would clear everything at once; we clear per-local for keep-* flags.
