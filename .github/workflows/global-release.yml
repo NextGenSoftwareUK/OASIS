@@ -38,36 +38,11 @@ on:
         required: true
         type: boolean
         default: true
-      our_world:
-        description: Release Our World
+      optional_components:
+        description: 'Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client'
         required: true
-        type: boolean
-        default: false
-      odoom:
-        description: Release ODOOM
-        required: true
-        type: boolean
-        default: false
-      oquake:
-        description: Release OQUAKE
-        required: true
-        type: boolean
-        default: false
-      oide:
-        description: Release OIDE
-        required: true
-        type: boolean
-        default: false
-      onode_manager:
-        description: Release ONODE Manager
-        required: true
-        type: boolean
-        default: false
-      hyperdrive_client:
-        description: Release OASIS HyperDrive Client
-        required: true
-        type: boolean
-        default: false
+        type: string
+        default: none
 
 permissions:
   contents: write
@@ -109,12 +84,12 @@ jobs:
           -OGEngineClient $${{ inputs.ogengine_client }}
           -NativeEndpoint $${{ inputs.native_endpoint }}
           -MCPServer $${{ inputs.mcp_server }}
-          -OurWorld $${{ inputs.our_world }}
-          -ODOOM $${{ inputs.odoom }}
-          -OQUAKE $${{ inputs.oquake }}
-          -OIDE $${{ inputs.oide }}
-          -ONODEManager $${{ inputs.onode_manager }}
-          -HyperDriveClient $${{ inputs.hyperdrive_client }}
+          -OurWorld $${{ contains(inputs.optional_components, 'our_world') }}
+          -ODOOM $${{ contains(inputs.optional_components, 'odoom') }}
+          -OQUAKE $${{ contains(inputs.optional_components, 'oquake') }}
+          -OIDE $${{ contains(inputs.optional_components, 'oide') }}
+          -ONODEManager $${{ contains(inputs.optional_components, 'onode_manager') }}
+          -HyperDriveClient $${{ contains(inputs.optional_components, 'hyperdrive_client') }}
       - id: versions
         name: Export planned versions
         shell: pwsh
@@ -235,6 +210,9 @@ jobs:
   mcp:
     if: inputs.mcp_server
     needs: plan
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/publish-mcp.yml
     with:
       version: ${{ needs.plan.outputs.mcp_version }}
@@ -244,7 +222,7 @@ jobs:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
   optional-established-release-workflows:
-    if: inputs.publish && (inputs.oide || inputs.onode_manager || inputs.hyperdrive_client)
+    if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'onode_manager') || contains(inputs.optional_components, 'hyperdrive_client'))
     needs: plan
     runs-on: ubuntu-latest
     steps:
@@ -254,19 +232,19 @@ jobs:
           GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
         run: |
           set -euo pipefail
-          if [[ '${{ inputs.oide }}' == 'true' ]]; then
+          if [[ '${{ contains(inputs.optional_components, 'oide') }}' == 'true' ]]; then
             sha=$(gh api repos/NextGenSoftwareUK/OIDE/commits/main --jq .sha)
             gh api --method POST repos/NextGenSoftwareUK/OIDE/git/refs -f ref='refs/tags/v${{ needs.plan.outputs.oide_version }}' -f sha="$sha"
           fi
-          if [[ '${{ inputs.onode_manager }}' == 'true' ]]; then
+          if [[ '${{ contains(inputs.optional_components, 'onode_manager') }}' == 'true' ]]; then
             gh workflow run release-onode-manager.yml --repo NextGenSoftwareUK/OASIS --ref master -f version='${{ needs.plan.outputs.onode_manager_version }}'
           fi
-          if [[ '${{ inputs.hyperdrive_client }}' == 'true' ]]; then
+          if [[ '${{ contains(inputs.optional_components, 'hyperdrive_client') }}' == 'true' ]]; then
             gh workflow run release.yml --repo NextGenSoftwareUK/OASIS-HyperDrive-Client --ref main -f version='${{ needs.plan.outputs.hyperdrive_client_version }}'
           fi
 
   optional-game-release-guard:
-    if: inputs.publish && (inputs.our_world || inputs.odoom || inputs.oquake)
+    if: inputs.publish && (contains(inputs.optional_components, 'our_world') || contains(inputs.optional_components, 'odoom') || contains(inputs.optional_components, 'oquake'))
     needs: plan
     runs-on: ubuntu-latest
     steps:
