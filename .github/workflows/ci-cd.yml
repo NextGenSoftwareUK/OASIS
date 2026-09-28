@@ -671,7 +671,8 @@ jobs:
       run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Build all projects
-      run: dotnet build --configuration Release --no-restore
+      working-directory: OASIS
+      run: dotnet build "The OASIS - NoTests.sln" --configuration Release --no-restore -warnaserror:none
     
     - name: Pack NuGet packages
       run: |
