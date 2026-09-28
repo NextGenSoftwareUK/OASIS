@@ -136,6 +136,16 @@ function Get-NextReleaseVersion([string]$SourceVersion, [string[]]$TagPrefixes) 
     return Get-NextPatchVersion $baseline
 }
 
+function Get-NextRegistryReleaseVersion([string]$SourceVersion, [string[]]$TagPrefixes, [string]$PackageId) {
+    $candidates = [Collections.Generic.List[version]]::new()
+    $candidates.Add([version]$SourceVersion)
+    $githubVersion = Get-LatestGitHubReleaseVersion $TagPrefixes
+    if ($githubVersion) { $candidates.Add([version]$githubVersion) }
+    $nugetVersion = Get-LatestNuGetVersion $PackageId
+    if ($nugetVersion) { $candidates.Add([version]$nugetVersion) }
+    return Get-NextPatchVersion (($candidates | Sort-Object -Descending | Select-Object -First 1).ToString())
+}
+
 function Get-SourceVersion($Project) {
     $version = Get-ProjectProperty $Project.Xml 'Version'
     if (-not $version) { $version = Get-ProjectProperty $Project.Xml 'PackageVersion' }
@@ -254,7 +264,7 @@ $releaseVersions = [ordered]@{
     starRuntime = Get-NextReleaseVersion $bootVersions.STARRuntimeVersion @('STAR-ODK-Runtime-v')
     ogEngineClient = Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\OGEngineClient.csproj') -Raw); PackageId = 'NextGenSoftware.OGEngine.Client' })) @('OGEngineClient-v', 'STAR-API-CLIENT-v')
     nativeEndpoint = Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint' })) @('Native-Endpoint-v', 'v')
-    mcpServer = Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'WEB6\NextGenSoftware.OASIS.MCP.Server\NextGenSoftware.OASIS.MCP.Server.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.MCP.Server' })) @('mcp-v')
+    mcpServer = Get-NextRegistryReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'WEB6\NextGenSoftware.OASIS.MCP.Server\NextGenSoftware.OASIS.MCP.Server.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.MCP.Server' })) @('mcp-v') 'NextGenSoftware.OASIS.MCP.Server'
     ourWorld = Get-NextOptionalReleaseVersion 'NextGenSoftwareUK/Our-World' @('v', 'Our-World-v') $true
     odoom = Get-NextOptionalReleaseVersion 'NextGenSoftwareUK/ODOOM' @('ODOOM_v.', 'odoom-v', 'v') $true
     oquake = Get-NextOptionalReleaseVersion 'NextGenSoftwareUK/OQUAKE' @('OQUAKE_v', 'oquake-v', 'v') $true

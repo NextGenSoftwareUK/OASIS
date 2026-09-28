@@ -203,6 +203,7 @@ jobs:
       - uses: actions/download-artifact@v7
         with:
           path: binaries
+          pattern: oasis-mcp-*
           merge-multiple: true
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
