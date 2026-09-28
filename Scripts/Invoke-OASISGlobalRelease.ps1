@@ -56,7 +56,10 @@ function Get-ProjectProperty([xml]$Project, [string]$Name) {
 function Get-PackageProjects {
     $excluded = '[\\/](\.git|\.claude|\.codex|Archived|External Libs|Test Projects|Tests|UnitTests|IntegrationTests|Templates?|obj|bin|node_modules)[\\/]'
     Get-ChildItem -LiteralPath $repoRoot -Recurse -Filter '*.csproj' -File |
-        Where-Object { $_.FullName -notmatch $excluded } |
+        Where-Object {
+            $relative = $_.FullName.Substring($repoRoot.Length).TrimStart('\', '/')
+            ("/$relative") -notmatch $excluded
+        } |
         ForEach-Object {
             [xml]$xml = Get-Content -LiteralPath $_.FullName -Raw
             $id = Get-ProjectProperty $xml 'PackageId'
@@ -82,7 +85,7 @@ function Assert-PackageMetadata($PackageProjects) {
     if ($invalid.Count -gt 0) { throw "NuGet metadata validation failed:`n - $($invalid -join "`n - ")" }
 }
 
-function Get-LatestNuGetVersion([string]$PackageId) {
+function Get-LatestNuGetRelease([string]$PackageId) {
     if ($Offline) { return $null }
     $url = "https://api.nuget.org/v3/registration5-semver1/$($PackageId.ToLowerInvariant())/index.json"
     try {
@@ -96,16 +99,21 @@ function Get-LatestNuGetVersion([string]$PackageId) {
         }
         $latest = @($entries |
             Where-Object { $_.listed -ne $false -and $_.version -match '^\d+\.\d+\.\d+$' } |
-            ForEach-Object { [version]$_.version } |
-            Sort-Object -Descending |
+            Sort-Object { [version]$_.version } -Descending |
             Select-Object -First 1)
         if ($latest.Count -eq 0) { return $null }
-        return $latest[0].ToString()
+        return [pscustomobject]@{ Version = $latest[0].version; Published = $latest[0].published }
     }
     catch {
         if ($_.Exception.Response.StatusCode.value__ -eq 404) { return $null }
         throw
     }
+}
+
+function Get-LatestNuGetVersion([string]$PackageId) {
+    $release = Get-LatestNuGetRelease $PackageId
+    if ($release) { return $release.Version }
+    return $null
 }
 
 function Get-LatestGitHubReleaseVersion([string[]]$TagPrefixes, [string]$Repository = 'NextGenSoftwareUK/OASIS') {
@@ -178,15 +186,59 @@ function Set-ProjectVersionForPacking([string]$Path, [string]$Version) {
     Set-TextPreservingUtf8Bom $Path $content
 }
 
-function Get-PlannedPackageVersion($Project) {
+function Get-PlannedPackageVersion($Project, $PublishedRelease) {
     $sourceVersion = Get-SourceVersion $Project
-    $publishedVersion = Get-LatestNuGetVersion $Project.PackageId
+    $publishedVersion = if ($PublishedRelease) { $PublishedRelease.Version } else { $null }
     if (-not $publishedVersion) {
         if ($Offline) { return $sourceVersion }
         return '1.0.0'
     }
     $baseline = if ([version]$publishedVersion -gt [version]$sourceVersion) { $publishedVersion } else { $sourceVersion }
     return Get-NextPatchVersion $baseline
+}
+
+function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease) {
+    $description = Get-ProjectProperty $Project.Xml 'Description'
+    $relativeProject = $Project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/')
+    $projectDirectory = Split-Path $relativeProject -Parent
+    $rangeDescription = if ($PublishedRelease) { "since v$($PublishedRelease.Version)" } else { 'for this initial public release' }
+    $gitArgs = @('-C', $repoRoot, 'log', '--no-merges', '--format=%H%x09%s')
+    if ($PublishedRelease -and $PublishedRelease.Published) { $gitArgs += "--since=$(([datetime]$PublishedRelease.Published).ToUniversalTime().ToString('o'))" }
+    $gitArgs += @('--', $projectDirectory)
+    $changes = @(& git @gitArgs | ForEach-Object {
+        $parts = $_ -split "`t", 2
+        if ($parts.Count -eq 2 -and $parts[1] -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)') {
+            [pscustomobject]@{ Sha = $parts[0]; Subject = $parts[1] }
+        }
+    } | Group-Object Subject | ForEach-Object { $_.Group[0] } | Select-Object -First 50)
+    $lines = [Collections.Generic.List[string]]::new()
+    $lines.Add("$($Project.PackageId) v$Version")
+    $lines.Add('')
+    $lines.Add($description)
+    $lines.Add('')
+    $lines.Add("What's new $rangeDescription")
+    if ($changes.Count -eq 0) {
+        $lines.Add('- Initial validated package contents and metadata for this release line.')
+    }
+    else {
+        foreach ($change in $changes) { $lines.Add("- $($change.Subject) ($($change.Sha.Substring(0, 7)))") }
+    }
+    $lines.Add('')
+    $lines.Add('Full changelog')
+    $lines.Add("https://github.com/NextGenSoftwareUK/OASIS/commits/master/$($projectDirectory.Replace('\', '/'))")
+    return $lines -join "`n"
+}
+
+function Set-ProjectReleaseNotesForPacking([string]$Path, [string]$ReleaseNotes) {
+    $content = Get-Content -LiteralPath $Path -Raw
+    $escaped = [Security.SecurityElement]::Escape($ReleaseNotes)
+    if ($content -match '<PackageReleaseNotes>[\s\S]*?</PackageReleaseNotes>') {
+        $content = [regex]::Replace($content, '<PackageReleaseNotes>[\s\S]*?</PackageReleaseNotes>', "<PackageReleaseNotes>$escaped</PackageReleaseNotes>", 1)
+    }
+    else {
+        $content = [regex]::Replace($content, '(?s)(<PropertyGroup(?:\s[^>]*)?>)', "`$1`r`n    <PackageReleaseNotes>$escaped</PackageReleaseNotes>", 1)
+    }
+    Set-TextPreservingUtf8Bom $Path $content
 }
 
 function Get-BootLoaderVersions {
@@ -218,17 +270,29 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     Set-TextPreservingUtf8Bom $bootLoaderPath $content
 
     $date = Get-Date -Format 'dd/MM/yy'
-    $summary = if ($ReleaseNotes) { $ReleaseNotes } else { 'Global release containing the latest tested OASIS platform improvements, fixes, packages and runtime artifacts.' }
     $histories = @(
-        @{ Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Version = $updates.OASISAPIVersion; Name = 'WEB4 OASIS API' },
-        @{ Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; Version = $updates.STARAPIVersion; Name = 'WEB5 STAR API' },
-        @{ Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; Version = $updates.WEB6APIVersion; Name = 'WEB6 OASIS AI API' }
+        @{ Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Version = $updates.OASISAPIVersion; Name = 'WEB4 OASIS API'; Intro = 'WEB4 is the OASIS identity, data, provider, NFT, GeoNFT, inventory, ONET and HyperDrive API.'; Prefixes = @('OASIS-Runtime-v', 'OASIS-Runtime-'); Paths = @('ONODE', 'OASIS Architecture', 'Providers', 'ONET', 'Edge') },
+        @{ Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; Version = $updates.STARAPIVersion; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('STAR ODK') },
+        @{ Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; Version = $updates.WEB6APIVersion; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('mcp-v'); Paths = @('WEB6') }
     )
     foreach ($history in $histories) {
         $path = Join-Path $repoRoot $history.Path
         $existing = Get-Content -LiteralPath $path -Raw
         $headingEnd = $existing.IndexOf("`n", $existing.IndexOf("`n") + 1) + 1
-        $entry = "`n----------------------------------------------------------------------------------------------------------------------------`n## $($history.Version) ($( $date ))`n`n- $summary`n- Published by the automated OASIS global release process after CI validation.`n"
+        $previousTags = foreach ($tag in @(& git -C $repoRoot tag --list)) {
+            foreach ($prefix in $history.Prefixes) {
+                if ($tag -match ('^' + [regex]::Escape($prefix) + '(?<version>\d+\.\d+\.\d+)$')) { [pscustomobject]@{ Tag = $tag; Version = [version]$Matches.version } }
+            }
+        }
+        $previous = @($previousTags | Sort-Object Version -Descending | Select-Object -First 1)
+        $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
+        $logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=- %s', '--') + $history.Paths
+        $changes = @(& git @logArgs | Where-Object { $_ -notmatch '^- (Merge |Promote |chore: bump submodule|chore: update submodule)' } | Select-Object -Unique | Select-Object -First 100)
+        if ($ReleaseNotes) { $changes = @("- $ReleaseNotes") + $changes }
+        if ($changes.Count -eq 0) { $changes = @('- No API-path changes were detected after the previous release tag; this version records the validated coordinated API source graph.') }
+        $changeText = $changes -join "`n"
+        $changelog = if ($previous.Count -gt 0) { "https://github.com/NextGenSoftwareUK/OASIS/compare/$($previous[0].Tag)...HEAD" } else { 'Initial API release; the list above is the complete version changelog.' }
+        $entry = "`n----------------------------------------------------------------------------------------------------------------------------`n## $($history.Version) ($date)`n`n$($history.Intro)`n`n### What's new in $($history.Version)`n`n$changeText`n`n### Full changelog`n`n$changelog`n`n- Published by the automated OASIS global release process after CI validation.`n"
         $updated = $existing.Insert($headingEnd, $entry)
         Set-TextPreservingUtf8Bom $path $updated
     }
@@ -252,10 +316,14 @@ if ($NuGetPackages) {
     $packageProjects = @(Get-PackageProjects)
     Assert-PackageMetadata $packageProjects
     $packagePlan = @($packageProjects | ForEach-Object {
+        $publishedRelease = Get-LatestNuGetRelease $_.PackageId
+        $version = Get-PlannedPackageVersion $_ $publishedRelease
         [pscustomobject]@{
             packageId = $_.PackageId
-            version = Get-PlannedPackageVersion $_
+            version = $version
             project = $_.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            previousVersion = if ($publishedRelease) { $publishedRelease.Version } else { $null }
+            releaseNotes = Get-PackageReleaseNotes $_ $version $publishedRelease
         }
     })
 }
@@ -313,6 +381,7 @@ if ($NuGetPackages) {
             if (-not $originalProjects.ContainsKey($projectPath)) {
                 $originalProjects[$projectPath] = [IO.File]::ReadAllBytes($projectPath)
                 Set-ProjectVersionForPacking $projectPath $package.version
+                Set-ProjectReleaseNotesForPacking $projectPath $package.releaseNotes
             }
         }
         foreach ($package in $packagePlan) {
