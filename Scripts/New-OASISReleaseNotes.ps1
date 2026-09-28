@@ -61,8 +61,9 @@ $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD
 $logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $definition.Paths
 $commits = @(& git @logArgs | ForEach-Object {
     $parts = $_ -split "`t", 2
-    if ($parts.Count -eq 2 -and $parts[1] -notmatch '^(Promote |Merge |chore: bump submodule|chore: update submodule)') {
-        [pscustomobject]@{ Sha = $parts[0]; Subject = $parts[1] }
+    $subject = if ($parts.Count -eq 2) { $parts[1] -replace '^\s*[-*]\s*', '' } else { '' }
+    if ($subject -and $subject -notmatch '^(Promote |Merge |chore: bump submodule|chore: update submodule)') {
+        [pscustomobject]@{ Sha = $parts[0]; Subject = $subject }
     }
 } | Group-Object Subject | ForEach-Object { $_.Group[0] })
 
