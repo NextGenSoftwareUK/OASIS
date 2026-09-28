@@ -2,7 +2,7 @@
 
 This release advances the STAR ODK, STAR CLI and WEB5 gameplay runtime used to create and run OAPPs.
 
-## What changed
+## What's new in v4.0.1
 
 - Added the production cross-game quest pipeline, including ordered and any-order objectives, typed progress projections and durable completion transitions.
 - Added GeoHotSpot quest triggers and Text, Image, Video and WebLink event payloads, with reliable creation, persistence and transaction handling.

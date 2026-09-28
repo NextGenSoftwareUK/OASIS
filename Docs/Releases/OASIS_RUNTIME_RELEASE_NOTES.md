@@ -2,7 +2,7 @@
 
 This release advances the native OASIS Runtime used by OAPPs and by the live WEB4 API to the production source graph released on 28 September 2026.
 
-## What changed
+## What's new in v5.0.1
 
 - Unified HyperDrive v2, ONET and offline synchronization around the hosted provider contract, with durable commands, outcomes, checkpoints, snapshots and provider fan-out.
 - Added end-to-end offline session grants and synchronization for shared inventory, GeoNFT collection and quest progress.
