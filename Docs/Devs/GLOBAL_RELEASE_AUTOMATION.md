@@ -21,9 +21,9 @@ The following application releases are also represented in the same plan, with t
 
 | Optional component | Release owner | Current automation |
 |---|---|---|
-| Our World | `NextGenSoftwareUK/Our-World` | Builds the Unity 2022.3.62f3 Windows player through `CIBuilder`, verifies the player output and publishes the packaged build. Requires the repository's Unity license secrets. |
-| ODOOM | `NextGenSoftwareUK/ODOOM` | Builds Windows x64 with `OASIS_STAR_API=ON`, verifies `uzdoom.exe` and `star_api.dll`, and publishes the integrated package. |
-| OQUAKE | `NextGenSoftwareUK/OQUAKE` | Builds the Linux x64 distribution, verifies vkQuake and `OGEngineClient.so`, and publishes the integrated package. |
+| Our World | `NextGenSoftwareUK/Our-World` | Atomically builds Android APK, iOS Xcode project, Windows, Linux, macOS and tvOS Xcode project artifacts from Unity 2022.3.62f3. Requires the repository's Unity license secrets. |
+| ODOOM | `NextGenSoftwareUK/ODOOM` | Builds Windows x64, Linux x64 and macOS x64 with the current platform-specific OGEngineClient NativeAOT runtime and SQLite dependency, verifies every package, then publishes atomically. |
+| OQUAKE | `NextGenSoftwareUK/OQUAKE` | Builds Windows x64, Linux x64 and macOS x64 with the current platform-specific OGEngineClient NativeAOT runtime and SQLite dependency, verifies every package, then publishes atomically. |
 | OIDE | `NextGenSoftwareUK/OIDE` | Creates the next `vX.Y.Z` tag on `main`; the existing three-platform OIDE release workflow builds and publishes it. |
 | ONODE Manager | This repository's `release-onode-manager.yml` | Dispatches the Windows/macOS/Linux Velopack workflow. Its first canonical release is `onode-manager-v1.0.0`; later plans advance only this product-specific stable tag series. |
 | OASIS HyperDrive Client | `NextGenSoftwareUK/OASIS-HyperDrive-Client` | Dispatches its Windows/Linux/macOS workflow. Its first stable release is `v1.0.0`; prereleases do not advance the monthly stable version. |
