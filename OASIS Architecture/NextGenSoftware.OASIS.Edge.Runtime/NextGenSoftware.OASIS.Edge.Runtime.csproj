@@ -4,6 +4,12 @@
     <PackageId>NextGenSoftware.OASIS.Edge.Runtime</PackageId>
     <Description>Unity-compatible, offline-first OASIS Edge Runtime composition.</Description>
     <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS; Edge; Unity; Offline; HyperDrive; Synchronization; Runtime</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
