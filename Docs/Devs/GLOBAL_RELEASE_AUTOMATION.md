@@ -105,3 +105,5 @@ The `.bat` and `.sh` wrappers accept the same arguments. Run `Scripts/Test-OASIS
 | Runtime output | GitHub release assets and the `global-release-runtime-assets` workflow artifact |
 | Comprehensive GitHub release body | `Docs/Releases/GLOBAL_RELEASE_NOTES.md` |
 | Complete CI/release map | `Docs/Devs/CI_CD_WORKFLOWS_AND_RELEASES.md` |
+
+The emergency disk cleanup wrappers in `Scripts/tools/cleanup-emergency-space.*` remove only the disposable `artifacts/global-release-validation` and `artifacts/global-release-optional-version-check` directories created by release-plan checks. They preserve `artifacts/global-release`, packaged releases, and all build output trees. Pass `-KeepOASISTemporaryArtifacts` on Windows or `--keep-oasis-temp-artifacts` on Linux to retain the validation directories too. The Windows cleanup resolves and checks every target against the repository root before deletion.
