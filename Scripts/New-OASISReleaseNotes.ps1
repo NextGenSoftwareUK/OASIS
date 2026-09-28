@@ -91,7 +91,14 @@ $builder = [Text.StringBuilder]::new()
 [void]$builder.AppendLine("## What's new in v$Version")
 [void]$builder.AppendLine()
 if ($commits.Count -eq 0) {
-    [void]$builder.AppendLine('- No component-path commits were found after the previous release tag; this release republishes the validated component from the coordinated source graph.')
+    if ($Component -eq 'MCPServer') {
+        [void]$builder.AppendLine('- First comprehensive public OASIS MCP Server release, exposing 516 specific, named and typed tools across WEB4 through WEB10.')
+        [void]$builder.AppendLine('- Ships native executables for Windows, Linux and macOS on x64 and arm64, plus NuGet and npm installation channels.')
+        [void]$builder.AppendLine('- Supports local stdio clients and the WEB6 HTTP/SSE MCP transport, with IDE configuration and a complete command catalog.')
+    }
+    else {
+        [void]$builder.AppendLine('- No component-path commits were found after the previous release tag; this release republishes the validated component from the coordinated source graph.')
+    }
     [void]$builder.AppendLine()
 }
 else {
@@ -110,6 +117,17 @@ if ($previous.Count -gt 0) {
 }
 else {
     [void]$builder.AppendLine('This is the first release under this component tag series; the commit list above is the component changelog for the initial version.')
+}
+
+if ($Component -eq 'MCPServer') {
+    $readmePath = Join-Path $repoRoot 'WEB6\NextGenSoftware.OASIS.MCP.Server\README.md'
+    $guide = Get-Content -LiteralPath $readmePath -Raw
+    $guide = $guide -replace '^# OASIS MCP Server\s*', ''
+    [void]$builder.AppendLine()
+    [void]$builder.AppendLine('## Complete package guide')
+    [void]$builder.AppendLine()
+    [void]$builder.Append($guide.Trim())
+    [void]$builder.AppendLine()
 }
 
 $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
