@@ -2,7 +2,7 @@
 
 This is the current in-process entry point for applications that embed the WEB4 OASIS API instead of calling the HTTP service.
 
-## What changed
+## What's new in v2.0.2
 
 - Updated the embedded OASIS Runtime to v5.0.1 and .NET 10.
 - Added the unified HyperDrive v2, ONET and offline synchronization services used for inventory, GeoNFT collection and quest progress.

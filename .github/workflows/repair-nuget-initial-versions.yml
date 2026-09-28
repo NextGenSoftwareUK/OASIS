@@ -2,6 +2,15 @@ name: Repair NuGet Initial Versions
 
 on:
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Publish corrected packages before unlisting, or resume only the idempotent unlisting phase
+        required: true
+        type: choice
+        default: PublishAndUnlist
+        options:
+          - PublishAndUnlist
+          - Unlist
 
 permissions:
   contents: read
@@ -27,8 +36,8 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Publish corrected 1.0.0 packages and unlist erroneous initial versions
+      - name: Repair NuGet initial versions
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: ./Scripts/Repair-OASISNuGetInitialVersions.ps1 -Operation PublishAndUnlist
+        run: ./Scripts/Repair-OASISNuGetInitialVersions.ps1 -Operation '${{ inputs.operation }}'
