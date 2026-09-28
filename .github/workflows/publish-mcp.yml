@@ -1,6 +1,21 @@
 name: Build and Publish MCP Server
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "SemVer version to publish"
+        required: true
+        type: string
+      publish:
+        description: "Publish GitHub, NuGet, and npm releases"
+        required: true
+        type: boolean
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+      NUGET_API_KEY:
+        required: true
   pull_request:
     branches: [Development, master]
     paths:
@@ -52,7 +67,7 @@ concurrency:
 
 jobs:
   validate-release-input:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
     steps:
       - name: Validate release version
@@ -165,7 +180,7 @@ jobs:
           npm pack --dry-run
 
   release:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish
     needs: [validate-release-input, build-binaries, validate-npm-package]
     runs-on: ubuntu-latest
     permissions:
@@ -201,7 +216,7 @@ jobs:
           prerelease: false
 
   publish-nuget:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish
     needs: release
     runs-on: windows-latest
     timeout-minutes: 90
@@ -244,7 +259,7 @@ jobs:
             }
 
   publish-npm:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish
     needs: release
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -4,6 +4,12 @@
     <PackageId>NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge</PackageId>
     <Description>Native facade for the Unity-compatible OASIS Edge Runtime.</Description>
     <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS; Native; Edge; Unity; Offline; HyperDrive; ONET</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Nullable>disable</Nullable>
     <CopyLocalLockFileAssemblies Condition="'$(TargetFramework)' == 'netstandard2.1'">true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
