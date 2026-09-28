@@ -123,6 +123,8 @@ jobs:
           "hyperdrive_client_version=$($plan.releaseVersions.hyperDriveClient)" >> $env:GITHUB_OUTPUT
       - name: Render preview summary and release notes
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
         run: |
           $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
           New-Item artifacts/global-release/release-notes -ItemType Directory -Force | Out-Null
@@ -131,6 +133,9 @@ jobs:
           if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version $plan.releaseVersions.ogEngineClient -OutputPath artifacts/global-release/release-notes/ogengine-client.md }
           if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version $plan.releaseVersions.nativeEndpoint -OutputPath artifacts/global-release/release-notes/native-endpoint.md }
           if ('${{ inputs.mcp_server }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component MCPServer -Version $plan.releaseVersions.mcpServer -OutputPath artifacts/global-release/release-notes/mcp-server.md }
+          if ('${{ contains(inputs.optional_components, 'our_world') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OurWorld -Version $plan.releaseVersions.ourWorld -OutputPath artifacts/global-release/release-notes/our-world.md }
+          if ('${{ contains(inputs.optional_components, 'odoom') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component ODOOM -Version $plan.releaseVersions.odoom -OutputPath artifacts/global-release/release-notes/odoom.md }
+          if ('${{ contains(inputs.optional_components, 'oquake') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OQUAKE -Version $plan.releaseVersions.oquake -OutputPath artifacts/global-release/release-notes/oquake.md }
           "## Global release preview" >> $env:GITHUB_STEP_SUMMARY
           "Source: ``$($plan.sourceCommit)``  " >> $env:GITHUB_STEP_SUMMARY
           "Version mode: **$($plan.versionSelection.mode)**" >> $env:GITHUB_STEP_SUMMARY
@@ -287,13 +292,29 @@ jobs:
             gh workflow run release.yml --repo NextGenSoftwareUK/OASIS-HyperDrive-Client --ref main -f version='${{ needs.plan.outputs.hyperdrive_client_version }}'
           fi
 
-  optional-game-release-guard:
+  optional-game-release-workflows:
     if: inputs.publish && (contains(inputs.optional_components, 'our_world') || contains(inputs.optional_components, 'odoom') || contains(inputs.optional_components, 'oquake'))
     needs: plan
     runs-on: ubuntu-latest
     steps:
-      - name: Require canonical signed game release pipelines
-        shell: bash
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Generate version-specific game notes and dispatch canonical builds
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
         run: |
-          echo '::error::Our World, ODOOM, and OQUAKE are versioned in the release plan, but their signed/canonical binary release workflows must be added to their owning repositories before these switches can publish. Source-only GitHub releases are intentionally forbidden.'
-          exit 1
+          New-Item artifacts/game-release-notes -ItemType Directory -Force | Out-Null
+          if ('${{ contains(inputs.optional_components, 'our_world') }}' -eq 'true') {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component OurWorld -Version '${{ needs.plan.outputs.our_world_version }}' -OutputPath artifacts/game-release-notes/our-world.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/Our-World --ref main -f version='${{ needs.plan.outputs.our_world_version }}' -F release_notes=@artifacts/game-release-notes/our-world.md
+          }
+          if ('${{ contains(inputs.optional_components, 'odoom') }}' -eq 'true') {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component ODOOM -Version '${{ needs.plan.outputs.odoom_version }}' -OutputPath artifacts/game-release-notes/odoom.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/ODOOM --ref trunk -f version='${{ needs.plan.outputs.odoom_version }}' -F release_notes=@artifacts/game-release-notes/odoom.md
+          }
+          if ('${{ contains(inputs.optional_components, 'oquake') }}' -eq 'true') {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component OQUAKE -Version '${{ needs.plan.outputs.oquake_version }}' -OutputPath artifacts/game-release-notes/oquake.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/OQUAKE --ref master -f version='${{ needs.plan.outputs.oquake_version }}' -F release_notes=@artifacts/game-release-notes/oquake.md
+          }
