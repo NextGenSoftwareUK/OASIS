@@ -365,8 +365,8 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     $date = Get-Date -Format 'dd/MM/yy'
     $histories = @(
         @{ Key='OASISAPIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Name = 'WEB4 OASIS API'; Intro = 'WEB4 is the OASIS identity, data, provider, NFT, GeoNFT, inventory, ONET and HyperDrive API.'; Prefixes = @('WEB4-v','OASIS-Runtime-v', 'OASIS-Runtime-'); Paths = @('ONODE', 'OASIS Architecture', 'Providers', 'ONET', 'Edge') },
-        @{ Key='STARAPIVersion'; GitRoot=(Join-Path $repoRoot 'STAR ODK'); Repository='NextGenSoftwareUK/STAR-ODK'; Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('WEB5-v','STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('.') },
-        @{ Key='WEB6APIVersion'; GitRoot=(Join-Path $repoRoot 'WEB6'); Repository='NextGenSoftwareUK/OASIS-WEB6'; Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('WEB6-v','mcp-v'); Paths = @('.') }
+        @{ Key='STARAPIVersion'; GitRoot=(Join-Path $repoRoot 'STAR ODK'); Repository='NextGenSoftwareUK/STAR-ODK'; Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB5-STAR-API-RELEASE-HISTORY.md'; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('WEB5-v','STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('.') },
+        @{ Key='WEB6APIVersion'; GitRoot=(Join-Path $repoRoot 'WEB6'); Repository='NextGenSoftwareUK/OASIS-WEB6'; Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB6-AI-API-RELEASE-HISTORY.md'; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('WEB6-v','mcp-v'); Paths = @('.') }
     )
     foreach ($history in $histories) {
         if (-not $updates.Contains($history.Key)) { continue }
@@ -390,6 +390,11 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         $entry = "`n----------------------------------------------------------------------------------------------------------------------------`n## $($history.Version) ($date)`n`n$($history.Intro)`n`n### What's new in $($history.Version)`n`n$changeText`n`n### Full changelog`n`n$changelog`n`n- Published by the automated OASIS global release process after CI validation.`n"
         $updated = $existing.Insert($headingEnd, $entry)
         Set-TextPreservingUtf8Bom $path $updated
+        if ($history.PublicPath) {
+            $publicPath = Join-Path $repoRoot $history.PublicPath
+            New-Item -ItemType Directory -Path (Split-Path $publicPath) -Force | Out-Null
+            [IO.File]::WriteAllText($publicPath, (Get-Content -LiteralPath $path -Raw), [Text.UTF8Encoding]::new($false))
+        }
     }
     return $updates
 }
