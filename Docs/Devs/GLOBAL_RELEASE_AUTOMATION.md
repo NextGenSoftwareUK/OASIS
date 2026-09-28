@@ -36,7 +36,7 @@ Runtime GitHub releases use separate generated notes for OASIS Runtime, STAR ODK
 
 Every NuGet package receives the same structure in its embedded `PackageReleaseNotes`: package description, target version, changes to that project since its latest listed NuGet publication, and a package-path changelog link. A package with no prior listed version receives initial-release contents and starts at `1.0.0`.
 
-When WEB4-WEB6 API advancement is explicitly enabled, the Swagger-linked release-history files are updated independently. Each new entry contains the API introduction, commits affecting that API since its previous related release tag, and a full comparison link. WEB7-WEB10 histories and versions are not advanced by this option.
+When WEB4-WEB6 API advancement is explicitly enabled, the Swagger-linked release-history files are updated independently. Each new entry contains the API introduction, every distinct non-merge commit affecting that API since its previous related release tag, a direct link to each commit, and a full comparison link. The generator does not truncate long version changelogs. WEB7-WEB10 histories and versions are not advanced by this option.
 
 ## WEB4-WEB6 API versions and Swagger histories
 
