@@ -71,6 +71,11 @@ try {
             if ([version]$required -notin $versions) { throw "Release history is missing ${required}: $($history.Path)" }
         }
     }
+
+    $releaseScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Invoke-OASISGlobalRelease.ps1') -Raw
+    if ($releaseScript -match 'Select-Object -First 100') { throw 'API release notes must not truncate their version changelog.' }
+    if (-not $releaseScript.Contains('--format=%H%x09%s')) { throw 'API release notes must retain commit identities for linked changelogs.' }
+    if (-not $releaseScript.Contains('https://github.com/$($history.Repository)/commit/')) { throw 'API release-note commits must link to their owning repository.' }
 }
 finally {
     if (Test-Path -LiteralPath $testOutput) { Remove-Item -LiteralPath $testOutput -Recurse -Force }
