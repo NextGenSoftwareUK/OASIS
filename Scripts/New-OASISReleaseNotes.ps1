@@ -59,13 +59,15 @@ $tagCandidates = foreach ($tag in @(& git -C $repoRoot tag --list)) {
 $previous = @($tagCandidates | Sort-Object Version -Descending | Select-Object -First 1)
 $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
 $logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $definition.Paths
-$commits = @(& git @logArgs | ForEach-Object {
+$allCommits = @(& git @logArgs | ForEach-Object {
     $parts = $_ -split "`t", 2
     $subject = if ($parts.Count -eq 2) { $parts[1] -replace '^\s*[-*]\s*', '' } else { '' }
     if ($subject -and $subject -notmatch '^(Promote |Merge |chore: bump submodule|chore: update submodule)') {
         [pscustomobject]@{ Sha = $parts[0]; Subject = $subject }
     }
 } | Group-Object Subject | ForEach-Object { $_.Group[0] })
+$maximumSummarizedCommits = 100
+$commits = @($allCommits | Select-Object -First $maximumSummarizedCommits)
 
 $features = @($commits | Where-Object Subject -match '^(feat|add|implement)|\b(add|introduc|implement|support|expand)' )
 $fixes = @($commits | Where-Object Subject -match '^(fix|repair|restore|harden)|\b(fix|repair|correct|prevent|stabili[sz]|harden)' )
@@ -96,6 +98,10 @@ else {
     Add-CommitSection $builder 'Features' $features
     Add-CommitSection $builder 'Fixes and hardening' $fixes
     Add-CommitSection $builder 'Other changes' $other
+    if ($allCommits.Count -gt $commits.Count) {
+        [void]$builder.AppendLine("The summary lists the newest $($commits.Count) of $($allCommits.Count) component changes. The full comparison below contains every commit.")
+        [void]$builder.AppendLine()
+    }
 }
 [void]$builder.AppendLine('## Full changelog')
 [void]$builder.AppendLine()
