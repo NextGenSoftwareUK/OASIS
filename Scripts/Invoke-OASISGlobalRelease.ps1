@@ -207,8 +207,9 @@ function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease) 
     $gitArgs += @('--', $projectDirectory)
     $changes = @(& git @gitArgs | ForEach-Object {
         $parts = $_ -split "`t", 2
-        if ($parts.Count -eq 2 -and $parts[1] -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)') {
-            [pscustomobject]@{ Sha = $parts[0]; Subject = $parts[1] }
+        $subject = if ($parts.Count -eq 2) { $parts[1] -replace '^\s*[-*]\s*', '' } else { '' }
+        if ($subject -and $subject -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)') {
+            [pscustomobject]@{ Sha = $parts[0]; Subject = $subject }
         }
     } | Group-Object Subject | ForEach-Object { $_.Group[0] } | Select-Object -First 50)
     $lines = [Collections.Generic.List[string]]::new()
@@ -286,8 +287,8 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         }
         $previous = @($previousTags | Sort-Object Version -Descending | Select-Object -First 1)
         $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
-        $logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=- %s', '--') + $history.Paths
-        $changes = @(& git @logArgs | Where-Object { $_ -notmatch '^- (Merge |Promote |chore: bump submodule|chore: update submodule)' } | Select-Object -Unique | Select-Object -First 100)
+        $logArgs = @('-C', $repoRoot, 'log', $range, '--no-merges', '--format=%s', '--') + $history.Paths
+        $changes = @(& git @logArgs | ForEach-Object { $_ -replace '^\s*[-*]\s*', '' } | Where-Object { $_ -and $_ -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)' } | Select-Object -Unique | Select-Object -First 100 | ForEach-Object { "- $_" })
         if ($ReleaseNotes) { $changes = @("- $ReleaseNotes") + $changes }
         if ($changes.Count -eq 0) { $changes = @('- No API-path changes were detected after the previous release tag; this version records the validated coordinated API source graph.') }
         $changeText = $changes -join "`n"
