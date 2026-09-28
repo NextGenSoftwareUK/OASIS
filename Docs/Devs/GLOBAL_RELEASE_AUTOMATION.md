@@ -56,6 +56,16 @@ WEB7, WEB8, WEB9 and WEB10 are deliberately outside this option. The automation 
 
 Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.2.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
 
+## Individual releases, version modes and preview
+
+The global workflow is the coordinated monthly orchestrator. Every independently releasable component must also have a manual workflow: WEB4, WEB5, WEB6, MCP Server, OASIS Runtime, STAR ODK Runtime, OGEngineClient, Native Endpoint, Our World, ODOOM, OQUAKE, OIDE, ONODE Manager and HyperDrive Client. Each entry calls shared planning/build/publish code; it must not copy release logic. External products run their canonical owning-repository workflow. A missing tested binary workflow is a preview blocker, never permission to create a source-only release.
+
+Each component offers `Automatic` (default), `Patch`, `Minor`, `Major` and `Manual`. Automatic selects major only for `BREAKING CHANGE`, a Conventional Commit `!`, or `release:major`; new public capabilities select minor; fixes, documentation, packaging and internal changes select patch. `release:major`, `release:minor`, `release:patch` and `release:none` override inference. New public packages start at `1.0.0`. Manual versions must be stable SemVer, greater than the latest publication and unused at every destination. No relevant changes stops the release.
+
+`Preview` is the default and never publishes. It produces a retained plan and Actions summary containing the source commit, current/proposed version, bump reason, relevant commits/PRs, full release notes and comparison, assets/platforms, destinations and blockers. When tracked source must change it creates a release-preparation PR. WEB4-WEB6 previews change only the selected API's BootLoader version and Swagger-linked history; all other API versions remain unchanged.
+
+`Publish` accepts only that reviewed plan after its preparation PR reaches `master`. It verifies source commit, version, notes, artifacts and destinations before any mutation; drift requires a fresh preview. Builds and tests finish before publishing. The global workflow exposes the same per-component modes and defaults them to `Automatic`.
+
 ## GitHub Actions run
 
 1. Open **Actions → Global OASIS Release → Run workflow** on `master`.

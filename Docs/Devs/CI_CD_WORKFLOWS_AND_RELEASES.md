@@ -2,6 +2,8 @@
 
 The repeatable monthly process for releasing all NuGet packages, runtimes, OGEngineClient, Native Endpoint and MCP distributions is documented in [GLOBAL_RELEASE_AUTOMATION.md](GLOBAL_RELEASE_AUTOMATION.md).
 
+That guide also defines the required standalone component workflows, automatic and explicit SemVer modes, non-publishing previews, release-preparation PRs and publish-time drift checks. Existing and planned workflows must be described accurately; unavailable game binary pipelines must remain explicit blockers.
+
 This is the source-of-truth map for the workflows in `.github/workflows`. It explains what each workflow proves, what it produces, where releases appear, and which credentials it needs. Update this document whenever a workflow, test suite, release target, or required secret changes.
 
 ## Branch and release model
