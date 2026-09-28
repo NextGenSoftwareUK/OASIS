@@ -380,8 +380,17 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         }
         $previous = @($previousTags | Sort-Object Version -Descending | Select-Object -First 1)
         $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
-        $logArgs = @('-C', $history.GitRoot, 'log', $range, '--no-merges', '--format=%s', '--') + $history.Paths
-        $changes = @(& git @logArgs | ForEach-Object { $_ -replace '^\s*[-*]\s*', '' } | Where-Object { $_ -and $_ -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)' } | Select-Object -Unique | Select-Object -First 100 | ForEach-Object { "- $_" })
+        $logArgs = @('-C', $history.GitRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $history.Paths
+        $seenSubjects = @{}
+        $changes = @(& git @logArgs | ForEach-Object {
+            $parts = $_ -split "`t", 2
+            if ($parts.Count -ne 2) { return }
+            $subject = $parts[1] -replace '^\s*[-*]\s*', ''
+            $key = $subject.Trim().ToLowerInvariant()
+            if (-not $key -or $seenSubjects.ContainsKey($key) -or $subject -match '^(Merge |Promote |chore: bump submodule|chore: update submodule)') { return }
+            $seenSubjects[$key] = $true
+            "- [$($parts[0].Substring(0, 7))](https://github.com/$($history.Repository)/commit/$($parts[0])) $subject"
+        })
         if ($ReleaseNotes) { $changes = @("- $ReleaseNotes") + $changes }
         if ($changes.Count -eq 0) { $changes = @('- No API-path changes were detected after the previous release tag; this version records the validated coordinated API source graph.') }
         $changeText = $changes -join "`n"
