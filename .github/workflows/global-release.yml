@@ -42,7 +42,7 @@ on:
         description: 'Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client'
         required: true
         type: string
-        default: ''
+        default: none
 
 permissions:
   contents: write
