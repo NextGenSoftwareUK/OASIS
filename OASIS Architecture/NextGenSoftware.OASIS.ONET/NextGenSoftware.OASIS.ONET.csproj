@@ -4,6 +4,12 @@
     <PackageId>NextGenSoftware.OASIS.ONET</PackageId>
     <Description>Transport-neutral, Unity-compatible ONET application messaging and HyperDrive synchronization client.</Description>
     <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS; ONET; ONODE; P2P; Edge; Unity; HyperDrive; Synchronization</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
