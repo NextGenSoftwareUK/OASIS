@@ -1,14 +1,7 @@
-
 # WEB6 OASIS AI API RELEASE HISTORY
 
-----------------------------------------------------------------------------------------------------------------------------
-## 3.2.0 (27/09/26)
-
-- Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
-- Published by the automated OASIS global release process after CI validation.
-
-This needs to be updated whenever we do any work that will affect the WEB6 AI API.
-This file is linked to the Swagger documentation for the WEB6 AI API.
+This document records every public WEB6 OASIS AI API version in chronological order, oldest to newest.
+It is the source history synchronized to the public OASIS repository and linked by WEB6 Swagger.
 
 ----------------------------------------------------------------------------------------------------------------------------
 ## 1.0.0 (22/06/26)
@@ -47,3 +40,9 @@ Major upgrade establishing WEB6 as the production-grade unified AI layer.
 - Leela AI added as a new WEB6 AI provider.
 - Swagger 500 fixes: custom schema IDs, open-form JsonObject/JsonNode/JsonArray mappings, ResolveConflictingActions, excluded SSE/WebSocket/discovery routes from API explorer.
 - Various bug fixes and performance improvements.
+
+----------------------------------------------------------------------------------------------------------------------------
+## 3.2.0 (27/09/26)
+
+- Unified HyperDrive v2, ONET and offline synchronization; cross-game inventory, GeoNFT and quest progress; API, provider, MCP, runtime and release-pipeline improvements.
+- Published by the automated OASIS global release process after CI validation.
