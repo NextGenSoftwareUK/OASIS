@@ -1,0 +1,123 @@
+name: Reusable API Release
+
+on:
+  workflow_call:
+    inputs:
+      api: { required: true, type: string }
+      operation: { required: true, type: string }
+      version_mode: { required: true, type: string }
+      manual_version: { required: false, type: string, default: '' }
+      release_notes: { required: false, type: string, default: '' }
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  preview:
+    if: inputs.operation == 'Preview'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Generate exact API release preparation
+        shell: pwsh
+        run: |
+          $switch = @{ WEB4='AdvanceWeb4ApiVersion'; WEB5='AdvanceWeb5ApiVersion'; WEB6='AdvanceWeb6ApiVersion' }['${{ inputs.api }}']
+          if (-not $switch) { throw 'api must be WEB4, WEB5, or WEB6.' }
+          $arguments = @{ Operation='Plan'; NuGetPackages=$false; OASISRuntime=$false; STARRuntime=$false; OGEngineClient=$false; NativeEndpoint=$false; MCPServer=$false; VersionMode='${{ inputs.version_mode }}'; ManualVersion='${{ inputs.manual_version }}'; ReleaseNotes='${{ inputs.release_notes }}' }
+          $arguments[$switch] = $true
+          ./Scripts/Invoke-OASISGlobalRelease.ps1 @arguments
+          git diff --exit-code -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' | Out-Null
+          if ($LASTEXITCODE -eq 0) { throw 'Preview produced no BootLoader version change.' }
+          "## ${{ inputs.api }} release preview" >> $env:GITHUB_STEP_SUMMARY
+          "``````diff" >> $env:GITHUB_STEP_SUMMARY
+          git diff -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' '*RELEASE HISTORY.md' >> $env:GITHUB_STEP_SUMMARY
+          "``````" >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.api }}-release-preview-${{ github.run_id }}
+          path: |
+            artifacts/global-release/release-plan.json
+            OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs
+            **/*RELEASE HISTORY.md
+      - name: Create release-preparation pull request
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          $branch = "release/${{ inputs.api }}-${{ github.run_id }}"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          $dependencyPr = ''
+          if ('${{ inputs.api }}' -in @('WEB5','WEB6')) {
+            $submodule = if ('${{ inputs.api }}' -eq 'WEB5') { 'STAR ODK' } else { 'WEB6' }
+            $repository = if ('${{ inputs.api }}' -eq 'WEB5') { 'NextGenSoftwareUK/STAR-ODK' } else { 'NextGenSoftwareUK/OASIS-WEB6' }
+            $history = if ('${{ inputs.api }}' -eq 'WEB5') { 'NextGenSoftware.OASIS.STAR.WebAPI/STAR API RELEASE HISTORY.md' } else { 'NextGenSoftware.OASIS.Web6.WebAPI/WEB6 API RELEASE HISTORY.md' }
+            $pin = if ('${{ inputs.api }}' -eq 'WEB5') { 'STAR_ODK_COMMIT' } else { 'OASIS_WEB6_COMMIT' }
+            git -C $submodule config user.name github-actions[bot]
+            git -C $submodule config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git -C $submodule checkout -b $branch
+            git -C $submodule add -- $history
+            git -C $submodule commit -m "Prepare ${{ inputs.api }} API release history"
+            git -C $submodule push origin $branch
+            $dependencyPr = gh pr create --repo $repository --base main --head $branch --title "Prepare ${{ inputs.api }} API release history" --body 'Generated release history for the reviewed API release plan. Merge this dependency PR before the parent release-preparation PR.'
+            $sha = (git -C $submodule rev-parse HEAD).Trim()
+            $manifest = Get-Content Docker/oasis-dependency-versions.env -Raw
+            $manifest = [regex]::Replace($manifest, "(?m)^$pin=[0-9a-f]+$", "$pin=$sha")
+            [IO.File]::WriteAllText((Resolve-Path 'Docker/oasis-dependency-versions.env'), $manifest, [Text.UTF8Encoding]::new($false))
+          }
+          git checkout -b $branch
+          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' 'Docker/oasis-dependency-versions.env' 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md' 'STAR ODK' 'WEB6'
+          git commit -m "Prepare ${{ inputs.api }} API release"
+          git push origin $branch
+          $body = "Generated from reviewed release mode **${{ inputs.version_mode }}**. The diff contains only the selected API version, its Swagger-linked release history, and any required exact dependency pin."
+          if ($dependencyPr) { $body += "`n`nDependency PR (merge first): $dependencyPr" }
+          gh pr create --base master --head $branch --title "Prepare ${{ inputs.api }} API release" --body $body
+
+  publish:
+    if: inputs.operation == 'Publish'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0, submodules: recursive, token: '${{ secrets.PRIVATE_SUBMODULE_PAT }}' }
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with: { dotnet-version: 10.0.x }
+      - name: Resolve and validate merged release
+        id: release
+        shell: pwsh
+        run: |
+          if ('${{ github.ref_name }}' -ne 'master') { throw 'API publishing must run from master after the preview PR is merged.' }
+          $map = @{
+            WEB4=@('OASISAPIVersion','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj','ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md')
+            WEB5=@('STARAPIVersion','STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj','STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/STAR API RELEASE HISTORY.md')
+            WEB6=@('WEB6APIVersion','WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj','WEB6/NextGenSoftware.OASIS.Web6.WebAPI/WEB6 API RELEASE HISTORY.md')
+          }
+          $item=$map['${{ inputs.api }}']; $boot=Get-Content 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' -Raw
+          $version=[regex]::Match($boot,"$($item[0]) \{ get; set; \} = `"(?<v>\d+\.\d+\.\d+)`"").Groups['v'].Value
+          if (-not $version) { throw 'Could not resolve API version.' }
+          if (-not (Select-String -LiteralPath $item[2] -SimpleMatch "## $version")) { throw 'Swagger release history does not contain the current API version.' }
+          $historyText = Get-Content -LiteralPath $item[2] -Raw
+          $entry = [regex]::Match($historyText, "(?ms)^## $([regex]::Escape($version)).*?(?=^## |^-{20,}|\z)").Value.Trim()
+          if (-not $entry) { throw 'Could not extract the current API release-history entry.' }
+          New-Item artifacts -ItemType Directory -Force | Out-Null
+          [IO.File]::WriteAllText((Join-Path (Resolve-Path artifacts) 'api-release-notes.md'), $entry + "`n", [Text.UTF8Encoding]::new($false))
+          "version=$version" >> $env:GITHUB_OUTPUT; "project=$($item[1])" >> $env:GITHUB_OUTPUT; "history=$($item[2])" >> $env:GITHUB_OUTPUT
+      - name: Build selected API
+        run: dotnet publish '${{ steps.release.outputs.project }}' -c Release --nologo
+      - name: Create API release
+        env: { GH_TOKEN: '${{ github.token }}' }
+        shell: pwsh
+        run: gh release create '${{ inputs.api }}-v${{ steps.release.outputs.version }}' --title '${{ inputs.api }} API v${{ steps.release.outputs.version }}' --notes-file 'artifacts/api-release-notes.md' --verify-tag=false
