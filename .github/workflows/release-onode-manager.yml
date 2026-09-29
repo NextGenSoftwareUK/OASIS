@@ -82,7 +82,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Run unit tests
-        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "github-actions"
+        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "trx"
 
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
   build-windows:
