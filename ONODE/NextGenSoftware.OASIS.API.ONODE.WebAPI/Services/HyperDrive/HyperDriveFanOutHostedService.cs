@@ -41,12 +41,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
             var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
-                throw new InvalidOperationException(providerResult?.Message ?? "The default hosted sync provider could not be activated.");
+            {
+                _logger.LogError("HyperDrive fan-out is unavailable: {Message}",
+                    providerResult?.Message ?? "The default hosted sync provider could not be activated.");
+                return;
+            }
             if (!(providerResult.Result is IHostedHyperDriveSyncStore))
-                throw new InvalidOperationException(
-                    $"Durable hosted synchronization is enabled but provider '{providerResult.Result.ProviderName}' does not implement its authoritative sync store contract.");
+            {
+                _logger.LogWarning(
+                    "HyperDrive fan-out is disabled because active failover provider {ProviderName} does not expose the authoritative sync store contract.",
+                    providerResult.Result.ProviderName);
+                return;
+            }
             if (!(providerResult.Result is IHostedHyperDriveFanOutStore fanOutStore))
-                throw new InvalidOperationException($"Hosted sync provider '{providerResult.Result.ProviderName}' must expose its durable fan-out outbox.");
+            {
+                _logger.LogWarning(
+                    "HyperDrive fan-out is disabled because active failover provider {ProviderName} does not expose a durable fan-out outbox.",
+                    providerResult.Result.ProviderName);
+                return;
+            }
 
             var targets = ResolveTargets(providerResult.Result);
             var dispatcher = new HostedHyperDriveFanOutDispatcher(fanOutStore,

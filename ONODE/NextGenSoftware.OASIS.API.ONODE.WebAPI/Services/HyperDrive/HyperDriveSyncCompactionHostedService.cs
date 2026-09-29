@@ -31,11 +31,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
             var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
-                throw new InvalidOperationException(providerResult?.Message ??
-                    "The default hosted sync provider could not be activated for compaction.");
+            {
+                _logger.LogError("HyperDrive sync-history compaction is unavailable: {Message}",
+                    providerResult?.Message ?? "The default hosted sync provider could not be activated for compaction.");
+                return;
+            }
             if (!(providerResult.Result is IHostedHyperDriveMaintenanceStore maintenanceStore))
-                throw new InvalidOperationException(
-                    $"Hosted sync compaction is enabled but provider '{providerResult.Result.ProviderName}' does not implement its maintenance contract.");
+            {
+                _logger.LogWarning(
+                    "HyperDrive sync-history compaction is disabled because active failover provider {ProviderName} does not expose its maintenance contract.",
+                    providerResult.Result.ProviderName);
+                return;
+            }
 
             var interval = TimeSpan.FromMinutes(config.SyncHistoryCompactionIntervalMinutes);
             _logger.LogInformation(
