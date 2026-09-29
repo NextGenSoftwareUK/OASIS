@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 {
@@ -9,15 +10,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     public sealed class OASISInitializationHostedService : IHostedService
     {
         private readonly HyperDriveHostedProviderAccessor _providerAccessor;
+        private readonly ILogger<OASISInitializationHostedService> _logger;
 
-        public OASISInitializationHostedService(HyperDriveHostedProviderAccessor providerAccessor) =>
+        public OASISInitializationHostedService(
+            HyperDriveHostedProviderAccessor providerAccessor,
+            ILogger<OASISInitializationHostedService> logger)
+        {
             _providerAccessor = providerAccessor;
+            _logger = logger;
+        }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var result = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (result == null || result.IsError || result.Result == null)
-                throw new InvalidOperationException(result?.Message ?? "OASIS and its default provider could not be initialized.");
+            {
+                _logger.LogError(
+                    "OASIS/default-provider initialization failed; the API host will remain online and provider-backed operations will report degraded availability: {Message}",
+                    result?.Message ?? "No provider result was returned.");
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
