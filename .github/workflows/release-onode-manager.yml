@@ -52,6 +52,18 @@ jobs:
         with:
           path: OASIS
 
+      - name: Resolve pinned ONODE Manager source
+        id: onode-manager-source
+        shell: bash
+        run: echo "sha=$(git -C OASIS rev-parse HEAD:ONODE/ONODEManager)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned ONODE Manager
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/ONODEManager
+          ref: ${{ steps.onode-manager-source.outputs.sha }}
+          path: OASIS/ONODE/ONODEManager
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
@@ -70,7 +82,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Run unit tests
-        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "github-actions" --no-restore
+        run: dotnet test OASIS/ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Tests/NextGenSoftware.OASIS.ONODE.Tests.csproj --logger "trx"
 
   # ── Windows (MSIX via Velopack) ────────────────────────────────────────────
   build-windows:
@@ -82,6 +94,18 @@ jobs:
         with:
           path: OASIS
 
+      - name: Resolve pinned ONODE Manager source
+        id: onode-manager-source
+        shell: bash
+        run: echo "sha=$(git -C OASIS rev-parse HEAD:ONODE/ONODEManager)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned ONODE Manager
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/ONODEManager
+          ref: ${{ steps.onode-manager-source.outputs.sha }}
+          path: OASIS/ONODE/ONODEManager
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
@@ -141,6 +165,18 @@ jobs:
         with:
           path: OASIS
 
+      - name: Resolve pinned ONODE Manager source
+        id: onode-manager-source
+        shell: bash
+        run: echo "sha=$(git -C OASIS rev-parse HEAD:ONODE/ONODEManager)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned ONODE Manager
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/ONODEManager
+          ref: ${{ steps.onode-manager-source.outputs.sha }}
+          path: OASIS/ONODE/ONODEManager
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
@@ -200,6 +236,18 @@ jobs:
         with:
           path: OASIS
 
+      - name: Resolve pinned ONODE Manager source
+        id: onode-manager-source
+        shell: bash
+        run: echo "sha=$(git -C OASIS rev-parse HEAD:ONODE/ONODEManager)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned ONODE Manager
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/ONODEManager
+          ref: ${{ steps.onode-manager-source.outputs.sha }}
+          path: OASIS/ONODE/ONODEManager
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
