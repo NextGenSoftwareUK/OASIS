@@ -38,10 +38,47 @@ Run commands from the OASIS repository root.
 | OASIS MCP npm package | [`@oasisomniverse/mcp-server`](https://www.npmjs.com/package/@oasisomniverse/mcp-server) | `WEB6/npm` |
 | OASIS MCP .NET tool | [`NextGenSoftware.OASIS.MCP.Server`](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server) | `WEB6/NextGenSoftware.OASIS.MCP.Server/bin/Release` and the workflow's temporary `nupkgs` directory |
 | ONODE Manager installers | [OASIS GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases), under tags named `onode-manager-v<version>` | `release/win-x64`, `release/osx-x64`, and `release/linux-x64` in the release workflow |
-| Our World signed Android release | Distribution store selected by the release operator | `artifacts/our-world-release` |
-| ODOOM | Distribution store selected by the release operator | `OASIS Omniverse/OGames/ODOOM/build` |
-| OQuake | Distribution store selected by the release operator | `OASIS Omniverse/OGames/OQuake/build` |
+| Our World multi-platform release | [Our World GitHub Releases](https://github.com/NextGenSoftwareUK/Our-World/releases); no complete release is published yet | The owning workflow packages Android, iOS, Windows, Linux, macOS and tvOS; local signed Android output is `artifacts/our-world-release` |
+| ODOOM | [ODOOM v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/ODOOM_v.1.0.0_ALPHA) | `OASIS Omniverse/OGames/ODOOM/build` |
+| OQuake | [OQuake v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/OQUAKE_v1.0.0_ALPHA) | `OASIS Omniverse/OGames/OQuake/build` |
 | Unity Edge package | Unity Asset Store release process | `artifacts/unity-store-candidate` or `artifacts/unity-current` |
+
+## Release validation status (28 September 2026)
+
+Build validation and publication are separate gates. A successful rehearsal proves that the workflow can compile, package and upload temporary Actions artifacts. It does not create a permanent GitHub release when `publish=false`.
+
+| Product | Current validation | Current published release |
+|---|---|---|
+| ODOOM | The release rehearsal builds and packages Windows x64, Linux x64 and macOS successfully. Evidence: [Actions run 36490130954](https://github.com/NextGenSoftwareUK/ODOOM/actions/runs/36490130954). | [ODOOM v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/ODOOM_v.1.0.0_ALPHA) now contains the verified Windows x64, Linux x64 and macOS arm64 archives. |
+| OQuake | The release rehearsal builds and packages Windows x64, Linux x64 and macOS arm64 successfully. Evidence: [Actions run 36493577583](https://github.com/NextGenSoftwareUK/OQUAKE/actions/runs/36493577583). | [OQuake v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/OQUAKE_v1.0.0_ALPHA) now contains the verified Windows x64, Linux x64 and macOS arm64 archives. |
+| Our World | Source preparation and workflow validation are complete, but hosted release builds are blocked at Unity activation before the platform matrix can run. | No GitHub release has been published. |
+
+### Our World Unity licensing blocker
+
+The configured `UNITY_LICENSE` secret contains `UnityEntitlementLicense.xml`. That is the current entitlement file produced by the activated Unity Personal installation. The GameCI builder used by the hosted GitHub runner requires the older `Unity_lic.ulf` license payload, plus `UNITY_EMAIL` and `UNITY_PASSWORD`. Renaming or copying the XML does not convert its format and would only hide the broken licensing invariant, so the workflow validates the payload and fails with a direct diagnostic.
+
+Complete the Our World release through one of Unity's supported execution routes:
+
+1. **Self-hosted GitHub Actions runner (recommended free route):** install the runner on a machine where Unity 2022.3.62f3 is already activated with Unity Personal, apply the appropriate runner labels, and select that runner in the Our World release workflow. Unity then uses the machine's valid activation rather than importing a legacy ULF on an ephemeral hosted runner.
+2. **Unity Build Automation:** connect the Our World repository and build Android, iOS, Windows, Linux, macOS and tvOS through Unity's licensed build service. Store signing credentials in the service, never in Git.
+3. **Unity Pro serial:** configure GameCI serial activation secrets for hosted runners when a Pro seat is available.
+
+After selecting a route, run the release workflow first with publication disabled. Every supported platform job must succeed and upload its expected package. Then run the same reviewed source commit with publication enabled and verify the permanent release or store artifacts. Android and iOS are the primary Our World targets; Windows is also required for desktop testing. A successful source compile or an Actions artifact alone is not a published game release.
+
+### Current public distribution snapshot
+
+| Component | Public location and platform coverage |
+|---|---|
+| OASIS Runtime 5.0.1 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Runtime-v5.0.1), one runtime archive. |
+| STAR ODK Runtime / CLI 4.0.1 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/STAR-ODK-Runtime-v4.0.1), one runtime/CLI archive. |
+| OGEngineClient 2.0.2 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OGEngineClient-v2.0.2), one client archive. Platform-specific native clients are also embedded in game and MCP build outputs where applicable. |
+| Native Integrated Endpoint 2.0.2 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.0.2), one endpoint archive. |
+| MCP Server 2.0.5 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/mcp-v2.0.5) with Windows x64, Linux x64/arm64 and macOS x64/arm64 executables; also [NuGet](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server) and [npm](https://www.npmjs.com/package/@oasisomniverse/mcp-server). |
+| HyperDrive Client 1.0.0 Alpha | [GitHub prerelease](https://github.com/NextGenSoftwareUK/OASIS-HyperDrive-Client/releases/tag/v1.0.0) with Windows x64, Linux x64, macOS x64 and macOS arm64 executables. |
+| ONODE Manager 1.0.0 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0) with a Windows installer and portable archive, Linux AppImage, and macOS installer and portable archive. |
+| OIDE 1.0.0 Alpha | [GitHub prerelease](https://github.com/NextGenSoftwareUK/OIDE/releases/tag/v1.0.0) with a Windows installer, Linux AppImage and macOS arm64 DMG. |
+
+This table is a dated verification record. GitHub release pages are authoritative after later releases. For a production claim, inspect the release assets themselves; do not infer publication from a successful non-publishing rehearsal.
 
 The MCP workflow is `.github/workflows/publish-mcp.yml`. Pull requests and normal branch pushes build and protocol-test all five native binaries, but do not publish them. A release operator dispatches the workflow with an exact version and `publish=true`; only after every build and package check passes does it create the GitHub release and publish npm and NuGet packages.
 
