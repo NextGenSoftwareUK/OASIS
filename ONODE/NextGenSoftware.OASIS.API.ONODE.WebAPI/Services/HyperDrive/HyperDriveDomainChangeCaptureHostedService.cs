@@ -35,11 +35,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
             var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
-                throw new InvalidOperationException(providerResult?.Message ??
-                    "The default domain change-capture provider could not be activated.");
+            {
+                _logger.LogError("HyperDrive domain change capture is unavailable: {Message}",
+                    providerResult?.Message ?? "The default domain change-capture provider could not be activated.");
+                return;
+            }
             if (!(providerResult.Result is IHostedHyperDriveProvider hostedProvider))
-                throw new InvalidOperationException(
-                    $"Hosted synchronization is enabled but provider '{providerResult.Result.ProviderName}' does not implement the complete hosted HyperDrive provider contract.");
+            {
+                _logger.LogWarning(
+                    "HyperDrive domain change capture is disabled because active failover provider {ProviderName} does not implement the hosted HyperDrive provider contract.",
+                    providerResult.Result.ProviderName);
+                return;
+            }
 
             await EnsureDomainCaptureInitializedAsync(hostedProvider, stoppingToken).ConfigureAwait(false);
 

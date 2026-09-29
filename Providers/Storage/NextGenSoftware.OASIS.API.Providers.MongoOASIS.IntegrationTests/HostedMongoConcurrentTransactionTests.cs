@@ -11,6 +11,40 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 public sealed class HostedMongoConcurrentTransactionTests
 {
     [Fact]
+    public async Task ActivationMigratesLegacyPublicIdentityIndexWithoutAnUnprotectedWindow()
+    {
+        string connectionString = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION")
+            ?? throw new InvalidOperationException("OASIS_MONGO_REPLICA_SET_CONNECTION is required.");
+        string databaseName = "oasis_identity_index_" + Guid.NewGuid().ToString("N")[..12];
+        var client = new MongoClient(connectionString);
+        try
+        {
+            var collection = client.GetDatabase(databaseName)
+                .GetCollection<MongoDB.Bson.BsonDocument>("Holon");
+            await collection.Indexes.CreateOneAsync(new CreateIndexModel<MongoDB.Bson.BsonDocument>(
+                Builders<MongoDB.Bson.BsonDocument>.IndexKeys.Ascending("HolonId"),
+                new CreateIndexOptions { Name = "ux_holon_public_identity", Unique = true }));
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(
+                connectionString, databaseName);
+
+            var activation = await provider.ActivateProviderAsync();
+
+            Assert.False(activation.IsError, activation.Message);
+            var indexes = await (await collection.Indexes.ListAsync()).ToListAsync();
+            Assert.DoesNotContain(indexes, index => index["name"].AsString == "ux_holon_public_identity");
+            var replacement = Assert.Single(indexes,
+                index => index["name"].AsString == "ux_holon_public_identity_canonical");
+            Assert.True(replacement["unique"].AsBoolean);
+            Assert.Equal(true,
+                replacement["partialFilterExpression"]["ProviderUniqueStorageKey.0"]["$exists"]);
+        }
+        finally
+        {
+            await client.DropDatabaseAsync(databaseName);
+        }
+    }
+
+    [Fact]
     public async Task PublicIdentityIndexAllowsLegacyUnkeyedHistory()
     {
         string connectionString = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION")
@@ -43,7 +77,7 @@ public sealed class HostedMongoConcurrentTransactionTests
             Assert.False(activation.IsError, activation.Message);
             var indexes = await (await collection.Indexes.ListAsync()).ToListAsync();
             var identityIndex = Assert.Single(indexes,
-                index => index["name"].AsString == "ux_holon_public_identity");
+                index => index["name"].AsString == "ux_holon_public_identity_canonical");
             Assert.True(identityIndex["unique"].AsBoolean);
             Assert.Equal(true, identityIndex["partialFilterExpression"]["ProviderUniqueStorageKey.0"]["$exists"]);
         }

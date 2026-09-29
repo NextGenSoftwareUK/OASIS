@@ -30,10 +30,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             }
             var providerResult = await _providerAccessor.GetAsync().ConfigureAwait(false);
             if (providerResult == null || providerResult.IsError || providerResult.Result == null)
-                throw new InvalidOperationException(providerResult?.Message ?? "The hosted command provider could not be activated.");
+            {
+                _logger.LogError("HyperDrive command worker is unavailable: {Message}",
+                    providerResult?.Message ?? "The hosted command provider could not be activated.");
+                return;
+            }
             if (!(providerResult.Result is IHostedHyperDriveCommandStore store))
-                throw new InvalidOperationException(
-                    $"Hosted sync provider '{providerResult.Result.ProviderName}' must expose its durable command inbox.");
+            {
+                _logger.LogWarning(
+                    "HyperDrive command worker is disabled because active failover provider {ProviderName} does not expose a durable command inbox.",
+                    providerResult.Result.ProviderName);
+                return;
+            }
 
             var executor = new HyperDriveCommandExecutor(providerResult.Result);
             _logger.LogInformation("HyperDrive ordered command worker {WorkerId} started.", _workerId);

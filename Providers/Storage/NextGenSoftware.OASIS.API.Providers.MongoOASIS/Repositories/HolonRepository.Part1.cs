@@ -16,6 +16,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
     public partial class HolonRepository
     {
+        private const string LegacyPublicIdentityIndexName = "ux_holon_public_identity";
+        private const string PublicIdentityIndexName = "ux_holon_public_identity_canonical";
         private MongoDbContext _dbContext;
 
         public HolonRepository(MongoDbContext dbContext)
@@ -30,10 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 Builders<Holon>.IndexKeys.Ascending(x => x.HolonId),
                 new CreateIndexOptions<Holon>
                 {
-                    Name = "ux_holon_public_identity", Unique = true,
+                    Name = PublicIdentityIndexName, Unique = true,
                     PartialFilterExpression = canonicalRecord
                 });
             await _dbContext.Holon.Indexes.CreateOneAsync(index);
+            await DropLegacyPublicIdentityIndexAsync();
         }
 
         public void EnsurePublicIdentityIndex()
@@ -43,10 +46,35 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 Builders<Holon>.IndexKeys.Ascending(x => x.HolonId),
                 new CreateIndexOptions<Holon>
                 {
-                    Name = "ux_holon_public_identity", Unique = true,
+                    Name = PublicIdentityIndexName, Unique = true,
                     PartialFilterExpression = canonicalRecord
                 });
             _dbContext.Holon.Indexes.CreateOne(index);
+            DropLegacyPublicIdentityIndex();
+        }
+
+        private async Task DropLegacyPublicIdentityIndexAsync()
+        {
+            try
+            {
+                await _dbContext.Holon.Indexes.DropOneAsync(LegacyPublicIdentityIndexName);
+            }
+            catch (MongoCommandException ex) when (ex.Code == 27)
+            {
+                // Another replica completed the idempotent migration first.
+            }
+        }
+
+        private void DropLegacyPublicIdentityIndex()
+        {
+            try
+            {
+                _dbContext.Holon.Indexes.DropOne(LegacyPublicIdentityIndexName);
+            }
+            catch (MongoCommandException ex) when (ex.Code == 27)
+            {
+                // Another replica completed the idempotent migration first.
+            }
         }
 
         public async Task<OASISResult<Holon>> AddAsync(Holon holon)
