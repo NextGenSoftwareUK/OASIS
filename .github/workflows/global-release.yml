@@ -54,6 +54,11 @@ on:
         required: false
         type: string
         default: ''
+      star_existing_version:
+        description: Existing STAR X.Y.Z release to rebuild in place (STAR-only maintenance)
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -111,7 +116,14 @@ jobs:
         run: |
           $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
           "oasis_version=$($plan.releaseVersions.oasisRuntime)" >> $env:GITHUB_OUTPUT
-          "star_version=$($plan.releaseVersions.starRuntime)" >> $env:GITHUB_OUTPUT
+          $starVersion = '${{ inputs.star_existing_version }}'
+          if ($starVersion) {
+            if ('${{ inputs.star_runtime }}' -ne 'true' -or '${{ inputs.nuget_packages }}' -eq 'true' -or '${{ inputs.oasis_runtime }}' -eq 'true' -or '${{ inputs.ogengine_client }}' -eq 'true' -or '${{ inputs.native_endpoint }}' -eq 'true' -or '${{ inputs.mcp_server }}' -eq 'true' -or '${{ inputs.optional_components }}' -ne 'none') { throw 'star_existing_version is valid only for a STAR-only maintenance release.' }
+            if ($starVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'star_existing_version must be X.Y.Z.' }
+            gh release view "STAR-ODK-Runtime-v$starVersion" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "STAR-ODK-Runtime-v$starVersion does not exist." }
+          } else { $starVersion = $plan.releaseVersions.starRuntime }
+          "star_version=$starVersion" >> $env:GITHUB_OUTPUT
           "ogengine_version=$($plan.releaseVersions.ogEngineClient)" >> $env:GITHUB_OUTPUT
           "native_version=$($plan.releaseVersions.nativeEndpoint)" >> $env:GITHUB_OUTPUT
           "mcp_version=$($plan.releaseVersions.mcpServer)" >> $env:GITHUB_OUTPUT
@@ -186,7 +198,7 @@ jobs:
           path: artifacts/global-release/nuget/*.nupkg
 
   runtime-assets:
-    if: inputs.oasis_runtime || inputs.star_runtime || inputs.ogengine_client || inputs.native_endpoint
+    if: inputs.oasis_runtime || inputs.ogengine_client || inputs.native_endpoint
     needs: plan
     runs-on: windows-latest
     timeout-minutes: 180
@@ -222,11 +234,6 @@ jobs:
           if ('${{ inputs.native_endpoint }}' -eq 'true') {
             Compress-Archive artifacts/global-release/native/* "artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip"
           }
-          if ('${{ inputs.star_runtime }}' -eq 'true') {
-            dotnet publish 'STAR ODK/NextGenSoftware.OASIS.STAR.CLI/NextGenSoftware.OASIS.STAR.CLI.csproj' -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ needs.plan.outputs.star_version }} -o artifacts/global-release/star
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            Compress-Archive artifacts/global-release/star/* "artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.zip"
-          }
           if ('${{ inputs.ogengine_client }}' -eq 'true') {
             dotnet publish 'OASIS Omniverse/OGEngineClient/OGEngineClient.csproj' -c Release -p:PublishAot=false -p:Version=${{ needs.plan.outputs.ogengine_version }} -o artifacts/global-release/ogengine
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -237,7 +244,6 @@ jobs:
         run: |
           New-Item artifacts/global-release/release-notes -ItemType Directory -Force | Out-Null
           if ('${{ inputs.oasis_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OASISRuntime -Version '${{ needs.plan.outputs.oasis_version }}' -OutputPath 'artifacts/global-release/release-notes/oasis-runtime.md' }
-          if ('${{ inputs.star_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/release-notes/star-runtime.md' }
           if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version '${{ needs.plan.outputs.ogengine_version }}' -OutputPath 'artifacts/global-release/release-notes/ogengine-client.md' }
           if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version '${{ needs.plan.outputs.native_version }}' -OutputPath 'artifacts/global-release/release-notes/native-endpoint.md' }
       - uses: actions/upload-artifact@v7
@@ -252,9 +258,89 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if ('${{ inputs.oasis_runtime }}' -eq 'true') { gh release create 'OASIS-Runtime-v${{ needs.plan.outputs.oasis_version }}' 'artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip' --title 'OASIS Runtime v${{ needs.plan.outputs.oasis_version }}' --notes-file 'artifacts/global-release/release-notes/oasis-runtime.md' --verify-tag=false }
-          if ('${{ inputs.star_runtime }}' -eq 'true') { gh release create 'STAR-ODK-Runtime-v${{ needs.plan.outputs.star_version }}' 'artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.zip' --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/release-notes/star-runtime.md' --verify-tag=false }
           if ('${{ inputs.ogengine_client }}' -eq 'true') { gh release create 'OGEngineClient-v${{ needs.plan.outputs.ogengine_version }}' 'artifacts/global-release/assets/OGEngineClient.v${{ needs.plan.outputs.ogengine_version }}.zip' --title 'OGEngineClient v${{ needs.plan.outputs.ogengine_version }}' --notes-file 'artifacts/global-release/release-notes/ogengine-client.md' --verify-tag=false }
           if ('${{ inputs.native_endpoint }}' -eq 'true') { gh release create 'Native-Endpoint-v${{ needs.plan.outputs.native_version }}' 'artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip' --title 'OASIS API Integrated Native Endpoint v${{ needs.plan.outputs.native_version }}' --notes-file 'artifacts/global-release/release-notes/native-endpoint.md' --verify-tag=false }
+
+  star-runtime-assets:
+    if: inputs.star_runtime
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-latest, rid: linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: macos-latest, rid: osx-arm64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish STAR Runtime and CLI
+        shell: pwsh
+        run: |
+          $output = 'artifacts/global-release/star/${{ matrix.rid }}'
+          dotnet publish 'STAR ODK/NextGenSoftware.OASIS.STAR.CLI/NextGenSoftware.OASIS.STAR.CLI.csproj' -c Release -r '${{ matrix.rid }}' --self-contained true -p:PublishSingleFile=true -p:Version='${{ needs.plan.outputs.star_version }}' -o $output
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item artifacts/global-release/assets -ItemType Directory -Force | Out-Null
+          Compress-Archive "$output/*" "artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.${{ matrix.rid }}.zip"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: star-runtime-${{ matrix.rid }}
+          path: artifacts/global-release/assets/*.zip
+          if-no-files-found: error
+
+  star-runtime-release:
+    if: inputs.star_runtime
+    needs: [plan, star-runtime-assets]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: star-runtime-*
+          path: artifacts/global-release/assets
+          merge-multiple: true
+      - name: Verify complete STAR platform set
+        shell: pwsh
+        run: |
+          $expected = @('win-x64', 'linux-x64', 'linux-arm64', 'osx-x64', 'osx-arm64')
+          foreach ($rid in $expected) {
+            $path = "artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.$rid.zip"
+            if (-not (Test-Path -LiteralPath $path)) { throw "Missing required STAR archive: $path" }
+          }
+      - name: Publish or preview STAR release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = 'STAR-ODK-Runtime-v${{ needs.plan.outputs.star_version }}'
+          if ('${{ inputs.publish }}' -ne 'true') { Get-ChildItem artifacts/global-release/assets/*.zip | ForEach-Object { "- $($_.Name)" >> $env:GITHUB_STEP_SUMMARY }; exit 0 }
+          $existingVersion = '${{ inputs.star_existing_version }}'
+          if ($existingVersion) {
+            gh release upload $tag artifacts/global-release/assets/*.zip --clobber
+          } else {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/star-runtime.md'
+            gh release create $tag artifacts/global-release/assets/*.zip --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/star-runtime.md' --verify-tag=false
+          }
 
   mcp:
     if: inputs.mcp_server

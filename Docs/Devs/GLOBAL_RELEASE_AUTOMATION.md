@@ -12,7 +12,7 @@ All component switches default to **on**:
 |---|---|
 | All first-party NuGet projects | One validated `.nupkg` per project, including packages that have never been published |
 | OASIS Runtime | `OASIS-Runtime-vX.Y.Z` GitHub release and `OASIS.Runtime.vX.Y.Z.zip` |
-| STAR ODK Runtime | `STAR-ODK-Runtime-vX.Y.Z` GitHub release and STAR Runtime/CLI archive |
+| STAR ODK Runtime | `STAR-ODK-Runtime-vX.Y.Z` GitHub release with self-contained STAR Runtime/CLI archives for Windows x64, Linux x64/ARM64, and macOS x64/ARM64 |
 | OGEngineClient | `OGEngineClient-vX.Y.Z` GitHub release and archive; this is the renamed STAR API Client |
 | Native Endpoint | `Native-Endpoint-vX.Y.Z` GitHub release and archive |
 | MCP Server | Existing comprehensive MCP workflow: native binaries, GitHub release, NuGet package and npm package |
