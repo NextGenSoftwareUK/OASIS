@@ -38,9 +38,9 @@ Run commands from the OASIS repository root.
 | OASIS MCP npm package | [`@oasisomniverse/mcp-server`](https://www.npmjs.com/package/@oasisomniverse/mcp-server) | `WEB6/npm` |
 | OASIS MCP .NET tool | [`NextGenSoftware.OASIS.MCP.Server`](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server) | `WEB6/NextGenSoftware.OASIS.MCP.Server/bin/Release` and the workflow's temporary `nupkgs` directory |
 | ONODE Manager installers | [OASIS GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases), under tags named `onode-manager-v<version>` | `release/win-x64`, `release/osx-x64`, and `release/linux-x64` in the release workflow |
-| Our World signed Android release | Distribution store selected by the release operator | `artifacts/our-world-release` |
-| ODOOM | Distribution store selected by the release operator | `OASIS Omniverse/OGames/ODOOM/build` |
-| OQuake | Distribution store selected by the release operator | `OASIS Omniverse/OGames/OQuake/build` |
+| Our World multi-platform release | [Our World GitHub Releases](https://github.com/NextGenSoftwareUK/Our-World/releases); no complete release is published yet | The owning workflow packages Android, iOS, Windows, Linux, macOS and tvOS; local signed Android output is `artifacts/our-world-release` |
+| ODOOM | [ODOOM v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/ODOOM_v.1.0.0_ALPHA) | `OASIS Omniverse/OGames/ODOOM/build` |
+| OQuake | [OQuake v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/OQUAKE_v1.0.0_ALPHA) | `OASIS Omniverse/OGames/OQuake/build` |
 | Unity Edge package | Unity Asset Store release process | `artifacts/unity-store-candidate` or `artifacts/unity-current` |
 
 ## Release validation status (28 September 2026)
@@ -49,8 +49,8 @@ Build validation and publication are separate gates. A successful rehearsal prov
 
 | Product | Current validation | Current published release |
 |---|---|---|
-| ODOOM | The release rehearsal builds and packages Windows x64, Linux x64 and macOS successfully. Evidence: [Actions run 36490130954](https://github.com/NextGenSoftwareUK/ODOOM/actions/runs/36490130954). | [ODOOM v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/ODOOM_v.1.0.0_ALPHA) contains Windows and Linux archives from April 2026. The newly validated three-platform build has not yet been published. |
-| OQuake | The release rehearsal builds and packages Windows x64, Linux x64 and macOS arm64 successfully. Evidence: [Actions run 36493577583](https://github.com/NextGenSoftwareUK/OQUAKE/actions/runs/36493577583). | [OQuake v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/OQUAKE_v1.0.0_ALPHA) contains Windows and Linux archives from April 2026. The newly validated three-platform build has not yet been published. |
+| ODOOM | The release rehearsal builds and packages Windows x64, Linux x64 and macOS successfully. Evidence: [Actions run 36490130954](https://github.com/NextGenSoftwareUK/ODOOM/actions/runs/36490130954). | [ODOOM v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/ODOOM_v.1.0.0_ALPHA) now contains the verified Windows x64, Linux x64 and macOS arm64 archives. |
+| OQuake | The release rehearsal builds and packages Windows x64, Linux x64 and macOS arm64 successfully. Evidence: [Actions run 36493577583](https://github.com/NextGenSoftwareUK/OQUAKE/actions/runs/36493577583). | [OQuake v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/OQUAKE_v1.0.0_ALPHA) now contains the verified Windows x64, Linux x64 and macOS arm64 archives. |
 | Our World | Source preparation and workflow validation are complete, but hosted release builds are blocked at Unity activation before the platform matrix can run. | No GitHub release has been published. |
 
 ### Our World Unity licensing blocker
@@ -75,8 +75,8 @@ After selecting a route, run the release workflow first with publication disable
 | Native Integrated Endpoint 2.0.2 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.0.2), one endpoint archive. |
 | MCP Server 2.0.5 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/mcp-v2.0.5) with Windows x64, Linux x64/arm64 and macOS x64/arm64 executables; also [NuGet](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server) and [npm](https://www.npmjs.com/package/@oasisomniverse/mcp-server). |
 | HyperDrive Client 1.0.0 Alpha | [GitHub prerelease](https://github.com/NextGenSoftwareUK/OASIS-HyperDrive-Client/releases/tag/v1.0.0) with Windows x64, Linux x64, macOS x64 and macOS arm64 executables. |
-| ONODE Manager | Its three-platform workflow exists, but no permanent GitHub release is currently published. Its first canonical release remains 1.0.0. |
-| OIDE | Its release workflow exists, but no permanent GitHub release is currently published. |
+| ONODE Manager 1.0.0 | [GitHub release](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0) with a Windows installer and portable archive, Linux AppImage, and macOS installer and portable archive. |
+| OIDE 1.0.0 Alpha | [GitHub prerelease](https://github.com/NextGenSoftwareUK/OIDE/releases/tag/v1.0.0) with a Windows installer, Linux AppImage and macOS arm64 DMG. |
 
 This table is a dated verification record. GitHub release pages are authoritative after later releases. For a production claim, inspect the release assets themselves; do not infer publication from a successful non-publishing rehearsal.
 
