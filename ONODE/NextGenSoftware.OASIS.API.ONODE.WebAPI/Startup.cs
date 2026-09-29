@@ -56,6 +56,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<HostOptions>(options =>
+                options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
+
             // Configuration-backed services are registered before the request pipeline is built, so the
             // middleware cannot be responsible for loading DNA needed by dependency injection.
             var dnaLoadResult = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.LoadDNA();
