@@ -113,6 +113,8 @@ jobs:
       - id: versions
         name: Export planned versions
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
           "oasis_version=$($plan.releaseVersions.oasisRuntime)" >> $env:GITHUB_OUTPUT
