@@ -19,19 +19,20 @@ public sealed class UsageReconciliationWorker : BackgroundService
         ISubscriptionService subscriptions, ILogger<UsageReconciliationWorker> logger)
     { _reconciler = reconciler; _stripe = stripe; _subscriptions = subscriptions; _logger = logger; }
 
-    public override async Task StartAsync(CancellationToken ct)
-    {
-        await _reconciler.InitializeAsync(ct);
-        await base.StartAsync(ct);
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         string cursor = "";
+        bool initialized = false;
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                if (!initialized)
+                {
+                    await _reconciler.InitializeAsync(stoppingToken);
+                    initialized = true;
+                }
+
                 var work = await _reconciler.GetWorkAsync(cursor, 25, stoppingToken);
                 foreach (var account in work)
                 {
