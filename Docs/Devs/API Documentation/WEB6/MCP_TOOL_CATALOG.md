@@ -505,7 +505,7 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_generate_image` | WEB6: generates an image via StabilityAI or OpenAI (gpt-image-1). |
 | `web6_get_avatar_context` | WEB6: assembles and returns a rich context block for an OASIS avatar — karma, karma level, active quests, world memberships — assembled from Web4 and Web5 in parallel. Use this to ground AI prompts in the avatar's real OASIS state. |
 | `web6_get_model` | WEB6: returns full detail for a single model by its ID (e.g. 'gpt-4o', 'claude-sonnet-5', 'llama3.3'). |
-| `web6_get_usage` | WEB6: returns the calling avatar's usage summary — daily calls used, effective daily limit (plan × karma multiplier), monthly token spend, and remaining quota today. |
+| `web6_get_usage` | WEB6: returns the calling avatar's usage summary from WEB4 (requires `bearerToken`) — plan, karma, monthly requests, daily calls/tokens used and remaining, monthly spend and remaining budget. |
 | `web6_health` | WEB6: returns API status, version and UTC timestamp. No authentication required. Use to verify the WEB6 API is reachable before making authenticated calls. |
 | `web6_list_models` | WEB6: returns the full WEB6 model catalogue — all available models with provider, tier, context window, pricing and capabilities. Optionally filter by plan (Free/Bronze/Silver/Gold). |
 | `web6_list_openserv_models` | WEB6: lists every model reachable through the OpenServ provider (provider: "openserv") - the full SERV catalog spanning OpenAI, Anthropic, Google, xAI, Qwen and DeepSeek behind a single SERV_API_KEY. |
