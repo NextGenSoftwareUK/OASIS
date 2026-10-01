@@ -39,20 +39,22 @@ struct cb_context_s;
 extern void Draw_StringScaled(struct cb_context_s* cbx, float x, float y, float scale, const char* str, const unsigned char* rgba);
 #endif
 
-#if defined(_MSC_VER) || !defined(__GLIBC__)
-/* memmem is GNU-specific; provide fallback for MSVC and non-GNU. */
-static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle, size_t needlelen) {
-    const unsigned char* h = (const unsigned char*)hay;
-    const unsigned char* n = (const unsigned char*)needle;
-    size_t i;
-    if (needlelen == 0) return (void*)h;
-    if (haylen < needlelen) return NULL;
-    for (i = 0; i <= haylen - needlelen; i++)
-        if (memcmp(h + i, n, needlelen) == 0) return (void*)(h + i);
-    return NULL;
-}
-#define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
-#endif
+// memmem fallback for MSVC / non-glibc builds. Disabled: nothing calls memmem
+// any more (removed upstream in b99b4f93). Kept for reference in case it returns.
+// #if defined(_MSC_VER) || !defined(__GLIBC__)
+// /* memmem is GNU-specific; provide fallback for MSVC and non-GNU. */
+// static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle, size_t needlelen) {
+//     const unsigned char* h = (const unsigned char*)hay;
+//     const unsigned char* n = (const unsigned char*)needle;
+//     size_t i;
+//     if (needlelen == 0) return (void*)h;
+//     if (haylen < needlelen) return NULL;
+//     for (i = 0; i <= haylen - needlelen; i++)
+//         if (memcmp(h + i, n, needlelen) == 0) return (void*)(h + i);
+//     return NULL;
+// }
+// #define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
+// #endif
 
 /* OQuake overlay: 2x conchar size (ODOOM-style readability). */
 
