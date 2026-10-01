@@ -27,10 +27,9 @@ cp -f "$SCRIPT_DIR/omorrowind_ogengine_integration.h"   "$OPENMW_SRC/apps/openmw
 cp -f "$SCRIPT_DIR/omorrowind_ogengine_integration.cpp" "$OPENMW_SRC/apps/openmw/"
 cp -f "$SCRIPT_DIR/oasisstar.json"                      "$OPENMW_SRC/"
 
-if [ ! -f "$OPENMW_SRC/apps/openmw/ogengine.h" ]; then
-    cp -f "$SCRIPT_DIR/../../OGLib/ogengine.h"      "$OPENMW_SRC/apps/openmw/"
-    cp -f "$SCRIPT_DIR/../../OGLib/ogengine_sync.h" "$OPENMW_SRC/apps/openmw/"
-fi
+# OGEngineClient ABI headers + OGLib headers (always refreshed so the build never uses stale copies)
+for f in ogengine.h ogengine_sync.h; do cp -f "$SCRIPT_DIR/../../OGEngineClient/$f" "$OPENMW_SRC/apps/openmw/"; done
+for f in oglib_json.h oglib_edge.h; do cp -f "$SCRIPT_DIR/../../OGLib/$f" "$OPENMW_SRC/apps/openmw/"; done
 
 # CMake configure
 mkdir -p "$BUILD_DIR"
