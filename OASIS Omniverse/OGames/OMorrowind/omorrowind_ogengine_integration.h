@@ -91,6 +91,15 @@ int OMorrowind_STAR_HandleKey(int sdl_scancode);
 /** Returns 1 when OASIS is fully logged in and ready. */
 int OMorrowind_STAR_IsReady(void);
 
+/** Beam in / out (OASIS avatar). Results arrive on the main thread during Tick. */
+void OMorrowind_STAR_BeamIn(const char* username, const char* password);
+void OMorrowind_STAR_BeamOut(void);
+
+/** Offline sync mode: -1 = Remote-Only release, 0 = disabled, 1 = enabled. */
+int OMorrowind_STAR_OfflineSyncMode(void);
+/** Offline sync command: "status" | "on" | "off" | "sync-and-off" | "cancel". */
+void OMorrowind_STAR_OfflineSyncCommand(const char* command);
+
 #ifdef __cplusplus
 }
 #endif
