@@ -1,42 +1,45 @@
-﻿@echo off
+@echo off
 setlocal
+REM ODuke3D-RT - Raze (ODuke3D-RT) + OASIS STAR API, the ODOOM/OQuake way via OGLib/oglib_game.h.
+REM One Raze integration covers Shadow Warrior, Blood, Exhumed and Duke; the game source is
+REM chosen at runtime. Usage: BUILD_ODUKE3DRT.bat [ batch ]
 
-REM BUILD_ODUKE3DRT.bat — Build ODuke3D-RT (Duke-RT with OASIS STAR integration)
-REM
-REM Usage:
-REM   BUILD_ODUKE3DRT.bat          — interactive build
-REM   BUILD_ODUKE3DRT.bat batch    — non-interactive (used by BUILD EVERYTHING.bat)
-REM
-REM Prerequisites:
-REM   - Visual Studio 2019 (Community or higher) with C++ workload
-REM   - CMake 3.15+ in PATH
-REM   - Vulkan SDK in PATH (Duke-RT uses Vulkan ray tracing)
-REM   - C:\Source\ODuke3D-RT\ exists (git clone of Duke-RT)
-REM   - OGEngineClient built (ogengine.dll / ogengine.lib in OGEngineClient\)
-REM   - Source variable: DUKERT_SRC (default C:\Source\ODuke3D-RT)
+set "HERE=%~dp0"
+if not defined RAZE_SRC set "RAZE_SRC=C:\Source\ODuke3D-RT"
+set "OMNIVERSE=%HERE%..\.."
+set "OGENGINECLIENT=%OMNIVERSE%\OGEngineClient"
+set "OGLIB=%OMNIVERSE%\OGLib"
+set "INTEGRATION=%HERE%..\OShadowWarrior"
 
-set BATCH=%1
-set BUILD_TYPE=Release
-set SCRIPT_DIR=%~dp0
+if exist "%OMNIVERSE%\run_oasis_header.bat" call "%OMNIVERSE%\run_oasis_header.bat" ODUKE3DRT
 
-echo.
-echo =======================================================
-echo  ODuke3D-RT - OASIS STAR Integration Build (Duke-RT)
-echo =======================================================
-echo.
+if exist "%OMNIVERSE%\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
+    call "%OMNIVERSE%\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+    if errorlevel 1 (echo [ODuke3D-RT] OGEngineClient build failed. & if not "%~1"=="batch" pause & exit /b 1)
+)
 
-REM Run PowerShell copy+build script
-powershell.exe -ExecutionPolicy Bypass -File "%SCRIPT_DIR%Scripts\COPY_TO_DUKERT_AND_BUILD.ps1" ^
-    -BuildType %BUILD_TYPE%
-
-if %ERRORLEVEL% neq 0 (
-    echo.
-    echo [ERROR] ODuke3D-RT build failed. Check output above.
-    if "%BATCH%"=="" pause
+if not exist "%RAZE_SRC%\source\core\gamecontrol.cpp" (
+    echo [ODuke3D-RT] Raze source not found at %RAZE_SRC% ^(set RAZE_SRC to override^)
+    if not "%~1"=="batch" pause
     exit /b 1
 )
 
+echo [ODuke3D-RT] Installing OASIS integration into %RAZE_SRC%\source\core ...
+if not exist "%RAZE_SRC%\source\core\oasis" mkdir "%RAZE_SRC%\source\core\oasis"
+copy /Y "%INTEGRATION%\raze_ogengine_integration.cpp" "%RAZE_SRC%\source\core\" >nul
+copy /Y "%INTEGRATION%\raze_ogengine_integration.h"   "%RAZE_SRC%\source\core\" >nul
+for %%F in (ogengine.h ogengine_sync.h ogengine_sync.c) do copy /Y "%OGENGINECLIENT%\%%F" "%RAZE_SRC%\source\core\oasis\" >nul
+for %%F in (oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h) do copy /Y "%OGLIB%\%%F" "%RAZE_SRC%\source\core\oasis\" >nul
+
+echo [ODuke3D-RT] Building Raze with OASIS_STAR_API=ON...
+if not exist "%RAZE_SRC%\build-vs" mkdir "%RAZE_SRC%\build-vs"
+cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_DIR=%OGENGINECLIENT%"
+if errorlevel 1 (echo [ODuke3D-RT] CMake configure failed. & if not "%~1"=="batch" pause & exit /b 1)
+cmake --build "%RAZE_SRC%\build-vs" --config Release
+if errorlevel 1 (echo [ODuke3D-RT] Build failed. & if not "%~1"=="batch" pause & exit /b 1)
+if exist "%OGENGINECLIENT%\build\Release\ogengine.dll" copy /Y "%OGENGINECLIENT%\build\Release\ogengine.dll" "%RAZE_SRC%\build-vs\Release\" >nul
+
 echo.
-echo [ODuke3D-RT] Build successful.
-if "%BATCH%"=="" pause
+echo [ODuke3D-RT] Done: %RAZE_SRC%\build-vs\Release\raze.exe
+if not "%~1"=="batch" pause
 exit /b 0
