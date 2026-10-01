@@ -74,7 +74,9 @@ $OGLibFiles = @(
     "oglib_monster.h",
     "oglib_session.h",
     "oglib_config.h",
-    "oglib_beamin.h"
+    "oglib_beamin.h",
+    "oglib_log.h",
+    "oglib_edge.h"
 )
 foreach ($f in $OGLibFiles) {
     $src = Join-Path $OGLibSrc $f

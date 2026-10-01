@@ -155,6 +155,11 @@ void OQuake2RTX_STAR_OnBossKilled(const char* boss_name);
  */
 void OQuake2RTX_STAR_PollItems(void);
 
+/** Offline sync mode: -1 = Remote-Only release, 0 = disabled, 1 = enabled. */
+int OQuake2RTX_STAR_OfflineSyncMode(void);
+/** Offline sync command: "status" | "on" | "off" | "sync-and-off" | "cancel". */
+void OQuake2RTX_STAR_OfflineSyncCommand(const char* command);
+
 /* -------------------------------------------------------------------------
  * HUD / overlay draw hooks
  * (Q2 RTX uses Vulkan; pass the appropriate render context pointer or NULL)

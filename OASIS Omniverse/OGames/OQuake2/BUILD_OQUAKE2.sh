@@ -114,6 +114,7 @@ mkdir -p "$YQUAKE2_SRC/src/game"
 cp -f "$OQUAKE2_CODE/oquake2_ogengine_integration.c" "$YQUAKE2_SRC/src/game/"
 cp -f "$OQUAKE2_CODE/oquake2_ogengine_integration.h" "$YQUAKE2_SRC/src/game/"
 cp -f "$OGENGINECLIENT/ogengine.h" "$YQUAKE2_SRC/src/game/"
+for f in oglib_edge.h oglib_json.h; do cp -f "$OMNIVERSE/OGLib/$f" "$YQUAKE2_SRC/src/game/"; done
 [[ -f "$OQUAKE2_CODE/ogengine_sync.h" ]] && cp -f "$OQUAKE2_CODE/ogengine_sync.h" "$YQUAKE2_SRC/src/game/"
 cp -f "$STAR_SO" "$YQUAKE2_SRC/"
 echo "  Copied to: $YQUAKE2_SRC/src/game/"
