@@ -56,6 +56,8 @@ extern "C" void ogengine_sync_inventory_deliver_result(ogengine_item_list_t* lis
 #include "i_time.h"
 #include "g_levellocals.h"
 #include "playsim/d_player.h"
+#include "gi.h"
+#include "gametype.h"
 
 #ifndef _WIN32
 #include <SDL2/SDL.h>
@@ -265,6 +267,15 @@ CVAR(Int, odoom_star_use_powerup_on_pickup, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 /** Per-monster mint flag: 1 = mint NFT when killed, 0 = off. Keys = normalized config key (e.g. odoom_zombieman, oquake_ogre). */
 static std::map<std::string, int> g_odoom_mint_monster_flags;
+/** UZDoom runs Doom, Heretic, Hexen and Strife: report the game actually loaded so
+ *  OHeretic/OHexen/OStrife show up as their own game in OASIS (like ODOOM/OQUAKE). */
+static const char* ODOOM_GameSource(void) {
+	if (gameinfo.gametype & GAME_Heretic) return "OHERETIC";
+	if (gameinfo.gametype & GAME_Hexen) return "OHEXEN";
+	if (gameinfo.gametype & GAME_Strife) return "OSTRIFE";
+	return "ODOOM";
+}
+
 struct ODOOM_MonsterEntry { const char* engineName; const char* configKey; const char* displayName; int xp; int isBoss; };
 /** Engine class name, config key, display name (no (ODOOM) prefix; shown elsewhere), XP on kill, isBoss. See Docs/MONSTER_XP_TABLE.md. */
 static const ODOOM_MonsterEntry ODOOM_MONSTERS[] = {
@@ -287,6 +298,68 @@ static const ODOOM_MonsterEntry ODOOM_MONSTERS[] = {
 	{ "SpiderMastermind",    "odoom_spidermastermind",    "SpiderMastermind", 800, 1 },
 	{ "Cyberdemon",          "odoom_cyberdemon",          "Cyberdemon",   1000, 1 },
 	/* OQ* entries: display names match Quake canonical names so inventory is consistent across games (per-game stacking via (ODOOM)/(OQUAKE) in name). */
+	/* Heretic (OHERETIC) — UZDoom class names */
+	{ "HereticImp"          , "oheretic_gargoyle"           , "Gargoyle"            ,   10, 0 },
+	{ "HereticImpLeader"    , "oheretic_fire_gargoyle"      , "Fire Gargoyle"       ,   20, 0 },
+	{ "Mummy"               , "oheretic_golem"              , "Golem"               ,   15, 0 },
+	{ "MummyGhost"          , "oheretic_golem_ghost"        , "Golem Ghost"         ,   15, 0 },
+	{ "MummyLeader"         , "oheretic_nitrogolem"         , "Nitrogolem"          ,   20, 0 },
+	{ "MummyLeaderGhost"    , "oheretic_nitrogolem_ghost"   , "Nitrogolem Ghost"    ,   20, 0 },
+	{ "Knight"              , "oheretic_undead_warrior"     , "Undead Warrior"      ,   25, 0 },
+	{ "KnightGhost"         , "oheretic_undead_ghost"       , "Undead Warrior Ghost",   25, 0 },
+	{ "Wizard"              , "oheretic_disciple"           , "Disciple of D'Sparil",   30, 0 },
+	{ "Beast"               , "oheretic_weredragon"         , "Weredragon"          ,   40, 0 },
+	{ "Clink"               , "oheretic_sabreclaw"          , "Sabreclaw"           ,   25, 0 },
+	{ "Snake"               , "oheretic_ophidian"           , "Ophidian"            ,   50, 0 },
+	{ "Ironlich"            , "oheretic_iron_lich"          , "Iron Lich"           ,  120, 1 },
+	{ "Minotaur"            , "oheretic_maulotaur"          , "Maulotaur"           ,  200, 1 },
+	{ "Sorcerer1"           , "oheretic_dsparil"            , "D'Sparil"            ,  400, 1 },
+	{ "Sorcerer2"           , "oheretic_dsparil_unmounted"  , "D'Sparil (unmounted)",  400, 1 },
+	/* Hexen (OHEXEN) */
+	{ "Ettin"               , "ohexen_ettin"                , "Ettin"               ,   25, 0 },
+	{ "Centaur"             , "ohexen_centaur"              , "Centaur"             ,   30, 0 },
+	{ "CentaurLeader"       , "ohexen_slaughtaur"           , "Slaughtaur"          ,   40, 0 },
+	{ "FireDemon"           , "ohexen_afrit"                , "Afrit"               ,   35, 0 },
+	{ "IceGuy"              , "ohexen_wendigo"              , "Wendigo"             ,   40, 0 },
+	{ "Serpent"             , "ohexen_stalker"              , "Stalker"             ,   20, 0 },
+	{ "SerpentLeader"       , "ohexen_stalker_boss"         , "Stalker Boss"        ,   50, 0 },
+	{ "Demon1"              , "ohexen_chaos_serpent"        , "Chaos Serpent"       ,   45, 0 },
+	{ "Demon2"              , "ohexen_chaos_serpent_brown"  , "Chaos Serpent (brown)",   45, 0 },
+	{ "Bishop"              , "ohexen_dark_bishop"          , "Dark Bishop"         ,  120, 0 },
+	{ "Wraith"              , "ohexen_reiver"               , "Reiver"              ,   20, 0 },
+	{ "WraithBuried"        , "ohexen_reiver_buried"        , "Reiver (buried)"     ,   20, 0 },
+	{ "Dragon"              , "ohexen_death_wyvern"         , "Death Wyvern"        ,  300, 1 },
+	{ "ClericBoss"          , "ohexen_traductus"            , "Traductus"           ,  250, 1 },
+	{ "FighterBoss"         , "ohexen_zedek"                , "Zedek"               ,  250, 1 },
+	{ "MageBoss"            , "ohexen_menelkir"             , "Menelkir"            ,  250, 1 },
+	{ "Heresiarch"          , "ohexen_heresiarch"           , "Heresiarch"          ,  350, 1 },
+	{ "Korax"               , "ohexen_korax"                , "Korax"               ,  400, 1 },
+	/* Strife (OSTRIFE) */
+	{ "Acolyte"             , "ostrife_acolyte"             , "Acolyte"             ,   15, 0 },
+	{ "AcolyteTan"          , "ostrife_acolyte_tan"         , "Acolyte"             ,   15, 0 },
+	{ "AcolyteRed"          , "ostrife_acolyte_red"         , "Acolyte"             ,   15, 0 },
+	{ "AcolyteRust"         , "ostrife_acolyte_rust"        , "Acolyte"             ,   15, 0 },
+	{ "AcolyteGray"         , "ostrife_acolyte_gray"        , "Acolyte"             ,   15, 0 },
+	{ "AcolyteDGreen"       , "ostrife_acolyte_dgreen"      , "Acolyte"             ,   15, 0 },
+	{ "AcolyteGold"         , "ostrife_acolyte_gold"        , "Acolyte"             ,   15, 0 },
+	{ "AcolyteLGreen"       , "ostrife_acolyte_lgreen"      , "Acolyte"             ,   15, 0 },
+	{ "AcolyteBlue"         , "ostrife_acolyte_blue"        , "Acolyte"             ,   15, 0 },
+	{ "AcolyteShadow"       , "ostrife_acolyte_shadow"      , "Shadow Acolyte"      ,   20, 0 },
+	{ "Templar"             , "ostrife_templar"             , "Templar"             ,   30, 0 },
+	{ "Stalker"             , "ostrife_stalker"             , "Stalker"             ,   20, 0 },
+	{ "Reaver"              , "ostrife_reaver"              , "Reaver"              ,   30, 0 },
+	{ "Crusader"            , "ostrife_crusader"            , "Crusader"            ,   60, 0 },
+	{ "Sentinel"            , "ostrife_sentinel"            , "Sentinel"            ,   20, 0 },
+	{ "Inquisitor"          , "ostrife_inquisitor"          , "Inquisitor"          ,  150, 1 },
+	{ "StrifeBishop"        , "ostrife_bishop"              , "Bishop"              ,  120, 1 },
+	{ "Programmer"          , "ostrife_programmer"          , "Programmer"          ,  300, 1 },
+	{ "Loremaster"          , "ostrife_loremaster"          , "Loremaster"          ,  300, 1 },
+	{ "AlienSpectre1"       , "ostrife_spectre1"            , "Spectre"             ,  200, 1 },
+	{ "AlienSpectre2"       , "ostrife_spectre2"            , "Spectre"             ,  200, 1 },
+	{ "AlienSpectre3"       , "ostrife_spectre3"            , "Spectre"             ,  200, 1 },
+	{ "AlienSpectre4"       , "ostrife_spectre4"            , "Spectre"             ,  200, 1 },
+	{ "AlienSpectre5"       , "ostrife_spectre5"            , "Spectre"             ,  200, 1 },
+	{ "EntityBoss"          , "ostrife_entity"              , "The Entity"          ,  500, 1 },
 	{ "OQMonsterDog",        "oquake_dog",                "Rottweiler",     15, 0 },
 	{ "OQMonsterZombie",     "oquake_zombie",             "Zombie",         20, 0 },
 	{ "OQMonsterDemon",      "oquake_demon",              "Fiend",          40, 0 },
@@ -3217,7 +3290,7 @@ static void ODOOM_QueueQuestProgressForConsumedPickup(const char* item_name, con
 		return;
 	}
 	Printf(PRINT_NONOTIFY, "[STAR] quest progress pickup: queue name=%s type=%s\n", item_name, item_type);
-	ogengine_queue_quest_progress_from_pickup("ODOOM", item_type, item_name);
+	ogengine_queue_quest_progress_from_pickup(ODOOM_GameSource(), item_type, item_name);
 }
 
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName)
@@ -3617,7 +3690,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 	g_star_config.timeout_seconds = 30;
 	/* STAR client uses this for quest tracker rows (PickQuestTrackerObjectiveDisplayLine vs multi-game keys). */
-	g_star_config.client_game_source = "ODOOM";
+	g_star_config.client_game_source = ODOOM_GameSource();
 	{
 		const char* tr = (const char*)odoom_star_transport;
 		g_star_config.transport = ODOOM_StreqI(tr, "native") ? 1 : 0;
@@ -3932,6 +4005,19 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		if (!def) return 0;
 
 		int keynum = def->special1;
+		if (!(gameinfo.gametype & GAME_DoomChex)) {
+			/* Heretic/Hexen/Strife keys are not the four Doom keycards: sync them as named KeyItems. */
+			const char* kcls = special->GetClass()->TypeName.GetChars();
+			g_star_pending_item_name = ToStarItemName(kcls);
+			g_star_pending_item_desc = std::string("Key (") + ODOOM_GameSource() + ")";
+			g_star_pending_item_amount = 1;
+			g_star_pending_item_type = "KeyItem";
+			g_star_has_pending_item = true;
+			g_star_pre_touch_health = -1;
+			g_star_pre_touch_armor = -1;
+			StarLogInfo("Pickup detected: %s key %s.", ODOOM_GameSource(), kcls ? kcls : "?");
+			return OGENGINE_PICKUP_GENERIC_ITEM;
+		}
 		if (keynum <= 0 || keynum > 4) return 0;
 		StarLogInfo("Pickup detected: Doom key special1=%d.", keynum);
 		return keynum;
@@ -3953,6 +4039,9 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 			|| strstr(cls, "RadSuit") || strstr(cls, "BlurSphere"))) {
 			type = "Powerup";
 		}
+
+		/* Heretic/Hexen artifacts live in the player's inventory bar, not health/armor. */
+		if (cls && strncmp(cls, "Arti", 4) == 0) type = "Artifact";
 
 		g_star_pending_item_name = ToStarItemName(cls);
 		{
@@ -4154,9 +4243,9 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	g_star_last_pickup_desc = desc;
 	g_star_has_last_pickup = true;
 	if (doMint)
-		ogengine_queue_pickup_with_mint(name, desc, "ODOOM", itemType ? itemType : "KeyItem", 1, provider, send_to_addr, qty);
+		ogengine_queue_pickup_with_mint(name, desc, ODOOM_GameSource(), itemType ? itemType : "KeyItem", 1, provider, send_to_addr, qty);
 	else
-		ogengine_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nullptr, qty, 1);
+		ogengine_queue_add_item(name, desc, ODOOM_GameSource(), itemType ? itemType : "KeyItem", nullptr, qty, 1);
 
 	/* Use the same path the engine uses: PrintPickupMessage (status bar message + Printf) and S_Sound (pickup sound). */
 	if ((keynum == OGENGINE_PICKUP_GENERIC_ITEM || keynum == OGENGINE_PICKUP_WEAPON) && desc && desc[0]) {
@@ -4175,21 +4264,21 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	if (keynum >= 1 && keynum <= 3) {
 		const char* obj = (keynum == 1) ? "doom_red_keycard" : (keynum == 2) ? "doom_blue_keycard" : "doom_yellow_keycard";
 		StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=%s (keycard pickup)", ODOOM_DEFAULT_QUEST_ID, obj);
-		ogengine_result_t r = ogengine_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, obj, "ODOOM");
+		ogengine_result_t r = ogengine_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, obj, ODOOM_GameSource());
 		if (r != OGENGINE_SUCCESS)
 			StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", ogengine_get_last_error());
 		else
 			g_odoom_quest_tracker_needs_refresh = true;
 	} else if (keynum == OGENGINE_PICKUP_OQUAKE_SILVER_KEY) {
 		StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=quake_silver_key (OQuake silver key pickup)", ODOOM_DEFAULT_QUEST_ID);
-		ogengine_result_t r = ogengine_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_silver_key", "ODOOM");
+		ogengine_result_t r = ogengine_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_silver_key", ODOOM_GameSource());
 		if (r != OGENGINE_SUCCESS)
 			StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", ogengine_get_last_error());
 		else
 			g_odoom_quest_tracker_needs_refresh = true;
 	} else if (keynum == OGENGINE_PICKUP_OQUAKE_GOLD_KEY) {
 		StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=quake_gold_key (OQuake gold key pickup)", ODOOM_DEFAULT_QUEST_ID);
-		ogengine_result_t r = ogengine_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_gold_key", "ODOOM");
+		ogengine_result_t r = ogengine_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_gold_key", ODOOM_GameSource());
 		if (r != OGENGINE_SUCCESS)
 			StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", ogengine_get_last_error());
 		else
@@ -4286,7 +4375,7 @@ void UZDoom_STAR_OnBossKilled(const char* boss_name) {
 	char desc[256];
 	std::snprintf(desc, sizeof(desc), "Boss defeated in ODOOM: %s", boss_name);
 	const char* prov = (const char*)odoom_star_nft_provider;
-	ogengine_result_t r = ogengine_create_monster_nft(boss_name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
+	ogengine_result_t r = ogengine_create_monster_nft(boss_name, desc, ODOOM_GameSource(), "{}", prov && prov[0] ? prov : nullptr, nft_id);
 	if (r == OGENGINE_SUCCESS && nft_id[0])
 		Printf(PRINT_HIGH, "WEB4 OASIS API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
 	else if (r != OGENGINE_SUCCESS) {
@@ -4334,7 +4423,7 @@ void UZDoom_STAR_OnMonsterKilled(const char* monster_name) {
 	const char* prov = (const char*)odoom_star_nft_provider;
 	if (!prov || !prov[0]) prov = "SolanaOASIS";
 	/* All work (XP, mint, add item) runs on C# background thread; never blocks the game. */
-	ogengine_queue_monster_kill(e->engineName, e->displayName, e->xp, e->isBoss ? 1 : 0, do_mint, prov, "ODOOM");
+	ogengine_queue_monster_kill(e->engineName, e->displayName, e->xp, e->isBoss ? 1 : 0, do_mint, prov, ODOOM_GameSource());
 	/* Next frame: repush tracker CVars after C# merges kill into quest cache (or after optimistic merge). */
 	g_odoom_quest_tracker_needs_refresh = true;
 }
@@ -4532,7 +4621,7 @@ CCMD(star)
 		else if (strcmp(color, "yellow") == 0) { name = "Yellow Keycard"; desc = "Yellow Keycard - Opens yellow doors"; }
 		else if (strcmp(color, "skull") == 0)  { name = "Skull Key";      desc = "Skull Key - Opens skull-marked doors"; }
 		else { Printf("Unknown keycard: %s. Use red|blue|yellow|skull.\n", color); Printf("\n"); return; }
-		ogengine_queue_add_item(name, desc, "ODOOM", "KeyItem", nullptr, 1, 1);
+		ogengine_queue_add_item(name, desc, ODOOM_GameSource(), "KeyItem", nullptr, 1, 1);
 		ogengine_result_t r = ogengine_flush_add_item_jobs();
 		if (r == OGENGINE_SUCCESS) Printf("Added %s to STAR inventory.\n", name);
 		else Printf("Failed: %s\n", ogengine_get_last_error());
@@ -4669,7 +4758,7 @@ CCMD(star)
 		const char* name = argv[2];
 		const char* desc = argv.argc() > 3 ? argv[3] : "Added from console";
 		const char* type = argv.argc() > 4 ? argv[4] : "Miscellaneous";
-		ogengine_queue_add_item(name, desc, "ODOOM", type, nullptr, 1, 1);
+		ogengine_queue_add_item(name, desc, ODOOM_GameSource(), type, nullptr, 1, 1);
 		Printf("Queued '%s' for sync.\n", name);
 		return;
 	}
@@ -4705,7 +4794,7 @@ CCMD(star)
 		if (strcmp(qsub, "objective") == 0) {
 			if (argv.argc() < 5) { Printf("Usage: star quest objective <quest_id> <objective_id>\n"); return; }
 			StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=%s (console)", argv[3], argv[4]);
-			ogengine_result_t r = ogengine_complete_quest_objective(argv[3], argv[4], "ODOOM");
+			ogengine_result_t r = ogengine_complete_quest_objective(argv[3], argv[4], ODOOM_GameSource());
 			if (r != OGENGINE_SUCCESS)
 				StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", ogengine_get_last_error());
 			else
@@ -4729,7 +4818,7 @@ CCMD(star)
 		const char* desc = argv.argc() > 3 ? argv[3] : "Boss from UZDoom";
 		char nft_id[64] = {};
 		const char* prov = (const char*)odoom_star_nft_provider;
-		ogengine_result_t r = ogengine_create_monster_nft(name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
+		ogengine_result_t r = ogengine_create_monster_nft(name, desc, ODOOM_GameSource(), "{}", prov && prov[0] ? prov : nullptr, nft_id);
 		if (r == OGENGINE_SUCCESS) Printf("Boss NFT created. ID: %s\n", nft_id[0] ? nft_id : "(none)");
 		else Printf("Failed: %s\n", ogengine_get_last_error());
 		return;
