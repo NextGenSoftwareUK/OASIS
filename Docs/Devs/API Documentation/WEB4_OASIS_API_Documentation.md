@@ -1,5 +1,10 @@
 # WEB4 OASIS API - Complete Documentation
 
+## Subscription protocol update (2026-09-22)
+
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+
+
 ## 📋 **Overview**
 
 The WEB4 OASIS API is the foundational data aggregation and identity layer that serves as the universal connector between all Web2 and Web3 technologies. It provides intelligent auto-failover, universal data aggregation, and comprehensive identity management.
@@ -22,7 +27,7 @@ The WEB4 OASIS API is the foundational data aggregation and identity layer that 
 
 ## 🔗 **Base URL**
 ```
-https://api.oasisplatform.world
+https://api.web4.oasisomniverse.one
 ```
 
 ## 🔐 **Authentication**
@@ -424,8 +429,15 @@ GET /api/data/load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}
 ```
 
 #### **Save Holon**
+
+**Holon identity contract:** `Id` is the public, stable identity for both new and
+existing holons. Omit it to have OASIS generate one, or supply a caller-allocated GUID
+when metadata/child links need it before saving. Mongo private keys and audit fields are
+never update keys. See [Holon Persistence Identity Contract](../../HolonSave-RESTClient-Fix-2026-07-04.md).
+
 ```http
 POST /api/data/save-holon
+
 POST /api/data/save-holon/{holon}
 POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}
 POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}
@@ -1124,6 +1136,8 @@ DELETE /data/delete-file/{id}
 #### **Get NFT by ID**
 ```http
 GET /api/nft/load-nft-by-id/{id}
+GET /api/nft/load-geo-nft-by-id/{id}
+GET /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}
 ```
 
 #### **Get NFT by Hash**
@@ -2281,7 +2295,7 @@ import { OASISClient } from '@oasis/api-client';
 
 const client = new OASISClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.web4.oasisomniverse.one'
 });
 
 // Get avatar
@@ -2342,7 +2356,7 @@ client.karma.add({
 
 ### **Sandbox Environment**
 ```
-https://sandbox-api.oasisplatform.world
+https://sandbox-api.web4.oasisomniverse.one
 ```
 
 ### **Test Data**

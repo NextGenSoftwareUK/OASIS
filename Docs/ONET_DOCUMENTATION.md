@@ -516,27 +516,79 @@ Console.WriteLine($"Network Health: {metrics.Health}");
 Console.WriteLine($"Average Latency: {metrics.Latency}ms");
 ```
 
-## 🚀 Future Roadmap
+## ✅ Completed Work (as of 2026-09-15)
 
-### Planned Features
+### Core stability fixes (all on Development branch)
 
-#### Phase 1: Core Stability
-- Enhanced error handling
-- Performance optimizations
-- Comprehensive testing
-- Documentation improvements
+| Fix | File | Status |
+|-----|------|--------|
+| Sync-over-async deadlock in `InitializeAsync` | `ONETProtocol.cs` | ✅ Done |
+| `_oasisdna` field never assigned from constructor | `ONETManager.cs` | ✅ Done |
+| `ExportECPrivateKey` (SEC1) fails on Windows CNG → switched to PKCS8 | `ONETManager.cs` | ✅ Done |
+| `LoadOASISDNAAsync` silently replaced injected DNA | `ONETManager.cs` | ✅ Done |
+| `PublicKey` field on `NodeInfo` + `OnPeerKeyDiscovered` callback | `ONETDiscovery.cs` | ✅ Done |
+| Authenticated PING via `BuildAuthenticatedPing` delegate | `ONETRouting.cs` / `ONETProtocol.cs` | ✅ Done |
+| Kademlia table seeded during peer discovery | `ONETDiscovery.cs` | ✅ Done |
+| `OASISHyperDrive.DataDirectory` wired from OASISDNA | `ONETManager.cs` | ✅ Done |
+| 128/128 unit tests passing | `ONODE.Core.UnitTests` | ✅ Done |
 
-#### Phase 2: Advanced Features
-- Machine learning-based routing
-- Advanced consensus algorithms
-- Quantum-resistant cryptography
-- Cross-chain integration
+## 🚀 Next Steps
 
-#### Phase 3: Ecosystem Integration
-- OASIS ecosystem integration
-- Third-party provider support
-- Enterprise features
-- Global deployment
+### Recently completed (2026-09-20)
+
+| Item | Status |
+|------|--------|
+| Holon-backed ONET state — node identity + peer list persisted to OASIS Holon (MongoDB) via `HolonManager`; survives Railway ephemeral restarts | ✅ Done |
+| Integration tests — authenticated PING (real ECDSA-P256 keypair), PING rejection for unknown nodeId, NodeId stability across re-init, peer-cache round-trip | ✅ Done |
+| `ONODE.Core.IntegrationTests` csproj path fixed so project builds | ✅ Done |
+
+### Near-term
+
+- **HoloNET P2P mode** — `HoloNETP2PProvider` exists and routes ONET messages through HoloNET, but requires a live Holochain conductor (see [Current State](#holonet-p2p-current-state) below).
+- **Holochain HDK 0.6.1 upgrade** — blocked on running `hc-scaffold.exe` manually first; then update `.hc` / `Cargo.toml` and regenerate bindings.
+
+### HoloNET P2P — current state {#holonet-p2p-current-state}
+
+ONET supports two P2P backend modes, selected via `OASISDNA.OASIS.ONET.NetworkType` or the `P2PNetworkType` constructor parameter:
+
+| Mode | Class | Requires | Status |
+|------|-------|----------|--------|
+| `Internal` (default) | `InternalP2PNetworkProvider` | Nothing — fully in-process | ✅ Production-ready |
+| `HoloNET` | `HoloNETP2PProvider` | Live Holochain conductor on ws://localhost:8888 | ⚠️ Conductor required |
+
+**`HoloNETP2PProvider`** routes ONET peer messages through HoloNET so calls traverse the Holochain DHT rather than a raw TCP mesh. It is wired and functional but will throw `InvalidOperationException` at construction unless the `storageProvider` is a `HoloOASIS` instance backed by a running conductor. Use `InternalP2PNetworkProvider` in environments without a conductor (Railway, CI, local dev without `hc sandbox`).
+
+To enable HoloNET mode:
+
+```json
+// OASIS_DNA.json  (never commit this file)
+{
+  "OASIS": {
+    "ONET": {
+      "NetworkType": "HoloNET"
+    }
+  }
+}
+```
+
+Or in code:
+
+```csharp
+var mgr = new ONETManager(holoOASISProvider, dna, P2PNetworkType.HoloNET);
+```
+
+### Medium-term
+
+- Machine learning-based routing optimisation
+- Advanced consensus algorithms (beyond current PoS stub)
+- Quantum-resistant cryptography (post-quantum key exchange)
+- Cross-chain node registration via smart contracts
+
+### Long-term
+
+- Enterprise node management dashboard
+- Global deployment tooling
+- Third-party provider federation
 
 ### Contributing
 

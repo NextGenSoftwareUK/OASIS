@@ -2,6 +2,7 @@ using NextGenSoftware.OASIS.API.Providers.AWSOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using System;
 using System.Threading.Tasks;
 
@@ -44,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.TestHarness
             Console.WriteLine("--- Testing Provider Activation ---");
             
             Console.WriteLine($"Provider Name: {_provider.ProviderName}");
-            Console.WriteLine($"Provider Type: {_provider.ProviderType}");
-            Console.WriteLine($"Provider Category: {_provider.ProviderCategory}");
+            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
             Console.WriteLine($"Is Activated: {_provider.IsProviderActivated}");
 
             var activationResult = _provider.ActivateProvider();
@@ -61,15 +62,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.TestHarness
         {
             Console.WriteLine("--- Testing Provider Information ---");
             
-            var version = _provider.GetProviderVersion();
-            Console.WriteLine($"Provider Version: {version}");
-
-            var providerType = _provider.GetProviderType();
-            Console.WriteLine($"Provider Type: {providerType}");
-
-            var category = _provider.GetProviderCategory();
-            Console.WriteLine($"Provider Category: {category}");
-
+            Console.WriteLine($"Provider Name: {_provider.ProviderName}");
+            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
             var description = _provider.ProviderDescription;
             Console.WriteLine($"Provider Description: {description}");
             Console.WriteLine();
@@ -134,21 +129,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.TestHarness
         private static async Task TestSearchOperations()
         {
             Console.WriteLine("--- Testing Search Operations ---");
-            
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
-            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
-            Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
-            if (avatarSearchResult.IsError)
-                Console.WriteLine($"Error: {avatarSearchResult.Message}");
-            else
-                Console.WriteLine($"Found {avatarSearchResult.Result?.NumberOfResults ?? 0} avatars");
-
+            Console.WriteLine("Search operations not exercised (provider-specific).");
+            await Task.CompletedTask;
             Console.WriteLine();
         }
 

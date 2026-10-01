@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- NativeAOT requires .NET 8+ and produces a self-contained native DLL with no .NET runtime dependency. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OGEditorSDK.Native</RootNamespace>
+    <AssemblyName>ogeditor_api</AssemblyName>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishAot>true</PublishAot>
+    <!-- Produce a shared library (ogeditor_api.dll on Win, libogeditor_api.so on Linux) -->
+    <NativeLib>Shared</NativeLib>
+    <Version>1.0.0</Version>
+    <Description>OGEditorSDK NativeAOT wrapper — exports the OGEditorSDK as a C-ABI native shared library so C++ editors (TrenchBroom, NetRadiant, DarkRadiant, Mapster32) can load it without any .NET runtime.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the managed SDK project -->
+    <ProjectReference Include="..\OGEditorSDK.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- NativeAOT publishing support -->
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="8.*" />
+  </ItemGroup>
+
+</Project>

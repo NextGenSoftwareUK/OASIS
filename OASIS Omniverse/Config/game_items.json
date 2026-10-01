@@ -1,0 +1,78 @@
+{
+  "itemMappings": {
+    "doom": {
+      "red_keycard": {
+        "name": "red_keycard",
+        "description": "Red Keycard - Opens red doors",
+        "type": "KeyItem",
+        "crossGameCompatible": true,
+        "compatibleGames": ["quake", "doom2"]
+      },
+      "blue_keycard": {
+        "name": "blue_keycard",
+        "description": "Blue Keycard - Opens blue doors",
+        "type": "KeyItem",
+        "crossGameCompatible": true,
+        "compatibleGames": ["quake", "doom2"]
+      },
+      "yellow_keycard": {
+        "name": "yellow_keycard",
+        "description": "Yellow Keycard - Opens yellow doors",
+        "type": "KeyItem",
+        "crossGameCompatible": true,
+        "compatibleGames": ["quake", "doom2"]
+      },
+      "skull_key": {
+        "name": "skull_key",
+        "description": "Skull Key - Opens skull-marked doors",
+        "type": "KeyItem",
+        "crossGameCompatible": true,
+        "compatibleGames": ["quake"]
+      }
+    },
+    "quake": {
+      "silver_key": {
+        "name": "silver_key",
+        "description": "Silver Key - Opens silver-marked doors",
+        "type": "KeyItem",
+        "crossGameCompatible": true,
+        "compatibleGames": ["doom", "doom2"],
+        "doomEquivalent": "red_keycard"
+      },
+      "gold_key": {
+        "name": "gold_key",
+        "description": "Gold Key - Opens gold-marked doors",
+        "type": "KeyItem",
+        "crossGameCompatible": true,
+        "compatibleGames": ["doom", "doom2"],
+        "doomEquivalent": "blue_keycard"
+      }
+    }
+  },
+  "questItems": {
+    "cross_game_keycard_quest": {
+      "name": "Cross-Game Keycard Quest",
+      "description": "Collect keycards from multiple games",
+      "objectives": [
+        {
+          "game": "doom",
+          "item": "red_keycard",
+          "description": "Collect red keycard in Doom"
+        },
+        {
+          "game": "quake",
+          "item": "silver_key",
+          "description": "Collect silver key in Quake"
+        }
+      ],
+      "reward": {
+        "type": "special_keycard",
+        "name": "master_keycard",
+        "description": "Master Keycard - Opens all doors in all games"
+      }
+    }
+  }
+}
+
+
+
