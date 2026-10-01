@@ -970,20 +970,26 @@ Delete the stored API key for a provider.
 
 ### GET `/v1/usage`
 
-Per-avatar token and cost usage summary.
+Read-only projection of the authoritative WEB4 usage ledger for the caller. Requires a bearer token; plan and karma cannot be supplied by the caller. Not itself metered.
 
-**Response:**
+**Response** (a limit of 0 means unlimited):
 ```json
 {
-  "result": {
-    "avatarId": "...",
-    "totalTokensThisMonth": 48000,
-    "totalCostUsdThisMonth": 1.82,
-    "byProvider": {
-      "openai": { "tokens": 32000, "costUsd": 1.20 },
-      "anthropic": { "tokens": 16000, "costUsd": 0.62 }
-    }
-  }
+  "userId": "...",
+  "planId": "silver",
+  "karma": 1200,
+  "monthlyRequests": 4210,
+  "dailyCalls": 37,
+  "dailyTokens": 48000,
+  "reservedTokens": 0,
+  "monthlySpendUsd": 1.82,
+  "dailyCallLimit": 1000,
+  "dailyTokenLimit": 1000000,
+  "monthlyBudgetUsd": 50,
+  "dailyCallsRemaining": 963,
+  "dailyTokensRemaining": 952000,
+  "monthlyBudgetRemainingUsd": 48.18,
+  "updatedAtUtc": "2026-09-28T10:00:00Z"
 }
 ```
 
@@ -1166,22 +1172,19 @@ A2A agent card — describes this OASIS instance as an A2A-compatible agent (nam
 
 ---
 
-## Karma-Gated AI Tiers
+## Subscription Plans & Model Tiers
 
-Every call to `POST /v1/complete` (and `POST /v1/chat/completions`) is evaluated against the requesting avatar's karma score when an `avatarId` is supplied. The tier determines which providers and models are accessible.
+Access is governed by the avatar's **WEB4 subscription plan** (Free, Bronze, Silver, Gold, Enterprise), resolved by WEB4 from the bearer token. `avatarId`, plan or karma values in a request body or JWT are ignored for billing and limits. Karma only multiplies the daily call limit within the plan.
 
-| Tier | Karma range | Models included | Provider access |
-|---|---|---|---|
-| **Bronze** | 0 – 999 | Fast/cheap models (llama-3.1-8b, gemini-flash, gpt-4o-mini, etc.) | All providers except AWS Bedrock, Azure OpenAI |
-| **Silver** | 1,000 – 4,999 | + GPT-4o, Claude Sonnet, Gemini Pro, Mistral Large, Command R+, Llama-3.1-70B | All providers |
-| **Gold** | 5,000 – 9,999 | All models | All providers |
-| **Diamond** | 10,000+ | All models + priority routing | All providers |
+Every model in the catalogue (`GET /v1/models`) carries a minimum plan; `GET /v1/models?plan=Bronze` lists what is reachable at a plan. Plan-based downgrade rules exist in `KarmaGateManager` (Free → local models, Bronze → cheap cloud, Silver → mid-tier, Gold/Enterprise → premium) but are **not currently enforced at call time**. The usage limits are.
 
-When the requested model or provider exceeds the avatar's tier, WEB6 automatically **downgrades** to the highest-tier model/provider available rather than returning an error. The response includes:
-- `karmaTier` — the avatar's current tier name
-- `karmaDowngradeNote` — human-readable explanation of what was downgraded and why
+See [WEB6 Quotas & Tiers](WEB6_Quotas_and_Tiers.md) for prices, per-plan limits and karma multipliers.
 
-If no `avatarId` is supplied the request is treated as **Bronze** tier (open access to base models).
+### Billable-call requirements
+
+- `Authorization: Bearer <jwt>` and an `Idempotency-Key` header. Reuse the key on retries; use a new key for new work.
+- The response carries an operation ID for the usage record.
+- `503 SETTLEMENT_PENDING` means the provider call ran but WEB4 was unreachable; the usage is stored and settled automatically. Do not resubmit with a new key.
 
 ---
 
@@ -1220,7 +1223,8 @@ Returns the same specification in YAML format.
 | `401` | Unauthenticated — JWT bearer token missing or expired |
 | `403` | Forbidden — avatar does not have permission |
 | `404` | Not found — holon, agent, or resource not found |
-| `429` | Rate limited — token or cost quota exceeded; check `Retry-After` header |
+| `429` | Usage limit exceeded — `MONTHLY_REQUEST_LIMIT_EXCEEDED`, `DAILY_CALL_LIMIT_EXCEEDED`, `DAILY_TOKEN_LIMIT_EXCEEDED` or `MONTHLY_BUDGET_EXCEEDED` |
+| `503` | `SETTLEMENT_PENDING` — call executed, usage settlement queued |
 | `500` | Internal server error — check telemetry stream for details |
 
 ---

@@ -779,14 +779,16 @@ The `StorageProviders` section (separate from `Web6`) controls which of the 40+ 
 
 ## 13. Hosted API Plans
 
-| Plan | Requests/month | FAHRN | Holonic BRAID | Price |
-|------|----------------|-------|---------------|-------|
-| Free | ~1,000 | Basic | Shared library read | Free |
-| Pro | 100,000 | All modes | Full BRAID read/write | Coming soon |
-| Enterprise | Unlimited | All modes + custom agents | Private BRAID namespace | Coming soon |
-| ONODE (self-hosted) | Unlimited | Full | Local + global BRAID | See below |
+| Plan | Price | Requests/month | Daily calls | Daily tokens | Monthly AI budget |
+|------|-------|----------------|-------------|--------------|-------------------|
+| Free | $0 | 1,000 | 20 | 50,000 | $1 |
+| Bronze | $9/mo | 10,000 | 100 | 250,000 | $10 |
+| Silver | $29/mo | 100,000 | 500 | 1,000,000 | $50 |
+| Gold | $99/mo | 1,000,000 | 2,000 | 5,000,000 | $250 |
+| Enterprise | Custom | Unlimited | Unlimited | Unlimited | Unlimited |
+| ONODE (self-hosted) | — | Unlimited | — | — | See below |
 
-Plans are tied to your OASIS avatar and governed by the karma system — higher karma unlocks better routing and more capable models.
+Plans are tied to your OASIS avatar and enforced by WEB4. Karma multiplies your daily call limit within your plan (up to 10×); it does not unlock other plans' features. See [Quotas & Tiers](WEB6_Quotas_and_Tiers.md).
 
 ---
 
@@ -973,9 +975,10 @@ httpx.post(
 
 `https://api.web6.oasisomniverse.one`
 
-- Free plan: ~1,000 requests/month, basic routing, shared BRAID library
-- Pro plan (coming soon): 100,000 requests/month, full FAHRN, full BRAID
-- Enterprise plan (coming soon): unlimited, private BRAID namespace, SLA, dedicated support
+- Free ($0): 1,000 requests/month, 20 calls/day
+- Bronze ($9), Silver ($29), Gold ($99): 10,000 / 100,000 / 1,000,000 requests/month with higher daily call, token and budget limits
+- Enterprise (custom): unlimited, SLA, dedicated support
+- Plans are enforced by WEB4 — see [Quotas & Tiers](WEB6_Quotas_and_Tiers.md)
 - No infrastructure to manage; your data governed by OASIS membrane rules
 
 ### Self-hosted ONODE (for data sovereignty or enterprise scale)

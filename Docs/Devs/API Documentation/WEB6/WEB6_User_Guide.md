@@ -468,7 +468,10 @@ curl -X POST /v1/complete \
 Set at least one AI provider key in your environment (e.g. `OPENAI_API_KEY`) or store one in the key vault.
 
 **429 Too Many Requests**
-You've hit the per-avatar token or cost quota. Check the `Retry-After` header and either wait or increase the quota via usage settings.
+You've hit a WEB4 subscription limit. The error code says which: `MONTHLY_REQUEST_LIMIT_EXCEEDED`, `DAILY_CALL_LIMIT_EXCEEDED` (resets 00:00 UTC), `DAILY_TOKEN_LIMIT_EXCEEDED` or `MONTHLY_BUDGET_EXCEEDED`. Check `GET /v1/usage` for your remaining allowance, wait for the reset, or upgrade your plan. See [Quotas & Tiers](WEB6_Quotas_and_Tiers.md).
+
+**503 SETTLEMENT_PENDING**
+Your call ran, but WEB4 was briefly unreachable when recording usage. It is stored and settled automatically; do not resubmit with a new `Idempotency-Key`.
 
 **Provider returns an error but auto-routing is on**
 WEB6 tries fallback providers automatically. If all fail, check `GET /v1/providers/status` for a live health report.

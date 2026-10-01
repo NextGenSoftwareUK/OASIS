@@ -672,7 +672,7 @@ Chunk a document, embed each chunk, and store only semantically unique chunks in
 | `tags` | string[] | no | Tags attached to every stored chunk |
 | `retentionPolicy` | string | no | `Persistent` (default), `SessionOnly`, `Expiring` |
 | `expiresUtc` | string | no | ISO 8601 expiry (for `Expiring` policy) |
-| `avatarId` | string (GUID) | no | Caller avatar for karma-gated access |
+| `avatarId` | string (GUID) | no | Caller avatar (informational; plan and limits come from the bearer token via WEB4) |
 
 **Returns:**
 ```json
