@@ -69,6 +69,7 @@ if not exist "%Q2RTX_SRC%\src\game" mkdir "%Q2RTX_SRC%\src\game"
 copy /Y "%OQUAKE2RTX_INTEGRATION%oquake2rtx_ogengine_integration.c" "%Q2RTX_SRC%\src\game\" >nul
 copy /Y "%OQUAKE2RTX_INTEGRATION%oquake2rtx_ogengine_integration.h" "%Q2RTX_SRC%\src\game\" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%Q2RTX_SRC%\src\game\" >nul
+for %%F in (oglib_edge.h oglib_json.h) do copy /Y "%HERE%..\..\OGLib\%%F" "%Q2RTX_SRC%\src\game\" >nul
 if exist "%OQUAKE2RTX_CODE%ogengine_sync.h" copy /Y "%OQUAKE2RTX_CODE%ogengine_sync.h" "%Q2RTX_SRC%\src\game\" >nul
 copy /Y "%STAR_DLL%" "%Q2RTX_SRC%\ogengine.dll" >nul
 if defined STAR_LIB copy /Y "%STAR_LIB%" "%Q2RTX_SRC%\ogengine.lib" >nul
