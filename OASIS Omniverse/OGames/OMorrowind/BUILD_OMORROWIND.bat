@@ -32,10 +32,9 @@ copy /Y "%SCRIPT_DIR%omorrowind_ogengine_integration.h"   "%OPENMW_SRC%\apps\ope
 copy /Y "%SCRIPT_DIR%omorrowind_ogengine_integration.cpp" "%OPENMW_SRC%\apps\openmw\"
 copy /Y "%SCRIPT_DIR%oasisstar.json"                      "%OPENMW_SRC%\"
 
-if not exist "%OPENMW_SRC%\apps\openmw\ogengine.h" (
-    copy /Y "%SCRIPT_DIR%\..\..\OGLib\ogengine.h"     "%OPENMW_SRC%\apps\openmw\"
-    copy /Y "%SCRIPT_DIR%\..\..\OGLib\ogengine_sync.h" "%OPENMW_SRC%\apps\openmw\"
-)
+REM OGEngineClient ABI headers + OGLib headers (always refreshed so the build never uses stale copies)
+for %%F in (ogengine.h ogengine_sync.h) do copy /Y "%SCRIPT_DIR%..\..\OGEngineClient\%%F" "%OPENMW_SRC%\apps\openmw\" >nul
+for %%F in (oglib_json.h oglib_edge.h) do copy /Y "%SCRIPT_DIR%..\..\OGLib\%%F" "%OPENMW_SRC%\apps\openmw\" >nul
 
 REM CMake configure
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
