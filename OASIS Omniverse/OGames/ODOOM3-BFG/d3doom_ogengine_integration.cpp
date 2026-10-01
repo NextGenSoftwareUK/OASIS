@@ -39,6 +39,10 @@
 #define OGLIB_SESSION_IMPL
 #define OGLIB_MONSTER_IMPL
 #include "OGLib/oglib.h"
+#include "OGLib/oglib_edge.h"
+
+/* Offline sync (edge) settings, persisted in oasisstar.json — same as ODOOM/OQuake. */
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
 
 /*=============================================================================
  * Global state
@@ -192,6 +196,7 @@ static void D3Doom_LoadJson(const char* path) {
     fclose(f);
     if (!n) return;
     buf[n] = '\0';
+    oglib_edge_load_json(&g_edge_settings, buf);
 
     char val[256];
     if (oglib_json_extract(buf, "ogengine_url", val, sizeof(val)) && val[0])
@@ -243,6 +248,7 @@ static void D3Doom_SaveJson(const char* path) {
         snprintf(uname, sizeof(uname), "%s", g_d3doom_saved_username);
 
     fprintf(f, "{\n");
+    oglib_edge_save_json(f, &g_edge_settings);
     fprintf(f, "  \"ogengine_url\": \"%s\",\n",   d3doom_ogengine_url.GetString());
     fprintf(f, "  \"oasis_api_url\": \"%s\",\n",  d3doom_star_oasis_url.GetString());
     fprintf(f, "  \"nft_provider\": \"%s\",\n",   d3doom_star_nft_provider.GetString());
@@ -335,13 +341,21 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
                        "  beamout             Log out of OASIS STAR\n"
                        "  inventory           List STAR inventory items\n"
                        "  add <name>          Add item to STAR inventory (testing)\n"
-                       "  debug <on|off>      Toggle debug logging\n");
+                       "  debug <on|off>      Toggle debug logging\n"
+                       "  offline <status|on|off|sync-and-off>  Offline sync\n");
         return;
     }
     const char* subcmd = args.Argv(1);
 
     if (!strcasecmp(subcmd, "version")) {
         common->Printf(D3DOOM_LOG_TAG "ODOOM3-BFG STAR Integration v1.0 (game_source=" D3DOOM_GAME_SOURCE ")\n");
+        return;
+    }
+
+    if (!strcasecmp(subcmd, "offline")) {
+        char message[512];
+        oglib_edge_command(args.Argc() >= 3 ? args.Argv(2) : "status", message, sizeof(message));
+        common->Printf(D3DOOM_LOG_TAG "%s\n", message);
         return;
     }
 
@@ -460,6 +474,9 @@ void D3Doom_STAR_Init(void) {
 
     ogengine_sync_init();
 
+    if (oglib_edge_configure(&g_edge_settings) != OGENGINE_SUCCESS)
+        StarLog("Offline sync settings rejected: %s", ogengine_get_last_error());
+
     ogengine_result_t r = ogengine_init(&cfg);
     if (r != OGENGINE_SUCCESS) {
         StarLog("ogengine_init failed (%d) — STAR features disabled.", (int)r);
@@ -509,6 +526,20 @@ void D3Doom_STAR_Tick(void) {
 
     /* Drive async auth/inventory/use-item completions on main thread */
     ogengine_sync_pump();
+
+    {
+        char edge_msg[512];
+        int changed = oglib_edge_finish_change(&g_edge_settings, edge_msg, sizeof(edge_msg));
+        if (changed != 0) {
+            if (changed == 1 && g_d3doom_json_path[0]) D3Doom_SaveJson(g_d3doom_json_path);
+            StarLog("%s", edge_msg);
+        }
+        if (g_d3doom_client_ready && !ogengine_sync_auth_in_progress()) {
+            char note[256];
+            if (ogengine_poll_edge_notification(note, sizeof(note)) == 1)
+                StarLog("%s", note);
+        }
+    }
 
     /* Drain C# console messages into engine console */
     char logbuf[512];

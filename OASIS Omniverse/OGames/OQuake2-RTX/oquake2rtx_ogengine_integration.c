@@ -27,6 +27,10 @@
 
 #include "oquake2rtx_ogengine_integration.h"
 #include "ogengine_sync.h"
+#include "oglib_edge.h"
+
+/* Offline sync (edge) settings, persisted in oasisstar.json — same as OQuake. */
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -445,6 +449,7 @@ static int OQ2RTX_LoadJsonConfig(const char* json_path) {
     len = fread(json, 1, (size_t)fsz, f); fclose(f);
     if (len == 0) { free(json); return 0; }
     json[len] = '\0';
+    oglib_edge_load_json(&g_edge_settings, json);
 
     if (OQ2RTX_ExtractJsonValue(json, "ogengine_url", value, sizeof(value)) && value[0])
         { Q2RTX_Q_strlcpy(g_ogengine_url, value, sizeof(g_ogengine_url)); loaded = 1; }
@@ -506,6 +511,7 @@ static void OQ2RTX_SaveStarConfigToFile(void) {
         Q2RTX_Q_strlcpy(path, "oasisstar.json", sizeof(path));
     f = fopen(path, "w"); if (!f) return;
     fprintf(f, "{\n");
+    oglib_edge_save_json(f, &g_edge_settings);
     fprintf(f, "  \"ogengine_url\": \"%s\"", g_ogengine_url);
     fprintf(f, ",\n  \"oasis_api_url\": \"%s\"", g_oasis_api_url);
     fprintf(f, ",\n  \"star_transport\": \"%s\"", g_star_transport);
@@ -639,6 +645,9 @@ void OQuake2RTX_STAR_Init(void) {
     g_star_config.transport         = (!strcmp(g_star_transport, "native")) ? 1 : 0;
     g_star_config.oasis_dna_path    = g_oasis_dna_path[0] ? g_oasis_dna_path : NULL;
 
+    if (oglib_edge_configure(&g_edge_settings) != OGENGINE_SUCCESS)
+        Q2RTX_Con_Printf("[OQuake2-RTX] Offline sync settings rejected: %s\n", ogengine_get_last_error());
+
     if (ogengine_init(&g_star_config) != OGENGINE_SUCCESS) {
         Q2RTX_Con_Printf("[OQuake2-RTX] STAR API init failed: %s\n", ogengine_get_last_error());
         return;
@@ -755,10 +764,36 @@ void OQuake2RTX_STAR_OnBossKilled(const char* boss_name) {
  * Public API: Frame pump
  * ------------------------------------------------------------------------- */
 
+/* Offline sync, same contract as OQuake: -1 = Remote-Only release, 0 = off, 1 = on. */
+int OQuake2RTX_STAR_OfflineSyncMode(void) {
+    int capabilities = ogengine_get_edge_capabilities();
+    return !(capabilities & 1) ? -1 : (capabilities & 2) ? 1 : 0;
+}
+
+/* command: "status" | "on" | "off" | "sync-and-off" | "cancel" */
+void OQuake2RTX_STAR_OfflineSyncCommand(const char* command) {
+    char message[512];
+    oglib_edge_command(command, message, sizeof(message));
+    Q2RTX_Con_Printf("[OASIS] %s\n", message);
+}
+
 void OQuake2RTX_STAR_PollItems(void) {
     char mint_item[256], nft_id[128], hash[128], err_buf[384];
     if (!g_star_initialized) return;
     ogengine_sync_pump();
+    {
+        char edge_msg[512];
+        int changed = oglib_edge_finish_change(&g_edge_settings, edge_msg, sizeof(edge_msg));
+        if (changed != 0) {
+            if (changed == 1) OQ2RTX_SaveStarConfigToFile();
+            Q2RTX_Con_Printf("[OASIS] %s\n", edge_msg);
+        }
+        if (!ogengine_sync_auth_in_progress()) {
+            char note[256];
+            if (ogengine_poll_edge_notification(note, sizeof(note)) == 1)
+                Q2RTX_Con_Printf("[OASIS] %s\n", note);
+        }
+    }
 
     /* --- cross-game spawn poll --- */
     {

@@ -42,7 +42,8 @@ echo ""
 echo "[2/4] Copying OGLib headers..."
 mkdir -p "$DEST/OGLib"
 for f in oglib.h oglib_str.h oglib_json.h oglib_crossgame.h \
-          oglib_monster.h oglib_session.h oglib_config.h oglib_beamin.h; do
+          oglib_monster.h oglib_session.h oglib_config.h oglib_beamin.h \
+          oglib_log.h oglib_edge.h; do
     [ -f "$OGLIB_SRC/$f" ] && cp -v "$OGLIB_SRC/$f" "$DEST/OGLib/"
 done
 
