@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ONION_Protocol
 {
@@ -41,6 +42,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ONION_Protocol
         {
             this.ProviderName = "OnionOASIS";
             this.ProviderDescription = "Tor-routed OASIS storage provider — routes all calls through Tor SOCKS5 proxy to an onion-service OASIS backend";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OnionOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             _torProxyHost = torProxyHost;
             _torProxyPort = torProxyPort;
             _onionApiUrl = onionApiUrl;

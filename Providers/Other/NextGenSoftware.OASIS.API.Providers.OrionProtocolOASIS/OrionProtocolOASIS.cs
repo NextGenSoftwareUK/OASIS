@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
 {
@@ -31,6 +34,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
         {
             this.ProviderName = "OrionProtocolOASIS";
             this.ProviderDescription = "Orion Protocol DEX Aggregator Provider for OASIS";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OrionProtocolOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             _apiBaseUrl = apiBaseUrl.TrimEnd('/') + "/";
         }
 
@@ -126,6 +131,79 @@ namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
             return result;
         }
 
+        private async Task<OASISResult<IHolon>> LoadPairHolonAsync(string symbol)
+        {
+            var result = new OASISResult<IHolon>();
+            if (!IsProviderActivated)
+            {
+                var activation = await ActivateProviderAsync();
+                if (activation.IsError) { OASISErrorHandling.HandleError(ref result, activation.Message); return result; }
+            }
+
+            var ticker = await GetTickerAsync(symbol);
+            if (ticker.IsError) { OASISErrorHandling.HandleError(ref result, ticker.Message); return result; }
+            var orderBook = await GetOrderBookAsync(symbol);
+            if (orderBook.IsError) { OASISErrorHandling.HandleError(ref result, orderBook.Message); return result; }
+
+            var holon = new Holon { Name = symbol, Description = $"Orion Protocol market {symbol}" };
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OrionProtocolOASIS] = symbol;
+            holon.MetaData["symbol"] = symbol;
+            holon.MetaData["ticker"] = ticker.Result.RootElement.GetRawText();
+            holon.MetaData["orderbook"] = orderBook.Result.RootElement.GetRawText();
+            result.Result = holon;
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadPairHolonsAsync(IEnumerable<string> symbols)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var holons = new List<IHolon>();
+            foreach (var symbol in symbols)
+            {
+                var pair = await LoadPairHolonAsync(symbol);
+                if (pair.IsError) { OASISErrorHandling.HandleError(ref result, pair.Message); return result; }
+                holons.Add(pair.Result);
+            }
+            result.Result = holons;
+            return result;
+        }
+
+        private static IEnumerable<string> SplitSymbols(string providerKey) =>
+            providerKey.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        #endregion
+
+        #region IOASISStorageProvider — market reads
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadPairHolonAsync(providerKey);
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadPairHolonAsync(providerKey).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadPairHolonsAsync(SplitSymbols(providerKey));
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadPairHolonsAsync(SplitSymbols(providerKey)).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults>();
+            var symbols = searchParams?.SearchGroups?
+                .OfType<ISearchTextGroup>()
+                .Select(g => g.SearchQuery)
+                .Where(q => !string.IsNullOrWhiteSpace(q))
+                .SelectMany(SplitSymbols)
+                .ToList() ?? new List<string>();
+            if (symbols.Count == 0) { OASISErrorHandling.HandleError(ref result, "OrionProtocolOASIS search requires a trading pair symbol such as ORN-USDT in a text search group."); return result; }
+
+            var pairs = await LoadPairHolonsAsync(symbols);
+            if (pairs.IsError) { OASISErrorHandling.HandleError(ref result, pairs.Message); return result; }
+            result.Result = new SearchResults { SearchResultHolons = pairs.Result.ToList(), NumberOfResults = pairs.Result.Count() };
+            return result;
+        }
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
+
         #endregion
 
         #region IOASISStorageProvider — not supported
@@ -168,12 +246,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
         public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true) => NotSupportedAsync<bool>();
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IHolon>();
         public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IHolon>();
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IHolon>();
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IHolon>();
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>();
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>();
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>();
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>();
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>();
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>();
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotSupported<IHolon>();
@@ -184,8 +258,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => NotSupportedAsync<IHolon>();
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => NotSupported<IHolon>();
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => NotSupportedAsync<IHolon>();
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NotSupported<ISearchResults>();
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NotSupportedAsync<ISearchResults>();
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>();
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>();
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>();
