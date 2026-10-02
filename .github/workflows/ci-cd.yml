@@ -494,6 +494,39 @@ jobs:
       if: matrix.test != ''
       run: dotnet test "OASIS/STAR ODK/${{ matrix.test }}" --configuration Release --verbosity normal
 
+  # OASIS Omniverse: game-side Hub bridge (OGEngineClient) and Hub runtime logic tests
+  test-omniverse:
+    name: Test OASIS Omniverse
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test:
+          - OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj
+          - OASIS Omniverse/OASIS Hub/Tests/HubRuntime.Tests/HubRuntime.Tests.csproj
+
+    steps:
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # OGEngineClient and OASIS Hub are private submodules; see test-star-odk.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Test
+      run: dotnet test "OASIS/${{ matrix.test }}" --configuration Release --verbosity normal
+
   # Integration Tests
   integration-tests:
     name: Integration Tests
