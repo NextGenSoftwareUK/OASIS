@@ -28,7 +28,7 @@ These repositories are intentionally public. They drive developer adoption, NuGe
 
 | Repository | What it contains | Role |
 |---|---|---|
-| **[NextGenSoftwareUK/OASIS](https://github.com/NextGenSoftwareUK/OASIS)** | Main monorepo — WEB4 OASIS API, 206 storage/blockchain/social/network providers, WebAPI, Swagger, Docker, Railway deploy configs | Public face of the platform; community entry point |
+| **[NextGenSoftwareUK/OASIS](https://github.com/NextGenSoftwareUK/OASIS)** | Main monorepo — WEB4 OASIS API, 222 storage/blockchain/social/network providers, WebAPI, Swagger, Docker, Railway deploy configs | Public face of the platform; community entry point |
 | **[NextGenSoftwareUK/holochain-client-csharp](https://github.com/NextGenSoftwareUK/holochain-client-csharp)** | HoloNET Client — the only production-grade .NET/Unity Holochain client. Full WebSocket zome call layer with async/event hybrid model | Community flagship; drives NuGet adoption |
 | **[NextGenSoftwareUK/HoloNET-Manager](https://github.com/NextGenSoftwareUK/HoloNET-Manager)** | Desktop WPF reference implementation showcasing every HoloNET Client and HoloNET ORM capability with reusable UI components developers can reference and adapt | Developer showcase; reusable component library |
 | **[NextGenSoftwareUK/NextGenSoftware-Libraries](https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries)** | Shared utility libraries — WebSocket extensions (including the ConnectAsync overload required by HoloNET), logging, core helpers | Foundational dependency for all OASIS projects |
