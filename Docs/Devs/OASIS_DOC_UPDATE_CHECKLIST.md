@@ -11,7 +11,7 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 | AI providers | **100** (99 real + `Auto`) |
 | Orchestrator protocols | **22** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, BeeAgent, Temporal, Dapr, NATSJetStream, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook) |
 | External memory adapters | 7 (Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate) |
-| MCP tools | **516** (365 WEB4 + 95 WEB5 + 39 WEB6 + 17 WEB7-10) |
+| MCP tools | **512** (361 WEB4 + 95 WEB5 + 39 WEB6 + 17 WEB7-10) — authoritative list: `WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md` |
 | REST endpoints | 56 |
 | OASIS storage/network/identity providers | **222** working (see `Docs/Provider-Summary.md`; verified 2026-10-02) |
 
@@ -88,7 +88,7 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 ## Quick grep to find stale numbers
 
 ```bash
-grep -rn "99 provider\|17 orchestrat\|20+ AI\|250 MCP\|259 MCP\|507 MCP\|6 orchestrat" \
+grep -rn "99 provider\|17 orchestrat\|20+ AI\|250 MCP\|259 MCP\|507 MCP\|516 MCP\|528 MCP\|6 orchestrat" \
   C:/Source/OASIS/Docs \
   C:/Source/OASIS/WEB6 \
   C:/Source/Web6Site \
@@ -110,7 +110,7 @@ for a matching `McpServerTool`. Run:
 grep -rn "McpServerTool" C:/Source/OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/ | grep -oP 'Name = "\K[^"]+' | sort
 ```
 
-Full gap audit run 2026-09-21. Gap implementation completed 2026-09-21: **528 tools** total (371 Web4 across Web4Tools.cs + 5 batch files + 96 Web5 + 40 Web6). All previously uncovered controllers now have MCP tools (some stubbed where HTTP session context is required).
+Full gap audit run 2026-09-21. Gap implementation completed 2026-09-21; stubs replaced with real implementations 2026-10-02: **512 tools** total (361 WEB4 + 95 WEB5 + 39 WEB6 + 17 WEB7-10). Every tool executes against its manager or the WEB4 REST API — none return redirect text. Regenerate the catalog with `WEB6/Scripts/generate_mcp_tool_catalog.py` after adding or removing tools.
 
 ### Controllers with ZERO MCP coverage (entire controllers uncovered)
 
