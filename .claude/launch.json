@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "-p", "5173", "C:\\Source\\Web6Site"],
       "port": 5173
+    },
+    {
+      "name": "oasisweb4",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "oasisweb4.com", "run", "dev", "--", "--port", "5174", "--strictPort"],
+      "port": 5174
     }
   ]
 }
