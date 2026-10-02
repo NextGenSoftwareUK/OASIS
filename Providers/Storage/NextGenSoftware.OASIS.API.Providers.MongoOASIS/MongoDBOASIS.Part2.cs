@@ -65,6 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
                 else
                 {
+                    result.ErrorCode = "HOLON_NOT_FOUND";
                     OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database");
                 }
             }
