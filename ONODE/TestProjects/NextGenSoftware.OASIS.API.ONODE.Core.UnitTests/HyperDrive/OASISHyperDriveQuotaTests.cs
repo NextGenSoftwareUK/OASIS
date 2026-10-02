@@ -24,15 +24,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
             return (Task<int>)method!.Invoke(hyperDrive, new object[] { operationType })!;
         }
 
-        private static void IncrementUsage(string operationType)
+        private static void RecordSuccessfulUsage(string operationType)
         {
             var method = typeof(NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive)
-                .GetMethod("IncrementUsage", BindingFlags.NonPublic | BindingFlags.Static);
+                .GetMethod("RecordSuccessfulUsage", BindingFlags.NonPublic | BindingFlags.Static);
             method!.Invoke(null, new object[] { operationType });
         }
 
         [Fact]
-        public async Task GetCurrentUsageAsync_AfterIncrementUsage_ReflectsRealCount()
+        public async Task GetCurrentUsageAsync_AfterRecordSuccessfulUsage_ReflectsRealCount()
         {
             // Use a unique operation-type label per test run so the shared static counter dictionary
             // (intentionally shared across instances - see OASISHyperDrive._usageCounters) doesn't leak
@@ -42,11 +42,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
 
             (await GetCurrentUsageAsync(hyperDrive, operationType)).Should().Be(0, "no usage has been recorded yet for this operation type");
 
-            IncrementUsage(operationType);
-            IncrementUsage(operationType);
-            IncrementUsage(operationType);
+            RecordSuccessfulUsage(operationType);
+            RecordSuccessfulUsage(operationType);
+            RecordSuccessfulUsage(operationType);
 
-            (await GetCurrentUsageAsync(hyperDrive, operationType)).Should().Be(3, "three increments should accumulate to a real count of 3, not the old hardcoded 0");
+            (await GetCurrentUsageAsync(hyperDrive, operationType)).Should().Be(3, "three recorded operations should accumulate to a real count of 3, not the old hardcoded 0");
         }
 
         [Fact]
@@ -56,9 +56,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
             var opB = $"TestOp-B-{Guid.NewGuid():N}";
             var hyperDrive = new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive();
 
-            IncrementUsage(opA);
-            IncrementUsage(opA);
-            IncrementUsage(opB);
+            RecordSuccessfulUsage(opA);
+            RecordSuccessfulUsage(opA);
+            RecordSuccessfulUsage(opB);
 
             (await GetCurrentUsageAsync(hyperDrive, opA)).Should().Be(2);
             (await GetCurrentUsageAsync(hyperDrive, opB)).Should().Be(1);
