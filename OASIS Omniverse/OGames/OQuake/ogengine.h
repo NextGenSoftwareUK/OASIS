@@ -201,8 +201,8 @@ void ogengine_queue_monster_kill(const char* engine_name, const char* display_na
 void ogengine_queue_quest_level_time(const char* game_source, int level_elapsed_seconds);
 /** Get last known avatar XP (from get-current-avatar or after add-xp). Returns 0 if not loaded. Write to *xp_out; pass NULL to skip. Returns 1 if value is valid, 0 otherwise. */
 int ogengine_get_avatar_xp(int* xp_out);
-/** Get last known avatar karma score (from get-current-avatar). Writes to *karma_out; pass NULL to skip. Returns 1 if valid, 0 otherwise. */
-int ogengine_get_avatar_karma(long* karma_out);
+/** Get last known avatar karma score (from get-current-avatar). Writes a 64-bit value to *karma_out; pass NULL to skip. Returns 1 if valid, 0 otherwise. */
+int ogengine_get_avatar_karma(int64_t* karma_out);
 /** Legacy ABI alias for ogengine_refresh_avatar_profile. */
 void ogengine_refresh_avatar_xp(void);
 /** Kick off avatar profile refresh (XP + quest/objective) in background; callback when done. Call on beam-in. */
@@ -320,6 +320,22 @@ int ogengine_hub_consume_arrive_file(const char* avatar_id, char* map_buf, size_
  *  Result is cached ~1 s so polling every frame avoids per-frame file I/O.
  *  A signal file older than 60 s is treated as stale (hub crash) and returns 0. */
 int ogengine_hub_is_hidden(const char* avatar_id);
+
+/** Result of ogengine_hub_frame. */
+typedef struct {
+    int32_t pause_change;   /* +1 pause the game now, -1 unpause it now, 0 no change */
+    int32_t has_arrive;     /* 1 = portal arrival received this call */
+    char arrive_map[64];    /* validated map to load first ([A-Za-z0-9_]); empty = stay on current map */
+    float x, y, z;          /* spawn point; all 0 = game default spawn */
+} ogengine_hub_frame_t;
+
+/** One call per frame implements the whole Hub protocol (see Docs/OMNIVERSE_HUB_IPC.md):
+ *  publishes XP/karma/game/map, decides pause/unpause (only undoing pauses the Hub caused),
+ *  and hands over portal arrivals. Uses the beamed-in avatar; polls every 0.5 s internally.
+ *  game_id: e.g. "ODOOM". current_map: map/level name now running (NULL ok). game_paused: 1 if paused.
+ *  Returns 1 when the Hub was polled and *out is filled, 0 otherwise. When has_arrive is set,
+ *  load arrive_map if non-empty, then apply x/y/z once that map is running. */
+int ogengine_hub_frame(const char* game_id, const char* current_map, int game_paused, ogengine_hub_frame_t* out);
 
 #ifdef __cplusplus
 }

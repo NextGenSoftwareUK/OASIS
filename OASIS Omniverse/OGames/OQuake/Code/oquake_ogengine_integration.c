@@ -4146,27 +4146,13 @@ void OQuake_STAR_OfflineSyncCommand(const char* command) {
 }
 
 /*=============================================================================
- * OASIS Omniverse Hub bridge — live state to Hub HUD, pause while Hub is shown,
- * and portal arrival (map + spawn point) from the Hub.
+ * OASIS Omniverse Hub — protocol lives in ogengine_hub_frame (OGEngineClient);
+ * this only applies its decisions to the engine. See Docs/OMNIVERSE_HUB_IPC.md.
  *===========================================================================*/
 
-static double g_hub_last_poll = -1.0;
-static qboolean g_hub_paused_by_hub = false;
 static char g_hub_pending_map[64];
 static float g_hub_pending_origin[3];
 static qboolean g_hub_pending_spawn = false;
-
-/* The arrive file lives in the temp dir and is writable by any local process, so only
- * plain map names may reach the command buffer. */
-static qboolean OQ_IsSafeMapName(const char* s) {
-    size_t n = 0;
-    if (!s || !*s) return false;
-    for (; *s; ++s, ++n) {
-        if (n >= 32) return false;
-        if (!(isalnum((unsigned char)*s) || *s == '_')) return false;
-    }
-    return true;
-}
 
 static void OQ_HubApplyPendingSpawn(void) {
     extern client_state_t cl;
@@ -4191,50 +4177,29 @@ static void OQ_HubBridgeFrame(void) {
     extern client_state_t cl;
     extern server_t sv;
     extern void Cbuf_AddText(const char* text);
-    char avatarId[64] = {0};
-    char map[64] = {0};
-    float x = 0, y = 0, z = 0;
-    int xp = 0;
-    long karma = 0;
-    qboolean hidden;
+    ogengine_hub_frame_t hub;
+    qboolean game_paused;
 
     OQ_HubApplyPendingSpawn();
-
-    if (g_hub_last_poll >= 0 && realtime - g_hub_last_poll < 0.5) return;
-    g_hub_last_poll = realtime;
-
     if (!g_star_initialized) return;
-    if (ogengine_get_avatar_id(avatarId, sizeof(avatarId)) != OGENGINE_SUCCESS || !avatarId[0]) return;
 
-    ogengine_get_avatar_xp(&xp);
-    ogengine_get_avatar_karma(&karma);
-    ogengine_hub_notify_avatar_state(avatarId, xp, (long long)karma, "OQuake", cl.mapname);
+    game_paused = sv.active && sv.paused;
+    if (!ogengine_hub_frame("OQuake", cl.mapname, game_paused ? 1 : 0, &hub)) return;
 
-    hidden = ogengine_hub_is_hidden(avatarId) != 0;
-    if (hidden && sv.active && !sv.paused) {
+    if (sv.active && ((hub.pause_change > 0 && !sv.paused) || (hub.pause_change < 0 && sv.paused)))
         Cbuf_AddText("pause\n");
-        g_hub_paused_by_hub = true;
-    } else if (!hidden && g_hub_paused_by_hub) {
-        if (sv.active && sv.paused) Cbuf_AddText("pause\n");
-        g_hub_paused_by_hub = false;
-    }
 
-    if (ogengine_hub_consume_arrive_file(avatarId, map, sizeof(map), &x, &y, &z)) {
-        g_hub_pending_origin[0] = x; g_hub_pending_origin[1] = y; g_hub_pending_origin[2] = z;
+    if (hub.has_arrive) {
+        g_hub_pending_origin[0] = hub.x; g_hub_pending_origin[1] = hub.y; g_hub_pending_origin[2] = hub.z;
         g_hub_pending_spawn = true;
-        g_hub_pending_map[0] = 0;
-        if (map[0]) {
-            if (!OQ_IsSafeMapName(map)) {
-                Con_Printf("[OASIS] Hub arrive: rejected map name '%s'\n", map);
-                g_hub_pending_spawn = false;
-            } else if (!sv.active || q_strcasecmp(cl.mapname, map) != 0) {
-                char cmd[96];
-                q_strlcpy(g_hub_pending_map, map, sizeof(g_hub_pending_map));
-                q_snprintf(cmd, sizeof(cmd), "map %s\n", map);
-                Cbuf_AddText(cmd);
-            }
+        q_strlcpy(g_hub_pending_map, hub.arrive_map, sizeof(g_hub_pending_map));
+        if (hub.arrive_map[0]) {
+            char cmd[96];
+            q_snprintf(cmd, sizeof(cmd), "map %s\n", hub.arrive_map);
+            Cbuf_AddText(cmd);
         }
-        oglib_log(OGLIB_LOG_INFO, "Hub arrive: map=%s pos=%.0f/%.0f/%.0f", map[0] ? map : "(current)", x, y, z);
+        oglib_log(OGLIB_LOG_INFO, "Hub arrive: map=%s pos=%.0f/%.0f/%.0f",
+            hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
     }
 }
 
@@ -7095,7 +7060,7 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
     extern int glwidth, glheight;
     int xp = 0;
-    long karma = 0;
+    int64_t karma = 0;
     char buf[128];
     int x, y;
 
@@ -7110,7 +7075,7 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
 
     /* Show XP and karma on the same line: "XP: 1234  Karma: 56" */
     if (ogengine_get_avatar_karma(&karma) && karma != 0)
-        q_snprintf(buf, sizeof(buf), "XP: %d  Karma: %ld", xp, karma);
+        q_snprintf(buf, sizeof(buf), "XP: %d  Karma: %lld", xp, (long long)karma);
     else
         q_snprintf(buf, sizeof(buf), "XP: %d", xp);
 
