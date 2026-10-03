@@ -41,6 +41,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly IWebHostEnvironment _env;
         private static readonly object StarLogLock = new object();
 
+        /// <summary>
+        /// Returns the authoritative minimum karma required for every avatar level.
+        /// Key: level, value: minimum total karma required.
+        /// </summary>
+        [Authorize]
+        [HttpGet("get-level-thresholds")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<int, long>>), StatusCodes.Status200OK)]
+        public OASISResult<Dictionary<int, long>> GetLevelThresholds()
+        {
+            return new OASISResult<Dictionary<int, long>>
+            {
+                Result = new Dictionary<int, long>(LevelManager.LevelLookup),
+                Message = "Avatar level thresholds retrieved successfully."
+            };
+        }
+
         public AvatarProfileController(ILogger<AvatarProfileController> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             _logger = logger;
