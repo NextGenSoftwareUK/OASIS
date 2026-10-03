@@ -312,6 +312,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             if (avatar.Result.KarmaAkashicRecords != null)
             {
+                oasisAvatar.KarmaAkashicRecords ??= new List<IKarmaAkashicRecord>();
                 foreach (var item in avatar.Result.KarmaAkashicRecords)
                     oasisAvatar.KarmaAkashicRecords.Add((KarmaAkashicRecord)item);
             }
