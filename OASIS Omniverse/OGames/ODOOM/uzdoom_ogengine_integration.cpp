@@ -1377,7 +1377,7 @@ static void ODOOM_UpdateStarKeyHudCVars(const ogengine_item_list_t* list) {
 		FBaseCVar* xpVar = FindCVar("odoom_star_avatar_xp", nullptr);
 		if (xpVar && xpVar->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = xp; xpVar->SetGenericRep(u, CVAR_Int); }
 	}
-	long karma = 0;
+	int64_t karma = 0;
 	if (ogengine_get_avatar_karma(&karma))
 	{
 		FBaseCVar* karmaVar = FindCVar("odoom_star_avatar_karma", nullptr);
@@ -2428,25 +2428,15 @@ static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName);
 static void ODOOM_FlipHudIntCVar(const char* cvarName);
 
+
 /*=============================================================================
- * OASIS Omniverse Hub bridge — live state to Hub HUD, pause while Hub is shown,
- * and portal arrival (map + spawn point) from the Hub.
+ * OASIS Omniverse Hub — protocol lives in ogengine_hub_frame (OGEngineClient);
+ * this only applies its decisions to the engine. See Docs/OMNIVERSE_HUB_IPC.md.
  *===========================================================================*/
 
-static uint64_t g_hub_last_poll_ms = 0;
-static bool g_hub_paused_by_hub = false;
 static std::string g_hub_pending_map;
 static float g_hub_pending_x = 0, g_hub_pending_y = 0, g_hub_pending_z = 0;
 static bool g_hub_pending_spawn = false;
-
-/* The arrive file lives in %TEMP% and is writable by any local process, so only
- * plain lump names may reach the console "map" command. */
-static bool ODOOM_IsSafeMapName(const char* s) {
-	if (!s || !*s || strlen(s) > 32) return false;
-	for (const char* p = s; *p; ++p)
-		if (!(std::isalnum(static_cast<unsigned char>(*p)) || *p == '_')) return false;
-	return true;
-}
 
 static void ODOOM_HubApplyPendingSpawn(void) {
 	if (!g_hub_pending_spawn) return;
@@ -2462,49 +2452,24 @@ static void ODOOM_HubApplyPendingSpawn(void) {
 
 static void ODOOM_HubBridgeFrame(void) {
 	ODOOM_HubApplyPendingSpawn();
-
-	uint64_t now = I_msTime();
-	if (now - g_hub_last_poll_ms < 500) return;
-	g_hub_last_poll_ms = now;
-
 	if (!g_star_initialized) return;
-	char avatarId[64] = {0};
-	if (ogengine_get_avatar_id(avatarId, sizeof(avatarId)) != OGENGINE_SUCCESS || !avatarId[0]) return;
 
-	int xp = 0;
-	long karma = 0;
-	ogengine_get_avatar_xp(&xp);
-	ogengine_get_avatar_karma(&karma);
 	FLevelLocals* level = primaryLevel;
-	ogengine_hub_notify_avatar_state(avatarId, xp, (long long)karma, "ODOOM",
-		level ? level->MapName.GetChars() : "");
+	ogengine_hub_frame_t hub;
+	if (!ogengine_hub_frame("ODOOM", level ? level->MapName.GetChars() : "", paused ? 1 : 0, &hub)) return;
 
-	bool hidden = ogengine_hub_is_hidden(avatarId) != 0;
-	if (hidden && !paused) {
+	if ((hub.pause_change > 0 && !paused) || (hub.pause_change < 0 && paused))
 		C_DoCommand("pause");
-		g_hub_paused_by_hub = true;
-	} else if (!hidden && g_hub_paused_by_hub) {
-		if (paused) C_DoCommand("pause");
-		g_hub_paused_by_hub = false;
-	}
 
-	char map[64] = {0};
-	float x = 0, y = 0, z = 0;
-	if (ogengine_hub_consume_arrive_file(avatarId, map, sizeof(map), &x, &y, &z)) {
-		g_hub_pending_x = x; g_hub_pending_y = y; g_hub_pending_z = z;
+	if (hub.has_arrive) {
+		g_hub_pending_x = hub.x; g_hub_pending_y = hub.y; g_hub_pending_z = hub.z;
 		g_hub_pending_spawn = true;
-		g_hub_pending_map.clear();
-		if (map[0]) {
-			if (!ODOOM_IsSafeMapName(map)) {
-				StarLogError("Hub arrive: rejected map name '%s'", map);
-				g_hub_pending_spawn = false;
-			} else if (!level || strcasecmp(level->MapName.GetChars(), map) != 0) {
-				g_hub_pending_map = map;
-				std::string cmd = std::string("map ") + map;
-				C_DoCommand(cmd.c_str());
-			}
+		g_hub_pending_map = hub.arrive_map;
+		if (hub.arrive_map[0]) {
+			std::string cmd = std::string("map ") + hub.arrive_map;
+			C_DoCommand(cmd.c_str());
 		}
-		StarLogInfo("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", map[0] ? map : "(current)", x, y, z);
+		StarLogInfo("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
 	}
 }
 
