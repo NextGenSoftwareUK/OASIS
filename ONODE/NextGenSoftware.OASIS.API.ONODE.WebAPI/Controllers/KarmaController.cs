@@ -28,6 +28,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class KarmaController : OASISControllerBase
     {
         /// <summary>
+        /// Returns the authoritative minimum karma required for every avatar level.
+        /// Key: level, value: minimum total karma required.
+        /// </summary>
+        [Authorize]
+        [HttpGet("get-level-thresholds")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<int, long>>), StatusCodes.Status200OK)]
+        public OASISResult<Dictionary<int, long>> GetLevelThresholds()
+        {
+            return new OASISResult<Dictionary<int, long>>
+            {
+                Result = new Dictionary<int, long>(LevelManager.LevelLookup),
+                Message = "Karma level thresholds retrieved successfully."
+            };
+        }
+
+        /// <summary>
         /// Get karma weighting for a given positive karma category.
         /// </summary>
         /// <param name="karmaType">The positive karma type to get weighting for.</param>
