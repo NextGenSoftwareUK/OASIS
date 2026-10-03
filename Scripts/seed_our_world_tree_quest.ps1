@@ -22,6 +22,8 @@ $names = @('Rainbow Tree', 'Lightning Tree', 'Mycelium Tree', 'Fruit Tree', 'Ske
 $rarities = @('Common', 'Rare', 'Epic', 'Legendary', 'Uncommon')
 $imageRoot = 'https://raw.githubusercontent.com/NextGenSoftwareUK/OASIS/Development/Docs/Assets/OurWorld/TreeBigIcons'
 $images = @("$imageRoot/rainbow-tree.png", "$imageRoot/lightning-tree.png", "$imageRoot/mycelium-tree.png", "$imageRoot/fruit-tree.png", "$imageRoot/skeleton-tree.png")
+$objectiveKarmaRewards = @(15, 0, 25, 60, 90)
+$objectiveXPRewards = @(0, 30, 40, 20, 110)
 $objectives = @(for ($i=0; $i -lt $placements.Count; $i++) {
     $activateEvents = @()
     if ($i -eq 0) {
@@ -43,6 +45,8 @@ $objectives = @(for ($i=0; $i -lt $placements.Count; $i++) {
         id = [Guid]::NewGuid().ToString(); order = $i
         title = "Collect the $($names[$i])"; description = "Find and collect the tree at $($placements[$i].label)."
         gameSource = 'Our World'
+        rewardKarma = $objectiveKarmaRewards[$i]
+        rewardXP = $objectiveXPRewards[$i]
         needToCollectItems = @{ 'Our World' = @("geonft:$($ids[$i])") }
         crossGameEventsOnActivate = $activateEvents
         crossGameEventsOnComplete = $completeEvents
@@ -52,6 +56,7 @@ $quest = @{
     name = 'Restoration of Harmony: Find the Endangered Trees'
     description = "Find and collect $($placements.Count) tokens of nature's regenerative power.`n`nEach token you find will help heal our world."
     gameSource = 'Our World'; status = 1; objectives = $objectives
+    rewardKarma = 150; rewardXP = 250
     metaData = @{ 'OurWorld.StartupSequence' = 'anorak-trees' }
 }
 if ($PlanOnly) { $quest | ConvertTo-Json -Depth 20; return }
@@ -59,6 +64,16 @@ if ($PlanOnly) { $quest | ConvertTo-Json -Depth 20; return }
 $schema = Invoke-RestMethod -Uri "$($Web5BaseUrl.TrimEnd('/'))/swagger/v1/swagger.json"
 if (-not $schema.paths.PSObject.Properties['/api/quests/{id}/inventory-progress']) {
     throw 'Deploy the WEB5 inventory-progress endpoint before running this seed. No data has been changed.'
+}
+$objectiveRewardContract = @($schema.components.schemas.PSObject.Properties | Where-Object {
+    $properties = $_.Value.properties
+    $null -ne $properties -and
+    $null -ne $properties.PSObject.Properties['rewardKarma'] -and
+    $null -ne $properties.PSObject.Properties['rewardXP'] -and
+    $_.Name -match 'Objective'
+})
+if ($objectiveRewardContract.Count -eq 0) {
+    throw 'Deploy the WEB5 objective XP/Karma reward contract before running this seed. No data has been changed.'
 }
 if ($null -eq $Credential) { $Credential = Import-Clixml -LiteralPath $CredentialPath }
 function Unwrap($response) {
@@ -131,6 +146,8 @@ try {
         }
         $saved.description = $quest.description
         $saved.objectiveCompletionOrder = 0
+        $saved | Add-Member -NotePropertyName rewardKarma -NotePropertyValue $quest.rewardKarma -Force
+        $saved | Add-Member -NotePropertyName rewardXP -NotePropertyValue $quest.rewardXP -Force
         # Upgrade the existing demo quest in place to the canonical cross-game
         # presentation contract without replacing its identity or progress.
         foreach ($authored in $objectives) {
@@ -141,6 +158,8 @@ try {
             $persistedObjective.description = $authored.description
             $persistedObjective.order = $authored.order
             $persistedObjective.needToCollectItems = $authored.needToCollectItems
+            $persistedObjective | Add-Member -NotePropertyName rewardKarma -NotePropertyValue $authored.rewardKarma -Force
+            $persistedObjective | Add-Member -NotePropertyName rewardXP -NotePropertyValue $authored.rewardXP -Force
             $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnActivate -NotePropertyValue $authored.crossGameEventsOnActivate -Force
             $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnComplete -NotePropertyValue $authored.crossGameEventsOnComplete -Force
         }
