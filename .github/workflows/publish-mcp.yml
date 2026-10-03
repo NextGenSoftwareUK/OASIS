@@ -200,8 +200,10 @@ jobs:
           set -euo pipefail
           test -s OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
           test -s OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md
-          grep -Fq '516 typed tools' OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
-          grep -Fq 'complete 516-command catalog' OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
+          total=$(sed -n 's/^| \*\*Total\*\* | \*\*\([0-9]*\)\*\* |.*/\1/p' OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md)
+          test -n "$total"
+          grep -Fq "${total} typed tools" OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
+          grep -Fq "complete ${total}-command catalog" OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
       - name: Generate component and version-specific release notes
         shell: pwsh
         run: OASIS/Scripts/New-OASISReleaseNotes.ps1 -Component MCPServer -Version '${{ inputs.version }}' -OutputPath release-notes.md
