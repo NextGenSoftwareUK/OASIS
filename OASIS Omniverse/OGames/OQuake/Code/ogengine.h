@@ -290,6 +290,37 @@ int ogengine_poll_inventory_grant(char* out_guid, size_t guid_len);
  * Writes oasis_portal_unlock_{portalId}.json to %TEMP% for OGEditor pickup. */
 void ogengine_notify_portal_unlock(const char* portal_id);
 
+/* ---- Hub Bridge: IPC from game process to OASIS Omniverse Hub (Unity) -------
+ * Temp-file IPC signals the Hub polls each second to keep its HUD and portal
+ * system in sync with the currently running OGame.
+ * avatar_id is the OASIS avatar GUID string from ogengine_get_avatar_id.
+ * ---------------------------------------------------------------------------- */
+
+/** Push live avatar state to the Hub HUD.
+ *  Call each frame or throttle to ~1 Hz; the bridge debounces identical writes.
+ *  current_map: current map/level name (e.g. "e1m1"); NULL or empty = leave blank. */
+void ogengine_hub_notify_avatar_state(const char* avatar_id, int xp, long long karma,
+                                      const char* active_game, const char* current_map);
+
+/** Request an outgoing OASIS Portal teleport from inside the game.
+ *  The Hub polls for this file and activates target_game on receipt.
+ *  target_map: map/level to load on arrival; NULL or empty = game default.
+ *  x/y/z: spawn position in target-game coordinates (0 = game default). */
+void ogengine_hub_request_teleport(const char* avatar_id, const char* target_game,
+                                   const char* target_map, float x, float y, float z);
+
+/** Atomically read and delete the arrive IPC file the Hub writes on portal activation.
+ *  Returns 1 if a file was found and parsed; 0 otherwise.
+ *  map_buf: receives null-terminated UTF-8 map name (up to map_buf_size bytes).
+ *  x_out/y_out/z_out: receive spawn coordinates; pass NULL for any you don't need. */
+int ogengine_hub_consume_arrive_file(const char* avatar_id, char* map_buf, size_t map_buf_size,
+                                     float* x_out, float* y_out, float* z_out);
+
+/** Returns 1 when the Hub has signalled this game to hide its window (e.g. player pressed F1).
+ *  Result is cached ~1 s so polling every frame avoids per-frame file I/O.
+ *  A signal file older than 60 s is treated as stale (hub crash) and returns 0. */
+int ogengine_hub_is_hidden(const char* avatar_id);
+
 #ifdef __cplusplus
 }
 #endif
