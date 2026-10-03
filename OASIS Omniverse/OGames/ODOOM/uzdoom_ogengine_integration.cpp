@@ -55,6 +55,7 @@ extern "C" void ogengine_sync_inventory_deliver_result(ogengine_item_list_t* lis
 #include "printf.h"
 #include "i_time.h"
 #include "g_levellocals.h"
+#include "i_interface.h"
 #include "playsim/d_player.h"
 #include "gi.h"
 #include "gametype.h"
@@ -2427,9 +2428,91 @@ static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName);
 static void ODOOM_FlipHudIntCVar(const char* cvarName);
 
+/*=============================================================================
+ * OASIS Omniverse Hub bridge — live state to Hub HUD, pause while Hub is shown,
+ * and portal arrival (map + spawn point) from the Hub.
+ *===========================================================================*/
+
+static uint64_t g_hub_last_poll_ms = 0;
+static bool g_hub_paused_by_hub = false;
+static std::string g_hub_pending_map;
+static float g_hub_pending_x = 0, g_hub_pending_y = 0, g_hub_pending_z = 0;
+static bool g_hub_pending_spawn = false;
+
+/* The arrive file lives in %TEMP% and is writable by any local process, so only
+ * plain lump names may reach the console "map" command. */
+static bool ODOOM_IsSafeMapName(const char* s) {
+	if (!s || !*s || strlen(s) > 32) return false;
+	for (const char* p = s; *p; ++p)
+		if (!(std::isalnum(static_cast<unsigned char>(*p)) || *p == '_')) return false;
+	return true;
+}
+
+static void ODOOM_HubApplyPendingSpawn(void) {
+	if (!g_hub_pending_spawn) return;
+	FLevelLocals* level = primaryLevel;
+	AActor* mo = players[consoleplayer].mo;
+	if (!level || !mo) return;
+	if (!g_hub_pending_map.empty() && strcasecmp(level->MapName.GetChars(), g_hub_pending_map.c_str()) != 0) return;
+	if (g_hub_pending_x != 0 || g_hub_pending_y != 0 || g_hub_pending_z != 0)
+		P_TeleportMove(mo, DVector3(g_hub_pending_x, g_hub_pending_y, g_hub_pending_z), false);
+	g_hub_pending_spawn = false;
+	g_hub_pending_map.clear();
+}
+
+static void ODOOM_HubBridgeFrame(void) {
+	ODOOM_HubApplyPendingSpawn();
+
+	uint64_t now = I_msTime();
+	if (now - g_hub_last_poll_ms < 500) return;
+	g_hub_last_poll_ms = now;
+
+	if (!g_star_initialized) return;
+	char avatarId[64] = {0};
+	if (ogengine_get_avatar_id(avatarId, sizeof(avatarId)) != OGENGINE_SUCCESS || !avatarId[0]) return;
+
+	int xp = 0;
+	long karma = 0;
+	ogengine_get_avatar_xp(&xp);
+	ogengine_get_avatar_karma(&karma);
+	FLevelLocals* level = primaryLevel;
+	ogengine_hub_notify_avatar_state(avatarId, xp, (long long)karma, "ODOOM",
+		level ? level->MapName.GetChars() : "");
+
+	bool hidden = ogengine_hub_is_hidden(avatarId) != 0;
+	if (hidden && !paused) {
+		C_DoCommand("pause");
+		g_hub_paused_by_hub = true;
+	} else if (!hidden && g_hub_paused_by_hub) {
+		if (paused) C_DoCommand("pause");
+		g_hub_paused_by_hub = false;
+	}
+
+	char map[64] = {0};
+	float x = 0, y = 0, z = 0;
+	if (ogengine_hub_consume_arrive_file(avatarId, map, sizeof(map), &x, &y, &z)) {
+		g_hub_pending_x = x; g_hub_pending_y = y; g_hub_pending_z = z;
+		g_hub_pending_spawn = true;
+		g_hub_pending_map.clear();
+		if (map[0]) {
+			if (!ODOOM_IsSafeMapName(map)) {
+				StarLogError("Hub arrive: rejected map name '%s'", map);
+				g_hub_pending_spawn = false;
+			} else if (!level || strcasecmp(level->MapName.GetChars(), map) != 0) {
+				g_hub_pending_map = map;
+				std::string cmd = std::string("map ") + map;
+				C_DoCommand(cmd.c_str());
+			}
+		}
+		StarLogInfo("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", map[0] ? map : "(current)", x, y, z);
+	}
+}
+
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
+	ODOOM_HubBridgeFrame();
+
 	/* Deferred health/armor is applied in ODOOM_PostTic (after the tic) so the HUD is not overwritten. */
 
 	/* Decrement toast frame counters so ZScript shows messages for their duration. */

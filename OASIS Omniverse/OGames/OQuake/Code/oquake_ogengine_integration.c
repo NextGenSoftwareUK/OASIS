@@ -4145,6 +4145,99 @@ void OQuake_STAR_OfflineSyncCommand(const char* command) {
     Con_Printf("[OASIS] %s\n", message);
 }
 
+/*=============================================================================
+ * OASIS Omniverse Hub bridge — live state to Hub HUD, pause while Hub is shown,
+ * and portal arrival (map + spawn point) from the Hub.
+ *===========================================================================*/
+
+static double g_hub_last_poll = -1.0;
+static qboolean g_hub_paused_by_hub = false;
+static char g_hub_pending_map[64];
+static float g_hub_pending_origin[3];
+static qboolean g_hub_pending_spawn = false;
+
+/* The arrive file lives in the temp dir and is writable by any local process, so only
+ * plain map names may reach the command buffer. */
+static qboolean OQ_IsSafeMapName(const char* s) {
+    size_t n = 0;
+    if (!s || !*s) return false;
+    for (; *s; ++s, ++n) {
+        if (n >= 32) return false;
+        if (!(isalnum((unsigned char)*s) || *s == '_')) return false;
+    }
+    return true;
+}
+
+static void OQ_HubApplyPendingSpawn(void) {
+    extern client_state_t cl;
+    extern client_static_t cls;
+    extern server_t sv;
+    edict_t* pl;
+    if (!g_hub_pending_spawn || !sv.active || cls.signon != SIGNONS) return;
+    if (g_hub_pending_map[0] && q_strcasecmp(cl.mapname, g_hub_pending_map) != 0) return;
+    if (g_hub_pending_origin[0] != 0 || g_hub_pending_origin[1] != 0 || g_hub_pending_origin[2] != 0) {
+        pl = EDICT_NUM(1);
+        pl->v.origin[0] = g_hub_pending_origin[0];
+        pl->v.origin[1] = g_hub_pending_origin[1];
+        pl->v.origin[2] = g_hub_pending_origin[2];
+        pl->v.velocity[0] = pl->v.velocity[1] = pl->v.velocity[2] = 0;
+        SV_LinkEdict(pl, false);
+    }
+    g_hub_pending_spawn = false;
+    g_hub_pending_map[0] = 0;
+}
+
+static void OQ_HubBridgeFrame(void) {
+    extern client_state_t cl;
+    extern server_t sv;
+    extern void Cbuf_AddText(const char* text);
+    char avatarId[64] = {0};
+    char map[64] = {0};
+    float x = 0, y = 0, z = 0;
+    int xp = 0;
+    long karma = 0;
+    qboolean hidden;
+
+    OQ_HubApplyPendingSpawn();
+
+    if (g_hub_last_poll >= 0 && realtime - g_hub_last_poll < 0.5) return;
+    g_hub_last_poll = realtime;
+
+    if (!g_star_initialized) return;
+    if (ogengine_get_avatar_id(avatarId, sizeof(avatarId)) != OGENGINE_SUCCESS || !avatarId[0]) return;
+
+    ogengine_get_avatar_xp(&xp);
+    ogengine_get_avatar_karma(&karma);
+    ogengine_hub_notify_avatar_state(avatarId, xp, (long long)karma, "OQuake", cl.mapname);
+
+    hidden = ogengine_hub_is_hidden(avatarId) != 0;
+    if (hidden && sv.active && !sv.paused) {
+        Cbuf_AddText("pause\n");
+        g_hub_paused_by_hub = true;
+    } else if (!hidden && g_hub_paused_by_hub) {
+        if (sv.active && sv.paused) Cbuf_AddText("pause\n");
+        g_hub_paused_by_hub = false;
+    }
+
+    if (ogengine_hub_consume_arrive_file(avatarId, map, sizeof(map), &x, &y, &z)) {
+        g_hub_pending_origin[0] = x; g_hub_pending_origin[1] = y; g_hub_pending_origin[2] = z;
+        g_hub_pending_spawn = true;
+        g_hub_pending_map[0] = 0;
+        if (map[0]) {
+            if (!OQ_IsSafeMapName(map)) {
+                Con_Printf("[OASIS] Hub arrive: rejected map name '%s'\n", map);
+                g_hub_pending_spawn = false;
+            } else if (!sv.active || q_strcasecmp(cl.mapname, map) != 0) {
+                char cmd[96];
+                q_strlcpy(g_hub_pending_map, map, sizeof(g_hub_pending_map));
+                q_snprintf(cmd, sizeof(cmd), "map %s\n", map);
+                Cbuf_AddText(cmd);
+            }
+        }
+        oglib_log(OGLIB_LOG_INFO, "Hub arrive: map=%s pos=%.0f/%.0f/%.0f", map[0] ? map : "(current)", x, y, z);
+    }
+}
+
 /* Frame-based item/stats poll so pickups are reported even when sbar isn't drawn. Call from Host_Frame. */
 void OQuake_STAR_PollItems(void) {
     extern client_state_t cl;
@@ -4159,6 +4252,7 @@ void OQuake_STAR_PollItems(void) {
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     ogengine_sync_pump();
+    OQ_HubBridgeFrame();
     {
         char message[512];
         int changed = oglib_edge_finish_change(&g_edge_settings, message, sizeof(message));
