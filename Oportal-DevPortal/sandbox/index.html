@@ -641,7 +641,10 @@ window.braidSolve = async () => {
   try {
     const response = await client().completion.complete({
       Provider: 'auto', Model: 'auto',
-      Messages: [{ Role: 'user', Content: `Solve a sample ${tt} problem using the BRAID reasoning graph.` }],
+      Messages: [
+        { Role: 'system', Content: 'Provide a concise, auditable answer and follow the user request exactly.' },
+        { Role: 'user', Content: `Solve a sample ${tt} problem using the BRAID reasoning graph.` }
+      ],
       UseHolonicBraid: true, UseFAHRN: false, FahrnTaskType: tt,
       Routing: { Priority: 'cost', Fallback: true },
     });
