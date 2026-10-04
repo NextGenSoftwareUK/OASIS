@@ -517,7 +517,13 @@ authenticateTestAvatar().catch(error => {
 function client() {
   const jwt = document.getElementById('jwt').value.trim();
   if (!jwt) throw new Error('Enter a WEB4 OASIS JWT first.');
-  const web6 = new Web6Client({ baseUrl: BASE });
+  const web6 = new Web6Client({
+    baseUrl: BASE,
+    fetchImpl: (url, options = {}) => fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), 'Idempotency-Key': crypto.randomUUID() }
+    })
+  });
   web6.setToken(jwt.startsWith('Bearer ') ? jwt.slice(7) : jwt);
   return web6;
 }
@@ -526,6 +532,7 @@ function hdrs() {
   if (!jwt) throw new Error('Enter a WEB4 OASIS JWT first.');
   const h = { 'Content-Type': 'application/json' };
   h['Authorization'] = jwt.startsWith('Bearer ') ? jwt : 'Bearer ' + jwt;
+  h['Idempotency-Key'] = crypto.randomUUID();
   return h;
 }
 async function apiJson(url, options = {}, allowedStatuses = []) {
@@ -710,7 +717,7 @@ window.fSolve = async () => {
   const mode = document.getElementById('f-mode').value.split(' ')[0];
   const taskType = document.getElementById('f-tt').value;
   if (!problem) { sb('f-sb','f-sbt','Enter a problem first.','err'); return; }
-  sb('f-sb','f-sbt',`Dispatching via web6.fahrnSolve.solve() - mode=${mode}...`);
+  sb('f-sb','f-sbt',`Dispatching via web6.fahrn.solve() - mode=${mode}...`);
   document.getElementById('f-met').style.display = 'none';
   document.getElementById('f-out').classList.remove('show');
   document.getElementById('f-trace').classList.remove('show');
