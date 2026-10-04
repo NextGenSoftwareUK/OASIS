@@ -19,17 +19,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
         }
 
-        public override async Task<JsonResponse> GetOASISDNA(ONETEmptyRequest request, ServerCallContext context)
-        {
-            try
-            {
-                var result = await CreateONETManager().GetOASISDNAAsync();
-                return result.IsError
-                    ? new JsonResponse { IsError = true, Message = result.Message }
-                    : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
-            }
-            catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }
-        }
+        // The DNA carries every provider secret and the node private key, and this service has no caller
+        // authentication; DNA/ONET configuration is only served by the Wizard-only REST api/v1/onet/config.
+        private const string DnaOverGrpcRemoved = "OASISDNA is not available over gRPC. Use the Wizard-authenticated REST endpoint api/v1/onet/config.";
+
+        public override Task<JsonResponse> GetOASISDNA(ONETEmptyRequest request, ServerCallContext context)
+            => throw new RpcException(new Status(StatusCode.PermissionDenied, DnaOverGrpcRemoved));
 
         public override async Task<JsonResponse> GetNetworkStatus(ONETEmptyRequest request, ServerCallContext context)
         {
@@ -67,18 +62,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }
         }
 
-        public override async Task<OASISGrpcResponse> UpdateOASISDNA(UpdateOASISDNARequest request, ServerCallContext context)
-        {
-            try
-            {
-                var oasisdna = JsonSerializer.Deserialize<OASISDNA>(request.OasisdnaJson);
-                if (oasisdna == null)
-                    return new OASISGrpcResponse { IsError = true, Message = "Failed to deserialize OASISDNA." };
-                var result = await CreateONETManager().UpdateOASISDNAAsync(oasisdna);
-                return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
-            }
-            catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
-        }
+        public override Task<OASISGrpcResponse> UpdateOASISDNA(UpdateOASISDNARequest request, ServerCallContext context)
+            => throw new RpcException(new Status(StatusCode.PermissionDenied, DnaOverGrpcRemoved));
 
         public override async Task<OASISGrpcResponse> ConnectToNode(ConnectToNodeRequest request, ServerCallContext context)
         {
