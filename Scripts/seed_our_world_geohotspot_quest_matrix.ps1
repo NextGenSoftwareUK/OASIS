@@ -39,6 +39,9 @@ if($PlanOnly){$cases|ForEach-Object{[pscustomobject]@{key=$_.key;name=$_.name;gr
 $schema=Invoke-RestMethod "$($Web5BaseUrl.TrimEnd('/'))/swagger/v1/swagger.json"
 $objectiveRewardContract=@($schema.components.schemas.PSObject.Properties|Where-Object{$propertiesProperty=$_.Value.PSObject.Properties['properties'];$properties=if($null-ne$propertiesProperty){$propertiesProperty.Value}else{$null};$_.Name-match'Objective'-and$null-ne$properties-and$null-ne$properties.PSObject.Properties['rewardKarma']-and$null-ne$properties.PSObject.Properties['rewardXP']})
 if($objectiveRewardContract.Count-eq0){throw 'Deploy the WEB5 objective XP/Karma reward contract before running this seed. No data has been changed.'}
+$triggerRequestSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{$_.Name-eq'TriggerGeoHotSpotRequest'})|Select-Object -First 1
+$geoHotSpotSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{$null-ne$_.Value.properties.PSObject.Properties['boundaryType']-and$null-ne$_.Value.properties.PSObject.Properties['recognitionTargetKey']})|Select-Object -First 1
+if($null-eq$triggerRequestSchema-or$null-eq$triggerRequestSchema.Value.properties.PSObject.Properties['recognitionConfidence']-or$null-eq$geoHotSpotSchema){throw 'Deploy the WEB5 GeoHotSpot boundary/recognition evidence contract before running this seed. No data has been changed.'}
 function Unwrap($r){if($null-eq$r.PSObject.Properties['isError']){$r=$r.result};if($null-eq$r-or$r.isError){throw "API operation failed: $($r.message)"};$r.result}
 $credential=Import-Clixml $CredentialPath;$login=@{username=$credential.UserName;password=$credential.GetNetworkCredential().Password}|ConvertTo-Json
 try{$avatar=Unwrap(Invoke-RestMethod "$Web4BaseUrl/api/avatar/authenticate" -Method Post -ContentType application/json -Body $login)}finally{$login=$null;$credential=$null}
@@ -49,6 +52,24 @@ if(Test-Path $ManifestPath){$manifest=Get-Content $ManifestPath -Raw|ConvertFrom
 function SaveManifest{New-Item -ItemType Directory -Force (Split-Path $ManifestPath)|Out-Null;$manifest|ConvertTo-Json -Depth 40|Set-Content $ManifestPath -Encoding UTF8}
 function CaseValue($case,[string]$key,$defaultValue){if($case.ContainsKey($key)){return $case[$key]};return $defaultValue}
 function TriggerValue([string]$name){switch($name){'WhenArrivedAtGeoLocation'{0}'WhenAtGeoLocationForXSeconds'{1}'WhenLookingAtObjectOrImageForXSecondsInARMode'{2}'WhenObjectOrImageIsTouchedInARMode'{3}default{throw "Unknown trigger type '$name'."}}}
+function IsArCase($case){return $case.trigger-in@('WhenLookingAtObjectOrImageForXSecondsInARMode','WhenObjectOrImageIsTouchedInARMode')}
+function HotSpotBody($case,$point){
+ $ar=IsArCase $case
+ @{
+  name=$case.name;description="$($case.content) fixture for $($case.trigger).";lat=$point.lat;long=$point.long
+  triggerType=(TriggerValue $case.trigger);hotSpotRadiusInMetres=$case.radius;boundaryType='Circle';boundaryLatitudes=@();boundaryLongitudes=@()
+  recognitionTargetKey=if($ar){'our-world-tree-v1'}else{''};recognitionTargetClass=if($ar){'Tree'}else{''};minimumRecognitionConfidence=if($ar){0.65}else{0}
+  rewardKarma=$case.karma;rewardXP=$case.xp
+  timeInSecondsNeedToBeAtLocationToTriggerHotSpot=(CaseValue $case 'dwell' 0)
+  timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot=(CaseValue $case 'gaze' 0)
+  allowOtherPlayersToAlsoCollect=$case.share;permSpawn=$case.perm
+  globalSpawnQuantity=$case.global;playerSpawnQuantity=$case.player;respawnDurationInSeconds=$case.cooldown
+  spawnInSafeZone=$case.safe;spawnNearPlayer=$case.near;spawnWithinXMetersFromPlayer=80
+  spawnXMetersAwayFromPlayer=$case.distance;isVisibleOnMap=$case.visible
+  image2DURI="$imageRoot/mycelium-tree.png";textContent="GeoHotSpot matrix: $($case.content)";websiteUrl='https://oasisweb4.one'
+  metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.FixtureKey'=$case.key;'OurWorld.ContentType'=$case.content;'OurWorld.RecognitionProfile'=if($ar){'our-world-tree-v1'}else{''};'GeoHotSpotType'=$case.content}
+ }
+}
 try{
  if(!(Test-Path $GeoNFTManifestPath)){throw 'Seed the GeoNFT quest matrix first; its tagged GeoNFTs are the reward fixtures.'}
  $geoManifest=Get-Content $GeoNFTManifestPath -Raw|ConvertFrom-Json;$geoRewards=@($geoManifest.fixtures|Where-Object geoNFTId|Select-Object -First 2)
@@ -59,7 +80,7 @@ try{
    $saved=@($manifest.hotspots|Where-Object key -eq $c.key)|Select-Object -First 1
    if($null-ne$saved) {
      $persisted=Api $Web5BaseUrl "geohotspots/$($saved.id)"
-     if($null-ne$persisted){$persisted|Add-Member -NotePropertyName rewardKarma -NotePropertyValue $c.karma -Force;$persisted|Add-Member -NotePropertyName rewardXP -NotePropertyValue $c.xp -Force;$null=Api $Web5BaseUrl "geohotspots/$($saved.id)" 'Put' $persisted;continue}
+     if($null-ne$persisted){$body=HotSpotBody $c @{lat=[double]$persisted.lat;long=[double]$persisted.long};$null=Api $Web5BaseUrl "geohotspots/$($saved.id)" 'Put' $body;continue}
      $manifest.hotspots=@($manifest.hotspots|Where-Object key -ne $c.key)
      SaveManifest
    }
@@ -68,21 +89,7 @@ try{
    if($existing.Count-eq1){$hot=$existing[0]}
    else {
      $p=Point $c.bearing $c.distance
-     $body=@{
-       name=$c.name; description="$($c.content) fixture for $($c.trigger)."; lat=$p.lat; long=$p.long
-       triggerType=(TriggerValue $c.trigger); hotSpotRadiusInMetres=$c.radius
-       rewardKarma=$c.karma; rewardXP=$c.xp
-       timeInSecondsNeedToBeAtLocationToTriggerHotSpot=(CaseValue $c 'dwell' 0)
-       timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot=(CaseValue $c 'gaze' 0)
-       allowOtherPlayersToAlsoCollect=$c.share; permSpawn=$c.perm
-       globalSpawnQuantity=$c.global; playerSpawnQuantity=$c.player; respawnDurationInSeconds=$c.cooldown
-       spawnInSafeZone=$c.safe; spawnNearPlayer=$c.near; spawnWithinXMetersFromPlayer=80
-       spawnXMetersAwayFromPlayer=$c.distance; isVisibleOnMap=$c.visible
-       image2DURI="$imageRoot/mycelium-tree.png"
-       textContent="GeoHotSpot matrix: $($c.content)"
-       websiteUrl='https://oasisweb4.one'
-       metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.FixtureKey'=$c.key;'OurWorld.ContentType'=$c.content;'GeoHotSpotType'=$c.content}
-     }
+     $body=HotSpotBody $c $p
      $inventoryIndex=CaseValue $c 'inventory' $null
      $geoNFTIndex=CaseValue $c 'geonft' $null
      if($null-ne$inventoryIndex){$body.rewardIds=@("$($manifest.rewards[$inventoryIndex].id)")}
