@@ -144,13 +144,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             result.Should().BeOfType<BadRequestObjectResult>();
         }
 
-        [Fact]
-        public async Task UpdateOASISDNA_NullRequest_Returns400()
-        {
-            var result = await BuildController().UpdateOASISDNA(null!);
-            result.Should().BeOfType<BadRequestObjectResult>();
-        }
-
         // ── cleanup ───────────────────────────────────────────────────────────
 
         public void Dispose() => ResetStaticManager();

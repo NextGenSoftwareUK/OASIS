@@ -10,7 +10,7 @@ Status column is updated as fixes land on `Development`.
 | # | Issue | Location | Status |
 |---|-------|----------|--------|
 | 1 | Bootstrap discovery could not work end to end: client GET `{server}/onet/nodes` (no such route), no signature headers, server endpoint behind `[Authorize(Wizard)]`, response wrapped in `OASISResult` while the client expected a bare array. | `ONETDiscovery.Helpers.cs`, `ONETController.cs` | **Fixed (bootstrap path)** — new anonymous, signed `GET /api/v1/onet/peers` returning `NodeInfo[]`; client sends `X-ONET-NodeId/Timestamp/Signature`; `nodes/register` is anonymous. Peer-to-peer exchange against a peer's TCP address is still HTTP-to-TCP — see #22. |
-| 18 | **Platform-wide:** GraphQL (`/graphql`) and gRPC services have no caller authentication. Every mutation is open, e.g. `DeleteAvatarByEmail`, `SendSolanaTransaction`, `MintWeb4Nft`, `AddKarmaToAvatar`, `StopNetwork`. | `ONODE.WebAPI/GraphQL/Query.cs`, `Mutation.cs`, `GrpcServices/*`, `Startup.cs` | **Open — needs owner decision.** ONET's DNA read/write fields were removed from GraphQL and refused over gRPC. |
+| 18 | **Platform-wide:** GraphQL (`/graphql`) and gRPC services have no caller authentication. Every mutation is open, e.g. `DeleteAvatarByEmail`, `SendSolanaTransaction`, `MintWeb4Nft`, `AddKarmaToAvatar`, `StopNetwork`. | `ONODE.WebAPI/GraphQL/Query.cs`, `Mutation.cs`, `GrpcServices/*`, `Startup.cs` | **Fixed (ONODE WebAPI)** — global HotChocolate field middleware and gRPC interceptor (`ONODE.WebAPI/Security/`) require a Wizard avatar except the login/registration allowlist; open individual operations once their resolver checks ownership. STAR (WEB5) and WEB6–WEB10 GraphQL/gRPC already require an authenticated WEB4 bearer via the usage ledger, but their resolvers have not been audited for ownership checks. |
 
 ## High — security
 
@@ -22,7 +22,7 @@ Status column is updated as fixes land on `Development`.
 | 5 | `GET /api/v1/onet/oasisdna` returned the full DNA (all provider secrets, node private key); `PUT` replaced the whole DNA. Same over GraphQL and gRPC. | `ONETController`, GraphQL, `ONETGrpcService` | **Fixed** — replaced by Wizard-only `GET/PUT /api/v1/onet/config` (ONET section only, secrets blanked, identity immutable). GraphQL fields removed; gRPC methods return `PermissionDenied`. `ONETManager.UpdateOASISDNAAsync` deleted. |
 | 6 | Node private key stored in plaintext Holon metadata. | `ONETManager.SaveStateToHolonAsync` | **Fixed** — identity stored only as AES-GCM sealed blob under `OASIS_ONET_STATE_KEY` (instance id as AAD); validated on load; never overrides a DNA keypair. |
 | 7 | TCP listener had no read timeout or connection cap; any text was `ONET_ACK`ed. | `ONETProtocol.Network.cs` | **Fixed** — 10s read timeout, 256 concurrent connections, unknown text gets `ONET_UNSUPPORTED`. Plain `ONET_PING` stays an unauthenticated liveness probe. |
-| 19 | `ONODEController` `GET/PUT api/v1/onode/oasisdna` (Wizard) still return / replace the full DNA including secrets. | `ONODEController` | Open |
+| 19 | `ONODEController` `GET/PUT api/v1/onode/oasisdna` (Wizard) returned / replaced the full DNA including secrets; `PUT` never persisted. | `ONODEController`, `ONODEManager` | **Fixed** — endpoints, manager methods, MCP tools `web4_onode_get/update_oasisdna` and WebUI client methods removed. |
 
 ## High — correctness
 
@@ -64,7 +64,7 @@ Status column is updated as fixes land on `Development`.
 
 ## Remediation order (remaining)
 
-1. #18 GraphQL/gRPC authentication (owner decision), #19 ONODE DNA endpoints.
+1. Ownership checks so GraphQL/gRPC operations can be opened beyond Wizards (#18 follow-up).
 2. #9–#10 concurrency and single peer list; #22 peer-to-peer exchange.
 3. #12–#13, #17, #20–#21.
 4. #15 dead code removal.
