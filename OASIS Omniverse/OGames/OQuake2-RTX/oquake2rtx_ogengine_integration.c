@@ -25,6 +25,7 @@
  * See https://github.com/NVIDIA/Q2RTX for the base engine.
  */
 
+#include "g_local.h"
 #include "oquake2rtx_ogengine_integration.h"
 #include "ogengine_sync.h"
 #include "oglib_edge.h"
@@ -59,14 +60,9 @@ typedef int qboolean;
 #define false 0
 #endif
 
-/* Q2 RTX / Yamagi Q2 console print */
+/* Console print from the game module goes through the engine import table. */
 #ifndef Q2RTX_Con_Printf
-#  ifdef __cplusplus
-extern "C" void Com_Printf(const char* fmt, ...);
-#  else
-extern void Com_Printf(const char* fmt, ...);
-#  endif
-#  define Q2RTX_Con_Printf Com_Printf
+#  define Q2RTX_Con_Printf gi.dprintf
 #endif
 
 /* String helpers */
@@ -777,10 +773,51 @@ void OQuake2RTX_STAR_OfflineSyncCommand(const char* command) {
     Q2RTX_Con_Printf("[OASIS] %s\n", message);
 }
 
+/* -------------------------------------------------------------------------
+ * OASIS Omniverse Hub — protocol lives in ogengine_hub_frame (OGEngineClient);
+ * see Docs/OMNIVERSE_HUB_IPC.md. Pausing is not supported here: this runs from
+ * G_RunFrame, which the server stops calling while paused, so the Hub could
+ * never unpause the game. The Hub still hides the window.
+ * ------------------------------------------------------------------------- */
+
+static char g_hub_pending_map[64];
+static float g_hub_pending_origin[3];
+static int g_hub_pending_spawn = 0;
+
+static void OQ2RTX_HubApplyPendingSpawn(void) {
+    edict_t* player_ent = &g_edicts[1];
+    if (!g_hub_pending_spawn || !player_ent->inuse || !player_ent->client) return;
+    if (g_hub_pending_map[0] && Q_stricmp(level.mapname, g_hub_pending_map) != 0) return;
+    if (g_hub_pending_origin[0] != 0 || g_hub_pending_origin[1] != 0 || g_hub_pending_origin[2] != 0) {
+        VectorCopy(g_hub_pending_origin, player_ent->s.origin);
+        VectorClear(player_ent->velocity);
+        gi.linkentity(player_ent);
+    }
+    g_hub_pending_spawn = 0;
+    g_hub_pending_map[0] = 0;
+}
+
+static void OQ2RTX_HubBridgeFrame(void) {
+    ogengine_hub_frame_t hub;
+    OQ2RTX_HubApplyPendingSpawn();
+    if (!ogengine_hub_frame("OQuake2-RTX", level.mapname, 0, &hub) || !hub.has_arrive) return;
+
+    g_hub_pending_origin[0] = hub.x; g_hub_pending_origin[1] = hub.y; g_hub_pending_origin[2] = hub.z;
+    g_hub_pending_spawn = 1;
+    Q2RTX_Q_strlcpy(g_hub_pending_map, hub.arrive_map, sizeof(g_hub_pending_map));
+    if (hub.arrive_map[0]) {
+        char cmd[96];
+        Q_snprintf(cmd, sizeof(cmd), "map %s\n", hub.arrive_map);
+        gi.AddCommandString(cmd);
+    }
+    OQ2RTX_StarLog("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
+}
+
 void OQuake2RTX_STAR_PollItems(void) {
     char mint_item[256], nft_id[128], hash[128], err_buf[384];
     if (!g_star_initialized) return;
     ogengine_sync_pump();
+    OQ2RTX_HubBridgeFrame();
     {
         char edge_msg[512];
         int changed = oglib_edge_finish_change(&g_edge_settings, edge_msg, sizeof(edge_msg));
@@ -807,7 +844,7 @@ void OQuake2RTX_STAR_PollItems(void) {
                 else if (strncmp(classname, "oquake2_", 8) == 0)   classname += 8;
                 edict_t *ent = G_Spawn();
                 if (ent) {
-                    ent->classname = classname;
+                    ent->classname = (char*)classname;
                     VectorSet(ent->s.origin, sx, sy, sz);
                     ent->s.angles[YAW] = 0.0f;
                     ED_CallSpawn(ent);
