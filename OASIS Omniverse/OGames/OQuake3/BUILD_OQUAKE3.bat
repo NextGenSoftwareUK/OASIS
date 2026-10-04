@@ -42,11 +42,7 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API DLL ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OQUAKE3_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE3_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE3_INTEGRATION%\ogengine.lib"
+if exist "%OQUAKE3_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE3_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE3_INTEGRATION%\ogengine.lib"
 if not defined STAR_DLL (
     echo ogengine.dll missing after deploy. Check OGEngineClient build.
     pause & exit /b 1
