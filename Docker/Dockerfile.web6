@@ -44,6 +44,7 @@ RUN dotnet publish "NextGenSoftware.OASIS.Web6.WebAPI.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY --from=build /src/Oportal-DevPortal/sandbox/index.html ./wwwroot/index.html
 COPY Docker/entrypoint.web6.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
