@@ -15,7 +15,13 @@ param(
     [switch]$PlanOnly
 )
 $ErrorActionPreference = 'Stop'
-$manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+$manifest = if ($PlanOnly -and -not (Test-Path -LiteralPath $ManifestPath)) {
+    [pscustomobject]@{ placements = @(0..4 | ForEach-Object {
+        [pscustomobject]@{ id=[Guid]::NewGuid(); label="Planned placement $($_ + 1)"; lat=0; long=0 }
+    }) }
+} else {
+    Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+}
 $placements = @($manifest.placements)
 if ($placements.Count -lt 4 -or $placements.Count -gt 5) { throw 'The tree demo requires four or five manifest placements.' }
 $ids = @($placements | ForEach-Object { ([Guid]$_.id).ToString() } | Select-Object -Unique)
