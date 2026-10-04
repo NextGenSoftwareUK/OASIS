@@ -40,24 +40,17 @@ Its request DTO is `TriggerGeoHotSpotRequest` in `STAR ODK/NextGenSoftware.OASIS
 
 The API response already returns quest transitions, refreshed quests, cross-game events, inventory/GeoNFT rewards, Karma/XP awards, and updated totals.
 
-### Important current limitation
+### Recognition evidence
 
-`GeoHotSpotTriggerService.ValidateEvidence` currently:
-
-- validates the authored trigger type;
-- validates `ContinuousDurationSeconds` for the AR look trigger;
-- validates centre/radius only for the two location trigger types;
-- does **not** carry or validate a recognised object identity, recognition profile, confidence, or evidence reference.
-
-Consequently, the current AR trigger can represent “the client looked for the authored duration”, but cannot authoritatively distinguish a tree from another object or require that the AR observation occurred inside the hotspot. Our World must not describe the current contract as server-verified tree recognition.
-
-The minimal future extension is to add portable recognition evidence to the existing trigger request, rather than create a new trigger subsystem:
+`GeoHotSpotTriggerService.ValidateEvidence` now validates the authored trigger type, continuous duration, geographic boundary, recognition identity, and minimum confidence for AR look/touch triggers. The existing trigger request carries portable recognition evidence rather than using a parallel trigger subsystem:
 
 - recognition target key/class, such as `our-world-tree-v1` / `Tree`;
 - optional target instance or quest-giver ID;
 - model/profile version;
 - confidence and evidence/attestation reference where appropriate;
 - location validation for AR trigger types when the linked hotspot has a geographic boundary.
+
+Our World submits `our-world-tree-v1` / `Tree`, its detector confidence and model version, and a session evidence reference. This makes the server the authority for whether the authored evidence contract was satisfied. The evidence reference is an audit correlation value; it is not a cryptographic proof of the camera pixels.
 
 ### Quest and objective links
 
@@ -171,7 +164,7 @@ A polygon must not be limited to four coordinates. Existing hotspots default to 
 1. Load eligible GeoHotSpots and their existing quest relationships.
 2. Confirm the avatar is inside the hotspot boundary.
 3. In AR, recognise a real tree continuously for the authored duration.
-4. Submit the existing idempotent GeoHotSpot trigger with location, duration, and—after the minimal contract extension—recognition evidence.
+4. Submit the existing idempotent GeoHotSpot trigger with location, duration, and recognition evidence.
 5. Use returned `CrossGameEventsOnGeoHotSpotTriggered` for the tree greeting.
 6. Offer/start the linked eligible quest through the normal quest API.
 7. Play the first objective's `CrossGameEventsOnActivate`.
@@ -183,3 +176,5 @@ One specific tree uses a small circular GeoHotSpot. Any suitable tree within a p
 ## Implementation rule
 
 GeoHotSpot trigger acceptance and quest progression remain server-authoritative and idempotent. The Unity client detects and presents; it must not independently infer quest completion, grant rewards, or select an arbitrary quest merely because it has a startup sequence.
+
+`Scripts/seed_our_world_tree_quest.ps1` authors or updates the `Anorak Talking Tree` GeoHotSpot, links the quest and first objective to its stable ID, and authors the greeting as `CrossGameEventsOnGeoHotSpotTriggered`. The first objective still requires its existing GeoNFT item, so meeting the tree records the location interaction without falsely completing the collection objective.
