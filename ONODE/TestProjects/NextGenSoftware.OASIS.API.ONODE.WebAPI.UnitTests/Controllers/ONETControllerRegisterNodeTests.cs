@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
     /// Tests for POST /onet/nodes/register API key authentication logic.
     /// Uses reflection to inject a mock ONETManager singleton so OASISBootLoader is never touched.
     /// </summary>
+    [Collection(ONETControllerSingletonCollection.Name)]
     public class ONETControllerRegisterNodeTests : IDisposable
     {
         public ONETControllerRegisterNodeTests() { }
@@ -173,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             public override Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
                 => Task.FromResult(new OASISResult<OASISDNA> { Result = _dna, IsError = false });
 
-            public override void RegisterNodePublicKey(string nodeId, string publicKey) { }
+            public override bool RegisterNodePublicKey(string nodeId, string publicKey) => true;
         }
     }
 }

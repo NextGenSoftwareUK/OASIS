@@ -635,12 +635,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
         }
 
-        public async Task<OASISDNA?> GetOASISDNA()
-        {
-            var result = await CreateONETManager().GetOASISDNAAsync();
-            return result.IsError ? null : result.Result;
-        }
-
         public async Task<NetworkStatus?> GetNetworkStatus()
         {
             var result = await CreateONETManager().GetNetworkStatusAsync();

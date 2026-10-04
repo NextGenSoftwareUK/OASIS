@@ -36,12 +36,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private static Task<ONODEManager> GetOnodeManagerAsync()
         {
-            if (_onodeManagerTask != null)
+            if (_onodeManagerTask != null && !_onodeManagerTask.IsFaulted && !_onodeManagerTask.IsCanceled)
                 return _onodeManagerTask;
 
             lock (_onodeManagerLock)
             {
-                _onodeManagerTask ??= InitializeOnodeManagerAsync();
+                if (_onodeManagerTask == null || _onodeManagerTask.IsFaulted || _onodeManagerTask.IsCanceled)
+                    _onodeManagerTask = InitializeOnodeManagerAsync();
                 return _onodeManagerTask;
             }
         }
