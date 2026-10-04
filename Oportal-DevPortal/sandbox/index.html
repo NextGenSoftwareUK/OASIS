@@ -636,17 +636,26 @@ window.braidFetch = async () => {
 
 window.braidSolve = async () => {
   const tt = document.getElementById('b-tt').value;
+  const sampleProblems = {
+    general: 'Explain in two sentences how a reusable reasoning plan can reduce repeated AI work.',
+    code: 'Write a JavaScript function that returns the sum of two numbers, then show one example call.',
+    architecture: 'Design a three-component API architecture for authentication, business logic, and persistence. Give one responsibility per component.',
+    reasoning: 'A farmer has 17 sheep and all but 9 run away. How many remain? Give the answer and one sentence of reasoning.',
+    writing: 'Rewrite this sentence to be clearer and more concise: The system is able to make use of cached plans in order to reduce the amount of repeated work.',
+    mathematics: 'Calculate 18 × 7 and show the single arithmetic step.'
+  };
   sb('b-sb','b-sbt','Calling web6.completion.complete() with UseHolonicBraid=true…');
   document.getElementById('b-out').classList.remove('show');
   try {
     const response = await client().completion.complete({
-      Provider: 'auto', Model: 'auto',
+      Provider: 'OpenServ', Model: 'gpt-5.4-mini',
       Messages: [
         { Role: 'system', Content: 'Provide a concise, auditable answer and follow the user request exactly.' },
-        { Role: 'user', Content: `Solve a sample ${tt} problem using the BRAID reasoning graph.` }
+        { Role: 'user', Content: sampleProblems[tt] }
       ],
       UseHolonicBraid: true, UseFAHRN: false, FahrnTaskType: tt,
-      Routing: { Priority: 'cost', Fallback: true },
+      CacheTtlSeconds: 0,
+      Routing: { Priority: 'cost', Fallback: false, UseOpenServ: true },
     });
     if (response.isError || !response.result) throw new Error(response.message || 'Completion failed.');
     const result = response.result;
