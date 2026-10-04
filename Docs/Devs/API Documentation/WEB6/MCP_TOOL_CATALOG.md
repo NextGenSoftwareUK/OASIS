@@ -298,7 +298,6 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_onode_get_info` | WEB4/ONODE: gets detailed ONODE information. |
 | `web4_onode_get_logs` | WEB4/ONODE: retrieves recent ONODE log lines. lines defaults to 100. |
 | `web4_onode_get_metrics` | WEB4/ONODE: gets performance metrics for this ONODE (CPU, memory, throughput). |
-| `web4_onode_get_oasisdna` | WEB4/ONODE: retrieves the OASISDNA configuration for this ONODE. |
 | `web4_onode_get_peers` | WEB4/ONODE: lists all peers connected to this ONODE. |
 | `web4_onode_get_providers` | WEB4/ONODE: lists all configured OASIS storage providers and their enabled state from OASISDNA.json. |
 | `web4_onode_get_stats` | WEB4/ONODE: retrieves ONODE statistics (uptime, request counts, etc.). |
@@ -307,7 +306,6 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_onode_start` | WEB4/ONODE: starts the ONODE. |
 | `web4_onode_stop` | WEB4/ONODE: stops the ONODE. |
 | `web4_onode_update_config` | WEB4/ONODE: updates the ONODE configuration. configJson is a JSON object of key/value pairs. |
-| `web4_onode_update_oasisdna` | WEB4/ONODE: updates the OASISDNA configuration for this ONODE. oasisdnaJson is the full OASISDNA JSON document. |
 | `web4_provider_activate` | WEB4: activates a previously registered provider so it can be used for storage/network operations. |
 | `web4_provider_deactivate` | WEB4: deactivates an active provider without unregistering it. |
 | `web4_provider_get_all_registered` | WEB4: lists all registered OASIS providers. |
