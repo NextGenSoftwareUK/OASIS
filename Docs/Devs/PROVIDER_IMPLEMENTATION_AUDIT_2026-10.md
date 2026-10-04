@@ -52,6 +52,22 @@ These can leak keys, move the wrong amount, or send funds to wrong addresses.
 | BlockStackOASIS | `BlockStackClient.cs:54` | Returns hard-coded users `"user1", "user2", "user3"` |
 | RadixOASIS | 5 call sites | Transaction-intent nonce from `System.Random` — use `RandomNumberGenerator` |
 
+### P0 — Chain write paths that cannot produce a valid transaction
+
+A follow-up review of every chain provider's transaction code found that most non-EVM providers either POST unsigned transactions (which every network rejects), sign with the wrong scheme, or hand-roll encoding without the chain's SDK. EVM chains on Nethereum are not affected.
+
+| Provider | Finding | Fix with |
+|---|---|---|
+| AptosOASIS | Most submissions unsigned; the one signer uses ECDSA/SHA-256 (Aptos needs Ed25519); public key = SHA-256(private key); address = SHA-256 of the key's hex text (Aptos uses SHA3-256(pubkey‖0x00)); random private key with an unrelated seed phrase; `gas_unit_price = "1"` (below the network minimum); mints from `0x1` | BIP39 + SLIP-0010 `m/44'/637'/0'/0'/0'` (Solnet.Wallet), Ed25519 (Chaos.NaCl), REST `encode_submission` + signed submit |
+| BitcoinOASIS | 10 transaction POSTs, no signing, no Bitcoin library | NBitcoin |
+| ElrondOASIS (MultiversX) | 16 transaction POSTs, no signing | Ed25519 + MultiversX transaction JSON spec |
+| AlgorandOASIS, HashgraphOASIS | POST transactions without signing | Algorand4, Hashgraph SDKs |
+| StellarOASIS, XRPLOASIS, StarknetOASIS, ZcashOASIS, MidenOASIS | No chain SDK | stellar-dotnet-sdk, Xrpl; Starknet/Zcash/Miden need their RPC + signing specs |
+| CardanoOASIS, CosmosBlockChainOASIS, PolkadotOASIS, NEAROASIS | Hand-rolled signing/encoding ("simplified bech32", Nethereum signer for Cosmos) | CardanoSharp.Wallet, Substrate.NET.API, Cosmos protobuf + secp256k1, NEAR Borsh + Ed25519 |
+| TONOASIS | Runs on the EVM base; TON is not EVM | TON SDK (TonClient / Net.Ton.Sdk) |
+
+None of these can be verified without funded testnet accounts. Each rewrite is compile-verified here; network verification needs testnet keys in CI secrets (recommendation 6).
+
 ### P1 — Fake success (531 methods, 41 providers)
 
 A method that reports success without doing anything is worse than an error: callers (HyperDrive replication, failover, the WebAPI) believe data was saved or deleted. Every one of these must either do the real operation or return an explicit `OASISResult` error.
