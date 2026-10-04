@@ -1154,9 +1154,12 @@ Live health and latency check for every configured AI provider. Makes a minimal 
 
 ## MCP & Discovery
 
-### GET `/mcp` · POST `/mcp`
+### POST `/mcp`
 
-HTTP MCP transport. `GET` establishes an SSE stream; `POST` accepts MCP JSON-RPC tool calls. Allows any HTTP-capable client to use the MCP server without the stdio transport.
+Hosted MCP endpoint (Streamable HTTP, stateless) serving all 512 OASIS MCP tools. Requires `Authorization: Bearer <OASIS JWT>`; send one JSON-RPC message per request (batches return `400 MCP_BATCH_UNSUPPORTED`).
+
+- **Metering:** each `tools/call` is reserved and settled through the WEB4 subscription ledger: provider-calling AI tools as `ai.tokens`, all others as one `api.request`. `initialize`, `tools/list`, `ping` and notifications are free. Send an `Idempotency-Key` per `tools/call` and reuse it on retry; without one, a fresh key is assigned. Responses carry `X-OASIS-Operation-Id`.
+- **Authorization:** the call runs as the bearer's avatar. Acting-identity arguments (`avatarId`, `fromAvatarId`, `ownerAvatarId`, `email`, `username`, and `AvatarId`/`MintedByAvatarId`/`CreatedBy…` inside JSON arguments) must be the caller's unless the caller is a Wizard; an omitted `avatarId` is filled with the caller's. Bulk and platform-administration tools are Wizard-only. A refused call returns a tool error with code `MCP_TOOL_FORBIDDEN` and settles as failed.
 
 ---
 

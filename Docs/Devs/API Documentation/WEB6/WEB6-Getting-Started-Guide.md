@@ -489,25 +489,37 @@ ws.on('message', (data) => {
 
 WEB6 self-registers as an MCP orchestrator on startup. Every FAHRN agent, memory provider and protocol adapter is exposed as an MCP tool — auto-discovered by Claude Code, Cursor, Continue and any MCP-compatible host.
 
-**HTTP MCP transport (for cloud agents and claude.ai connectors):**
+**Hosted MCP endpoint (all 512 tools, for cloud agents and claude.ai connectors):**
 
 ```
-GET  https://api.web6.oasisomniverse.one/mcp        — SSE stream
-POST https://api.web6.oasisomniverse.one/mcp        — JSON-RPC tool calls
+POST https://api.web6.oasisomniverse.one/mcp                    — MCP JSON-RPC (Streamable HTTP, stateless)
 GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discovery
 GET  https://api.web6.oasisomniverse.one/.well-known/agent.json — A2A agent card
 ```
 
-Point your MCP client at the discovery URL and it configures itself automatically.
+Every `tools/call` runs as the avatar in the bearer token and is metered through that avatar's WEB4 subscription: AI tools on measured provider tokens, everything else as one API request (`initialize`, `tools/list` and `ping` are free). Send one JSON-RPC message per request and an `Idempotency-Key` header per `tools/call`, reused when you retry, so a retry is never billed twice. Tools that act on an avatar accept only your own avatar ID, email or username unless you are a Wizard.
 
-**Claude Code config:**
+**Claude Code config (direct HTTP):**
 
 ```json
 {
   "mcpServers": {
     "oasis-web6": {
       "url": "https://api.web6.oasisomniverse.one/mcp",
-      "headers": { "Authorization": "Bearer <your-oasis-avatar-key>" }
+      "headers": { "Authorization": "Bearer <your-oasis-jwt>" }
+    }
+  }
+}
+```
+
+**IDE config via the stdio proxy** (`npm install -g @oasisomniverse/mcp-server`), which signs in and renews your token for you:
+
+```json
+{
+  "mcpServers": {
+    "oasis": {
+      "command": "oasis-mcp",
+      "env": { "OASIS_USERNAME": "your-avatar-username-or-email", "OASIS_PASSWORD": "your-avatar-password" }
     }
   }
 }

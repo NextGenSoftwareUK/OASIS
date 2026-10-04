@@ -5,11 +5,11 @@
 WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
-The OASIS MCP Server exposes **516 callable typed tools** covering WEB4 through WEB10. This guide provides detailed examples and parameter guidance for the major tool families. The [generated complete command catalog](MCP_TOOL_CATALOG.md) lists every registered command and its source description.
+The OASIS MCP Server exposes **512 callable typed tools** covering WEB4 through WEB10. They run in the hosted WEB6 service at `/mcp` as the calling avatar and are metered through the WEB4 subscription ledger. This guide provides detailed examples and parameter guidance for the major tool families. The [generated complete command catalog](MCP_TOOL_CATALOG.md) lists every registered command and its source description.
 
 All tools return a JSON-serialised `OASISResult<T>` envelope. On success, `isError` is `false` and the data is in `result`. On failure, `isError` is `true` and `message` describes the problem.
 
-Install: `npm install -g @oasisomniverse/mcp-server` or `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`
+Install: `npm install -g @oasisomniverse/mcp-server` or `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`, then set `OASIS_USERNAME`/`OASIS_PASSWORD` (or `OASIS_BEARER_TOKEN`) in your IDE MCP config. Tools run in the hosted WEB6 service at `/mcp` as your avatar and are metered by your WEB4 subscription; HTTP MCP clients can call `https://api.web6.oasisomniverse.one/mcp` directly with a bearer token.
 
 ---
 

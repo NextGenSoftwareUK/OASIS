@@ -60,7 +60,7 @@ OASIS has achieved significant implementation milestones with 11 blockchain prov
 - **DID/Verifiable Credentials**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade compliance
 - **Multi-Protocol Orchestration**: ACP, ANP, gRPC, GraphQL, AsyncAPI/Kafka all exposed via OrchestratorManager
 - **ML.NET Integration**: On-device task classification, sentiment analysis, and trainable custom models
-- **MCP Server**: 516 callable typed tools — WEB4(365), WEB5(95), WEB6(39), WEB7(7), WEB8(8), WEB9(1), WEB10(1)
+- **MCP Server**: 512 callable typed tools (hosted at WEB6 `/mcp`, caller-bound and WEB4-metered) — WEB4(361), WEB5(95), WEB6(39), WEB7(7), WEB8(8), WEB9(1), WEB10(1)
 - **REST API v2**: 56 endpoints across 14 controllers; Swagger UI at `https://api.web6.oasisomniverse.one/swagger`
 
 ### **WEB7 Symbiosis Layer — Bio-Signal & Neural Interface** *(In Development)*

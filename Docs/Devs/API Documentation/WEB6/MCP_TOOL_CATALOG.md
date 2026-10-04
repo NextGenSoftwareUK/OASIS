@@ -1,21 +1,21 @@
 # OASIS MCP Tool Catalog
 
-This catalog is generated from the `[McpServerTool]` registrations in the OASIS MCP Server. It is the authoritative inventory for the 516 callable commands shipped across WEB4–WEB10.
+This catalog is generated from the `[McpServerTool]` registrations in the OASIS MCP Server. It is the authoritative inventory for the 512 callable commands shipped across WEB4–WEB10.
 
 | Layer | Tools | Scope |
 |---|---:|---|
-| WEB4 | 365 | Identity, avatars, karma, holons, search, chat, wallets, keys, NFTs, data, providers and HyperDrive |
+| WEB4 | 361 | Identity, avatars, karma, holons, search, chat, wallets, keys, NFTs, data, providers and HyperDrive |
 | WEB5 | 95 | STAR, OAPPs, quests, missions, inventory, NFTs, zomes, templates, libraries, runtimes and games |
 | WEB6 | 39 | AI providers, completion, embeddings, FAHRN agents, BRAID memory, orchestration, DID/VC and external memory |
 | WEB7 | 7 | Consent-based symbiosis sessions, bio-signals and collective-consciousness spaces |
 | WEB8 | 8 | Galactic mesh nodes, routing, relay and protocol translation |
 | WEB9 | 1 | Singularity state and convergence |
 | WEB10 | 1 | Source connection and universal state |
-| **Total** | **516** | |
+| **Total** | **512** | |
 
 All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISResult<T>` envelope: successful calls set `isError` to `false` and place data in `result`; failures set `isError` to `true` and explain the cause in `message`.
 
-## WEB4 commands (365)
+## WEB4 commands (361)
 
 | Command | Description |
 |---|---|
@@ -77,11 +77,11 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_avatar_upload_portrait` | WEB4: uploads or replaces an avatar portrait. Provide at least one of avatarId, username, or email. imageBase64 is the base-64-encoded image bytes. |
 | `web4_avatar_validate_reset_token` | WEB4: validates a password-reset token (checks it has not expired or been used). |
 | `web4_avatar_verify_email` | WEB4: verifies an avatar's email address using the token sent after registration. |
-| `web4_biometric_status` | WEB4: returns a stub pointing to the REST endpoint for the authenticated avatar's biometric enrollment status. Requires OASIS JWT. |
-| `web4_biometric_voice_delete` | WEB4: stub — deletes the authenticated avatar's enrolled voice biometric profile from Azure and clears the VoiceprintId. Use the REST endpoint DELETE /api/biometric/voice. |
-| `web4_biometric_voice_enroll` | WEB4: stub — voice biometric enrollment requires a multipart audio file upload (WAV/OGG/MP3, ≥20 s). Use the REST endpoint POST /api/biometric/voice/enroll. |
-| `web4_biometric_voice_verify` | WEB4: stub — voice biometric verification requires a multipart audio file upload (≥5 s). Use the REST endpoint POST /api/biometric/voice/verify. |
-| `web4_biometric_voice_verify_by_avatar_id` | WEB4: stub — admin endpoint to verify a specific avatar's voice (requires HerzID clearance level ≥ 8 or self). Use REST endpoint POST /api/biometric/voice/verify/{avatarId} with a multipart audio file. |
+| `web4_biometric_status` | WEB4: gets the authenticated avatar's biometric enrollment status (biometricEnrolled, voiceEnrolled, requireForLogin, requireForSensitiveOps, voiceServiceAvailable). |
+| `web4_biometric_voice_delete` | WEB4: deletes the authenticated avatar's enrolled voice profile from Azure and clears the VoiceprintId. |
+| `web4_biometric_voice_enroll` | WEB4: enrolls the authenticated avatar's voice (Azure Speaker Recognition). audioBase64 is a Base64-encoded WAV/OGG/MP3 recording of at least 20 seconds. |
+| `web4_biometric_voice_verify` | WEB4: verifies the authenticated avatar's voice against their enrolled profile. audioBase64 is a Base64-encoded recording of at least 5 seconds. Returns accepted, score, message. |
+| `web4_biometric_voice_verify_by_avatar_id` | WEB4 admin: verifies a specific avatar's voice. Caller must be that avatar or hold HerzID clearance >= 8. audioBase64 is a Base64-encoded recording of at least 5 seconds. |
 | `web4_bridge_check_order_balance` | WEB4 Bridge: checks the balance and status of an existing bridge order by its GUID order id. |
 | `web4_bridge_create_order` | WEB4 Bridge: creates a new cross-chain bridge order (token swap). orderRequestJson fields: FromToken, ToToken, Amount, FromAddress, ToAddress. |
 | `web4_bridge_create_private_order` | WEB4 Bridge: creates a private cross-chain bridge order with viewing-key audit and zero-knowledge proof verification enabled. orderRequestJson fields: FromToken, ToToken, Amount, FromAddress, ToAddress. |
@@ -101,11 +101,11 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_clan_load_inventory` | WEB4: loads the inventory (treasury) of items for a given clan. |
 | `web4_clan_load_members` | WEB4: loads the member avatar IDs for a given clan. |
 | `web4_clan_update` | WEB4: updates an existing clan's name and/or description. Provide clanId, new name, and optional description. |
-| `web4_competition_leaderboard` | WEB4: gets the leaderboard for a competition type and season. Use REST endpoint GET /api/competition/leaderboard/{competitionType}/{seasonType} — this is a stub. |
-| `web4_competition_leagues` | WEB4: gets available leagues for a competition type and season. Use REST endpoint GET /api/competition/leagues/{competitionType}/{seasonType} — this is a stub. |
-| `web4_competition_rank` | WEB4: gets a specific avatar's rank in a competition. Use REST endpoint GET /api/competition/rank/{avatarId}/{competitionType}/{seasonType} — this is a stub. |
-| `web4_competition_stats` | WEB4: gets competition statistics for an avatar. Use REST endpoint GET /api/competition/stats/{competitionType}/{seasonType} — this is a stub. |
-| `web4_competition_tournaments` | WEB4: gets active tournaments for a competition type. Use REST endpoint GET /api/competition/tournaments — this is a stub. |
+| `web4_competition_leaderboard` | WEB4: gets the leaderboard for a competition type and season. competitionType: Karma, Experience, EggCollection, QuestCompletion, etc. seasonType: Daily, Weekly, Monthly, Yearly, etc. |
+| `web4_competition_leagues` | WEB4: gets available leagues for a competition type and season (Bronze, Silver, Gold, etc.). |
+| `web4_competition_rank` | WEB4: gets a specific avatar's rank in a competition. Returns their leaderboard entry with rank, score and stats. |
+| `web4_competition_stats` | WEB4: gets competition statistics for an avatar — their rank entry plus their league for a given competition and season. |
+| `web4_competition_tournaments` | WEB4: gets active tournaments for a competition type. competitionType defaults to Karma. |
 | `web4_data_get_provider_key` | WEB4: loads a holon by its provider-specific storage key (e.g. a Holochain DNA hash). Returns the holon or an error. |
 | `web4_data_load` | WEB4: loads a custom value by key from the current avatar's data store. avatarId must match the authenticated avatar. |
 | `web4_data_load_all_holons` | WEB4 COSMIC ORM: loads every holon of a given type from the OASIS network. holonType defaults to 'All'. loadChildren and recursive control child loading. |
@@ -122,14 +122,14 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_egg_get_current_quests` | WEB4: gets the currently active egg quests for an avatar by GUID id. |
 | `web4_egg_get_my_eggs` | WEB4: gets all eggs owned by an avatar by GUID id. |
 | `web4_egg_hatch` | WEB4: hatches an egg for an avatar. avatarId is the GUID of the avatar. eggId is the GUID of the egg to hatch. |
-| `web4_eosio_get_account` | WEB4 EOSIO: gets the EOSIO account details for a given account name. Requires an active EOSIOOASIS provider. |
+| `web4_eosio_get_account` | WEB4 EOSIO: gets the EOSIO account details for a given account name. |
 | `web4_eosio_get_account_for_avatar` | WEB4 EOSIO: gets the EOSIO account details for a given OASIS Avatar by GUID id. |
-| `web4_eosio_get_account_names` | WEB4 EOSIO: gets the EOSIO account name(s) for a given OASIS Avatar by GUID id. Requires an active EOSIOOASIS provider. |
+| `web4_eosio_get_account_names` | WEB4 EOSIO: gets the EOSIO account name(s) for a given OASIS Avatar by GUID id. |
 | `web4_eosio_get_avatar_for_account_name` | WEB4 EOSIO: loads the full OASIS Avatar for a given EOSIO account name. |
 | `web4_eosio_get_avatar_id_for_account_name` | WEB4 EOSIO: looks up the OASIS Avatar GUID for a given EOSIO account name. |
 | `web4_eosio_get_balance_for_account` | WEB4 EOSIO: gets the EOSIO token balance for a given account name. code is the token contract (e.g. 'eosio.token'), symbol is the token symbol (e.g. 'EOS'). |
 | `web4_eosio_get_balance_for_avatar` | WEB4 EOSIO: gets the EOSIO token balance for a given OASIS Avatar by GUID id. code is the token contract, symbol is the token symbol. |
-| `web4_eosio_get_private_key` | WEB4 EOSIO: gets the EOSIO account private key for a given OASIS Avatar by GUID id. Requires an active EOSIOOASIS provider. |
+| `web4_eosio_get_private_key` | WEB4 EOSIO: gets the EOSIO account private key for a given OASIS Avatar by GUID id. |
 | `web4_file_delete` | WEB4: deletes a file by its GUID id for a given avatar. |
 | `web4_file_download` | WEB4: downloads a file by its GUID id for a given avatar. |
 | `web4_file_get_all` | WEB4: gets all files stored for an avatar by GUID id. |
@@ -149,18 +149,16 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_gift_open` | WEB4: opens (activates) a received gift for an avatar. avatarId is the GUID of the recipient. giftId is the GUID of the gift. |
 | `web4_gift_receive` | WEB4: marks a gift as received for an avatar. avatarId is the recipient GUID. giftId is the GUID of the gift. |
 | `web4_gift_send` | WEB4: sends a gift from one avatar to another. fromAvatarId and toAvatarId are GUIDs. giftType is a GiftType enum value. message and metadataJson are optional. |
-| `web4_herzid_ghost_check` | WEB4 HerzID: admin ghost-account detection check for a HerzID. Requires clearance level 8+ — use REST endpoint POST /api/herzid/ghost-check/{herzId}. |
-| `web4_herzid_profile` | WEB4 HerzID: returns the HerzID profile for the currently authenticated avatar. Requires an active OASIS JWT session — use REST endpoint GET /api/herzid/profile. |
-| `web4_herzid_register` | WEB4 HerzID: assigns a HerzID to an authenticated avatar. Requires an active OASIS JWT session — use REST endpoint POST /api/herzid/register. |
-| `web4_herzid_set_clearance` | WEB4 HerzID: updates the clearance level of an avatar (requires caller clearance level 8+). Use REST endpoint POST /api/herzid/set-clearance. |
-| `web4_herzid_verify` | WEB4 HerzID: verifies that a HerzID string is mathematically valid (QEA seal check). Public endpoint — no authentication required. herzId is the HerzID string (e.g. '052·0·000·000·001·✦'). |
-| `web4_herzid_vouch` | WEB4 HerzID: gifts one of the authenticated avatar's vouches to a new member by their OASIS Avatar ID. Requires an active OASIS JWT session — use REST endpoint POST /api/herzid/vouch. |
+| `web4_herzid_ghost_check` | WEB4 HerzID: admin ghost-account detection check for a HerzID. The caller must hold clearance level 8+. |
+| `web4_herzid_profile` | WEB4 HerzID: returns the HerzID profile (rank, clearance, QEA tier, vouches remaining) for the authenticated avatar. |
+| `web4_herzid_register` | WEB4 HerzID: assigns a HerzID to the authenticated avatar. The avatar must already have been vouched for by voucherHerzId. qeaProfile is the QEA profile string; voiceprintId is optional. |
+| `web4_herzid_set_clearance` | WEB4 HerzID: updates the clearance level (1-9) of an avatar. The caller must hold clearance level 8 (Flame Keeper) or 9. |
+| `web4_herzid_verify` | WEB4 HerzID: verifies a HerzID by recomputing its QEA seal. Public — no authentication required. herzId is the HerzID string (e.g. '052·0·000·000·001·✦'). |
+| `web4_herzid_vouch` | WEB4 HerzID: gifts one of the authenticated avatar's vouches to a new member by their OASIS Avatar ID. |
 | `web4_herzid_vouch_chain` | WEB4 HerzID: returns the vouching chain (ancestry) for a given HerzID — walks upward from the member to the founding member. Public endpoint. herzId is the HerzID string. |
 | `web4_holochain_get_agent_ids` | WEB4 Holochain: gets the Holochain agent ID(s) (public keys) for a given avatar by GUID id. |
 | `web4_holochain_get_avatar_for_agent_id` | WEB4 Holochain: loads the full OASIS Avatar for a given Holochain agent ID. |
 | `web4_holochain_get_avatar_id_for_agent_id` | WEB4 Holochain: looks up the OASIS Avatar GUID for a given Holochain agent ID. |
-| `web4_holochain_get_holofuel_balance_for_agent` | WEB4 Holochain: gets the HoloFuel balance for a given Holochain agent ID. Note: live balance lookup requires an active HoloOASIS node connection. |
-| `web4_holochain_get_holofuel_balance_for_avatar` | WEB4 Holochain: gets the HoloFuel balance for a given OASIS Avatar by GUID id. |
 | `web4_holochain_get_private_keys` | WEB4 Holochain: gets the Holochain agent private key(s) for a given avatar by GUID id. |
 | `web4_holochain_link_agent_id` | WEB4 Holochain: links a Holochain agent ID (public key) to an OASIS Avatar by GUID id. walletId is the GUID of the wallet to link to. |
 | `web4_holon_delete` | WEB4 COSMIC ORM: deletes (soft-deletes by default) a holon. |
@@ -174,10 +172,10 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_karma_get` | WEB4: gets an avatar's current karma total. |
 | `web4_karma_get_history` | WEB4: gets an avatar's karma transaction history. |
 | `web4_karma_get_stats` | WEB4: gets aggregate karma statistics for an avatar. |
-| `web4_karma_get_weightings` | WEB4: gets the karma weighting for a given karma type. karmaTypePositive or karmaTypeNegative — pass one, leave the other empty. |
-| `web4_karma_set_weightings` | WEB4: sets the karma weighting for a given type (wizard/admin only). Pass type name and weighting. |
+| `web4_karma_get_weightings` | WEB4: gets the configured weighting for one positive or negative karma type through the authenticated WEB4 API. |
+| `web4_karma_set_weightings` | WEB4 admin: directly sets a karma weighting via the REST API (Wizard avatars only; WEB4 enforces this). |
 | `web4_karma_transfer` | WEB4: transfers karma from one avatar to another. |
-| `web4_karma_vote_weighting` | WEB4: vote for a karma weighting for a positive or negative karma type. Pass type name and the weighting value you wish to vote for. |
+| `web4_karma_vote_weighting` | WEB4: votes for a karma weighting through the authenticated WEB4 API. |
 | `web4_key_base58_check_decode` | WEB4 Keys: decodes a Base58Check-encoded string to raw bytes. |
 | `web4_key_clear_cache` | WEB4 Keys: clears the KeyManager's internal cache of resolved keys. |
 | `web4_key_create` | WEB4 Keys: creates a new key record (holon) for an avatar. avatarId is the owning avatar's GUID. keyName is the label. keyType is an arbitrary type string. |
@@ -204,7 +202,7 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_key_get_avatar_id_for_storage_key` | WEB4: looks up the avatar GUID id from a provider unique storage key. |
 | `web4_key_get_avatar_username_for_public_key` | WEB4: looks up the avatar username from a provider public key. |
 | `web4_key_get_avatar_username_for_storage_key` | WEB4 Keys: looks up the avatar username from a provider unique storage key. |
-| `web4_key_get_private_keys_by_email` | WEB4 Keys: gets provider private keys for an avatar by email address. |
+| `web4_key_get_private_keys_by_email` | WEB4 Keys: gets an avatar's private keys for a provider (e.g. SolanaOASIS, EthereumOASIS) by the avatar's email address. |
 | `web4_key_get_private_keys_by_id` | WEB4: gets provider private keys for an avatar by GUID id. |
 | `web4_key_get_private_keys_by_username` | WEB4: gets provider private keys for an avatar by username. |
 | `web4_key_get_private_wif` | WEB4 Keys: derives the private WIF string from raw key bytes. sourceBase64 is the Base64-encoded source bytes. |
@@ -230,21 +228,21 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_map_draw_2d_sprite_hud` | WEB4/Map: draws a 2D sprite on the Our World HUD at position (x, y). |
 | `web4_map_draw_2d_sprite_map` | WEB4/Map: draws a 2D sprite on the Our World map at position (x, y). |
 | `web4_map_draw_3d_object` | WEB4/Map: draws a 3D object on the Our World map at position (x, y). |
-| `web4_map_draw_route_between_holons` | WEB4/Map: creates and draws a route on the Our World map between two holons. holonDnaJson must contain {FromHolon, ToHolon} objects. |
-| `web4_map_draw_route_between_points` | WEB4/Map: creates and draws a route between two map points. pointsJson must be a MapPoints object with coordinates. |
-| `web4_map_get_nearby` | WEB4/Map: gets locations near a given latitude/longitude within radiusKm (default 10). Requires authenticated avatar session. |
-| `web4_map_get_stats` | WEB4/Map: retrieves map statistics for the authenticated avatar (total visits, unique locations, etc.). |
-| `web4_map_get_visit_history` | WEB4/Map: retrieves the authenticated avatar's map visit history. limit defaults to 50, offset defaults to 0. |
+| `web4_map_draw_route_between_holons` | WEB4/Map: creates and draws a route on the Our World map between two holons, identified by GUID. |
+| `web4_map_draw_route_between_points` | WEB4/Map: creates and draws a route between map points. pointsJson is a MapPoints JSON object. |
+| `web4_map_get_nearby` | WEB4/Map: gets locations near a latitude/longitude within radiusKm (default 10) for an avatar. |
+| `web4_map_get_stats` | WEB4/Map: retrieves map statistics for an avatar (total visits, unique locations, etc.). |
+| `web4_map_get_visit_history` | WEB4/Map: retrieves an avatar's map visit history. limit defaults to 50, offset to 0. |
 | `web4_map_pan_down` | WEB4/Map: pans the Our World map downward by value units. |
 | `web4_map_pan_left` | WEB4/Map: pans the Our World map leftward by value units. |
 | `web4_map_pan_right` | WEB4/Map: pans the Our World map rightward by value units. |
 | `web4_map_pan_up` | WEB4/Map: pans the Our World map upward by value units. |
-| `web4_map_search_locations` | WEB4/Map: searches for map locations by text query with optional filters. type can be e.g. Building, Quest, etc. Returns list of matching MapLocation objects. |
-| `web4_map_visit_location` | WEB4/Map: records a location visit for the authenticated avatar. locationId is a GUID, purpose is optional. |
+| `web4_map_search_locations` | WEB4/Map: searches map locations by text query with optional filters. type is a LocationType name (e.g. Building, Quest). Returns matching MapLocation objects. |
+| `web4_map_visit_location` | WEB4/Map: records a location visit for an avatar and updates its map competition scores. purpose is optional. |
 | `web4_map_zoom_in` | WEB4/Map: zooms the Our World map in by value units. |
 | `web4_map_zoom_out` | WEB4/Map: zooms the Our World map out by value units. |
-| `web4_map_zoom_to_holon` | WEB4/Map: zooms and centres the map on a specific holon. holonJson is a JSON Holon object with at least an Id. |
-| `web4_map_zoom_to_quest` | WEB4/Map: zooms and centres the map on a specific quest. questJson is a JSON Quest object with at least an Id. |
+| `web4_map_zoom_to_holon` | WEB4/Map: zooms and centres the map on a holon, identified by GUID. |
+| `web4_map_zoom_to_quest` | WEB4/Map: zooms and centres the map on a quest, identified by GUID. |
 | `web4_message_get` | WEB4: retrieves messages for an avatar, newest first (paginated). |
 | `web4_message_get_conversation` | WEB4: retrieves the conversation thread between two avatars, newest first (paginated). |
 | `web4_message_mark_read` | WEB4: marks a set of messages as read. messageIdsJson is a JSON array of GUID strings. |
@@ -266,51 +264,50 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_nft_load_by_hash` | WEB4 NFT: loads a Web4 NFT by its on-chain hash (mint address / transaction hash). |
 | `web4_nft_mint` | WEB4: mints a new Web4 NFT. mintRequestJson fields: Title, Description, Price, NumberToMint, OnChainProvider (e.g. 'Solana'), OffChainProvider (e.g. 'IPFSOASIS', 'PinataOASIS', 'ArweaveOASIS'), NFTStandardType (e.g. 'Metaplex'), StoreNFTMetaDataOnChain. |
 | `web4_nft_send` | WEB4: sends (transfers) a Web4 NFT to another wallet. sendRequestJson fields: NFTId (GUID), ToWalletAddress or ToAvatarId, optionally Message. |
-| `web4_nft_transfer_history` | WEB4 NFT: loads the transfer history for a given Web4 NFT by its GUID id. |
 | `web4_notification_get` | WEB4: retrieves notifications for an avatar, newest first (paginated). |
 | `web4_notification_mark_read` | WEB4: marks a set of notifications as read. notificationIdsJson is a JSON array of GUID strings. |
-| `web4_oidc_authorize` | WEB4 OIDC: initiates the OAuth 2.0 authorization code flow. responseType must be 'code'. Use REST endpoint GET /oauth/authorize with query params response_type, client_id, redirect_uri, scope, state. |
-| `web4_oidc_discovery` | WEB4 OIDC: returns the OpenID Connect discovery document (/.well-known/openid-configuration). Use REST endpoint GET /.well-known/openid-configuration. |
-| `web4_oidc_jwks` | WEB4 OIDC: returns the JSON Web Key Set (JWKS) for token signature verification. Use REST endpoint GET /oauth/jwks. |
-| `web4_oidc_token` | WEB4 OIDC: exchanges an authorization code or refresh token for a JWT access token. grantType is 'authorization_code' or 'refresh_token'. Use REST endpoint POST /oauth/token (application/x-www-form-urlencoded). |
-| `web4_oidc_userinfo` | WEB4 OIDC: returns the OIDC UserInfo claims for the authenticated avatar. Requires an active OASIS JWT Bearer token — use REST endpoint GET /oauth/userinfo. |
-| `web4_oland_delete` | WEB4/OLand: deletes an OLand parcel by olandId. avatarId is the requesting avatar's GUID (Wizard access required). |
+| `web4_oidc_authorize` | WEB4 OIDC: runs the authorization-code step for an already-authenticated avatar and returns the redirect location carrying the short-lived code (and state). responseType must be 'code'. |
+| `web4_oidc_discovery` | WEB4 OIDC: returns the OpenID Connect discovery document (/.well-known/openid-configuration). Requires OIDC to be enabled in OASISDNA. |
+| `web4_oidc_jwks` | WEB4 OIDC: returns the JSON Web Key Set (JWKS) used to verify OASIS-issued tokens. |
+| `web4_oidc_token` | WEB4 OIDC: exchanges an authorization code or refresh token for a JWT access token. grantType is 'authorization_code' (needs code, clientId, redirectUri) or 'refresh_token' (needs refreshToken). |
+| `web4_oidc_userinfo` | WEB4 OIDC: returns the UserInfo claims (sub, name, email, id, did, herzid, herzid_clearance) for the avatar the bearer token belongs to. |
+| `web4_oland_delete` | WEB4/OLand: deletes an OLand parcel by olandId on behalf of avatarId. |
 | `web4_oland_get_price` | WEB4/OLand: gets the price for purchasing a given count of OLand parcels. couponCode is optional. |
 | `web4_oland_load` | WEB4/OLand: loads a single OLand parcel by its GUID olandId. |
-| `web4_oland_load_all` | WEB4/OLand: loads all OLand parcels in the OASIS. Returns a list of IOLand objects. |
-| `web4_oland_purchase` | WEB4/OLand: purchases OLand parcel(s). requestJson is a PurchaseOlandRequest JSON with Count, AvatarId, Tiles, etc. Requires authenticated avatar session. |
-| `web4_oland_save` | WEB4/OLand: creates or saves an OLand parcel. olandJson is an IOLand-compatible JSON object (Wizard access required). |
-| `web4_oland_update` | WEB4/OLand: updates an existing OLand parcel. olandJson is an IOLand-compatible JSON object including Id (Wizard access required). |
-| `web4_onet_broadcast_message` | WEB4/ONET: broadcasts a message to all connected P2P nodes. Use REST POST /api/v1/onet/network/broadcast with {message, messageType}. |
-| `web4_onet_connect_node` | WEB4/ONET: connects to a specific P2P node by nodeId and nodeAddress (host:port). Use REST POST /api/v1/onet/network/connect with {nodeId, nodeAddress}. |
-| `web4_onet_disconnect_node` | WEB4/ONET: disconnects from a specific P2P node. Use REST POST /api/v1/onet/network/disconnect with {nodeId}. |
-| `web4_onet_get_network_nodes` | WEB4/ONET: lists nodes currently connected to the P2P network. Use REST GET /api/v1/onet/network/nodes. |
-| `web4_onet_get_network_stats` | WEB4/ONET: retrieves P2P network statistics (bandwidth, message counts, etc.). Use REST GET /api/v1/onet/network/stats. |
-| `web4_onet_get_network_status` | WEB4/ONET: gets the current P2P network status (online/offline, peer count). Use REST GET /api/v1/onet/network/status. |
-| `web4_onet_get_network_topology` | WEB4/ONET: retrieves the P2P network topology graph. Use REST GET /api/v1/onet/network/topology. |
-| `web4_onet_get_oasisdna` | WEB4/ONET: retrieves the OASISDNA configuration used by the ONET P2P network layer. Use REST GET /api/v1/onet/oasisdna for live data. |
-| `web4_onet_register_node` | WEB4/ONET: registers a community ONODE's public key with the bootstrap server. Use REST POST /api/v1/onet/nodes/register with {nodeId, publicKey, nodeAddress?}. |
-| `web4_onet_start_network` | WEB4/ONET: starts the P2P network. Use REST POST /api/v1/onet/network/start. |
-| `web4_onet_stop_network` | WEB4/ONET: stops the P2P network. Use REST POST /api/v1/onet/network/stop. |
-| `web4_onet_update_oasisdna` | WEB4/ONET: updates OASISDNA configuration for the ONET layer. Provide full OASISDNA JSON. Use REST PUT /api/v1/onet/oasisdna. |
-| `web4_onode_disable_provider` | WEB4/ONODE: disables a storage provider by providerType string. Use REST PUT /api/v1/onode/providers/{providerType}/disable. |
-| `web4_onode_enable_provider` | WEB4/ONODE: enables a storage provider by providerType string. Proxies to ONODEService supervisor. Use REST PUT /api/v1/onode/providers/{providerType}/enable. |
-| `web4_onode_get_active_nodes` | WEB4/ONODE: lists all ONODE instances that have reported state within the last 5 minutes. Use REST GET /api/v1/onode/active-nodes. |
-| `web4_onode_get_audit_log` | WEB4/ONODE: retrieves the in-memory ONODE audit log. Optional nodeId filter and limit. Use REST GET /api/v1/onode/audit?nodeId={nodeId}&limit={limit}. |
-| `web4_onode_get_config` | WEB4/ONODE: retrieves the current ONODE configuration dictionary. Use REST GET /api/v1/onode/config. |
-| `web4_onode_get_info` | WEB4/ONODE: gets detailed ONODE information. Use REST GET /api/v1/onode/info. |
-| `web4_onode_get_logs` | WEB4/ONODE: retrieves recent ONODE log lines. lines defaults to 100. Use REST GET /api/v1/onode/logs?lines={lines}. |
-| `web4_onode_get_metrics` | WEB4/ONODE: gets performance metrics for this ONODE (CPU, memory, throughput). Use REST GET /api/v1/onode/metrics. |
-| `web4_onode_get_oasisdna` | WEB4/ONODE: retrieves the OASISDNA configuration for this ONODE. Use REST GET /api/v1/onode/oasisdna. |
-| `web4_onode_get_peers` | WEB4/ONODE: lists all peers connected to this ONODE. Use REST GET /api/v1/onode/peers. |
-| `web4_onode_get_providers` | WEB4/ONODE: lists all configured OASIS storage providers and their enabled state from OASISDNA.json. Use REST GET /api/v1/onode/providers. |
-| `web4_onode_get_stats` | WEB4/ONODE: retrieves ONODE statistics (uptime, request counts, etc.). Use REST GET /api/v1/onode/stats. |
-| `web4_onode_get_status` | WEB4/ONODE: gets the current ONODE status (online/offline, version). Use REST GET /api/v1/onode/status. |
-| `web4_onode_restart` | WEB4/ONODE: restarts the ONODE. Use REST POST /api/v1/onode/restart. |
-| `web4_onode_start` | WEB4/ONODE: starts the ONODE. Use REST POST /api/v1/onode/start. |
-| `web4_onode_stop` | WEB4/ONODE: stops the ONODE. Use REST POST /api/v1/onode/stop. |
-| `web4_onode_update_config` | WEB4/ONODE: updates the ONODE configuration. configJson is a JSON object of key/value pairs. Use REST PUT /api/v1/onode/config. |
-| `web4_onode_update_oasisdna` | WEB4/ONODE: updates OASISDNA configuration for this ONODE. Use REST PUT /api/v1/onode/oasisdna. |
+| `web4_oland_load_all` | WEB4/OLand: loads all OLand parcels in the OASIS. |
+| `web4_oland_purchase` | WEB4/OLand: purchases OLand parcel(s). requestJson is a PurchaseOlandRequest JSON (AvatarId, Count, Tiles, etc.). |
+| `web4_oland_save` | WEB4/OLand: creates or saves an OLand parcel. olandJson is an Oland JSON object. |
+| `web4_oland_update` | WEB4/OLand: updates an existing OLand parcel. olandJson is an Oland JSON object including Id. |
+| `web4_onet_broadcast_message` | WEB4/ONET: broadcasts a message to all connected P2P nodes. |
+| `web4_onet_connect_node` | WEB4/ONET: connects to a specific P2P node by nodeId and nodeAddress (host:port). |
+| `web4_onet_disconnect_node` | WEB4/ONET: disconnects from a specific P2P node. |
+| `web4_onet_get_network_nodes` | WEB4/ONET: lists nodes currently connected to the P2P network. |
+| `web4_onet_get_network_stats` | WEB4/ONET: retrieves P2P network statistics (bandwidth, message counts, etc.). |
+| `web4_onet_get_network_status` | WEB4/ONET: gets the current P2P network status (online/offline, peer count). |
+| `web4_onet_get_network_topology` | WEB4/ONET: retrieves the P2P network topology graph. |
+| `web4_onet_get_config` | WEB4/ONET: retrieves this node's ONET configuration (Wizard only). NodePrivateKey and ONETApiKey are always returned empty. |
+| `web4_onet_register_node` | WEB4/ONET: registers a community ONODE's public key with the bootstrap server. nodeAddress is optional. |
+| `web4_onet_start_network` | WEB4/ONET: starts the P2P network. |
+| `web4_onet_stop_network` | WEB4/ONET: stops the P2P network. |
+| `web4_onet_update_config` | WEB4/ONET: updates operator-editable ONET settings (Wizard only). onetConfigJson is an ONETConfig JSON object; node identity keys cannot be changed and ONETApiKey is only replaced when non-empty. |
+| `web4_onode_disable_provider` | WEB4/ONODE: disables a storage provider by providerType string. |
+| `web4_onode_enable_provider` | WEB4/ONODE: enables a storage provider by providerType string via the ONODEService supervisor. |
+| `web4_onode_get_active_nodes` | WEB4/ONODE: lists all ONODE instances that have reported state within the last 5 minutes. |
+| `web4_onode_get_audit_log` | WEB4/ONODE: retrieves the ONODE audit log. Optional nodeId filter and limit (default 200). |
+| `web4_onode_get_config` | WEB4/ONODE: retrieves the current ONODE configuration dictionary. |
+| `web4_onode_get_info` | WEB4/ONODE: gets detailed ONODE information. |
+| `web4_onode_get_logs` | WEB4/ONODE: retrieves recent ONODE log lines. lines defaults to 100. |
+| `web4_onode_get_metrics` | WEB4/ONODE: gets performance metrics for this ONODE (CPU, memory, throughput). |
+| `web4_onode_get_oasisdna` | WEB4/ONODE: retrieves the OASISDNA configuration for this ONODE. |
+| `web4_onode_get_peers` | WEB4/ONODE: lists all peers connected to this ONODE. |
+| `web4_onode_get_providers` | WEB4/ONODE: lists all configured OASIS storage providers and their enabled state from OASISDNA.json. |
+| `web4_onode_get_stats` | WEB4/ONODE: retrieves ONODE statistics (uptime, request counts, etc.). |
+| `web4_onode_get_status` | WEB4/ONODE: gets the current ONODE status (online/offline, version). |
+| `web4_onode_restart` | WEB4/ONODE: restarts the ONODE. |
+| `web4_onode_start` | WEB4/ONODE: starts the ONODE. |
+| `web4_onode_stop` | WEB4/ONODE: stops the ONODE. |
+| `web4_onode_update_config` | WEB4/ONODE: updates the ONODE configuration. configJson is a JSON object of key/value pairs. |
+| `web4_onode_update_oasisdna` | WEB4/ONODE: updates the OASISDNA configuration for this ONODE. oasisdnaJson is the full OASISDNA JSON document. |
 | `web4_provider_activate` | WEB4: activates a previously registered provider so it can be used for storage/network operations. |
 | `web4_provider_deactivate` | WEB4: deactivates an active provider without unregistering it. |
 | `web4_provider_get_all_registered` | WEB4: lists all registered OASIS providers. |
@@ -367,11 +364,10 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_video_join_call` | WEB4 Video: joins an existing video call session. callId is the session identifier returned by web4_video_start_call. avatarId is the joining avatar's GUID. |
 | `web4_video_start_call` | WEB4 Video: starts a new group video call. callerAvatarId is the initiating avatar's GUID. participantIdsJson is a JSON array of participant avatar GUID strings. callName is an optional session label. |
 | `web4_wallet_create` | WEB4: creates a new provider wallet for an avatar. walletProviderType is a ProviderType enum value (e.g. Ethereum, Solana, EOS, Holochain). |
-| `web4_wallet_get_analytics` | WEB4: gets analytics for a specific wallet. NOTE: requires UseTestDataWhenLiveDataNotAvailable on the server; real analytics not yet implemented. |
+| `web4_wallet_get_analytics` | WEB4: gets analytics for a specific wallet. Returns sample data when UseTestDataWhenLiveDataNotAvailable is enabled on the server. |
 | `web4_wallet_get_default` | WEB4: gets the default wallet for an avatar. Provide avatarId (GUID) and providerType name, e.g. 'EthereumOASIS'. |
-| `web4_wallet_get_portfolio_value` | WEB4: gets the total portfolio value across all wallets for an avatar. NOTE: requires UseTestDataWhenLiveDataNotAvailable to be enabled on the server; real on-chain valuation is not yet implemented. |
-| `web4_wallet_get_token_transfer` | WEB4: gets details about a token transfer transaction. NOTE: this is a stub — use REST endpoint GET /api/wallet for this operation. |
-| `web4_wallet_get_tokens` | WEB4: gets tokens held in a specific wallet. NOTE: requires UseTestDataWhenLiveDataNotAvailable on the server; real on-chain token query not yet implemented. |
+| `web4_wallet_get_portfolio_value` | WEB4: gets the total portfolio value across all wallets for an avatar. Calls the WEB4 REST API (returns sample data when UseTestDataWhenLiveDataNotAvailable is enabled on the server). |
+| `web4_wallet_get_tokens` | WEB4: gets tokens held in a specific wallet. Returns sample data when UseTestDataWhenLiveDataNotAvailable is enabled on the server. |
 | `web4_wallet_get_total_balance` | WEB4: gets an avatar's total balance summed across every provider wallet. |
 | `web4_wallet_import_key` | WEB4: imports a wallet using a private key for an avatar. Provide avatarId, privateKey, and the providerType to import to, e.g. 'EthereumOASIS'. |
 | `web4_wallet_load_by_email` | WEB4: loads all provider wallets for an avatar by email address. |
@@ -492,7 +488,7 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_braid_find_graph` | WEB6 Holonic BRAID: looks up the shared reasoning graph already generated for a task type, if any (lookup-or-create pattern - zero generation cost on a hit). |
 | `web6_braid_record_outcome` | WEB6 Holonic BRAID: feeds a real solver outcome back into a graph's quality metadata via EMA (updates avg_solver_accuracy). |
 | `web6_braid_save_graph` | WEB6 Holonic BRAID: stores a newly generated Mermaid reasoning graph in the shared library for a task type (the Generator step of the two-stage BRAID protocol). |
-| `web6_complete` | WEB6: routes a unified chat completion request to whichever AI provider/model best fits (OpenAI, Anthropic, Gemini, Groq, Mistral, XAI, Ollama, Cohere, AzureOpenAI, HuggingFace, AWSBedrock, Cerebras, TogetherAI, Perplexity, SambaNova, OpenRouter, DeepSeek, or 'auto'), normalising the response. |
+| `web6_complete` | WEB6: routes a unified chat completion request to whichever AI provider/model best fits (100 providers: OpenAI, Anthropic, Gemini, Groq, Mistral, XAI, Ollama, Cohere, AzureOpenAI, HuggingFace, AWSBedrock, Cerebras, TogetherAI, Perplexity, SambaNova, OpenRouter, DeepSeek, ElevenLabs, RunwayML, Black Forest Labs, Bittensor, GaiaNet, Venice AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, Naver HyperCLOVA X, and 70+ more, or 'auto'). 512 MCP tools total across WEB4–WEB10. |
 | `web6_embed` | WEB6: generates embeddings for one or more texts via the configured provider (OpenAI, Cohere, or HuggingFace). Returns float arrays suitable for semantic search, RAG pipelines, or cosine-similarity comparisons. |
 | `web6_estimate_cost` | WEB6: estimates the USD cost of a completion call before executing it, based on expected token counts and the provider's current pricing. Use this before long or expensive calls. |
 | `web6_fahrn_dispatch` | WEB6 FAHRN: dispatches a problem to the reasoning network. The controller agent scores eligible agents, picks Serial/Parallel/Decomposed execution, runs loop detection, assembles the final Mermaid plan and updates every involved agent's score via EMA. |
@@ -505,11 +501,11 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_generate_image` | WEB6: generates an image via StabilityAI or OpenAI (gpt-image-1). |
 | `web6_get_avatar_context` | WEB6: assembles and returns a rich context block for an OASIS avatar — karma, karma level, active quests, world memberships — assembled from Web4 and Web5 in parallel. Use this to ground AI prompts in the avatar's real OASIS state. |
 | `web6_get_model` | WEB6: returns full detail for a single model by its ID (e.g. 'gpt-4o', 'claude-sonnet-5', 'llama3.3'). |
-| `web6_get_usage` | WEB6: returns the calling avatar's usage summary from WEB4 (requires `bearerToken`) — plan, karma, monthly requests, daily calls/tokens used and remaining, monthly spend and remaining budget. |
+| `web6_get_usage` | WEB6: returns the calling avatar's usage summary — daily calls used, effective daily limit (plan × karma multiplier), monthly token spend, and remaining quota today. |
 | `web6_health` | WEB6: returns API status, version and UTC timestamp. No authentication required. Use to verify the WEB6 API is reachable before making authenticated calls. |
 | `web6_list_models` | WEB6: returns the full WEB6 model catalogue — all available models with provider, tier, context window, pricing and capabilities. Optionally filter by plan (Free/Bronze/Silver/Gold). |
 | `web6_list_openserv_models` | WEB6: lists every model reachable through the OpenServ provider (provider: "openserv") - the full SERV catalog spanning OpenAI, Anthropic, Google, xAI, Qwen and DeepSeek behind a single SERV_API_KEY. |
-| `web6_list_providers` | WEB6: returns all 20+ AI providers registered in WEB6 with their minimum plan requirement, supported endpoint types, and operational status. |
+| `web6_list_providers` | WEB6: returns all 100 AI providers registered in WEB6 with their minimum plan requirement, supported endpoint types, and operational status. |
 | `web6_memory_external_add` | WEB6 External Memory: adds a memory to the specified external memory provider (Mem0, Zep, Letta, LangMem, Graphiti), scoped to the avatar. |
 | `web6_memory_external_list_providers` | WEB6 External Memory: lists the names of all external memory providers currently registered (auto-detected from environment variables on startup). |
 | `web6_memory_external_search` | WEB6 External Memory: searches one or more configured external memory providers (Mem0, Zep, Letta, LangMem, Graphiti) for memories relevant to the given query, scoped to the avatar. Returns merged, score-ranked results. |
@@ -522,9 +518,9 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_memory_set_membrane_rule` | WEB6 Holonic BRAID memory hierarchy: sets the membrane rule governing what a holon is allowed to propagate upward to its parent (per-field, consent-governed - default is private). |
 | `web6_ml_classify_task` | WEB6 ML.NET: classifies a problem string into a FAHRN task category in-process (zero latency, no API call) using the trained ML.NET model or heuristic fallback. Returns: code/reasoning/writing/mathematics/legal/architecture/real-time/general. |
 | `web6_ml_sentiment` | WEB6 ML.NET: analyses the sentiment of text in-process (no API call). Returns Positive, Neutral, or Negative. |
-| `web6_orchestrate_autogen` | WEB6 Orchestrators: accepts a Microsoft AutoGen-compatible conversation initiation payload and routes the initial_message through WEB6 completions, returning a reply in AutoGen's expected assistant-message shape. |
-| `web6_orchestrate_crewai` | WEB6 Orchestrators: dispatches a CrewAI-style task list through WEB6 AI routing. Each agent role is mapped to the best provider for that capability tier and run in the specified process order (sequential or hierarchical). |
-| `web6_orchestrate_langgraph` | WEB6 Orchestrators: receives a LangGraph node invocation — current graph state plus node to execute. Runs the node's LLM step via WEB6 and returns the updated state for the next graph edge. |
+| `web6_orchestrate_autogen` | WEB6 Orchestrators: runs an AutoGen conversation initiation (initialMessage plus optional systemMessage) through WEB6 completions and returns the assistant reply in AutoGen's message shape. |
+| `web6_orchestrate_crewai` | WEB6 Orchestrators: runs a CrewAI-style task list as WEB6 completions. Each task has Id, Agent, Description, ExpectedOutput. process 'sequential' feeds each task the earlier outputs; 'hierarchical' adds a final manager synthesis. |
+| `web6_orchestrate_langgraph` | WEB6 Orchestrators: executes one LangGraph node's LLM step. Supply NodeName, optional Instruction, the current State and Messages; returns the updated state (State["<node>_output"]), NextNode and messages. |
 | `web6_orchestrator_invoke` | WEB6: invokes a registered orchestrator adapter with a normalised request, translating to/from its native protocol wire format (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, BeeAgent, Temporal, Dapr, NATSJetStream, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — 22 protocols) under the hood. |
 | `web6_orchestrator_list` | WEB6: lists every registered orchestrator adapter. |
 | `web6_orchestrator_register` | WEB6: registers an external agent/orchestrator endpoint (MCP server, A2A agent, LangChain/AutoGen/CrewAI/Semantic Kernel deployment, or generic webhook). |
