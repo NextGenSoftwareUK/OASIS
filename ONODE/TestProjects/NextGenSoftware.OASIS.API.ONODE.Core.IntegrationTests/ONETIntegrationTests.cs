@@ -150,6 +150,36 @@ public class ONETIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task ONETManager_ConnectAndDisconnect_UseTheProtocolPeerTable()
+    {
+        var dna = new OASISDNA();
+        dna.OASIS.ONET = new ONETConfig { TcpPort = GetFreeTcpPort(), BootstrapServers = new List<string>(), AutoRegisterOnBootstrap = false };
+        var mgr = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        var peer = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await mgr.InitializeAsync();
+        await mgr.StartNetworkAsync();
+        await peer.StartNetworkAsync();
+
+        try
+        {
+            await Task.Delay(300);
+            (await mgr.ConnectToNodeAsync("peer-1", $"127.0.0.1:{peer.ListenPort}")).IsError.Should().BeFalse();
+
+            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(1);
+            (await mgr.GetConnectedNodesAsync()).Result.Should().ContainSingle(n => n.Id == "peer-1");
+
+            (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeFalse();
+            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(0);
+            (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeTrue("the peer is no longer connected");
+        }
+        finally
+        {
+            await peer.StopNetworkAsync();
+            await mgr.StopNetworkAsync();
+        }
+    }
+
     private static string FreshPingLine(ECDsa ecdsa, string nodeId, long unixSeconds)
     {
         var message = ONETSecurity.BuildFreshSignedMessage(ONETSecurity.PingPurpose, nodeId, unixSeconds);
