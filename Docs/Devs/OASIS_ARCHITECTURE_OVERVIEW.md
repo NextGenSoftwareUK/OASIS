@@ -239,7 +239,7 @@ The `OrchestratorManager` normalises agent communication across: **MCP** (Stream
 **Standards**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade identity and compliance built into the AI layer.
 
 #### 7. MCP Server & REST API
-- **516 callable typed MCP tools**: WEB4(365) + WEB5(95) + WEB6(39) + WEB7(7) + WEB8(8) + WEB9(1) + WEB10(1)
+- **512 callable typed MCP tools**: WEB4(361) + WEB5(95) + WEB6(39) + WEB7(7) + WEB8(8) + WEB9(1) + WEB10(1)
 - **56 REST endpoints** across 14 controllers (v2.0)
 - **Swagger**: `https://api.web6.oasisomniverse.one/swagger`
 - **npm**: `@oasisomniverse/web6-api` v2.0.0 — 14 modules, 40 operations

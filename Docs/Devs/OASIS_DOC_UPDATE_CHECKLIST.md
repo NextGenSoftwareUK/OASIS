@@ -23,7 +23,7 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 |------|------|
 | AI provider enum | `WEB6/NextGenSoftware.OASIS.Web6.Core/Enums/AIProviderType.cs` |
 | Orchestrator protocol enum | `WEB6/NextGenSoftware.OASIS.Web6.Core/Enums/OrchestratorProtocolType.cs` |
-| MCP tool definitions | `WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4Tools.cs`, `Web5Tools.cs`, `Web6Tools.cs` |
+| MCP tool definitions | `WEB6/NextGenSoftware.OASIS.MCP.Tools/Tools/` (all `Web*Tools*.cs`); access levels in `WEB6/NextGenSoftware.OASIS.MCP.Tools/Access/` |
 | REST controllers | `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/` |
 
 ---
@@ -55,9 +55,9 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 |------|---------------|
 | `README.md` | Header stats line, AI Provider Reference section (all 100 providers), Orchestrator Protocol Reference section (all 22 protocols) |
 | `NextGenSoftware.OASIS.MCP.Server/README.md` | `web6_complete` row (provider count), `web6_orchestrator_invoke` row (protocol list) |
-| `NextGenSoftware.OASIS.MCP.Server/Tools/Web6Tools.cs` | `web6_orchestrator_invoke` Description attribute (protocol list) |
-| `NextGenSoftware.OASIS.MCP.Server/Tools/Web4Tools.cs` | Add any MCP tools for new REST endpoints (see gap audit) |
-| `NextGenSoftware.OASIS.MCP.Server/Tools/Web5Tools.cs` | Add any MCP tools for new REST endpoints (see gap audit) |
+| `NextGenSoftware.OASIS.MCP.Tools/Tools/Web6Tools.cs` | `web6_orchestrator_invoke` Description attribute (protocol list) |
+| `NextGenSoftware.OASIS.MCP.Tools/Tools/Web4Tools.cs` (and `Web4ToolsBatch*.cs`) | Add any MCP tools for new REST endpoints (see gap audit) |
+| `NextGenSoftware.OASIS.MCP.Tools/Tools/Web5Tools.cs` | Add any MCP tools for new REST endpoints (see gap audit) |
 
 ### Web6Site repo — `C:\Source\Web6Site` (branch: main)
 
@@ -103,11 +103,11 @@ grep -rn "99 provider\|17 orchestrat\|20+ AI\|250 MCP\|259 MCP\|507 MCP\|516 MCP
 
 Whenever new REST endpoints are added to controllers in  
 `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/`,  
-check `WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4Tools.cs` (or Web5Tools.cs)  
+check `WEB6/NextGenSoftware.OASIS.MCP.Tools/Tools/` (Web4Tools.cs, Web4ToolsBatch*.cs, Web5Tools.cs) and give each new tool the right `[McpToolAccess]`/`[McpProviderMetered]` attribute  
 for a matching `McpServerTool`. Run:
 
 ```bash
-grep -rn "McpServerTool" C:/Source/OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/ | grep -oP 'Name = "\K[^"]+' | sort
+grep -rn "McpServerTool" C:/Source/OASIS/WEB6/NextGenSoftware.OASIS.MCP.Tools/Tools/ | grep -oP 'Name = "\K[^"]+' | sort
 ```
 
 Full gap audit run 2026-09-21. Gap implementation completed 2026-09-21; stubs replaced with real implementations 2026-10-02: **512 tools** total (361 WEB4 + 95 WEB5 + 39 WEB6 + 17 WEB7-10). Every tool executes against its manager or the WEB4 REST API — none return redirect text. Regenerate the catalog with `WEB6/Scripts/generate_mcp_tool_catalog.py` after adding or removing tools.

@@ -30,7 +30,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse. It give
 # npm — recommended, no .NET SDK required
 npm install -g @oasisomniverse/mcp-server
 
-# NuGet dotnet tool
+# NuGet dotnet tool (.NET 10 SDK)
 dotnet tool install -g NextGenSoftware.OASIS.MCP.Server
 ```
 
@@ -42,16 +42,17 @@ Add to your IDE config (`~/.cursor/mcp.json`, `.vscode/mcp.json`, or `claude_des
     "oasis": {
       "command": "oasis-mcp",
       "env": {
-        "OASIS_API_URL": "https://api.web4.oasisomniverse.one",
-        "OPENAI_API_KEY": "sk-...",
-        "ANTHROPIC_API_KEY": "sk-ant-..."
+        "OASIS_USERNAME": "your-avatar-username-or-email",
+        "OASIS_PASSWORD": "your-avatar-password"
       }
     }
   }
 }
 ```
 
-Restart your IDE. The 111 OASIS tools now appear in the tool list.
+Restart your IDE. The 512 OASIS tools now appear in the tool list.
+
+`oasis-mcp` is a stdio proxy to the hosted endpoint `https://api.web6.oasisomniverse.one/mcp`. Every tool runs server-side **as your avatar** and is **billed to your WEB4 subscription** (AI tools on measured tokens, everything else as one API request), so you need no OASIS DNA or AI provider keys. Tools that act on an avatar only accept your own avatar ID, email or username unless you are a Wizard, and bulk/administration tools are Wizard-only. You can use `OASIS_BEARER_TOKEN` instead of a username and password; see the [MCP Server README](../../../../WEB6/NextGenSoftware.OASIS.MCP.Server/README.md) for every option.
 
 ---
 
@@ -102,7 +103,7 @@ ZEP_API_KEY=...
 LETTA_BASE_URL=http://localhost:8283
 
 # OASIS platform
-OASIS_API_URL=https://api.web4.oasisomniverse.one
+WEB4_API_BASE_URL=https://api.web4.oasisomniverse.one   # WEB4 authority for subscriptions and WEB4-delegated MCP tools
 ```
 
 ---
