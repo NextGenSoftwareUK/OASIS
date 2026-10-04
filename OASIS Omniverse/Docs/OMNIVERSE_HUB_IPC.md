@@ -76,18 +76,29 @@ Game builds copy `ogengine.h` from `OGEngineClient/` — never edit the per-game
 | # | Item | Status |
 |---|------|--------|
 | 1 | IPC files written in place; a reader could see a half-written file and lose an arrival | Fixed — write-then-rename on both sides |
-| 2 | Only ODOOM and OQuake call the Hub bridge; 11 other integrated games do not | Partly fixed — `ogengine_hub_frame` added; ODOOM and OQuake use it. Other games: see table below |
+| 2 | Only ODOOM and OQuake call the Hub bridge; 11 other integrated games do not | Partly fixed — `ogengine_hub_frame` added; ODOOM, OQuake and OQuake2-RTX use it. See per-game status below |
 | 3 | `ogengine.h` copies in OQuake2, OQuake2-RTX, OQuake3 out of date | Fixed — synced (NativeWrapper is deprecated and left as is) |
 | 4 | `async void` Hub methods could fail silently | Fixed — bodies catch and log |
 | 5 | Three hand-written JSON writers | Fixed — Hub uses one `IpcJson` helper |
 | 6 | Any local process can request a game switch via the teleport file | Accepted for now; game side validates map names |
 | 7 | ~143 MB of game binaries tracked in git under `OGames` | Open — needs a decision (Git LFS or release downloads) |
-| 8 | Windows build scripts fail cryptically without `vswhere.exe` on PATH or real Python 3 | Fixed — scripts locate vswhere and name what is missing |
+| 8 | Windows build scripts fail cryptically without `vswhere.exe` on PATH; OQuake2/2-RTX/3 scripts looked for a removed .NET 9 output folder | Fixed — `BUILD_AND_DEPLOY_STAR_CLIENT.bat` adds vswhere to PATH; deploy now targets OQuake2/2-RTX/3; stale lookups removed. Python 3 check already names what is missing |
 | 9 | `test-omniverse` CI job not yet observed green on GitHub | Open — check after next push |
 | 10 | CRLF/LF churn in the Hub repo | Fixed — `.gitattributes` added |
 | 11 | `ogengine_get_avatar_karma` declared `long*` (32-bit on Windows) but writes 64 bits — stack overwrite in every Windows caller | Fixed — `int64_t*`; ODOOM/OQuake callers updated |
 | 12 | Teleport request coordinates used the system number format (`10,5` on de-DE → invalid JSON) | Fixed — invariant culture, with test |
 | 13 | A portal stayed disabled for the session if entering it threw | Fixed — `PortalTrigger` resets in `finally` |
+
+### Per-game Hub status (2026-10-03)
+
+| Game | Hub | Notes |
+|------|-----|-------|
+| ODOOM | Connected | Live state, pause, arrivals. Builds with `BUILD ODOOM.bat`. |
+| OQuake | Connected | Live state, pause, arrivals. Builds with `BUILD_OQUAKE.bat`. |
+| OQuake2-RTX | Connected (no pause) | Live state + arrivals. STAR runs from `G_RunFrame`, which stops while paused, so the Hub cannot pause it. Its STAR integration had never been compiled into the engine; fixed in the `OQuake2-RTX` fork (`src/CMakeLists.txt`) and `BUILD_OQUAKE2RTX.bat`. |
+| ODOOM3, ODOOM3-BFG, OQuake2, OMorrowind | Not yet | Have a per-frame STAR step, but no engine source on the build machine to compile against. Add `ogengine_hub_frame` the same way once each builds. |
+| OQuake3 | Not yet | Integration is copied into the engine but nothing in the engine calls it; needs engine hooks first. |
+| ODoom64, ODuke3D, OHalfLife, OHexenII, ORtCW, OShadowWarrior, OWolf3D | Not yet | No per-frame STAR step; needs engine hooks first. |
 
 Not yet verified in a live session: HUD live state, pause on hide, portal
 arrival map/spawn, install detection toast.

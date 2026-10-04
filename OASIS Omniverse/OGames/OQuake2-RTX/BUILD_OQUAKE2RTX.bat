@@ -42,11 +42,7 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API DLL ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OQUAKE2RTX_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE2RTX_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE2RTX_INTEGRATION%\ogengine.lib"
+if exist "%OQUAKE2RTX_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE2RTX_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE2RTX_INTEGRATION%\ogengine.lib"
 if not defined STAR_DLL (
     echo ogengine.dll missing after deploy. Check OGEngineClient build.
     pause & exit /b 1
@@ -61,7 +57,7 @@ if exist "%OGENGINECLIENT%\ogengine_sync.h" copy /Y "%OGENGINECLIENT%\ogengine_s
 
 REM --- Require Q2 RTX source ---
 if not defined Q2RTX_SRC (echo Q2RTX_SRC not set. Set it at top of script. & goto :done)
-if not exist "%Q2RTX_SRC%\src\client\cl_main.c" (echo Q2 RTX source not found: %Q2RTX_SRC% & goto :done)
+if not exist "%Q2RTX_SRC%\src\client\main.c" (echo Q2 RTX source not found: %Q2RTX_SRC% & goto :done)
 
 echo.
 echo [OQuake2-RTX] Copying integration files into Q2 RTX source...
@@ -91,6 +87,7 @@ cmake --build . --config Release
 cd /d "%HERE%"
 if exist "%Q2RTX_SRC%\build\q2rtx.exe" set "Q2RTX_ENGINE_EXE=%Q2RTX_SRC%\build\q2rtx.exe"
 if exist "%Q2RTX_SRC%\build\Release\q2rtx.exe" set "Q2RTX_ENGINE_EXE=%Q2RTX_SRC%\build\Release\q2rtx.exe"
+if exist "%Q2RTX_SRC%\q2rtx.exe" set "Q2RTX_ENGINE_EXE=%Q2RTX_SRC%\q2rtx.exe"
 goto :copy_out
 
 :try_make
@@ -117,7 +114,7 @@ echo ---
 if defined Q2RTX_ENGINE_EXE (
     echo OQuake2-RTX ready. Use "BUILD_OQUAKE2RTX.bat run" to launch.
     echo Game data: baseq2 with pak0.pak in exe folder or -datadir.
-    echo Note: Q2 RTX requires Vulkan + RTX GPU (or software RTX fallback).
+    echo Note: Q2 RTX requires Vulkan + RTX GPU ^(or software RTX fallback^).
 ) else (
     echo To build engine: set Q2RTX_SRC at top ^(e.g. C:\Source\Q2RTX^) and run again.
     echo See Docs\INTEGRATION_INSTRUCTIONS.md for setup steps.
