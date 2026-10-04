@@ -10,6 +10,8 @@ param(
     [string]$Web5BaseUrl = 'https://dev.api.starnet.oasisomniverse.one',
     [string]$CredentialPath = (Join-Path $env:LOCALAPPDATA 'OASIS/our-world-geonft-seed.credential.clixml'),
     [PSCredential]$Credential,
+    [int]$TalkingTreeRadiusMetres = 80,
+    [double]$MinimumTreeRecognitionConfidence = 0.65,
     [switch]$PlanOnly
 )
 $ErrorActionPreference = 'Stop'
@@ -94,6 +96,58 @@ function Invoke-QuestSeedApi($base, $path, $method='Get', $body=$null) {
     Unwrap (Invoke-RestMethod @args)
 }
 try {
+    # One authoritative AR GeoHotSpot is the quest giver and the first objective's
+    # location requirement. The recognised tree is real camera input; no virtual
+    # tree or client-selected startup quest is used.
+    $hotSpots = @(Invoke-QuestSeedApi $Web5BaseUrl 'geohotspots')
+    $talkingTrees = @($hotSpots | Where-Object {
+        $_.name -eq 'Anorak Talking Tree' -or
+        ($_.metaData -and [string]$_.metaData.'OurWorld.TalkingTreeKey' -eq 'anorak-tree-v1')
+    })
+    if ($talkingTrees.Count -gt 1) { throw 'Multiple Anorak talking-tree GeoHotSpots exist; resolve duplicate seed records.' }
+    $talkingTree = @{
+        name = 'Anorak Talking Tree'
+        description = 'Recognise a real tree in AR within this park area to meet Anorak and begin the restoration quest.'
+        lat = [double]$placements[0].lat
+        long = [double]$placements[0].long
+        triggerType = 2 # WhenLookingAtObjectOrImageForXSecondsInARMode
+        timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = 3
+        hotSpotRadiusInMetres = $TalkingTreeRadiusMetres
+        boundaryType = 'Circle'
+        boundaryLatitudes = @()
+        boundaryLongitudes = @()
+        recognitionTargetKey = 'our-world-tree-v1'
+        recognitionTargetClass = 'Tree'
+        minimumRecognitionConfidence = $MinimumTreeRecognitionConfidence
+        allowOtherPlayersToAlsoCollect = $true
+        permSpawn = $true
+        globalSpawnQuantity = -1
+        playerSpawnQuantity = -1
+        respawnDurationInSeconds = 3
+        isVisibleOnMap = $true
+        image2DURI = $images[0]
+        metaData = @{
+            'OurWorld.DemoSeed' = 'true'
+            'OurWorld.TalkingTreeKey' = 'anorak-tree-v1'
+            'OurWorld.RecognitionProfile' = 'our-world-tree-v1'
+            'GeoHotSpotType' = 'Map'
+        }
+    }
+    if ($talkingTrees.Count -eq 1) {
+        $talkingTreeResult = Invoke-QuestSeedApi $Web5BaseUrl "geohotspots/$($talkingTrees[0].id)" 'Put' $talkingTree
+        Write-Host "Updated talking-tree GeoHotSpot $($talkingTreeResult.id)"
+    } else {
+        $talkingTreeResult = Invoke-QuestSeedApi $Web5BaseUrl 'geohotspots' 'Post' $talkingTree
+        Write-Host "Created talking-tree GeoHotSpot $($talkingTreeResult.id)"
+    }
+    $quest.linkedGeoHotSpotId = [string]$talkingTreeResult.id
+    $objectives[0].linkedGeoHotSpotId = [string]$talkingTreeResult.id
+    $objectives[0].crossGameEventsOnGeoHotSpotTriggered = @(
+        @{ eventType='ShowNarration'; targetGame='Our World'; narrationText="Anorak:`n`nThank you for noticing me. The park has lost tokens of nature's regenerative power. Will you help me recover them?" },
+        @{ eventType='ShowImage'; targetGame='Our World'; imageUrl='oasis://our-world/anorak'; imageTitle='Anorak awakens' },
+        @{ eventType='PlayAudio'; targetGame='Our World'; audioUrl='oasis://our-world/anorak-welcome'; audioTitle='Anorak speaks' }
+    )
+
     # The manifest is the authority for quest identity, not a title-based count of arbitrary pickups.
     $geo = @(Invoke-QuestSeedApi $Web4BaseUrl 'nft/load-all-geo-nfts/MongoDBOASIS/false')
     for ($i=0; $i -lt $ids.Count; $i++) {
@@ -145,6 +199,7 @@ try {
             Write-Host "Appending fifth Anorak objective: $($newObjective.title)"
         }
         $saved.description = $quest.description
+        $saved | Add-Member -NotePropertyName linkedGeoHotSpotId -NotePropertyValue $quest.linkedGeoHotSpotId -Force
         $saved.objectiveCompletionOrder = 0
         $saved | Add-Member -NotePropertyName rewardKarma -NotePropertyValue $quest.rewardKarma -Force
         $saved | Add-Member -NotePropertyName rewardXP -NotePropertyValue $quest.rewardXP -Force
@@ -162,6 +217,8 @@ try {
             $persistedObjective | Add-Member -NotePropertyName rewardXP -NotePropertyValue $authored.rewardXP -Force
             $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnActivate -NotePropertyValue $authored.crossGameEventsOnActivate -Force
             $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnComplete -NotePropertyValue $authored.crossGameEventsOnComplete -Force
+            $persistedObjective | Add-Member -NotePropertyName linkedGeoHotSpotId -NotePropertyValue $authored.linkedGeoHotSpotId -Force
+            $persistedObjective | Add-Member -NotePropertyName crossGameEventsOnGeoHotSpotTriggered -NotePropertyValue $authored.crossGameEventsOnGeoHotSpotTriggered -Force
         }
         $saved = Invoke-QuestSeedApi $Web5BaseUrl "quests/$($saved.id)" 'Put' $saved
         Write-Host "Reusing quest $($saved.id)"
