@@ -455,11 +455,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             });
             services.AddAuthentication("OASIS")
                 .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, Middleware.OASISAuthHandler>("OASIS", null);
-            services.AddGrpc();
+            services.AddGrpc(options => options.Interceptors.Add<Security.OASISGrpcAuthorizationInterceptor>());
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
+                .UseField<Security.OASISGraphQLAuthorizationMiddleware>()
                 .AddType<GraphQL.Types.AvatarType>()
                 .AddType<GraphQL.Types.HolonType>()
                 // Removes the IHolon persistence methods that HotChocolate would otherwise infer as fields
