@@ -40,7 +40,13 @@ $schema=Invoke-RestMethod "$($Web5BaseUrl.TrimEnd('/'))/swagger/v1/swagger.json"
 $objectiveRewardContract=@($schema.components.schemas.PSObject.Properties|Where-Object{$propertiesProperty=$_.Value.PSObject.Properties['properties'];$properties=if($null-ne$propertiesProperty){$propertiesProperty.Value}else{$null};$_.Name-match'Objective'-and$null-ne$properties-and$null-ne$properties.PSObject.Properties['rewardKarma']-and$null-ne$properties.PSObject.Properties['rewardXP']})
 if($objectiveRewardContract.Count-eq0){throw 'Deploy the WEB5 objective XP/Karma reward contract before running this seed. No data has been changed.'}
 $triggerRequestSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{$_.Name-eq'TriggerGeoHotSpotRequest'})|Select-Object -First 1
-$geoHotSpotSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{$null-ne$_.Value.properties.PSObject.Properties['boundaryType']-and$null-ne$_.Value.properties.PSObject.Properties['recognitionTargetKey']})|Select-Object -First 1
+$geoHotSpotSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{
+ $propertiesProperty=$_.Value.PSObject.Properties['properties']
+ $properties=if($null-ne$propertiesProperty){$propertiesProperty.Value}else{$null}
+ $null-ne$properties-and
+ $null-ne$properties.PSObject.Properties['boundaryType']-and
+ $null-ne$properties.PSObject.Properties['recognitionTargetKey']
+})|Select-Object -First 1
 if($null-eq$triggerRequestSchema-or$null-eq$triggerRequestSchema.Value.properties.PSObject.Properties['recognitionConfidence']-or$null-eq$geoHotSpotSchema){throw 'Deploy the WEB5 GeoHotSpot boundary/recognition evidence contract before running this seed. No data has been changed.'}
 function Unwrap($r){if($null-eq$r.PSObject.Properties['isError']){$r=$r.result};if($null-eq$r-or$r.isError){throw "API operation failed: $($r.message)"};$r.result}
 $credential=Import-Clixml $CredentialPath;$login=@{username=$credential.UserName;password=$credential.GetNetworkCredential().Password}|ConvertTo-Json
