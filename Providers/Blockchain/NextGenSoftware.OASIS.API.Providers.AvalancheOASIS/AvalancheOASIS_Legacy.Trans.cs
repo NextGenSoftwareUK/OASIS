@@ -208,7 +208,7 @@ public sealed partial class AvalancheOASIS_Legacy
                 transaction.MemoText
             );
 
-            if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)
+            if (txReceipt.HasErrors() is true && txReceipt.Logs.Any())
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, txReceipt.Status));
                 return result;
@@ -278,7 +278,7 @@ public sealed partial class AvalancheOASIS_Legacy
                 transaction.JSONMetaDataURL
             );
 
-            if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)
+            if (txReceipt.HasErrors() is true && txReceipt.Logs.Any())
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, txReceipt.Logs));
                 return result;

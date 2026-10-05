@@ -30,10 +30,9 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Nethereum.HdWallet" Version="4.25.0" />
-    <PackageReference Include="Nethereum.RPC" Version="4.25.0" />
-    <PackageReference Include="Nethereum.Signer" Version="4.25.0" />
-    <PackageReference Include="Nethereum.Web3" Version="4.25.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Nethereum.HdWallet" Version="7.0.0" />
+    <PackageReference Include="Nethereum.RPC" Version="7.0.0" />
+    <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
+    <PackageReference Include="Nethereum.Web3" Version="7.0.0" />
   </ItemGroup>
 </Project>

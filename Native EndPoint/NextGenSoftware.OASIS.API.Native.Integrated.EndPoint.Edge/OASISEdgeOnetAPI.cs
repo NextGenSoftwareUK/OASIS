@@ -67,6 +67,10 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint.Edge
             HyperDriveInventoryGrantCommand payload, CancellationToken cancellationToken = default) =>
             Entities.QueueInventoryGrantAsync(operationId, itemId, payload, cancellationToken);
 
+        public Task<OASISResult<SyncOperation>> QueueGeoHotSpotTriggerAsync(Guid operationId, Guid geoHotSpotId,
+            HyperDriveGeoHotSpotTriggerCommand payload, CancellationToken cancellationToken = default) =>
+            Entities.QueueGeoHotSpotTriggerAsync(operationId, geoHotSpotId, payload, cancellationToken);
+
         public Task<OASISResult<SyncOperation>> QueueGeoNftCollectionAsync(Guid operationId, Guid geoNftId,
             HyperDriveGeoNftCollectionCommand payload, CancellationToken cancellationToken = default) =>
             Entities.QueueGeoNftCollectionAsync(operationId, geoNftId, payload, cancellationToken);

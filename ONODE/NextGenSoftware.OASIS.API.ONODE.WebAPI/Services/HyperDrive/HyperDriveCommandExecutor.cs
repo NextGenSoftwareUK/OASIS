@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -41,6 +42,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     value = await ExecuteInventoryGrantAsync(command).ConfigureAwait(false);
                 else if (command.EntityType == HyperDriveEntityTypes.GeoNftCollection)
                     value = await ExecuteGeoNftCollectionAsync(command).ConfigureAwait(false);
+                else if (command.EntityType == HyperDriveEntityTypes.GeoHotSpot)
+                    value = await ExecuteGeoHotSpotTriggerAsync(command, cancellationToken).ConfigureAwait(false);
                 else if (command.EntityType == HyperDriveEntityTypes.AvatarGameplay)
                 {
                     if (!(_provider is IHostedAvatarGameplayCommandStore gameplayStore))
@@ -50,6 +53,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     RejectIfError(applied.IsError, applied.ErrorCode, applied.Message);
                     value = applied.Result;
                 }
+                else if (command.EntityType == HyperDriveEntityTypes.AvatarPreferences)
+                    value = await ExecuteAvatarPreferencesAsync(command).ConfigureAwait(false);
                 else if (command.EntityType == HyperDriveEntityTypes.QuestLifecycle)
                     value = await ExecuteQuestLifecycleAsync(command).ConfigureAwait(false);
                 else
@@ -164,8 +169,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 GameSource = payload.GameSource, ItemType = (InventoryItemType)payload.ItemType,
                 NftId = payload.NftId, GeoNFTId = payload.GeoNftId, Rarity = payload.Rarity,
                 MaxQuantity = payload.MaxQuantity, Weight = payload.Weight, IsUsable = payload.IsUsable,
-                IsTradeable = payload.IsTradeable
+                IsTradeable = payload.IsTradeable,
+                Properties = (payload.Properties ?? new Dictionary<string, string>())
+                    .ToDictionary(pair => pair.Key, pair => (object)pair.Value)
             };
+            item.Properties["OurWorld.Value"] = payload.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!string.IsNullOrWhiteSpace(payload.ThumbnailUrl))
+                item.Properties["OurWorld.ThumbnailUrl"] = payload.ThumbnailUrl;
             var applied = await new AvatarManager(_provider, OASISBootLoader.OASISBootLoader.OASISDNA)
                 .AddItemToAvatarInventoryAsync(command.AvatarId, item, operationId: command.OperationId)
                 .ConfigureAwait(false);
@@ -201,6 +211,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             return ProjectInventoryItem(applied.Result);
         }
 
+        private async Task<object> ExecuteGeoHotSpotTriggerAsync(HostedSyncCommandItem command,
+            CancellationToken cancellationToken)
+        {
+            var request = Deserialize<HyperDriveGeoHotSpotTriggerCommand>(command);
+            string validationError = GeoHotSpotTriggerService.ValidateCommandShape(request, DateTime.UtcNow);
+            if (!string.IsNullOrEmpty(validationError))
+                throw new HyperDriveCommandRejectedException("GEOHOTSPOT_TRIGGER_EVIDENCE_INVALID", validationError);
+            EnsureStarDna();
+            var service = new GeoHotSpotTriggerService(_provider, command.AvatarId, STARDNAManager.STARDNA,
+                OASISBootLoader.OASISBootLoader.OASISDNA);
+            var applied = await service.TriggerAsync(command.EntityId, command.OperationId, request,
+                cancellationToken).ConfigureAwait(false);
+            RejectIfError(applied == null || applied.IsError || applied.Result == null,
+                applied?.ErrorCode ?? "GEOHOTSPOT_TRIGGER_REJECTED",
+                applied?.Message ?? "The GeoHotSpot trigger returned no authoritative result.");
+            return applied.Result;
+        }
+
+        private async Task<object> ExecuteAvatarPreferencesAsync(HostedSyncCommandItem command)
+        {
+            if (command.EntityId != command.AvatarId)
+                throw new HyperDriveCommandRejectedException("PREFERENCES_AVATAR_MISMATCH",
+                    "Avatar preferences must target the authenticated avatar entity.");
+
+            var preferences = Deserialize<HyperDriveAvatarPreferences>(command);
+            ValidatePreferences(preferences);
+            var manager = new HolonManager(_provider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            const string category = "omniverse";
+            const string receiptKey = "HyperDrive.PreferencesOperationId.v1";
+            var priorReceipt = await manager.LoadSettingAsync(category: category, avatarId: command.AvatarId,
+                key: receiptKey, defaultValue: string.Empty).ConfigureAwait(false);
+            RejectIfError(priorReceipt.IsError, "PREFERENCES_LOAD_FAILED", priorReceipt.Message);
+            if (string.Equals(priorReceipt.Result, command.OperationId.ToString("D"), StringComparison.OrdinalIgnoreCase))
+                return preferences;
+
+            var settings = HyperDriveAvatarPreferencesSettings.ToDictionary(preferences);
+            settings[receiptKey] = command.OperationId.ToString("D");
+            var saved = await manager.SaveSettingsAsync(command.AvatarId, category, settings).ConfigureAwait(false);
+            RejectIfError(saved.IsError || !saved.Result, "PREFERENCES_SAVE_FAILED", saved.Message);
+            return preferences;
+        }
+
+        private static void ValidatePreferences(HyperDriveAvatarPreferences value)
+        {
+            if (!HyperDriveAvatarPreferencesSettings.TryValidate(value, out string code, out string message))
+                throw new HyperDriveCommandRejectedException(code, message);
+        }
+
         private static HyperDriveInventoryItemProjection ProjectInventoryItem(IInventoryItem item)
         {
             if (item == null)
@@ -220,9 +278,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 MaxQuantity = item.MaxQuantity,
                 Weight = item.Weight,
                 IsUsable = item.IsUsable,
-                IsTradeable = item.IsTradeable
+                IsTradeable = item.IsTradeable,
+                Value = InventoryDecimal(item, "OurWorld.Value"),
+                ThumbnailUrl = InventoryProperty(item, "OurWorld.ThumbnailUrl"),
+                Properties = InventoryProperties(item)
             };
         }
+
+        private static string InventoryProperty(IInventoryItem item, string key) =>
+            item.Properties != null && item.Properties.TryGetValue(key, out object value) ? value?.ToString() : null;
+
+        private static decimal InventoryDecimal(IInventoryItem item, string key) =>
+            decimal.TryParse(InventoryProperty(item, key), System.Globalization.NumberStyles.Number,
+                System.Globalization.CultureInfo.InvariantCulture, out decimal value) ? value : 0m;
+
+        private static IReadOnlyDictionary<string, string> InventoryProperties(IInventoryItem item) =>
+            (item.Properties ?? new Dictionary<string, object>())
+                .Where(pair => pair.Key != "OurWorld.Value" && pair.Key != "OurWorld.ThumbnailUrl")
+                .ToDictionary(pair => pair.Key, pair => pair.Value?.ToString());
 
         private static T Deserialize<T>(HostedSyncCommandItem command)
         {

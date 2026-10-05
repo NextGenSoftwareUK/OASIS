@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -6,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
@@ -15,6 +18,95 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class HostedMongoSyncTransactionTests
 {
+    [Fact]
+    public async Task GeoNftAvailabilityIsAuthoritativePrivateAndStableAcrossUnchangedPulls()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("geonft_status");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        try
+        {
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(
+                connectionString, databaseName);
+            var activation = await provider.ActivateProviderAsync();
+            Assert.False(activation.IsError, activation.Message);
+            Guid ownerId = Guid.NewGuid();
+            Guid otherId = Guid.NewGuid();
+            Guid geoNftId = Guid.NewGuid();
+            DateTime collectedUtc = DateTime.UtcNow.AddMinutes(-5);
+            string history = "{\"" + geoNftId.ToString("D") + "\":{\"Count\":1,\"LastCollectedUtc\":\"" +
+                collectedUtc.ToString("O") + "\"}}";
+            var details = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await details.InsertManyAsync(new[]
+            {
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = ownerId, VersionId = Guid.NewGuid(),
+                    Username = "owner", IsActive = true, MetaData = new Dictionary<string, object>
+                    { ["GeoNFT.CollectionHistory.v1"] = history }
+                },
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = otherId, VersionId = Guid.NewGuid(),
+                    Username = "other", IsActive = true, MetaData = new Dictionary<string, object>
+                    { ["GeoNFT.CollectionHistory.v1"] = history }
+                }
+            });
+            await database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon")
+                .InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = geoNftId, VersionId = Guid.NewGuid(),
+                    HolonType = HolonType.Web4GeoNFT, Name = "Private status test", IsActive = true,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["PermSpawn"] = false, ["AllowOtherPlayersToAlsoCollect"] = true,
+                        ["GlobalSpawnQuantity"] = 5, ["PlayerSpawnQuantity"] = 3,
+                        ["RespawnDurationInSeconds"] = 0
+                    }
+                });
+
+            Guid deviceId = Guid.NewGuid();
+            var ownerFeed = await provider.ReadChangesAsync(ownerId, deviceId, null, Guid.Empty, 0, 100, default);
+            Assert.False(ownerFeed.IsError, ownerFeed.Message);
+            var ownerChange = Assert.Single(ownerFeed.Result.Changes,
+                change => change.EntityType == HyperDriveEntityTypes.GeoNftCollectionAvailability);
+            Assert.Equal(ownerId, ownerChange.EntityId);
+            var projection = HyperDriveJson.Deserialize<HyperDriveGeoNftCollectionAvailabilityProjection>(ownerChange.PayloadJson);
+            var status = Assert.Single(projection.Items);
+            Assert.True(status.CanCollect);
+            Assert.Equal(1, status.PlayerCollectionCount);
+            Assert.Equal(2, status.GlobalCollectionCount);
+
+            var replay = await provider.ReadChangesAsync(ownerId, deviceId, ownerFeed.Result.NextCheckpoint,
+                Guid.Empty, 0, 100, default);
+            Assert.False(replay.IsError, replay.Message);
+            Assert.DoesNotContain(replay.Result.Changes,
+                change => change.EntityType == HyperDriveEntityTypes.GeoNftCollectionAvailability);
+
+            var strangerFeed = await provider.ReadChangesAsync(Guid.NewGuid(), Guid.NewGuid(), null,
+                Guid.Empty, 0, 100, default);
+            Assert.True(strangerFeed.IsError);
+            Assert.Equal("MONGO_GEONFT_AVAILABILITY_AVATAR_NOT_FOUND", strangerFeed.ErrorCode);
+
+            await database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon")
+                .UpdateOneAsync(x => x.HolonId == geoNftId,
+                    Builders<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>.Update
+                        .Set(x => x.IsActive, false));
+            var removed = await provider.ReadChangesAsync(ownerId, deviceId, replay.Result.NextCheckpoint,
+                Guid.Empty, 0, 100, default);
+            Assert.False(removed.IsError, removed.Message);
+            var deletion = Assert.Single(removed.Result.Changes,
+                change => change.EntityType == HyperDriveEntityTypes.GeoNftCollectionAvailability);
+            Assert.Equal(SyncOperationKind.Delete, deletion.Kind);
+            Assert.Null(deletion.PayloadJson);
+        }
+        finally
+        {
+            await client.DropDatabaseAsync(databaseName);
+        }
+    }
+
     [Fact]
     public async Task PublicDefinitionsAreVisibleGloballyWhilePrivateHolonsRemainAvatarScoped()
     {
@@ -60,8 +152,11 @@ public sealed class HostedMongoSyncTransactionTests
     [Theory]
     [InlineData(HyperDriveEntityTypes.Quest, HolonType.Quest)]
     [InlineData(HyperDriveEntityTypes.InventoryItem, HolonType.InventoryItem)]
+    [InlineData(HyperDriveEntityTypes.Nft, HolonType.Web5NFT)]
+    [InlineData(HyperDriveEntityTypes.NftCollection, HolonType.Web5NFTCollection)]
     [InlineData(HyperDriveEntityTypes.GeoNft, HolonType.Web5GeoNFT)]
     [InlineData(HyperDriveEntityTypes.GeoNftCollection, HolonType.Web5GeoNFTCollection)]
+    [InlineData(HyperDriveEntityTypes.GeoHotSpot, HolonType.GeoHotSpot)]
     public async Task TypedHolonMutationUsesItsAuthoritativeDomainCodec(string entityType, HolonType holonType)
     {
         string connectionString = RequiredConnectionString();
@@ -502,8 +597,13 @@ public sealed class HostedMongoSyncTransactionTests
                     Username = "edge-owner", Email = "private@example.test", Karma = 12, XP = 34,
                     ActiveQuestId = Guid.NewGuid(), ActiveObjectiveId = Guid.NewGuid(),
                     CreatedDate = DateTime.UtcNow, ModifiedDate = DateTime.UtcNow,
+                    KarmaAkashicRecords = new[] { new NextGenSoftware.OASIS.API.Core.Objects.KarmaAkashicRecord
+                        { AvatarId = ownerId, Date = DateTime.UtcNow, Karma = 5, TotalKarma = 12,
+                          KarmaSourceTitle = "Our World", KarmaSourceDesc = "Restored a tree" } },
                     Inventory = new[] { new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem
-                        { Id = Guid.NewGuid(), Name = "Anorak", Quantity = 1 } }
+                        { Id = Guid.NewGuid(), Name = "Anorak", Quantity = 1,
+                          ItemType = NextGenSoftware.OASIS.API.Core.Enums.InventoryItemType.Nature,
+                          Stack = true, AcquiredOn = new DateTime(2026, 10, 3, 12, 0, 0, DateTimeKind.Utc) } }
                 });
 
             var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(
@@ -526,12 +626,538 @@ public sealed class HostedMongoSyncTransactionTests
             Assert.False(avatarJson.RootElement.TryGetProperty("VerificationToken", out _));
             Assert.False(detailJson.RootElement.TryGetProperty("Email", out _));
             Assert.Equal(12, detailJson.RootElement.GetProperty("Karma").GetInt64());
-            Assert.Single(detailJson.RootElement.GetProperty("Inventory").EnumerateArray());
+            var karmaEntry = Assert.Single(detailJson.RootElement.GetProperty("KarmaHistory").EnumerateArray());
+            Assert.Equal(5, karmaEntry.GetProperty("Amount").GetInt32());
+            Assert.Equal("Our World", karmaEntry.GetProperty("Source").GetString());
+            Assert.Equal("Restored a tree", karmaEntry.GetProperty("Reason").GetString());
+            Assert.False(karmaEntry.TryGetProperty("Provider", out _));
+            Assert.False(karmaEntry.TryGetProperty("WebLink", out _));
+            var inventoryItem = Assert.Single(detailJson.RootElement.GetProperty("Inventory").EnumerateArray());
+            Assert.Equal((int)NextGenSoftware.OASIS.API.Core.Enums.InventoryItemType.Nature,
+                inventoryItem.GetProperty("ItemType").GetInt32());
+            Assert.Equal("Nature", inventoryItem.GetProperty("ItemTypeName").GetString());
+            Assert.True(inventoryItem.GetProperty("IsStackable").GetBoolean());
+            Assert.Equal(new DateTime(2026, 10, 3, 12, 0, 0, DateTimeKind.Utc),
+                inventoryItem.GetProperty("AcquiredOn").GetDateTime());
 
             var otherFeed = await provider.ReadChangesAsync(Guid.NewGuid(), Guid.NewGuid(), null,
                 Guid.Empty, 0, 100, default);
             Assert.DoesNotContain(otherFeed.Result.Changes, x => x.EntityType == HyperDriveEntityTypes.Avatar ||
                 x.EntityType == HyperDriveEntityTypes.AvatarDetail);
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task HolonBackfillPublishesPublicOasisIdentityAndExpandedQuestMetadata()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("holon_projection");
+        var ownerId = Guid.NewGuid();
+        var questId = Guid.NewGuid();
+        var mongoId = ObjectId.GenerateNewId().ToString();
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        try
+        {
+            await database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon")
+                .InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon
+                {
+                    Id = mongoId, HolonId = questId, VersionId = Guid.NewGuid(),
+                    HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,
+                    Name = "Offline quest", Description = "Durable quest projection",
+                    CreatedByAvatarId = ownerId.ToString("D"), CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    ProviderUniqueStorageKey = new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType, string>
+                    {
+                        [NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS] = mongoId
+                    },
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["Status"] = "InProgress",
+                        ["Objectives"] = "[{\"Id\":\"objective-1\",\"Title\":\"Reach the tree\"}]",
+                        ["PrerequisiteQuestIds"] = "[]"
+                    }
+                });
+
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(
+                connectionString, databaseName);
+            var backfill = await provider.BackfillDomainStateAsync(10, default);
+            Assert.False(backfill.IsError, backfill.Message);
+
+            var feed = await provider.ReadChangesAsync(ownerId, Guid.NewGuid(), null, Guid.Empty, 0, 100, default);
+            var quest = Assert.Single(feed.Result.Changes, x => x.EntityType == HyperDriveEntityTypes.Quest);
+            using var json = JsonDocument.Parse(quest.PayloadJson);
+            Assert.Equal(questId, json.RootElement.GetProperty("Id").GetGuid());
+            Assert.Equal((int)NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest,
+                json.RootElement.GetProperty("HolonType").GetInt32());
+            Assert.Equal("Offline quest", json.RootElement.GetProperty("Title").GetString());
+            Assert.Equal(JsonValueKind.Array, json.RootElement.GetProperty("Objectives").ValueKind);
+            Assert.Equal("Reach the tree", json.RootElement.GetProperty("Objectives")[0]
+                .GetProperty("Title").GetString());
+            Assert.False(json.RootElement.TryGetProperty("ProviderUniqueStorageKey", out _));
+            Assert.DoesNotContain(mongoId, quest.PayloadJson, StringComparison.Ordinal);
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayTransferIsAtomicAndIdempotentAcrossBothInventories()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("inventory_transfer");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var sourceId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        try
+        {
+            var collection = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await collection.InsertManyAsync(new[]
+            {
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = sourceId, VersionId = Guid.NewGuid(),
+                    Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
+                    {
+                        new() { Id = itemId, Name = "Transferred key", GameSource = "Our World", Quantity = 3 }
+                    }
+                },
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = targetId, VersionId = Guid.NewGuid()
+                }
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var command = new HostedSyncCommandItem
+            {
+                OperationId = operationId, AvatarId = sourceId, EntityId = sourceId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.TransferInventory,
+                    InventoryItemId = itemId,
+                    TargetAvatarId = targetId,
+                    Amount = 1
+                })
+            };
+
+            var first = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+            var replay = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+            Assert.False(first.IsError, first.Message);
+            Assert.False(replay.IsError, replay.Message);
+            var source = await collection.Find(x => x.HolonId == sourceId).SingleAsync();
+            var target = await collection.Find(x => x.HolonId == targetId).SingleAsync();
+            Assert.Empty(source.Inventory);
+            var transferred = Assert.Single(target.Inventory);
+            Assert.Equal(itemId, transferred.Id);
+            Assert.Equal(3, transferred.Quantity);
+            Assert.Contains(operationId.ToString("D"), source.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
+            Assert.Contains(operationId.ToString("D"), target.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayClanTransferIsAtomicAndIdempotentAcrossAvatarAndClan()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("clan_inventory_transfer");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var sourceId = Guid.NewGuid();
+        var clanId = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var destinationItemId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        try
+        {
+            var avatars = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await avatars.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = sourceId, VersionId = Guid.NewGuid(),
+                Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
+                {
+                    new()
+                    {
+                        Id = itemId, Name = "Clan crystal", GameSource = "Our World", Quantity = 3,
+                        ItemType = InventoryItemType.QuestItem,
+                        Properties = new Dictionary<string, object> { ["rarity"] = "purple" }
+                    }
+                }
+            });
+            var clans = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon");
+            await clans.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = clanId, HolonType = HolonType.Clan,
+                VersionId = Guid.NewGuid(), Name = "Atomic Clan", MetaData = new Dictionary<string, object>
+                {
+                    [ClanManager.ClanStateMetadataKey] = JsonConvert.SerializeObject(new ClanManager.ClanPersistentState
+                    {
+                        OwnerAvatarId = ownerId,
+                        MemberIds = new List<Guid> { ownerId, sourceId },
+                        Inventory = new List<ClanManager.ClanPersistentInventoryItem>()
+                    })
+                }
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var command = new HostedSyncCommandItem
+            {
+                OperationId = operationId, AvatarId = sourceId, EntityId = sourceId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.TransferInventoryToClan,
+                    InventoryItemId = itemId,
+                    TargetClanId = clanId,
+                    DestinationInventoryItemId = destinationItemId,
+                    Amount = 2
+                })
+            };
+
+            var first = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+            var replay = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+
+            Assert.False(first.IsError, first.Message);
+            Assert.False(replay.IsError, replay.Message);
+            var source = await avatars.Find(x => x.HolonId == sourceId).SingleAsync();
+            Assert.Equal(1, Assert.Single(source.Inventory).Quantity);
+            var clan = await clans.Find(x => x.HolonId == clanId).SingleAsync();
+            var state = JsonConvert.DeserializeObject<ClanManager.ClanPersistentState>(
+                clan.MetaData[ClanManager.ClanStateMetadataKey].ToString());
+            var transferred = Assert.Single(state.Inventory);
+            Assert.Equal(destinationItemId, transferred.Id);
+            Assert.Equal(2, transferred.Quantity);
+            Assert.Equal("purple", transferred.Properties["rarity"].ToString());
+            Assert.Contains(operationId.ToString("D"),
+                source.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
+            Assert.Contains(operationId.ToString("D"),
+                clan.MetaData[HyperDriveAvatarGameplay.ClanReceiptMetadataKey].ToString());
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayTransferRejectsOneSidedReceiptWithoutMutatingEitherInventory()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("transfer_one_sided");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var sourceId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        var payload = new HyperDriveAvatarGameplayCommand
+        {
+            Action = HyperDriveAvatarGameplayAction.TransferInventory,
+            InventoryItemId = itemId,
+            TargetAvatarId = targetId,
+            Amount = 1
+        };
+        string canonicalPayload = HyperDriveJson.Serialize(payload);
+        try
+        {
+            var collection = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await collection.InsertManyAsync(new[]
+            {
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = sourceId, VersionId = Guid.NewGuid(),
+                    Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
+                    {
+                        new() { Id = itemId, Name = "Transfer key", Quantity = 1 }
+                    },
+                    MetaData = new Dictionary<string, object>
+                    {
+                        [HyperDriveAvatarGameplay.ReceiptMetadataKey] = JsonConvert.SerializeObject(
+                            new Dictionary<Guid, string> { [operationId] = canonicalPayload })
+                    }
+                },
+                new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+                {
+                    Id = ObjectId.GenerateNewId().ToString(), HolonId = targetId, VersionId = Guid.NewGuid(),
+                    Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(),
+                    MetaData = new Dictionary<string, object>()
+                }
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var result = await provider.ApplyAvatarGameplayCommandAsync(new HostedSyncCommandItem
+            {
+                OperationId = operationId, AvatarId = sourceId, EntityId = sourceId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay, PayloadJson = canonicalPayload
+            }, default);
+
+            Assert.True(result.IsError);
+            Assert.Contains("receipt invariant is inconsistent", result.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Single((await collection.Find(x => x.HolonId == sourceId).SingleAsync()).Inventory);
+            Assert.Empty((await collection.Find(x => x.HolonId == targetId).SingleAsync()).Inventory);
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayRejectsMalformedReceiptLedgerAsStructuredError()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("invalid_gameplay_receipt");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var avatarId = Guid.NewGuid();
+        try
+        {
+            var collection = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await collection.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = avatarId, VersionId = Guid.NewGuid(),
+                Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(),
+                MetaData = new Dictionary<string, object>
+                {
+                    [HyperDriveAvatarGameplay.ReceiptMetadataKey] = "{not-json"
+                }
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var result = await provider.ApplyAvatarGameplayCommandAsync(new HostedSyncCommandItem
+            {
+                OperationId = Guid.NewGuid(), AvatarId = avatarId, EntityId = avatarId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.AwardXp,
+                    Amount = 1
+                })
+            }, default);
+
+            Assert.True(result.IsError);
+            Assert.Equal("AVATAR_GAMEPLAY_RECEIPT_INVALID", result.ErrorCode);
+            Assert.Contains("receipt ledger is invalid", result.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayClanDestinationCollisionRollsBackSourceAndClan()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("clan_inventory_collision");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var sourceId = Guid.NewGuid();
+        var clanId = Guid.NewGuid();
+        var sourceItemId = Guid.NewGuid();
+        var destinationItemId = Guid.NewGuid();
+        try
+        {
+            var avatars = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await avatars.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = sourceId, VersionId = Guid.NewGuid(),
+                Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
+                {
+                    new() { Id = sourceItemId, Name = "Clan crystal", Quantity = 3 }
+                },
+                MetaData = new Dictionary<string, object>()
+            });
+            var clans = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>("Holon");
+            await clans.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = clanId, HolonType = HolonType.Clan,
+                VersionId = Guid.NewGuid(), MetaData = new Dictionary<string, object>
+                {
+                    [ClanManager.ClanStateMetadataKey] = JsonConvert.SerializeObject(new ClanManager.ClanPersistentState
+                    {
+                        OwnerAvatarId = sourceId,
+                        MemberIds = new List<Guid> { sourceId },
+                        Inventory = new List<ClanManager.ClanPersistentInventoryItem>
+                        {
+                            new() { Id = destinationItemId, Name = "Existing item", Quantity = 1 }
+                        }
+                    })
+                }
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var result = await provider.ApplyAvatarGameplayCommandAsync(new HostedSyncCommandItem
+            {
+                OperationId = Guid.NewGuid(), AvatarId = sourceId, EntityId = sourceId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.TransferInventoryToClan,
+                    InventoryItemId = sourceItemId, TargetClanId = clanId,
+                    DestinationInventoryItemId = destinationItemId, Amount = 2
+                })
+            }, default);
+
+            Assert.True(result.IsError);
+            Assert.Contains("destination item identity", result.Message, StringComparison.OrdinalIgnoreCase);
+            var source = await avatars.Find(x => x.HolonId == sourceId).SingleAsync();
+            Assert.Equal(3, Assert.Single(source.Inventory).Quantity);
+            Assert.False(source.MetaData.ContainsKey(HyperDriveAvatarGameplay.ReceiptMetadataKey));
+            var clan = await clans.Find(x => x.HolonId == clanId).SingleAsync();
+            var state = JsonConvert.DeserializeObject<ClanManager.ClanPersistentState>(
+                clan.MetaData[ClanManager.ClanStateMetadataKey].ToString());
+            Assert.Single(state.Inventory);
+            Assert.False(clan.MetaData.ContainsKey(HyperDriveAvatarGameplay.ClanReceiptMetadataKey));
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayInventoryUpdateIsAtomicAndIdempotent()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("inventory_update");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var avatarId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        try
+        {
+            var collection = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await collection.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = avatarId, VersionId = Guid.NewGuid(),
+                Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
+                {
+                    new() { Id = itemId, Name = "Key", GameSource = "Our World", Quantity = 1 }
+                }
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var command = new HostedSyncCommandItem
+            {
+                OperationId = operationId, AvatarId = avatarId, EntityId = avatarId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.UpdateInventory,
+                    InventoryItemId = itemId,
+                    InventoryUpdate = new HyperDriveInventoryItemProjection
+                    {
+                        Id = itemId, Name = "Master Key", Description = "Updated offline", Quantity = 2,
+                        GameSource = "Our World", ItemType = (int)NextGenSoftware.OASIS.API.Core.Enums.InventoryItemType.KeyItem,
+                        Rarity = "Epic", MaxQuantity = 5, Weight = 0.5f, IsStackable = true,
+                        IsUsable = true, IsTradeable = false, Value = 12.75m,
+                        ThumbnailUrl = "https://example.test/key-thumb.png",
+                        Properties = new Dictionary<string, string> { ["damage"] = "9" }
+                    }
+                })
+            };
+
+            var first = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+            var replay = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+            Assert.False(first.IsError, first.Message);
+            Assert.False(replay.IsError, replay.Message);
+            var persisted = await collection.Find(x => x.HolonId == avatarId).SingleAsync();
+            var item = Assert.Single(persisted.Inventory);
+            Assert.Equal("Master Key", item.Name);
+            Assert.Equal(2, item.Quantity);
+            Assert.Equal("Epic", item.Rarity);
+            Assert.Equal("12.75", item.Properties["OurWorld.Value"]);
+            Assert.Equal("https://example.test/key-thumb.png", item.Properties["OurWorld.ThumbnailUrl"]);
+            Assert.Equal("9", item.Properties["damage"]);
+            Assert.Contains(operationId.ToString("D"),
+                persisted.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
+        }
+        finally { await client.DropDatabaseAsync(databaseName); }
+    }
+
+    [Fact]
+    public async Task AvatarGameplayKarmaMutationCommitsTotalHistoryAndReceiptExactlyOnce()
+    {
+        string connectionString = RequiredConnectionString();
+        string databaseName = NewDatabaseName("karma_command");
+        var client = new MongoClient(connectionString);
+        var database = client.GetDatabase(databaseName);
+        var avatarId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        var occurred = new DateTime(2026, 10, 4, 14, 15, 0, DateTimeKind.Utc);
+        try
+        {
+            var collection = database.GetCollection<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail");
+            await collection.InsertOneAsync(new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
+            {
+                Id = ObjectId.GenerateNewId().ToString(), HolonId = avatarId, VersionId = Guid.NewGuid(), Karma = 10
+            });
+            var provider = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(connectionString, databaseName);
+            var command = new HostedSyncCommandItem
+            {
+                OperationId = operationId, AvatarId = avatarId, EntityId = avatarId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.AddKarma,
+                    Amount = 100,
+                    KarmaSourceType = KarmaSourceType.Game.ToString(),
+                    KarmaType = KarmaTypePositive.OurWorldHelpOtherPlayer.ToString(),
+                    KarmaPolicyVersion = HyperDriveKarmaPolicy.CurrentVersion,
+                    KarmaSourceTitle = "Our World",
+                    KarmaSourceDescription = "Helped another player",
+                    KarmaOccurredAtUtc = occurred
+                })
+            };
+
+            var first = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+            var replay = await provider.ApplyAvatarGameplayCommandAsync(command, default);
+
+            Assert.False(first.IsError, first.Message);
+            Assert.False(replay.IsError, replay.Message);
+            var persisted = await collection.Find(x => x.HolonId == avatarId).SingleAsync();
+            Assert.Equal(110, persisted.Karma);
+            var record = Assert.Single(persisted.KarmaAkashicRecords);
+            Assert.Equal(100, record.Karma);
+            Assert.Equal(110, record.TotalKarma);
+            Assert.Equal(occurred, record.Date);
+            Assert.Equal(KarmaTypePositive.OurWorldHelpOtherPlayer, record.KarmaTypePositive.Value);
+            Assert.Contains(operationId.ToString("D"),
+                persisted.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
+
+            var forgedAmount = await provider.ApplyAvatarGameplayCommandAsync(new HostedSyncCommandItem
+            {
+                OperationId = Guid.NewGuid(), AvatarId = avatarId, EntityId = avatarId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.AddKarma,
+                    Amount = 1,
+                    KarmaSourceType = KarmaSourceType.Game.ToString(),
+                    KarmaType = KarmaTypePositive.OurWorldHelpOtherPlayer.ToString(),
+                    KarmaSourceTitle = "Our World",
+                    KarmaOccurredAtUtc = occurred.AddMinutes(1)
+                })
+            }, default);
+            Assert.True(forgedAmount.IsError);
+            Assert.Contains("canonical", forgedAmount.Message, StringComparison.OrdinalIgnoreCase);
+            persisted = await collection.Find(x => x.HolonId == avatarId).SingleAsync();
+            Assert.Equal(110, persisted.Karma);
+            Assert.Single(persisted.KarmaAkashicRecords);
+
+            var unsupportedPolicyOperationId = Guid.NewGuid();
+            var unsupportedPolicy = await provider.ApplyAvatarGameplayCommandAsync(new HostedSyncCommandItem
+            {
+                OperationId = unsupportedPolicyOperationId, AvatarId = avatarId, EntityId = avatarId,
+                EntityType = HyperDriveEntityTypes.AvatarGameplay,
+                PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarGameplayCommand
+                {
+                    Action = HyperDriveAvatarGameplayAction.AddKarma,
+                    Amount = 100,
+                    KarmaSourceType = KarmaSourceType.Game.ToString(),
+                    KarmaType = KarmaTypePositive.OurWorldHelpOtherPlayer.ToString(),
+                    KarmaPolicyVersion = "oasis.karma-policy.v999",
+                    KarmaSourceTitle = "Our World",
+                    KarmaOccurredAtUtc = occurred.AddMinutes(2)
+                })
+            }, default);
+            Assert.True(unsupportedPolicy.IsError);
+            Assert.Contains("unsupported", unsupportedPolicy.Message, StringComparison.OrdinalIgnoreCase);
+            persisted = await collection.Find(x => x.HolonId == avatarId).SingleAsync();
+            Assert.Equal(110, persisted.Karma);
+            Assert.Single(persisted.KarmaAkashicRecords);
+            Assert.DoesNotContain(unsupportedPolicyOperationId.ToString("D"),
+                persisted.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
         }
         finally { await client.DropDatabaseAsync(databaseName); }
     }
@@ -586,6 +1212,7 @@ public sealed class HostedMongoSyncTransactionTests
     [InlineData(HyperDriveEntityTypes.Avatar)]
     [InlineData(HyperDriveEntityTypes.AvatarDetail)]
     [InlineData(HyperDriveEntityTypes.QuestProgress)]
+    [InlineData(HyperDriveEntityTypes.GeoNftCollectionAvailability)]
     public async Task ServerAuthoritativeProjectionRejectsDirectEdgeOverwrite(string entityType)
     {
         string connectionString = RequiredConnectionString();

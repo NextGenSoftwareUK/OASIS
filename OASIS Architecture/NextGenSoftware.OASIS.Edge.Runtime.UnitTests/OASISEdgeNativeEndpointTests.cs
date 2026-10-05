@@ -110,6 +110,38 @@ public sealed class OASISEdgeNativeEndpointTests
         finally { if (File.Exists(databasePath)) File.Delete(databasePath); }
     }
 
+    [Fact]
+    public async Task NativeFacadeQueuesCanonicalGeoHotSpotTriggerCommand()
+    {
+        string databasePath = Path.Combine(Path.GetTempPath(), $"oasis-edge-hotspot-{Guid.NewGuid():N}.db");
+        var handler = new HostedSyncHandler();
+        using var client = new HttpClient(handler) { BaseAddress = new Uri("https://hosted-oasis.test/") };
+        try
+        {
+            using var api = new OASISEdgeAPI(new EdgeRuntimeOptions
+            {
+                AvatarId = Guid.NewGuid(), DeviceId = Guid.NewGuid(), DatabasePath = databasePath
+            }, client);
+            Guid operationId = Guid.NewGuid();
+            Guid hotSpotId = Guid.NewGuid();
+            var queued = await api.QueueGeoHotSpotTriggerAsync(operationId, hotSpotId,
+                new HyperDriveGeoHotSpotTriggerCommand
+                {
+                    TriggerType = 0, ObservedAtUtc = DateTime.UtcNow, Latitude = 1, Longitude = 2
+                });
+            var synchronized = await api.SetConnectivityAsync(true);
+
+            Assert.False(queued.IsError, queued.Message);
+            Assert.False(synchronized.IsError, synchronized.Message);
+            var sent = Assert.Single(handler.LastRequest.Operations);
+            Assert.Equal(operationId, sent.OperationId);
+            Assert.Equal(hotSpotId, sent.EntityId);
+            Assert.Equal(HyperDriveEntityTypes.GeoHotSpot, sent.EntityType);
+            Assert.Equal(SyncOperationKind.Command, sent.Kind);
+        }
+        finally { if (File.Exists(databasePath)) File.Delete(databasePath); }
+    }
+
     internal sealed class TestEntity { public string Name { get; set; } = string.Empty; }
 
     private sealed class DisconnectedChannel : IONETApplicationMessageChannel

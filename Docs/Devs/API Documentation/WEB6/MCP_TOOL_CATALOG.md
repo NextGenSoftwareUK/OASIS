@@ -173,9 +173,6 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_karma_get_history` | WEB4: gets an avatar's karma transaction history. |
 | `web4_karma_get_stats` | WEB4: gets aggregate karma statistics for an avatar. |
 | `web4_karma_get_weightings` | WEB4: gets the configured weighting for one positive or negative karma type through the authenticated WEB4 API. |
-| `web4_karma_set_weightings` | WEB4 admin: directly sets a karma weighting via the REST API (Wizard avatars only; WEB4 enforces this). |
-| `web4_karma_transfer` | WEB4: transfers karma from one avatar to another. |
-| `web4_karma_vote_weighting` | WEB4: votes for a karma weighting through the authenticated WEB4 API. |
 | `web4_key_base58_check_decode` | WEB4 Keys: decodes a Base58Check-encoded string to raw bytes. |
 | `web4_key_clear_cache` | WEB4 Keys: clears the KeyManager's internal cache of resolved keys. |
 | `web4_key_create` | WEB4 Keys: creates a new key record (holon) for an avatar. avatarId is the owning avatar's GUID. keyName is the label. keyType is an arbitrary type string. |

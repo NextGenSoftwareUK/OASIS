@@ -39,7 +39,7 @@ jobs:
           [[ "$OPERATION" == Publish ]] && publish=true
           gh workflow run global-release.yml --repo ${{ github.repository }} --ref master \
             -f publish="$publish" -f nuget_packages=false \
-            -f oasis_runtime=true -f star_runtime=false \
+            -f oasis_runtime=true -f star_runtime=false -f edge_runtime=false \
             -f ogengine_client=false -f native_endpoint=false \
             -f mcp_server=false -f optional_components='none' \
             -f version_mode='${{ inputs.version_mode }}' -f manual_version='${{ inputs.manual_version }}'

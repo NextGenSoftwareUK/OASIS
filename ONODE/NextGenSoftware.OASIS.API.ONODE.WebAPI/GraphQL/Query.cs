@@ -516,13 +516,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         public Dictionary<ProviderType, ProviderPerformanceMetrics> GetHyperDriveMetrics()
         {
-            return PerformanceMonitor.Instance.GetAllMetrics();
+            return ProviderManager.Instance.PerformanceMonitor.GetAllMetrics();
         }
 
         public ProviderPerformanceMetrics? GetHyperDriveProviderMetrics(string providerType)
         {
             var pt = Enum.TryParse<ProviderType>(providerType, true, out var parsed) ? parsed : ProviderType.Default;
-            return PerformanceMonitor.Instance.GetMetrics(pt);
+            return ProviderManager.Instance.PerformanceMonitor.GetMetrics(pt);
         }
 
         public async Task<IEnumerable<OptimizationRecommendation>> GetHyperDriveAIRecommendations()

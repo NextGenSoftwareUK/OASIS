@@ -2,7 +2,6 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 
 namespace NextGenSoftware.OASIS.Edge.Runtime
@@ -16,15 +15,20 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
         public EdgePayloadSerializer(JsonSerializerContext applicationContext = null) =>
             _applicationContext = applicationContext;
 
-        public string Serialize<T>(T value) => value is JToken token
-            ? token.ToString(Newtonsoft.Json.Formatting.None)
-            : JsonSerializer.Serialize(value, TypeInfo<T>());
+        public string Serialize<T>(T value) => value is JsonElement element
+            ? element.GetRawText()
+            : value is JsonDocument document
+                ? document.RootElement.GetRawText()
+                : JsonSerializer.Serialize(value, TypeInfo<T>());
 
         public T Deserialize<T>(string json)
         {
-            if (typeof(T) == typeof(JObject)) return (T)(object)JObject.Parse(json);
-            if (typeof(T) == typeof(JArray)) return (T)(object)JArray.Parse(json);
-            if (typeof(T) == typeof(JToken)) return (T)(object)JToken.Parse(json);
+            if (typeof(T) == typeof(JsonElement))
+            {
+                using var document = JsonDocument.Parse(json);
+                return (T)(object)document.RootElement.Clone();
+            }
+            if (typeof(T) == typeof(JsonDocument)) return (T)(object)JsonDocument.Parse(json);
             return JsonSerializer.Deserialize(json, TypeInfo<T>());
         }
 
@@ -32,5 +36,6 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             (HyperDriveJsonContext.Default.GetTypeInfo(typeof(T)) ?? _applicationContext?.GetTypeInfo(typeof(T)))
                 as JsonTypeInfo<T> ?? throw new NotSupportedException(
                     $"Register generated JSON metadata for '{typeof(T)}' in EdgeRuntimeOptions.PayloadSerializer.");
+
     }
 }

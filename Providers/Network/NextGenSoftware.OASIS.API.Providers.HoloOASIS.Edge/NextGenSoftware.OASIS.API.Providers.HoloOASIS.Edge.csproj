@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge</PackageId>
+    <Description>Lightweight Holochain 0.7 domain replication target for OASIS Edge Runtime.</Description>
+    <Version>1.0.0</Version>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS;Holochain;Edge;HyperDrive;Unity</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Nullable>disable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization/NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
+    <ProjectReference Include="../../../OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime/NextGenSoftware.OASIS.Edge.Runtime.csproj" />
+    <ProjectReference Include="../../../../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client/NextGenSoftware.Holochain.HoloNET.Client.csproj" />
+  </ItemGroup>
+</Project>
