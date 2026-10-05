@@ -199,4 +199,24 @@ public class ONETManagerUnitTests
         result.IsError.Should().BeFalse();
         result.Result.Should().NotBeNull();
     }
+
+    [Fact]
+    public async Task UpdateONETConfigAsync_RejectsLocalNodeInPeerRegistrySetWithoutMutatingConfiguration()
+    {
+        var dna = BuildDna(nodeId: "local-node");
+        dna.OASIS.ONET.CapabilityRegistryNodeIds = new List<string> { "existing-peer" };
+        dna.OASIS.ONET.CapabilityRegistryQuorum = 1;
+        var manager = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        var update = BuildDna(nodeId: "ignored").OASIS.ONET;
+        update.CapabilityRegistryNodeIds = new List<string> { "peer-a", "local-node" };
+        update.CapabilityRegistryQuorum = 2;
+        update.CapabilityRegistryReconciliationSeconds = 30;
+
+        var result = await manager.UpdateONETConfigAsync(update);
+
+        result.IsError.Should().BeTrue();
+        result.Message.Should().Contain("own NodeId");
+        dna.OASIS.ONET.CapabilityRegistryNodeIds.Should().Equal("existing-peer");
+        dna.OASIS.ONET.CapabilityRegistryQuorum.Should().Be(1);
+    }
 }

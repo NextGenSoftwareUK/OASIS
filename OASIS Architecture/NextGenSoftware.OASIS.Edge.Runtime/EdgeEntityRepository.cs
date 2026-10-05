@@ -161,6 +161,15 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                 Payload = payload, CreatedUtc = DateTime.UtcNow
             }, cancellationToken);
 
+        public Task<OASISResult<SyncOperation>> QueueGeoHotSpotTriggerAsync(Guid operationId, Guid geoHotSpotId,
+            HyperDriveGeoHotSpotTriggerCommand payload, CancellationToken cancellationToken = default) =>
+            QueueCommandAsync(new EdgeCommandRequest<HyperDriveGeoHotSpotTriggerCommand>
+            {
+                OperationId = operationId, EntityId = geoHotSpotId,
+                EntityType = HyperDriveEntityTypes.GeoHotSpot, VersionId = Guid.NewGuid(),
+                Payload = payload, CreatedUtc = DateTime.UtcNow
+            }, cancellationToken);
+
         public async Task<OASISResult<EdgeEntityReadResult<T>>> LoadAsync<T>(string entityType, Guid entityId,
             CancellationToken cancellationToken = default)
         {

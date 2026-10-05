@@ -74,6 +74,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[Wallet Management System](./Wallet-Management-System.md)** - Comprehensive wallet management guide
 
 ### **Core Components**
+- **[OASIS Edge Runtime releases, packages and evidence](./EDGE_RUNTIME_RELEASES.md)** — canonical map of Edge/ONODE packages, providers, tests, scripts, outputs, GitHub Actions and publication channels
 - **WEB4 OASIS API**: Data aggregation and identity layer
 - **WEB5 STAR API**: Gamification and business layer  
 - **STARNET Web UI**: Comprehensive web interface and app store

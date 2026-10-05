@@ -521,11 +521,57 @@ void D3Doom_STAR_Cleanup(void) {
     StarLog("STAR integration shut down.");
 }
 
+/*=============================================================================
+ * OASIS Omniverse Hub - protocol lives in ogengine_hub_frame (OGEngineClient);
+ * see Docs/OMNIVERSE_HUB_IPC.md. No Hub pause: this runs from the game frame,
+ * which does not run while the game is paused, so the Hub could never unpause it.
+ *===========================================================================*/
+
+static idStr g_hub_pending_map;
+static idVec3 g_hub_pending_origin;
+static bool g_hub_pending_spawn = false;
+
+/* "maps/game/mars_city1.map" -> "game/mars_city1", the form the "map" command takes. */
+static idStr D3Doom_HubCurrentMap(void) {
+    idStr name = gameLocal.GetMapName();
+    name.BackSlashesToSlashes();
+    if (idStr::Icmpn(name.c_str(), "maps/", 5) == 0) name = name.Right(name.Length() - 5);
+    name.StripFileExtension();
+    return name;
+}
+
+static void D3Doom_HubApplyPendingSpawn(void) {
+    if (!g_hub_pending_spawn) return;
+    idPlayer *localPlayer = gameLocal.GetLocalPlayer();
+    if (!localPlayer) return;
+    if (g_hub_pending_map.Length() && D3Doom_HubCurrentMap().Icmp(g_hub_pending_map) != 0) return;
+    if (g_hub_pending_origin != vec3_origin) {
+        idAngles ang(0.0f, 0.0f, 0.0f);
+        localPlayer->Teleport(g_hub_pending_origin, ang, NULL);
+    }
+    g_hub_pending_spawn = false;
+    g_hub_pending_map.Clear();
+}
+
+static void D3Doom_HubFrame(void) {
+    ogengine_hub_frame_t hub;
+    D3Doom_HubApplyPendingSpawn();
+    if (!ogengine_hub_frame("ODOOM3-BFG", D3Doom_HubCurrentMap().c_str(), 0, &hub) || !hub.has_arrive) return;
+
+    g_hub_pending_origin.Set(hub.x, hub.y, hub.z);
+    g_hub_pending_spawn = true;
+    g_hub_pending_map = hub.arrive_map;
+    if (hub.arrive_map[0])
+        cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("map %s\n", hub.arrive_map));
+    StarLog("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
+}
+
 void D3Doom_STAR_Tick(void) {
     if (!g_d3doom_initialized) return;
 
     /* Drive async auth/inventory/use-item completions on main thread */
     ogengine_sync_pump();
+    D3Doom_HubFrame();
 
     {
         char edge_msg[512];

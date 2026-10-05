@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('OASISRuntime', 'STARRuntime', 'OGEngineClient', 'NativeEndpoint', 'MCPServer', 'OurWorld', 'ODOOM', 'OQUAKE')]
+    [ValidateSet('OASISRuntime', 'STARRuntime', 'EdgeRuntime', 'OGEngineClient', 'NativeEndpoint', 'MCPServer', 'OurWorld', 'ODOOM', 'OQUAKE')]
     [string]$Component,
     [Parameter(Mandatory)]
     [ValidatePattern('^\d+\.\d+\.\d+$')]
@@ -22,6 +22,11 @@ $definitions = @{
         Title = 'STAR ODK Runtime'; Prefixes = @('STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-')
         Paths = @('STAR ODK')
         Intro = 'The STAR ODK Runtime contains the WEB5 STAR engine, STAR CLI and reusable CLI library used to create, package and run OAPPs, quests, missions, GeoHotSpots and STARNET content.'
+    }
+    EdgeRuntime = @{
+        Title = 'OASIS Edge Runtime'; Prefixes = @('OASIS-Edge-Runtime-v')
+        Paths = @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization', 'OASIS Architecture/NextGenSoftware.OASIS.ONET', 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge', 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity', 'OASIS Omniverse/OGEngineClient/Edge')
+        Intro = 'The OASIS Edge Runtime is the reusable durable offline-first runtime for games, mobile applications and lightweight Edge ONODEs. The release contains synchronization contracts, SQLite journalling, ONET transport, the Edge Native Endpoint, HoloOASIS adapters and the Unity package.'
     }
     OGEngineClient = @{
         Title = 'OGEngineClient'; Prefixes = @('OGEngineClient-v', 'STAR-API-CLIENT-v')
@@ -56,6 +61,7 @@ $definition = $definitions[$Component]
 $targetTag = switch ($Component) {
     OASISRuntime { "OASIS-Runtime-v$Version" }
     STARRuntime { "STAR-ODK-Runtime-v$Version" }
+    EdgeRuntime { "OASIS-Edge-Runtime-v$Version" }
     OGEngineClient { "OGEngineClient-v$Version" }
     NativeEndpoint { "Native-Endpoint-v$Version" }
     MCPServer { "mcp-v$Version" }

@@ -18,6 +18,15 @@ connectivity, synchronization state, pending durable operations, and the last su
 The legacy init struct remains byte-for-byte unchanged and is guarded by layout tests. Edge-enabled
 authentication is composed inside OGEngineClient, not separately in each game.
 
+Our World uses that same client boundary for durable GeoHotSpot triggers, quest progress, GeoNFT collection and
+active quest/objective selection. Reads for GeoHotSpots and tracker state use synchronized projections. When Edge
+is enabled, a projection or journal failure remains a structured visible error; it never silently falls through to
+REST. REST is retained only by the explicitly configured remote-only deployment profile. Hosted ONODE remains the
+authority for reward, cooldown, collection, Karma and XP decisions when the queued commands synchronize.
+The Our World Quests popup and persistent tracker are two UI views over this single command boundary: both persist
+the exact quest id and objective id, and tracker restoration reads those ids from AvatarDetail. Display labels are
+never used as persistence keys.
+
 The deployment scripts treat the two Edge exports as required contract symbols. A library/header
 mismatch therefore fails during packaging instead of becoming an optional runtime fallback.
 `PublishAot` is deliberately declared only by the top-level native library project and is not passed
@@ -45,17 +54,45 @@ The version numbers describe different layers and must not be conflated:
 “Sync Protocol v3” does not mean a HyperDrive Runtime v3 exists. Edge Runtime composes HyperDrive Runtime v2 behavior
 with Sync Protocol v3. Both HTTPS and ONET carry the same v3 synchronization semantics.
 
-Local validation snapshot (2026-09-23): DNA 11/11, Core HyperDrive 167/167, Edge SQLite 26/26,
-Edge Runtime 46/46, ONET synchronization 9/9 and hosted offline-session security 12/12 passed.
+Local validation snapshot (2026-10-03): DNA 12/12, Core 227/227, Edge SQLite 31/31,
+Edge Runtime 64/64, ONET synchronization 15/15, HyperDrive AI 7/7, Holo Edge 9/9, HoloNET Client/ORM 70/70 and hosted
+offline-session security 13/13 passed. The broader Full-runtime preservation gate also passes: ONODE Core
+164/164, ONODE Core integration 42/42, ONODE WebAPI 83/83, Full Native Integrated Endpoint, both Edge Native
+target frameworks and STAR CLI build successfully, and STAR DNA passes 1/1. The existing STAR CLI, CLI library
+and STAR runtime projects named `UnitTests` currently contain no discoverable test methods; their successful build
+is therefore recorded as build evidence, not misreported as test coverage. Run
+`Scripts/validate_full_runtime_regression.ps1`; it emits and parses the four non-empty TRX reports, enforces their
+minimum executed-test baselines, and builds Full Native, Edge Native and STAR CLI.
+Dependency audits of Full ONODE WebAPI, Edge Native and STAR CLI report no known vulnerable direct or transitive
+NuGet packages from the configured package sources. Redundant framework-provided `System.*` package references were
+removed from the touched OASIS projects. ONODE.Client now consumes the `net10.0` shared-framework
+`System.Text.Json` assembly rather than carrying a redundant package reference through the STAR CLI graph; the
+dependency gate rejects that reference if it returns. The active EVM provider projects were migrated together from their mixed
+Nethereum 4.x versions to Nethereum 7.0.0; the receipt-log API change is handled at the provider call sites and the
+Full ONODE build/regression gate verifies the unified graph. This removes the former `NU1608` conflict between
+Nethereum's logging dependency and the Full Runtime's `Microsoft.Extensions.Logging.Abstractions` 10.x graph rather
+than suppressing it or forcing an unsupported package combination. Run
+`Scripts/validate_dependency_security.ps1` to enforce the single Nethereum version across active provider projects
+and fail on vulnerable direct or transitive packages in Full ONODE, Edge Native or STAR CLI.
+Release TRX evidence is fail-closed: every required report must have identical total, executed and passed counts,
+and every other VSTest outcome counter must be zero. Skipped, inconclusive, warning, not-runnable, disconnected,
+pending and partially executed suites therefore cannot satisfy the release gate. The strengthened SQLite profile
+passed 555/555 tests and the Holo-enabled profile passed 651/651 tests on 2026-10-05.
 MongoDBOASIS, the migration tool, Full ONODE WebAPI, both Native Integrated Endpoint compositions,
-STAR CLI, HoloNET Client/ORM and HoloOASIS.Unity build successfully. All seven Edge NuGet packages are
+STAR CLI, HoloNET Client/ORM and HoloOASIS.Unity build successfully. The SQLite profile's seven Edge NuGet packages
+and the Holo-enabled profile's nine Edge NuGet packages are
 packable, the Unity package passes editor and Android-player validation, and the synchronized Our World
 project compiles with Unity 2022.3. The Holochain 0.7 hApp builds and packs with the pinned Holonix toolchain,
-and its Holochain Sweettest suite passes against a real conductor. These results deliberately do not claim the
-remaining external release proofs: the real three-node MongoDB transaction/primary-loss jobs require a
-replica-set environment, while HoloOASIS still requires Android resource profiling and two-device field tests.
+and its Holochain Sweettest suite passes against a real conductor. A portable three-node MongoDB 7 replica set now
+passes 32/32 hosted transaction, concurrency, rollback, retry and election tests plus the separately coordinated
+abrupt-primary-process-loss replay test 1/1. `Scripts/run_hosted_mongo_release_evidence.ps1` reproduces that evidence
+on Windows without installing a service; the Linux CI job remains an independent Docker-based proof. Feeding those
+TRX reports into `Scripts/validate_edge_runtime_release.ps1` passes the complete local release gate, including all
+managed suites, provenance checks, the complete profile-specific NuGet set, SPDX SBOM, checksums, Unity editor compilation, Android
+player compilation and Our World integration. These results deliberately do not claim the remaining physical-device
+proofs: HoloOASIS still requires Android/iOS resource profiling, suspend/resume qualification and two-device field tests.
 
-Implemented foundation (not yet a production release):
+Implemented release-candidate foundation (physical-device and external-network qualification still required):
 
 - shared synchronization contracts, client coordinator, hosted processor and HTTPS transport in Core;
 - agreed OGEngine target: the standard OGEngineClient always includes Edge Runtime and uses one durable local-first
@@ -145,6 +182,25 @@ Implemented foundation (not yet a production release):
 - deterministic HyperDrive provider scheduling foundation: round-robin no longer depends on wall-clock
   milliseconds, weighted scheduling no longer uses random choice, observable metric ties use stable provider
   ordering, and "Intelligent" selection no longer blocks synchronously on the placeholder AI engine;
+- concurrency-safe HyperDrive AI telemetry and optimization: shared history/provider scores are synchronized,
+  recommendation analysis uses stable snapshots, invalid telemetry returns a structured `OASISResult` error, and
+  the engine no longer hides failures behind neutral scores or empty recommendation lists. Provider mutations that
+  already completed remain successful but carry a telemetry warning if post-operation recording fails;
+- structured preventive failover: null input is rejected, duplicate providers are processed once, an empty set is
+  an explicit no-op, and any provider failure returns `HYPERDRIVE_PREVENTIVE_FAILOVER_FAILED` with its detailed
+  errors. The HTTP boundary cannot report success after an internal failover failure, and the prediction loop
+  observes the same result rather than discarding it;
+- fail-closed HyperDrive DNA configuration persistence: update/reset commits the new live configuration only after
+  `OASISDNAManager.SaveDNA()` succeeds. Persistence errors retain the previous configuration and propagate as an
+  `OASISResult<bool>` error; they cannot be reduced to console output followed by false success;
+- structured node-local persistence for quota and ONET peer-cache state: a missing file is a successful empty read,
+  while corrupt/inaccessible state is an explicit error. Enforced quota loads therefore fail closed. Atomic writes
+  use per-write temporary files; a post-operation quota write failure rolls back only the unpersisted counter and is
+  attached to the already successful provider result as a warning so callers neither receive false durability nor
+  retry a mutation that actually completed;
+- deterministic Unity package construction: generated tar entry timestamps and the gzip header timestamp are
+  canonicalized, and the release gate performs a second clean build of the selected profile and requires an exact
+  SHA-256 match before accepting its provenance;
 - direct HyperDrive v2 storage-provider execution for migrated async paths and synchronous Holon ID/provider-key,
   parent, metadata and load-all queries plus single/batch save and ID delete paths. The synchronous router invokes
   provider synchronous contracts directly (there is
@@ -159,8 +215,10 @@ Implemented foundation (not yet a production release):
   points enforce the same quotas, so callers cannot bypass subscription policy by choosing a lower-level route;
 - deterministic unit tests for protocol validation, transport errors, restart durability, rollback, replay and connectivity recovery.
 
-The remaining HyperDrive manager migration, HoloOASIS mobile runtime profiling,
-fault-injection and full release gates below remain mandatory before this status becomes production-ready. The
+The active `IOASISStorageProvider` router surface and runtime-scoped manager composition described below are migrated,
+and the deterministic/real-database fault-injection and full automated release gates pass. HoloOASIS physical mobile
+profiling, device lifecycle/field tests and external-network endurance gates remain mandatory before this status becomes
+production-ready. The
 Our World package integration now compiles through Unity 2022.3, securely resumes an offline grant before showing
 login, keeps an animated `Beaming In...` state for the entire active login operation, reports a friendly hosted-network
 failure only after the operation finishes, displays Edge connectivity/synchronization/pending state in the HUD, and
@@ -168,8 +226,8 @@ serializes mobile suspend/resume against endpoint disposal.
 
 This document supersedes unqualified claims in older documentation that HyperDrive already guarantees zero downtime.
 The implemented Edge path now has a durable SQLite outbox, restart-safe checkpoints, idempotent hosted exchange,
-conflict records and snapshot rebase, but production guarantees still depend on completing the remaining migration,
-platform security, device qualification and live fault-injection gates documented below.
+conflict records and snapshot rebase, but production guarantees still depend on platform-secure host integration,
+physical-device qualification and external live-network/endurance gates documented below.
 
 ## Decision
 
@@ -524,14 +582,27 @@ initial change records, persists hard-delete identity mappings, and only then in
 Writes may continue during the scan: later change-stream replay converges them from the watermark. The migration is
 single-writer leased and its per-Holon initial changes are idempotent, so a repaired dead-letter run can be retried.
 It exits non-zero and leaves capture uninitialized while any source document is quarantined.
-Remaining production work is to complete all HyperDrive manager migration, validate and profile the mobile
-application on physical target devices, validate the
-Holochain hApp with its unavailable external toolchain, and pass the full release matrix below.
+Remaining production work is to complete all HyperDrive manager migration and validate/profile the mobile
+application on physical target devices. The Holochain hApp and portable release matrix are now automated; they do
+not substitute for the Android/iOS hardware gates.
 Edge connectivity has three explicit states: `Offline`, `Connecting`, and `Online`. A device network signal moves
 the runtime only to `Connecting`; `Online` is published after the hosted service successfully answers an exchange.
 This prevents the HUD and clients from briefly claiming that OASIS is online during an outage or recovery probe.
-`ReplicatorManager` remains mostly a stub; hosted acceptance instead uses the durable Mongo outbox and ordered,
-leased, idempotent provider fan-out path described here.
+`ReplicatorManager` is now a runtime-scoped SDK façade over the authoritative v2 replication pipeline rather than
+commented scaffolding. It validates that configured targets are registered in its injected runtime, preserves their
+declared order, exposes the structured replication diagnostic, and never mutates the process-global runtime when an
+isolated Full/Edge/Native runtime is supplied. Hosted synchronization continues to use the durable Mongo outbox and
+ordered, leased, idempotent provider fan-out path described here; the façade does not create a competing replication
+implementation.
+Two focused manager tests and the complete Core suite (227/227) protect runtime isolation, configured target
+validation and delegation to v2. The aggregate `SqliteMvp` gate passes 458/458; evidence is
+`artifacts/current-goal-replicator-manager-release/acceptance-report.json`. The Edge archive remains byte-identical
+to the preceding conflict-status release at SHA-256
+`B4A8F94316CF79986480D5CBEF05896E08B653D666A6E0A9E07462F6B097D3C7`.
+After adding the hosted provider facade and mandatory ONET partition soak, the complete `HoloEnabled` gate passes
+551/551 tests plus Unity Editor, ARM64 Android-player and real Our World integration compilation. Its evidence is
+`artifacts/current-goal-command-restart-release/acceptance-report.json`; the reproducible UPM archive SHA-256 is
+`65D7E0018C224B71FB6FF625855F4099E190E2FC1723530FB28C06C1B047ED1D`.
 
 Settings-backed manager writes use detached Holon snapshots. This prevents a provider cache that returns entity
 references from observing uncommitted metadata when a save is rejected. Social and video manager projections are
@@ -541,6 +612,14 @@ Chat, gifts, competition and karma projections are likewise runtime-scoped. Chat
 avatar and removes transient sessions/messages when their authoritative save is rejected. Karma is committed before
 its five seasonal leaderboard projections, projection failures are visible warnings rather than hidden console output,
 and restart-safe history/statistics load both in-memory dictionary and provider JSON-array metadata shapes.
+Chat sessions and messages are now durable read models rather than process-memory-only objects. Session Holons carry
+an explicit entity discriminator, stable session identity, participant indexes and lifecycle timestamps; message
+Holons carry the matching session index and message contract. Active-session and history reads rebuild their caches
+through the injected Holon/HyperDrive runtime after restart. Ending a session updates a detached Holon snapshot and
+rolls the cache back when persistence is rejected, preventing provider-returned object aliases from leaking an
+uncommitted termination. Chat competition projections are executed and returned as structured warnings after the
+canonical message commit; the former unused method with a console-only catch no longer hides projection failures.
+Focused restart/rejection coverage passes 3/3 and the complete Core suite passes 235/235.
 Durable karma settings are authoritative for totals as well as history and statistics; avatar details are projections
 updated only after ledger acceptance. A rejected ledger mutation leaves the avatar projection untouched, while a
 post-commit avatar projection failure is an explicit warning. Authentication temporarily scopes its login-provider
@@ -667,9 +746,12 @@ This prevents ONET from becoming a second synchronization engine.
    implemented. Atomic Mongo projection and replay receipts are implemented for the base Holon codec, including a
    replica-set rollback boundary. Durable leased Mongo change capture is implemented for normal Holon saves,
    including resume checkpoints, pre-image hard-delete recovery, loop suppression and dead letters. The online,
-   operation-time-watermarked existing-data backfill tool is implemented and included in the release build gate.
-   Typed quest, inventory-definition, GeoNFT and GeoNFT-collection Holon codecs plus global-definition audience
-   delivery are implemented. Quest-progress, inventory-grant and GeoNFT-collection commands are durably accepted in
+   operation-time-watermarked existing-data backfill tool is implemented and included in the release gate. The gate
+   runs its direct CLI contract tests (argument rejection, environment selection, batch propagation, structured
+   success and structured failure) and retains `hyperdrive-migration.trx`; compiling the executable alone is not
+   accepted as migration evidence.
+   Typed quest, inventory-definition, NFT, NFT-collection, GeoNFT, GeoNFT-collection and GeoHotSpot Holon codecs plus
+   global-definition audience delivery are implemented. Quest-progress, inventory-grant and GeoNFT-collection commands are durably accepted in
    the same MongoDB transaction as their device acknowledgement, then executed in command-sequence order through the
    existing QuestManager, AvatarManager and NFT loading paths. A global fenced worker lease prevents ONODE instances
    from overtaking the queue; item leases are renewed during long manager calls, expired work is reclaimable, and
@@ -696,9 +778,11 @@ This prevents ONET from becoming a second synchronization engine.
    whitelist: password hashes, JWT/refresh/reset/verification tokens, provider wallets/usernames/storage keys and
    biometric-provider identifiers cannot be represented in the Edge payload. The matching projection mapper and
    durable capture/backfill wiring live in MongoOASIS.
-4. **Implemented as the transport-neutral hosted boundary:** authenticated HTTPS transport implementing the same
-   exchange and peer-binding contracts consumed by Edge Runtime. A provider-shaped facade remains to be added
-   only for consumers that require registration through `ProviderManager`.
+4. **Implemented:** authenticated HTTPS transport implementing the same exchange, peer-binding and offline-grant
+   contracts consumed by Edge Runtime. `HostedOASISSyncProvider` is the provider-shaped facade for Full Runtime
+   consumers that require registration through `ProviderManager`. It is intentionally registered as a Network
+   provider rather than pretending the ordered synchronization protocol exposes direct `IOASISStorageProvider`
+   Avatar/Holon CRUD semantics. Activation is explicit and inactive calls return a structured error.
 5. **Implemented:** Edge Runtime composition project targeting Unity-compatible .NET Standard 2.1, including
    typed save/load/delete operations surfaced by the Edge Native Integrated Endpoint. Tests cover durable
    restart, explicit tombstones, identical-operation replay, mismatched-operation rejection and concurrent
@@ -731,23 +815,117 @@ This prevents ONET from becoming a second synchronization engine.
    login. The prior short-lived PlayerPrefs API-response cache has been removed. Avatar, AvatarDetail/inventory,
    quest and GeoNFT collection screens read typed/durable Edge projections whenever the runtime is in local mode.
    The always-visible status strip reports Online/Offline, synchronization state, pending durable operations and
-   the last Edge error code. The authoritative Karma total is read from the private AvatarDetail projection while
-   offline; Karma history remains online-only. Device UI preferences remain local `PlayerPrefs` state by design and
-   synchronize to the settings API only while online; neither path silently serves an unrelated API-response cache.
+   the last Edge error code. The authoritative Karma total and ordered Edge-safe history are read from the private
+   AvatarDetail projection while offline. Provider identity and external links are deliberately not projected.
+   Device UI preferences apply immediately from local `PlayerPrefs`, but persistence is no longer an online-only
+   REST side channel. Edge-enabled builds queue the typed, avatar-scoped `oasis.avatar-preferences.v1` command in
+   the same SQLite outbox while offline. The hosted executor validates it, writes the deterministic `omniverse`
+   settings Holon with the command operation receipt, and publishes the confirmed private projection. A crash and
+   replay of the same operation therefore cannot create a second logical update. The remote-only profile uses the
+   single authenticated `/api/settings/omniverse-preferences` route backed by that same settings Holon.
 
-   This is not yet equivalent to complete offline support for every workflow used by Our World. Cached projections
-   currently cover avatar/profile, inventory, quest definitions, GeoNFT collections and the Karma total. Durable
-   command contracts exist for quest progress, inventory grants and GeoNFT collection, but every live Our World
-   mutation call still has to be mapped to one of those commands and exercised through disconnect, restart,
-   reconnect and duplicate-delivery tests. Clan/social reads, Karma history and global settings synchronization are
-   online-only today. Generic NFT and GeoHotSpot records are not yet first-class versioned Edge projections.
+   Cached projections cover avatar/profile, inventory, quest definitions, generic NFT/GeoNFT definitions and collections,
+   GeoHotSpot definitions, and the Karma total/history. The audited Our World gateway surface is release-gated: its
+   current gameplay mutations for quest progress and active selection, inventory create/update/use/remove/transfer,
+   GeoNFT collection, GeoHotSpot triggers and avatar preferences route through durable commands whenever Edge is
+   enabled. Disconnect, restart, reconnect and duplicate-delivery coverage protects those command families. Any new
+   public asynchronous gateway method fails release validation until it is explicitly classified. Clan/social live
+   fields remain online-only today and are shown as such rather than synthesized offline. Our World's cross-game
+   asset view merges the generic NFT and GeoNFT streams by stable id.
+   `OGEngineClient.GetGeoHotSpotAsync` and Our World's dedicated map/presentation loader read the first-class,
+   versioned GeoHotSpot projection in Edge mode. The REST endpoint is used only in the explicitly remote-only
+   profile; missing Edge data remains a visible error rather than triggering a hidden network fallback. This path is
+   compiled against the manifested package in the real Our World checkout, and an editor regression test protects
+   the OGEngineClient/durable-projection routing. GeoHotSpot trigger submission queues through OGEngineClient and
+   synchronizes to the same ONODE Core authority used by WEB5 REST. That authority owns authored-rule validation,
+   spawn limits/cooldowns, durable reservation/replay and protected reward effects; Edge clients do not speculate
+   those effects before the authoritative result synchronizes back.
    The permanent status strip is supplemented by state-driven Offline, reconnecting/synchronizing and synchronized
    toast notifications. Edge callbacks enqueue those notifications and Unity renders them on its main thread. The
+   offline initialization path reloads the unsettled-operation count before publishing status, so a process restart
+   cannot briefly display an empty tracker while durable commands remain in SQLite. Parameterized reconstruction
+   tests lock this invariant for quest progress, inventory grants, GeoNFT collection and GeoHotSpot triggers. The
    release gate also classifies every public asynchronous gateway method and verifies the required projection routes,
    so a newly added live network call cannot silently escape the documented offline audit.
-7. **Partially implemented:** HoloOASIS.Unity and its HoloNET/HoloOASIS dependency chain now compile for
-   `netstandard2.1`; device conductor lifecycle, IL2CPP/AOT validation and measured mobile profiling remain.
-8. **Partially implemented:** authenticated ONET framed transport, Full ONODE sync host and lightweight Edge ONODE
+7. **Implemented; physical qualification pending:** HoloOASIS.Unity is a real, compiled adapter rather than a commented placeholder.
+   HoloNET Client, HoloNET ORM, OASIS Common/DNA/Core, HoloOASIS and HoloOASIS.Unity have an actual
+   `netstandard2.1` build path, and the release gate builds that exact target. Server-only subscription middleware,
+   Mongo usage-ledger storage and telemetry registration are excluded from the Unity target rather than pulled into
+   a mobile player. `HoloOASISUnityHost` serializes conductor start/suspend/resume/stop with provider
+   activation/deactivation through the explicit `IHolochainConductorLifecycle` platform boundary; invalid or failed
+   conductor startup is surfaced as an `OASISResult` and cannot leave an active provider behind. Unit tests protect
+   startup failure and endpoint validation, and the Holo-enabled release gate runs them.
+
+   The portable dependency gate now inspects the generated `.deps.json`, not only direct project references, and
+   rejects transitive ASP.NET, MongoDB, SQL Server and OpenTelemetry dependencies. The portable Core excludes its
+   SQL Server bridge repository; `System.Reflection.Metadata` is declared directly instead of being received
+   accidentally through `Microsoft.Data.SqlClient`.
+
+   Android now has a production integration against Holochain's official
+   `org.holochain.androidserviceruntime:service` foreground-service runtime and a passing ARM64 Unity IL2CPP player
+   build. This was not just a Java binding task. The current official Holochain 0.7 runtime intentionally exposes its
+   admin operations through same-package Android IPC rather than an admin WebSocket. `setupApp` installs/enables the
+   hApp and returns an app-interface port plus an authentication token. The existing HoloNET/HoloOASIS activation
+   path historically required an admin WebSocket and did not send the Holochain 0.7 app-interface authentication
+   token after connecting. That boundary is now repaired: HoloNET serializes the Holochain 0.7 `authenticate` envelope, defers both its connected
+   event and automatic app-info request until authentication succeeds, clears authentication state on reconnect, and
+   has exact wire-contract tests. HoloOASIS accepts a service-provisioned authenticated app client with no admin
+   client, while its deactivation result now requires every client that actually exists to disconnect successfully.
+   `HoloOASISUnityHost` validates the app token and installed-app id and composes that client without enabling
+   HoloNET conductor process ownership; HoloNET obtains the agent key and DNA hash from authenticated `app_info`,
+   matching the official service's port/token result. The managed Android lifecycle and real IPC/foreground-service
+   adapter are implemented. The adapter starts the same-package service, installs/enables the packaged hApp,
+   receives only the authenticated app-interface port/token, refreshes that session on resume and never creates a
+   dummy admin WebSocket. Eight deterministic HoloOASIS.Unity tests cover host failure/cleanup, service-session
+   validation, repository binding and Android start/resume semantics. The Maven coordinate currently documented by the upstream service,
+   `service:0.0.19`, is not accepted for this profile: inspection of its published bytecode shows the pre-0.7
+   `signalUrl`/`iceUrls` network contract, whereas upstream 0.3.0 source uses Holochain 0.7 and the iroh
+   `bootstrapUrl`/`relayUrl` contract. The Holo-enabled release must therefore build a pinned upstream 0.3.0 source
+   commit (or consume a later Maven artifact whose bytecode proves the same 0.7 contract); it must never silently
+   resolve 0.0.19. `Scripts/build_holochain_android_runtime.ps1` now builds ARM64 service/client AARs from pinned
+   upstream commit `a7b5bb12a64d837694a6939701823d61803654bf`, compiles the Kotlin Unity bridge against those locally built
+   artifacts through an exclusive dependency rule, verifies the ARM64 conductor library and emits a hash manifest.
+   The pinned upstream 0.3.0 tree had two stale handwritten parcel boundaries (removed `signalUrl`/`iceUrls` fields
+   and missing `AwaitingRestore`/`Unrecoverable` app states); a reviewed compatibility patch is applied at build
+   time. A second reviewed patch targets Kotlin 1.6.21/coroutines 1.6.4 because Unity 2022.3 ships Android Gradle
+   Plugin 7.1.2, while newer Kotlin metadata causes Unity's D8/R8 stage to fail. The source validator requires the
+   exact patched-file hashes and rejects any additional dirty path. Both patch hashes, every patched-source hash and
+   the exact AAR/JAR runtime dependency closure are recorded in the manifest rather than silently substituting a
+   different source or binary.
+   The resulting ARM64 service AAR is 35.80 MiB compressed; its native ARM64 payload is approximately 108.5 MiB
+   before APK/AAB compression and split delivery. The client AAR is 0.79 MiB and the OASIS bridge AAR is 0.01 MiB.
+   These are artifact measurements, not memory/CPU/battery results. The `HoloEnabled` UPM profile now packages that
+   verified closure, the hApp, the managed JNI bridge and an Android API 27+/ARM64-only build guard. Unity 2022.3
+   compiles the exact package and produces a 56.46 MiB ARM64 IL2CPP APK containing `libil2cpp.so`,
+   `libholochain_conductor_runtime_ffi.so` and `libholochain_conductor_runtime_types_ffi.so`; validation rejects a
+   missing required library or any non-ARM64 native ABI. The UPM archive is 61.8 MiB. A loopback dummy admin endpoint
+   or unauthenticated connection is explicitly not acceptable.
+
+   The full HoloOASIS/Core assembly graph is intentionally not copied into the mobile package: doing so introduces
+   server dependencies and breaks the Edge footprint invariant. The service boundary is in OASIS Edge Runtime. The
+   new `HoloOASIS.Edge` assembly maps idempotent HyperDrive mutations to the exact hApp wire contract and its runtime
+   host atomically owns foreground-service setup, authenticated HoloNET connection and cleanup. HoloNET's lightweight
+   build is approximately 0.38 MiB rather than the former 53+ MiB embedded build, uses managed Ed25519, and matches a
+   Rust-generated Holochain 0.7 canonical MessagePack/SHA-512 signing vector. Package gates reject desktop conductor
+   executables, Sodium, the obsolete Windows serialization wrapper and framework-facade collisions. Nine Holo Edge
+   tests cover mapping, rejection, cleanup and lifecycle invariants; all 70 HoloNET tests pass.
+
+   The separately durable SQLite-to-Holo projection queue is implemented. Each non-command local mutation inserts
+   one row per configured local target in the same SQLite transaction as the entity and hosted outbox write. Hosted
+   acknowledgement cannot remove local-provider work. The local coordinator drains one target sequentially by device
+   sequence, records explicit failure metadata without an inner retry loop, and acknowledges only after the Holo hApp
+   accepts the idempotent operation. Restart, independent acknowledgement, command exclusion, failure ordering and
+   late target attachment are covered by SQLite and Edge Runtime tests. OGEngineClient supplies the Holo target before
+   store creation, while the Unity host starts Holo before OGEngineClient, suspends Edge before Holo, resumes Holo
+   before Edge, rolls back failed two-part transitions, and disposes both through one lifecycle owner.
+
+   Physical installation/lifecycle instrumentation and two-device convergence tests remain external release gates.
+
+   iOS cannot be claimed from the Android result: its precompiled/interpreted WASM and App Store execution
+   constraints require a separately qualified native runtime. Measured Android memory/CPU/storage/battery profiling,
+   hardware suspend/resume/process-death testing and two-device offline gossip/reconnect tests remain release gates
+   before HoloOASIS becomes the mobile default.
+8. **Implemented; external network/mobile qualification pending:** authenticated ONET framed transport, Full ONODE sync host and lightweight Edge ONODE
    identity-binding/synchronization lifecycle are composed over the same shared protocol. Edge and Full nodes now
    sign canonical, expiring capability advertisements; the registry verifies source identity, signature, lifetime,
    stale replay and same-time equivocation. Full-node provider capabilities are derived only from registered,
@@ -760,9 +938,16 @@ This prevents ONET from becoming a second synchronization engine.
    reconciles each node to its newest signed lease, rejects same-time equivocation, and surfaces partial-quorum
    failures as warnings. Full ONODE registries also pull signed leases from DNA-configured peers on a bounded interval,
    enforce a response quorum, retain newer local leases when an older peer replays state, reject equivocation, and turn
-   transport exceptions into structured reconciliation errors. Multi-partition convergence is therefore implemented;
-   adversarial network-partition soak testing and mobile transport/resource profiling remain.
-9. **Partially implemented:** deterministic restart, rollback, replay, duplicate and conflict tests exist. Edge
+   transport exceptions into structured reconciliation errors. DNA loading and live operator updates both reject the
+   local node ID in the peer registry set, so a quorum that counts only peer responses cannot be configured against
+   an impossible topology. A deterministic repeated-partition test proves partial-quorum operation, recovery to a
+   newer signed lease, post-recovery equivocation rejection, and preservation of the last valid lease. Multi-partition
+   convergence and adversarial state transitions are therefore covered. A mandatory deterministic 500-cycle soak
+   rotates partitions across five registries, repeatedly crosses the quorum boundary, renews leases throughout the
+   run, proves the newest valid lease survives every failure and rejects post-soak equivocation without corrupting
+   retained state. Real-network long-duration soak and mobile transport/resource profiling remain external release
+   gates because an in-memory test cannot establish radio, operating-system or battery behaviour.
+9. **Implemented; external endurance qualification pending:** deterministic restart, rollback, replay, duplicate and conflict tests exist. Edge
    SQLite exposes seven stable diagnostic transaction boundaries, and the release suite injects failure at each
    boundary to prove rollback of entity/outbox, replicated entity/inbox, acknowledgement, inbound change and
    checkpoint state after reopening the database. The hosted Mongo suite injects failure at six stable transaction
@@ -773,6 +958,15 @@ This prevents ONET from becoming a second synchronization engine.
    Persisted Edge upgrade tests also construct the pre-version-protocol SQLite schema directly: completed rows are
    migrated using their durable result version, while pending rows fail closed and roll back the schema alteration
    because an immutable client version cannot be reconstructed safely.
+   The release validator defines every dependency assertion before its first invocation. For the `HoloEnabled`
+   profile, the release inspector now requires and parses the HoloNET authentication, HoloOASIS Unity lifecycle and
+   Holo Edge integration TRX reports (70, 8 and 9 tests respectively); merely generating those reports is no longer
+   sufficient. Its minimum baselines also track the current DNA, Core HyperDrive, Edge SQLite and Edge Runtime suites
+   (12, 293, 31 and 65),
+   preventing removal of the new durability and partition tests from producing a misleading green release.
+   These deterministic and real-database gates establish the transactional invariants required by the release.
+   Long-duration real-network soak, physical-device suspend/resume/process-death runs and measured mobile resource
+   profiles remain external qualification evidence; they do not represent missing transaction or recovery code.
 
 ## HyperDrive v2 completion and migration gate
 
@@ -801,9 +995,16 @@ uses a non-null provider and proves both registries retain their independent ide
 listing and deletion paths use a Holon manager bound to the same injected runtime instead of
 `HolonManager.Instance`. Its isolated-runtime upload test proves the selected provider receives the write while the
 process singleton remains unchanged.
+`HolonManager` search now follows that same boundary. All typed and untyped synchronous/asynchronous search overloads
+use a `SearchManager` composed from the Holon manager's DNA and provider registry, forward the requested provider and
+child/depth/error/version options, and preserve structured provider failures. Regression tests prove an isolated
+runtime receives the search without consulting the process singleton and that an unavailable provider cannot be
+reported as an empty successful result.
 `ClanManager` now follows the same composition rule for every clan load, list, create, update, delete and inventory
 operation. Its Holon and Avatar managers share the supplied runtime registry, and an isolated-runtime load test
-proves clan reads cannot escape to the process singleton.
+proves clan reads cannot escape to the process singleton. Avatar inventory-to-clan operations now reuse that same
+runtime-scoped ClanManager (and the originating AvatarManager) instead of `ClanManager.Instance`; an unavailable
+injected clan provider remains an error and cannot be replaced by data from the Full Runtime singleton.
 `MessagingManager` is also runtime-scoped. Every message is one canonical provider-backed holon indexed for its
 sender and recipient; inboxes, sent views and conversations derive from that same entity rather than two
 independently committed avatar aggregates. Read receipts update the canonical record, while notifications and
@@ -819,10 +1020,12 @@ bridge execution uses an immutable provider map built from that same registry; i
 `ProviderManager.Instance` after ordinary bridge discovery completed. Unknown provider names and providers absent
 from the runtime fail explicitly before any transfer begins. A regression test proves the injected NFT source is
 the provider invoked by the operation.
-`KeyManager` now composes its Avatar manager from that same runtime instead of exposing the global
-`AvatarManager.Instance`. Its per-avatar key and usage collections are initialized at construction, removing the
-null-state path in active key statistics. A synchronous isolated-provider test proves wallet/public-key lookup
-uses only the supplied runtime and never invokes an asynchronous or singleton provider path.
+`KeyManager` now composes its Avatar and Wallet managers from that same runtime instead of exposing the global
+`AvatarManager.Instance` or `WalletManager.Instance`. AvatarManager likewise supplies itself to a runtime-scoped
+WalletManager, breaking the former singleton escape without creating a recursive manager graph. Its per-avatar key
+and usage collections are initialized at construction, removing the null-state path in active key statistics.
+Synchronous isolated-provider tests prove public- and private-key wallet lookup use only the supplied runtime and
+never invoke an asynchronous or process-singleton provider path.
 `StatsManager` now composes its Avatar and Holon managers from the supplied runtime and subscribes to cache
 invalidation on that runtime's Holon manager. Avatar, settings and aggregate system-stat reads therefore cannot
 cross into the process singleton. Configuration and event-subscription exceptions are no longer silently ignored;
@@ -864,7 +1067,26 @@ the legacy overload walks configured failover providers and restores its origina
 the configured default without global mutation. The synchronous wallet timeout now uses its configured seconds
 value exactly once, and non-local wallet saves persist public wallet data on the avatar instead of silently doing
 nothing. Focused tests prove explicit/default resolution and v2 SQLite-style wallet load/save leave the current
-provider unchanged.
+provider unchanged. Wallet key import/generation now resolves a lazy KeyManager bound to the same Avatar, Wallet and
+Provider managers, breaking the former Wallet-to-Key singleton path without a recursive constructor graph. Cross-chain
+wallet operations likewise use a lazy BridgeManager built from the runtime's provider registry rather than
+`BridgeManager.Instance`; an isolated wallet-import test proves provider failures originate from the injected runtime.
+The username/email wallet entry points now preserve asynchronous execution through both avatar identity resolution
+and the local wallet-provider call; they no longer enter the synchronous ID overload after an awaited lookup. The
+asynchronous save timeout path also awaits the completed provider task instead of consuming `Task.Result`. Focused
+tests cover username and email loads and saves and forbid the corresponding synchronous local-provider methods.
+The Free subscription provider policy now classifies the two zero-cost Edge stores, `SQLLiteDBOASIS` and
+`LocalFileOASIS`, as permitted providers. This closes a real automatic-routing failure where an otherwise healthy
+offline Edge runtime rejected its current local store before any provider call; both providers have direct routing
+coverage.
+ProviderManager load-balancing strategy and performance weights now come from that manager's injected OASISDNA rather
+than the process-global HyperDrive configuration singleton. A deterministic test proves `Auto` honors the isolated
+runtime's configured round-robin strategy.
+Performance observations are runtime-scoped as well: every `ProviderManager` owns its `PerformanceMonitor`, and its
+HyperDrive router, analytics, predictive failover and load-balancing components consume that same monitor. Full ONODE
+administration, GraphQL, gRPC and ONET capability advertisement resolve the monitor from the owning provider manager
+instead of the process-global singleton. A regression test records metrics in one isolated runtime and proves they do
+not affect provider metrics in another runtime.
 AvatarManager's provider-specific AvatarDetail save and Avatar delete-by-id/username/email helpers now use the
 same non-mutating resolution path in v2. Their provider calls treat a null `OASISResult` as an explicit warning
 instead of dereferencing it, and tests prove both requested-provider routing and null-result handling without
@@ -965,6 +1187,65 @@ Search and provider-key Holon delete have migrated as well. Other manager famili
 compatibility tests. V2 therefore remains an
 unfinished opt-in implementation rather than a tested replacement for legacy HyperDrive.
 
+The Core regression suite passes 233/233 after the wallet async-boundary and local Free-plan corrections. This is
+host-side coverage of the manager and routing invariants; it does not replace the physical Android/iOS qualification
+matrix described below.
+
+Every active `ProviderManager` load-balancing decision now publishes a structured
+`ProviderSelectionDiagnostic`. It records the requested and effective strategies, selected provider, deterministic
+candidate ordering, and the observed latency, reliability, connection, geographic-latency and cost inputs without
+inventing observations for providers that have no metrics. The hosted HyperDrive status response exposes the most
+recent decision from that same runtime instance. Focused tests protect both decision/diagnostic agreement and the
+explicit reason returned when load balancing is disabled.
+
+The `SqliteMvp` release gate incorporating this diagnostic contract passes 454/454 tests, including Core 222/222,
+the retained real MongoDB replica-set suite 37/37 and abrupt-primary recovery 1/1. Its acceptance report is
+`artifacts/current-goal-provider-selection-release/acceptance-report.json`. The Edge package is byte-identical to
+the preceding inventory-statistics release because these changes belong to Full Core and hosted ONODE, not the
+lightweight Unity dependency graph; its SHA-256 remains
+`807F085B51230EFE07DC2D4F4C5BF79AE69B5AE3FD115AEDFE83016F15CC74A2`.
+
+Automatic and explicit v2 failover now emit `HyperDriveFailoverDiagnostic` evidence from the execution path itself.
+The record preserves the primary failure, every ordered provider attempt, error codes/messages, quota blocking,
+exhaustion and the provider that recovered the request. Explicit failover candidates are attempted exactly as
+configured and do not acquire a second predictive override inside an already-active failover sequence. The same
+diagnostic is attached as JSON to the returned `OASISResult.MetaData`, retained on the injected `ProviderManager`,
+and exposed by hosted ONODE's HyperDrive status response. This makes request-level evidence available even though
+managers construct a short-lived `OASISHyperDrive` router. Focused tests cover recovery and both automatic and
+explicit quota-denial paths; the complete Core suite passes 223/223.
+
+The aggregate `SqliteMvp` release gate containing both provider-selection and failover diagnostics passes 455/455
+tests. Its machine-readable evidence is
+`artifacts/current-goal-failover-diagnostics-release/acceptance-report.json`. The Unity package remains
+byte-identical because the diagnostic implementation is confined to Full Core and hosted ONODE; its SHA-256 is
+`807F085B51230EFE07DC2D4F4C5BF79AE69B5AE3FD115AEDFE83016F15CC74A2`.
+
+V2 replication now publishes the same level of structured evidence. `HyperDriveReplicationDiagnostic` records the
+primary provider, explicit versus automatic execution, configured attempt order, every provider result and error,
+success/failure totals, quota denial, and whether the mutation was deliberately handed to the durable hosted
+pipeline. The diagnostic is retained by the injected runtime, attached to `OASISResult.MetaData`, and exposed by
+hosted ONODE status. A disabled replication policy emits no diagnostic, preventing “disabled” from being confused
+with an empty or successful replication run. Focused coverage includes ordered success, partial failure without
+invalidating the committed primary mutation, explicit quota denial, disabled policy and durable-hosted deferral;
+the complete Core suite passes 224/224.
+
+The corresponding aggregate `SqliteMvp` gate passes 456/456 tests. Evidence is retained at
+`artifacts/current-goal-replication-diagnostics-release/acceptance-report.json`; the package SHA-256 remains
+`807F085B51230EFE07DC2D4F4C5BF79AE69B5AE3FD115AEDFE83016F15CC74A2` because the Unity dependency graph did not
+change.
+
+Edge conflict observability is also structured. `EdgeRuntimeStatus` now reports the durable unresolved-conflict
+count and the latest conflict's operation/entity identities, local/server versions, code, message and timestamp.
+Payload JSON is deliberately excluded from this status surface. Synchronization updates the status from the same
+SQLite conflict transaction it uses to decide whether work remains pending; direct conflict reads and successful
+resolution refresh it as well. The existing divergence/manual-merge acceptance test now proves the status moves
+from one identified conflict to zero when the durable resolution commits. The complete Edge Runtime suite remains
+green at 59/59, and the Edge Native Integrated Endpoint compiles with the expanded status contract.
+The aggregate `SqliteMvp` release gate passes 456/456 with Unity Editor, Android-player and real Our World
+integration compilation. Evidence is
+`artifacts/current-goal-conflict-diagnostics-release/acceptance-report.json`; the expanded Edge package SHA-256 is
+`B4A8F94316CF79986480D5CBEF05896E08B653D666A6E0A9E07462F6B097D3C7`.
+
 Use `Scripts/set_hyperdrive_mode.ps1 -Mode OASISHyperDrive2 -Path <OASIS_DNA.json>` to opt a deployment into
 v2. The command validates the JSON, requires exactly one mode property, preserves the rest of the file text,
 creates a mode-labelled backup by default, and verifies the value after writing. Use `-WhatIf` for a dry run.
@@ -1011,6 +1292,11 @@ No test may depend on random provider choice, wall-clock sleeps or a live extern
 
 ## Automated release gate
 
+The gate requires dedicated `hosted-command-executor.trx` and `web5-geohotspot-authority.trx` evidence in addition
+to the general Edge and hosted-sync suites. This prevents a package from passing merely because trigger evidence can
+be queued locally: malformed evidence must fail before provider access, and WEB5 REST eligibility/trigger handling
+must remain bound to the same durable ONODE Core authority used by the hosted command worker.
+
 Run `Scripts/validate_edge_runtime_release.ps1` from the repository root. It runs the deterministic Core,
 DNA-mode validation, Edge SQLite, Edge Runtime/Edge ONET and ONET protocol suites serially; builds MongoDBOASIS and the Full ONODE WebAPI;
 builds the `netstandard2.1` HoloNET/HoloOASIS Unity dependency chain; rejects ASP.NET/MongoDB dependencies in
@@ -1023,12 +1309,47 @@ Unity acceptance method also proves an OS-protected offline-session save/load/de
 as CI artifacts. The gate also emits `SHA256SUMS.txt`, an SPDX 2.3 dependency SBOM, an exported-public-API
 comparison between the Full and Edge Native Endpoint assemblies, and a commit/configuration acceptance report
 containing both endpoint assembly hashes plus the Unity archive, build-manifest and Unity compilation-log hashes.
-Eight named TRX reports (DNA, Core HyperDrive, Edge store, Edge runtime,
-ONET, hosted offline-session grant security, hosted Mongo transaction rollback/retry, and abrupt Mongo primary loss) are parsed by the inspector;
+The same gate clean-publishes both OGEngineClient NativeAOT deployment profiles on Windows, compiles and runs the
+C++ ABI smoke probe against each, requires the generated export contract, rejects unsafe trim/dynamic-code call-site
+warnings, and packages `Edge` and `RemoteOnly` archives. The inspector verifies each archived DLL against its native
+report and enforces that SQLite exists only in the Edge profile. These archives, reports and hashes are part of the
+acceptance report and `SHA256SUMS.txt`; a managed-only green build cannot certify a native-game release.
+Nineteen SQLite-profile and twenty-two Holo-profile TRX reports (DNA, Core HyperDrive, Edge store, Edge runtime, ONET synchronization, ONET peer binding,
+HyperDrive persistence, HyperDrive AI optimization, HyperDrive predictive failover, hosted sync API, hosted offline-session grant security,
+quest/reward idempotency, HyperDrive migration, hosted command execution, WEB5 GeoHotSpot authority,
+hosted Mongo transaction rollback/retry, abrupt Mongo primary loss, HoloNET authentication,
+HoloOASIS Unity and HoloOASIS Edge) are parsed by the inspector for the Holo-enabled profile; the three Holo-specific
+reports are omitted from the SQLite-only profile;
 the Mongo evidence is produced by a separate Linux replica-set job and copied into the release evidence rather than
 substituting a mocked store. Missing, empty, failed, errored, timed-out or aborted reports fail the gate,
 and their counts and hashes are embedded in the acceptance report and checksum set. Per-suite minimum executed-test
 baselines prevent a filter or accidental test removal from producing a misleading green release. Passing this gate is necessary but does not replace device profiling, extended replica-set election/partition soak tests, IL2CPP/AOT tests, or the full compatibility matrix.
+
+The CI packaging job verifies that the OASIS checkout is clean before it downloads cross-job evidence or starts
+the release build. On trusted pushes and manual runs, GitHub OIDC and Sigstore then sign one SLSA provenance
+attestation covering every file produced in `artifacts/edge-release-validation`. The serialized Sigstore bundle is
+preserved as `github-slsa-provenance.sigstore.json` in the uploaded evidence artifact, while GitHub stores the
+corresponding attestation against the repository. Verify a downloaded release subject with
+`gh attestation verify <file> --repo NextGenSoftwareUK/OASIS`. Pull-request runs deliberately cannot mint release
+provenance: they execute the same validation gate, but only a trusted push or explicitly dispatched workflow can
+produce the signed attestation.
+
+Physical qualification uses the separate, strict
+`Scripts/our-world-device-acceptance-evidence.template.json` contract. The validator requires two Android devices,
+one iOS device, 13 named lifecycle/convergence cases, hashes every raw evidence file, and checks recorded frame,
+p95 CPU, memory, database-growth, reconnect, synchronization-drain, battery and network measurements against the explicit budgets supplied for the
+run. Supplying `-PhysicalDeviceEvidence` packages those records into the release evidence; adding
+`-RequirePhysicalDeviceEvidence` makes their absence fatal. This provides a reproducible gate without treating an
+emulator, an Android build, or an unverified `PASS` label as physical-device certification.
+The aggregate release gate also runs the validator's deterministic positive, tamper, budget and completeness
+contract tests before building release artifacts.
+
+The iOS/tvOS secure-session bridge preserves the same durable-session invariant as the other platforms. Keychain
+saves use `SecItemUpdate`, adding only when the credential does not yet exist; they never delete an acknowledged
+grant before replacing it. Native loads return an OSStatus separately from the allocated credential value, so Unity
+treats only `errSecItemNotFound` as an empty session and reports every other Keychain failure through
+`OASISResult`. Package validation locks both sides of that native/managed ABI and rejects the former destructive-save
+or error-as-not-found contracts.
 
 The gate also requires the sibling `OASIS-Holochain-hApp` repository and verifies that the packaged `oasis.happ`
 and its build manifest cryptographically match the current Rust/TypeScript hApp source tree. Rebuild and run the
@@ -1051,3 +1372,565 @@ The public-DHT boundary is explicit: passwords, JWTs, refresh/reset tokens and v
 The release evidence is layered: Rust invariant tests; Holochain 0.7 Sweettest tests that load the packed DNA into a real conductor; and builds of both HoloOASIS and HoloOASIS.Unity against HoloNET. Tryorama 0.19 targets Holochain 0.6 and is not a valid 0.7 release gate.
 
 Do not invoke `nix develop path:.` from a tree containing `target` or `node_modules`: a path flake snapshots those directories into `/nix/store`. Automation must evaluate a clean Git source or a flake-only environment and then execute Cargo in the working tree.
+
+## Our World durable read ownership
+
+When Edge is enabled, Our World renders inventory from the private avatar-detail projection, quests from Quest
+projections, and playable GeoNFTs from the synchronized GeoNFT entity set. `AvatarDetail.Inventory` is the canonical
+avatar-scoped inventory view; it includes portable category names and the display/lifecycle fields required by a
+Unity client. GeoNFT synchronization preserves both WEB4 playable records and WEB5 provenance wrappers, which the
+client merges locally by the wrapped WEB4 id. These reads fail visibly if their projection is missing or malformed.
+They do not make an opportunistic REST request, because that would make behavior depend on connectivity and conceal
+an incomplete synchronization snapshot. REST remains a separate, explicitly selected remote-only profile.
+
+GeoNFT collection availability is a separate private projection keyed by the avatar id. Before a normal hosted
+pull, the authoritative Mongo provider evaluates every active WEB4 GeoNFT against the complete avatar collection
+history using the same `GeoNFTCollectionPolicy` as the REST API. The content-addressed projection is emitted only
+when status changes and is visible only to that avatar. Edge may advance a cooldown after its authoritative UTC
+expiry, because `NextCollectAtUtc` is populated only when cooldown is the sole blocker; it never guesses away
+global/player limits or exclusive ownership. A missing avatar or malformed history fails synchronization visibly.
+The projection is server-authoritative, so a direct Edge mutation is rejected. When the final active GeoNFT is
+removed, the provider atomically emits a private delete tombstone rather than leaving stale eligibility on the
+device. The actual collection command is still revalidated transactionally by the hosted authority after reconnect.
+
+The 2026-10-03 GeoNFT availability release evidence passes the complete `SqliteMvp` aggregate gate at 448/448:
+Core 217/217, hosted Mongo replica-set transactions 36/36, abrupt-primary recovery 1/1, and all existing DNA, Edge
+SQLite, Edge Runtime, ONET, hosted API, migration, security, AI, failover and OGEngineClient suites. Unity Editor,
+Android-player and Our World integration compilation also pass. The authoritative report is
+`artifacts/current-goal-geonft-availability-release/acceptance-report.json`.
+
+Inventory use and removal are stable-ID avatar-gameplay commands, not direct API calls. A transfer is also an
+avatar-gameplay command, but its hosted application is deliberately provider-transactional: Mongo removes the whole
+stable-identity stack from the sender, inserts it for the recipient, advances both avatar versions and writes the
+same immutable operation receipt to both avatar details in one transaction. This prevents the legacy two-save loss
+window and makes reconnect replay exactly-once. The local pending projection removes the sender's item immediately;
+it never invents the recipient's private projection.
+
+Inventory updates are full-state, stable-ID avatar-gameplay commands. The Edge pending view applies the same
+validation as the hosted provider, and Mongo persists the updated supported item fields and immutable receipt in one
+transaction. This prevents an online-only PUT from bypassing the durable journal and makes duplicate delivery a
+no-op. Inventory creation and higher-level trading semantics remain separate authority contracts rather than being
+silently approximated by update or transfer.
+
+## Current aggregate release evidence (2026-10-03)
+
+The current `SqliteMvp` release gate passes 488/488 tests across 18 suites with zero failures. Its authoritative report
+is `artifacts/current-goal-clan-state-sqlite-release/acceptance-report.json` (SHA-256
+`DEF4E925FED4720B97C6E9B77FF22DBCD1CA7F27C97896483A1589F93CC64D69`). The corresponding `HoloEnabled` gate
+passes 581/581 across 21 suites with zero failures; its report is
+`artifacts/current-goal-clan-state-holo-release/acceptance-report.json` (SHA-256
+`180D9233885D1F533330290CA0A4AED2DF72FB5EC5E2FFE655E3E56E4AEE4196`). Both reports include the 250-test Core
+suite, durable hosted Mongo synchronization and abrupt-primary recovery, the two OGEngine NativeAOT profiles with
+113 required exports and compiled C++ smoke tests, deterministic Unity package construction, Unity editor and
+Android-player compilation, and real Our World package integration compilation. The Holo-enabled report additionally
+binds the hApp manifest to source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`.
+
+These host-side gates do not claim physical-device certification. Two Android devices, one iOS device and the
+required lifecycle, convergence and resource-budget measurements remain governed by the strict physical acceptance
+evidence contract described above.
+
+The next manager-migration increment preserves an explicitly supplied provider through the child-manager
+composition used by Files, Settings and Messaging. In a multi-provider v2 runtime those operations can no longer
+silently re-resolve `ProviderType.Default` to a different provider. Files also propagates provider list failures
+instead of presenting an outage as an empty file collection, and metadata updates use detached Holon snapshots so
+a rejected save cannot mutate a provider-owned cached object by alias. Bridge audit composition now preserves the
+same explicit provider and fails construction visibly instead of retaining a partially initialized manager. Clan
+writes now carry their explicit owner audit identity instead of consulting the process-global logged-in avatar, and
+membership changes use detached Clan snapshots so a rejected save cannot leak through a provider object alias. The
+KeyManager's internally composed AvatarManager also retains the explicitly selected provider for default key
+lookups. WalletManager now preserves that same provider scope for its internally composed AvatarManager, preventing
+default identity lookup from escaping to the runtime's general provider selection before a wallet operation. The
+complete Core suite passes 242/242. That exact suite is embedded in both current aggregate acceptance reports above,
+so the provider-scope invariants are covered by the packaged SQLite and Holo release provenance.
+
+Clan inventory transfer now clones the loaded AvatarDetail collection before removing items and rejects a requested
+quantity unless every item is present before persistence. Rejected sender writes therefore cannot mutate a
+provider-owned object alias, and partial quantities cannot be committed accidentally. Two focused regressions pass
+and the complete Core suite passes 244/244 at
+`artifacts/current-goal-clan-inventory-invariants/core-clan-inventory-full.trx`. This legacy manager path is retained
+for compatibility, but is not used by the offline-capable OGEngine contract. OGEngineClient now emits the canonical
+`TransferInventoryToClan` command with client-stable operation and destination-item identities. Edge validates and
+journals it locally; hosted Mongo applies the AvatarDetail decrement, canonical `OASIS.Clan.State.v1` treasury
+addition and both receipts in one transaction. Replay is idempotent, and asymmetric receipts fail visibly. The new
+`POST api/avatar/inventory/send-to-clan-atomic` endpoint requires both identities; the legacy endpoint remains
+separate so it cannot pretend a server-generated ID makes an old client's retry idempotent.
+
+Encrypted Holon metadata loads now fail closed in every synchronous/asynchronous ID and provider-key path for both
+legacy routing and HyperDrive v2. Decryption returns a structured result rather than swallowing every exception;
+invalid ciphertext or missing configuration clears the returned entity and exposes a specific error code, while
+valid ciphertext still restores its metadata. The focused four-case legacy/v2 matrix passes, and the complete Core
+suite passes 248/248 at `artifacts/current-goal-holon-decryption-failclosed/core-current-full.trx`. The current SQLite
+and Holo aggregate reports above include this exact regression matrix and package it with the complete release gates.
+
+Clan persistence no longer assumes that a storage provider retains runtime-derived CLR fields. The manager encodes
+owner identity, membership and the complete shared inventory into the versioned `OASIS.Clan.State.v1` metadata
+contract before the base Holon crosses the provider boundary, then hydrates that state on every Clan load path.
+Missing or malformed state on a provider-returned base Holon is a structured `CLAN_STATE_INVALID` failure, not an
+empty treasury or membership list. The base-Holon round-trip and fail-closed cases are included in the seven-test
+focused result at `artifacts/current-goal-clan-portable-persistence/core-clan-persistence.trx`; the complete Core suite
+passes 250/250 at `artifacts/current-goal-clan-portable-persistence/core-current-full.trx`. Both cases are included in
+the current SQLite and Holo aggregate package reports above.
+
+Atomic Clan transfer evidence is retained in
+`artifacts/current-goal-clan-atomic-mongo/hosted-mongo-sync.trx` (38/38 real replica-set integration),
+`artifacts/current-goal-clan-atomic-mongo/hosted-mongo-process-kill.trx`, and the focused client/API reports under
+`artifacts/current-goal-clan-atomic-client/`. The OGEngine lifecycle case proves an offline command is reflected in
+the pending inventory, survives client restart, synchronizes the same source/clan/destination identities and drains
+without applying the quantity twice. The aggregate release evidence immediately below incorporates and supersedes
+these focused reports for package-promotion provenance.
+
+## Atomic gameplay receipt hardening and current release proof (2026-10-04)
+
+Hosted Mongo now applies the same symmetric receipt invariant to avatar-to-avatar inventory transfer that the Clan
+path uses: both authoritative aggregates must contain the same operation identity and canonical payload, or neither
+may contain it. Asymmetric state is a structured rejection and is never heuristically repaired. Avatar receipt
+metadata is parsed at the provider boundary; malformed or null ledgers return
+`AVATAR_GAMEPLAY_RECEIPT_INVALID` through `OASISResult<HyperDriveAvatarDetailProjection>` rather than throwing past
+the hosted executor. Transaction coverage also proves that a colliding Clan destination-item identity commits
+neither the source decrement nor a receipt. The current real three-member MongoDB 7 suite passes 41/41, plus the
+separately coordinated abrupt-primary termination/election case, under
+`artifacts/current-goal-clan-atomic-mongo-v2/`.
+
+The OGEngine offline GeoHotSpot read boundary now requests opaque persisted JSON as `JsonElement`, which is directly
+supported by the generated AOT-safe Edge serializer. Newtonsoft `JObject` construction remains inside OGEngine after
+that boundary and is not part of the Unity-facing Edge serialization contract. The complete managed OGEngine suite
+passes 68/68 runnable tests at `artifacts/current-goal-full-regression/ogengine-client-full.trx`; the Edge-enabled and
+remote-only builds both compile from the same source tree.
+
+Fresh aggregate evidence supersedes the earlier package reports for this increment:
+
+- `SqliteMvp`: 495/495 across 18 suites at
+  `artifacts/current-goal-clan-atomic-v2-sqlite-release/acceptance-report.json`, report SHA-256
+  `73B4E9948692F98E4DD048B56F0E8755B14731AC9DE71B12BE22572E6FCA979A`, deterministic Unity package SHA-256
+  `6B146D26D513C6EAB1F15D23ECA6C5C082BD1AFB50333A216DEB833D5A1FB898`.
+- `HoloEnabled`: 588/588 across 21 suites at
+  `artifacts/current-goal-clan-atomic-v2-holo-release/acceptance-report.json`, report SHA-256
+  `DCBBD116F6C809AEEF08EB9321DDA1B2083041F9100DD80FCBFCC368107B774A`, deterministic Unity package SHA-256
+  `27EE6D0F5535F14ECD9ED907B49E3588B096830C6A28F8A341904A29F45DDA68`, with hApp provenance bound to source
+  commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`.
+
+Both aggregates retain Mongo transaction/process-loss evidence, API compatibility, SBOM, hashes, Unity Editor and
+Android-player compilation, real Our World integration compilation, and 113-export NativeAOT Edge and RemoteOnly
+smoke-tested artifacts. They remain host-side release proof; completed physical Android/iOS acceptance evidence is
+still required before claiming device certification.
+
+## Durable hosted-authoritative Karma commands (2026-10-04)
+
+Karma add/deduct now uses the existing `oasis.avatar-gameplay.v1` command stream. Its portable payload carries the
+stable Karma/source enum names, claimed amount, audit description and UTC occurrence time without introducing a
+dependency from OGEngineClient or the Unity package to the full Core runtime. The local deterministic reducer gives
+the player an immediate pending total and Edge-safe history entry. Hosted Core remains authoritative: Mongo parses
+the named enums and recomputes the amount through the portable `HyperDriveKarmaPolicy`. An exhaustive Core parity
+test locks every positive and negative policy entry to `KarmaManager`'s existing public weighting. A mismatch, undefined
+type, insufficient balance, malformed receipt or reused operation identity is a structured rejection rather than a
+fallback write.
+
+On acceptance, total, Akashic history and the canonical payload receipt are persisted in the same Mongo transaction;
+replay returns the already committed projection without adding Karma twice. OGEngineClient exposes the same managed
+API for Edge-enabled and remote-only profiles, routes Edge-enabled calls through the journal, updates its HUD cache,
+and uses the existing authenticated WEB4 Karma endpoint when offline support is disabled. The real replica-set suite
+passes 42/42 plus abrupt-primary termination evidence under `artifacts/current-goal-karma-mongo-v2/`; the focused
+portable reducer and OGEngine lifecycle suites pass 12/12 and 7/7 respectively. The post-change aggregate evidence
+passes 508/508 for `SqliteMvp` and 601/601 for `HoloEnabled`, at
+`artifacts/current-goal-karma-v2-sqlite-release/acceptance-report.json` and
+`artifacts/current-goal-karma-v2-holo-release/acceptance-report.json`. Their report SHA-256 values are respectively
+`DC9E102F83B12111CBB06CCE453F3ED941B57C83DDB6A123A8A342F21DD730D9` and
+`8B89687F4255939D9CD14F39EC18B854C57D70703B1F463AE9D86B6A1F516C48`; both include NativeAOT Edge/RemoteOnly,
+reproducible Unity packaging, Editor and Android compilation, real Our World integration and retained Mongo
+transaction/process-loss evidence.
+
+Karma remains non-transferable reputation. The old `KarmaManager.TransferKarmaAsync` implementation performed two
+independent mutations followed by a compensating write, which was neither atomic nor consistent with WEB4's explicit
+product rule. It now returns `KARMA_TRANSFER_NOT_SUPPORTED`, and the misleading MCP transfer tool is no longer
+advertised. Authorized, typed add/deduct operations are the only supported Karma balance mutations; governance of
+future weighting versions is a separate hosted-authority concern.
+
+The hosted weighting surface no longer reports success for an operation it did not perform. Reads expose the
+authoritative Core integer weight. Vote/set REST actions return
+`KARMA_WEIGHTING_GOVERNANCE_NOT_AVAILABLE`, and the placeholder GraphQL mutations plus MCP vote/set tools are not
+published until durable versioned governance is implemented. The aggregate gate requires the dedicated 2/2
+`karma-weighting-policy.trx` report. Current SQLite evidence passes 511/511 across 19 suites at
+`artifacts/current-goal-karma-policy-sqlite-release/acceptance-report.json` (report SHA-256
+`BB8FE0CD3FB485B163D6999591374805B9F4DCEF702892DC4EF7F3C57B88CBDB`). Earlier Holo test/package stages passed but
+their aggregate reports were rejected after the shared source commit changed underneath them; the later
+stable-source Holo report below supersedes those partial runs.
+
+## Immutable Karma policy identity
+
+Durable Karma commands identify the calculation contract independently from the enclosing
+`oasis.avatar-gameplay.v1` stream. The current and only accepted value is `oasis.karma-policy.v1`. Both the portable
+Edge reducer and the hosted transactional provider validate it before any state mutation or receipt write. This is
+an invariant, not a retry or compatibility fallback: an unrecognized version is rejected and remains visible as a
+synchronization error until software that implements that policy is deployed.
+
+Commands created before the policy field was introduced map deterministically to version one through the command
+model's default initializer. New OGEngineClient commands always serialize the version explicitly. Consequently,
+offline commands retain the exact weighting semantics under which they were accepted, while old v3 journal entries
+remain readable without maintaining a second reducer path. Core serialization/reducer evidence passes 262/262 at
+`artifacts/current-goal-karma-policy-version-core/core-hyperdrive-policy-version.trx`; real Mongo atomicity evidence
+passes 42/42 plus abrupt-primary recovery under `artifacts/current-goal-karma-policy-version-mongo/`.
+
+The full `SqliteMvp` gate passes 514/514 across 19 suites at
+`artifacts/current-goal-karma-policy-version-sqlite-release-stable/acceptance-report.json` (SHA-256
+`2706767B3365D431112D737D64F25B36E1B6F038FB991BD20B2822DEA3951CE4`). NativeAOT staging is deliberately kept
+under a short, deterministic, evidence-directory-keyed path: Windows MSBuild otherwise reaches the legacy
+260-character path ceiling for the Native Integrated Endpoint intermediate assembly. Durable reports and archives
+are copied back into the requested release evidence directory, preserving isolated provenance without making build
+success depend on the caller's directory-name length.
+
+The corresponding stable-source `HoloEnabled` gate passes 610/610 across 22 suites at
+`artifacts/current-goal-karma-policy-version-holo-release-stable/acceptance-report.json` (SHA-256
+`B074A4B8C022BC83869EFE4AB60FA2980DAFFE3141FD3CC1CD2015978B682C4F`, Unity package SHA-256
+`DB33F8946ED4066D03EBF33FD635DCF0662AD4461EEFD0680D25E2570BB0E290`). It adds HoloNET authentication,
+HoloOASIS Unity and Edge tests, Holo release packages and hApp provenance to the complete SQLite gate while using
+the same source commit `306d7acce25c232ca767a77b33c877b0dd3afec9`.
+
+Generic typed Holon v2 load/save routing now preserves the complete provider diagnostic contract when converting an
+`OASISResult<IHolon>` to `OASISResult<T>`: structured error code, detailed message, inner diagnostics, stack traces,
+metadata, operation flags and all result/error/warning/load/save/delete counts. The shared result-copy helper owns
+that invariant so other typed manager adapters cannot silently discard provider failures. Focused coverage passes
+5/5 and the complete Core suite passes 263/263 under `artifacts/current-goal-generic-holon-result-contract/`; the
+aggregate Core floor is raised accordingly.
+
+The same diagnostic invariant now holds across the provider-execution boundary itself and the asynchronous typed
+provider-key overload. HyperDrive's generic provider-result conversion no longer reduces a provider failure to only
+`IsError`, message and exception; it preserves the structured code, detailed message, warning/error counts, inner
+diagnostics, metadata and operation flags before the manager performs its typed Holon mapping. The focused router and
+manager contract passes 6/6 and the complete Core suite passes 264/264 at
+`artifacts/current-goal-generic-holon-result-contract-v2/`; the release floor is 264.
+
+The same diagnostic-envelope invariant now covers generic holon search. SearchManager routes against its injected
+HyperDrive v2 runtime, and HolonManager preserves provider warnings, detailed diagnostics, inner messages, metadata
+and operation counts when it projects `ISearchResults` into typed or untyped holon collections. Null provider
+payloads remain explicit failures rather than empty successes. The focused search matrix passes 4/4 and the full
+Core suite passes 265/265 under `artifacts/current-goal-holon-search-result-contract-v2/`; the release floor is 265.
+
+Metadata-based holon reads now preserve the same contract. One shared selector projects collection results into a
+single typed or untyped holon for all eight scalar/dictionary and sync/async overloads, preserving every diagnostic
+field and failing explicitly when the provider result object itself is missing. An empty successful query is a
+visible `No holon found` warning, not a false loaded result. The common typed collection mapper now delegates to the
+complete result copier as well. Focused coverage passes 4/4 and Core passes 267/267 under
+`artifacts/current-goal-holon-metadata-result-contract-v2/`; the release floor is 267.
+
+The v2 Holon delete boundary now owns one consistent semantic invariant: every successful soft or hard delete, by
+OASIS id or provider key and through sync or async APIs, sets `IsDeleted`. A hard delete is no longer mislabeled as a
+save, and typed async results use the common full-envelope projection. The focused diagnostic/delete-state test
+passes and the complete Core suite passes 268/268 under
+`artifacts/current-goal-holon-delete-result-contract-v2/`; the release floor is 268.
+
+Avatar and AvatarDetail deletion follows the same rule across all twelve v2 ID/username/email and sync/async entry
+points. The manager marks a true, non-error provider result `IsDeleted` without replacing any provider diagnostics.
+The complete route matrix passes and Core passes 269/269 under
+`artifacts/current-goal-avatar-delete-contract-v2/`; the release floor is 269.
+
+Synchronous `SaveAvatar` no longer bypasses HyperDrive v2. It applies the same credential, token-retention and audit
+preparation as asynchronous save, routes through the injected v2 runtime, preserves provider diagnostics, and marks
+only a real returned Avatar as saved. Focused coverage passes and Core passes 270/270 under
+`artifacts/current-goal-avatar-save-contract-v2/`; the release floor is 270.
+
+Derived Avatar collection views are also result-envelope preserving. Flat and grouped avatar-name APIs project only
+the payload while retaining the provider's warning/error diagnostics, metadata and counters; missing successful
+payloads are explicit contract errors rather than false successes. During that audit, legacy AvatarDetail username
+failover was found to cross the wrong provider boundary (email lookup). Both sync and async paths now remain on the
+username provider contract, protected by a regression that forbids email lookup. The focused pair and complete
+272/272 Core suite are retained at `artifacts/current-goal-avatar-query-contracts/`; the release floor is 272.
+
+The corresponding stable-source `SqliteMvp` aggregate passes 524/524 across 19 suites at
+`artifacts/current-goal-avatar-query-sqlite-release-7d5b00c6/acceptance-report.json` (report SHA-256
+`3732838EA2B742B4CB406A5F46B4A600F1D60E88C5123DB9101CB6C29375F371`). It was produced from commit
+`7d5b00c642c5a77f5feecd7360f1ccd0eff11220` and includes successful Unity, Android, Our World, package
+reproducibility, NativeAOT Edge/RemoteOnly, dependency-security, API-compatibility and SBOM gates.
+
+The paired stable-source `HoloEnabled` aggregate passes 620/620 across 22 suites at
+`artifacts/current-goal-avatar-query-holo-release-f104e0b0/acceptance-report.json` (report SHA-256
+`0F2CD956528EDC986260C7D4E160A071CF3FADC5F6E0393D8B4396BC294259D2`). It validates source commit
+`f104e0b0b27207e9bec34625564d300d7302dbff` against hApp source commit
+`c0eb1603e1855a933e75961c038e5f41fd4a5007`, including HoloNET authentication, HoloOASIS Edge/Unity lifecycle,
+hApp provenance, Unity/Android/Our World compilation, reproducible packaging and both NativeAOT profiles. The
+Holo-enabled UPM archive SHA-256 is `494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+Provider implementations that inherit the default Avatar verification/reset/refresh-token or public/private-key
+lookups now receive the same v2 boundary guarantees as indexed providers. One shared selector preserves all provider
+diagnostics, rejects a successful collection envelope without its payload, awaits the asynchronous collection API
+directly, and keeps synchronous lookup entirely on the synchronous provider contract. The focused 2/2 regression
+and complete 274/274 Core suite are retained at `artifacts/current-goal-provider-default-avatar-lookups/`; the
+release floor is 274.
+
+The corresponding stable-source `SqliteMvp` aggregate passes 526/526 across 19 suites at
+`artifacts/current-goal-provider-default-avatar-lookups-sqlite-release/acceptance-report.json` (report SHA-256
+`92E7FBAC0E22D609240B66FAE9C1F93DCE8EA7AA4D55F292510C470343370466`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM archive SHA-256 is
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The paired stable-source `HoloEnabled` aggregate passes 622/622 across 22 suites at
+`artifacts/current-goal-provider-default-avatar-lookups-holo-release/acceptance-report.json` (report SHA-256
+`0473CC27BD06E36C66C5B461295C89B4DFFAED24DF4060DFB3EE7534D5804B2B`). The hApp source commit remains
+`c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 is
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+The default provider AvatarDetail deletion contract no longer implements synchronous methods by blocking on async.
+ID, username and email routes stay on their matching sync/async provider boundary, preserve authoritative save and
+failure diagnostics, avoid the former second lookup for username/email deletion, and fail explicitly for missing
+results, missing payloads or unsupported hard deletion. The focused 2/2 regression and complete 276/276 Core suite
+are retained at `artifacts/current-goal-provider-default-avatar-detail-delete/`; the release floor is 276.
+
+The corresponding stable-source `SqliteMvp` aggregate passes 528/528 across 19 suites at
+`artifacts/current-goal-provider-default-avatar-detail-delete-sqlite-release/acceptance-report.json` (report
+SHA-256 `BBCDCB2DC67E533CC6A4E20E4467A77BF54D161F16B9E34D6CB5CC18F848E71C`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The paired stable-source `HoloEnabled` aggregate passes 624/624 across 22 suites at
+`artifacts/current-goal-provider-default-avatar-detail-delete-holo-release/acceptance-report.json` (report
+SHA-256 `E118497CB9E12463E423EF72D905AB19052F568AAA1FD3DAEFEBB47EF7F2480C`). It validates the same OASIS commit and
+hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 remains
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+The default provider visibility projection for generic Holon collections now has one invariant across parent,
+single-metadata, multi-metadata and all-Holon sync/async overloads. It preserves the authoritative provider result,
+materializes owned/public filtering at the call boundary and fails explicitly when the provider omits either its
+result envelope or required collection payload. Focused regression coverage passes 2/2 and the full Core suite
+passes 278/278 under `artifacts/current-goal-provider-default-holon-visibility/`; the release floor is 278.
+
+The stable-source `SqliteMvp` aggregate passes 530/530 across 19 suites at
+`artifacts/current-goal-provider-default-holon-visibility-sqlite-release-stable/acceptance-report.json` (report
+SHA-256 `E6EE3845CA169F9DE9765E7F9F7D28911B7BB77FDFC2EFF21DC9895B01803E64`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM SHA-256 is
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`. The gate also corrected the
+OGEngineClient test host's disposal race: only listener termination after the fixture has explicitly entered
+disposal is accepted, while unexpected listener failures still propagate.
+
+The paired stable-source `HoloEnabled` aggregate passes 626/626 across 22 suites at
+`artifacts/current-goal-provider-default-holon-visibility-holo-release/acceptance-report.json` (report SHA-256
+`133BD627F162F60E710BF430F6D88496255EFF9D14C3CA4B7BC69FD6284062DF`). It validates the same OASIS commit and
+hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 remains
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+Legacy Holon failover/provider-selection helpers now keep ID and provider-key loads on their declared provider
+boundary. Sync routes call the synchronous provider directly on the caller thread; async routes await their provider
+task once after the timeout race. Focused regression coverage passes 2/2 and the full Core suite passes 280/280
+under `artifacts/current-goal-legacy-holon-provider-boundary/`; the release floor is 280.
+
+The stable-source `SqliteMvp` aggregate passes 532/532 across 19 suites at
+`artifacts/current-goal-legacy-holon-provider-boundary-sqlite-release/acceptance-report.json` (report SHA-256
+`5DEE418508769F856F3D613B0CCDB9FE74C776527BE728F2EC1804CBF07E9FC5`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The paired stable-source `HoloEnabled` aggregate passes 628/628 across 22 suites at
+`artifacts/current-goal-legacy-holon-provider-boundary-holo-release/acceptance-report.json` (report SHA-256
+`C6807E2AC5F69FC5B660670F1E39376B4D52DE2591A1F3782F71C94710019DBF`). It validates the same OASIS commit and
+hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 remains
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+Legacy SearchManager now preserves provider execution semantics as well: sync search calls remain synchronous and
+thread-affine, while async searches await their provider task exactly once after the timeout race. A provider that
+violates the async or result-envelope contract is reported explicitly rather than dereferenced. The focused 2/2
+regression and complete 282/282 Core suite are retained under
+`artifacts/current-goal-legacy-search-provider-boundary/`; the release floor is 282.
+
+The corresponding stable-source `SqliteMvp` aggregate passes 534/534 across 19 suites at
+`artifacts/current-goal-legacy-search-provider-boundary-sqlite-release/acceptance-report.json` (report SHA-256
+`AFD640223FA4A706341E52A42BD0FE3DA2BD5D22F151F141036A85AB1E2BA3CD`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The paired stable-source `HoloEnabled` aggregate passes 630/630 across 22 suites at
+`artifacts/current-goal-legacy-search-provider-boundary-holo-release/acceptance-report.json` (report SHA-256
+`FB9818C71D7C754C1A58D954E739E7973CF96C087F00D44952BC3C6C2B926E4B`). It validates the same OASIS commit and
+hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 remains
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+Provider lifecycle dispatch now obeys the same provider boundary. Sync activation/deactivation stays on the caller
+thread and invokes only the sync provider contract; async activation/deactivation awaits only the async provider
+contract after its bounded timeout race. Null provider/task/result violations are surfaced as explicit result errors.
+The focused lifecycle regression passes 4/4 and the complete Core suite passes 286/286 under
+`artifacts/current-goal-legacy-provider-lifecycle-boundary/`; the release floor is 286.
+
+The corresponding stable-source `SqliteMvp` aggregate passes 538/538 across 19 suites at
+`artifacts/current-goal-legacy-provider-lifecycle-boundary-sqlite-release/acceptance-report.json` (report SHA-256
+`EC2DFDFDCFA3153DC89125A017998A03B2355D9A311D28B8804B7B5A4967F041`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The paired stable-source `HoloEnabled` aggregate passes 634/634 across 22 suites at
+`artifacts/current-goal-legacy-provider-lifecycle-boundary-holo-release/acceptance-report.json` (report SHA-256
+`E6F937E56286ADE255150557D8F8CC0EBE5365E948C305377F8C58D2D011EB9C`). It validates the same OASIS commit and
+hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 remains
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+Synchronous Avatar and local-wallet save helpers now preserve the provider thread boundary too. They call the sync
+provider contract directly instead of wrapping it in `Task.Run` and synchronously waiting, while retaining explicit
+null/error result handling. Focused regression coverage passes 2/2 and the complete Core suite remains 286/286 under
+`artifacts/current-goal-sync-avatar-wallet-save-boundary/`.
+
+The corresponding stable-source `SqliteMvp` aggregate passes 538/538 across 19 suites at
+`artifacts/current-goal-sync-avatar-wallet-save-boundary-sqlite-release/acceptance-report.json` (report SHA-256
+`5C504A2ACD9DA144E074D68AE6D310825A3B0829C00EC07976E0F6AF359E9464`). It validates commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The paired stable-source `HoloEnabled` aggregate passes 634/634 across 22 suites at
+`artifacts/current-goal-sync-avatar-wallet-save-boundary-holo-release/acceptance-report.json` (report SHA-256
+`17E4C65FFABDAC0AD5F305F2F3D1C774B44F979DE21BD1B9034229CBD622ED3D`). It validates the same OASIS commit and
+hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007`; the reproducible Holo-enabled UPM SHA-256 remains
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+The synchronous email boundary used by registration and password reset now invokes the actual configured transport;
+it is no longer a full-runtime no-op and callers no longer manufacture a worker thread around `SendAsync`. Missing
+initialization or credentials fail explicitly, while the async transport does not capture a caller context. Focused
+coverage passes 1/1 and the complete Core suite passes 287/287 under `artifacts/current-goal-email-sync-contract/`;
+the release floor is 287.
+The stable-source `SqliteMvp` aggregate containing this correction passes 539/539 tests across 19 suites at
+`artifacts/current-goal-email-sync-contract-sqlite-release/acceptance-report.json` (report SHA-256
+`05A69285446C024783240052B0D1696DA9A20916BAB72F026494906B44264561`). It validates OASIS commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM package SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+The paired stable-source `HoloEnabled` aggregate passes 636/636 tests across 22 suites at
+`artifacts/current-goal-legacy-sync-avatar-key-holo-release/acceptance-report.json` (report SHA-256
+`E855B88F0F7DFD87FBA3784A25E37444DB5685B3C44DF63D6C6A414BD2F33177`). It validates the same OASIS
+commit plus HoloOASIS hApp source `c0eb1603e1855a933e75961c038e5f41fd4a5007`; its reproducible UPM package
+SHA-256 remains `494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+The synchronous Avatar replication helpers now resolve the selected provider through the same v2/legacy policy as
+their async counterparts and invoke `SaveAvatarDetail`, `DeleteAvatar`, `DeleteAvatarByEmail` or
+`DeleteAvatarByUsername` directly. They no longer block on asynchronous provider work, execute on the caller thread,
+and report missing resolution/results through the existing replication warning policy. Focused save/delete boundary
+coverage passes 1/1 and the complete Core suite passes 289/289 under
+`artifacts/current-goal-sync-avatar-replication/`; the release floor is 289. The Core `netstandard2.1` build also
+passes, preserving Unity compatibility.
+
+The synchronous inventory query surface (`GetAvatarInventory`, both `AvatarHasItem` forms,
+`SearchAvatarInventory` and `GetAvatarInventoryItem`) now remains synchronous through the AvatarDetail provider
+boundary. It no longer blocks on the asynchronous inventory methods, preserves explicit load errors, and performs
+the query against the synchronously loaded inventory. Focused coverage exercises all five entry points and forbids
+`LoadAvatarDetailAsync`; it passes 1/1 and the complete Core suite passes 290/290 under
+`artifacts/current-goal-sync-inventory-reads/`. The Core `netstandard2.1` build also passes and the release floor is
+290. Synchronous inventory removal now follows the same boundary: it loads and saves AvatarDetail through the
+synchronous provider contracts, reports null/error results explicitly, and never blocks on either asynchronous
+contract. Its focused regression passes 1/1, the complete Core suite passes 291/291 under
+`artifacts/current-goal-sync-inventory-remove/`, the `netstandard2.1` build passes, and the enforced release floor is
+291. Inventory addition now uses one shared mutation engine across sync and async entry points, preserving metadata
+promotion, functional stack identity, NFT/GeoNFT uniqueness and the durable operation ledger without duplicating
+business rules. The synchronous entry point performs only synchronous AvatarDetail load/save calls and accepts the
+same optional operation id for idempotent replay. Its focused boundary-and-replay regression passes 1/1; the complete
+Core suite passes 292/292 under `artifacts/current-goal-sync-inventory-add/`, the `netstandard2.1` build passes, and
+the enforced release floor is 292. The remaining legacy synchronous Avatar provider loads no longer block on their
+async counterparts: ID, username and email loads for both Avatar and AvatarDetail, plus both complete collection
+loads, use the matching synchronous provider contract. Focused coverage exercises all eight entry points and the
+username failover invariant across sync and async paths (2/2); the complete Core suite passes 293/293 under
+`artifacts/current-goal-legacy-sync-avatar-loads/`, the `netstandard2.1` build passes, and the enforced release floor
+is 293.
+The paired stable-source `HoloEnabled` aggregate passes 635/635 tests across 22 suites at
+`artifacts/current-goal-email-sync-contract-holo-release/acceptance-report.json` (report SHA-256
+`D13B654E0A2B14078830F49E45F36ACC27124E63ED502E37D8822DECCC40E5F7`). It validates the same OASIS
+commit plus HoloOASIS hApp source `c0eb1603e1855a933e75961c038e5f41fd4a5007`; its reproducible UPM package
+SHA-256 remains `494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`.
+
+Legacy-mode synchronous Avatar token/key lookups now invoke their matching synchronous provider contracts directly;
+they no longer block on the asynchronous lookup path. The shared boundary covers verification, reset and refresh
+tokens plus public, provider and private keys, preserves the provider's complete `OASISResult<IAvatar>`, and returns
+an explicit error when provider activation or the provider result is missing. Focused public-key boundary coverage
+passes 1/1 and the complete Core suite passes 288/288 under
+`artifacts/current-goal-legacy-sync-avatar-key/`; the release floor is 288.
+The stable-source `SqliteMvp` aggregate containing this boundary repair passes 540/540 tests across 19 suites at
+`artifacts/current-goal-legacy-sync-avatar-key-sqlite-release/acceptance-report.json` (report SHA-256
+`571559A33A3FCD0BDF56C41E92E7BC7C172D4E14F63055E57E1720D547CB1DA5`). It validates OASIS commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`; the reproducible UPM package SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+
+The current paired release evidence includes the shared synchronous/asynchronous inventory mutation engine and all
+eight corrected synchronous Avatar/AvatarDetail provider load contracts. `SqliteMvp` passes 545/545 tests across 19
+suites at `artifacts/current-goal-sync-avatar-loads-sqlite-release/acceptance-report.json` (report SHA-256
+`2644B0947F8F61981C30A1815F90F91EE265D9C563147D25F3FB6C714433DC2B`), while `HoloEnabled` passes 641/641 tests
+across 22 suites at `artifacts/current-goal-sync-avatar-loads-holo-release/acceptance-report.json` (report SHA-256
+`1D277979A8A4F718AE42CEFE7E429774D00073F7B5FE64DC27EF78CCA8C4173F`). Both have zero failures and validate OASIS
+commit `f104e0b0b27207e9bec34625564d300d7302dbff`. The Holo profile binds hApp source commit
+`c0eb1603e1855a933e75961c038e5f41fd4a5007` using manifest SHA-256
+`46B0F9986430FEEE28FFEB430613F471AA25174C6E2BF3DE6B03E6082E73B23C`. The reproducible UPM SHA-256 values are
+respectively `4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE` and
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`; both 113-symbol native profiles, the compiled
+native smoke tests, Unity compilation, Android player validation and the Our World Edge integration compile pass.
+
+Registration preparation now has one synchronous implementation shared by the sync and task-returning APIs. This
+removes the synchronous registration path's task wait without creating a second set of business rules. It also fixes
+the identity invariant at its source: the email uniqueness query receives the supplied email and the username
+uniqueness query receives the supplied username. Focused coverage passes 1/1, the complete Core suite passes 294/294
+under `artifacts/current-goal-registration-preparation/`, the `netstandard2.1` build passes, and the release gate now
+requires at least 294 Core tests.
+The complete rebuilt `SqliteMvp` gate passes 546/546 tests across 19 suites at
+`artifacts/current-goal-registration-sqlite-release/acceptance-report.json` (report SHA-256
+`FB951E908DA51748E5E09176E9BDA2AF3D026182CB45A5E4DCBAB0BC51A91A92`). It validates OASIS commit
+`f104e0b0b27207e9bec34625564d300d7302dbff`, both 113-export native profiles, compiled native smoke tests, Unity and
+Android player validation, and the Our World integration compile. Its byte-reproducible UPM SHA-256 remains
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`.
+The paired rebuilt `HoloEnabled` gate passes 642/642 tests across 22 suites at
+`artifacts/current-goal-registration-holo-release/acceptance-report.json` (report SHA-256
+`9FA75F5D0F098E4C4895DD701B9374AD17E1348C18FBE7536A677EC0FF099CBC`). It validates the same OASIS commit and
+binds hApp source commit `c0eb1603e1855a933e75961c038e5f41fd4a5007` through build-manifest SHA-256
+`46B0F9986430FEEE28FFEB430613F471AA25174C6E2BF3DE6B03E6082E73B23C`. Its byte-reproducible UPM SHA-256 is
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`; both native profiles, compiled smoke tests,
+Unity compilation, Android player validation and the Our World integration compile pass.
+
+Quest progress operation identity is now content-bound rather than merely presence-bound. The durable quest ledger
+stores a deterministic SHA-256 fingerprint over avatar, quest, normalized game source and every progress field.
+Exact retries replay the original rewards once; an operation-id/content mismatch returns
+`QUEST_PROGRESS_OPERATION_CONFLICT`, and an unverifiable pre-fingerprint row returns
+`QUEST_PROGRESS_REPLAY_FINGERPRINT_MISSING` without mutating the quest. The focused suite passes 4/4 at
+`artifacts/current-goal-quest-progress-fingerprint/quest-progress-fingerprint.trx`, and the aggregate release
+inspector enforces a four-test minimum for `quest-idempotency.trx`.
+
+The corresponding Full Runtime compatibility run passes ONODE Core 163/163, ONODE Core integration 43/43, ONODE
+WebAPI 98/98 and STAR DNA 1/1, and builds the Full Native Integrated Endpoint, both Edge Native targets and STAR CLI.
+Evidence is under `artifacts/current-goal-quest-progress-full-runtime/`; the four report hashes are recorded by the
+artifact directory and the ONODE Core report SHA-256 is
+`B2A067064DD074DA620712F60D61F75B5638AC9FB308CFE4FDFE23F04CA221C9`.
+
+Fresh paired package evidence includes the content-bound quest-operation ledger. `SqliteMvp` passes 549/549 tests
+across 19 suites at `artifacts/current-goal-quest-fingerprint-sqlite-release/acceptance-report.json` (report SHA-256
+`E8E2EB5E20C2B06638967B00DC1D767B917849FABFAFB2C6D4493A2F878CAEBE`, deterministic UPM SHA-256
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`). `HoloEnabled` passes 645/645 tests
+across 22 suites at `artifacts/current-goal-quest-fingerprint-holo-release/acceptance-report.json` (report SHA-256
+`8893AB92E5FC9F85DD6ADB930A2A6D285BC82E4776E86291BBE5859A4EC64BC7`, deterministic UPM SHA-256
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`). Both pass their native, Unity,
+Android-player and Our World integration gates; the Holo report binds hApp commit
+`c0eb1603e1855a933e75961c038e5f41fd4a5007` through manifest SHA-256
+`46B0F9986430FEEE28FFEB430613F471AA25174C6E2BF3DE6B03E6082E73B23C`.
+
+### Synchronous durable Karma execution
+
+Synchronous callers are a first-class provider boundary, not wrappers over the asynchronous pipeline.
+`HolonManager` exposes synchronous setting load/save operations using the deterministic settings-holon identity and
+detached writes. `CompetitionManager.UpdateAvatarScore` uses those operations for the durable leaderboard and
+avatar-stat projections. `KarmaManager.GetKarma`, `AddKarma`, `DeductKarma`, `AddKarmaToAvatar`, and
+`RemoveKarmaFromAvatar` use the synchronous settings and competition contracts from end to end; consequently the
+legacy synchronous `AvatarDetail` APIs contain no task wait. Sync and async mutations share semaphore instances and
+pure parsing/ranking/record-construction rules, preserving ordering without maintaining a second ledger.
+
+Missing data must be explicit: only a true absent settings holon may be created. Provider outage/error results are
+propagated and cannot cause a replacement write. Tests also require provider-returned settings objects to remain
+unchanged until a detached save succeeds. The 2026-10-05 evidence is 36/36 synchronous-boundary tests, 21/21
+Karma/competition regressions, and 298/298 complete Core tests under
+`artifacts/current-goal-sync-provider-boundary/`; the release inspector enforces the 298-test Core floor.
+
+Fresh aggregate evidence includes this boundary. `SqliteMvp` passes 553/553 tests across 19 suites at
+`artifacts/current-goal-sync-karma-sqlite-release/acceptance-report.json` (report SHA-256
+`37B7344216EE041691631D8E83340CD52D8CE5B858EF4B7C7DC9EF8477994913`, deterministic UPM SHA-256
+`4E23F30EAC31CC75C1C7EB659F80DA3A321D1CA5B62B16842550D7A7F6C66FAE`). `HoloEnabled` passes 649/649 tests
+across 22 suites at `artifacts/current-goal-sync-karma-holo-release/acceptance-report.json` (report SHA-256
+`432E9B84F0B3776E190D7A92CDA59041C412F3AC55DAE736B5117F4F97328B80`, deterministic UPM SHA-256
+`494F427CBCFAFDC425814D07B677CD7B15286D412173269EB96297F6832DFDC3`). Both pass the native profiles, Unity,
+Android-player and Our World integration gates. The Holo manifest binds hApp commit
+`c0eb1603e1855a933e75961c038e5f41fd4a5007` with SHA-256
+`46B0F9986430FEEE28FFEB430613F471AA25174C6E2BF3DE6B03E6082E73B23C`.
+
+The independent Full Runtime regression remains green after the change: ONODE Core 163/163, integration 43/43,
+WebAPI 98/98 and STAR DNA 1/1, together with successful Full Native Endpoint, Edge Native and STAR CLI builds.
+Evidence is retained under `artifacts/current-goal-sync-karma-full-runtime/`.
+
+`AvatarManager` now joins that same invariant when `HyperDriveMode` is explicitly `V2`: its sync and async Karma
+APIs use the durable `KarmaManager` boundary rather than directly invoking provider-specific Karma methods. A lazy,
+runtime-injected manager preserves the caller's provider graph without constructing a second singleton runtime.
+`Legacy` remains the DNA default and its existing provider calls are unchanged. Mode-boundary coverage is 4/4,
+complete Core coverage is 300/300, and fresh aggregate coverage is 555/555 (`SqliteMvp`) plus 651/651
+(`HoloEnabled`) under `artifacts/current-goal-avatar-manager-karma*`.

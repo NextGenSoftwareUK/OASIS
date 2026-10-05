@@ -2,9 +2,12 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using Xunit;
 
@@ -46,11 +49,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             var prefix = $"http://127.0.0.1:{port}/";
             listener.Prefixes.Add(prefix);
             listener.Start();
+            var node = CreateAuthenticatedNode("127.0.0.1:9001");
+            node.Capabilities.Add("relay");
 
             var serverTask = Task.Run(async () =>
             {
                 var context = await listener.GetContextAsync();
-                var json = "[{\"Id\":\"node-1\",\"Address\":\"127.0.0.1:9001\",\"Capabilities\":[\"relay\"]}]";
+                var json = JsonSerializer.Serialize(new[] { node });
                 var bytes = Encoding.UTF8.GetBytes(json);
                 context.Response.ContentType = "application/json";
                 context.Response.ContentLength64 = bytes.Length;
@@ -68,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
                 await serverTask;
 
                 result.Success.Should().BeTrue();
-                result.Nodes.Should().ContainSingle(n => n.Id == "node-1" && n.Address == "127.0.0.1:9001");
+                result.Nodes.Should().ContainSingle(n => n.Id == node.Id && n.Address == "127.0.0.1:9001");
                 result.ServerUsed.Should().Be(prefix.TrimEnd('/'));
             }
             finally
@@ -89,6 +94,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
         }
 
         [Fact]
+        public async Task LoadPeerCacheAsync_CorruptCache_FailsInsteadOfStartingFromEmptyState()
+        {
+            string dataDirectory = Path.Combine(Path.GetTempPath(), $"onet-corrupt-cache-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(dataDirectory);
+            await File.WriteAllTextAsync(Path.Combine(dataDirectory, "onet-peers.json"), "{not-json");
+            try
+            {
+                var dna = new OASISDNA { OASIS = { DataDirectory = dataDirectory } };
+                var discovery = new ONETDiscovery(storageProvider: null, dna);
+
+                var loadTask = (Task)InvokePrivate(discovery, "LoadPeerCacheAsync");
+                Func<Task> action = async () => await loadTask;
+
+                await action.Should().ThrowAsync<InvalidOperationException>()
+                    .WithMessage("*Failed to load persisted OASIS state*");
+            }
+            finally
+            {
+                Directory.Delete(dataDirectory, recursive: true);
+            }
+        }
+
+        [Fact]
+        public async Task RegisterNodeAsync_PeerCacheWriteFailure_ReturnsSuccessfulRegistrationWithWarning()
+        {
+            string parent = Path.Combine(Path.GetTempPath(), $"onet-cache-write-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(parent);
+            string fileWhereDirectoryIsRequired = Path.Combine(parent, "occupied");
+            await File.WriteAllTextAsync(fileWhereDirectoryIsRequired, "occupied");
+            try
+            {
+                var dna = new OASISDNA { OASIS = { DataDirectory = fileWhereDirectoryIsRequired } };
+                var discovery = new ONETDiscovery(storageProvider: null, dna);
+
+                var result = await discovery.RegisterNodeAsync("local-node", "127.0.0.1:9001", new());
+
+                result.IsError.Should().BeFalse();
+                result.Result.Should().BeTrue();
+                result.IsWarning.Should().BeTrue();
+                result.WarningCount.Should().Be(1);
+                result.Message.Should().Contain("peer cache was not persisted");
+                result.InnerMessages.Should().ContainSingle(message => message.Contains("OASIS_PERSISTENCE_SAVE_FAILED"));
+            }
+            finally
+            {
+                Directory.Delete(parent, recursive: true);
+            }
+        }
+
+        [Fact]
         public async Task PerformIterativeDHTLookupAsync_ChainOfRealHttpServers_DiscoversTransitivePeerByHopping()
         {
             // Three real local HTTP servers: bootstrap node A advertises only B. B (when queried) advertises
@@ -96,9 +151,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             // this is genuine breadth-first network traversal and not a single-hop fetch.
             var portB = GetFreeTcpPort();
             var portC = GetFreeTcpPort();
+            var nodeB = CreateAuthenticatedNode($"127.0.0.1:{portB}");
+            var nodeC = CreateAuthenticatedNode($"127.0.0.1:{portC}");
 
-            using var listenerA = StartNodesServer(out var portA, $"[{{\"Id\":\"node-B\",\"Address\":\"127.0.0.1:{portB}\"}}]");
-            using var listenerB = StartNodesServer(portB, $"[{{\"Id\":\"node-C\",\"Address\":\"127.0.0.1:{portC}\"}}]");
+            using var listenerA = StartNodesServer(out var portA, JsonSerializer.Serialize(new[] { nodeB }));
+            using var listenerB = StartNodesServer(portB, JsonSerializer.Serialize(new[] { nodeC }));
             using var listenerC = StartNodesServer(portC, "[]");
 
             try
@@ -109,7 +166,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
                 var resultTask = (Task<System.Collections.Generic.List<DHTResult>>)InvokePrivate(discovery, "PerformIterativeDHTLookupAsync", query);
                 var results = await resultTask;
 
-                results.Select(r => r.NodeInfo.Id).Should().Contain(new[] { "node-B", "node-C" },
+                results.Select(r => r.NodeInfo.Id).Should().Contain(new[] { nodeB.Id, nodeC.Id },
                     "the lookup should hop through B to discover C, not just return A's immediate peer list");
             }
             finally
@@ -160,6 +217,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             var port = ((IPEndPoint)listener.LocalEndpoint).Port;
             listener.Stop();
             return port;
+        }
+
+        private static NodeInfo CreateAuthenticatedNode(string address)
+        {
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var publicKey = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+            return new NodeInfo
+            {
+                Id = ONETSecurity.DeriveNodeId(publicKey)!,
+                PublicKey = publicKey,
+                Address = address
+            };
         }
     }
 }

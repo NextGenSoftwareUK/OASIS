@@ -37,7 +37,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     LoadBalancingProviders = config.LoadBalancingProviders.Select(p => Enum.TryParse<ProviderType>(p, out var providerType) ? providerType : ProviderType.None).Where(p => p != ProviderType.None).ToList(),
                     TotalProviders = config.EnabledProviders.Count,
                     ActiveProviders = config.EnabledProviders.Count, // Simplified for now
-                    LastHealthCheck = DateTime.UtcNow
+                    LastHealthCheck = DateTime.UtcNow,
+                    LastProviderSelection = _providerManager.LastProviderSelectionDiagnostic,
+                    LastFailover = _providerManager.LastFailoverDiagnostic,
+                    LastReplication = _providerManager.LastReplicationDiagnostic
                 };
 
                 return Ok(new OASISResult<HyperDriveStatus>
@@ -61,11 +64,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets AI-powered optimization recommendations
         /// </summary>
         [HttpGet("ai/recommendations")]
-        public ActionResult<OASISResult<List<OptimizationRecommendation>>> GetAIRecommendations()
+        public async Task<ActionResult<OASISResult<List<OptimizationRecommendation>>>> GetAIRecommendations()
         {
             try
             {
-                var recommendations = _aiEngine.GetSmartRecommendationsAsync().Result;
+                var recommendations = await _aiEngine.GetSmartRecommendationsAsync();
                 return Ok(new OASISResult<List<OptimizationRecommendation>>
                 {
                     Result = recommendations,
@@ -87,11 +90,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets predictive analytics
         /// </summary>
         [HttpGet("analytics/predictive/{providerType}")]
-        public ActionResult<OASISResult<PredictiveAnalytics>> GetPredictiveAnalytics(ProviderType providerType, [FromQuery] int forecastDays = 7)
+        public async Task<ActionResult<OASISResult<PredictiveAnalytics>>> GetPredictiveAnalytics(ProviderType providerType, [FromQuery] int forecastDays = 7)
         {
             try
             {
-                var analytics = _analyticsEngine.GetPredictiveAnalyticsAsync(providerType, forecastDays).Result;
+                var analytics = await _analyticsEngine.GetPredictiveAnalyticsAsync(providerType, forecastDays);
                 return Ok(new OASISResult<PredictiveAnalytics>
                 {
                     Result = analytics,
@@ -113,11 +116,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets comprehensive analytics report
         /// </summary>
         [HttpGet("analytics/report")]
-        public ActionResult<OASISResult<AnalyticsReport>> GetAnalyticsReport([FromQuery] ProviderType? providerType = null, [FromQuery] TimeRange timeRange = TimeRange.Last24Hours)
+        public async Task<ActionResult<OASISResult<AnalyticsReport>>> GetAnalyticsReport([FromQuery] ProviderType? providerType = null, [FromQuery] TimeRange timeRange = TimeRange.Last24Hours)
         {
             try
             {
-                var report = _analyticsEngine.GetAnalyticsReportAsync(providerType, timeRange).Result;
+                var report = await _analyticsEngine.GetAnalyticsReportAsync(providerType, timeRange);
                 return Ok(new OASISResult<AnalyticsReport>
                 {
                     Result = report,
@@ -139,11 +142,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets real-time dashboard data
         /// </summary>
         [HttpGet("dashboard")]
-        public ActionResult<OASISResult<DashboardData>> GetDashboardData()
+        public async Task<ActionResult<OASISResult<DashboardData>>> GetDashboardData()
         {
             try
             {
-                var dashboard = _analyticsEngine.GetDashboardDataAsync().Result;
+                var dashboard = await _analyticsEngine.GetDashboardDataAsync();
                 return Ok(new OASISResult<DashboardData>
                 {
                     Result = dashboard,
@@ -165,11 +168,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets failure predictions
         /// </summary>
         [HttpGet("failover/predictions")]
-        public ActionResult<OASISResult<FailoverPrediction>> GetFailurePredictions()
+        public async Task<ActionResult<OASISResult<FailoverPrediction>>> GetFailurePredictions()
         {
             try
             {
-                var predictions = _failoverEngine.PredictAndPreventFailuresAsync().Result;
+                var predictions = await _failoverEngine.PredictAndPreventFailuresAsync();
                 return Ok(new OASISResult<FailoverPrediction>
                 {
                     Result = predictions,
@@ -227,7 +230,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid PerformanceDataPoint (ProviderType and data)." });
             try
             {
-                _aiEngine.RecordPerformanceData(dataPoint.ProviderType, dataPoint);
+                var recordResult = _aiEngine.RecordPerformanceData(dataPoint.ProviderType, dataPoint);
+                if (recordResult.IsError)
+                    return BadRequest(recordResult);
+
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
@@ -278,11 +284,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets cost optimization recommendations
         /// </summary>
         [HttpGet("analytics/cost-optimization")]
-        public ActionResult<OASISResult<List<CostOptimizationRecommendation>>> GetCostOptimizationRecommendations()
+        public async Task<ActionResult<OASISResult<List<CostOptimizationRecommendation>>>> GetCostOptimizationRecommendations()
         {
             try
             {
-                var recommendations = _analyticsEngine.GetCostOptimizationRecommendationsAsync().Result;
+                var recommendations = await _analyticsEngine.GetCostOptimizationRecommendationsAsync();
                 return Ok(new OASISResult<List<CostOptimizationRecommendation>>
                 {
                     Result = recommendations,
@@ -304,11 +310,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Gets performance optimization recommendations
         /// </summary>
         [HttpGet("analytics/performance-optimization")]
-        public ActionResult<OASISResult<List<PerformanceOptimizationRecommendation>>> GetPerformanceOptimizationRecommendations()
+        public async Task<ActionResult<OASISResult<List<PerformanceOptimizationRecommendation>>>> GetPerformanceOptimizationRecommendations()
         {
             try
             {
-                var recommendations = _analyticsEngine.GetPerformanceOptimizationRecommendationsAsync().Result;
+                var recommendations = await _analyticsEngine.GetPerformanceOptimizationRecommendationsAsync();
                 return Ok(new OASISResult<List<PerformanceOptimizationRecommendation>>
                 {
                     Result = recommendations,
@@ -331,18 +337,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize(AvatarType.Wizard)]
         [HttpPost("failover/preventive")]
-        public ActionResult<OASISResult<bool>> InitiatePreventiveFailover([FromBody] List<ProviderType> highRiskProviders)
+        public async Task<ActionResult<OASISResult<bool>>> InitiatePreventiveFailover([FromBody] List<ProviderType> highRiskProviders)
         {
             if (highRiskProviders == null)
                 return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of ProviderType (high-risk providers)." });
             try
             {
-                var result = _failoverEngine.InitiatePreventiveFailoverAsync(highRiskProviders).Result;
+                var result = await _failoverEngine.InitiatePreventiveFailoverAsync(highRiskProviders);
+                if (result.IsError)
+                    return BadRequest(result);
+
                 return Ok(new OASISResult<bool>
                 {
-                    Result = result,
+                    Result = result.Result,
 
-                    Message = "Preventive failover initiated successfully."
+                    Message = result.Message
                 });
             }
             catch (Exception ex)

@@ -51,6 +51,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public int TotalProviders { get; set; }
         public int ActiveProviders { get; set; }
         public DateTime LastHealthCheck { get; set; }
+        public ProviderSelectionDiagnostic LastProviderSelection { get; set; }
+        public HyperDriveFailoverDiagnostic LastFailover { get; set; }
+        public HyperDriveReplicationDiagnostic LastReplication { get; set; }
     }
 
     [ApiController]
@@ -69,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             _configManager = OASISHyperDriveConfigManager.Instance;
             _providerManager = ProviderManager.Instance;
-            _performanceMonitor = PerformanceMonitor.Instance;
+            _performanceMonitor = _providerManager.PerformanceMonitor;
             _aiEngine = AIOptimizationEngine.Instance;
             _analyticsEngine = AdvancedAnalyticsEngine.Instance;
             _failoverEngine = PredictiveFailoverEngine.Instance;

@@ -3,12 +3,44 @@ using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class HttpHyperDriveSyncTransportTests
 {
+    [Fact]
+    public async Task HostedFacadeRegistersAsNetworkProviderAndDelegatesOnlyWhileActive()
+    {
+        var handler = new Handler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        { Content = JsonContent(new OASISResult<SyncExchangeResponse>(new SyncExchangeResponse { NextPullCheckpoint = "registered" })) });
+        var transport = new HttpHyperDriveSyncTransport(new HttpClient(handler)
+        { BaseAddress = new Uri("https://onode.test/") });
+        var provider = new HostedOASISSyncProvider(transport);
+        var manager = new ProviderManager(null, new NextGenSoftware.OASIS.API.DNA.OASISDNA());
+
+        manager.RegisterProvider(provider).Should().BeTrue();
+        manager.GetAllRegisteredProviders().Should().ContainSingle().Which.Should().BeSameAs(provider);
+        provider.ProviderType.Value.Should().Be(ProviderType.HostedOASISSync);
+        provider.ProviderCategory.Value.Should().Be(ProviderCategory.Network);
+        provider.Should().NotBeAssignableTo<NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider>();
+
+        var inactive = await provider.ExchangeAsync(new SyncExchangeRequest(), default);
+        inactive.ErrorCode.Should().Be("HOSTED_OASIS_SYNC_PROVIDER_INACTIVE");
+        handler.LastRequest.Should().BeNull();
+
+        (await provider.ActivateProviderAsync()).Result.Should().BeTrue();
+        var active = await provider.ExchangeAsync(new SyncExchangeRequest(), default);
+        active.IsError.Should().BeFalse(active.Message);
+        active.Result.NextPullCheckpoint.Should().Be("registered");
+
+        provider.DeActivateProvider().Result.Should().BeTrue();
+        (await provider.BindPeerAsync(new BindHyperDrivePeerRequest(), default)).ErrorCode
+            .Should().Be("HOSTED_OASIS_SYNC_PROVIDER_INACTIVE");
+    }
+
     [Fact]
     public async Task SendsCanonicalRequestAndReadsOasisResult()
     {

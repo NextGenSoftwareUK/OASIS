@@ -58,3 +58,7 @@
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
 *.zip filter=lfs diff=lfs merge=lfs -text
+
+# Unified-diff context lines representing an empty source line contain one
+# required leading space. Do not flag that patch syntax as trailing whitespace.
+Scripts/patches/*.patch whitespace=-blank-at-eol
