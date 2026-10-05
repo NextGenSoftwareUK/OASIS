@@ -187,6 +187,11 @@ _pkginfo.txt
 ClientBin/
 ~$*
 *~
+!UnityPackages/com.nextgensoftware.oasis.edge/HoloEnabled~/
+!UnityPackages/com.nextgensoftware.oasis.edge/HoloEnabled~/*.cs
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/AndroidBridge/.gradle/
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/AndroidBridge/build/
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/AndroidBridge/bridge/build/
 # Unity Package Manager reserves these suffixes for public documentation and
 # samples. They are release inputs, rather than editor backup files.
 !UnityPackages/com.nextgensoftware.oasis.edge/Documentation~/

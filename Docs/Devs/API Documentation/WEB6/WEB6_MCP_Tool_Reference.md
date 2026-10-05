@@ -130,13 +130,6 @@ Get the full karma transaction history for an avatar.
 
 ---
 
-#### `web4_karma_transfer`
-Transfer karma from one avatar to another.
-
-**Parameters:** `fromAvatarId`, `toAvatarId`, `amount` (int), `reason` (string)
-
----
-
 #### `web4_karma_get_stats`
 Get karma statistics and leaderboard rankings.
 
