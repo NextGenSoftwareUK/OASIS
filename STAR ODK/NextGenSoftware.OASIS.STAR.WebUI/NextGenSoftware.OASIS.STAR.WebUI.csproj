@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>NextGenSoftware.OASIS.STAR.WebUI</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.STAR.WebUI</AssemblyName>
+    <UserSecretsId>star-webui-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+    <PackageReference Include="AutoMapper" Version="12.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.STAR.CLI.Lib\NextGenSoftware.OASIS.STAR.CLI.Lib.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\dist\" />
+    <Folder Include="ClientApp\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="NextGenSoftware.OASIS.STAR.WebUI.UnitTests\**" />
+    <EmbeddedResource Remove="NextGenSoftware.OASIS.STAR.WebUI.UnitTests\**" />
+    <None Remove="NextGenSoftware.OASIS.STAR.WebUI.UnitTests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ClientApp\build\downloads\oasis-web4-unity-sdk\**" />
+    <Compile Remove="ClientApp\public\downloads\oasis-web4-unity-sdk\**" />
+    <Compile Remove="ClientApp\build\downloads\oasis-web5-star-unity-sdk\**" />
+    <Compile Remove="ClientApp\public\downloads\oasis-web5-star-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\build\downloads\oasis-web4-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\public\downloads\oasis-web4-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\build\downloads\oasis-web5-star-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\public\downloads\oasis-web5-star-unity-sdk\**" />
+    <None Remove="ClientApp\build\downloads\oasis-web4-unity-sdk\**" />
+    <None Remove="ClientApp\public\downloads\oasis-web4-unity-sdk\**" />
+    <None Remove="ClientApp\build\downloads\oasis-web5-star-unity-sdk\**" />
+    <None Remove="ClientApp\public\downloads\oasis-web5-star-unity-sdk\**" />
+  </ItemGroup>
+
+</Project>

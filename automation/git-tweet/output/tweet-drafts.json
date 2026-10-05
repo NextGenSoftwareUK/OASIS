@@ -1,0 +1,30 @@
+[
+  {
+    "commit": "db051ac2f8d05dad226c10e6c0effd3af22d659e",
+    "file": "STAR ODK/ORACLE_THEME_UPDATE_SUMMARY.md",
+    "tweets": [
+      {
+        "text": "feat: STAR Web UI Oracle theme integration with 3D celestial visualization (ORACLE_THEME_UPDATE_SUMMARY.md) #OASIS https://github.com/NextGenSoftwareUK/OASIS/commit/db051ac2f8d05dad226c10e6c0effd3af22d659e#diff-53544152204f444b2f4f5241434c455f5448454d455f5550444154455f53554d4d4152592e6d64",
+        "confidence": 0,
+        "hashtags": [
+          "#OASIS"
+        ]
+      }
+    ],
+    "notes": "Stub tweet generated because OPENAI_API_KEY is not set. Update the environment to enable LLM summaries."
+  },
+  {
+    "commit": "db051ac2f8d05dad226c10e6c0effd3af22d659e",
+    "file": "STAR ODK/QUICK_START_ORACLE_THEME.md",
+    "tweets": [
+      {
+        "text": "feat: STAR Web UI Oracle theme integration with 3D celestial visualization (QUICK_START_ORACLE_THEME.md) #OASIS https://github.com/NextGenSoftwareUK/OASIS/commit/db051ac2f8d05dad226c10e6c0effd3af22d659e#diff-53544152204f444b2f515549434b5f53544152545f4f5241434c455f5448454d452e6d64",
+        "confidence": 0,
+        "hashtags": [
+          "#OASIS"
+        ]
+      }
+    ],
+    "notes": "Stub tweet generated because OPENAI_API_KEY is not set. Update the environment to enable LLM summaries."
+  }
+]

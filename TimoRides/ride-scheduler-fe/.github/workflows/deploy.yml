@@ -1,0 +1,60 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Set environment variables
+        run: |
+          echo "PRODUCTION=${{ secrets.PRODUCTION }}" >> $GITHUB_ENV
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> $GITHUB_ENV
+          echo "BASE_URL=${{ secrets.BASE_URL }}" >> $GITHUB_ENV
+          echo "FLUTTER_KEY=${{ secrets.FLUTTER_KEY }}" >> $GITHUB_ENV
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+          echo "MAPS_URL=${{ secrets.MAPS_URL }}" >> $GITHUB_ENV
+
+      - name: Install dependencies and build
+        run: |
+          npm install
+          npm run build-production
+
+      - name: Copy files to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_KEY: ${{ secrets.EC2_KEY }}
+        run: |
+          echo "EC2_HOST: $EC2_HOST"
+          echo "EC2_USER: $EC2_USER"
+          echo "EC2_KEY: $EC2_KEY"
+          echo "$EC2_KEY" > /tmp/ec2_key.pem
+          chmod 600 /tmp/ec2_key.pem
+          scp -i /tmp/ec2_key.pem -r dist/ride-scheduler-fe $EC2_USER@$EC2_HOST:/home/ec2-user/ride-scheduler-fe
+
+      - name: Restart Nginx
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_KEY: ${{ secrets.EC2_KEY }}
+
+        run: |
+          echo "EC2_HOST: $EC2_HOST"
+          echo "EC2_USER: $EC2_USER"
+          echo "EC2_KEY: $EC2_KEY"
+          echo "$EC2_KEY" > /tmp/ec2_key.pem
+          chmod 600 /tmp/ec2_key.pem
+          ssh -i /tmp/ec2_key.pem $EC2_USER@$EC2_HOST "sudo systemctl restart nginx"

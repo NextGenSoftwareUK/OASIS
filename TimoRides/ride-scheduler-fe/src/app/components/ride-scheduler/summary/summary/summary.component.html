@@ -1,0 +1,45 @@
+<mat-card>
+  <mat-card-header class="booking-summary-header">
+    <mat-card-title class="card-title">Booking Summary</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="booking-summary-header">
+    <!-- Ride summary -->
+    <ng-container
+      *ngIf="rideSchedule$ | async as rideSummaryInfo; else NoRideDetails"
+    >
+      <h3 class="summary-title">Booked Trip</h3>
+      <app-ride-summary [rideDetails]="rideSummaryInfo"></app-ride-summary>
+    </ng-container>
+    <ng-template #NoRideDetails>
+      <span class="error-text">No Ride Details</span>
+    </ng-template>
+
+    <br />
+
+    <!-- Car details summary -->
+    <ng-container *ngIf="carInfo$ | async as carSummaryInfo; else NoCarDetails">
+      <h3 class="summary-title">Car Details</h3>
+      <app-car-details-summary
+        [carDetails]="carSummaryInfo.car"
+      ></app-car-details-summary>
+    </ng-container>
+    <ng-template #NoCarDetails>
+      <span class="error-text">No Car Details</span>
+    </ng-template>
+
+    <br />
+
+    <!-- Driver details summary -->
+    <ng-container *ngIf="driver$ | async as driver; else NoDriverDetails">
+      <h3 class="summary-title">Driver Details</h3>
+      <app-driver-details-summary
+        [driverDetails]="driver"
+        [hasPaid]="hasPaid"
+      ></app-driver-details-summary>
+    </ng-container>
+    <ng-template #NoDriverDetails>
+      <span class="error-text">No Driver Details</span>
+    </ng-template>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant U as User
+    participant W5 as WEB5 STAR API
+    participant W4 as WEB4 OASIS API
+    participant HD as OASIS HyperDrive
+    participant P1 as Provider 1 (Fast)
+    participant P2 as Provider 2 (Slow)
+    participant P3 as Provider 3 (Backup)
+    
+    U->>W5: Request Data
+    W5->>W4: Forward Request
+    W4->>HD: Process Request
+    
+    HD->>P1: Check Performance
+    P1-->>HD: Fast Response
+    
+    HD->>P2: Check Performance
+    P2-->>HD: Slow Response
+    
+    HD->>P1: Route to Fast Provider
+    P1-->>HD: Return Data
+    HD-->>W4: Return Data
+    W4-->>W5: Return Data
+    W5-->>U: Return Data
+    
+    HD->>P2: Replicate Data
+    HD->>P3: Replicate Data
+    
+    Note over HD: Auto-failover ensures\nzero downtime and\noptimal performance

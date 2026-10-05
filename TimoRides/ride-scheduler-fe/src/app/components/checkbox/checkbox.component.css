@@ -1,0 +1,40 @@
+.tr-input-grp__label {
+  color: var(--default-gray-700, #374151);
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.25rem; /* 142.857% */
+}
+
+.required {
+  color: var(--error);
+}
+
+.chkbox-group {
+  display: flex;
+  align-items: center;
+  column-gap: 0.5rem;
+  cursor: pointer;
+}
+
+.chkbox-group svg {
+  border: 1px solid grey;
+  border-radius: 0.25rem;
+  transition: all 0.12s linear;
+}
+
+.chkbox-group.clicked svg {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+}
+
+.chkbox-group__text {
+  margin: 0;
+  font-size: 1rem;
+  text-align: justify;
+}
+
+.chkbox-group svg {
+  width: 20%;
+  max-width: 16px;
+}

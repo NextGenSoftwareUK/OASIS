@@ -1,0 +1,591 @@
+{{!-- Rust/Anchor Smart Contract Template --}}
+
+{{#if imports}}
+    // ================ Imports ================
+    {{#each imports}}
+        {{#unless (eq this "anchor_lang::prelude::*")}}
+            use {{{this}}};
+        {{/unless}}
+    {{/each}}
+{{/if}}
+
+use anchor_lang::prelude::*;
+
+{{#if anchorImports}}
+    // ================ Anchor Imports ================
+    {{#each anchorImports}}
+        use {{{this}}};
+    {{/each}}
+{{/if}}
+
+{{!-- Program ID Declaration --}}
+{{#if programId}}
+declare_id!("{{{programId}}}");
+{{/if}}
+
+{{!-- Main Program Module --}}
+{{#if programName}}
+#[program]
+pub mod {{{programName}}} {
+    use super::*;
+{{/if}}
+
+{{#if constants}}
+    // ================ Constants ================
+{{#each constants}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    pub const {{{name}}}: {{{type}}} = {{{value}}};
+{{/each}}
+
+{{/if}}
+{{#if instructions}}
+    // ================ Instructions ================
+{{#each instructions}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{#if params}}
+    {{#each params}}
+    /// * `{{name}}` - {{{description}}}
+    {{/each}}
+    {{/if}}
+    pub fn {{{name}}}(
+        ctx: Context<{{{contextStruct}}}>,
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ) -> Result<()> {
+{{#if validations}}
+        // ================ Validations ================
+{{#each validations}}
+        {{{this}}}
+{{/each}}
+
+{{/if}}
+{{#if body}}
+        // ================ Instruction Logic ================
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        // Default implementation
+        Ok(())
+{{/if}}
+    }
+
+{{/each}}
+{{/if}}
+{{#if programName}}
+}
+{{/if}}
+
+{{#if accounts}}
+// ================ Account Structs ================
+{{#each accounts}}
+{{#if description}}/// {{{description}}}{{/if}}
+#[derive(Accounts)]
+{{#if constraints}}
+{{#each constraints}}
+#[instruction({{{this}}})]
+{{/each}}
+{{/if}}
+pub struct {{{name}}}<'info> {
+{{#each fields}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{#if constraints}}
+    {{#each constraints}}
+    #[account({{{this}}})]
+    {{/each}}
+    {{/if}}
+    pub {{{name}}}: {{{type}}},
+{{/each}}
+}
+
+{{/each}}
+{{/if}}
+{{#if dataStructs}}
+// ================ Data Structures ================
+{{#each dataStructs}}
+{{#if description}}/// {{{description}}}{{/if}}
+#[account]
+{{#if traits}}
+{{#each traits}}
+#[derive({{{this}}})]
+{{/each}}
+{{else}}
+#[derive(Default)]
+{{/if}}
+pub struct {{{name}}} {
+{{#each fields}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    pub {{{name}}}: {{{type}}},
+{{/each}}
+}
+
+{{#if methods}}
+impl {{{name}}} {
+{{#each methods}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{#if params}}
+    {{#each params}}
+    /// * `{{name}}` - {{{description}}}
+    {{/each}}
+    {{/if}}
+    pub fn {{{name}}}(
+        &mut self{{#if params}},{{/if}}
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ){{#if returns}} -> {{{returns}}}{{else}} -> Result<()>{{/if}} {
+{{#if body}}
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        Ok(())
+{{/if}}
+    }
+
+{{/each}}
+}
+{{/if}}
+{{/each}}
+{{/if}}
+
+{{#if enums}}
+// ================ Enums ================
+{{#each enums}}
+{{#if description}}/// {{{description}}}{{/if}}
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq)]
+pub enum {{{name}}} {
+{{#each variants}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{{name}}}{{#if fields}}({{#each fields}}{{{type}}}{{#unless @last}}, {{/unless}}{{/each}}){{/if}},
+{{/each}}
+}
+
+{{#if methods}}
+impl {{{name}}} {
+{{#each methods}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    pub fn {{{name}}}(&self){{#if returns}} -> {{{returns}}}{{else}} -> bool{{/if}} {
+{{#if body}}
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        true
+{{/if}}
+    }
+
+{{/each}}
+}
+{{/if}}
+{{/each}}
+{{/if}}
+
+{{#if errors}}
+// ================ Custom Errors ================
+#[error_code]
+pub enum ErrorCode {
+{{#each errors}}
+    #[msg("{{{message}}}")]
+    {{{name}}} = {{{code}}},
+{{/each}}
+}
+
+{{/if}}
+{{#if events}}
+// ================ Events ================
+{{#each events}}
+{{#if description}}/// {{{description}}}{{/if}}
+#[event]
+pub struct {{{name}}} {
+{{#each fields}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{#if indexed}}#[index]{{/if}}
+    pub {{{name}}}: {{{type}}},
+{{/each}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if traits}}
+// ================ Traits ================
+{{#each traits}}
+{{#if description}}/// {{{description}}}{{/if}}
+pub trait {{{name}}} {
+{{#each methods}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    fn {{{name}}}(
+        &self{{#if params}},{{/if}}
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ){{#if returns}} -> {{{returns}}}{{else}} -> Result<()>{{/if}}{{#if hasDefault}} {
+{{#each defaultBody}}
+        {{{this}}}
+{{/each}}
+    }{{else}};{{/if}}
+
+{{/each}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if implementations}}
+// ================ Trait Implementations ================
+{{#each implementations}}
+{{#if description}}/// {{{description}}}{{/if}}
+impl {{{traitName}}} for {{{structName}}} {
+{{#each methods}}
+    fn {{{name}}}(
+        &self{{#if params}},{{/if}}
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ){{#if returns}} -> {{{returns}}}{{else}} -> Result<()>{{/if}} {
+{{#if body}}
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        Ok(())
+{{/if}}
+    }
+
+{{/each}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if macros}}
+// ================ Macros ================
+{{#each macros}}
+{{#if description}}/// {{{description}}}{{/if}}
+macro_rules! {{{name}}} {
+{{#each rules}}
+    ({{{pattern}}}) => {
+        {{{expansion}}}
+    };
+{{/each}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if modules}}
+// ================ Modules ================
+{{#each modules}}
+{{#if description}}/// {{{description}}}{{/if}}
+{{#if isPublic}}pub {{/if}}mod {{{name}}} {
+{{#if imports}}
+{{#each imports}}
+    use {{{this}}};
+{{/each}}
+
+{{/if}}
+{{#if structs}}
+{{#each structs}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{#if isPublic}}pub {{/if}}struct {{{name}}} {
+{{#each fields}}
+        {{#if description}}/// {{{description}}}{{/if}}
+        {{#if isPublic}}pub {{/if}}{{{name}}}: {{{type}}},
+{{/each}}
+    }
+
+{{/each}}
+{{/if}}
+{{#if functions}}
+{{#each functions}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    {{#if isPublic}}pub {{/if}}fn {{{name}}}(
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ){{#if returns}} -> {{{returns}}}{{else}} -> Result<()>{{/if}} {
+{{#if body}}
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        Ok(())
+{{/if}}
+    }
+
+{{/each}}
+{{/if}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if tests}}
+// ================ Tests ================
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anchor_lang::prelude::*;
+    use solana_program_test::*;
+    use solana_sdk::{
+        signature::{Keypair, Signer},
+        transaction::Transaction,
+    };
+
+{{#each tests}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    #[tokio::test]
+    async fn {{{name}}}() {
+{{#if setup}}
+        // Test setup
+{{#each setup}}
+        {{{this}}}
+{{/each}}
+
+{{/if}}
+{{#if body}}
+        // Test execution
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        // Default test implementation
+        assert!(true);
+{{/if}}
+    }
+
+{{/each}}
+}
+{{/if}}
+
+{{#if benchmarks}}
+// ================ Benchmarks ================
+#[cfg(feature = "bench")]
+mod benchmarks {
+    use super::*;
+    use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+{{#each benchmarks}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    fn {{{name}}}(c: &mut Criterion) {
+        c.bench_function("{{{name}}}", |b| {
+            b.iter(|| {
+{{#if body}}
+{{#each body}}
+                {{{this}}}
+{{/each}}
+{{else}}
+                // Default benchmark implementation
+                black_box(());
+{{/if}}
+            })
+        });
+    }
+
+{{/each}}
+    criterion_group!(benches{{#each benchmarks}}, {{{name}}}{{/each}});
+    criterion_main!(benches);
+}
+{{/if}}
+
+{{#if features}}
+// ================ Feature Gates ================
+{{#each features}}
+#[cfg(feature = "{{{name}}}")]
+{{#if description}}/// {{{description}}}{{/if}}
+pub mod {{{name}}}_feature {
+{{#if structs}}
+{{#each structs}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    pub struct {{{name}}} {
+{{#each fields}}
+        {{#if description}}/// {{{description}}}{{/if}}
+        pub {{{name}}}: {{{type}}},
+{{/each}}
+    }
+
+{{/each}}
+{{/if}}
+{{#if functions}}
+{{#each functions}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    pub fn {{{name}}}(
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ){{#if returns}} -> {{{returns}}}{{else}} -> Result<()>{{/if}} {
+{{#if body}}
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        Ok(())
+{{/if}}
+    }
+
+{{/each}}
+{{/if}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if utils}}
+// ================ Utility Functions ================
+{{#each utils}}
+{{#if description}}/// {{{description}}}{{/if}}
+{{#if isPublic}}pub {{/if}}fn {{{name}}}(
+{{#if params}}
+{{#each params}}
+    {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+){{#if returns}} -> {{{returns}}}{{else}} -> Result<()>{{/if}} {
+{{#if body}}
+{{#each body}}
+    {{{this}}}
+{{/each}}
+{{else}}
+    Ok(())
+{{/if}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if cpiModules}}
+// ================ Cross-Program Invocation (CPI) ================
+{{#each cpiModules}}
+{{#if description}}/// {{{description}}}{{/if}}
+pub mod {{{name}}}_cpi {
+    use super::*;
+
+{{#each functions}}
+    {{#if description}}/// {{{description}}}{{/if}}
+    pub fn {{{name}}}(
+        ctx: CpiContext<{{{contextStruct}}}>,
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ) -> Result<()> {
+{{#if body}}
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        // Default CPI implementation
+        Ok(())
+{{/if}}
+    }
+
+{{/each}}
+}
+
+{{/each}}
+{{/if}}
+
+{{#if pdaSeeds}}
+// ================ Program Derived Address (PDA) Seeds ================
+{{#each pdaSeeds}}
+{{#if description}}/// {{{description}}}{{/if}}
+pub const {{{name}}}_SEED: &[u8] = b"{{{seed}}}";
+{{/each}}
+
+{{#if pdaFunctions}}
+{{#each pdaFunctions}}
+{{#if description}}/// {{{description}}}{{/if}}
+pub fn {{{name}}}(
+{{#if params}}
+{{#each params}}
+    {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+) -> (Pubkey, u8) {
+{{#if body}}
+{{#each body}}
+    {{{this}}}
+{{/each}}
+{{else}}
+    // Default PDA derivation
+    Pubkey::find_program_address(&[], &crate::ID)
+{{/if}}
+}
+
+{{/each}}
+{{/if}}
+{{/if}}
+
+{{#if stateTransitions}}
+// ================ State Transitions ================
+{{#each stateTransitions}}
+{{#if description}}/// {{{description}}}{{/if}}
+impl {{{structName}}} {
+    pub fn {{{name}}}(
+        &mut self{{#if params}},{{/if}}
+{{#if params}}
+{{#each params}}
+        {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+    ) -> Result<()> {
+{{#if validations}}
+        // State validations
+{{#each validations}}
+        {{{this}}}
+{{/each}}
+
+{{/if}}
+{{#if body}}
+        // State transition logic
+{{#each body}}
+        {{{this}}}
+{{/each}}
+{{else}}
+        // Default state transition
+        Ok(())
+{{/if}}
+    }
+}
+
+{{/each}}
+{{/if}}
+
+{{#if securityChecks}}
+// ================ Security Checks ================
+{{#each securityChecks}}
+{{#if description}}/// {{{description}}}{{/if}}
+pub fn {{{name}}}(
+{{#if params}}
+{{#each params}}
+    {{{name}}}: {{{type}}}{{#unless @last}},{{/unless}}
+{{/each}}
+{{/if}}
+) -> Result<()> {
+{{#if body}}
+{{#each body}}
+    {{{this}}}
+{{/each}}
+{{else}}
+    // Default security check
+    Ok(())
+{{/if}}
+}
+
+{{/each}}
+{{/if}}

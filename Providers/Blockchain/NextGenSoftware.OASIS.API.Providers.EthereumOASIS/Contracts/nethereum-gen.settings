@@ -1,0 +1,7 @@
+{
+    "projectName": "NextGenWorld.OASIS.EthereumSmartContract",
+    "namespace": "NextGenWorld.OASIS.EthereumSmartContract.Contracts",
+    "lang": 0,
+    "autoCodeGen": true,
+    "projectPath": "../"
+}

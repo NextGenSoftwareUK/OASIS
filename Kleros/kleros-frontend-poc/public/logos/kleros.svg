@@ -1,0 +1,49 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Kleros Logo - Scales of Justice with gavel -->
+  <g filter="url(#glow)">
+    <!-- Balance beam -->
+    <rect x="12" y="22" width="24" height="2" fill="url(#grad1)" rx="1"/>
+    <rect x="23" y="12" width="2" height="12" fill="url(#grad1)" rx="1"/>
+    
+    <!-- Left scale -->
+    <path d="M12 22L8 28H16L12 22Z" fill="url(#grad2)" opacity="0.8"/>
+    <line x1="12" y1="22" x2="12" y2="28" stroke="#A855F7" strokeWidth="1.5"/>
+    
+    <!-- Right scale -->
+    <path d="M36 22L32 28H40L36 22Z" fill="url(#grad2)" opacity="0.8"/>
+    <line x1="36" y1="22" x2="36" y2="28" stroke="#A855F7" strokeWidth="1.5"/>
+    
+    <!-- Base -->
+    <rect x="18" y="34" width="12" height="3" fill="url(#grad3)" rx="1.5"/>
+    <rect x="21" y="24" width="6" height="10" fill="url(#grad1)" rx="1"/>
+    
+    <!-- Decorative circles -->
+    <circle cx="24" cy="12" r="2" fill="#C084FC"/>
+    <circle cx="12" cy="22" r="1.5" fill="#A855F7"/>
+    <circle cx="36" cy="22" r="1.5" fill="#A855F7"/>
+  </g>
+  <defs>
+    <linearGradient id="grad1" x1="24" y1="12" x2="24" y2="37">
+      <stop offset="0%" stopColor="#C084FC"/>
+      <stop offset="100%" stopColor="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="24" y1="22" x2="24" y2="28">
+      <stop offset="0%" stopColor="#A855F7"/>
+      <stop offset="100%" stopColor="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="grad3" x1="24" y1="34" x2="24" y2="37">
+      <stop offset="0%" stopColor="#7C3AED"/>
+      <stop offset="100%" stopColor="#6D28D9"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+
+

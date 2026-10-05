@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holonic Data Visualizer - OASIS STAR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 300px;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            display: none;
+        }
+
+        #info-panel.visible {
+            display: block;
+        }
+
+        #info-panel h3 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        #info-panel p {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        #info-panel .label {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        #controls button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        #controls button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        #stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        #stats .stat-item {
+            margin: 5px 0;
+        }
+
+        #stats .stat-label {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        #controls button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 255, 255, 0.95);
+            color: #000;
+            padding: 30px 50px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.8);
+            border: 3px solid #00ffff;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="info-panel">
+        <h3 id="info-title">Holon Information</h3>
+        <div id="info-content"></div>
+    </div>
+
+    <div id="controls">
+        <h3 style="color: #00ffff; margin-bottom: 10px; font-size: 16px;">Controls</h3>
+        <button id="btn-reset-camera">Reset Camera</button>
+        <button id="btn-toggle-orbits">Toggle Orbits</button>
+        <button id="btn-toggle-labels">Toggle Labels</button>
+        
+        <div style="margin: 15px 0; padding-top: 15px; border-top: 1px solid #00ffff;">
+            <h4 style="color: #00ff88; margin-bottom: 10px; font-size: 14px;">Generate Mock Data</h4>
+            <button id="btn-generate-moon" style="background: rgba(136, 136, 136, 0.2); border-color: #888888; color: #888888;">Generate Moon</button>
+            <button id="btn-generate-planet" style="background: rgba(0, 255, 255, 0.2); border-color: #00ffff; color: #00ffff;">Generate Planet</button>
+            <button id="btn-generate-star" style="background: rgba(255, 255, 0, 0.2); border-color: #ffff00; color: #ffff00;">Generate Star</button>
+            <button id="btn-generate-random" style="margin-top: 5px;">Generate Random Mix</button>
+        </div>
+        
+        <button id="btn-clear">Clear All</button>
+    </div>
+
+    <div id="stats">
+        <div class="stat-item">
+            <span class="stat-label">OAPPs:</span> <span id="stat-oapps">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Holons:</span> <span id="stat-holons">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Stars:</span> <span id="stat-stars">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Planets:</span> <span id="stat-planets">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Moons:</span> <span id="stat-moons">0</span>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">Initializing Holonic Visualizer...</div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
+

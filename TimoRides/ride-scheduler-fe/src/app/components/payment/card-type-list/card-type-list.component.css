@@ -1,0 +1,121 @@
+.payment-container {
+  padding: 16px;
+}
+
+.payment-title {
+  margin-bottom: 16px;
+  padding-left: 16px;
+}
+
+.image-list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0;
+}
+
+.image-list__title {
+  width: 100%;
+}
+
+.new-card {
+  align-items: center;
+  column-gap: 16px;
+  display: flex;
+}
+
+.new-card:hover {
+  cursor: pointer;
+}
+
+.new-card:hover .add {
+  color: rgb(8, 104, 207);
+}
+
+.wlnfr {
+  fill: rgb(2, 108, 223);
+}
+
+.add {
+  color: rgb(2, 108, 223);
+}
+
+/* Optional Card Section */
+.optional-container {
+  padding: 0 16px;
+}
+
+.optional-title {
+  font-weight: 500;
+  padding: 16px 0 0;
+  margin: 0;
+}
+
+.terms {
+  color: rgb(2, 108, 223);
+  font-weight: 600;
+}
+
+.terms:hover {
+  color: rgb(1, 80, 167);
+}
+
+/* Form Styles */
+.example-full-width,
+.city-state-section,
+.contact-section {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.security {
+  align-items: flex-start;
+  column-gap: 10px;
+  display: flex;
+}
+
+.img-box {
+  align-items: center;
+  column-gap: 5px;
+  display: flex;
+  margin-top: 10px;
+}
+
+.sec-error {
+  white-space: nowrap;
+}
+
+.expiration-section,
+.security-control {
+  max-width: 140px;
+}
+
+.example-margin {
+  margin: 0 10px;
+}
+
+.btn-actions {
+  column-gap: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.exp-sec-section,
+.city-state-section,
+.contact-section {
+  column-gap: 10px;
+  display: flex;
+}
+
+.card-header-image {
+  align-items: center;
+  column-gap: 10px;
+  display: flex;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.card-completed {
+  width: 18px;
+}

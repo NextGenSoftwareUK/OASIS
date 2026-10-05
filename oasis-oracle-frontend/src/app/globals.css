@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050510;
+  --background-secondary: #0b1120;
+  --foreground: #e2f4ff;
+  --accent: #22d3ee;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent-strong: rgba(14, 116, 144, 0.8);
+  --card: rgba(15, 23, 42, 0.6);
+  --card-border: rgba(56, 189, 248, 0.2);
+  --muted: rgba(148, 163, 184, 0.75);
+  --negative: rgba(239, 68, 68, 0.8);
+  --positive: rgba(34, 197, 94, 0.85);
+  --warning: rgba(250, 204, 21, 0.85);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-negative: var(--negative);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.1), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(129, 140, 248, 0.12), transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 50%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(5, 5, 16, 0.95) 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-attachment: fixed;
+}
+
+.gradient-ring::before {
+  background: linear-gradient(120deg, rgba(34, 211, 238, 0.85), rgba(191, 219, 254, 0.15), rgba(59, 130, 246, 0.65));
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(5, 5, 16, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.3);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.5);
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glow animation */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(34, 211, 238, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+.serious-ui {
+  --serious-bg: #020817;
+  --serious-surface: linear-gradient(145deg, rgba(3, 8, 18, 0.98), rgba(5, 12, 28, 0.85));
+  --serious-border: rgba(47, 65, 104, 0.65);
+  --serious-border-strong: rgba(96, 165, 250, 0.35);
+  --serious-chip-bg: rgba(8, 16, 32, 0.9);
+  --serious-chip-text: rgba(148, 163, 184, 0.85);
+  --serious-ticket-shadow: 0 15px 40px rgba(3, 6, 23, 0.55);
+}
+
+.serious-ui .serious-panel {
+  background: var(--serious-surface);
+  border: 1px solid var(--serious-border);
+  box-shadow: var(--serious-ticket-shadow);
+}
+
+.serious-ui .serious-dropdown {
+  border: 1px solid rgba(55, 65, 81, 0.6);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(5, 9, 21, 0.95), rgba(8, 12, 26, 0.85));
+  padding: 1.25rem 1.5rem;
+  color: var(--color-foreground);
+}
+
+.serious-ui .serious-dropdown summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.serious-ui .serious-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.serious-ui .serious-dropdown[open] {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 20px 50px rgba(5, 12, 28, 0.6);
+}
+
+.serious-ui .serious-dropdown__body {
+  margin-top: 1.25rem;
+  color: rgba(226, 244, 255, 0.85);
+}
+
+.serious-ui .ticket-card {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff, #f5f7ff);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0b1d33;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 18px 35px rgba(5, 7, 16, 0.12);
+}
+
+.serious-ui .ticket-card::before,
+.serious-ui .ticket-card::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  width: 16px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #030818;
+  border: 1px solid rgba(2, 6, 23, 0.85);
+  box-shadow: inset 0 0 6px rgba(2, 6, 23, 0.6);
+}
+
+.serious-ui .ticket-card::before {
+  left: -8px;
+}
+
+.serious-ui .ticket-card::after {
+  right: -8px;
+}
+
+
+
+
+
+

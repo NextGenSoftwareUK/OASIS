@@ -1,0 +1,22 @@
+[
+  {
+    "name": "RWA Token",
+    "success": false,
+    "error": "Request failed with status code 400"
+  },
+  {
+    "name": "Order Book",
+    "success": false,
+    "error": "Request failed with status code 400"
+  },
+  {
+    "name": "Trade Execution",
+    "success": false,
+    "error": "Request failed with status code 400"
+  },
+  {
+    "name": "Vault",
+    "success": false,
+    "error": "Request failed with status code 400"
+  }
+]

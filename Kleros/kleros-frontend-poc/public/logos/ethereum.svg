@@ -1,0 +1,29 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ethereum Diamond Logo -->
+  <g filter="url(#glow)">
+    <path d="M24 2L24.5 3.5L38 20L24 28L10 20L23.5 3.5L24 2Z" fill="url(#grad1)"/>
+    <path d="M24 28L38 20L24 46L10 20L24 28Z" fill="url(#grad2)"/>
+    <path d="M24 2L24 16L38 20L24 2Z" fill="#00D4FF" opacity="0.8"/>
+    <path d="M24 2L24 16L10 20L24 2Z" fill="#00FFFF" opacity="0.6"/>
+  </g>
+  <defs>
+    <linearGradient id="grad1" x1="24" y1="2" x2="24" y2="28">
+      <stop offset="0%" stopColor="#00FFFF"/>
+      <stop offset="100%" stopColor="#00D4FF"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="24" y1="28" x2="24" y2="46">
+      <stop offset="0%" stopColor="#00D4FF"/>
+      <stop offset="100%" stopColor="#0099CC"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+
+

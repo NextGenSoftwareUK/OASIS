@@ -1,0 +1,66 @@
+global using System;
+global using System.IO;
+global using System.Net;
+global using System.Linq;
+global using System.Text;
+global using Nethereum.Web3;
+global using System.Numerics;
+global using System.Net.Mime;
+global using HandlebarsDotNet;
+global using FluentValidation;
+global using System.Resources;
+global using System.Threading;
+global using System.Reflection;
+global using DotNext.Resources;
+global using System.Diagnostics;
+global using System.Net.Sockets;
+global using BuildingBlocks.Http;
+global using Newtonsoft.Json.Linq;
+global using System.Globalization;
+global using System.IO.Compression;
+global using BuildingBlocks.Logging;
+global using ScGen.Lib.Shared.Enums;
+global using Nethereum.RPC.Eth.DTOs;
+global using ScGen.Lib.Shared.Models;
+global using System.Threading.Tasks;
+global using ScGen.Lib.Shared.Helpers;
+global using ScGen.Lib.Shared.Options;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Http;
+global using ScGen.Lib.Contracts.Radix;
+global using ScGen.Lib.Shared.Constants;
+global using ScGen.Lib.Shared.Resources;
+global using ScGen.Lib.Contracts.Solana;
+global using System.Collections.Generic;
+global using ScGen.Lib.Shared.Extensions;
+global using ScGen.Lib.Shared.Validation;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.Extensions.Options;
+global using ScGen.Lib.Contracts.Ethereum;
+global using BuildingBlocks.Enums.Logging;
+global using Microsoft.Extensions.Logging;
+global using ScGen.Lib.ImplContracts.Radix;
+global using System.Text.RegularExpressions;
+global using ScGen.Lib.ImplContracts.Solana;
+global using System.Text.Json.Serialization;
+global using BuildingBlocks.Patterns.Result;
+global using System.Runtime.InteropServices;
+global using ScGen.Lib.Shared.DTOs.Responses;
+global using ScGen.Lib.ImplContracts.Ethereum;
+global using ScGen.Lib.Contracts.BaseContracts;
+global using ScGen.Lib.Shared.Patterns.Factory;
+global using BuildingBlocks.Patterns.ApiResponse;
+global using System.ComponentModel.DataAnnotations;
+global using BuildingBlocks.Middlewares.Extensions;
+global using Microsoft.AspNetCore.ResponseCompression;
+global using Microsoft.Extensions.DependencyInjection;
+global using ScGen.Lib.Shared.Services.PropertyExtractor;
+global using ScGen.Lib.Shared.Services.X402;
+global using ScGen.Lib.Shared.Middlewares;
+global using Microsoft.Extensions.Configuration;
+
+
+namespace ScGen.Lib
+{
+    public class ScGenLib;
+}

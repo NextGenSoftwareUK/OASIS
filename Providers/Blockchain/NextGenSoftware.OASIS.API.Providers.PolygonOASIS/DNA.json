@@ -1,0 +1,6 @@
+{
+    "ConnectionString": "https://rpc-amoy.polygon.technology/",
+    "ChainId": 137, // Also can be 80001
+    "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
+    "ContractAddress": "0xd6e25f0a709ac99886c96267B23c3d2335550031" // Deployed at: Thu Sep 5 2024
+}

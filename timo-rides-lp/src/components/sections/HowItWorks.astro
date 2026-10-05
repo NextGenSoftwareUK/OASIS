@@ -1,0 +1,85 @@
+---
+const pathPulseLink = "https://play.google.com/store/apps/details?id=com.nxved.pulsescout.nativeapp&referrer=utm_source%3Dreferral%26utm_content%3D072";
+---
+
+<section id="how-it-works" class="relative flex flex-col w-screen h-full overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-teal-900 py-20" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+
+    <!-- How It Works headline -->
+    <div class="flex flex-col justify-center items-center max-w-4xl mx-auto text-center mb-12 px-4 pt-12 relative z-10">
+        <h2 class="text-4xl md:text-5xl font-bold text-white drop-shadow-lg mb-4">
+            How It Works
+        </h2>
+        <p class="text-lg md:text-xl text-white/90 max-w-2xl">
+            Familiar with the Uber / Bolt driver apps? You'll find these steps simple. Get set up and start competing for cash prizes!
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 my-10 p-6 md:px-10 relative z-10">
+        <!-- Step 1 -->
+        <div class="flex flex-col bg-white shadow-lg rounded-xl p-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-accent/10 rounded-bl-full"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-3xl font-bold mb-6">
+                    1
+                </div>
+                <h3 class="text-2xl font-bold text-primary mb-4">
+                    Download PathPulse App
+                </h3>
+                <p class="text-slate-600 mb-4">
+                    Use this link to download the app, and follow the setup instructions.
+                </p>
+                <a 
+                    href={pathPulseLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center bg-primary text-white px-6 py-3 rounded-full font-semibold hover:bg-accent hover:text-primary transition duration-300 mt-auto"
+                >
+                    Download Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex flex-col bg-white shadow-lg rounded-xl p-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-accent/10 rounded-bl-full"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-3xl font-bold mb-6">
+                    2
+                </div>
+                <h3 class="text-2xl font-bold text-primary mb-4">
+                    Keep PathPulse Running While You Drive
+                </h3>
+                <p class="text-slate-600 mb-4">
+                    Activate PathPulse as your dashcam and keep the app running while you drive.
+                </p>
+                <div class="mt-auto pt-4">
+                    <div class="bg-accent/10 rounded-lg p-4 text-sm text-primary font-semibold">
+                        The app runs in the background and automatically collects data while you drive. No need to keep it open!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex flex-col bg-white shadow-lg rounded-xl p-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-accent/10 rounded-bl-full"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-center w-16 h-16 bg-primary text-white rounded-full text-3xl font-bold mb-6">
+                    3
+                </div>
+                <h3 class="text-2xl font-bold text-primary mb-4">
+                    View Your Status on the Timo Scout Leaderboard!
+                </h3>
+                <p class="text-slate-600 mb-4">
+                    Your driver hours are tracked - you will win a cash prize if you are in the top list!
+                </p>
+                <div class="mt-auto pt-4">
+                    <div class="bg-accent/10 rounded-lg p-4 text-sm text-primary font-semibold">
+                        Check your ranking in real-time inside the PathPulse app.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

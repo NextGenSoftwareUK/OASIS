@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram CRM - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .panel h2 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .conversation-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .conversation-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .conversation-item:last-child {
+            border-bottom: none;
+        }
+        
+        .conversation-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .conversation-meta {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .badge-high {
+            background: #fee;
+            color: #c33;
+        }
+        
+        .badge-medium {
+            background: #ffe;
+            color: #c93;
+        }
+        
+        .badge-unread {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Telegram CRM Dashboard</h1>
+            <p>Manage your Telegram conversations and never miss important messages</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Conversations</h3>
+                <div class="value" id="totalConversations">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unread Messages</h3>
+                <div class="value" id="unreadCount">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Contacts</h3>
+                <div class="value" id="totalContacts">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Follow-ups</h3>
+                <div class="value" id="pendingFollowups">-</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2>Recent Conversations</h2>
+                <div id="conversationsList" class="loading">Loading conversations...</div>
+            </div>
+            
+            <div class="panel">
+                <h2>Quick Actions</h2>
+                <div>
+                    <h3 style="margin-bottom: 10px; font-size: 14px;">Get Conversations</h3>
+                    <input type="text" id="avatarIdInput" placeholder="Enter OASIS Avatar ID (GUID)">
+                    <button class="btn" onclick="loadConversations()">Load Conversations</button>
+                    
+                    <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px;">Search</h3>
+                    <input type="text" id="searchInput" placeholder="Search keyword">
+                    <button class="btn" onclick="searchConversations()">Search</button>
+                    
+                    <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px;">Test Endpoints</h3>
+                    <button class="btn" onclick="testContacts()">Get All Contacts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:5001/api/telegram-crm';
+        
+        // Load stats on page load
+        window.onload = function() {
+            loadStats();
+        };
+        
+        async function loadStats() {
+            try {
+                // Get contacts count
+                const contactsRes = await fetch(`${API_BASE}/contacts`);
+                const contacts = await contactsRes.json();
+                document.getElementById('totalContacts').textContent = contacts.length || 0;
+                
+                // For now, set defaults (will be updated when we have conversations)
+                document.getElementById('totalConversations').textContent = '0';
+                document.getElementById('unreadCount').textContent = '0';
+                document.getElementById('pendingFollowups').textContent = '0';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        async function loadConversations() {
+            const avatarId = document.getElementById('avatarIdInput').value;
+            if (!avatarId) {
+                alert('Please enter an OASIS Avatar ID');
+                return;
+            }
+            
+            const listDiv = document.getElementById('conversationsList');
+            listDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/conversations?oasisAvatarId=${avatarId}`);
+                const conversations = await response.json();
+                
+                if (conversations.length === 0) {
+                    listDiv.innerHTML = '<div class="loading">No conversations found. Send some messages via Telegram to see them here!</div>';
+                    return;
+                }
+                
+                let html = '';
+                conversations.forEach(conv => {
+                    const unreadBadge = conv.unreadCount > 0 ? `<span class="badge badge-unread">${conv.unreadCount} unread</span>` : '';
+                    const priorityBadge = conv.priority === 'high' || conv.priority === 'urgent' 
+                        ? `<span class="badge badge-high">${conv.priority}</span>` 
+                        : conv.priority === 'medium' 
+                        ? `<span class="badge badge-medium">${conv.priority}</span>` 
+                        : '';
+                    
+                    html += `
+                        <div class="conversation-item" onclick="viewConversation('${conv.id}')">
+                            <div class="conversation-name">
+                                ${conv.contactName || 'Unknown'} ${priorityBadge} ${unreadBadge}
+                            </div>
+                            <div class="conversation-meta">
+                                ${conv.contactUsername ? '@' + conv.contactUsername : ''} • 
+                                ${conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleString() : 'No messages'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listDiv.innerHTML = html;
+                
+                // Update stats
+                const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+                document.getElementById('totalConversations').textContent = conversations.length;
+                document.getElementById('unreadCount').textContent = totalUnread;
+                
+            } catch (error) {
+                listDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function searchConversations() {
+            const keyword = document.getElementById('searchInput').value;
+            const avatarId = document.getElementById('avatarIdInput').value;
+            
+            if (!keyword || !avatarId) {
+                alert('Please enter both Avatar ID and search keyword');
+                return;
+            }
+            
+            const listDiv = document.getElementById('conversationsList');
+            listDiv.innerHTML = '<div class="loading">Searching...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/conversations/search?oasisAvatarId=${avatarId}&keyword=${encodeURIComponent(keyword)}`);
+                const conversations = await response.json();
+                
+                if (conversations.length === 0) {
+                    listDiv.innerHTML = '<div class="loading">No conversations found matching your search.</div>';
+                    return;
+                }
+                
+                let html = '';
+                conversations.forEach(conv => {
+                    html += `
+                        <div class="conversation-item">
+                            <div class="conversation-name">${conv.contactName || 'Unknown'}</div>
+                            <div class="conversation-meta">${conv.contactUsername || ''}</div>
+                        </div>
+                    `;
+                });
+                
+                listDiv.innerHTML = html;
+            } catch (error) {
+                listDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testContacts() {
+            try {
+                const response = await fetch(`${API_BASE}/contacts`);
+                const contacts = await response.json();
+                alert(`Found ${contacts.length} contacts!\n\nCheck browser console for details.`);
+                console.log('Contacts:', contacts);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        function viewConversation(id) {
+            alert('Conversation details coming soon! ID: ' + id);
+            // TODO: Show conversation details and messages
+        }
+    </script>
+</body>
+</html>
+

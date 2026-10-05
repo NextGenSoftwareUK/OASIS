@@ -1,0 +1,112 @@
+# OASIS API Docker Deployment
+
+This folder contains all Docker-related files for building and deploying the OASIS API.
+
+## 📁 Files
+
+- **Dockerfile** - Main production Dockerfile for building the OASIS API
+- **.dockerignore** - Files and directories to exclude from Docker build context
+- **docker-compose.yml** - Docker Compose configuration for local development
+- **build.sh** - Script to build Docker image locally for testing
+- **deploy.sh** - Script to build and push Docker image to AWS ECR
+- **update-ecs.sh** - Script to update AWS ECS service with new image
+- **COMPARISON.md** - Comparison between previous working image and current setup
+- **BUILD_STATUS.md** - Build status and configuration details
+
+## 🚀 Quick Start
+
+### Build Locally
+
+```bash
+cd /Volumes/Storage\ 3/OASIS_CLEAN
+./docker/build.sh
+```
+
+This will build the Docker image with tag `oasis-api:latest`.
+
+### Run Locally
+
+```bash
+# Using Docker directly
+docker run -p 5003:80 oasis-api:latest
+
+# Or using Docker Compose
+docker-compose up
+```
+
+Then access:
+- API: http://localhost:5003
+- Swagger: http://localhost:5003/swagger
+
+### Build and Deploy to AWS ECR
+
+```bash
+cd /Volumes/Storage\ 3/OASIS_CLEAN
+./docker/deploy.sh
+```
+
+### Update ECS Service
+
+```bash
+./docker/update-ecs.sh
+```
+
+## 📊 Configuration
+
+### Environment Variables
+
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `ASPNETCORE_URLS=http://+:80`
+
+### Ports
+
+- **80**: HTTP (internal)
+- **443**: HTTPS (internal)
+- **5003**: HTTP (host mapping)
+- **5004**: HTTPS (host mapping)
+
+### Health Check
+
+- **Endpoint**: `/swagger/index.html`
+- **Interval**: 30s
+- **Timeout**: 10s
+- **Retries**: 3
+- **Start Period**: 60s
+
+## 📝 Build Process
+
+1. **Base Stage**: Uses .NET 9.0 runtime image
+2. **Build Stage**: Uses .NET 9.0 SDK to build the application
+3. **Publish Stage**: Publishes the application
+4. **Final Stage**: Copies published files and sets up runtime
+
+## 🔍 Key Features
+
+- ✅ .NET 9.0 compatible
+- ✅ Multi-stage build for optimized image size
+- ✅ Includes all 30+ OASIS providers
+- ✅ Health check configured
+- ✅ Production-ready configuration
+
+## 🐛 Troubleshooting
+
+### Build Context Too Large
+
+If the build context is too large, check `.dockerignore` to ensure unnecessary directories are excluded.
+
+### Missing Dependencies
+
+Ensure `NextGenSoftware-Libraries` and other dependencies are available in the build context.
+
+### OASIS_DNA.json
+
+The `OASIS_DNA.json` file should be in the WebAPI project directory. If not present, configuration can be provided via environment variables.
+
+## 📚 Related Documentation
+
+- `BUILD_STATUS.md` - Build status and updates
+- `COMPARISON.md` - Comparison with previous working image
+- `SUMMARY.md` - Summary of Docker setup
+
+
+

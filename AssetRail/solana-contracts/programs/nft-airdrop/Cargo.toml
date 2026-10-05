@@ -1,0 +1,27 @@
+[package]
+name = "nft-airdrop"
+version = "0.1.0"
+description = "NFT Airdrop - Batch mint and distribute NFTs to multiple wallets"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "nft_airdrop"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"
+mpl-token-metadata = "4.1.2"
+
+
+
+
+
+

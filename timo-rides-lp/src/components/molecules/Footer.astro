@@ -1,0 +1,89 @@
+---
+import Link from '../atoms/Link.astro'
+import { Icon } from 'astro-icon/components'
+import {Phone, Mail} from "@lucide/astro"
+
+const year = new Date().getFullYear()
+---
+
+<footer class="bg-primary">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
+        <div class="p-5">
+            <h1 class="text-xl font-bold text-bg">TIMO RIDES</h1>
+            <p class="text-bg mt-4 mb-3 text-sm">Premium transportation services across South Africa. Your journey, our priority.</p>
+            <div class="flex gap-3">
+                <Icon name="mdi:facebook" 
+                class="w-6 h-6 text-accent"/>
+                <Icon name="mdi:twitter" class="w-6 h-6 text-accent"/>
+                <Icon name="mdi:instagram" class="w-6 h-6 text-accent"/>
+                <Icon name="mdi:linkedin" class="w-6 h-6 text-accent"/>
+            </div>
+        </div>
+        <div class="p-5">
+            <h2 class="font-bold text-bg ">Quick Links</h2>
+            <ul class="text-bg text-sm mt-1">
+                <li class="py-1">
+                    <Link href='#' label='Home' classes='hover:text-slate-300'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#whyus' label='About' classes='hover:text-slate-300'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#services' label='Services' classes='hover:text-slate-300'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#testimonials'classes='hover:text-slate-300'
+                    label='Testimonials'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#contact' label='Contact' classes='hover:text-slate-300'/>
+                </li>
+            </ul>
+        </div>
+        <div class="p-5">
+            <h2 class=" font-bold text-bg ">Services</h2>
+            <ul class="text-bg text-sm mt-1">
+               <li class="py-1">
+                    <Link href='#services' label='City Transfer' classes='hover:text-slate-300'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#services' label='Corporate Travel' classes='hover:text-slate-300'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#services' label='Airport Transfer' classes='hover:text-slate-300'/>
+                </li>
+                <li class="py-1">
+                    <Link href='#services' label='Group Events' classes='hover:text-slate-300'/>
+                </li>
+            </ul>
+        </div>
+        <div class="p-5">
+            <h2 class="font-bold text-bg ">Contact Info</h2>
+            <ul class="text-sm mt-1">
+                <li class="flex items-center gap-2 py-1">
+                    <Phone size={16} class="text-accent"/>
+                    <span class="text-bg">
+                        +27 69 779 8934
+                    </span>
+                </li>
+                <li class="flex items-center gap-2 py-1">
+                    <Mail size={16} class='text-accent'/>
+                    <span class="text-bg">
+                        info@timorides.com
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="py-5">  
+        <hr class="text-slate-500"/>
+        <div class="text-center text-slate-200 text-xs flex flex-col pb-4 gap-2">
+            <span>
+                &copy; {year} Timo Rides. All rights reserved.
+            </span>
+            <span>
+                Privacy Policy | Terms and Conditions
+            </span>
+        </div>
+    </div>
+</footer>

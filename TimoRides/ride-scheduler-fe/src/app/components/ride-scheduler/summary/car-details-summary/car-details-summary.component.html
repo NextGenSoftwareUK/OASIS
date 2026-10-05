@@ -1,0 +1,36 @@
+<table class="table table-striped table-component">
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><h3 style="font-weight: bold">Model</h3></td>
+      <td>{{ carDetails.vehicleModel }}</td>
+    </tr>
+    <tr>
+      <td><h3 style="font-weight: bold">Color</h3></td>
+      <td>{{ carDetails.vehicleColor }}</td>
+    </tr>
+    <tr>
+      <td><h3 style="font-weight: bold">Plate number</h3></td>
+      <td>{{ carDetails.vehicleRegNumber }}</td>
+    </tr>
+    <tr>
+      <td><h3 style="font-weight: bold">Rating</h3></td>
+      <td>
+        <app-rating-widget [rated]="carDetails.rating"></app-rating-widget>
+      </td>
+    </tr>
+    <tr>
+      <td><h3 style="font-weight: bold">Trip amount</h3></td>
+      <td>
+        <p class="car-amount" *ngIf="isProxyCar(carDetails)">
+          {{ carDetails.rideAmount | currency : paymentCurrency }}
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>

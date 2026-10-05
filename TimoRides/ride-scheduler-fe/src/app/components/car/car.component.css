@@ -1,0 +1,85 @@
+.car-card {
+  padding: 1rem;
+  border-radius: 8px;
+  width: 300px;
+  height: 300px;
+  border: 1px solid #eee;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%; /* takes the width of the enclosing grid container */
+}
+
+.car-card,
+.car-image {
+  transition: all 0.2s ease-in-out;
+}
+
+.car-card:hover {
+  cursor: pointer;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 17px rgb(31 18 232 / 52%);
+}
+
+.car-card:hover .car-image {
+  transform: scale(1.05);
+}
+
+.car-container {
+  overflow: hidden;
+  width: 100%;
+  height: calc(100% - 33px - 2rem);
+}
+
+.car-image {
+  width: 100%;
+  height: 180px;
+}
+
+.car-summary-section__a {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  align-items: center;
+}
+
+.distance_container {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.distance_container img {
+  width: 30px;
+}
+
+.distance_container p {
+  color: rebeccapurple;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.car-summary-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.car-model,
+.car-rating,
+.car-number,
+.car-amount {
+  margin: 0;
+}
+
+.rating-container {
+  white-space: nowrap;
+}
+
+.car-amount {
+  background: rebeccapurple;
+  color: white;
+  border-radius: 50px;
+  padding: 2px 20px;
+}

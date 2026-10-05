@@ -1,0 +1,409 @@
+<div class="profile-container">
+  <!-- Left column -->
+  <div class="left-column">
+    <div class="profile-picture">
+      <img [src]="uploadedFilePath" alt="" />
+    </div>
+    <div class="basic-info">
+      <h2>{{ getControl(biodataForm, "fullName").value }}</h2>
+      <p>{{ getControl(biodataForm, "email").value }}</p>
+    </div>
+
+    <!-- Upload profile picture -->
+    <div class="form-group">
+      <app-input-group
+        [inputConfig]="{
+          label: 'Profile Picture',
+          isRequired: false,
+          id: 'profileImg',
+          theme: 'dark',
+          accept: 'image/*'
+        }"
+        inputType="file"
+        controlName="profileImg"
+        [form]="biodataForm"
+      ></app-input-group>
+      <ng-container *ngIf="profileImageUploadProgress.status !== 'none'">
+        <span
+          class="uploadStatus"
+          [class.uploadSuccess]="
+            profileImageUploadProgress.status === 'success'
+          "
+          [class.uploadFailed]="profileImageUploadProgress.status === 'failed'"
+          [class.uploadPending]="
+            profileImageUploadProgress.status === 'pending'
+          "
+          >{{ profileImageUploadProgress.message }}</span
+        >
+      </ng-container>
+    </div>
+    <div class="navigation-buttons">
+      <div class="btn-con-form">
+        <app-button
+          [btnConfig]="{
+            label: 'Biodata',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Biodata',
+          }"
+          (click)="setActiveSection('biodata')"
+        ></app-button>
+      </div>
+
+      <div class="btn-con-form">
+        <app-button
+          [btnConfig]="{
+            label: 'Next of Kin',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Next of Kin',
+          }"
+          (click)="setActiveSection('nextOfKin')"
+        ></app-button>
+      </div>
+      <div class="btn-con-form">
+        <app-button
+          [btnConfig]="{
+            label: 'Password Update',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Password Update',
+          }"
+          (click)="setActiveSection('passwordUpdate')"
+        ></app-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="right-column">
+    <h2>{{ columnTitle }}</h2>
+    <!-- Biodata -->
+    <div *ngIf="activeSection === 'biodata'">
+      <!-- Biodata form -->
+      <form [formGroup]="biodataForm" (ngSubmit)="saveInfo()">
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Full Name',
+              isRequired: true,
+              placeholder: 'Full Name',
+              id: 'name',
+              theme: 'dark',
+              readonly: getControl(biodataForm, 'fullName').value,
+            }"
+            inputType="text"
+            controlName="fullName"
+            [form]="biodataForm"
+          ></app-input-group>
+        </div>
+
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Email',
+              isRequired: true,
+              placeholder: 'E.g. abc@123.com',
+              id: 'email',
+              theme: 'dark',
+              readonly: getControl(biodataForm, 'email').value,
+            }"
+            inputType="email"
+            controlName="email"
+            [form]="biodataForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Residential Address',
+              isRequired: true,
+              placeholder: 'E.g. Block 12, St. John\'s Street',
+              id: 'homeAddress',
+              theme: 'dark'
+            }"
+            inputType="text"
+            controlName="homeAddress"
+            [form]="biodataForm"
+          >
+          </app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Phone Number',
+              isRequired: true,
+              placeholder: 'phone',
+              id: 'phone',
+              theme: 'dark'
+            }"
+            inputType="tel"
+            controlName="phone"
+            [form]="biodataForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Alternate Phone',
+              isRequired: false,
+              placeholder: '',
+              id: 'altPhone',
+              theme: 'dark'
+            }"
+            inputType="tel"
+            controlName="altPhone"
+            [form]="biodataForm"
+          ></app-input-group>
+        </div>
+      </form>
+    </div>
+
+    <!-- Address -->
+    <div *ngIf="activeSection === 'address'">
+      <!-- Address form -->
+      <form [formGroup]="addressForm" (ngSubmit)="saveInfo()">
+        <div class="form-group">
+          <div class="address-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Street',
+                isRequired: true,
+                placeholder: 'Street',
+                id: 'Street',
+                theme: 'dark'
+              }"
+              controlName="street"
+              inputType="text"
+              [form]="addressForm"
+            ></app-input-group>
+
+            <app-input-group
+              [inputConfig]="{
+                label: 'Town',
+                isRequired: true,
+                placeholder: 'Town',
+                id: 'Town',
+                theme: 'dark'
+              }"
+              controlName="town"
+              inputType="text"
+              [form]="addressForm"
+            ></app-input-group>
+
+            <app-input-group
+              [inputConfig]="{
+                label: 'City',
+                isRequired: true,
+                placeholder: 'City',
+                id: 'City',
+                theme: 'dark'
+              }"
+              controlName="city"
+              inputType="text"
+              [form]="addressForm"
+            ></app-input-group>
+
+            <app-input-group
+              [inputConfig]="{
+                label: 'Postal/Area Code',
+                isRequired: true,
+                placeholder: 'Postal/Area Code',
+                id: 'postalCode',
+                theme: 'dark'
+              }"
+              controlName="postalCode"
+              inputType="text"
+              [form]="addressForm"
+            ></app-input-group>
+
+            <app-input-group
+              [inputConfig]="{
+                label: 'State',
+                isRequired: true,
+                placeholder: 'State',
+                id: 'State',
+                theme: 'dark'
+              }"
+              controlName="state"
+              inputType="text"
+              [form]="addressForm"
+            ></app-input-group>
+
+            <app-input-group
+              [inputConfig]="{
+                label: 'Country',
+                isRequired: true,
+                placeholder: 'Country',
+                id: 'country',
+                theme: 'dark'
+              }"
+              controlName="country"
+              inputType="text"
+              [form]="addressForm"
+            ></app-input-group>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="activeSection === 'passwordUpdate'">
+      <!-- password update section -->
+      <form [formGroup]="passwordForm">
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Old Password',
+              isRequired: false,
+              placeholder: '',
+              id: 'oldPassword',
+              theme: 'dark'
+            }"
+            inputType="password"
+            controlName="oldPassword"
+            [form]="passwordForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'New Password',
+              isRequired: false,
+              placeholder: '',
+              id: 'newPassword',
+              theme: 'dark'
+            }"
+            inputType="password"
+            controlName="newPassword"
+            [form]="passwordForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Confirm New Password',
+              isRequired: false,
+              placeholder: '',
+              id: 'newPasswordConfirm',
+              theme: 'dark'
+            }"
+            inputType="password"
+            controlName="newPasswordConfirm"
+            [form]="passwordForm"
+          ></app-input-group>
+        </div>
+      </form>
+    </div>
+
+    <!-- Next of Kin -->
+    <div *ngIf="activeSection === 'nextOfKin'">
+      <!-- Next of Kin form -->
+      <form [formGroup]="nextOfKinForm" (ngSubmit)="saveInfo()">
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Names',
+              isRequired: true,
+              placeholder: 'E.g. John Doe',
+              id: 'nextOfKinFullName',
+              theme: 'dark'
+            }"
+            inputType="text"
+            controlName="nextOfKinFullName"
+            [form]="nextOfKinForm"
+          ></app-input-group>
+        </div>
+        <!-- Other next of kin fields go here -->
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Phone Number (Cell)',
+              isRequired: true,
+              placeholder: 'E.g. 08011111111',
+              id: 'nextOfKinPhoneCell',
+              theme: 'dark'
+            }"
+            inputType="tel"
+            controlName="nextOfKinPhoneCell"
+            [form]="nextOfKinForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Alt. Phone Number',
+              isRequired: false,
+              placeholder: 'E.g. 08011111111',
+              id: 'nextOfKinPhoneHome',
+              theme: 'dark'
+            }"
+            inputType="tel"
+            controlName="nextOfKinPhoneHome"
+            [form]="nextOfKinForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Email',
+              isRequired: true,
+              placeholder: 'nok-email@abc.com',
+              id: 'nextOfKinEmailAddress',
+              theme: 'dark'
+            }"
+            inputType="text"
+            controlName="nextOfKinEmailAddress"
+            [form]="nextOfKinForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <div class="address-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Residential Address',
+                isRequired: true,
+                placeholder: 'E.g. Block 12, St. John\'s Street',
+                id: 'nextOfKinHomeAddress',
+                theme: 'dark'
+              }"
+              controlName="nextOfKinHomeAddress"
+              inputType="text"
+              [form]="nextOfKinForm"
+            >
+            </app-input-group>
+          </div>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Relationship',
+              isRequired: true,
+              placeholder: 'E.g. Brother',
+              id: 'nextOfKinRelationship',
+              theme: 'dark'
+            }"
+            inputType="text"
+            controlName="{{ 'nextOfKinRelationship' }}"
+            [form]="nextOfKinForm"
+          ></app-input-group>
+        </div>
+      </form>
+    </div>
+
+    <div class="btn-con-form">
+      <app-button
+        [btnConfig]="{
+          label: 'Save ' + columnTitle,
+          size: 'sm',
+          theme: 'primary',
+          block: true,
+          disabled: getForm(columnTitle)?.invalid
+        }"
+        (click)="saveInfo()"
+      ></app-button>
+    </div>
+  </div>
+</div>

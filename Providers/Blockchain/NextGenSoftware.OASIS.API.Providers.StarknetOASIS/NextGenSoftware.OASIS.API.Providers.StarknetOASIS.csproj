@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.StarknetOASIS</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB4 OASIS API Starknet Provider</Product>
+    <Title>WEB4 OASIS API Starknet Provider</Title>
+    <Summary>Starknet privacy provider for OASIS offering Starknet asset orchestration and atomic swaps.</Summary>
+    <Description>Starknet privacy provider for the OASIS API, enabling ZEC ↔ Starknet atomic swap flows for the Zypherpunk stack.</Description>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <PackageIcon>OASISLogo128.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS API; Starknet; Privacy; Atomic Swaps;</PackageTags>
+    <PackageReleaseNotes>Initial Zypherpunk Starknet provider.</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>1.0.0</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\\..\\..\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\\..\\..\\OASIS Architecture\\NextGenSoftware.OASIS.Common\\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>
+

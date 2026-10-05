@@ -1,0 +1,28 @@
+{
+  "cardTypes": [
+    {
+      "id": 1,
+      "cardName": "american-express",
+      "altName": "american express",
+      "cardImagepath": "../assets/images/payment-cards/american-express.svg"
+    },
+    {
+      "id": 2,
+      "cardName": "visa",
+      "altName": "visa",
+      "cardImagepath": "../assets/images/payment-cards/visa.svg"
+    },
+    {
+      "id": 3,
+      "cardName": "master-card",
+      "altName": "master card",
+      "cardImagepath": "../assets/images/payment-cards/master-card.svg"
+    },
+    {
+      "id": 4,
+      "cardName": "diners-club",
+      "altName": "diners club",
+      "cardImagepath": "../assets/images/payment-cards/diners-club.svg"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# Use the existing OASIS API image as base
+FROM 881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:latest
+
+# Copy the updated OASIS_DNA.json file
+COPY NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS_DNA.json /app/OASIS_DNA.json
+
+# The rest of the configuration remains the same
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebAPI.dll"]
+
+

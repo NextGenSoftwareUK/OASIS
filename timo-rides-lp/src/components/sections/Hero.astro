@@ -1,0 +1,98 @@
+---
+import Link from '../atoms/Link.astro';
+import { ArrowRight } from '@lucide/astro';
+
+const pathPulseLink = "https://play.google.com/store/apps/details?id=com.nxved.pulsescout.nativeapp&referrer=utm_source%3Dreferral%26utm_content%3D072";
+const signupWhatsAppLink = "https://wa.me/27726948528?text=SIGNUP";
+---
+<section id="home" class="relative w-full overflow-hidden min-h-screen">
+
+    <!-- Desktop video background - positioned at section level, hidden on mobile -->
+    <video 
+      autoplay
+      loop
+      muted
+      playsinline
+      class="hidden md:block absolute inset-0 w-full h-full object-cover desktop-hero-video"
+      style="object-position: center center; z-index: 1;"
+    >
+      <source src="/TimoPathPulseHero.mp4" type="video/mp4" />
+    </video>
+
+    <!-- Gradient overlay for text readability - hidden on mobile, shown on desktop -->
+    <div class="hidden md:block absolute inset-0 w-full h-full bg-black/50 z-10" style="min-height: 100vh;"></div>
+    
+    <div class="max-w-7xl mx-auto relative z-20 w-full pl-2 pr-4">
+      <!-- Mobile layout: text above, video in middle, CTAs below -->
+      <div class="flex flex-col md:hidden animate-fadeIn relative py-8">
+        <!-- Text above video on mobile -->
+        <div class="text-center space-y-4 mb-6 z-30 relative">
+          <h1 class="uppercase text-4xl font-bold flex flex-col space-y-2">
+            <span class="text-accent drop-shadow-2xl">Timo Rides x <span class="whitespace-nowrap">Path Pulse</span></span>
+            <span class="text-white drop-shadow-2xl">Leaderboard Challenge</span>
+          </h1>
+          <p class="text-lg text-white font-semibold drop-shadow-lg">
+            December 5 to 20, 2025
+          </p>
+        </div>
+
+        <!-- Video on mobile - inline, not absolute -->
+        <div class="relative z-10 my-4 w-full">
+          <video 
+            autoplay
+            loop
+            muted
+            playsinline
+            class="w-full h-auto md:hidden"
+            style="object-fit: contain;"
+          >
+            <source src="/TimoPathPulseHero.mp4" type="video/mp4" />
+          </video>
+        </div>
+
+        <!-- CTAs below video on mobile -->
+        <div class="flex flex-col gap-4 mt-6 z-30 relative">
+          <Link href={pathPulseLink} label='Download PathPulse' classes='flex justify-center items-center gap-3 bg-primary px-6 py-4 font-bold text-bg rounded-full text-lg hover:bg-accent hover:text-primary transition duration-300 group shadow-xl border-2 border-primary'>
+            <ArrowRight size={18} class="text-white group-hover:text-primary transition duration-300" slot={"icon"}/>
+          </Link>
+          <Link href={signupWhatsAppLink} label='Text SIGNUP' classes='flex justify-center items-center border-2 border-accent px-6 py-4 font-bold text-bg rounded-full hover:bg-accent/20 transition duration-300 text-lg shadow-xl backdrop-blur-sm bg-white/10'/>         
+          <p class="text-sm text-white/80 drop-shadow-lg mt-2 px-4 text-center">
+            Text SIGNUP to receive signup instructions via WhatsApp
+          </p>
+        </div>
+      </div>
+
+      <!-- Desktop layout: centered overlay -->
+      <div class="hidden md:flex flex-col justify-center items-center animate-fadeIn relative min-h-screen z-20">
+        <div class="text-center space-y-4">
+          <h1 class="uppercase text-5xl md:text-6xl lg:text-7xl font-bold flex flex-col space-y-2">
+            <span class="text-accent drop-shadow-2xl">Timo Rides x <span class="whitespace-nowrap">Path Pulse</span></span>
+            <span class="text-white drop-shadow-2xl">Leaderboard Challenge</span>
+          </h1>
+          <p class="text-xl md:text-2xl text-white font-semibold drop-shadow-lg mt-4">
+            December 5 to 20, 2025
+          </p>
+        </div>
+
+        <div class="flex gap-4 mt-8">
+          <Link href={pathPulseLink} label='Download PathPulse' classes='flex justify-center items-center gap-3 bg-primary px-6 py-4 font-bold text-bg rounded-full text-lg hover:bg-accent hover:text-primary transition duration-300 group shadow-xl border-2 border-primary'>
+            <ArrowRight size={18} class="text-white group-hover:text-primary transition duration-300" slot={"icon"}/>
+          </Link>
+          <Link href={signupWhatsAppLink} label='Text SIGNUP' classes='flex justify-center items-center border-2 border-accent px-6 py-4 font-bold text-bg rounded-full hover:bg-accent/20 transition duration-300 text-lg shadow-xl backdrop-blur-sm bg-white/10'/>         
+        </div>
+        <p class="text-sm md:text-base text-white/80 drop-shadow-lg mt-4 px-4 text-center max-w-2xl">
+          Text SIGNUP to receive signup instructions via WhatsApp
+        </p>
+      </div>
+    </div>
+
+    <!-- <div class="animate-fadeIn relative h-1/4 flex flex-col md:flex-row md:justify-between items-center justify-center bg-primary px-3 max-sm:text-center max-sm:py-3 max-sm:space-y-3 md:px-20 lg:px-40">
+      <span class="uppercase text-bg tracking-wider font-bold text-3xl md:text-4xl">Need a Premium Ride?</span>
+      <Link href={"#"} label="Book Now" classes='flex justify-center items-center bg-accent px-8 py-4 text-primary rounded-full font-bold gap-2 hover:bg-bg'>
+        <ChevronRight slot={"icon"} size={14}/>
+      </Link>
+        
+    </div> -->
+  
+
+</section>

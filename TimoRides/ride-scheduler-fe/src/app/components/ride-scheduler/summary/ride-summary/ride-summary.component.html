@@ -1,0 +1,27 @@
+<table class="table table-striped table-component">
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><h3 style="font-weight: bold">Pickup</h3></td>
+      <td>{{ rideDetails?.sourceLocation?.address }}</td>
+    </tr>
+    <tr>
+      <td><h3 style="font-weight: bold">Drop off</h3></td>
+      <td>{{ rideDetails?.destinationLocation?.address }}</td>
+    </tr>
+    <tr>
+      <td><h3 style="font-weight: bold">Date & Time</h3></td>
+      <td>
+        {{
+          (rideDetails?.departureTime?.split('.')?.[0]?.replace('T', ' '))
+            | date : "dd-MMM-yyyy, HH:mm a"
+        }}
+      </td>
+    </tr>
+  </tbody>
+</table>

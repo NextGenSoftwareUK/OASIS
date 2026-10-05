@@ -1,0 +1,19 @@
+<svg width="1400" height="800" viewBox="0 0 1400 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="800" rx="40" fill="#050812"/>
+  <rect x="80" y="120" width="1240" height="560" rx="28" fill="rgba(12,16,32,0.85)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <rect x="120" y="160" width="560" height="200" rx="20" fill="rgba(5,12,32,0.7)" stroke="rgba(0,217,255,0.3)" stroke-width="2"/>
+  <rect x="720" y="160" width="560" height="200" rx="20" fill="rgba(5,12,32,0.7)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <rect x="120" y="400" width="760" height="240" rx="20" fill="rgba(5,12,32,0.7)" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <rect x="920" y="400" width="360" height="240" rx="20" fill="rgba(5,12,32,0.7)" stroke="rgba(0,217,255,0.3)" stroke-width="2"/>
+  <polyline points="160,520 280,480 420,510 560,440 720,470 840,420" fill="none" stroke="#00D9FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="760,220 860,260 940,210 1020,240 1100,200" fill="none" stroke="#7F63FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="12 10"/>
+  <path d="M210 220C210 205.64 221.64 194 236 194C250.36 194 262 205.64 262 220C262 234.36 250.36 246 236 246C221.64 246 210 234.36 210 220Z" fill="#1B44FF"/>
+  <path d="M1010 470C1010 455.64 1021.64 444 1036 444C1050.36 444 1062 455.64 1062 470C1062 484.36 1050.36 496 1036 496C1021.64 496 1010 484.36 1010 470Z" fill="#00D9FF"/>
+  <path d="M1200 520C1200 505.64 1211.64 494 1226 494C1240.36 494 1252 505.64 1252 520C1252 534.36 1240.36 546 1226 546C1211.64 546 1200 534.36 1200 520Z" fill="#7F63FF"/>
+</svg>
+
+
+
+
+
+

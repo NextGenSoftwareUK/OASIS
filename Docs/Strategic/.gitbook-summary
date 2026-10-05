@@ -1,0 +1,28 @@
+# Strategic Documentation - GitBook Summary
+
+## Y Combinator Startup Ideas Response
+**File:** `YC_STARTUP_IDEAS_RESPONSE.md`
+
+OASIS strategic analysis mapping capabilities to YC's 6 startup ideas. Strong fits for Infrastructure for Multi-Agent Systems, AI-Native Enterprise Software, and Government Consulting Replacement. Includes product visions, technical implementations, and go-to-market strategies.
+
+## AI Agents Requirements
+**File:** `AI_AGENTS_REQUIREMENTS.md`
+
+Detailed analysis of what AI agents need from OASIS infrastructure. Identifies 60% already complete, 40% requiring new agent orchestration layer. Includes API designs, architecture diagrams, and 6-month implementation roadmap.
+
+## OpenServ × OASIS Integration
+**File:** `OPENSERV_OASIS_INTEGRATION.md`
+
+Strategic partnership analysis with OpenServ.ai. Explains integration of OpenServ's agent development layer with OASIS infrastructure layer. Includes token launch support strategy and integration roadmap.
+
+## GitBook Summary
+**File:** `GITBOOK_SUMMARY.md`
+
+Executive summary for public GitBook documentation. Key insights, competitive advantages, and next steps.
+
+---
+
+**Status:** Ready for GitBook sync  
+**Branch:** max-build2  
+**Auto-sync:** Enabled via GitHub integration
+

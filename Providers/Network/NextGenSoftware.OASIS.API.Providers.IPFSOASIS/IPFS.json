@@ -1,0 +1,13 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+
+  "Params": {
+    "ConnectionString": "http://localhost:5001",
+    "IdLookUpIPFSAddress": ""
+  }
+}

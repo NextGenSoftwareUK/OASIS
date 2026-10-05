@@ -1,0 +1,133 @@
+WalletLinkedAccountFailed=Unexpected error occurred while creating the linked account.
+RegisterUserFailed=Unexpected error occurred while creating account for user.
+LoginUserFailed=Unexpected error occurred while login user.
+LogoutUserFailed=Unexpected error occurred while logout user.
+ChangePasswordUserFailed=Unexpected error occurred while change-password user.
+SendEmailConfirmationCodeFailed=Unexpected error occurred while send email confirmation code.
+UpdateUserProfileFailed=Unexpected error occurred while update profile.
+ConfirmEmailFailed=Unexpected error occurred while confirm-code.
+EmailFailed=Unexpected error occurred while send message.
+ForgotPasswordFailed=Unexpected error occurred while forgot password.
+ResetPasswordFailed=Unexpected error occurred while reset password.
+RestoreAccountFailed=Unexpected error occurred while restore account.
+ConfirmRestoreAccountFailed=Unexpected error occurred while confirm restore account.
+DeleteAccountFailed=Unexpected error occurred while delete account.
+CreateNetworkFailed=Unexpected error occurred while creating network
+CreateRoleFailed=Unexpected error occurred while creating role
+CreateUserRoleFailed=Unexpected error occurred while creating user-role
+UpdateUserRoleFailed=Unexpected error occurred while updating user-role
+DeleteUserRoleFailed=Unexpected error occurred while deleting user-role
+UpdateRoleFailed=Unexpected error occurred while updating role
+DeleteRoleFailed=Unexpected error occurred while deleting role
+CheckBalanceFailed=Unexpected error occurred while checking balance
+UpdateNetworkFailed=Unexpected error occurred while updating network
+DeleteNetworkFailed=Unexpected error occurred while deleting network
+CreateNetworkTokenFailed=Unexpected error occurred while creating network-token
+UpdateNetworkTokenFailed=Unexpected error occurred while updating network-token
+DeleteNetworkTokenFailed=Unexpected error occurred while deleting network-token
+CreateOrderFailed=Unexpected error occurred while creating order
+CreateOrderSuccess=Successfully order created!.
+CreateOrderUnsupported=Unsupported token pair!.
+CreateOrderAmountFilter=Amount must be greater than zero.
+InvalidSolanaFormat=Invalid Solana format address.
+InvalidRadixFormat=Invalid Radix format address
+SmtpConnectionFailed=SMTP Connection failed after multiple attempts.
+SolanaNftMintingFailed=Minting failed
+CreateRwaTokenFailed=Failed in process creating RwaToken.
+UpdateRwaTokenFailed=Failed in process updating RwaToken.
+CreateNftPurchaseFailed=Failed in process creating nft purchase.
+SendNftPurchaseFailed==Failed in process sending nft purchase.
+
+InvalidAddressRadixFormat=Invalid address Radix format.
+
+ConfirmEmailInvalidOrExpiredTimeCode=Invalid or expired reset code.
+ChangePasswordIncorrect=Old password is incorrect!.
+
+UserNotFound=User not found!.
+UserRoleNotFound=UserRole not found!.
+NetworkNotFound=Network not found!.
+ExchangeRateNotFound=Exchange rate not found!.
+NetworkTokenNotFound=NetworkToken not found!.
+OrderNotFound=Order not found!.
+WalletNotFound=Wallet not found!.
+CreateNftPurchaseBuyerAccountNotFound=Buyer Wallet not found!.
+RwaTokenOwnershipTransferNotFound=RwaTokenOwnershipTransfer  not found!.
+VirtualAccountNotFound=VirtualAccount not found!.
+RwaTokenNotFound= RwaToken not found!.
+AccountNotFound=Account not found. Ensure the account is initialized and funded before minting.
+NftLengthRequirement = UniqueIdentifier must be between 1 and 10 characters long (inclusive).
+
+WalletLinkedAccountAlreadyExist=WalletLinkedAccount already exist!.
+UserAlreadyExist=User already exist!.
+RoleAlreadyExist=Role already exist!.
+UserRoleAlreadyExist=UserRole already exist!.
+RoleNotFound=Role not found!.
+AccountAlreadyActive=This account is already active!.
+NetworkTokenAlreadyExist=NetworkToken already exist!.
+OrderAlreadyCompleted=Order is already completed.
+OrderCanceled=Order is canceled.
+OrderInsufficientFunds=Insufficient funds. Waiting for replenishment or insufficient funds to cover transaction fees.
+
+LoginUserIncorrect=Incorrect login or password!.
+GenerateTokenFailed=Error generating token!.
+
+ConfirmEmailSubjectMessage=Your Email Has Been Confirmed.
+ConfirmEmailBodyMessage=Congratulations! Your email has been successfully confirmed. You can now use all features of OASIS Bridge.
+SendEmailConfirmationSubjectMessage=Email Confirmation Code.
+ForgotPasswordSubjectMessage=Password Reset Request.
+ResetPasswordInvalidOrExpiredCode=Invalid or expired reset code.
+ConfirmRestoreAccountInvalidOrExpiredCode=Invalid or expired reset code.
+ResetPasswordSubjectMessage=Password Successfully Reset.
+ResetPasswordBodyMessage=Your password has been successfully reset. If you did not request this change, please contact support immediately.
+RestoreAccountSubjectMessage=Restore Your OASIS Bridge Account
+ConfirmRestoreAccountSubjectMessage=Account Restored.
+ConfirmRestoreAccountBodyMessage=Your account has been successfully restored. If you did not request this, please contact support immediately.
+DeleteAccountSubjectMessage=Account Deleted.
+DeleteAccountBodyMessage=Your account has been successfully deleted. If you did not request this, please contact support immediately.
+                         You can restore your account within the next 30 days by using the restore feature in your account settings.
+ForgotPasswordBody1Message=You have requested to reset your password. Use this code to proceed: 
+ForgotPasswordBody2Message=The code is valid for 1 minute.
+RestoreAccountBodyMessage=Use this verification code to restore your account: 
+NetworkAlreadyExist=Network name already exists
+UserEmailAlreadyExist=Email already exists.
+UserPhoneAlreadyExist=PhoneNumber already exists.
+UserUserNameAlreadyExist=UserName already exists.
+
+NftAlreadyTransferred=This NFT has already been transferred and is no longer available for sale.
+
+
+RestoreAccountIncorrectFormat=SeedPhrase format is invalid.
+RadixGetAddressInvalidType=Invalid address type.
+SelfTransaction=Transaction from tech account to the same account is not allowed.
+InsufficientFundsInTechAccount=Amount is too small in tech account to be included.
+InvalidAmount=Invalid amount.
+TransactionFailed=Transaction failed.
+RadixGetTransactionStatusFailed=Error in Radix GetTransactionStatus method.
+InsufficientFunds = Not enough balance to cover the transaction and fees.
+
+
+IpfsUploadEmptyFile=The file is not provided or is empty.
+IpfsInvalidTypeFile=Invalid file type.
+IpfsSuccessMessageFile=File successfully uploaded.
+IpfsFileNotFound=File not found.
+IpfsInvalidFormatCid=Ipfs invalid-format cid
+
+
+TitleInvalid=Title is required and must be at most 32 byte.
+AssetDescriptionInvalid=AssetDescription is required and must be at most 1000 characters.
+ImageInvalid=Image must be a valid absolute URL and must be at most 200 characters.
+UniqueIdentifierInvalid=UniqueIdentifier is required and must be at most 10 characters.
+ProofOfOwnershipInvalid=ProofOfOwnership must be a valid absolute URL and must be at most 200 characters.
+CannotPurchaseOwnNft=You cannot purchase your own NFT.
+
+ConfigurationValueRequired=Configuration value for '{0}' is required and was not found or empty.
+ConfigurationValueMustBeInteger=Configuration value for '{0}' must be a valid integer. Found: '{1}'.
+ConfigurationValueMustBeBoolean=Configuration value for '{0}' must be a valid boolean. Found: '{1}'.
+ConnectionStringNotFound=Connection string '{0}' was not found in the configuration.
+
+
+TokenValidationContextNull=Invalid token data: HttpContext.User.Identity or token HttpContext.User.Claims are null or empty.
+TokenValidationInvalidTokenData=Invalid token data.
+TokenValidationInvalidTokenVersion=Invalid token version.
+
+UpdateRwaTokenForbidden=You do not have permission to update the RWA token.

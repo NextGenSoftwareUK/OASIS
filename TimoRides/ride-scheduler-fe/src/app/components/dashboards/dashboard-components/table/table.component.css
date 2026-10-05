@@ -1,0 +1,61 @@
+.table-master-component {
+  border-collapse: collapse;
+  width: 100%;
+
+  border-radius: 8px;
+}
+
+.table-master-component th,
+.table-master-component td {
+  white-space: nowrap;
+}
+
+.table-master-component th {
+  font-size: 16px;
+  padding: 10px;
+  text-align: left;
+}
+
+.table-master-component thead th {
+  background-color: #4460c6;
+  color: white;
+}
+
+.table-master-component tbody tr:nth-child(even) {
+  background-color: #c4c5f0a1;
+}
+
+.table-master-component td {
+  border-bottom: 1px solid rgb(196, 191, 191);
+  padding: 5px 10px;
+}
+
+/* Table Style */
+.table-container {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  position: relative;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  background-color: white;
+}
+
+td {
+  height: 45px;
+}
+
+.admin-button-container {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.admin-action-button {
+  display: block;
+  width: 100%;
+}

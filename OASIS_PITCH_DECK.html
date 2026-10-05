@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS Web4 Token System - Investor Pitch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #050510;
+            --background-secondary: #0b1120;
+            --foreground: #e2f4ff;
+            --accent: #22d3ee;
+            --accent-soft: rgba(45, 212, 191, 0.12);
+            --accent-strong: rgba(14, 116, 144, 0.8);
+            --card: rgba(15, 23, 42, 0.6);
+            --card-border: rgba(56, 189, 248, 0.2);
+            --muted: rgba(148, 163, 184, 0.75);
+            --negative: rgba(239, 68, 68, 0.8);
+            --positive: rgba(34, 197, 94, 0.85);
+            --warning: rgba(250, 204, 21, 0.85);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.1), transparent 45%),
+                radial-gradient(circle at 80% 10%, rgba(129, 140, 248, 0.12), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 50%),
+                linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(5, 5, 16, 0.95) 100%);
+            color: var(--foreground);
+            font-family: 'Play', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            background: rgba(8, 10, 25, 0.85);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 60px 80px;
+            box-shadow: 0 20px 60px rgba(34, 211, 238, 0.15),
+                        0 0 80px rgba(56, 189, 248, 0.1);
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: radial-gradient(circle at top, rgba(34, 211, 238, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        h1 {
+            font-size: 3.8em;
+            font-weight: 700;
+            font-family: 'Play', sans-serif;
+            background: linear-gradient(135deg, #22d3ee 0%, #38bdf8 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            line-height: 1.1;
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: var(--foreground);
+            margin: 35px 0 20px 0;
+            font-weight: 700;
+            font-family: 'Play', sans-serif;
+            position: relative;
+            z-index: 1;
+        }
+
+        h3 {
+            font-size: 1.5em;
+            color: var(--accent);
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        li {
+            font-size: 1.2em;
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 1.8em;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: rgba(8, 10, 25, 0.85);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 15px 30px rgba(15, 118, 110, 0.18);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.15), transparent 60%);
+            pointer-events: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-box {
+            background: rgba(6, 11, 26, 0.7);
+            border: 1px solid var(--card-border);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 20px rgba(34, 211, 238, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(34, 211, 238, 0.2);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 12px;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.4);
+        }
+
+        .stat-label {
+            font-size: 1em;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 25px 0;
+            font-size: 1.05em;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(6, 11, 26, 0.7);
+            backdrop-filter: blur(12px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .comparison-table th {
+            background: rgba(34, 211, 238, 0.15);
+            color: var(--foreground);
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            color: var(--muted);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(34, 211, 238, 0.05);
+        }
+
+        .checkmark {
+            color: var(--positive);
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .crossmark {
+            color: var(--negative);
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .nav-button {
+            background: var(--accent);
+            color: #041321;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(34, 211, 238, 0.25);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-button:hover {
+            background: #38e0ff;
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(34, 211, 238, 0.35);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            background: rgba(8, 10, 25, 0.85);
+            border: 1px solid var(--card-border);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 20px rgba(34, 211, 238, 0.2);
+            font-size: 1.1em;
+        }
+
+        .title-slide h1 {
+            font-size: 5em;
+            margin-top: 60px;
+            margin-bottom: 30px;
+        }
+
+        .title-slide .subtitle {
+            font-size: 2.2em;
+            margin-bottom: 50px;
+        }
+
+        .cta-box {
+            background: rgba(34, 211, 238, 0.12);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(34, 211, 238, 0.2),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(34, 211, 238, 0.2), transparent 70%);
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        .cta-box h2, .cta-box h3 {
+            color: var(--foreground);
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-box p {
+            color: var(--foreground);
+            font-size: 1.3em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .architecture-diagram {
+            background: rgba(6, 11, 26, 0.7);
+            border: 1px solid var(--card-border);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 25px 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.8;
+            backdrop-filter: blur(12px);
+            color: var(--foreground);
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(129, 140, 248, 0.2) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: 700;
+            font-family: 'Play', sans-serif;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+        }
+
+        .problem-box {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 4px solid var(--negative);
+            padding: 25px 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .problem-box h3 {
+            color: var(--negative);
+        }
+
+        .solution-box {
+            background: rgba(34, 197, 94, 0.08);
+            border-left: 4px solid var(--positive);
+            padding: 25px 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .solution-box h3 {
+            color: var(--positive);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 25px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .metric-highlight {
+            display: inline-block;
+            background: var(--accent);
+            color: #041321;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 1.3em;
+            margin: 5px;
+            box-shadow: 0 8px 20px rgba(34, 211, 238, 0.3);
+        }
+
+        .revenue-bars {
+            margin: 30px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .revenue-bar {
+            margin: 18px 0;
+        }
+
+        .revenue-bar-label {
+            font-size: 1.15em;
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: 10px;
+        }
+
+        .revenue-bar-visual {
+            background: rgba(6, 11, 26, 0.8);
+            border: 1px solid var(--card-border);
+            height: 40px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .revenue-bar-fill {
+            background: linear-gradient(90deg, #22d3ee 0%, #38bdf8 50%, #818cf8 100%);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-left: 15px;
+            color: #041321;
+            font-weight: 800;
+            font-size: 1.1em;
+            transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .highlight-box {
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 25px 0;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .highlight-box h3 {
+            color: var(--foreground);
+            font-size: 1.6em;
+        }
+
+        .highlight-box p {
+            color: var(--foreground);
+        }
+
+        strong {
+            color: var(--foreground);
+            font-weight: 700;
+        }
+
+
+        /* Custom scrollbar */
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: rgba(6, 11, 26, 0.5);
+            border-radius: 4px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .slide::-webkit-scrollbar-thumb:hover {
+            background: #38e0ff;
+        }
+
+        /* Glow effects */
+        .glow {
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .box-glow {
+            box-shadow: 0 0 30px rgba(34, 211, 238, 0.3),
+                        0 20px 40px rgba(34, 211, 238, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 30px;
+            }
+            
+            h1 {
+                font-size: 2.5em;
+            }
+            
+            h2 {
+                font-size: 1.6em;
+            }
+            
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">10</span>
+    </div>
+
+    <div class="presentation">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <h1 class="glow">OASIS Web4 Token System</h1>
+            <p class="subtitle">Solving the $2 Trillion Blockchain Fragmentation Problem</p>
+            
+            <div class="cta-box box-glow" style="margin-top: 100px;">
+                <h2 style="font-size: 2.2em; margin-bottom: 30px;">Series A Investment Opportunity</h2>
+                <p style="font-size: 2em; margin: 25px 0;">
+                    <strong>Raising: $50M-$100M</strong>
+                </p>
+                <p style="font-size: 1.6em; margin: 15px 0;">
+                    Pre-Money Valuation: $500M-$1B
+                </p>
+                <p style="font-size: 1.4em; margin-top: 30px; color: var(--accent);">
+                    The World's First Bridge-Less Cross-Chain Infrastructure
+                </p>
+            </div>
+
+            <div style="margin-top: 100px; text-align: center;">
+                <p style="font-size: 1.3em; color: var(--accent); font-weight: 600;">
+                    <strong>investors@oasis.one</strong> | <strong>oasis.one</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide">
+            <div class="slide-icon">!</div>
+            <h1>The $2.5 Billion Problem</h1>
+            
+            <h2>Bridge Vulnerability Crisis</h2>
+            <div class="problem-box">
+                <h3>$2.5B+ Stolen from Bridges (2022-2024)</h3>
+                <ul style="margin-top: 15px;">
+                    <li><strong>Ronin Bridge:</strong> $625M stolen (March 2022)</li>
+                    <li><strong>Wormhole:</strong> $325M stolen (Feb 2022)</li>
+                    <li><strong>Multichain:</strong> $1B+ lost (July 2023)</li>
+                    <li><strong>Dozens more:</strong> $300M+ combined</li>
+                </ul>
+            </div>
+
+            <h2>Fragmentation Kills User Experience</h2>
+            <div class="problem-box">
+                <p style="font-size: 1.3em; color: var(--foreground); margin-bottom: 15px;">
+                    <strong>Example: User holds USDC on Ethereum</strong>
+                </p>
+                <ul style="list-style: none; margin-left: 0;">
+                    <li>→ Wants to use dApp on Solana</li>
+                    <li>→ Must use bridge</li>
+                    <li>→ Pays <strong style="color: var(--negative);">$50 gas + $10 bridge fee</strong></li>
+                    <li>→ Waits <strong style="color: var(--warning);">10-30 minutes</strong></li>
+                    <li>→ Risks <strong style="color: var(--negative);">bridge hack</strong></li>
+                </ul>
+            </div>
+
+            <h2>RWA Market Blocked</h2>
+            <div class="glass-card">
+                <p style="font-size: 1.4em; color: var(--foreground); text-align: center;">
+                    <strong style="font-size: 1.3em; color: var(--accent);">$68 Trillion market inaccessible</strong><br><br>
+                    Choose ONE blockchain → Exclude investors on other chains<br><br>
+                    <strong style="color: var(--negative);">Result: 99.6% of global assets remain untokenized</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 3: The Solution -->
+        <div class="slide">
+            <div class="slide-icon">O4</div>
+            <h1>Our Solution: Eliminate Bridges</h1>
+            
+            <div class="solution-box" style="padding: 35px;">
+                <h2 style="color: var(--positive); margin-top: 0;">OASIS Web4 Token = Same Token on ALL Chains Simultaneously</h2>
+                <p style="font-size: 1.5em; margin-top: 20px; color: var(--foreground);">
+                    <strong>NO BRIDGES. NO WRAPPERS. NO HACKS.</strong>
+                </p>
+            </div>
+
+            <div class="architecture-diagram">
+                <div style="text-align: center; font-size: 1.05em;">
+<pre style="color: var(--foreground);">
+       <span style="color: var(--accent);">USER WALLET</span>
+      (1000 tokens)
+            ↓
+  ╔═══════════════════════╗
+  ║  <span style="color: var(--accent);">OASIS WEB4 TOKEN</span>  ║
+  ║  (Exists on ALL       ║
+  ║   chains at once)     ║
+  ╚═══════════════════════╝
+            ↓
+  ┌─────────┬─────────┬─────────┐
+  │<span style="color: #627eea);">ETHEREUM</span> │ <span style="color: #22d3ee);">SOLANA</span>  │ <span style="color: #8247e5);">POLYGON</span> │
+  │1000 tkn │1000 tkn │1000 tkn │
+  └─────────┴─────────┴─────────┘
+  
+  + 47 more chains (synchronized)
+</pre>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-box box-glow">
+                    <div class="stat-number">$0</div>
+                    <div class="stat-label">Bridge Hack Risk</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">5-30s</div>
+                    <div class="stat-label">Transaction Time</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">90%</div>
+                    <div class="stat-label">Gas Savings</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Uptime Guarantee</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: How It Works -->
+        <div class="slide">
+            <div class="slide-icon">⚡</div>
+            <h1>How It Works: HyperDrive</h1>
+            
+            <h2>Example: User Transfer Flow</h2>
+            
+            <div class="glass-card">
+                <h3 style="margin-top: 0;">1. ANALYZE ALL CHAINS (Real-Time)</h3>
+                <ul style="font-size: 1.15em;">
+                    <li>Ethereum gas: <span style="color: var(--negative); font-weight: 700;">$45</span> ❌ Too expensive</li>
+                    <li>Solana gas: <span style="color: var(--positive); font-weight: 700;">$0.001</span> ✅ OPTIMAL</li>
+                    <li>Polygon gas: <span style="color: var(--positive); font-weight: 700;">$0.01</span> ✅ Good</li>
+                    <li>Arbitrum gas: <span style="color: var(--warning); font-weight: 700;">$2</span> ⚠️ Moderate</li>
+                </ul>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="margin-top: 0;">2. SELECT OPTIMAL CHAIN</h3>
+                <p style="font-size: 1.3em; color: var(--accent);">
+                    → Solana selected (fastest + cheapest)
+                </p>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="margin-top: 0;">3. EXECUTE TRANSACTION</h3>
+                <p style="font-size: 1.3em; color: var(--positive);">
+                    → Transfer on Solana ($0.001 gas)
+                </p>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="margin-top: 0;">4. SYNC TO OTHER CHAINS</h3>
+                <ul style="font-size: 1.15em;">
+                    <li>State updated across all 50+ chains</li>
+                    <li>Merkle proof verification</li>
+                    <li>Consensus validation</li>
+                    <li><strong style="color: var(--accent);">Time: 5-30 seconds</strong></li>
+                </ul>
+            </div>
+
+            <div class="cta-box">
+                <h3 style="color: var(--foreground);">User Saved: <span style="color: var(--accent); font-size: 1.4em;">$44.999</span></h3>
+                <p><strong>40x faster</strong> than traditional bridges (5 sec vs 10-30 min)</p>
+            </div>
+        </div>
+
+        <!-- Slide 5: RWA Solution -->
+        <div class="slide">
+            <div class="slide-icon">RWA</div>
+            <h1>RWA Solution: Universal Asset Token</h1>
+            
+            <h2>Example: $1.89M Property → 3,500 Tokens</h2>
+            
+            <div class="highlight-box">
+                <p style="font-size: 1.4em; color: var(--foreground); text-align: center;">
+                    <strong>123 Sunset Blvd, Beverly Hills</strong><br>
+                    3,500 sq ft | 5BR/4.5BA | Appraised: $1,890,000
+                </p>
+            </div>
+
+            <h3>6-Layer UAT Structure</h3>
+            <div class="two-column">
+                <div class="glass-card">
+                    <h3 style="margin-top: 0;">1. Core Metadata</h3>
+                    <p>BHE token, 3,500 supply @ $540 each</p>
+                    
+                    <h3>2. Asset Details</h3>
+                    <p>Property specs, GPS coordinates</p>
+                    
+                    <h3>3. Trust Structure</h3>
+                    <p>Wyoming Statutory Trust</p>
+                </div>
+                <div class="glass-card">
+                    <h3 style="margin-top: 0;">4. Yield Distribution</h3>
+                    <p>$94,500 annual rental → $15.27/token/year</p>
+                    
+                    <h3>5. Compliance</h3>
+                    <p>SEC Reg D 506(c), KYC, accredited only</p>
+                    
+                    <h3>6. Cross-Chain</h3>
+                    <p>Ethereum + Solana + Polygon + 47 more</p>
+                </div>
+            </div>
+
+            <div class="solution-box">
+                <h3 style="color: var(--positive);">Why This Unlocks $68T Market</h3>
+                <ul style="margin-top: 15px; font-size: 1.1em;">
+                    <li>✅ Accessible on ALL chains (no investor excluded)</li>
+                    <li>✅ Compliance enforced universally (KYC once, valid everywhere)</li>
+                    <li>✅ Unified liquidity (no fragmentation)</li>
+                    <li>✅ Yield to any chain (user's choice)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 6: Market Opportunity -->
+        <div class="slide">
+            <div class="slide-icon">$68T</div>
+            <h1>$68 Trillion Market Opportunity</h1>
+            
+            <h2>RWA Tokenization Growth</h2>
+            <div class="stat-grid">
+                <div class="stat-box box-glow">
+                    <div class="stat-number">$300B</div>
+                    <div class="stat-label">Today (2024)<br>0.4% penetration</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">$16T</div>
+                    <div class="stat-label">2027 (BCG)<br>53x growth</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">$68T</div>
+                    <div class="stat-label">2030 (McKinsey)<br>227x growth</div>
+                </div>
+            </div>
+
+            <h2>Asset Class Breakdown (2030)</h2>
+            <div class="revenue-bars">
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Real Estate: $28T (41%)</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 82%">$28T</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Bonds/Fixed: $18T (26%)</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 53%">$18T</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Equities: $12T (18%)</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 35%">$12T</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Other: $10T (15%)</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 29%">$10T</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-box" style="margin-top: 40px;">
+                <p style="font-size: 1.7em; color: var(--foreground);">
+                    <strong>OASIS Target: 1-5% Market Share</strong><br>
+                    Revenue Opportunity: <span style="font-size: 1.4em; color: var(--accent);">$700B-$3.5T</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Competitive Advantage -->
+        <div class="slide">
+            <div class="slide-icon">#1</div>
+            <h1>Why We Win</h1>
+            
+            <h2>Technology Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>OASIS</th>
+                        <th>LayerZero<br><span style="font-size: 0.9em; color: var(--muted);">$3B</span></th>
+                        <th>Wormhole<br><span style="font-size: 0.9em; color: var(--muted);">$2.5B</span></th>
+                        <th>Axelar<br><span style="font-size: 0.9em; color: var(--muted);">$1B</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Bridge-Less</strong></td>
+                        <td class="checkmark">✅</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bridge Hacks</strong></td>
+                        <td class="checkmark"><strong>0</strong></td>
+                        <td style="color: var(--warning);">Risk</td>
+                        <td class="crossmark">$325M</td>
+                        <td style="color: var(--warning);">Risk</td>
+                    </tr>
+                    <tr>
+                        <td><strong>100% Uptime</strong></td>
+                        <td class="checkmark">✅</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auto-Optimization</strong></td>
+                        <td class="checkmark">✅</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gas Savings</strong></td>
+                        <td class="checkmark"><strong>60-90%</strong></td>
+                        <td>0%</td>
+                        <td>0%</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RWA Support</strong></td>
+                        <td class="checkmark">✅</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                        <td class="crossmark">❌</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Years in Production</strong></td>
+                        <td class="checkmark"><strong>4+</strong></td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>3</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box" style="margin-top: 35px;">
+                <h3>Key Differentiators</h3>
+                <p style="font-size: 1.2em; line-height: 1.8;">
+                    <strong>ONLY</strong> bridge-less solution → Eliminates $2B+/year hack risk<br>
+                    <strong>ONLY</strong> 100% uptime guarantee → Impossible to match<br>
+                    <strong>FIRST</strong> mover in Web4 token standard
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 8: Business Model -->
+        <div class="slide">
+            <div class="slide-icon">$$$</div>
+            <h1>Business Model & Traction</h1>
+            
+            <h2>5 High-Margin Revenue Streams</h2>
+            <div class="two-column">
+                <div class="glass-card">
+                    <h3 style="margin-top: 0;">1. Transaction Fees (0.1%)</h3>
+                    <p style="font-size: 1.3em;">Year 5: <strong style="color: var(--accent);">$730M</strong></p>
+                    
+                    <h3 style="margin-top: 25px;">2. Enterprise Licensing</h3>
+                    <p>$1k-$500k/month</p>
+                    <p style="font-size: 1.3em;">Year 5: <strong style="color: var(--accent);">$300M-$1.38B</strong></p>
+                    
+                    <h3 style="margin-top: 25px;">3. Yield Distribution (0.5%)</h3>
+                    <p style="font-size: 1.3em;">Year 5: <strong style="color: var(--accent);">$50M</strong></p>
+                </div>
+                <div class="glass-card">
+                    <h3 style="margin-top: 0;">4. RWA Tokenization (0.5-1%)</h3>
+                    <p style="font-size: 1.3em;">Year 5: <strong style="color: var(--accent);">$500M-$1B</strong></p>
+                    
+                    <h3 style="margin-top: 25px;">5. Compliance-as-a-Service</h3>
+                    <p style="font-size: 1.3em;">Year 3: <strong style="color: var(--accent);">$34M-$44M</strong></p>
+                </div>
+            </div>
+
+            <div class="cta-box">
+                <h3 style="font-size: 2em;">Revenue Projections</h3>
+                <div style="display: flex; justify-content: space-around; margin-top: 25px; font-size: 1.4em;">
+                    <div>
+                        <strong style="color: var(--accent);">Year 1</strong><br>
+                        <span style="font-size: 1.3em;">$10M-$40M</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">Year 3</strong><br>
+                        <span style="font-size: 1.3em;">$250M-$750M</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">Year 5</strong><br>
+                        <span style="font-size: 1.3em;">$1.5B-$3B</span>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; font-size: 1.3em;">
+                    <strong>EBITDA: 70%+ | Profitable in 18-24 months</strong>
+                </p>
+            </div>
+
+            <h2>Current Traction</h2>
+            <ul style="font-size: 1.15em;">
+                <li>✅ <strong>4+ years</strong> in production</li>
+                <li>✅ <strong>50+ blockchains</strong> integrated</li>
+                <li>✅ <strong>Zero security incidents</strong></li>
+                <li>✅ <strong>Enterprise pilots</strong> in progress</li>
+            </ul>
+        </div>
+
+        <!-- Slide 9: Financial Projections -->
+        <div class="slide">
+            <div class="slide-icon">↗</div>
+            <h1>Financial Projections</h1>
+            
+            <h2>Revenue Growth (5-Year Plan)</h2>
+            <div class="revenue-bars">
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Year 1 (2025): $10M-$40M</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 5%">$10M-$40M</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Year 2 (2026): $30M-$120M</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 15%">$30M-$120M</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Year 3 (2027): $250M-$750M</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 40%">$250M-$750M</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Year 4 (2028): $750M-$1.5B</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 70%">$750M-$1.5B</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Year 5 (2029): $1.5B-$3B</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 100%">$1.5B-$3B</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Unit Economics</h2>
+            <div class="stat-grid">
+                <div class="stat-box box-glow">
+                    <div class="stat-number">70%+</div>
+                    <div class="stat-label">EBITDA Margin</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">18-24mo</div>
+                    <div class="stat-label">Path to Profitability</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">$5B+</div>
+                    <div class="stat-label">Year 10 Revenue</div>
+                </div>
+                <div class="stat-box box-glow">
+                    <div class="stat-number">Minimal</div>
+                    <div class="stat-label">Capex Required</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: The Investment -->
+        <div class="slide">
+            <div class="slide-icon">$</div>
+            <h1>The Investment</h1>
+            
+            <div class="cta-box box-glow">
+                <h2 style="font-size: 2.5em; margin-bottom: 30px;">Series A Round</h2>
+                <div style="font-size: 1.6em; line-height: 2;">
+                    <p><strong>RAISING:</strong> <span style="color: var(--accent); font-size: 1.2em;">$50M-$100M</span></p>
+                    <p><strong>PRE-MONEY:</strong> <span style="color: var(--accent); font-size: 1.2em;">$500M-$1B</span></p>
+                    <p><strong>DILUTION:</strong> <span style="color: var(--accent); font-size: 1.2em;">5-10%</span></p>
+                </div>
+            </div>
+
+            <h2>Return Potential</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Exit Scenario</th>
+                        <th>Timeline</th>
+                        <th>Valuation</th>
+                        <th>Return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>IPO</strong></td>
+                        <td>2028-2029</td>
+                        <td>$15B-$25B</td>
+                        <td class="checkmark"><strong>15x-25x</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Strategic Acquisition</strong></td>
+                        <td>2027-2028</td>
+                        <td>$10B-$30B</td>
+                        <td class="checkmark"><strong>10x-30x</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Token Launch</strong></td>
+                        <td>2026-2027</td>
+                        <td>$5B-$15B</td>
+                        <td class="checkmark"><strong>5x-15x</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box" style="margin-top: 35px;">
+                <h3>Comparable Investments</h3>
+                <p style="font-size: 1.2em; line-height: 1.8;">
+                    <strong>LayerZero:</strong> Raised $293M @ $3B (inferior tech)<br>
+                    <strong>Wormhole:</strong> Raised $225M @ $2.5B (bridge hacks)<br>
+                    <strong style="color: var(--accent);">OASIS:</strong> Raising $50-100M @ $500M-$1B (superior, lower risk)
+                </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="font-size: 1.6em; color: var(--accent); font-weight: 700;">
+                    Risk-Adjusted IRR: 60%-120%
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 11: Why Invest Now -->
+        <div class="slide">
+            <div class="slide-icon">GO</div>
+            <h1>Why Invest Now</h1>
+            
+            <div class="two-column">
+                <div>
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">1. Revolutionary Tech</h3>
+                        <p>World's ONLY bridge-less system<br>
+                        Eliminates $2B+/year hacks<br>
+                        100% uptime guarantee</p>
+                    </div>
+                    
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">2. Massive Market</h3>
+                        <p>$68T RWA by 2030<br>
+                        $200B cross-chain infra<br>
+                        First-mover advantage</p>
+                    </div>
+                    
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">3. Proven Technology</h3>
+                        <p>4+ years in production<br>
+                        50+ chains integrated<br>
+                        Zero security incidents</p>
+                    </div>
+                    
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">4. Superior to Competitors</h3>
+                        <p>No bridges, no hacks<br>
+                        Auto-everything<br>
+                        Built-in compliance</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">5. Multiple Revenue Streams</h3>
+                        <p>Transaction + licensing<br>
+                        Yield + RWA + compliance<br>
+                        70%+ EBITDA margins</p>
+                    </div>
+                    
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">6. Capital Efficient</h3>
+                        <p>Profitable in 18-24 months<br>
+                        Minimal capex needed<br>
+                        SaaS recurring revenue</p>
+                    </div>
+                    
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">7. Acquisition Target</h3>
+                        <p>AWS/Azure: $15B-$30B<br>
+                        Coinbase: $8B-$15B<br>
+                        Clear exit paths</p>
+                    </div>
+                    
+                    <div class="solution-box">
+                        <h3 style="color: var(--positive);">8. Exceptional Returns</h3>
+                        <p><strong style="font-size: 1.3em;">15x-25x</strong> potential<br>
+                        60%-120% IRR<br>
+                        Multiple exit options</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Valuation -->
+        <div class="slide">
+            <div class="slide-icon">$6B</div>
+            <h1>Valuation Analysis</h1>
+            
+            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 40px;">
+                Current Fair Value: <span style="color: var(--accent);">$6 Billion</span>
+            </h2>
+            
+            <div class="stat-grid">
+                <div class="stat-box" style="background: rgba(34, 197, 94, 0.1); border-color: var(--positive);">
+                    <div class="stat-number" style="color: var(--positive);">$2.5B</div>
+                    <div class="stat-label">Conservative</div>
+                </div>
+                <div class="stat-box box-glow" style="background: rgba(34, 211, 238, 0.15); border: 2px solid var(--accent);">
+                    <div class="stat-number" style="font-size: 3.5em;">$6.0B ⭐</div>
+                    <div class="stat-label" style="font-weight: 700; font-size: 1.1em; color: var(--accent);">RECOMMENDED</div>
+                </div>
+                <div class="stat-box" style="background: rgba(250, 204, 21, 0.1); border-color: var(--warning);">
+                    <div class="stat-number" style="color: var(--warning);">$12.0B</div>
+                    <div class="stat-label">Optimistic</div>
+                </div>
+            </div>
+
+            <h2>Component-Based Valuation</h2>
+            <div class="revenue-bars">
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Cross-Chain Infrastructure: $3B</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 75%">$3B</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Universal Token Standard: $1.5B</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 38%">$1.5B</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Yield Distribution: $750M</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 19%">$750M</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Compliance Infrastructure: $500M</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 13%">$500M</div>
+                    </div>
+                </div>
+                <div class="revenue-bar">
+                    <div class="revenue-bar-label">Strategic Premium: $1.25B</div>
+                    <div class="revenue-bar-visual">
+                        <div class="revenue-bar-fill" style="width: 31%">$1.25B</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p style="font-size: 1.4em; text-align: center;">
+                    <strong>Series A Pre-Money: $500M-$1B</strong><br>
+                    <span style="color: var(--accent);">(40% discount to fair value = exceptional entry point)</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 13: Roadmap -->
+        <div class="slide">
+            <div class="slide-icon">MAP</div>
+            <h1>Roadmap & Milestones</h1>
+            
+            <div class="glass-card">
+                <h2 style="margin-top: 0; color: var(--accent);">Q1 2026</h2>
+                <ul style="font-size: 1.15em;">
+                    <li>✓ Series A fundraise ($50M-$100M)</li>
+                    <li>✓ Enterprise GTM launch</li>
+                    <li>✓ First 10 RWA properties tokenized</li>
+                    <li>✓ 100K+ transactions/month</li>
+                </ul>
+            </div>
+
+            <div class="glass-card">
+                <h2 style="margin-top: 0; color: var(--accent);">Q2-Q4 2026</h2>
+                <ul style="font-size: 1.15em;">
+                    <li>→ 50 enterprise customers</li>
+                    <li>→ $100B+ in tokenized assets</li>
+                    <li>→ 1M+ daily transactions</li>
+                    <li>→ Geographic expansion</li>
+                </ul>
+            </div>
+
+            <div class="two-column">
+                <div class="glass-card">
+                    <h2 style="margin-top: 0; color: var(--accent);">2027</h2>
+                    <ul style="font-size: 1.1em;">
+                        <li>→ Series B ($150M-$300M)</li>
+                        <li>→ 500+ enterprise customers</li>
+                        <li>→ $1T+ tokenized assets</li>
+                        <li>→ Market leader position</li>
+                    </ul>
+                </div>
+                
+                <div class="glass-card">
+                    <h2 style="margin-top: 0; color: var(--accent);">2028-2029</h2>
+                    <ul style="font-size: 1.1em;">
+                        <li>→ IPO preparation</li>
+                        <li>→ $10B+ transaction volume</li>
+                        <li>→ Acquisition offers</li>
+                        <li>→ Public market debut</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="cta-box">
+                <h3 style="font-size: 2em;">Valuation Trajectory</h3>
+                <p style="font-size: 1.5em; margin-top: 20px; line-height: 2;">
+                    <strong>2025:</strong> $500M-$1B <span style="color: var(--muted);">(Series A)</span><br>
+                    <strong>2027:</strong> $10B-$20B <span style="color: var(--muted);">(Series B)</span><br>
+                    <strong>2029:</strong> $15B-$30B <span style="color: var(--muted);">(IPO/Exit)</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 14: Investment Thesis -->
+        <div class="slide">
+            <div class="slide-icon">KEY</div>
+            <h1>Investment Thesis</h1>
+            
+            <div class="highlight-box box-glow" style="padding: 45px; margin-top: 60px;">
+                <p style="font-size: 1.7em; line-height: 1.7; color: var(--foreground); text-align: center;">
+                    <strong>"OASIS is the only bridge-less cross-chain infrastructure positioned to capture significant share of the $68T RWA tokenization market while eliminating $2B+/year in bridge hack losses, offering <span style="color: var(--accent); font-size: 1.2em;">15x-25x</span> return potential to early investors."</strong>
+                </p>
+            </div>
+
+            <h2 style="margin-top: 60px;">Three Key Takeaways</h2>
+            
+            <div class="solution-box" style="padding: 35px; margin: 25px 0;">
+                <h3 style="color: var(--foreground); font-size: 2em;">1. We Eliminate Bridges</h3>
+                <p style="font-size: 1.4em; color: var(--foreground);">No bridge = no $2B/year hack problem</p>
+            </div>
+            
+            <div class="solution-box" style="padding: 35px; margin: 25px 0;">
+                <h3 style="color: var(--foreground); font-size: 2em;">2. We Enable RWAs</h3>
+                <p style="font-size: 1.4em; color: var(--foreground);">Universal token standard unlocks $68T market</p>
+            </div>
+            
+            <div class="solution-box" style="padding: 35px; margin: 25px 0;">
+                <h3 style="color: var(--foreground); font-size: 2em;">3. We're Production-Ready</h3>
+                <p style="font-size: 1.4em; color: var(--foreground);">4+ years tested, 50+ chains, zero incidents</p>
+            </div>
+        </div>
+
+        <!-- Slide 15: Contact -->
+        <div class="slide">
+            <div style="text-align: center; padding-top: 80px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 30px; background: rgba(34, 211, 238, 0.12); margin-bottom: 40px; box-shadow: 0 0 60px rgba(34, 211, 238, 0.4);">
+                    <span style="font-size: 4em; font-weight: 900; color: var(--accent);">O4</span>
+                </div>
+                
+                <h1 style="font-size: 5.5em; margin-bottom: 30px;" class="glow">OASIS Platform</h1>
+                <p class="subtitle" style="font-size: 2.2em;">Building the future of cross-chain infrastructure</p>
+                
+                <div class="cta-box box-glow" style="margin-top: 100px; padding: 60px;">
+                    <h2 style="font-size: 3em; margin-bottom: 40px;">Let's Talk</h2>
+                    <p style="font-size: 2em; margin: 20px 0;">
+                        <strong>investors@oasis.one</strong>
+                    </p>
+                    <p style="font-size: 2em; margin: 20px 0;">
+                        <strong>oasis.one</strong>
+                    </p>
+                    <p style="font-size: 2em; margin: 20px 0;">
+                        <strong>docs.oasis.one</strong>
+                    </p>
+                </div>
+
+                <div style="margin-top: 80px;">
+                    <p style="font-size: 1.5em; color: var(--accent); font-weight: 700;">
+                        Series A Closes: Q1 2026 | Limited Spots Available
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" onclick="previousSlide()">← Previous</button>
+        <button class="nav-button" onclick="nextSlide()">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('current-slide').textContent = currentSlide + 1;
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function previousSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                previousSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides - 1);
+            } else if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                document.documentElement.requestFullscreen();
+            } else if (e.key === 'Escape') {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) nextSlide();
+            if (touchEndX > touchStartX + 50) previousSlide();
+        }
+
+        // Animate bars on slide load
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.width = entry.target.dataset.width;
+                }
+            });
+        });
+
+        // Initialize
+        showSlide(0);
+        
+        // Add smooth scroll behavior
+        slides.forEach(slide => {
+            slide.style.scrollBehavior = 'smooth';
+        });
+    </script>
+</body>
+</html>

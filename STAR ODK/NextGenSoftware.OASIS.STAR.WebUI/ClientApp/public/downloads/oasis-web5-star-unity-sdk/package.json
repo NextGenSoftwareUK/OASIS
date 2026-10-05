@@ -1,0 +1,46 @@
+{
+  "name": "com.nextgensoftware.oasis.star",
+  "version": "1.0.0",
+  "displayName": "OASIS Web5 STAR SDK",
+  "description": "Unity SDK for the OASIS Web5 STAR API - Build next-generation metaverse experiences with chapters, quests, GeoNFTs, and more.",
+  "unity": "2020.3",
+  "keywords": [
+    "oasis",
+    "star",
+    "metaverse",
+    "xr",
+    "vr",
+    "ar",
+    "geonft",
+    "quests",
+    "blockchain",
+    "unity"
+  ],
+  "author": {
+    "name": "NextGen Software",
+    "email": "support@oasis.earth",
+    "url": "https://star.oasis.earth"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.0.2",
+    "com.unity.xr.management": "4.0.0"
+  },
+  "samples": [
+    {
+      "displayName": "Quest System",
+      "description": "Complete quest and mission system integration",
+      "path": "Samples~/QuestSystem"
+    },
+    {
+      "displayName": "GeoNFT AR",
+      "description": "AR-based GeoNFT placement and discovery",
+      "path": "Samples~/GeoNFTAR"
+    },
+    {
+      "displayName": "Metaverse World",
+      "description": "Building metaverse worlds with STAR",
+      "path": "Samples~/MetaverseWorld"
+    }
+  ]
+}
+

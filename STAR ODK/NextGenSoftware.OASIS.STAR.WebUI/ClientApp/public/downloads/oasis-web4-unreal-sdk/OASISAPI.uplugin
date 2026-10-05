@@ -1,0 +1,49 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0.0",
+  "FriendlyName": "OASIS Web4 SDK",
+  "Description": "Unreal Engine SDK for the OASIS Web4 API - Connect your games to the decentralized OASIS ecosystem with 80+ blockchain providers.",
+  "Category": "Networking",
+  "CreatedBy": "NextGen Software",
+  "CreatedByURL": "https://oasis.earth",
+  "DocsURL": "https://docs.oasis.earth/unreal",
+  "MarketplaceURL": "",
+  "SupportURL": "https://forum.oasis.earth",
+  "EngineVersion": "5.0.0",
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "OASISAPI",
+      "Type": "Runtime",
+      "LoadingPhase": "PreLoadingScreen",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux",
+        "IOS",
+        "Android",
+        "PS5",
+        "XSX"
+      ]
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "Json",
+      "Enabled": true
+    },
+    {
+      "Name": "JsonUtilities",
+      "Enabled": true
+    },
+    {
+      "Name": "HTTP",
+      "Enabled": true
+    }
+  ]
+}
+
