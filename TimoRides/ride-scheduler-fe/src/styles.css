@@ -1,0 +1,242 @@
+:root {
+  --color-main: #2847bc;
+  --bg-color-main: #3d5ed9;
+  --color-active: #1534aa;
+  --color-main-light: #2848bdd9;
+  --color-alt: #fed902;
+  --color-dark: #000;
+  --text-color-main: #100f0f;
+  --text-color-light: #999999;
+  --text-color-mid: #545f7d; /* #495057; */
+  --action-color: #fab700;
+  --light-gray-bg: #f9f9ff;
+  --error: rgba(228, 3, 59, 1); /* #ff5733; */
+  --error-light: rgba(228, 3, 59, 0.85); /* #ff5733; */
+}
+
+/* Global Styles */
+
+.global-width {
+  max-width: 1440px;
+  width: 90%;
+  margin: 0 auto;
+  z-index: 2;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.overlay-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.hidden {
+  display: none !important;
+  z-index: 0;
+  transition: z-index 0.5s ease;
+}
+
+.active {
+  display: block !important;
+  z-index: 1;
+  transition: z-index 0.5s ease;
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 1rem;
+  font-style: italic;
+}
+
+/* CSS Normalization */
+
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margin */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Remove default padding */
+ul[class]:not(.tc-list),
+ol[class]:not(.tc-list) {
+  padding: 0;
+}
+
+/* Remove list styles */
+ul:not(.car-details__summary):not(.tc-list),
+ol:not(.tc-list) {
+  list-style: none;
+}
+
+/* Set core element defaults */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+  letter-spacing: 0.05rem;
+}
+
+/* Remove border outline on focused elements */
+a:focus,
+button:focus {
+  outline: none;
+}
+
+/* Font sizes */
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+h1 {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+h3 {
+  font-size: clamp(1.17rem, 1.5vw, 1.5rem);
+}
+
+h4 {
+  font-size: clamp(1rem, 1.25vw, 1.25rem);
+}
+
+h5 {
+  font-size: clamp(0.83rem, 1vw, 1rem);
+}
+
+p:not(.car-amount) {
+  font-size: clamp(1.125rem, 1.25vw, 1.25rem);
+}
+
+/* Note BreakPoints */
+
+/* Table --- 941px */
+/*  Mobile --- 479px */
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.mat-typography h3,
+.mat-typography p {
+  margin: 0;
+}
+
+.table-component {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table-component tr:nth-child(odd) {
+  background-color: #c4c5f0a1;
+}
+
+.table-component td:first-child {
+  width: 150px;
+}
+
+.table-component td:first-child h3 {
+  font-size: 17px;
+}
+
+.table-component td:last-child {
+  font-size: 15px;
+}
+
+.table-component td {
+  border-bottom: 1px solid rgb(196, 191, 191);
+  padding: 5px;
+}
+
+/* Ride Status Styling */
+.completed {
+  color: green;
+}
+
+.pending {
+  color: rgb(150 28 111);
+}
+
+.cancelled {
+  color: red;
+}
+
+.accepted {
+  color: #1b0dd9;
+}
+
+.started {
+  color: rebeccapurple;
+}
+
+.completed,
+.pending,
+.cancelled,
+.started,
+.accepted {
+  font-weight: 500;
+  font-style: italic;
+}
+
+.green-snackbar,
+.green-snackbar .mdc-snackbar__surface {
+  background-color: rgb(14, 167, 70) !important;
+  color: white;
+}
+.green-snackbar button {
+  background-color: rgb(14, 167, 70);
+  color: rgb(79, 20, 20) !important;
+  border: none;
+}
+.red-snackbar,
+.red-snackbar .mdc-snackbar__surface {
+  background: #f44336 !important;
+  color: white;
+}
+.red-snackbar button {
+  background-color: #f44336;
+  color: white !important;
+  border: none;
+}
+
+.success-text {
+  color: #008001;
+  font-weight: bold;
+  font-style: italic;
+}

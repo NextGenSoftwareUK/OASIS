@@ -1,0 +1,4 @@
+{
+  "dotnet.defaultSolution": "The OASIS.sln",
+  "terminal.integrated.defaultProfile.windows": "Git Bash"
+}

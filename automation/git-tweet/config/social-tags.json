@@ -1,0 +1,12 @@
+{
+  "default": ["#OASIS"],
+  "Docs/": ["#OASIS", "#Web4"],
+  "UAT/": ["#OASIS", "#Testing"],
+  "NEXTGEN/": ["#OASIS", "#DeveloperTools"],
+  "QUSDC": ["#OASIS", "#qUSDC"],
+  "HyperDrive": ["#OASIS", "#HyperDrive"],
+  "Solana": ["#OASIS", "#Solana"],
+  "SUI": ["#OASIS", "#Sui"]
+}
+
+

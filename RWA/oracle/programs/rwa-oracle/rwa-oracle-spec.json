@@ -1,0 +1,255 @@
+{
+  "name": "rwa_oracle",
+  "description": "RWA Oracle - Funding Rate On-Chain Publishing for Perpetual Futures",
+  "programId": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS",
+  "imports": [
+    "anchor_lang::prelude::*"
+  ],
+  "programName": "rwa_oracle",
+  "instructions": [
+    {
+      "name": "initialize_funding_rate",
+      "description": "Initialize a funding rate account for a symbol using PDA",
+      "contextStruct": "InitializeFundingRate",
+      "params": [
+        {
+          "name": "symbol",
+          "type": "String",
+          "description": "Stock ticker symbol (e.g., AAPL)"
+        }
+      ],
+      "validations": [
+        "let funding_rate = &mut ctx.accounts.funding_rate;",
+        "funding_rate.symbol = symbol;",
+        "funding_rate.authority = ctx.accounts.authority.key();",
+        "funding_rate.bump = ctx.bumps.funding_rate;",
+        "funding_rate.rate = 0;",
+        "funding_rate.hourly_rate = 0;",
+        "funding_rate.mark_price = 0;",
+        "funding_rate.spot_price = 0;",
+        "funding_rate.premium = 0;",
+        "funding_rate.last_updated = Clock::get()?.unix_timestamp;",
+        "funding_rate.valid_until = Clock::get()?.unix_timestamp;"
+      ],
+      "body": [
+        "msg!(\"Initialized funding rate account for symbol: {}\", funding_rate.symbol);",
+        "Ok(())"
+      ]
+    },
+    {
+      "name": "update_funding_rate",
+      "description": "Update funding rate for a symbol",
+      "contextStruct": "UpdateFundingRate",
+      "params": [
+        {
+          "name": "rate",
+          "type": "i64",
+          "description": "Annualized rate in basis points (10000 = 100%)"
+        },
+        {
+          "name": "hourly_rate",
+          "type": "i64",
+          "description": "Hourly rate in basis points"
+        },
+        {
+          "name": "mark_price",
+          "type": "u64",
+          "description": "Mark price in smallest unit (multiply by 10^8)"
+        },
+        {
+          "name": "spot_price",
+          "type": "u64",
+          "description": "Spot price in smallest unit (multiply by 10^8)"
+        },
+        {
+          "name": "premium",
+          "type": "i64",
+          "description": "Premium in smallest unit (can be negative)"
+        },
+        {
+          "name": "valid_until",
+          "type": "i64",
+          "description": "Unix timestamp when rate expires"
+        }
+      ],
+      "validations": [
+        "require!(",
+        "    ctx.accounts.authority.key() == funding_rate.authority,",
+        "    ErrorCode::Unauthorized",
+        ");"
+      ],
+      "body": [
+        "let funding_rate = &mut ctx.accounts.funding_rate;",
+        "funding_rate.rate = rate;",
+        "funding_rate.hourly_rate = hourly_rate;",
+        "funding_rate.mark_price = mark_price;",
+        "funding_rate.spot_price = spot_price;",
+        "funding_rate.premium = premium;",
+        "funding_rate.last_updated = Clock::get()?.unix_timestamp;",
+        "funding_rate.valid_until = valid_until;",
+        "msg!(\"Updated funding rate for {}: rate={}, hourly_rate={}, mark={}, spot={}\",",
+        "    funding_rate.symbol, rate, hourly_rate, mark_price, spot_price);",
+        "Ok(())"
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "InitializeFundingRate",
+      "description": "Accounts required for initializing a funding rate PDA",
+      "constraints": [
+        "instruction(symbol: String)"
+      ],
+      "fields": [
+        {
+          "name": "funding_rate",
+          "type": "Account<'info, FundingRate>",
+          "description": "Funding rate PDA account",
+          "constraints": [
+            "init",
+            "payer = authority",
+            "space = 8 + FundingRate::MAX_SIZE",
+            "seeds = [b\"funding_rate\", symbol.as_bytes()]",
+            "bump"
+          ]
+        },
+        {
+          "name": "authority",
+          "type": "Signer<'info>",
+          "description": "Authority that signs and pays for initialization",
+          "constraints": [
+            "mut"
+          ]
+        },
+        {
+          "name": "system_program",
+          "type": "Program<'info, System>",
+          "description": "System program"
+        }
+      ]
+    },
+    {
+      "name": "UpdateFundingRate",
+      "description": "Accounts required for updating a funding rate",
+      "fields": [
+        {
+          "name": "funding_rate",
+          "type": "Account<'info, FundingRate>",
+          "description": "Funding rate PDA account to update",
+          "constraints": [
+            "mut",
+            "seeds = [b\"funding_rate\", funding_rate.symbol.as_bytes()]",
+            "bump = funding_rate.bump"
+          ]
+        },
+        {
+          "name": "authority",
+          "type": "Signer<'info>",
+          "description": "Authority that signs the update"
+        }
+      ]
+    }
+  ],
+  "dataStructs": [
+    {
+      "name": "FundingRate",
+      "description": "Funding rate data stored on-chain",
+      "traits": [],
+      "fields": [
+        {
+          "name": "symbol",
+          "type": "String",
+          "description": "Stock ticker symbol (max 10 chars)"
+        },
+        {
+          "name": "authority",
+          "type": "Pubkey",
+          "description": "Authority that can update this rate"
+        },
+        {
+          "name": "rate",
+          "type": "i64",
+          "description": "Annualized rate in basis points"
+        },
+        {
+          "name": "hourly_rate",
+          "type": "i64",
+          "description": "Hourly rate in basis points"
+        },
+        {
+          "name": "mark_price",
+          "type": "u64",
+          "description": "Mark price in smallest unit"
+        },
+        {
+          "name": "spot_price",
+          "type": "u64",
+          "description": "Spot price in smallest unit"
+        },
+        {
+          "name": "premium",
+          "type": "i64",
+          "description": "Premium in smallest unit (can be negative)"
+        },
+        {
+          "name": "last_updated",
+          "type": "i64",
+          "description": "Unix timestamp of last update"
+        },
+        {
+          "name": "valid_until",
+          "type": "i64",
+          "description": "Unix timestamp when rate expires"
+        },
+        {
+          "name": "bump",
+          "type": "u8",
+          "description": "PDA bump seed"
+        }
+      ],
+      "methods": [
+        {
+          "name": "MAX_SIZE",
+          "description": "Maximum size of FundingRate account",
+          "returns": "usize",
+          "body": [
+            "4 + 10 + 32 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 1"
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "name": "Unauthorized",
+      "code": 6000,
+      "message": "Unauthorized - caller is not the authority"
+    }
+  ],
+  "pdaSeeds": [
+    {
+      "name": "FUNDING_RATE",
+      "seed": "funding_rate",
+      "description": "Seed for funding rate PDA"
+    }
+  ],
+  "pdaFunctions": [
+    {
+      "name": "derive_funding_rate_pda",
+      "description": "Derive PDA for a funding rate account",
+      "params": [
+        {
+          "name": "symbol",
+          "type": "String"
+        }
+      ],
+      "body": [
+        "Pubkey::find_program_address(",
+        "    &[FUNDING_RATE_SEED, symbol.as_bytes()],",
+        "    &crate::ID",
+        ")"
+      ]
+    }
+  ]
+}
+

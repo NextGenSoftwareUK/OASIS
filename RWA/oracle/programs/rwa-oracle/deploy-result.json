@@ -1,0 +1,1 @@
+{"isSuccess":false,"error":{"code":500,"message":"Deployment failed: A task was canceled.","errorType":"InternalServerError"},"data":{"contractAddress":null,"success":false,"transactionHash":null}}

@@ -1,0 +1,323 @@
+{
+  "contractName": "OASISBridge",
+  "description": "Universal Asset Bridge contract for locking and releasing tokens across chains",
+  "version": "1.0.0",
+  "author": "OASIS",
+  "features": {
+    "pausable": true,
+    "ownable": true,
+    "reentrancyGuard": true
+  },
+  "functions": [
+    {
+      "name": "lockTokens",
+      "type": "public",
+      "payable": true,
+      "description": "Lock tokens on source chain to initiate cross-chain transfer",
+      "parameters": [
+        {
+          "name": "destinationChain",
+          "type": "string",
+          "description": "Target blockchain identifier (e.g., 'ethereum', 'solana')"
+        },
+        {
+          "name": "recipient",
+          "type": "address",
+          "description": "Recipient address on destination chain"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "description": "Amount of tokens to lock"
+        },
+        {
+          "name": "tokenAddress",
+          "type": "address",
+          "description": "Address of token to lock (0x0 for native)"
+        }
+      ],
+      "returns": [
+        {
+          "name": "bridgeOrderId",
+          "type": "bytes32",
+          "description": "Unique order ID for tracking"
+        }
+      ],
+      "events": [
+        {
+          "name": "TokensLocked",
+          "parameters": [
+            "bytes32 indexed orderId",
+            "address indexed sender",
+            "string destinationChain",
+            "address recipient",
+            "uint256 amount",
+            "address tokenAddress",
+            "uint256 timestamp"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "releaseTokens",
+      "type": "public",
+      "onlyOwner": true,
+      "description": "Release locked tokens (called by oracle after cross-chain verification)",
+      "parameters": [
+        {
+          "name": "orderId",
+          "type": "bytes32",
+          "description": "Bridge order ID to release"
+        },
+        {
+          "name": "recipient",
+          "type": "address",
+          "description": "Recipient of unlocked tokens"
+        },
+        {
+          "name": "proof",
+          "type": "bytes32[]",
+          "description": "Merkle proof of cross-chain state"
+        }
+      ],
+      "events": [
+        {
+          "name": "TokensReleased",
+          "parameters": [
+            "bytes32 indexed orderId",
+            "address indexed recipient",
+            "uint256 amount",
+            "uint256 timestamp"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mintTokens",
+      "type": "public",
+      "onlyOwner": true,
+      "description": "Mint tokens on destination chain (called by oracle after source chain lock)",
+      "parameters": [
+        {
+          "name": "orderId",
+          "type": "bytes32",
+          "description": "Bridge order ID from source chain"
+        },
+        {
+          "name": "recipient",
+          "type": "address",
+          "description": "Recipient of minted tokens"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "description": "Amount to mint"
+        },
+        {
+          "name": "sourceChain",
+          "type": "string",
+          "description": "Source blockchain identifier"
+        },
+        {
+          "name": "proof",
+          "type": "bytes32[]",
+          "description": "Merkle proof of source chain lock"
+        }
+      ],
+      "events": [
+        {
+          "name": "TokensMinted",
+          "parameters": [
+            "bytes32 indexed orderId",
+            "address indexed recipient",
+            "uint256 amount",
+            "string sourceChain",
+            "uint256 timestamp"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "burnTokens",
+      "type": "public",
+      "description": "Burn tokens on source chain to initiate return to original chain",
+      "parameters": [
+        {
+          "name": "amount",
+          "type": "uint256",
+          "description": "Amount of tokens to burn"
+        },
+        {
+          "name": "returnChain",
+          "type": "string",
+          "description": "Original blockchain to return to"
+        },
+        {
+          "name": "returnAddress",
+          "type": "address",
+          "description": "Address to receive unlocked tokens"
+        }
+      ],
+      "returns": [
+        {
+          "name": "orderId",
+          "type": "bytes32",
+          "description": "Burn order ID for tracking"
+        }
+      ],
+      "events": [
+        {
+          "name": "TokensBurned",
+          "parameters": [
+            "bytes32 indexed orderId",
+            "address indexed burner",
+            "uint256 amount",
+            "string returnChain",
+            "address returnAddress",
+            "uint256 timestamp"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pause",
+      "type": "public",
+      "onlyOwner": true,
+      "description": "Emergency pause all bridge operations"
+    },
+    {
+      "name": "unpause",
+      "type": "public",
+      "onlyOwner": true,
+      "description": "Resume bridge operations"
+    },
+    {
+      "name": "getOrder",
+      "type": "view",
+      "description": "Get bridge order details",
+      "parameters": [
+        {
+          "name": "orderId",
+          "type": "bytes32",
+          "description": "Order ID to query"
+        }
+      ],
+      "returns": [
+        {
+          "name": "order",
+          "type": "BridgeOrder",
+          "description": "Order details struct"
+        }
+      ]
+    },
+    {
+      "name": "getLockedBalance",
+      "type": "view",
+      "description": "Get total locked balance for a token",
+      "parameters": [
+        {
+          "name": "tokenAddress",
+          "type": "address",
+          "description": "Token contract address (0x0 for native)"
+        }
+      ],
+      "returns": [
+        {
+          "name": "balance",
+          "type": "uint256",
+          "description": "Total locked balance"
+        }
+      ]
+    }
+  ],
+  "structs": [
+    {
+      "name": "BridgeOrder",
+      "fields": [
+        {
+          "name": "orderId",
+          "type": "bytes32",
+          "description": "Unique order identifier"
+        },
+        {
+          "name": "sender",
+          "type": "address",
+          "description": "Address that initiated the bridge"
+        },
+        {
+          "name": "recipient",
+          "type": "address",
+          "description": "Recipient on destination chain"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "description": "Amount being bridged"
+        },
+        {
+          "name": "tokenAddress",
+          "type": "address",
+          "description": "Token contract address"
+        },
+        {
+          "name": "sourceChain",
+          "type": "string",
+          "description": "Source blockchain"
+        },
+        {
+          "name": "destinationChain",
+          "type": "string",
+          "description": "Destination blockchain"
+        },
+        {
+          "name": "status",
+          "type": "uint8",
+          "description": "Order status (0=pending, 1=locked, 2=completed, 3=cancelled)"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint256",
+          "description": "Creation timestamp"
+        },
+        {
+          "name": "completedTimestamp",
+          "type": "uint256",
+          "description": "Completion timestamp"
+        }
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "name": "orders",
+      "visibility": "public",
+      "keyType": "bytes32",
+      "valueType": "BridgeOrder",
+      "description": "Mapping of order IDs to order details"
+    },
+    {
+      "name": "lockedBalances",
+      "visibility": "public",
+      "keyType": "address",
+      "valueType": "uint256",
+      "description": "Mapping of token addresses to total locked amounts"
+    },
+    {
+      "name": "authorizedRelayers",
+      "visibility": "public",
+      "keyType": "address",
+      "valueType": "bool",
+      "description": "Mapping of addresses authorized to mint/release"
+    }
+  ],
+  "constructor": {
+    "parameters": [
+      {
+        "name": "initialOwner",
+        "type": "address",
+        "description": "Initial contract owner address"
+      }
+    ]
+  }
+}
+

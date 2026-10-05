@@ -1,0 +1,18 @@
+{
+  "OASIS": {
+    "Providers": {
+      "AvalancheOASIS": {
+        "HostUri": "https://api.avax-test.network/ext/bc/C/rpc",
+        "ChainId": 43113,
+        "ChainPrivateKey": "TEST_PRIVATE_KEY_PLACEHOLDER",
+        "ContractAddress": "TEST_CONTRACT_ADDRESS_PLACEHOLDER"
+      }
+    },
+    "Security": {
+      "SecretKey": "TEST_SECRET_KEY"
+    }
+  }
+}
+
+
+

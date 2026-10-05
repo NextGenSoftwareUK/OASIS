@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Edge.js" Version="8.2.1" />
+    <PackageReference Include="Microsoft.AspNetCore.NodeServices" Version="2.2.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
+    <PackageReference Include="StreamJsonRpc" Version="2.0.180" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\External Libs\JsonRpc20.Client\JsonRpc20.Client.csproj" />
+    <ProjectReference Include="..\External Libs\WebSocket4Net\WebSocket4Net.Net45.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.DependencyInjection">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.dependencyinjection\2.2.0\lib\netcoreapp2.0\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\newtonsoft.json\11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.ClientEngine">
+      <HintPath>Lib\SuperSocket.ClientEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

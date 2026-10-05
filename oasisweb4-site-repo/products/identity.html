@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity & Access - OASIS</title>
+    <meta name="description" content="Unified identity system that works seamlessly across Web2 and Web3. Avatar, Karma, Wallet, and Keys APIs.">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="../" class="nav-logo">OASIS</a>
+            <div class="nav-menu" id="navMenu">
+                <a href="../index.html#products" class="nav-link">Products</a>
+                <a href="../index.html#solutions" class="nav-link">Solutions</a>
+                <a href="../index.html#developers" class="nav-link">Developers</a>
+                <a href="../index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-login" onclick="openLoginModal()">Log in</button>
+                <button class="btn-primary">Start building</button>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="section hero-section" id="home">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">Unified Identity</span>
+                    <span class="title-line">Across Web2 & Web3</span>
+                </h1>
+                <p class="hero-tagline">
+                    /// one identity. all platforms. infinite possibilities.
+                </p>
+                <div class="hero-description">
+                    <p>
+                        The first identity system that works seamlessly across Web2 and Web3. 
+                        Manage your digital identity, reputation, wallets, and keys through a single unified interface.
+                    </p>
+                </div>
+                <div class="hero-actions">
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/api-reference/api_reference" class="btn-primary" target="_blank">
+                        <span>View API docs</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-text">Scroll to explore</div>
+            <div class="scroll-section">
+                <span class="scroll-label">Section</span>
+                <span class="section-number">01</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="section" data-section="01">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Overview</h2>
+            <div class="section-subtitle">
+                OASIS Identity combines Avatar, Karma, Wallet, and Keys APIs into a unified system that bridges 
+                Web2 and Web3 identity. Deploy once, authenticate everywhere.
+            </div>
+            <div class="architecture-content">
+                <p class="architecture-description">
+                    Traditional identity systems force users to manage separate accounts for Web2 services and Web3 dApps. 
+                    OASIS Identity solves this by providing a single avatar that works across all platforms, with portable 
+                    reputation, unified wallet management, and secure key storage.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section principles-section" data-section="02">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">02</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Why OASIS Identity?</h2>
+            <div class="principles-grid">
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ A</div>
+                    </div>
+                    <h3 class="principle-title">Single Identity Everywhere</h3>
+                    <p class="principle-description">
+                        One avatar works on all platforms. No need to create new accounts for each service. 
+                        Universal SSO across Web2 apps, Web3 dApps, games, and metaverses.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ B</div>
+                    </div>
+                    <h3 class="principle-title">Portable Reputation</h3>
+                    <p class="principle-description">
+                        Karma earned on one platform carries to all others. Build reputation once, use everywhere. 
+                        Cross-platform trust and credibility through the Karma API.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ C</div>
+                    </div>
+                    <h3 class="principle-title">Unified Wallet Management</h3>
+                    <p class="principle-description">
+                        Manage all Web2 and Web3 assets in one place. 50+ blockchain networks supported. 
+                        Secure key management with backup and recovery through the Wallet API.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ D</div>
+                    </div>
+                    <h3 class="principle-title">Cryptographic Security</h3>
+                    <p class="principle-description">
+                        Advanced key generation, provider-specific operations, and secure key storage. 
+                        Multi-layer encryption and secure key derivation through the Keys API.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="section products-section" data-section="03">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">03</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Use Cases</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-category">SSO</div>
+                    <h3 class="product-title">Universal Single Sign-On</h3>
+                    <p class="product-description">
+                        One login works across all platforms. Users authenticate once with their OASIS Avatar 
+                        and access Web2 services, Web3 dApps, games, and metaverses without creating new accounts.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">REPUTATION</div>
+                    <h3 class="product-title">Cross-Platform Reputation</h3>
+                    <p class="product-description">
+                        Build karma on one platform, use it everywhere. Enable trust systems that work across 
+                        different services, allowing users to establish credibility that follows them.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">WALLET</div>
+                    <h3 class="product-title">Multi-Chain Asset Management</h3>
+                    <p class="product-description">
+                        Manage assets across 50+ blockchains from a single interface. Unified portfolio view, 
+                        cross-chain transfers, and secure key management for all digital assets.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Concept Section -->
+    <section class="section code-section" data-section="04">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">04</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Core Components</h2>
+            <div class="code-header">
+                <div class="code-intro">
+                    <h3 class="code-title">Four APIs. One Identity System.</h3>
+                    <p class="code-description">
+                        OASIS Identity combines four powerful APIs into a unified system that bridges Web2 and Web3.
+                    </p>
+                </div>
+            </div>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" data-tab="avatar">
+                        <span class="code-tab-label">Avatar API</span>
+                        <span>80+ endpoints</span>
+                    </button>
+                    <button class="code-tab" data-tab="karma">
+                        <span class="code-tab-label">Karma API</span>
+                        <span>20+ endpoints</span>
+                    </button>
+                    <button class="code-tab" data-tab="wallet">
+                        <span class="code-tab-label">Wallet API</span>
+                        <span>50+ chains</span>
+                    </button>
+                    <button class="code-tab" data-tab="keys">
+                        <span class="code-tab-label">Keys API</span>
+                        <span>40+ endpoints</span>
+                    </button>
+                </div>
+                <div class="code-content">
+                    <div class="code-block active" data-code="avatar">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Avatar API - Complete User Management</span>
+                            <span class="code-block-subtitle">Registration, authentication, cross-platform identity linking</span>
+                        </div>
+                        <pre><code>// Create avatar
+POST /api/avatar/register
+{
+  "username": "user123",
+  "email": "user@example.com",
+  "password": "secure-password",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+// Authenticate
+POST /api/avatar/authenticate
+{
+  "username": "user123",
+  "password": "secure-password"
+}
+
+// Get avatar details
+GET /api/avatar/{avatarId}
+
+// Link external identity
+POST /api/avatar/link-provider
+{
+  "avatarId": "...",
+  "providerType": "GoogleOAuth",
+  "providerId": "..."
+}</code></pre>
+                    </div>
+                    <div class="code-block" data-code="karma">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Karma API - Digital Reputation System</span>
+                            <span class="code-block-subtitle">Weighting, voting, akashic records, cross-platform karma</span>
+                        </div>
+                        <pre><code>// Add karma
+POST /api/karma/add-karma
+{
+  "avatarId": "...",
+  "karmaSourceType": "GoodDeed",
+  "karmaSourceTitle": "Helped community",
+  "karma": 10
+}
+
+// Get karma
+GET /api/karma/get-karma/{avatarId}
+
+// Get karma akashic records
+GET /api/karma/get-karma-akashic-records/{avatarId}
+
+// Vote on karma
+POST /api/karma/karma-vote
+{
+  "avatarId": "...",
+  "karmaId": "...",
+  "voteType": "UpVote"
+}</code></pre>
+                    </div>
+                    <div class="code-block" data-code="wallet">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Wallet API - Multi-Chain Asset Management</span>
+                            <span class="code-block-subtitle">50+ blockchains, unified interface, secure transactions</span>
+                        </div>
+                        <pre><code>// Create wallet
+POST /api/wallet/create-wallet
+{
+  "avatarId": "...",
+  "providerType": "EthereumOASIS"
+}
+
+// Get all wallets
+GET /api/wallet/load-wallets-by-id/{avatarId}
+
+// Send transaction
+POST /api/wallet/send-token
+{
+  "fromWalletAddress": "0x...",
+  "toWalletAddress": "0x...",
+  "fromProviderType": "EthereumOASIS",
+  "amount": 0.1,
+  "memoText": "Payment"
+}
+
+// Get balance
+GET /api/wallet/get-balance/{walletAddress}/{providerType}</code></pre>
+                    </div>
+                    <div class="code-block" data-code="keys">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Keys API - Cryptographic Security</span>
+                            <span class="code-block-subtitle">Key generation, provider-specific operations, secure storage</span>
+                        </div>
+                        <pre><code>// Generate key
+POST /api/keys/generate-key
+{
+  "avatarId": "...",
+  "keyType": "PrivateKey",
+  "providerType": "EthereumOASIS"
+}
+
+// Link key to wallet
+POST /api/keys/link-key-to-wallet
+{
+  "avatarId": "...",
+  "keyId": "...",
+  "walletId": "..."
+}
+
+// Get keys
+GET /api/keys/get-keys/{avatarId}
+
+// Sign message
+POST /api/keys/sign-message
+{
+  "keyId": "...",
+  "message": "Hello OASIS",
+  "providerType": "EthereumOASIS"
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Products</h4>
+                    <a href="identity">Identity & Access</a>
+                    <a href="data">Data & Storage</a>
+                    <a href="nfts">NFTs & Digital Assets</a>
+                    <a href="smart-contracts">Smart Contracts</a>
+                    <a href="bridges">Interoperability & Bridges</a>
+                    <a href="infrastructure">Infrastructure & Tools</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Developers</h4>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/api-reference/api_reference" target="_blank">Documentation</a>
+                    <a href="../index.html#developers">Code Examples</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="https://www.ourworldthegame.com/blog" target="_blank">Blog</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/additional-resources/oasis-white-paper-nov-2024" target="_blank">Whitepaper</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Support</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" target="_blank">About</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Contribute</a>
+                    <a href="../contact.html">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <a href="https://x.com/oasisweb4" target="_blank">Twitter</a>
+                    <a href="https://discord.gg/oasis" target="_blank">Discord</a>
+                    <a href="https://t.me/oasisweb4" target="_blank">Telegram</a>
+                </div>
+                <div class="footer-copyright">© 2025 OASIS. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+<!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+    </body>
+</html>
+

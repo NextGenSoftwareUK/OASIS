@@ -1,0 +1,57 @@
+﻿namespace NextGenSoftware.OASIS.API.Core.Enums
+{
+    //https://astronomical.fandom.com/wiki/List_of_planet_types
+    //https://exoplanets.nasa.gov/what-is-an-exoplanet/planet-types/overview/
+    //https://www.worldatlas.com/articles/how-many-types-of-planets-are-there-on-the-basis-of-composition.html
+    public enum PlanetSubType
+    {
+        BrownDwarf,
+        Chthonian,
+        EccentricJupiter,
+        Giant,
+        Helium,
+        HotJupiter,
+        HotNeptune,
+        MiniNeptune,
+        HotSaturn,
+        SuperJupiter,
+        Ammonia,
+        Barren,
+        Carbon,
+        City,
+        Chlorine,
+        Desert,
+        Donut,
+        Dwarf,
+        EarthAalog,
+        Eyeball,
+        Forest,
+        Ice,
+        Iron,
+        Lava,
+        MegaEarth,
+        MesoPlanet,
+        Ocean,
+        Planemo,
+        ProtoPlanet,
+        Snow,
+        SubEarth,
+        SuperEarth,
+        Superhabitable,
+        Terrestrial,
+        Blanet,
+        Circumbinary,
+        Circumternary,
+        Coreless,
+        Double,
+        Disrupted,
+        ExtraGalactic,
+        ExtraSolar,
+        Pulsar,
+        Rogue,
+        Trojan,
+        Silicate,
+        Proto,
+
+    }
+}

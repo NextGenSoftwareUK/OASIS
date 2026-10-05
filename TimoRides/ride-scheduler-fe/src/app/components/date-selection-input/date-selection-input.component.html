@@ -1,0 +1,11 @@
+<div class="date-form__selection" (change)="setDateTimeValue()">
+  <div class="date-form__selection-current">
+    <input
+      #dateTime
+      type="datetime-local"
+      placeholder="Date & time"
+      class="date-form__selection-current__date-time"
+      [min]="minDate"
+    />
+  </div>
+</div>

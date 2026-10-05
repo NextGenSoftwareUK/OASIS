@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS x402 Demo - Revenue-Generating NFTs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e2f4ff;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 3em;
+            background: linear-gradient(135deg, #14f195 0%, #9945ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #a0aec0;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(30, 30, 60, 0.6);
+            border: 1px solid rgba(20, 241, 149, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #14f195;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(20, 241, 149, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e2f4ff;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #14f195;
+            box-shadow: 0 0 0 3px rgba(20, 241, 149, 0.1);
+        }
+
+        button {
+            background: #14f195;
+            color: #0a0a0a;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #18ff9d;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(20, 241, 149, 0.3);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: rgba(20, 241, 149, 0.1);
+            border: 1px solid #14f195;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #14f195;
+            margin-bottom: 10px;
+        }
+
+        .result p {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-box {
+            background: rgba(20, 241, 149, 0.05);
+            border: 1px solid rgba(20, 241, 149, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            color: #14f195;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #a0aec0;
+            font-size: 0.9em;
+        }
+
+        .code {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(20, 241, 149, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #14f195;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: rgba(30, 30, 60, 0.6);
+            border: 1px solid rgba(20, 241, 149, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(20, 241, 149, 0.2);
+            border-color: #14f195;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #14f195;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OASIS × x402 Demo</h1>
+        <p class="subtitle">Revenue-Generating NFTs on Solana</p>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('mint')">Mint NFT</div>
+            <div class="tab" onclick="switchTab('distribute')">Test Distribution</div>
+            <div class="tab" onclick="switchTab('stats')">View Stats</div>
+        </div>
+
+        <!-- Mint NFT Tab -->
+        <div class="tab-content active" id="mint-tab">
+            <div class="card">
+                <h2>🎨 Mint x402-Enabled NFT</h2>
+                <p style="color: #a0aec0; margin-bottom: 20px;">
+                    Create an NFT that automatically distributes revenue to all holders
+                </p>
+
+                <form id="mint-form">
+                    <div class="form-group">
+                        <label>Your Solana Wallet Address</label>
+                        <input type="text" id="wallet" placeholder="Enter your Phantom wallet address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>NFT Name</label>
+                        <input type="text" id="nft-name" placeholder="e.g., Music Revenue Share NFT #1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="description" rows="3" placeholder="Describe your NFT..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image URL (IPFS or HTTPS)</label>
+                        <input type="url" id="image-url" placeholder="https://ipfs.io/your-image.png">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Revenue Model</label>
+                        <select id="revenue-model">
+                            <option value="equal">Equal Split (All holders receive equal share)</option>
+                            <option value="weighted">Weighted (Based on token holdings)</option>
+                            <option value="creator-split">Creator Split (50% creator, 50% holders)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>x402 Payment Endpoint</label>
+                        <input type="url" id="x402-endpoint" placeholder="https://api.yourservice.com/x402/revenue">
+                    </div>
+
+                    <button type="submit">Mint x402 NFT</button>
+                </form>
+
+                <div class="result" id="mint-result">
+                    <h3>✅ NFT Minted Successfully!</h3>
+                    <p><strong>Mint Address:</strong> <span id="mint-address"></span></p>
+                    <p><strong>x402 Payment URL:</strong> <span id="x402-url"></span></p>
+                    <p><strong>Transaction:</strong> <span id="transaction"></span></p>
+                    <div class="code" id="mint-code"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribution Tab -->
+        <div class="tab-content" id="distribute-tab">
+            <div class="card">
+                <h2>💰 Test Payment Distribution</h2>
+                <p style="color: #a0aec0; margin-bottom: 20px;">
+                    Simulate x402 payment and see automatic distribution in action
+                </p>
+
+                <form id="distribute-form">
+                    <div class="form-group">
+                        <label>NFT Mint Address</label>
+                        <input type="text" id="dist-mint" placeholder="Enter the NFT mint address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Payment Amount (SOL)</label>
+                        <input type="number" step="0.01" id="amount" placeholder="1.0" required>
+                    </div>
+
+                    <button type="submit">Distribute Payment</button>
+                </form>
+
+                <div class="result" id="distribute-result">
+                    <h3>✅ Payment Distributed!</h3>
+                    <p><strong>Recipients:</strong> <span id="recipient-count"></span> holders</p>
+                    <p><strong>Amount per holder:</strong> <span id="per-holder"></span> SOL</p>
+                    <p><strong>Transaction:</strong> <span id="dist-transaction"></span></p>
+                    <div class="code" id="distribute-code"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Tab -->
+        <div class="tab-content" id="stats-tab">
+            <div class="card">
+                <h2>📊 Payment Statistics</h2>
+                <p style="color: #a0aec0; margin-bottom: 20px;">
+                    View distribution history and holder information
+                </p>
+
+                <form id="stats-form">
+                    <div class="form-group">
+                        <label>NFT Mint Address</label>
+                        <input type="text" id="stats-mint" placeholder="Enter the NFT mint address" required>
+                    </div>
+
+                    <button type="submit">Get Stats</button>
+                </form>
+
+                <div class="result" id="stats-result">
+                    <h3>📈 Distribution Statistics</h3>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-number" id="total-distributed">0</div>
+                            <div class="stat-label">Total Distributed (SOL)</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="distribution-count">0</div>
+                            <div class="stat-label">Distributions</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="holder-count">0</div>
+                            <div class="stat-label">Current Holders</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="avg-distribution">0</div>
+                            <div class="stat-label">Avg per Distribution</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.oasis.one'; // Replace with your API URL
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`.tab:nth-child(${tab === 'mint' ? 1 : tab === 'distribute' ? 2 : 3})`).classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        // Mint NFT
+        document.getElementById('mint-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = e.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span> Minting...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/mint-nft-x402`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: document.getElementById('wallet').value,
+                        brickName: document.getElementById('nft-name').value,
+                        description: document.getElementById('description').value,
+                        imageUrl: document.getElementById('image-url').value,
+                        paymentNetwork: 'solana',
+                        x402Config: {
+                            enabled: true,
+                            paymentEndpoint: document.getElementById('x402-endpoint').value,
+                            revenueModel: document.getElementById('revenue-model').value
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('mint-address').textContent = data.nft.mintAddress;
+                    document.getElementById('x402-url').textContent = data.x402.paymentUrl;
+                    document.getElementById('transaction').textContent = data.nft.transactionSignature;
+                    document.getElementById('mint-code').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('mint-result').classList.add('show');
+                } else {
+                    alert('Minting failed: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Mint x402 NFT';
+            }
+        });
+
+        // Distribute Payment
+        document.getElementById('distribute-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = e.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span> Distributing...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/x402/distribute-test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nftMintAddress: document.getElementById('dist-mint').value,
+                        amount: parseFloat(document.getElementById('amount').value)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('recipient-count').textContent = data.result.recipients;
+                    document.getElementById('per-holder').textContent = data.result.amountPerHolder.toFixed(4);
+                    document.getElementById('dist-transaction').textContent = data.result.distributionTx;
+                    document.getElementById('distribute-code').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('distribute-result').classList.add('show');
+                } else {
+                    alert('Distribution failed: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Distribute Payment';
+            }
+        });
+
+        // Get Stats
+        document.getElementById('stats-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = e.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span> Loading...';
+            
+            try {
+                const mintAddress = document.getElementById('stats-mint').value;
+                const response = await fetch(`${API_URL}/api/x402/stats/${mintAddress}`);
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('total-distributed').textContent = stats.totalDistributed.toFixed(2);
+                    document.getElementById('distribution-count').textContent = stats.distributionCount;
+                    document.getElementById('holder-count').textContent = stats.holderCount;
+                    document.getElementById('avg-distribution').textContent = stats.averagePerDistribution.toFixed(4);
+                    document.getElementById('stats-result').classList.add('show');
+                } else {
+                    alert('Failed to fetch stats: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Get Stats';
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+{
+  "Comment": "Create CNAME record for oasisweb4.one pointing to GitHub Pages",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "oasisweb4.one",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "nextgensoftwareuk.github.io"
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

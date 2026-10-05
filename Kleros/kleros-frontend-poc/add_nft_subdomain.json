@@ -1,0 +1,18 @@
+{
+  "Comment": "Add nft subdomain for NFT Mint Studio Frontend",
+  "Changes": [
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "nft.oasisweb4.one",
+        "Type": "A",
+        "AliasTarget": {
+          "DNSName": "oasis-api-alb-2011847064.us-east-1.elb.amazonaws.com",
+          "EvaluateTargetHealth": true,
+          "HostedZoneId": "Z35SXDOTRQ7X7K"
+        }
+      }
+    }
+  ]
+}
+
