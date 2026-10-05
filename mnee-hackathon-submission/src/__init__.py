@@ -1,2 +1,0 @@
-# MNEE Hackathon Submission Package
-
