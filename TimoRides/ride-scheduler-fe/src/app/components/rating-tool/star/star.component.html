@@ -1,9 +1,0 @@
-<span
-  (click)="clickable && emitStar($event)"
-  *ngIf="star"
-  class="star-icon"
-  [class]="star.colorTheme + ' ' + star.size"
-  [attr.data-index]="index"
->
-  {{ star.type === "fill" ? "&#x2605;" : "&#x2606;" }}
-</span>
