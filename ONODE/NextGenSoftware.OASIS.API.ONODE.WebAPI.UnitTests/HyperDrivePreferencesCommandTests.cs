@@ -7,11 +7,30 @@ using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public sealed class HyperDriveCommandExecutorTests
 {
+    private static OASISDNA CreateHyperDriveV2Dna()
+    {
+        var dna = new OASISDNA();
+        dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+        return dna;
+    }
+
+    [Fact]
+    public void ExecutorRequiresExplicitHyperDriveV2Dna()
+    {
+        var provider = new Mock<IOASISStorageProvider>();
+
+        Assert.Throws<ArgumentNullException>(() => new HyperDriveCommandExecutor(provider.Object, null!));
+        var error = Assert.Throws<ArgumentException>(() =>
+            new HyperDriveCommandExecutor(provider.Object, new OASISDNA()));
+        Assert.Contains(HyperDriveModes.V2, error.Message);
+    }
+
     [Fact]
     public async Task MalformedGeoHotSpotEvidenceIsRejectedBeforeProviderAccess()
     {
@@ -27,7 +46,8 @@ public sealed class HyperDriveCommandExecutorTests
             })
         };
 
-        var outcome = await new HyperDriveCommandExecutor(provider.Object).ExecuteAsync(command, default);
+        var outcome = await new HyperDriveCommandExecutor(provider.Object, CreateHyperDriveV2Dna())
+            .ExecuteAsync(command, default);
 
         Assert.False(outcome.Succeeded);
         Assert.Equal("GEOHOTSPOT_TRIGGER_EVIDENCE_INVALID", outcome.Code);
@@ -62,7 +82,7 @@ public sealed class HyperDriveCommandExecutorTests
             PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarPreferences
             { MasterVolume = 0.4f, GraphicsPreset = "Ultra", UiHighContrast = true })
         };
-        var executor = new HyperDriveCommandExecutor(provider.Object);
+        var executor = new HyperDriveCommandExecutor(provider.Object, CreateHyperDriveV2Dna());
 
         var first = await executor.ExecuteAsync(command, default);
         int writesAfterFirstExecution = provider.Invocations.Count(x => x.Method.Name == nameof(IOASISStorageProvider.SaveHolonAsync));
@@ -86,7 +106,8 @@ public sealed class HyperDriveCommandExecutorTests
             PayloadJson = HyperDriveJson.Serialize(new HyperDriveAvatarPreferences())
         };
 
-        var outcome = await new HyperDriveCommandExecutor(provider.Object).ExecuteAsync(command, default);
+        var outcome = await new HyperDriveCommandExecutor(provider.Object, CreateHyperDriveV2Dna())
+            .ExecuteAsync(command, default);
 
         Assert.False(outcome.Succeeded);
         Assert.Equal("PREFERENCES_AVATAR_MISMATCH", outcome.Code);

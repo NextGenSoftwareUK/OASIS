@@ -43,7 +43,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 return;
             }
 
-            var executor = new HyperDriveCommandExecutor(providerResult.Result);
+            var executor = new HyperDriveCommandExecutor(providerResult.Result,
+                NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA);
             _logger.LogInformation("HyperDrive ordered command worker {WorkerId} started.", _workerId);
             try
             {
