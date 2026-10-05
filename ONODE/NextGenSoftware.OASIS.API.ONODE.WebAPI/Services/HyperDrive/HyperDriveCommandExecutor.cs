@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -24,9 +25,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             PropertyNameCaseInsensitive = true
         };
         private readonly IOASISStorageProvider _provider;
+        private readonly OASISDNA _oasisDna;
 
-        public HyperDriveCommandExecutor(IOASISStorageProvider provider) =>
+        public HyperDriveCommandExecutor(IOASISStorageProvider provider, OASISDNA oasisDna)
+        {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            _oasisDna = oasisDna ?? throw new ArgumentNullException(nameof(oasisDna));
+            if (_oasisDna.OASIS?.HyperDriveMode != HyperDriveModes.V2)
+                throw new ArgumentException(
+                    $"Hosted HyperDrive command execution requires HyperDriveMode '{HyperDriveModes.V2}'.",
+                    nameof(oasisDna));
+        }
 
         public async Task<HyperDriveCommandOutcome> ExecuteAsync(HostedSyncCommandItem command,
             CancellationToken cancellationToken)
@@ -74,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             var payload = Deserialize<HyperDriveQuestProgressCommand>(command);
             EnsureStarDna();
             var questManager = new QuestManager(_provider, command.AvatarId, STARDNAManager.STARDNA,
-                OASISBootLoader.OASISBootLoader.OASISDNA);
+                _oasisDna);
             var applied = await questManager.ApplyQuestProgressAsync(command.AvatarId, command.EntityId,
                 string.IsNullOrWhiteSpace(payload.GameSource) ? "ODOOM" : payload.GameSource,
                 new QuestProgressDelta
@@ -97,9 +106,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 }).ConfigureAwait(false);
             RejectIfError(applied?.IsError == true, "QUEST_PROGRESS_REJECTED", applied?.Message);
 
-            var avatarManager = new AvatarManager(_provider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            var avatarManager = new AvatarManager(_provider, _oasisDna);
             var itemManager = new InventoryItemManager(_provider, command.AvatarId, STARDNAManager.STARDNA,
-                OASISBootLoader.OASISBootLoader.OASISDNA);
+                _oasisDna);
             foreach (Guid rewardId in applied.Result.InventoryItemsToGrant)
             {
                 var reward = await itemManager.LoadAsync(command.AvatarId, rewardId).ConfigureAwait(false);
@@ -139,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             var payload = Deserialize<HyperDriveQuestLifecycleCommand>(command);
             EnsureStarDna();
             var manager = new QuestManager(_provider, command.AvatarId, STARDNAManager.STARDNA,
-                OASISBootLoader.OASISBootLoader.OASISDNA);
+                _oasisDna);
             NextGenSoftware.OASIS.Common.OASISResult<bool> applied;
             if (payload.Action == HyperDriveQuestLifecycleAction.Start)
                 applied = await manager.StartQuestAsync(command.AvatarId, command.EntityId, payload.Notes, command.OperationId).ConfigureAwait(false);
@@ -176,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             item.Properties["OurWorld.Value"] = payload.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
             if (!string.IsNullOrWhiteSpace(payload.ThumbnailUrl))
                 item.Properties["OurWorld.ThumbnailUrl"] = payload.ThumbnailUrl;
-            var applied = await new AvatarManager(_provider, OASISBootLoader.OASISBootLoader.OASISDNA)
+            var applied = await new AvatarManager(_provider, _oasisDna)
                 .AddItemToAvatarInventoryAsync(command.AvatarId, item, operationId: command.OperationId)
                 .ConfigureAwait(false);
             RejectIfError(applied?.IsError == true, "INVENTORY_GRANT_REJECTED", applied?.Message);
@@ -190,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 throw new HyperDriveCommandRejectedException("COMMAND_PAYLOAD_INVALID",
                     $"Inventory item type '{request.ItemType}' is invalid.");
             Uri object3DUri = ParseOptionalAbsoluteUri(request.Object3DUri, "Object3DUri");
-            var nftManager = new NFTManager(_provider, command.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+            var nftManager = new NFTManager(_provider, command.AvatarId, _oasisDna);
             var loaded = await nftManager.LoadWeb4GeoNftAsync(command.EntityId).ConfigureAwait(false);
             RejectIfError(loaded?.IsError == true || loaded?.Result == null, "GEONFT_NOT_FOUND", loaded?.Message);
             var nft = loaded.Result;
@@ -204,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 Rarity = nft.MetaData != null && nft.MetaData.TryGetValue("OurWorld.Rarity", out var rarity)
                     ? rarity : "Common"
             };
-            var applied = await new AvatarManager(_provider, OASISBootLoader.OASISBootLoader.OASISDNA)
+            var applied = await new AvatarManager(_provider, _oasisDna)
                 .CollectGeoNFTInventoryAsync(command.AvatarId, nft, item, operationId: command.OperationId)
                 .ConfigureAwait(false);
             RejectIfError(applied?.IsError == true, "GEONFT_COLLECTION_REJECTED", applied?.Message);
@@ -220,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 throw new HyperDriveCommandRejectedException("GEOHOTSPOT_TRIGGER_EVIDENCE_INVALID", validationError);
             EnsureStarDna();
             var service = new GeoHotSpotTriggerService(_provider, command.AvatarId, STARDNAManager.STARDNA,
-                OASISBootLoader.OASISBootLoader.OASISDNA);
+                _oasisDna);
             var applied = await service.TriggerAsync(command.EntityId, command.OperationId, request,
                 cancellationToken).ConfigureAwait(false);
             RejectIfError(applied == null || applied.IsError || applied.Result == null,
@@ -237,7 +246,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
             var preferences = Deserialize<HyperDriveAvatarPreferences>(command);
             ValidatePreferences(preferences);
-            var manager = new HolonManager(_provider, OASISBootLoader.OASISBootLoader.OASISDNA);
+            var manager = new HolonManager(_provider, _oasisDna);
             const string category = "omniverse";
             const string receiptKey = "HyperDrive.PreferencesOperationId.v1";
             var priorReceipt = await manager.LoadSettingAsync(category: category, avatarId: command.AvatarId,
