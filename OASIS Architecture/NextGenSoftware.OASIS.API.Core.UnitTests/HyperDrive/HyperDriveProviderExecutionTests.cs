@@ -6,10 +6,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -20,6 +23,455 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class HyperDriveProviderExecutionTests
 {
+    [Fact]
+    public void RegistrationPreparationUsesTheEmailAndUsernameKeysIndependently()
+    {
+        const string email = "new-player@example.test";
+        const string username = "new-player";
+        var provider = CreateActiveProvider();
+        provider.Object.ProviderCapabilities = new List<EnumValue<ProviderCategory>>();
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarByEmail(email, 0)).Returns(new OASISResult<IAvatar>());
+        provider.Setup(x => x.LoadAvatarByUsername(username, 0)).Returns(new OASISResult<IAvatar>());
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var runtime = new ProviderManager(null, dna);
+        runtime.RegisterProvider(provider.Object);
+        runtime.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var manager = new AvatarManager(provider.Object, dna, runtime);
+        var method = typeof(AvatarManager).GetMethod("PrepareToRegisterAvatar",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        var result = (OASISResult<IAvatar>)method!.Invoke(manager, new object[]
+        {
+            "New Player", "New", "Player", email, "Password123!", username,
+            AvatarType.User, OASISType.OASISAPIREST
+        })!;
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().NotBeNull();
+        result.Result.Email.Should().Be(email);
+        result.Result.Username.Should().Be(username);
+        provider.Verify(x => x.LoadAvatarByEmail(email, 0), Times.Once);
+        provider.Verify(x => x.LoadAvatarByUsername(username, 0), Times.Once);
+        provider.Verify(x => x.LoadAvatarByUsername(email, It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousEmailSendFailsExplicitlyWhenEmailTransportIsNotConfigured()
+    {
+        string oasisKey = Environment.GetEnvironmentVariable("OASIS_RESEND_KEY");
+        string resendKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_RESEND_KEY", null);
+            Environment.SetEnvironmentVariable("RESEND_API_KEY", null);
+            var dna = new OASISDNA
+            {
+                OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                {
+                    Email = new EmailSettings
+                    {
+                        DisableAllEmails = false,
+                        EmailFrom = "noreply@example.test"
+                    }
+                }
+            };
+            EmailManager.Initialize(dna);
+
+            Action send = () => EmailManager.Send("player@example.test", "subject", "body");
+
+            send.Should().Throw<InvalidOperationException>()
+                .WithMessage("*No Resend API key is configured*");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OASIS_RESEND_KEY", oasisKey);
+            Environment.SetEnvironmentVariable("RESEND_API_KEY", resendKey);
+        }
+    }
+
+    [Fact]
+    public void SynchronousProviderActivationUsesTheSynchronousContractOnTheCallingThread()
+    {
+        var callingThread = Environment.CurrentManagedThreadId;
+        var providerThread = 0;
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.ActivateProvider())
+            .Callback(() => providerThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<bool>(true));
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.Legacy));
+
+        OASISResult<bool> result = runtime.ActivateProvider(provider.Object);
+
+        result.Result.Should().BeTrue();
+        providerThread.Should().Be(callingThread);
+        provider.Verify(x => x.ActivateProvider(), Times.Once);
+        provider.Verify(x => x.ActivateProviderAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task AsynchronousProviderActivationAwaitsTheAsynchronousContractOnce()
+    {
+        var completion = new TaskCompletionSource<OASISResult<bool>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.ActivateProviderAsync()).Returns(completion.Task);
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.Legacy));
+
+        Task<OASISResult<bool>> pending = runtime.ActivateProviderAsync(provider.Object);
+        pending.IsCompleted.Should().BeFalse();
+        completion.SetResult(new OASISResult<bool>(true));
+        OASISResult<bool> result = await pending;
+
+        result.Result.Should().BeTrue();
+        provider.Verify(x => x.ActivateProviderAsync(), Times.Once);
+        provider.Verify(x => x.ActivateProvider(), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousProviderDeactivationUsesTheSynchronousContractOnTheCallingThread()
+    {
+        var callingThread = Environment.CurrentManagedThreadId;
+        var providerThread = 0;
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.DeActivateProvider())
+            .Callback(() => providerThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<bool>(true));
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.Legacy));
+
+        OASISResult<bool> result = runtime.DeActivateProvider(provider.Object);
+
+        result.Result.Should().BeTrue();
+        providerThread.Should().Be(callingThread);
+        provider.Verify(x => x.DeActivateProvider(), Times.Once);
+        provider.Verify(x => x.DeActivateProviderAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task AsynchronousProviderDeactivationAwaitsTheAsynchronousContractOnce()
+    {
+        var completion = new TaskCompletionSource<OASISResult<bool>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.DeActivateProviderAsync()).Returns(completion.Task);
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.Legacy));
+
+        Task<OASISResult<bool>> pending = runtime.DeActivateProviderAsync(provider.Object);
+        pending.IsCompleted.Should().BeFalse();
+        completion.SetResult(new OASISResult<bool>(true));
+        OASISResult<bool> result = await pending;
+
+        result.Result.Should().BeTrue();
+        provider.Verify(x => x.DeActivateProviderAsync(), Times.Once);
+        provider.Verify(x => x.DeActivateProvider(), Times.Never);
+    }
+
+    [Fact]
+    public void LegacySynchronousHolonProviderSelectionUsesTheSynchronousProviderOnTheCallingThread()
+    {
+        var holonId = Guid.NewGuid();
+        var holon = new Holon { Id = holonId };
+        var callingThread = Environment.CurrentManagedThreadId;
+        var providerThread = 0;
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolon(holonId, false, false, 3, false, true, 7))
+            .Callback(() => providerThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<IHolon>(holon));
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var runtime = new ProviderManager(null, dna);
+        runtime.RegisterProvider(provider.Object);
+        var manager = new HolonManager(provider.Object, dna, runtime);
+
+        var result = manager.LoadHolon(holonId, false, false, 3, false, true, HolonType.All, 7,
+            ProviderType.MongoDBOASIS);
+
+        result.Result.Should().BeSameAs(holon);
+        providerThread.Should().Be(callingThread);
+        provider.Verify(x => x.LoadHolon(holonId, false, false, 3, false, true, 7), Times.Once);
+        provider.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LegacyAsynchronousHolonProviderSelectionAwaitsTheProviderResultOnce()
+    {
+        const string providerKey = "legacy-provider-key";
+        var holon = new Holon { Id = Guid.NewGuid() };
+        var completion = new TaskCompletionSource<OASISResult<IHolon>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(providerKey, false, false, 4, false, true, 9))
+            .Returns(completion.Task);
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var runtime = new ProviderManager(null, dna);
+        runtime.RegisterProvider(provider.Object);
+        var manager = new HolonManager(provider.Object, dna, runtime);
+
+        var pending = manager.LoadHolonAsync(providerKey, false, false, 4, false, true, HolonType.All, 9,
+            ProviderType.MongoDBOASIS);
+        pending.IsCompleted.Should().BeFalse();
+        completion.SetResult(new OASISResult<IHolon>(holon));
+        var result = await pending;
+
+        result.Result.Should().BeSameAs(holon);
+        provider.Verify(x => x.LoadHolonAsync(providerKey, false, false, 4, false, true, 9), Times.Once);
+        provider.Verify(x => x.LoadHolon(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+            It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void LegacySynchronousSearchUsesTheSynchronousProviderOnTheCallingThread()
+    {
+        ISearchParams search = new SearchParams();
+        ISearchResults searchResults = new SearchResults();
+        var callingThread = Environment.CurrentManagedThreadId;
+        var providerThread = 0;
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.Search(search, false, false, 3, false, 7))
+            .Callback(() => providerThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<ISearchResults>(searchResults));
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var runtime = new ProviderManager(null, dna);
+        runtime.RegisterProvider(provider.Object);
+        var manager = new SearchManager(provider.Object, dna, runtime);
+
+        var result = manager.Search(search, ProviderType.MongoDBOASIS, loadChildren: false,
+            recursive: false, maxChildDepth: 3, continueOnError: false, version: 7);
+
+        result.Result.Should().NotBeNull();
+        providerThread.Should().Be(callingThread);
+        provider.Verify(x => x.Search(search, false, false, 3, false, 7), Times.Once);
+        provider.Verify(x => x.SearchAsync(It.IsAny<ISearchParams>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LegacyAsynchronousSearchAwaitsTheProviderResultOnce()
+    {
+        ISearchParams search = new SearchParams();
+        ISearchResults searchResults = new SearchResults();
+        var completion = new TaskCompletionSource<OASISResult<ISearchResults>>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+        provider.Setup(x => x.SearchAsync(search, false, false, 4, false, 9))
+            .Returns(completion.Task);
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var runtime = new ProviderManager(null, dna);
+        runtime.RegisterProvider(provider.Object);
+        var manager = new SearchManager(provider.Object, dna, runtime);
+
+        Task<OASISResult<ISearchResults>> pending = manager.SearchAsync(search, ProviderType.MongoDBOASIS,
+            loadChildren: false, recursive: false, maxChildDepth: 4, continueOnError: false, version: 9);
+        pending.IsCompleted.Should().BeFalse();
+        completion.SetResult(new OASISResult<ISearchResults>(searchResults));
+        OASISResult<ISearchResults> result = await pending;
+
+        result.Result.Should().NotBeNull();
+        provider.Verify(x => x.SearchAsync(search, false, false, 4, false, 9), Times.Once);
+        provider.Verify(x => x.Search(It.IsAny<ISearchParams>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DefaultAsynchronousHolonVisibilityProjectionPreservesDiagnosticsAndMaterializesTheProviderResult()
+    {
+        var avatarId = Guid.NewGuid();
+        var owned = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = avatarId };
+        var publicHolon = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), IsPublic = true };
+        var privateHolon = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid() };
+        var source = new OASISResult<IEnumerable<IHolon>>(new[] { owned, publicHolon, privateHolon })
+        {
+            IsWarning = true,
+            WarningCount = 1,
+            DetailedMessage = "authoritative Holon collection detail",
+            MetaData = new Dictionary<string, string> { ["provider"] = "visibility-projection" },
+            LoadedCount = 3
+        };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadHolonsForParentAsync(owned.Id, HolonType.Quest, false, false, 2, 1,
+                false, true, 7))
+            .ReturnsAsync(source);
+
+        IOASISStorageProvider contract = provider.Object;
+        var result = await contract.LoadHolonsForParentAsync(owned.Id, avatarId, true, HolonType.Quest,
+            false, false, 2, 1, false, true, 7);
+
+        result.Result.Should().BeAssignableTo<IReadOnlyCollection<IHolon>>();
+        result.Result.Should().Equal(owned, publicHolon);
+        result.IsWarning.Should().BeTrue();
+        result.WarningCount.Should().Be(1);
+        result.LoadedCount.Should().Be(3);
+        result.DetailedMessage.Should().Be("authoritative Holon collection detail");
+        result.MetaData["provider"].Should().Be("visibility-projection");
+        provider.Verify(x => x.LoadHolonsForParentAsync(owned.Id, HolonType.Quest, false, false, 2, 1,
+            false, true, 7), Times.Once);
+        provider.Verify(x => x.LoadHolonsForParent(It.IsAny<Guid>(), It.IsAny<HolonType>(), It.IsAny<bool>(),
+            It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void DefaultSynchronousHolonVisibilityProjectionFailsClosedWithoutACollectionPayload()
+    {
+        var avatarId = Guid.NewGuid();
+        var source = new OASISResult<IEnumerable<IHolon>>
+        {
+            DetailedMessage = "provider returned no Holon collection payload",
+            MetaData = new Dictionary<string, string> { ["provider"] = "sync-visibility-projection" }
+        };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, false, true, 4))
+            .Returns(source);
+
+        IOASISStorageProvider contract = provider.Object;
+        var result = contract.LoadAllHolons(avatarId, false, HolonType.All, false, false, 0, 0, false, true, 4);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("HOLON_COLLECTION_PAYLOAD_REQUIRED");
+        result.ErrorCount.Should().BeGreaterThan(0);
+        result.DetailedMessage.Should().Be("provider returned no Holon collection payload");
+        result.MetaData["provider"].Should().Be("sync-visibility-projection");
+        provider.Verify(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, false, true, 4), Times.Once);
+        provider.Verify(x => x.LoadAllHolonsAsync(It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void DefaultSynchronousAvatarDetailDeleteNeverCrossesTheAsyncProviderBoundary()
+    {
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "sync-delete", IsActive = true };
+        var saved = new OASISResult<IAvatarDetail>(detail)
+        {
+            IsWarning = true,
+            WarningCount = 1,
+            DetailedMessage = "authoritative synchronous delete detail",
+            MetaData = new Dictionary<string, string> { ["provider"] = "sync-avatar-detail-delete" }
+        };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAvatarDetailByUsername("sync-delete", 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetail(detail)).Returns(saved);
+
+        var result = provider.Object.DeleteAvatarDetailByUsername("sync-delete");
+
+        result.Result.Should().BeTrue();
+        result.IsDeleted.Should().BeTrue();
+        result.IsWarning.Should().BeTrue();
+        result.DetailedMessage.Should().Be("authoritative synchronous delete detail");
+        result.MetaData["provider"].Should().Be("sync-avatar-detail-delete");
+        detail.IsActive.Should().BeFalse();
+        detail.DeletedDate.Should().BeAfter(DateTime.MinValue);
+        provider.Verify(x => x.LoadAvatarDetailByUsernameAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DefaultAsynchronousAvatarDetailDeletePreservesSaveDiagnosticsAndAvoidsASecondLookup()
+    {
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Email = "async-delete@example.test", IsActive = true };
+        var saved = new OASISResult<IAvatarDetail>(detail)
+        {
+            IsWarning = true,
+            WarningCount = 2,
+            DetailedMessage = "authoritative asynchronous delete detail",
+            InnerMessages = new List<string> { "secondary delete projection pending" },
+            DeletedCount = 1
+        };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAvatarDetailByEmailAsync("async-delete@example.test", 0))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetailAsync(detail)).ReturnsAsync(saved);
+
+        var result = await provider.Object.DeleteAvatarDetailByEmailAsync("async-delete@example.test");
+
+        result.Result.Should().BeTrue();
+        result.IsDeleted.Should().BeTrue();
+        result.WarningCount.Should().Be(2);
+        result.DeletedCount.Should().Be(1);
+        result.DetailedMessage.Should().Be("authoritative asynchronous delete detail");
+        result.InnerMessages.Should().Contain("secondary delete projection pending");
+        provider.Verify(x => x.LoadAvatarDetailByEmailAsync("async-delete@example.test", 0), Times.Once);
+        provider.Verify(x => x.LoadAvatarDetailAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveAvatarDetailAsync(detail), Times.Once);
+    }
+
+    [Fact]
+    public async Task DefaultAvatarLookupContractsPreserveDiagnosticsAndAwaitTheAsyncProviderBoundary()
+    {
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            VerificationToken = "verification-token",
+            ResetToken = "reset-token",
+            RefreshTokens = new List<RefreshToken> { new() { Token = "refresh-token" } },
+            ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>
+            {
+                [ProviderType.EthereumOASIS] = new()
+                {
+                    new ProviderWallet { PublicKey = "public-key", PrivateKey = "private-key" }
+                }
+            }
+        };
+        var source = new OASISResult<IEnumerable<IAvatar>>(new[] { avatar })
+        {
+            IsWarning = true,
+            WarningCount = 2,
+            DetailedMessage = "authoritative avatar collection detail",
+            InnerMessages = new List<string> { "secondary avatar index pending" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "default-avatar-lookup" },
+            LoadedCount = 1
+        };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllAvatarsAsync(7)).ReturnsAsync(source);
+
+        IOASISStorageProvider contract = provider.Object;
+        var results = new[]
+        {
+            await contract.LoadAvatarByVerificationTokenAsync("verification-token", 7),
+            await contract.LoadAvatarByResetTokenAsync("reset-token", 7),
+            await contract.LoadAvatarByRefreshTokenAsync("refresh-token", 7),
+            await contract.LoadAvatarByPublicKeyAsync("public-key", 7),
+            await contract.LoadAvatarByPrivateKeyAsync("private-key", 7)
+        };
+
+        results.Should().OnlyContain(result => result.Result == avatar && result.IsWarning &&
+            result.WarningCount == 2 && result.LoadedCount == 1 &&
+            result.DetailedMessage == "authoritative avatar collection detail" &&
+            result.InnerMessages.Contains("secondary avatar index pending") &&
+            result.MetaData["provider"] == "default-avatar-lookup");
+        provider.Verify(x => x.LoadAllAvatarsAsync(7), Times.Exactly(5));
+        provider.Verify(x => x.LoadAllAvatars(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void DefaultSynchronousAvatarLookupUsesOnlyTheSynchronousProviderBoundaryAndFailsClosedWithoutPayload()
+    {
+        var source = new OASISResult<IEnumerable<IAvatar>>
+        {
+            DetailedMessage = "provider returned no collection payload",
+            MetaData = new Dictionary<string, string> { ["provider"] = "sync-default-avatar-lookup" }
+        };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllAvatars(4)).Returns(source);
+
+        IOASISStorageProvider contract = provider.Object;
+        var result = contract.LoadAvatarByVerificationToken("missing", 4);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("AVATAR_COLLECTION_PAYLOAD_REQUIRED");
+        result.ErrorCount.Should().BeGreaterThan(0);
+        result.DetailedMessage.Should().Be("provider returned no collection payload");
+        result.MetaData["provider"].Should().Be("sync-default-avatar-lookup");
+        provider.Verify(x => x.LoadAllAvatars(4), Times.Once);
+        provider.Verify(x => x.LoadAllAvatarsAsync(It.IsAny<int>()), Times.Never);
+    }
+
     [Fact]
     public void AvatarJwtIssuanceUsesTheManagersRuntimeDna()
     {
@@ -125,6 +577,44 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task TypedProviderKeyLoadPreservesCompleteV2ProviderFailure()
+    {
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        var provider = CreateActiveProvider(ProviderType.MongoDBOASIS, "typed-provider-key");
+        var providerFailure = new OASISResult<IHolon>
+        {
+            IsError = true,
+            IsWarning = true,
+            ErrorCode = "HOLON_PROVIDER_KEY_REJECTED",
+            Message = "provider rejected key",
+            DetailedMessage = "authoritative provider detail",
+            ErrorCount = 2,
+            WarningCount = 1,
+            InnerMessages = new List<string> { "inner provider diagnostic" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "typed-provider-key" }
+        };
+        provider.Setup(x => x.LoadHolonAsync("provider-key", true, true, 0, true, false, 0))
+            .ReturnsAsync(providerFailure);
+
+        var manager = new HolonManager(provider.Object, dna, providerManager);
+        var result = await manager.LoadHolonAsync<Holon>("provider-key");
+
+        result.IsError.Should().BeTrue();
+        result.IsWarning.Should().BeTrue();
+        result.ErrorCode.Should().Be(providerFailure.ErrorCode);
+        result.Message.Should().Be(providerFailure.Message);
+        result.DetailedMessage.Should().Be(providerFailure.DetailedMessage);
+        result.ErrorCount.Should().Be(2);
+        result.WarningCount.Should().Be(1);
+        result.InnerMessages.Should().Equal(providerFailure.InnerMessages);
+        result.MetaData.Should().Contain("provider", "typed-provider-key");
+        result.Result.Should().BeNull();
+        provider.Verify(x => x.LoadHolonAsync("provider-key", true, true, 0, true, false, 0), Times.Once);
+    }
+
+    [Fact]
     public void LegacyAvatarKarmaUsesOnlyTheManagersInjectedRuntime()
     {
         var avatar = new AvatarDetail { Id = Guid.NewGuid() };
@@ -137,6 +627,10 @@ public sealed class HyperDriveProviderExecutionTests
                 avatar, KarmaTypePositive.HelpOtherPerson, KarmaSourceType.Game,
                 "quest", "helped another player", null))
             .Returns(new OASISResult<KarmaAkashicRecord>(record));
+        provider.Setup(x => x.RemoveKarmaFromAvatar(
+                avatar, KarmaTypeNegative.DropLitter, KarmaSourceType.Game,
+                "quest", "dropped litter", null))
+            .Returns(new OASISResult<KarmaAkashicRecord>(record));
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
         var manager = new AvatarManager(null, dna, providerManager);
@@ -144,9 +638,13 @@ public sealed class HyperDriveProviderExecutionTests
         var result = manager.AddKarmaToAvatar(
             avatar, KarmaTypePositive.HelpOtherPerson, KarmaSourceType.Game,
             "quest", "helped another player", providerType: ProviderType.SQLLiteDBOASIS);
+        var removed = manager.RemoveKarmaFromAvatar(
+            avatar, KarmaTypeNegative.DropLitter, KarmaSourceType.Game,
+            "quest", "dropped litter", providerType: ProviderType.SQLLiteDBOASIS);
 
         result.IsError.Should().BeFalse(result.Message);
         result.Result.Should().BeSameAs(record);
+        removed.Should().BeSameAs(record);
         providerManager.CurrentStorageProvider.Should().BeSameAs(provider.Object);
         ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
         provider.VerifyAll();
@@ -277,6 +775,156 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task DomainManagerChildPreservesTheExplicitProviderInAMultiProviderV2Runtime()
+    {
+        var avatarId = Guid.NewGuid();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var runtimeDefault = CreateActiveProvider(ProviderType.MongoDBOASIS, "domain-default");
+        var explicitlySelected = CreateActiveProvider(ProviderType.IPFSOASIS, "domain-explicit");
+        runtimeDefault.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        explicitlySelected.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        runtimeDefault.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(holon) { IsSaved = true });
+        explicitlySelected.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(holon) { IsSaved = true });
+        providerManager.RegisterProvider(runtimeDefault.Object).Should().BeTrue();
+        providerManager.RegisterProvider(explicitlySelected.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(runtimeDefault.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+
+        var result = await new FilesManager(explicitlySelected.Object, dna, providerManager)
+            .UploadFileAsync(avatarId, "explicit-provider.dat", new byte[] { 4, 2 },
+                "application/octet-stream");
+
+        result.IsError.Should().BeFalse(result.Message);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        explicitlySelected.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Once);
+        runtimeDefault.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Never);
+    }
+
+    [Fact]
+    public async Task SettingsAndMessagingChildrenPreserveTheirExplicitProviderInAMultiProviderV2Runtime()
+    {
+        var avatarId = Guid.NewGuid();
+        var avatar = new Avatar
+        {
+            Id = avatarId,
+            MetaData = new Dictionary<string, object>
+            {
+                ["preferences"] = new Dictionary<string, object>
+                {
+                    ["system"] = new Dictionary<string, object> { ["theme"] = "explicit-edge" }
+                }
+            }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var runtimeDefault = CreateActiveProvider(ProviderType.MongoDBOASIS, "children-default");
+        var explicitlySelected = CreateActiveProvider(ProviderType.IPFSOASIS, "children-explicit");
+        runtimeDefault.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        explicitlySelected.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        explicitlySelected.Setup(x => x.LoadAvatarAsync(avatarId, 0))
+            .ReturnsAsync(new OASISResult<IAvatar>(avatar));
+        explicitlySelected.Setup(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), avatarId.ToString(),
+                It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(new List<IHolon>()));
+        providerManager.RegisterProvider(runtimeDefault.Object).Should().BeTrue();
+        providerManager.RegisterProvider(explicitlySelected.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(runtimeDefault.Object).IsError.Should().BeFalse();
+
+        var settings = await new SettingsManager(explicitlySelected.Object, dna, providerManager)
+            .GetSystemSettingsAsync(avatarId);
+        var messages = await new MessagingManager(explicitlySelected.Object, dna, providerManager)
+            .GetMessagesAsync(avatarId);
+
+        settings.IsError.Should().BeFalse(settings.Message);
+        settings.Result["theme"].Should().Be("explicit-edge");
+        messages.IsError.Should().BeFalse(messages.Message);
+        messages.Result.Should().BeEmpty();
+        explicitlySelected.Verify(x => x.LoadAvatarAsync(avatarId, 0), Times.Once);
+        explicitlySelected.Verify(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), avatarId.ToString(),
+            It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Exactly(2));
+        runtimeDefault.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        runtimeDefault.Verify(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task FilesManagerDoesNotTurnAProviderFailureIntoAnEmptyFileList()
+    {
+        var avatarId = Guid.NewGuid();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "files-read-failure");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonsByMetaDataAsync("CreatedByAvatarId", avatarId.ToString(),
+                It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = "FILE_STORE_UNAVAILABLE",
+                Message = "file store unavailable"
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new FilesManager(provider.Object, dna, providerManager)
+            .GetAllFilesForAvatarAsync(avatarId);
+
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeNull();
+        result.ErrorCode.Should().Be("HYPERDRIVE_FAILOVER_EXHAUSTED");
+        result.Message.Should().Contain("unavailable");
+    }
+
+    [Fact]
+    public async Task RejectedFileMetadataUpdateDoesNotLeakThroughProviderObjectAlias()
+    {
+        var avatarId = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+        var stored = new Holon
+        {
+            Id = fileId,
+            MetaData = new Dictionary<string, object>
+            {
+                ["oasisFileType"] = "file",
+                ["fileName"] = "before.dat"
+            }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "files-alias-rejection");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(fileId, true, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(stored));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = "FILE_UPDATE_REJECTED",
+                Message = "file update rejected"
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new FilesManager(provider.Object, dna, providerManager)
+            .UpdateFileMetadataAsync(avatarId, fileId,
+                new Dictionary<string, object> { ["fileName"] = "after.dat" });
+
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeFalse();
+        stored.MetaData["fileName"].Should().Be("before.dat");
+        provider.Verify(x => x.SaveHolonAsync(
+            It.Is<IHolon>(h => h.MetaData["fileName"].ToString() == "after.dat"),
+            true, true, 0, true, false), Times.Once);
+    }
+
+    [Fact]
     public async Task SettingsManagerReadsThroughItsInjectedRuntimeWithoutTouchingTheSingleton()
     {
         var avatarId = Guid.NewGuid();
@@ -389,9 +1037,279 @@ public sealed class HyperDriveProviderExecutionTests
         var result = await manager.LoadClanAsync(clanId);
 
         result.IsError.Should().BeFalse(result.Message);
-        result.Result.Should().BeSameAs(clan);
+        result.Result.Id.Should().Be(clanId);
+        result.Result.Name.Should().Be("Edge Clan");
+        result.Result.OwnerAvatarId.Should().Be(clan.OwnerAvatarId);
         ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
         provider.Verify(x => x.LoadHolonAsync(clanId, false, false, 0, true, false, 0), Times.Once);
+    }
+
+    [Fact]
+    public async Task ClanStateRoundTripsWhenAProviderPersistsOnlyTheBaseHolonContract()
+    {
+        var clanId = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
+        var memberId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var clan = new Clan
+        {
+            Id = clanId,
+            Name = "Portable Clan",
+            OwnerAvatarId = ownerId,
+            MemberIds = new List<Guid> { ownerId, memberId },
+            Inventory = new List<IInventoryItem>
+            {
+                new InventoryItem
+                {
+                    Id = itemId, Name = "Holo Crystal", Quantity = 3, Stack = true,
+                    GameSource = "Our World", ItemType = InventoryItemType.QuestItem,
+                    Properties = new Dictionary<string, object> { ["rarity"] = "purple" }
+                }
+            }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "base-holon-clan-roundtrip");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon saved, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(new Holon
+                {
+                    Id = saved.Id, Name = saved.Name, Description = saved.Description,
+                    HolonType = saved.HolonType,
+                    MetaData = new Dictionary<string, object>(saved.MetaData)
+                }));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new ClanManager(providerManager).UpdateClanAsync(clan);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.OwnerAvatarId.Should().Be(ownerId);
+        result.Result.MemberIds.Should().Equal(ownerId, memberId);
+        result.Result.Inventory.Should().ContainSingle();
+        result.Result.Inventory[0].Id.Should().Be(itemId);
+        result.Result.Inventory[0].Quantity.Should().Be(3);
+        result.Result.Inventory[0].Properties["rarity"].ToString().Should().Be("purple");
+    }
+
+    [Fact]
+    public async Task BaseHolonClanWithoutCanonicalStateFailsClosed()
+    {
+        var clanId = Guid.NewGuid();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "missing-clan-state");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(clanId, false, false, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(new Holon
+            {
+                Id = clanId, Name = "Incomplete Clan", HolonType = HolonType.Clan
+            }));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new ClanManager(providerManager).LoadClanAsync(clanId);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("CLAN_STATE_INVALID");
+        result.Result.Should().BeNull();
+        result.Message.Should().Contain("OASIS.Clan.State.v1");
+    }
+
+    [Fact]
+    public async Task AvatarClanInventoryLookupCannotEscapeItsInjectedRuntime()
+    {
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-avatar-clan");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAllHolonsAsync(It.IsAny<HolonType>(), It.IsAny<bool>(),
+                It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(),
+                It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = "ISOLATED_CLAN_STORE_OFFLINE",
+                Message = "injected clan store unavailable"
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+
+        var result = await new AvatarManager(null, dna, providerManager).SendItemToClanAsync(
+            Guid.NewGuid(), "Edge Clan", "Crystal", providerType: ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.Message.Should().Contain("injected clan store unavailable");
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAllHolonsAsync(It.IsAny<HolonType>(), It.IsAny<bool>(),
+            It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(),
+            It.IsAny<bool>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RejectedClanMembershipWriteDoesNotLeakThroughProviderObjectAlias()
+    {
+        var clanId = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
+        var candidateId = Guid.NewGuid();
+        var stored = new Clan
+        {
+            Id = clanId,
+            OwnerAvatarId = ownerId,
+            MemberIds = new List<Guid> { ownerId }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "clan-alias-rejection");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(clanId, false, false, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(stored));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = "CLAN_WRITE_REJECTED",
+                Message = "clan write rejected"
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new ClanManager(providerManager).AddAvatarToClanAsync(clanId, candidateId);
+
+        result.IsError.Should().BeTrue();
+        stored.MemberIds.Should().Equal(ownerId);
+        provider.Verify(x => x.SaveHolonAsync(
+            It.Is<IHolon>(h => ((IClan)h).MemberIds.Contains(candidateId)),
+            true, true, 0, true, false), Times.Once);
+    }
+
+    [Fact]
+    public async Task RejectedClanInventorySenderWriteDoesNotLeakThroughProviderObjectAlias()
+    {
+        var clanId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        var item = new InventoryItem { Id = Guid.NewGuid(), Name = "Crystal" };
+        var storedDetail = new AvatarDetail
+        {
+            Id = senderId,
+            Inventory = new List<IInventoryItem> { item }
+        };
+        var storedClan = new Clan { Id = clanId, OwnerAvatarId = Guid.NewGuid() };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "clan-sender-write-rejection");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(clanId, false, false, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(storedClan));
+        provider.Setup(x => x.LoadAvatarDetailAsync(senderId, 0))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>(storedDetail));
+        provider.Setup(x => x.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>()))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = "AVATAR_WRITE_REJECTED",
+                Message = "avatar write rejected"
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new ClanManager(providerManager).SendItemToClanAsync(
+            senderId, clanId, item.Name, itemId: item.Id, providerType: ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeTrue();
+        storedDetail.Inventory.Should().ContainSingle().Which.Should().BeSameAs(item);
+        provider.Verify(x => x.SaveAvatarDetailAsync(
+            It.Is<IAvatarDetail>(d => d.Inventory.Count == 0)), Times.Once);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Never);
+    }
+
+    [Fact]
+    public async Task AtomicClanTransferPreservesClientOperationAndDestinationIdentities()
+    {
+        var senderId = Guid.NewGuid();
+        var clanId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        var destinationId = Guid.NewGuid();
+        var storedDetail = new AvatarDetail
+        {
+            Id = senderId,
+            Inventory = new List<IInventoryItem>
+            {
+                new InventoryItem { Id = itemId, Name = "Obsidian Pod", GameSource = "Our World", Quantity = 3 }
+            }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = new Mock<IOASISStorageProvider>();
+        var commandStore = provider.As<IHostedAvatarGameplayCommandStore>();
+        provider.SetupAllProperties();
+        provider.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.IPFSOASIS);
+        provider.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage);
+        provider.Object.ProviderName = "atomic-clan-transfer";
+        provider.Object.IsProviderActivated = true;
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarDetailAsync(senderId, 0))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>(storedDetail));
+        HostedSyncCommandItem captured = null;
+        commandStore.Setup(x => x.ApplyAvatarGameplayCommandAsync(It.IsAny<HostedSyncCommandItem>(), It.IsAny<CancellationToken>()))
+            .Callback<HostedSyncCommandItem, CancellationToken>((command, _) => captured = command)
+            .ReturnsAsync(new OASISResult<HyperDriveAvatarDetailProjection>(new HyperDriveAvatarDetailProjection
+            {
+                AvatarId = senderId
+            }));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new ClanManager(providerManager).SendItemToClanAtomicAsync(senderId, clanId,
+            "Obsidian Pod", 2, operationId, destinationId, itemId, ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        captured.Should().NotBeNull();
+        captured.OperationId.Should().Be(operationId);
+        captured.AvatarId.Should().Be(senderId);
+        captured.EntityId.Should().Be(senderId);
+        captured.EntityType.Should().Be(HyperDriveEntityTypes.AvatarGameplay);
+        var payload = HyperDriveJson.Deserialize<HyperDriveAvatarGameplayCommand>(captured.PayloadJson);
+        payload.Action.Should().Be(HyperDriveAvatarGameplayAction.TransferInventoryToClan);
+        payload.InventoryItemId.Should().Be(itemId);
+        payload.TargetClanId.Should().Be(clanId);
+        payload.DestinationInventoryItemId.Should().Be(destinationId);
+        payload.Amount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ClanInventoryTransferRejectsAnIncompleteRequestedQuantityBeforeWriting()
+    {
+        var clanId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        var storedDetail = new AvatarDetail
+        {
+            Id = senderId,
+            Inventory = new List<IInventoryItem>
+            {
+                new InventoryItem { Id = Guid.NewGuid(), Name = "Crystal" }
+            }
+        };
+        var storedClan = new Clan { Id = clanId, OwnerAvatarId = Guid.NewGuid() };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "clan-insufficient-quantity");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(clanId, false, false, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(storedClan));
+        provider.Setup(x => x.LoadAvatarDetailAsync(senderId, 0))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>(storedDetail));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new ClanManager(providerManager).SendItemToClanAsync(
+            senderId, clanId, "Crystal", quantity: 2, providerType: ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.Message.Should().Contain("insufficient quantity");
+        storedDetail.Inventory.Should().ContainSingle();
+        provider.Verify(x => x.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>()), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Never);
     }
 
     [Fact]
@@ -1039,6 +1957,260 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public void SynchronousSettingsReadFailureNeverAttemptsToCreateOrOverwriteTheSettingsHolon()
+    {
+        var avatarId = Guid.NewGuid();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-sync-settings-read-failure");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+            .Returns(new OASISResult<IHolon>
+            {
+                IsError = true,
+                ErrorCode = "PROVIDER_UNAVAILABLE",
+                ErrorCount = 1,
+                Message = "provider unavailable"
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var manager = new HolonManager(null, dna, providerManager);
+        var result = manager.GetAllSettings(avatarId, "karma");
+
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeNull();
+        result.Message.Should().Contain("provider unavailable");
+        provider.Verify(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Never);
+        provider.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousSaveSettingsUsesOnlyTheSynchronousProviderBoundary()
+    {
+        var avatarId = Guid.NewGuid();
+        var settingsHolon = new Holon
+        {
+            Id = Guid.NewGuid(),
+            CreatedByAvatarId = avatarId,
+            MetaData = new Dictionary<string, object> { ["existing"] = "preserved" }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-sync-settings-save");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+            .Returns(new OASISResult<IHolon>(settingsHolon));
+        IHolon savedHolon = null;
+        provider.Setup(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Callback((IHolon holon, bool _, bool _, int _, bool _, bool _) => savedHolon = holon)
+            .Returns((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(holon) { IsSaved = true });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var manager = new HolonManager(null, dna, providerManager);
+        var result = manager.SaveSettings(avatarId, "karma",
+            new Dictionary<string, object> { ["totalKarma"] = 42L });
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeTrue();
+        savedHolon.Should().NotBeNull().And.NotBeSameAs(settingsHolon);
+        savedHolon.MetaData["existing"].Should().Be("preserved");
+        savedHolon.MetaData["totalKarma"].Should().Be(42L);
+        savedHolon.MetaData.Should().ContainKey("_versionStamp");
+        settingsHolon.MetaData.Should().NotContainKey("totalKarma",
+            "provider-returned state must remain unchanged until the provider accepts the detached write");
+        provider.Verify(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0), Times.Once);
+        provider.Verify(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Once);
+        provider.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousKarmaMutationPersistsLedgerAndProjectionsWithoutAsyncProviderCalls()
+    {
+        var avatarId = Guid.NewGuid();
+        var stored = new Dictionary<Guid, IHolon>();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-sync-karma");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+            .Returns((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
+                new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
+                    ? holon
+                    : new Holon { Id = id, MetaData = new Dictionary<string, object>() }));
+        provider.Setup(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Returns((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+            {
+                stored[holon.Id] = holon;
+                return new OASISResult<IHolon>(holon) { IsSaved = true };
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var manager = new KarmaManager(null, dna, providerManager);
+        var mutation = manager.AddKarma(avatarId, 25, KarmaSourceType.Platform, "offline action");
+        var balance = new KarmaManager(null, dna, providerManager).GetKarma(avatarId);
+
+        mutation.IsError.Should().BeFalse(mutation.Message);
+        mutation.Result.Should().BeTrue();
+        balance.IsError.Should().BeFalse(balance.Message);
+        balance.Result.Should().Be(25);
+        provider.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousHighLevelKarmaUsesDurableSyncPathAndUpdatesAvatarProjection()
+    {
+        var avatarId = Guid.NewGuid();
+        var detail = new AvatarDetail { Id = avatarId, Karma = 0 };
+        var stored = new Dictionary<Guid, IHolon>();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-sync-high-level-karma");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetail(It.IsAny<IAvatarDetail>()))
+            .Returns((IAvatarDetail avatar) => new OASISResult<IAvatarDetail>(avatar) { IsSaved = true });
+        provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+            .Returns((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
+                new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
+                    ? holon
+                    : new Holon { Id = id, MetaData = new Dictionary<string, object>() }));
+        provider.Setup(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Returns((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+            {
+                stored[holon.Id] = holon;
+                return new OASISResult<IHolon>(holon) { IsSaved = true };
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = new KarmaManager(null, dna, providerManager).AddKarmaToAvatar(
+            avatarId, KarmaTypePositive.CreateAvatar, KarmaSourceType.Platform,
+            "registration", "registered avatar");
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().NotBeNull();
+        detail.Karma.Should().Be(KarmaManager.GetKarmaForType(KarmaTypePositive.CreateAvatar));
+        detail.KarmaAkashicRecords.Should().ContainSingle();
+        provider.Verify(x => x.SaveAvatarDetail(detail), Times.Once);
+        provider.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void HyperDriveV2AvatarManagerKarmaUsesDurableLedgerInsteadOfProviderKarmaShortcut()
+    {
+        var avatarId = Guid.NewGuid();
+        var detail = new AvatarDetail { Id = avatarId, Karma = 0 };
+        var stored = new Dictionary<Guid, IHolon>();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-avatar-manager-karma");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetail(It.IsAny<IAvatarDetail>()))
+            .Returns((IAvatarDetail avatar) => new OASISResult<IAvatarDetail>(avatar) { IsSaved = true });
+        provider.Setup(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+            .Returns((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
+                new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
+                    ? holon
+                    : new Holon { Id = id, MetaData = new Dictionary<string, object>() }));
+        provider.Setup(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .Returns((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+            {
+                stored[holon.Id] = holon;
+                return new OASISResult<IHolon>(holon) { IsSaved = true };
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var manager = new AvatarManager(null, dna, providerManager);
+        var result = manager.AddKarmaToAvatar(
+            avatarId, KarmaTypePositive.HelpOtherPerson, KarmaSourceType.Platform,
+            "registration", "registered avatar", providerType: ProviderType.IPFSOASIS);
+        var removed = manager.RemoveKarmaFromAvatar(
+            avatarId, KarmaTypeNegative.BeingSelfish, KarmaSourceType.Platform,
+            "cleanup", "dropped litter", providerType: ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().NotBeNull();
+        removed.IsError.Should().BeFalse(removed.Message);
+        removed.Result.Should().NotBeNull();
+        detail.Karma.Should().Be(KarmaManager.GetKarmaForType(KarmaTypePositive.HelpOtherPerson)
+            - Math.Abs(KarmaManager.GetKarmaForType(KarmaTypeNegative.BeingSelfish)));
+        provider.Verify(x => x.AddKarmaToAvatar(It.IsAny<IAvatarDetail>(), It.IsAny<KarmaTypePositive>(),
+            It.IsAny<KarmaSourceType>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        provider.Verify(x => x.RemoveKarmaFromAvatar(It.IsAny<IAvatarDetail>(), It.IsAny<KarmaTypeNegative>(),
+            It.IsAny<KarmaSourceType>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        provider.Verify(x => x.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task HyperDriveV2AvatarManagerAsyncKarmaUsesDurableLedgerInsteadOfProviderKarmaShortcut()
+    {
+        var avatarId = Guid.NewGuid();
+        var detail = new AvatarDetail { Id = avatarId, Karma = 0 };
+        var stored = new Dictionary<Guid, IHolon>();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-avatar-manager-async-karma");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetail(It.IsAny<IAvatarDetail>()))
+            .Returns((IAvatarDetail avatar) => new OASISResult<IAvatarDetail>(avatar) { IsSaved = true });
+        provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
+            .ReturnsAsync((Guid id, bool _, bool _, int _, bool _, bool _, int _) =>
+                new OASISResult<IHolon>(stored.TryGetValue(id, out var holon)
+                    ? holon
+                    : new Holon { Id = id, MetaData = new Dictionary<string, object>() }));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+            {
+                stored[holon.Id] = holon;
+                return new OASISResult<IHolon>(holon) { IsSaved = true };
+            });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var manager = new AvatarManager(null, dna, providerManager);
+        var result = await manager.AddKarmaToAvatarAsync(
+            avatarId, KarmaTypePositive.HelpOtherPerson, KarmaSourceType.Platform,
+            "registration", "registered avatar", providerType: ProviderType.IPFSOASIS);
+        var removed = await manager.RemoveKarmaFromAvatarAsync(
+            avatarId, KarmaTypeNegative.BeingSelfish, KarmaSourceType.Platform,
+            "cleanup", "dropped litter", providerType: ProviderType.IPFSOASIS);
+
+        result.Should().NotBeNull();
+        removed.Should().NotBeNull();
+        detail.Karma.Should().Be(KarmaManager.GetKarmaForType(KarmaTypePositive.HelpOtherPerson)
+            - Math.Abs(KarmaManager.GetKarmaForType(KarmaTypeNegative.BeingSelfish)));
+        provider.Verify(x => x.AddKarmaToAvatarAsync(It.IsAny<IAvatarDetail>(), It.IsAny<KarmaTypePositive>(),
+            It.IsAny<KarmaSourceType>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        provider.Verify(x => x.RemoveKarmaFromAvatarAsync(It.IsAny<IAvatarDetail>(), It.IsAny<KarmaTypeNegative>(),
+            It.IsAny<KarmaSourceType>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
     public async Task AvatarStatsDoesNotReturnAPartialDashboardWhenDurableStatsCannotLoad()
     {
         var avatarId = Guid.NewGuid();
@@ -1410,6 +2582,10 @@ public sealed class HyperDriveProviderExecutionTests
                 ErrorCode = "CHAT_WRITE_REJECTED",
                 Message = "chat write rejected"
             });
+        provider.Setup(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()));
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
         var manager = new ChatManager(null, dna, providerManager);
@@ -1421,6 +2597,92 @@ public sealed class HyperDriveProviderExecutionTests
         start.IsError.Should().BeTrue();
         start.Message.Should().Contain("chat write rejected");
         active.Result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ChatSessionMessagesAndTerminationSurviveManagerRestart()
+    {
+        var participantId = Guid.NewGuid();
+        var otherParticipantId = Guid.NewGuid();
+        var stored = new Dictionary<Guid, IHolon>();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "durable-chat-runtime");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+            {
+                stored[holon.Id] = holon;
+                return new OASISResult<IHolon>(holon) { IsSaved = true };
+            });
+        provider.Setup(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync((string key, string value, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
+                new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
+                    h.MetaData.TryGetValue(key, out var indexed) && indexed?.ToString() == value).ToList()));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var first = new ChatManager(null, dna, providerManager);
+        var start = await first.StartNewChatSessionAsync(new List<Guid> { participantId, otherParticipantId }, "durable");
+        var send = await first.SendMessageAsync(start.Result, participantId, "survives restart");
+        var restarted = new ChatManager(null, dna, providerManager);
+        var active = await restarted.GetActiveSessionsAsync(participantId);
+        var history = await restarted.GetChatHistoryAsync(start.Result);
+
+        start.IsError.Should().BeFalse(start.Message);
+        send.IsError.Should().BeFalse(send.Message);
+        active.Result.Should().ContainSingle(x => x.Id == start.Result && x.IsActive);
+        history.Result.Should().ContainSingle(x => x.Id == send.Result && x.Content == "survives restart");
+
+        var end = await restarted.EndChatSessionAsync(start.Result, participantId);
+        var afterEndRestart = await new ChatManager(null, dna, providerManager).GetActiveSessionsAsync(participantId);
+        var sendAfterEnd = await new ChatManager(null, dna, providerManager)
+            .SendMessageAsync(start.Result, participantId, "must be rejected");
+
+        end.Result.Should().BeTrue(end.Message);
+        afterEndRestart.Result.Should().NotContain(x => x.Id == start.Result);
+        sendAfterEnd.IsError.Should().BeTrue();
+        sendAfterEnd.Message.Should().Contain("ended");
+    }
+
+    [Fact]
+    public async Task RejectedChatTerminationDoesNotMutateTheStoredSessionAlias()
+    {
+        var participantId = Guid.NewGuid();
+        var stored = new Dictionary<Guid, IHolon>();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "rejected-chat-end-runtime");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+            {
+                stored[holon.Id] = holon;
+                return new OASISResult<IHolon>(holon) { IsSaved = true };
+            });
+        provider.Setup(x => x.LoadHolonsByMetaDataAsync(It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
+            .ReturnsAsync((string key, string value, HolonType _, bool _, bool _, int _, int _, bool _, bool _, int _) =>
+                new OASISResult<IEnumerable<IHolon>>(stored.Values.Where(h => h.MetaData != null &&
+                    h.MetaData.TryGetValue(key, out var indexed) && indexed?.ToString() == value).ToList()));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var start = await new ChatManager(null, dna, providerManager)
+            .StartNewChatSessionAsync(new List<Guid> { participantId, Guid.NewGuid() });
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>
+                { IsError = true, ErrorCount = 1, Message = "chat termination rejected" });
+
+        var end = await new ChatManager(null, dna, providerManager)
+            .EndChatSessionAsync(start.Result, participantId);
+        var reloaded = await new ChatManager(null, dna, providerManager).GetActiveSessionsAsync(participantId);
+
+        end.IsError.Should().BeTrue();
+        end.Message.Should().Contain("chat termination rejected");
+        reloaded.Result.Should().ContainSingle(x => x.Id == start.Result && x.IsActive);
     }
 
     [Fact]
@@ -1508,7 +2770,8 @@ public sealed class HyperDriveProviderExecutionTests
             new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
         }).IsError.Should().BeFalse();
 
-        var result = await new OASISHyperDrive(providerManager).RouteRequestAsync<IAvatar>(
+        var hyperDrive = new OASISHyperDrive(providerManager);
+        var result = await hyperDrive.RouteRequestAsync<IAvatar>(
             new StorageOperationRequest
             {
                 Operation = "LoadAvatar",
@@ -1519,6 +2782,10 @@ public sealed class HyperDriveProviderExecutionTests
         result.IsError.Should().BeTrue();
         result.ErrorCode.Should().Be("HYPERDRIVE_QUOTA_EXCEEDED");
         result.Message.Should().Contain("Quota exceeded for Failovers");
+        hyperDrive.LastFailoverDiagnostic.WasQuotaBlocked.Should().BeTrue();
+        hyperDrive.LastFailoverDiagnostic.Attempts.Should().ContainSingle()
+            .Which.Provider.Should().Be(ProviderType.MongoDBOASIS);
+        result.MetaData.Should().ContainKey("hyperDriveFailoverDiagnostic");
         primary.Verify(x => x.LoadAvatarAsync(avatarId, 0), Times.Once);
         secondary.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
     }
@@ -1569,11 +2836,16 @@ public sealed class HyperDriveProviderExecutionTests
             new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
         }).IsError.Should().BeFalse();
 
-        var result = await new OASISHyperDrive(providerManager).FailoverRequestAsync<IAvatar>(
+        var hyperDrive = new OASISHyperDrive(providerManager);
+        var result = await hyperDrive.FailoverRequestAsync<IAvatar>(
             new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = Guid.NewGuid() });
 
         result.IsError.Should().BeTrue();
         result.Message.Should().Contain("Quota exceeded for Failovers");
+        hyperDrive.LastFailoverDiagnostic.IsExplicitRequest.Should().BeTrue();
+        hyperDrive.LastFailoverDiagnostic.WasQuotaBlocked.Should().BeTrue();
+        hyperDrive.LastFailoverDiagnostic.Attempts.Should().BeEmpty();
+        result.MetaData.Should().ContainKey("hyperDriveFailoverDiagnostic");
         provider.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
     }
 
@@ -1595,11 +2867,16 @@ public sealed class HyperDriveProviderExecutionTests
             new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
         }).IsError.Should().BeFalse();
 
-        var result = await new OASISHyperDrive(providerManager).ReplicateRequestAsync<IHolon>(
+        var hyperDrive = new OASISHyperDrive(providerManager);
+        var result = await hyperDrive.ReplicateRequestAsync<IHolon>(
             new StorageOperationRequest { Operation = "SaveHolon", Payload = new Holon { Id = Guid.NewGuid() } });
 
         result.IsError.Should().BeTrue();
         result.Message.Should().Contain("Quota exceeded for Replications");
+        hyperDrive.LastReplicationDiagnostic.IsExplicitRequest.Should().BeTrue();
+        hyperDrive.LastReplicationDiagnostic.WasQuotaBlocked.Should().BeTrue();
+        hyperDrive.LastReplicationDiagnostic.Attempts.Should().BeEmpty();
+        result.MetaData.Should().ContainKey("hyperDriveReplicationDiagnostic");
         provider.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
             It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
     }
@@ -1628,6 +2905,247 @@ public sealed class HyperDriveProviderExecutionTests
         ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
         provider.Verify(x => x.LoadAvatar(avatarId, 0), Times.Once);
         provider.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void KeyManagerLoadsPrivateKeyWalletsThroughItsInjectedRuntime()
+    {
+        var avatarId = Guid.NewGuid();
+        var avatar = new Avatar
+        {
+            Id = avatarId,
+            ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>
+            {
+                [ProviderType.IPFSOASIS] = new List<IProviderWallet>()
+            }
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security = new SecuritySettings();
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-private-key-wallets");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatar(avatarId, 0)).Returns(new OASISResult<IAvatar>(avatar));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        AvatarManager.LoggedInAvatar = avatar;
+        try
+        {
+            var result = new KeyManager(null, dna, providerManager)
+                .GetProviderPrivateKeysForAvatarById(avatarId, ProviderType.IPFSOASIS);
+
+            result.IsError.Should().BeFalse(result.Message);
+            result.Result.Should().NotBeNull().And.BeEmpty();
+            ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+            provider.Verify(x => x.LoadAvatar(avatarId, 0), Times.Once);
+        }
+        finally
+        {
+            AvatarManager.LoggedInAvatar = null;
+        }
+    }
+
+    [Fact]
+    public void WalletImportUsesRuntimeScopedKeyManagerAndInjectedProvider()
+    {
+        var avatarId = Guid.NewGuid();
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security = new SecuritySettings();
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-wallet-import");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatar(avatarId, 0)).Returns(new OASISResult<IAvatar>
+        {
+            IsError = true, ErrorCount = 1, ErrorCode = "ISOLATED_AVATAR_UNAVAILABLE",
+            Message = "injected avatar store unavailable"
+        });
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+
+        var result = new WalletManager(null, dna, providerManager)
+            .ImportWalletUsingPublicKeyById(avatarId, "public-key", "wallet-address", ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.Message.Should().Contain("injected avatar store unavailable");
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAvatar(avatarId, 0), Times.Once);
+    }
+
+    [Fact]
+    public void AvatarDataLoadCannotEscapeItsInjectedRuntime()
+    {
+        var avatarId = Guid.NewGuid();
+        var avatar = new Avatar { Id = avatarId };
+        avatar.MetaData["edge-state"] = "offline-ready";
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-avatar-data");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatar(avatarId, 0))
+            .Returns(new OASISResult<IAvatar>(avatar));
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var manager = new AvatarManager(null, dna, providerManager);
+
+        var result = manager.LoadData("edge-state", avatarId, ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().Be("offline-ready");
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAvatar(avatarId, 0), Times.Once);
+    }
+
+    [Fact]
+    public void HolonVisibilityAuthorizationCannotEscapeItsInjectedRuntime()
+    {
+        var avatarId = Guid.NewGuid();
+        var wizard = new Avatar
+        {
+            Id = avatarId,
+            AvatarType = new EnumValue<AvatarType>(AvatarType.Wizard)
+        };
+        var holons = new[] { new Holon { Id = Guid.NewGuid(), IsPublic = false } };
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-holon-authorization");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAllHolons(avatarId, false, HolonType.All, false, false,
+                0, 0, true, false, 0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(holons));
+        provider.Setup(x => x.LoadAvatar(avatarId, 0))
+            .Returns(new OASISResult<IAvatar>(wizard));
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var manager = new HolonManager(null, dna, providerManager);
+
+        var result = manager.LoadAllHolons(loadChildren: false, recursive: false,
+            providerType: ProviderType.IPFSOASIS, cache: false, avatarId: avatarId);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().ContainSingle().Which.Should().BeSameAs(holons[0]);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAvatar(avatarId, 0), Times.Once);
+    }
+
+    [Fact]
+    public void KeyManagerProviderKeyLookupCannotEscapeItsInjectedRuntime()
+    {
+        var providerKey = $"provider-{Guid.NewGuid():N}";
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            Username = $"isolated-{Guid.NewGuid():N}",
+            Email = $"{Guid.NewGuid():N}@example.test"
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security = new SecuritySettings();
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-provider-key");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarByProviderKey(providerKey))
+            .Returns(new OASISResult<IAvatar>(avatar));
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var manager = new KeyManager(null, dna, providerManager);
+
+        var result = manager.GetAvatarForProviderUniqueStorageKey(providerKey, ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeSameAs(avatar);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAvatarByProviderKey(providerKey), Times.Once);
+    }
+
+    [Fact]
+    public void KeyManagerChildPreservesTheExplicitProviderForDefaultV2Lookups()
+    {
+        var providerKey = $"explicit-provider-{Guid.NewGuid():N}";
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"key-{Guid.NewGuid():N}" };
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security = new SecuritySettings();
+        var providerManager = new ProviderManager(null, dna);
+        var runtimeDefault = CreateActiveProvider(ProviderType.MongoDBOASIS, "key-default");
+        var explicitlySelected = CreateActiveProvider(ProviderType.IPFSOASIS, "key-explicit");
+        runtimeDefault.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        explicitlySelected.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        explicitlySelected.Setup(x => x.LoadAvatarByProviderKey(providerKey))
+            .Returns(new OASISResult<IAvatar>(avatar));
+        providerManager.RegisterProvider(runtimeDefault.Object).Should().BeTrue();
+        providerManager.RegisterProvider(explicitlySelected.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(runtimeDefault.Object).IsError.Should().BeFalse();
+
+        var result = new KeyManager(explicitlySelected.Object, dna, providerManager)
+            .GetAvatarForProviderUniqueStorageKey(providerKey);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeSameAs(avatar);
+        explicitlySelected.Verify(x => x.LoadAvatarByProviderKey(providerKey), Times.Once);
+        runtimeDefault.Verify(x => x.LoadAvatarByProviderKey(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void KeyManagerPublicKeyLookupCannotEscapeItsInjectedRuntime()
+    {
+        var publicKey = $"public-{Guid.NewGuid():N}";
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            Username = $"isolated-{Guid.NewGuid():N}",
+            Email = $"{Guid.NewGuid():N}@example.test"
+        };
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security = new SecuritySettings();
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-public-key");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarByPublicKey(publicKey))
+            .Returns(new OASISResult<IAvatar>(avatar));
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var manager = new KeyManager(null, dna, providerManager);
+
+        var result = manager.GetAvatarForProviderPublicKey(publicKey, ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeSameAs(avatar);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAvatarByPublicKey(publicKey), Times.Once);
+    }
+
+    [Fact]
+    public async Task ViewingKeyAuditCannotEscapeItsInjectedRuntime()
+    {
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "isolated-viewing-key-audit");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(holon));
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var service = new ViewingKeyAuditService(new HolonManager(null, dna, providerManager));
+
+        await service.RecordViewingKeyAsync(new ViewingKeyAuditEntry
+        {
+            TransactionId = Guid.NewGuid().ToString("N"),
+            ViewingKey = "isolated-viewing-key",
+            UserId = Guid.NewGuid(),
+            SourceChain = "ZEC",
+            DestinationChain = "AZTEC",
+            Timestamp = DateTime.UtcNow
+        });
+
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.SaveHolonAsync(
+            It.Is<IHolon>(holon => holon.MetaData["ViewingKey"].ToString() == "isolated-viewing-key"),
+            true, true, 0, true, false), Times.Once);
     }
 
     [Fact]
@@ -1952,6 +3470,525 @@ public sealed class HyperDriveProviderExecutionTests
         result.Result.Should().BeSameAs(holon);
         providerManager.CurrentStorageProvider.Should().BeSameAs(current.Object);
         selected.Verify(x => x.LoadHolon(holonId, false, false, 0, true, false, 0), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(HyperDriveModes.Legacy)]
+    [InlineData(HyperDriveModes.V2)]
+    public async Task CorruptEncryptedHolonMetadataFailsTheLoadInsteadOfReturningCiphertext(string mode)
+    {
+        var holonId = Guid.NewGuid();
+        var stored = new Holon
+        {
+            Id = holonId,
+            MetaData = new Dictionary<string, object>
+            {
+                ["__oasis_enc__"] = "not-valid-ciphertext"
+            }
+        };
+        var dna = CreateDna(mode);
+        var encryptionSettings = new EncryptionSettings
+        {
+            Rijndael256EncryptionEnabled = true,
+            Rijndael256Key = new string('k', 32)
+        };
+        dna.OASIS.Security = new SecuritySettings
+        {
+            HolonDataEncryption = encryptionSettings
+        };
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, $"corrupt-encrypted-holon-{mode}");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadHolonAsync(holonId, false, false, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(stored));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var manager = new HolonManager(null, dna, providerManager);
+
+        var result = await manager.LoadHolonAsync(
+            holonId, loadChildren: false, recursive: false, providerType: ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("HOLON_METADATA_DECRYPTION_FAILED");
+        result.Result.Should().BeNull();
+        result.Exception.Should().NotBeNull();
+        stored.MetaData.Should().ContainKey("__oasis_enc__");
+    }
+
+    [Theory]
+    [InlineData(HyperDriveModes.Legacy)]
+    [InlineData(HyperDriveModes.V2)]
+    public async Task ValidEncryptedHolonMetadataIsDecryptedAcrossBothRoutingModes(string mode)
+    {
+        var holonId = Guid.NewGuid();
+        var stored = new Holon
+        {
+            Id = holonId,
+            MetaData = new Dictionary<string, object> { ["secret"] = "nebula" }
+        };
+        var dna = CreateDna(mode);
+        var encryptionSettings = new EncryptionSettings
+        {
+            Rijndael256EncryptionEnabled = true,
+            Rijndael256Key = new string('k', 32)
+        };
+        dna.OASIS.Security = new SecuritySettings
+        {
+            HolonDataEncryption = encryptionSettings
+        };
+        var providerManager = new ProviderManager(null, dna);
+        var provider = CreateActiveProvider(ProviderType.IPFSOASIS, $"valid-encrypted-holon-{mode}");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        var manager = new HolonManager(null, dna, providerManager);
+        stored.MetaData.Clear();
+        stored.MetaData["__oasis_enc__"] = NextGenSoftware.OASIS.API.Core.Helpers.PasswordEncryptionHelper.EncryptValue(
+            "{\"secret\":\"nebula\"}", encryptionSettings);
+        stored.MetaData.Should().ContainKey("__oasis_enc__");
+        stored.MetaData.Should().NotContainKey("secret");
+        provider.Setup(x => x.LoadHolonAsync(holonId, false, false, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(stored));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await manager.LoadHolonAsync(
+            holonId, loadChildren: false, recursive: false, providerType: ProviderType.IPFSOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().NotBeNull();
+        result.Result.MetaData.Should().ContainKey("secret").WhoseValue.ToString().Should().Be("nebula");
+        result.Result.MetaData.Should().NotContainKey("__oasis_enc__");
+    }
+
+    [Fact]
+    public void HolonSearchUsesInjectedRuntimeAndForwardsRoutingOptions()
+    {
+        var holon = new Mock<IHolon>().Object;
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "isolated-holon-search");
+        selected.Setup(x => x.Search(It.IsAny<ISearchParams>(), false, false, 3, false, 7))
+            .Returns(new OASISResult<ISearchResults>(new SearchResults
+            {
+                SearchResultHolons = new List<IHolon> { holon }
+            }));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+        var manager = new HolonManager(null, dna, providerManager);
+
+        var result = manager.SearchHolons("nebula", Guid.NewGuid(), searchOnlyForCurrentAvatar: false,
+            loadChildren: false, recursive: false,
+            maxChildDepth: 3, continueOnError: false, version: 7,
+            providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().ContainSingle().Which.Should().BeSameAs(holon);
+        selected.Verify(x => x.Search(It.Is<ISearchParams>(p =>
+            p.SearchGroups.OfType<SearchTextGroup>().Single().SearchQuery == "nebula"),
+            false, false, 3, false, 7), Times.Once);
+    }
+
+    [Fact]
+    public async Task HolonSearchAsyncPreservesCompleteV2ProviderSuccessDiagnostics()
+    {
+        var holon = new Holon { Id = Guid.NewGuid() };
+        var providerResult = new OASISResult<ISearchResults>(new SearchResults
+        {
+            SearchResultHolons = new List<IHolon> { holon }
+        })
+        {
+            IsWarning = true,
+            WarningCount = 2,
+            Message = "search completed with provider warning",
+            DetailedMessage = "authoritative search provider detail",
+            InnerMessages = new List<string> { "partial index diagnostic" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "search-diagnostics" },
+            ResultsCount = 1
+        };
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "search-diagnostics");
+        selected.Setup(x => x.SearchAsync(It.IsAny<ISearchParams>(), true, true, 0, true, 0))
+            .ReturnsAsync(providerResult);
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+        var manager = new HolonManager(null, dna, providerManager);
+
+        var result = await manager.SearchHolonsAsync<Holon>("nebula", Guid.NewGuid(),
+            searchOnlyForCurrentAvatar: false,
+            providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsWarning.Should().BeTrue();
+        result.WarningCount.Should().Be(2);
+        result.Message.Should().Be(providerResult.Message);
+        result.DetailedMessage.Should().Be(providerResult.DetailedMessage);
+        result.InnerMessages.Should().Equal(providerResult.InnerMessages);
+        result.MetaData.Should().Contain("provider", "search-diagnostics");
+        result.ResultsCount.Should().Be(1);
+        result.Result.Should().ContainSingle().Which.Id.Should().Be(holon.Id);
+        selected.Verify(x => x.SearchAsync(It.IsAny<ISearchParams>(), true, true, 0, true, 0), Times.Once);
+    }
+
+    [Fact]
+    public async Task TypedMetadataLoadPreservesCompleteV2ProviderSuccessDiagnostics()
+    {
+        var holon = new Holon { Id = Guid.NewGuid() };
+        var providerResult = new OASISResult<IEnumerable<IHolon>>(new[] { holon })
+        {
+            IsWarning = true,
+            WarningCount = 2,
+            Message = "metadata load completed with provider warning",
+            DetailedMessage = "authoritative metadata provider detail",
+            InnerMessages = new List<string> { "metadata index diagnostic" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "metadata-diagnostics" },
+            ResultsCount = 1
+        };
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "metadata-diagnostics");
+        selected.Setup(x => x.LoadHolonsByMetaDataAsync("kind", "quest", HolonType.All,
+                true, true, 0, 0, true, false, 0))
+            .ReturnsAsync(providerResult);
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+
+        var result = await new HolonManager(null, dna, providerManager)
+            .LoadHolonByMetaDataAsync<Holon>("kind", "quest",
+                providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsWarning.Should().BeTrue();
+        result.WarningCount.Should().Be(2);
+        result.Message.Should().Be(providerResult.Message);
+        result.DetailedMessage.Should().Be(providerResult.DetailedMessage);
+        result.InnerMessages.Should().Equal(providerResult.InnerMessages);
+        result.MetaData.Should().Contain("provider", "metadata-diagnostics");
+        result.ResultsCount.Should().Be(1);
+        result.IsLoaded.Should().BeTrue();
+        result.Result.Should().NotBeNull();
+        result.Result.Id.Should().Be(holon.Id);
+        selected.VerifyAll();
+    }
+
+    [Fact]
+    public void MetadataLoadWithoutMatchesReturnsExplicitWarning()
+    {
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "metadata-empty");
+        selected.Setup(x => x.LoadHolonsByMetaData("kind", "missing", HolonType.All,
+                true, true, 0, 0, true, false, 0))
+            .Returns(new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+
+        var result = new HolonManager(null, dna, providerManager).LoadHolonByMetaData(
+            "kind", "missing", providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsWarning.Should().BeTrue();
+        result.WarningCount.Should().BeGreaterThan(0);
+        result.Message.Should().Be("No holon found");
+        result.IsLoaded.Should().BeFalse();
+        result.Result.Should().BeNull();
+        selected.VerifyAll();
+    }
+
+    [Fact]
+    public async Task TypedHardDeletePreservesCompleteV2DiagnosticsAndDeleteState()
+    {
+        var holonId = Guid.NewGuid();
+        var holon = new Holon { Id = holonId };
+        var providerResult = new OASISResult<IHolon>(holon)
+        {
+            IsWarning = true,
+            WarningCount = 2,
+            Message = "delete completed with provider warning",
+            DetailedMessage = "authoritative delete provider detail",
+            InnerMessages = new List<string> { "replica deletion pending" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "delete-diagnostics" },
+            DeletedCount = 1
+        };
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "delete-diagnostics");
+        selected.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(holon));
+        selected.Setup(x => x.DeleteHolonAsync(holonId)).ReturnsAsync(providerResult);
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+
+        var result = await new HolonManager(null, dna, providerManager).DeleteHolonAsync<Holon>(
+            holonId, Guid.NewGuid(), softDelete: false, providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsDeleted.Should().BeTrue();
+        result.IsSaved.Should().BeFalse();
+        result.IsWarning.Should().BeTrue();
+        result.WarningCount.Should().Be(2);
+        result.DeletedCount.Should().Be(1);
+        result.Message.Should().Be(providerResult.Message);
+        result.DetailedMessage.Should().Be(providerResult.DetailedMessage);
+        result.InnerMessages.Should().Equal(providerResult.InnerMessages);
+        result.MetaData.Should().Contain("provider", "delete-diagnostics");
+        result.Result.Should().NotBeNull();
+        result.Result.Id.Should().Be(holonId);
+        selected.VerifyAll();
+    }
+
+    [Fact]
+    public async Task AvatarDeleteMatrixMarksEverySuccessfulV2ResultDeleted()
+    {
+        var avatarId = Guid.NewGuid();
+        OASISResult<bool> DeleteResult() => new(true)
+        {
+            IsWarning = true,
+            WarningCount = 1,
+            DetailedMessage = "authoritative avatar delete detail",
+            InnerMessages = new List<string> { "delete diagnostic" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "avatar-delete-matrix" },
+            DeletedCount = 1
+        };
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "avatar-delete-matrix");
+        selected.Setup(x => x.DeleteAvatar(avatarId, false)).Returns(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarAsync(avatarId, false)).ReturnsAsync(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarByUsername("edge", false)).Returns(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarByUsernameAsync("edge", false)).ReturnsAsync(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarByEmail("edge@example.test", false)).Returns(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarByEmailAsync("edge@example.test", false)).ReturnsAsync(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarDetail(avatarId, false)).Returns(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarDetailAsync(avatarId, false)).ReturnsAsync(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarDetailByUsername("edge", false)).Returns(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarDetailByUsernameAsync("edge", false)).ReturnsAsync(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarDetailByEmail("edge@example.test", false)).Returns(DeleteResult);
+        selected.Setup(x => x.DeleteAvatarDetailByEmailAsync("edge@example.test", false)).ReturnsAsync(DeleteResult);
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+        var manager = new AvatarManager(null, dna, providerManager);
+
+        var results = new List<OASISResult<bool>>
+        {
+            manager.DeleteAvatar(avatarId, false, ProviderType.SQLLiteDBOASIS),
+            await manager.DeleteAvatarAsync(avatarId, false, ProviderType.SQLLiteDBOASIS),
+            manager.DeleteAvatarByUsername("edge", false, ProviderType.SQLLiteDBOASIS),
+            await manager.DeleteAvatarByUsernameAsync("edge", false, ProviderType.SQLLiteDBOASIS),
+            manager.DeleteAvatarByEmail("edge@example.test", false, ProviderType.SQLLiteDBOASIS),
+            await manager.DeleteAvatarByEmailAsync("edge@example.test", false, ProviderType.SQLLiteDBOASIS),
+            manager.DeleteAvatarDetail(avatarId, false, ProviderType.SQLLiteDBOASIS),
+            await manager.DeleteAvatarDetailAsync(avatarId, false, ProviderType.SQLLiteDBOASIS),
+            manager.DeleteAvatarDetailByUsername("edge", false, ProviderType.SQLLiteDBOASIS),
+            await manager.DeleteAvatarDetailByUsernameAsync("edge", false, ProviderType.SQLLiteDBOASIS),
+            manager.DeleteAvatarDetailByEmail("edge@example.test", false, ProviderType.SQLLiteDBOASIS),
+            await manager.DeleteAvatarDetailByEmailAsync("edge@example.test", false, ProviderType.SQLLiteDBOASIS)
+        };
+
+        results.Should().HaveCount(12).And.OnlyContain(result =>
+            !result.IsError && result.Result && result.IsDeleted && result.WarningCount == 1 &&
+            result.DeletedCount == 1 && result.DetailedMessage == "authoritative avatar delete detail" &&
+            result.MetaData.ContainsKey("provider"));
+        selected.VerifyAll();
+    }
+
+    [Fact]
+    public void SynchronousAvatarSaveUsesV2RouterAndPreservesProviderDiagnostics()
+    {
+        var callingThread = Environment.CurrentManagedThreadId;
+        var providerThread = 0;
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            Username = "edge",
+            Email = "edge@example.test",
+            Password = "$2a$11$012345678901234567890u01234567890123456789012345678901"
+        };
+        var providerResult = new OASISResult<IAvatar>(avatar)
+        {
+            IsWarning = true,
+            WarningCount = 1,
+            Message = "avatar saved with provider warning",
+            DetailedMessage = "authoritative avatar save detail",
+            InnerMessages = new List<string> { "secondary index pending" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "avatar-save-v2" },
+            SavedCount = 1
+        };
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "avatar-save-v2");
+        selected.Setup(x => x.SaveAvatar(avatar))
+            .Callback(() => providerThread = Environment.CurrentManagedThreadId)
+            .Returns(providerResult);
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+
+        var result = new AvatarManager(null, dna, providerManager).SaveAvatar(
+            avatar, providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsSaved.Should().BeTrue();
+        result.IsWarning.Should().BeTrue();
+        result.WarningCount.Should().Be(1);
+        result.SavedCount.Should().Be(1);
+        result.Message.Should().Be(providerResult.Message);
+        result.DetailedMessage.Should().Be(providerResult.DetailedMessage);
+        result.InnerMessages.Should().Equal(providerResult.InnerMessages);
+        result.MetaData.Should().Contain("provider", "avatar-save-v2");
+        result.Result.Should().BeSameAs(avatar);
+        providerThread.Should().Be(callingThread);
+        selected.Verify(x => x.SaveAvatar(avatar), Times.Once);
+        selected.Verify(x => x.SaveAvatarAsync(It.IsAny<IAvatar>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DerivedAvatarNameQueriesPreserveCompleteV2ProviderDiagnostics()
+    {
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Edge",
+            LastName = "Player",
+            Username = "edge-player"
+        };
+        OASISResult<IEnumerable<IAvatar>> ProviderResult() => new(new IAvatar[] { avatar })
+        {
+            IsWarning = true,
+            WarningCount = 2,
+            Message = "avatars loaded with provider warning",
+            DetailedMessage = "authoritative avatar collection detail",
+            InnerMessages = new List<string> { "secondary avatar index pending" },
+            MetaData = new Dictionary<string, string> { ["provider"] = "avatar-name-projection" },
+            ResultsCount = 1,
+            LoadedCount = 1
+        };
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "avatar-name-projection");
+        selected.Setup(x => x.LoadAllAvatars(0)).Returns(ProviderResult);
+        selected.Setup(x => x.LoadAllAvatarsAsync(0))
+            .Returns(() => Task.FromResult(ProviderResult()));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+        var manager = new AvatarManager(null, dna, providerManager);
+
+        var names = manager.LoadAllAvatarNames(providerType: ProviderType.SQLLiteDBOASIS);
+        var namesAsync = await manager.LoadAllAvatarNamesAsync(providerType: ProviderType.SQLLiteDBOASIS);
+        var grouped = manager.LoadAllAvatarNamesGroupedByName(providerType: ProviderType.SQLLiteDBOASIS);
+        var groupedAsync = await manager.LoadAllAvatarNamesGroupedByNameAsync(providerType: ProviderType.SQLLiteDBOASIS);
+
+        names.Result.Should().ContainSingle().Which.Should().Contain(avatar.Id.ToString()).And.Contain(avatar.Username);
+        namesAsync.Result.Should().Equal(names.Result);
+        grouped.Result.Should().ContainKey(avatar.FullName).WhoseValue.Should().ContainSingle()
+            .Which.Should().Contain(avatar.Id.ToString()).And.Contain(avatar.Username);
+        groupedAsync.Result.Should().BeEquivalentTo(grouped.Result);
+        names.IsLoaded.Should().BeTrue();
+        namesAsync.IsLoaded.Should().BeTrue();
+        grouped.IsLoaded.Should().BeTrue();
+        groupedAsync.IsLoaded.Should().BeTrue();
+
+        names.WarningCount.Should().Be(2);
+        namesAsync.WarningCount.Should().Be(2);
+        grouped.WarningCount.Should().Be(2);
+        groupedAsync.WarningCount.Should().Be(2);
+        names.DetailedMessage.Should().Be("authoritative avatar collection detail");
+        namesAsync.InnerMessages.Should().ContainSingle("secondary avatar index pending");
+        grouped.MetaData.Should().Contain("provider", "avatar-name-projection");
+        groupedAsync.ResultsCount.Should().Be(1);
+        groupedAsync.LoadedCount.Should().Be(1);
+        selected.Verify(x => x.LoadAllAvatars(0), Times.Exactly(2));
+        selected.Verify(x => x.LoadAllAvatarsAsync(0), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task LegacyAvatarDetailUsernameFailoverUsesTheUsernameProviderContract()
+    {
+        const string username = "edge-player";
+        var avatarDetail = new AvatarDetail { Id = Guid.NewGuid(), Username = username };
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "username-primary");
+        var secondary = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "username-secondary");
+        primary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        secondary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        primary.Setup(x => x.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+        secondary.Setup(x => x.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+        primary.Setup(x => x.LoadAvatarDetailByUsername(username, 4))
+            .Returns(() => new OASISResult<IAvatarDetail>());
+        secondary.Setup(x => x.LoadAvatarDetailByUsername(username, 4))
+            .Returns(() => new OASISResult<IAvatarDetail>(avatarDetail));
+        primary.Setup(x => x.LoadAvatarDetailByUsernameAsync(username, 4))
+            .ReturnsAsync(() => new OASISResult<IAvatarDetail>());
+        secondary.Setup(x => x.LoadAvatarDetailByUsernameAsync(username, 4))
+            .ReturnsAsync(() => new OASISResult<IAvatarDetail>(avatarDetail));
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var providerManager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        providerManager.RegisterProvider(primary.Object).Should().BeTrue();
+        providerManager.RegisterProvider(secondary.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
+        providerManager.SetAndReplaceAutoFailOverListForProviders(new[]
+        {
+            new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),
+            new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)
+        }).IsError.Should().BeFalse();
+        var manager = new AvatarManager(null, dna, providerManager);
+
+        var syncResult = manager.LoadAvatarDetailByUsername(username,
+            ProviderType.MongoDBOASIS, version: 4);
+        var asyncResult = await manager.LoadAvatarDetailByUsernameAsync(username,
+            ProviderType.MongoDBOASIS, version: 4);
+
+        syncResult.IsError.Should().BeFalse(syncResult.Message);
+        asyncResult.IsError.Should().BeFalse(asyncResult.Message);
+        syncResult.Result.Should().NotBeNull().And.BeSameAs(avatarDetail);
+        asyncResult.Result.Should().NotBeNull().And.BeSameAs(avatarDetail);
+        primary.Verify(x => x.LoadAvatarDetailByUsername(username, 4), Times.Once);
+        secondary.Verify(x => x.LoadAvatarDetailByUsername(username, 4), Times.Once);
+        primary.Verify(x => x.LoadAvatarDetailByUsernameAsync(username, 4), Times.Once);
+        secondary.Verify(x => x.LoadAvatarDetailByUsernameAsync(username, 4), Times.Once);
+        primary.Verify(x => x.LoadAvatarDetailByEmail(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        secondary.Verify(x => x.LoadAvatarDetailByEmail(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        primary.Verify(x => x.LoadAvatarDetailByEmailAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        secondary.Verify(x => x.LoadAvatarDetailByEmailAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HolonSearchAsyncPreservesInjectedProviderFailure()
+    {
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "isolated-holon-search-failure");
+        selected.Setup(x => x.SearchAsync(It.IsAny<ISearchParams>(), true, true, 0, true, 0))
+            .ReturnsAsync(new OASISResult<ISearchResults>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = "SEARCH_STORAGE_OFFLINE",
+                Message = "isolated provider is offline"
+            });
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+        var manager = new HolonManager(null, dna, providerManager);
+
+        var result = await manager.SearchHolonsAsync("nebula", Guid.NewGuid(),
+            providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("HYPERDRIVE_FAILOVER_EXHAUSTED");
+        result.Message.Should().Contain("isolated provider is offline");
+        selected.Verify(x => x.SearchAsync(It.IsAny<ISearchParams>(), true, true, 0, true, 0), Times.Once);
+    }
+
+    [Fact]
+    public void HolonSearchRejectsProviderSuccessWithoutAResultPayload()
+    {
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "isolated-holon-search-empty");
+        selected.Setup(x => x.Search(It.IsAny<ISearchParams>(), true, true, 0, true, 0))
+            .Returns(new OASISResult<ISearchResults>());
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+
+        var result = new HolonManager(null, dna, providerManager).SearchHolons(
+            "nebula", Guid.NewGuid(), providerType: ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("HOLON_SEARCH_FAILED");
+        result.Message.Should().Be("The search provider returned no result.");
     }
 
     [Fact]
@@ -2773,6 +4810,420 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public void WalletUsernameSaveCannotEscapeItsInjectedRuntime()
+    {
+        var callingThread = Environment.CurrentManagedThreadId;
+        var providerThread = 0;
+        var username = $"wallet-{Guid.NewGuid():N}";
+        var avatarId = Guid.NewGuid();
+        var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+        var provider = new Mock<IOASISStorageProvider>();
+        provider.SetupAllProperties();
+        var localWallets = provider.As<IOASISLocalStorageProvider>();
+        provider.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+        provider.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageLocal);
+        provider.Object.ProviderName = "isolated-wallet-sqlite";
+        provider.Object.IsProviderActivated = true;
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarByUsername(username, 0))
+            .Returns(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Username = username }));
+        localWallets.Setup(x => x.SaveProviderWalletsForAvatarById(avatarId, wallets))
+            .Callback(() => providerThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<bool>(true));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var manager = new WalletManager(null, dna, providerManager);
+
+        var result = manager.SaveProviderWalletsForAvatarByUsername(
+            username, wallets, ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeTrue();
+        providerThread.Should().Be(callingThread);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        provider.Verify(x => x.LoadAvatarByUsername(username, 0), Times.Once);
+        localWallets.Verify(x => x.SaveProviderWalletsForAvatarById(avatarId, wallets), Times.Once);
+    }
+
+    [Fact]
+    public void LegacySynchronousAvatarKeyLookupUsesOnlyTheSynchronousProviderBoundary()
+    {
+        var publicKey = $"public-{Guid.NewGuid():N}";
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "legacy-key-avatar" };
+        var provider = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "legacy-key-sqlite");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarByPublicKey(publicKey, 0))
+            .Returns(new OASISResult<IAvatar>(avatar));
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        var manager = new AvatarManager(provider.Object, dna, providerManager);
+
+        var result = manager.LoadAvatarByPublicKeyForProvider(publicKey, ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeSameAs(avatar);
+        provider.Verify(x => x.LoadAvatarByPublicKey(publicKey, 0), Times.Once);
+        provider.Verify(x => x.LoadAvatarByPublicKeyAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void LegacySynchronousAvatarAndDetailLoadsUseOnlySynchronousProviderContracts()
+    {
+        var avatarId = Guid.NewGuid();
+        const string username = "legacy-sync-player";
+        const string email = "legacy-sync-player@example.test";
+        var avatar = new Avatar { Id = avatarId, Username = username, Email = email };
+        var detail = new AvatarDetail
+        {
+            Id = avatarId,
+            Username = username,
+            Email = email,
+            Inventory = new List<IInventoryItem>()
+        };
+        var provider = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "legacy-sync-avatar-sqlite");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatar(avatarId, 3)).Returns(new OASISResult<IAvatar>(avatar));
+        provider.Setup(x => x.LoadAvatarByUsername(username, 3)).Returns(new OASISResult<IAvatar>(avatar));
+        provider.Setup(x => x.LoadAvatarByEmail(email, 3)).Returns(new OASISResult<IAvatar>(avatar));
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 3)).Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.LoadAvatarDetailByUsername(username, 3)).Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.LoadAvatarDetailByEmail(email, 3)).Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.LoadAllAvatars(3)).Returns(new OASISResult<IEnumerable<IAvatar>>(new[] { avatar }));
+        provider.Setup(x => x.LoadAllAvatarDetails(3)).Returns(new OASISResult<IEnumerable<IAvatarDetail>>(new[] { detail }));
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        var manager = new AvatarManager(provider.Object, dna, providerManager);
+
+        manager.LoadAvatar(avatarId, providerType: ProviderType.SQLLiteDBOASIS, version: 3).Result.Id.Should().Be(avatarId);
+        manager.LoadAvatar(username, providerType: ProviderType.SQLLiteDBOASIS, version: 3).Result.Id.Should().Be(avatarId);
+        manager.LoadAvatarByEmail(email, providerType: ProviderType.SQLLiteDBOASIS, version: 3).Result.Id.Should().Be(avatarId);
+        manager.LoadAvatarDetail(avatarId, ProviderType.SQLLiteDBOASIS, 3).Result.Id.Should().Be(avatarId);
+        manager.LoadAvatarDetailByUsername(username, ProviderType.SQLLiteDBOASIS, 3).Result.Id.Should().Be(avatarId);
+        manager.LoadAvatarDetailByEmail(email, ProviderType.SQLLiteDBOASIS, 3).Result.Id.Should().Be(avatarId);
+        manager.LoadAllAvatars(providerType: ProviderType.SQLLiteDBOASIS, version: 3).Result.Should().ContainSingle();
+        manager.LoadAllAvatarDetails(ProviderType.SQLLiteDBOASIS, 3).Result.Should().ContainSingle();
+
+        provider.Verify(x => x.LoadAvatar(avatarId, 3), Times.Once);
+        provider.Verify(x => x.LoadAvatarByUsername(username, 3), Times.Once);
+        provider.Verify(x => x.LoadAvatarByEmail(email, 3), Times.Once);
+        provider.Verify(x => x.LoadAvatarDetail(avatarId, 3), Times.Once);
+        provider.Verify(x => x.LoadAvatarDetailByUsername(username, 3), Times.Once);
+        provider.Verify(x => x.LoadAvatarDetailByEmail(email, 3), Times.Once);
+        provider.Verify(x => x.LoadAllAvatars(3), Times.Once);
+        provider.Verify(x => x.LoadAllAvatarDetails(3), Times.Once);
+        provider.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAvatarByUsernameAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAvatarByEmailAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAvatarDetailAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAvatarDetailByUsernameAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAvatarDetailByEmailAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAllAvatarsAsync(It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAllAvatarDetailsAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousAvatarReplicationHelpersUseOnlySynchronousProviderContracts()
+    {
+        var callingThread = Environment.CurrentManagedThreadId;
+        var saveThread = 0;
+        var deleteThread = 0;
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "replicated-avatar" };
+        var provider = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "replication-sqlite");
+        provider.Setup(x => x.SaveAvatarDetail(detail))
+            .Callback(() => saveThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.DeleteAvatarByUsername(detail.Username, true))
+            .Callback(() => deleteThread = Environment.CurrentManagedThreadId)
+            .Returns(new OASISResult<bool>(true));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        var manager = new AvatarManager(provider.Object, dna, providerManager);
+
+        var saveResult = manager.SaveAvatarDetailForProvider(detail, new OASISResult<IAvatarDetail>(),
+            SaveMode.AutoReplication, ProviderType.SQLLiteDBOASIS);
+        var deleteResult = manager.DeleteAvatarByUsernameForProvider(detail.Username, new OASISResult<bool>(),
+            SaveMode.AutoReplication, true, ProviderType.SQLLiteDBOASIS);
+
+        saveResult.IsError.Should().BeFalse(saveResult.Message);
+        saveResult.IsSaved.Should().BeTrue();
+        saveResult.Result.Should().BeSameAs(detail);
+        deleteResult.IsError.Should().BeFalse(deleteResult.Message);
+        deleteResult.IsSaved.Should().BeTrue();
+        deleteResult.Result.Should().BeTrue();
+        saveThread.Should().Be(callingThread);
+        deleteThread.Should().Be(callingThread);
+        provider.Verify(x => x.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>()), Times.Never);
+        provider.Verify(x => x.DeleteAvatarByUsernameAsync(It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousInventoryReadsUseOnlyTheSynchronousAvatarDetailBoundary()
+    {
+        var avatarId = Guid.NewGuid();
+        var item = new InventoryItem
+        {
+            Id = Guid.NewGuid(),
+            Name = "Obsidian Pod",
+            Description = "A durable quest item"
+        };
+        var detail = new AvatarDetail
+        {
+            Id = avatarId,
+            Inventory = new List<IInventoryItem> { item }
+        };
+        var provider = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "inventory-read-sqlite");
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        var manager = new AvatarManager(provider.Object, dna, providerManager);
+
+        manager.GetAvatarInventory(avatarId, ProviderType.SQLLiteDBOASIS).Result.Should().ContainSingle();
+        manager.AvatarHasItem(avatarId, item.Id, ProviderType.SQLLiteDBOASIS).Result.Should().BeTrue();
+        manager.AvatarHasItemByName(avatarId, "Obsidian Pod", ProviderType.SQLLiteDBOASIS).Result.Should().BeTrue();
+        manager.SearchAvatarInventory(avatarId, "quest", ProviderType.SQLLiteDBOASIS).Result.Should().ContainSingle();
+        manager.GetAvatarInventoryItem(avatarId, item.Id, ProviderType.SQLLiteDBOASIS).Result.Should().BeSameAs(item);
+
+        provider.Verify(x => x.LoadAvatarDetail(avatarId, 0), Times.Exactly(5));
+        provider.Verify(x => x.LoadAvatarDetailAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousInventoryRemovalUsesOnlySynchronousAvatarDetailContracts()
+    {
+        var avatarId = Guid.NewGuid();
+        var item = new InventoryItem { Id = Guid.NewGuid(), Name = "Crystal", Quantity = 3 };
+        var detail = new AvatarDetail
+        {
+            Id = avatarId,
+            Inventory = new List<IInventoryItem> { item }
+        };
+        var provider = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "inventory-remove-sqlite");
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetail(detail))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        var manager = new AvatarManager(provider.Object, dna, providerManager);
+
+        var result = manager.RemoveItemFromAvatarInventory(
+            avatarId, item.Id, 2, ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeTrue();
+        item.Quantity.Should().Be(1);
+        provider.Verify(x => x.LoadAvatarDetail(avatarId, 0), Times.Once);
+        provider.Verify(x => x.SaveAvatarDetail(detail), Times.Once);
+        provider.Verify(x => x.LoadAvatarDetailAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>()), Times.Never);
+    }
+
+    [Fact]
+    public void SynchronousInventoryAdditionUsesOnlySynchronousContractsAndSharesTheDurableOperationLedger()
+    {
+        var avatarId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
+        var detail = new AvatarDetail
+        {
+            Id = avatarId,
+            Inventory = new List<IInventoryItem>(),
+            MetaData = new Dictionary<string, object>()
+        };
+        var item = new InventoryItem
+        {
+            Name = "Obsidian Pod",
+            GameSource = "Our World",
+            ItemType = InventoryItemType.QuestItem,
+            Quantity = 2,
+            Stack = true
+        };
+        var provider = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "inventory-add-sqlite");
+        provider.Setup(x => x.LoadAvatarDetail(avatarId, 0))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.SaveAvatarDetail(detail))
+            .Returns(new OASISResult<IAvatarDetail>(detail));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        var manager = new AvatarManager(provider.Object, dna, providerManager);
+
+        var first = manager.AddItemToAvatarInventory(
+            avatarId, item, ProviderType.SQLLiteDBOASIS, operationId);
+        var replay = manager.AddItemToAvatarInventory(
+            avatarId,
+            new InventoryItem
+            {
+                Name = item.Name,
+                GameSource = item.GameSource,
+                ItemType = item.ItemType,
+                Quantity = item.Quantity,
+                Stack = true
+            },
+            ProviderType.SQLLiteDBOASIS,
+            operationId);
+
+        first.IsError.Should().BeFalse(first.Message);
+        first.Result.Should().BeSameAs(item);
+        replay.IsError.Should().BeFalse(replay.Message);
+        replay.Result.Should().BeSameAs(item);
+        replay.Message.Should().Be("Inventory operation was already applied.");
+        detail.Inventory.Should().ContainSingle().Which.Should().BeSameAs(item);
+        provider.Verify(x => x.LoadAvatarDetail(avatarId, 0), Times.Exactly(2));
+        provider.Verify(x => x.SaveAvatarDetail(detail), Times.Once);
+        provider.Verify(x => x.LoadAvatarDetailAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>()), Times.Never);
+    }
+
+    [Fact]
+    public void WalletIdentityChildPreservesTheExplicitProviderInAMultiProviderV2Runtime()
+    {
+        var username = $"wallet-explicit-{Guid.NewGuid():N}";
+        var avatarId = Guid.NewGuid();
+        var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+        var explicitProvider = new Mock<IOASISStorageProvider>();
+        explicitProvider.SetupAllProperties();
+        var localWallets = explicitProvider.As<IOASISLocalStorageProvider>();
+        explicitProvider.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+        explicitProvider.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageLocal);
+        explicitProvider.Object.ProviderName = "wallet-explicit-sqlite";
+        explicitProvider.Object.IsProviderActivated = true;
+        explicitProvider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        explicitProvider.Setup(x => x.LoadAvatarByUsername(username, 0))
+            .Returns(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Username = username }));
+        localWallets.Setup(x => x.SaveProviderWalletsForAvatarById(avatarId, wallets))
+            .Returns(new OASISResult<bool>(true));
+        var runtimeDefault = CreateActiveProvider(ProviderType.MongoDBOASIS, "wallet-runtime-default");
+        runtimeDefault.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(runtimeDefault.Object).Should().BeTrue();
+        providerManager.RegisterProvider(explicitProvider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(runtimeDefault.Object).IsError.Should().BeFalse();
+
+        var result = new WalletManager(explicitProvider.Object, dna, providerManager)
+            .SaveProviderWalletsForAvatarByUsername(username, wallets, ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeTrue();
+        explicitProvider.Verify(x => x.LoadAvatarByUsername(username, 0), Times.Once);
+        runtimeDefault.Verify(x => x.LoadAvatarByUsername(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        localWallets.Verify(x => x.SaveProviderWalletsForAvatarById(avatarId, wallets), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task V2WalletIdentityLoadsRemainAsynchronousThroughTheLocalProvider(bool useEmail)
+    {
+        var identity = useEmail ? $"wallet-{Guid.NewGuid():N}@example.com" : $"wallet-{Guid.NewGuid():N}";
+        var avatarId = Guid.NewGuid();
+        var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+        var provider = new Mock<IOASISStorageProvider>();
+        provider.SetupAllProperties();
+        var localWallets = provider.As<IOASISLocalStorageProvider>();
+        provider.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+        provider.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageLocal);
+        provider.Object.ProviderName = "async-wallet-sqlite";
+        provider.Object.IsProviderActivated = true;
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        if (useEmail)
+            provider.Setup(x => x.LoadAvatarByEmailAsync(identity, 0))
+                .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Email = identity }));
+        else
+            provider.Setup(x => x.LoadAvatarByUsernameAsync(identity, 0))
+                .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Username = identity }));
+        localWallets.Setup(x => x.LoadProviderWalletsForAvatarByIdAsync(avatarId))
+            .ReturnsAsync(new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>(wallets));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var manager = new WalletManager(null, dna, providerManager);
+
+        var result = useEmail
+            ? await manager.LoadProviderWalletsForAvatarByEmailUsingHyperDriveAsync(identity)
+            : await manager.LoadProviderWalletsForAvatarByUsernameUsingHyperDriveAsync(identity);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeSameAs(wallets);
+        localWallets.Verify(x => x.LoadProviderWalletsForAvatarByIdAsync(avatarId), Times.Once);
+        localWallets.Verify(x => x.LoadProviderWalletsForAvatarById(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(ProviderType.SQLLiteDBOASIS)]
+    [InlineData(ProviderType.LocalFileOASIS)]
+    public async Task V2FreePlanPermitsZeroCostLocalEdgeProviders(ProviderType providerType)
+    {
+        var avatarId = Guid.NewGuid();
+        var provider = CreateActiveProvider(providerType, $"free-local-{providerType}");
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.LoadAvatarAsync(avatarId, 0))
+            .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId }));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+
+        var result = await new OASISHyperDrive(providerManager).RouteRequestAsync<IAvatar>(
+            new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = avatarId });
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Id.Should().Be(avatarId);
+        provider.Verify(x => x.LoadAvatarAsync(avatarId, 0), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task V2WalletIdentitySavesRemainAsynchronousThroughTheLocalProvider(bool useEmail)
+    {
+        var identity = useEmail ? $"wallet-{Guid.NewGuid():N}@example.com" : $"wallet-{Guid.NewGuid():N}";
+        var avatarId = Guid.NewGuid();
+        var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+        var provider = new Mock<IOASISStorageProvider>();
+        provider.SetupAllProperties();
+        var localWallets = provider.As<IOASISLocalStorageProvider>();
+        provider.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+        provider.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageLocal);
+        provider.Object.ProviderName = "async-wallet-sqlite";
+        provider.Object.IsProviderActivated = true;
+        provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        if (useEmail)
+            provider.Setup(x => x.LoadAvatarByEmailAsync(identity, 0))
+                .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Email = identity }));
+        else
+            provider.Setup(x => x.LoadAvatarByUsernameAsync(identity, 0))
+                .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Username = identity }));
+        localWallets.Setup(x => x.SaveProviderWalletsForAvatarByIdAsync(avatarId, wallets))
+            .ReturnsAsync(new OASISResult<bool>(true));
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providerManager = new ProviderManager(null, dna);
+        providerManager.RegisterProvider(provider.Object);
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var manager = new WalletManager(null, dna, providerManager);
+
+        var result = useEmail
+            ? await manager.SaveProviderWalletsForAvatarByEmailAsync(identity, wallets, ProviderType.SQLLiteDBOASIS)
+            : await manager.SaveProviderWalletsForAvatarByUsernameAsync(identity, wallets, ProviderType.SQLLiteDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeTrue();
+        localWallets.Verify(x => x.SaveProviderWalletsForAvatarByIdAsync(avatarId, wallets), Times.Once);
+        localWallets.Verify(x => x.SaveProviderWalletsForAvatarById(It.IsAny<Guid>(),
+            It.IsAny<Dictionary<ProviderType, List<IProviderWallet>>>()), Times.Never);
+    }
+
+    [Fact]
     public async Task V2DoesNotFailOverWhenAutoFailoverIsDisabled()
     {
         var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
@@ -2794,6 +5245,51 @@ public sealed class HyperDriveProviderExecutionTests
 
         result.IsError.Should().BeTrue();
         secondary.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task V2FailoverPublishesOrderedStructuredDiagnosticOnRecovery()
+    {
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
+            { IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "diagnostic-primary");
+        var secondary = CreateActiveProvider(ProviderType.IPFSOASIS, "diagnostic-secondary");
+        primary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        var avatarId = Guid.NewGuid();
+        primary.Setup(x => x.LoadAvatarAsync(avatarId, 0)).ReturnsAsync(new OASISResult<IAvatar>
+        {
+            IsError = true,
+            ErrorCount = 1,
+            ErrorCode = "PRIMARY_UNAVAILABLE",
+            Message = "primary unavailable"
+        });
+        secondary.Setup(x => x.LoadAvatarAsync(avatarId, 0))
+            .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId }));
+        manager.RegisterProvider(primary.Object);
+        manager.RegisterProvider(secondary.Object);
+        manager.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
+        manager.SetAndReplaceAutoFailOverListForProviders(new[]
+        {
+            new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),
+            new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
+        }).IsError.Should().BeFalse();
+        var hyperDrive = new OASISHyperDrive(manager);
+
+        var result = await hyperDrive.RouteRequestAsync<IAvatar>(new StorageOperationRequest
+            { Operation = "LoadAvatar", AvatarId = avatarId });
+
+        result.IsError.Should().BeFalse(result.Message);
+        hyperDrive.LastFailoverDiagnostic.Succeeded.Should().BeTrue();
+        hyperDrive.LastFailoverDiagnostic.Exhausted.Should().BeFalse();
+        hyperDrive.LastFailoverDiagnostic.OriginalProvider.Should().Be(ProviderType.MongoDBOASIS);
+        hyperDrive.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.IPFSOASIS);
+        manager.LastFailoverDiagnostic.Should().BeSameAs(hyperDrive.LastFailoverDiagnostic);
+        hyperDrive.LastFailoverDiagnostic.Attempts.Select(x => x.Provider).Should().Equal(
+            ProviderType.MongoDBOASIS, ProviderType.IPFSOASIS);
+        hyperDrive.LastFailoverDiagnostic.Attempts[0].ErrorCode.Should().Be("PRIMARY_UNAVAILABLE");
+        result.MetaData.Should().ContainKey("hyperDriveFailoverDiagnostic");
+        JObject.Parse(result.MetaData["hyperDriveFailoverDiagnostic"])["SelectedProvider"]
+            .Value<int>().Should().Be((int)ProviderType.IPFSOASIS);
     }
 
     [Fact]
@@ -2847,11 +5343,101 @@ public sealed class HyperDriveProviderExecutionTests
             new EnumValue<ProviderType>(ProviderType.Neo4jOASIS)
         });
 
-        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(new StorageOperationRequest
+        var hyperDrive = new OASISHyperDrive(manager);
+        var result = await hyperDrive.RouteRequestAsync<IHolon>(new StorageOperationRequest
             { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.MongoDBOASIS });
 
         result.IsError.Should().BeFalse(result.Message);
         calls.Should().Equal("primary", "first", "second");
+        hyperDrive.LastReplicationDiagnostic.PrimaryProvider.Should().Be(ProviderType.MongoDBOASIS);
+        hyperDrive.LastReplicationDiagnostic.IsExplicitRequest.Should().BeFalse();
+        hyperDrive.LastReplicationDiagnostic.Attempts.Select(x => x.Provider).Should()
+            .Equal(ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS);
+        hyperDrive.LastReplicationDiagnostic.SucceededCount.Should().Be(2);
+        hyperDrive.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+        manager.LastReplicationDiagnostic.Should().BeSameAs(hyperDrive.LastReplicationDiagnostic);
+        result.MetaData.Should().ContainKey("hyperDriveReplicationDiagnostic");
+    }
+
+    [Fact]
+    public async Task V2ReplicationPublishesStructuredPartialFailureWithoutFailingPrimaryMutation()
+    {
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
+            { IsAutoReplicationEnabled = true };
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "primary");
+        var failed = CreateActiveProvider(ProviderType.IPFSOASIS, "failed");
+        var recovered = CreateActiveProvider(ProviderType.Neo4jOASIS, "recovered");
+        var holon = new Holon { Id = Guid.NewGuid() };
+        primary.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>(holon));
+        failed.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>
+                { IsError = true, ErrorCode = "REPLICA_UNAVAILABLE", Message = "Replica unavailable." });
+        recovered.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>(holon));
+        manager.RegisterProvider(primary.Object);
+        manager.RegisterProvider(failed.Object);
+        manager.RegisterProvider(recovered.Object);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[]
+        {
+            new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
+            new EnumValue<ProviderType>(ProviderType.Neo4jOASIS)
+        }).IsError.Should().BeFalse();
+
+        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(new StorageOperationRequest
+            { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.MongoDBOASIS });
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsWarning.Should().BeTrue();
+        manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+        manager.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+        manager.LastReplicationDiagnostic.Attempts.Select(x => x.Provider).Should()
+            .Equal(ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS);
+        manager.LastReplicationDiagnostic.Attempts[0].ErrorCode.Should().Be("REPLICA_UNAVAILABLE");
+        JObject.Parse(result.MetaData["hyperDriveReplicationDiagnostic"])["FailedCount"]!
+            .Value<int>().Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ReplicatorManagerUsesInjectedRuntimeAndTheAuthoritativeV2Pipeline()
+    {
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.V2));
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "manager-primary");
+        var secondary = CreateActiveProvider(ProviderType.IPFSOASIS, "manager-secondary");
+        var holon = new Holon { Id = Guid.NewGuid() };
+        secondary.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false))
+            .ReturnsAsync(new OASISResult<IHolon>(holon));
+        runtime.RegisterProvider(primary.Object);
+        runtime.RegisterProvider(secondary.Object);
+        var manager = new ReplicatorManager(primary.Object, runtime.OASISDNA, runtime);
+
+        manager.ConfigureReplicationProviders(new[] { ProviderType.IPFSOASIS }).IsError.Should().BeFalse();
+        var result = await manager.ReplicateAsync<IHolon>(new StorageOperationRequest
+            { Operation = "SaveHolon", Payload = holon });
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().ContainSingle().Which.Should().BeSameAs(holon);
+        manager.OASISStorageProviders.Should().ContainSingle().Which.Should().BeSameAs(secondary.Object);
+        manager.LastReplicationDiagnostic.Should().BeSameAs(runtime.LastReplicationDiagnostic);
+        runtime.LastReplicationDiagnostic.Attempts.Should().ContainSingle()
+            .Which.Provider.Should().Be(ProviderType.IPFSOASIS);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+    }
+
+    [Fact]
+    public void ReplicatorManagerRejectsUnregisteredTargetsWithoutChangingItsConfiguredList()
+    {
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.V2));
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "manager-primary");
+        runtime.RegisterProvider(primary.Object);
+        var manager = new ReplicatorManager(primary.Object, runtime.OASISDNA, runtime);
+
+        var result = manager.ConfigureReplicationProviders(new[] { ProviderType.IPFSOASIS });
+
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("HYPERDRIVE_REPLICATION_PROVIDER_NOT_REGISTERED");
+        manager.OASISStorageProviders.Should().BeEmpty();
     }
 
     [Fact]
@@ -2875,6 +5461,8 @@ public sealed class HyperDriveProviderExecutionTests
         result.IsError.Should().BeFalse(result.Message);
         secondary.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
             It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        manager.LastReplicationDiagnostic.Should().BeNull();
+        result.MetaData.Should().NotContainKey("hyperDriveReplicationDiagnostic");
     }
 
     [Fact]
@@ -2900,6 +5488,9 @@ public sealed class HyperDriveProviderExecutionTests
         result.IsError.Should().BeFalse(result.Message);
         secondary.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
             It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        manager.LastReplicationDiagnostic.DeferredToDurableHostedPipeline.Should().BeTrue();
+        manager.LastReplicationDiagnostic.Attempts.Should().BeEmpty();
+        result.MetaData.Should().ContainKey("hyperDriveReplicationDiagnostic");
     }
 
     private static Mock<IOASISStorageProvider> CreateActiveProvider(

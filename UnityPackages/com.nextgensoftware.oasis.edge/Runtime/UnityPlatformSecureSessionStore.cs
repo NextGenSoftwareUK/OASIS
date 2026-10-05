@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Edge.Runtime;
@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
     /// <summary>Stores signed offline grants only in the operating system's protected credential facility.</summary>
     public sealed class UnityPlatformSecureSessionStore : IEdgeSecureSessionStore
     {
+        private const int IOSKeychainItemNotFound = -25300;
         private readonly string _key;
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         private readonly WindowsCredentialSecureSessionStore _windowsStore;
@@ -32,7 +33,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (grant == null) return Task.FromResult(Error<bool>("EDGE_SECURE_SESSION_GRANT_REQUIRED", "A signed offline grant is required."));
-            return Task.FromResult(SaveProtected(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(grant))));
+            return Task.FromResult(SaveProtected(Encoding.UTF8.GetBytes(HyperDriveJson.Serialize(grant))));
         }
 
         public Task<OASISResult<HyperDriveOfflineSessionGrant>> LoadAsync(CancellationToken cancellationToken)
@@ -43,7 +44,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             if (loaded.Result == null) return Task.FromResult(new OASISResult<HyperDriveOfflineSessionGrant> { IsLoaded = true });
             try
             {
-                var grant = JsonConvert.DeserializeObject<HyperDriveOfflineSessionGrant>(Encoding.UTF8.GetString(loaded.Result));
+                var grant = HyperDriveJson.Deserialize<HyperDriveOfflineSessionGrant>(Encoding.UTF8.GetString(loaded.Result));
                 return Task.FromResult(new OASISResult<HyperDriveOfflineSessionGrant>(grant) { IsLoaded = true });
             }
             catch (JsonException ex)
@@ -73,7 +74,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             return code == 0 ? Success() : Error<bool>("EDGE_IOS_KEYCHAIN_SAVE_FAILED", $"Keychain returned status {code}.");
 #elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             return _windowsStore.SaveAsync(
-                JsonConvert.DeserializeObject<HyperDriveOfflineSessionGrant>(Encoding.UTF8.GetString(value)),
+                HyperDriveJson.Deserialize<HyperDriveOfflineSessionGrant>(Encoding.UTF8.GetString(value)),
                 CancellationToken.None).GetAwaiter().GetResult();
 #else
             return Error<bool>("EDGE_SECURE_STORE_UNSUPPORTED", "This Unity platform has no configured protected credential store.");
@@ -91,8 +92,10 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             }
             catch (Exception ex) { return Error<byte[]>("EDGE_ANDROID_KEYSTORE_LOAD_FAILED", ex.Message); }
 #elif (UNITY_IOS || UNITY_TVOS) && !UNITY_EDITOR
-            IntPtr pointer = OasisEdgeKeychainLoad(_key);
-            if (pointer == IntPtr.Zero) return new OASISResult<byte[]> { IsLoaded = true };
+            int code = OasisEdgeKeychainLoad(_key, out IntPtr pointer);
+            if (code == IOSKeychainItemNotFound) return new OASISResult<byte[]> { IsLoaded = true };
+            if (code != 0) return Error<byte[]>("EDGE_IOS_KEYCHAIN_LOAD_FAILED", $"Keychain returned status {code}.");
+            if (pointer == IntPtr.Zero) return Error<byte[]>("EDGE_IOS_KEYCHAIN_LOAD_FAILED", "Keychain returned success without credential data.");
             try { return new OASISResult<byte[]>(Convert.FromBase64String(Marshal.PtrToStringAnsi(pointer))) { IsLoaded = true }; }
             catch (Exception ex) { return Error<byte[]>("EDGE_IOS_KEYCHAIN_LOAD_FAILED", ex.Message); }
             finally { OasisEdgeKeychainFree(pointer); }
@@ -101,7 +104,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             if (loaded.IsError) return Error<byte[]>(loaded.ErrorCode, loaded.Message);
             return new OASISResult<byte[]>(loaded.Result == null
                 ? null
-                : Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded.Result))) { IsLoaded = true };
+                : Encoding.UTF8.GetBytes(HyperDriveJson.Serialize(loaded.Result))) { IsLoaded = true };
 #else
             return Error<byte[]>("EDGE_SECURE_STORE_UNSUPPORTED", "This Unity platform has no configured protected credential store.");
 #endif
@@ -129,7 +132,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
 
 #if (UNITY_IOS || UNITY_TVOS) && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern int OasisEdgeKeychainSave(string key, string value);
-        [DllImport("__Internal")] private static extern IntPtr OasisEdgeKeychainLoad(string key);
+        [DllImport("__Internal")] private static extern int OasisEdgeKeychainLoad(string key, out IntPtr value);
         [DllImport("__Internal")] private static extern int OasisEdgeKeychainDelete(string key);
         [DllImport("__Internal")] private static extern void OasisEdgeKeychainFree(IntPtr value);
 #endif

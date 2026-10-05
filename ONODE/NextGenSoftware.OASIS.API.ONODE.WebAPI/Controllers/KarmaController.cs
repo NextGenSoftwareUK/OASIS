@@ -51,12 +51,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="200">Karma weighting retrieved successfully</response>
         /// <response code="400">Invalid karma type provided</response>
         [HttpGet("get-positive-karma-weighting/{karmaType}")]
-        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public OASISResult<bool> GetPositiveKarmaWeighting(KarmaTypePositive karmaType)
-        {
-            return new();
-        }
+        public OASISResult<int> GetPositiveKarmaWeighting(KarmaTypePositive karmaType) =>
+            new(KarmaManager.GetKarmaForType(karmaType));
 
         /// <summary>
         /// Get karma weighting for a given positive karma category with specific provider.
@@ -68,11 +66,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="200">Karma weighting retrieved successfully</response>
         /// <response code="400">Invalid karma type or provider type provided</response>
         [HttpGet("get-positive-karma-weighting/{karmaType}/{providerType}/{setGlobally}")]
-        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public OASISResult<bool> GetPositiveKarmaWeighting(KarmaTypePositive karmaType, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<int> GetPositiveKarmaWeighting(KarmaTypePositive karmaType, ProviderType providerType, bool setGlobally = false)
         {
-            return new();
+            GetAndActivateProvider(providerType, setGlobally);
+            return GetPositiveKarmaWeighting(karmaType);
         }
 
         /// <summary>
@@ -83,12 +82,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="200">Karma weighting retrieved successfully</response>
         /// <response code="400">Invalid karma type provided</response>
         [HttpGet("get-negative-karma-weighting/{karmaType}")]
-        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public OASISResult<bool> GetNegativeKarmaWeighting(KarmaTypeNegative karmaType)
-        {
-            return new();
-        }
+        public OASISResult<int> GetNegativeKarmaWeighting(KarmaTypeNegative karmaType) =>
+            new(KarmaManager.GetKarmaForType(karmaType));
 
         /// <summary>
         /// Get karma weighting for a given negative karma cateogey.
@@ -98,9 +95,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("get-negative-karma-weighting/{karmaType}/{providerType}/{setGlobally}")]
-        public OASISResult<bool> GetNegativeKarmaWeighting(KarmaTypeNegative karmaType, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<int> GetNegativeKarmaWeighting(KarmaTypeNegative karmaType, ProviderType providerType, bool setGlobally = false)
         {
-            return new();
+            GetAndActivateProvider(providerType, setGlobally);
+            return GetNegativeKarmaWeighting(karmaType);
         }
 
         /// <summary>
@@ -312,7 +310,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("vote-for-positive-karma-weighting/{karmaType}/{weighting}")]
         public OASISResult<bool> VoteForPositiveKarmaWeighting(KarmaTypePositive karmaType, int weighting)
         {
-            return new();
+            return KarmaWeightingGovernanceUnavailable();
         }
 
         /// <summary>
@@ -328,7 +326,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<bool> VoteForPositiveKarmaWeighting(KarmaTypePositive karmaType, int weighting, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return new();
+            return VoteForPositiveKarmaWeighting(karmaType, weighting);
         }
 
         /// <summary>
@@ -341,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("vote-for-negative-karma-weighting/{karmaType}/{weighting}")]
         public OASISResult<bool> VoteForNegativeKarmaWeighting(KarmaTypeNegative karmaType, int weighting)
         {
-            return new();
+            return KarmaWeightingGovernanceUnavailable();
         }
 
         /// <summary>
@@ -357,7 +355,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<bool> VoteForNegativeKarmaWeighting(KarmaTypeNegative karmaType, int weighting, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return new();
+            return VoteForNegativeKarmaWeighting(karmaType, weighting);
         }
 
         /// <summary>
@@ -370,7 +368,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("set-positive-karma-weighting/{karmaType}/{weighting}")]
         public OASISResult<bool> SetPositiveKarmaWeighting(KarmaTypePositive karmaType, int weighting)
         {
-            return new();
+            return KarmaWeightingGovernanceUnavailable();
         }
 
         /// <summary>
@@ -386,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<bool> SetPositiveKarmaWeighting(KarmaTypePositive karmaType, int weighting, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return new();
+            return SetPositiveKarmaWeighting(karmaType, weighting);
         }
 
         /// <summary>
@@ -399,7 +397,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("set-negative-karma-weighting/{karmaType}/{weighting}")]
         public OASISResult<bool> SetNegativeKarmaWeighting(KarmaTypeNegative karmaType, int weighting)
         {
-            return new();
+            return KarmaWeightingGovernanceUnavailable();
         }
 
         /// <summary>
@@ -415,8 +413,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<bool> SetNegativeKarmaWeighting(KarmaTypeNegative karmaType, int weighting, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return new();
+            return SetNegativeKarmaWeighting(karmaType, weighting);
         }
+
+        private static OASISResult<bool> KarmaWeightingGovernanceUnavailable() => new()
+        {
+            IsError = true,
+            ErrorCode = "KARMA_WEIGHTING_GOVERNANCE_NOT_AVAILABLE",
+            Result = false,
+            Message = "Karma weighting changes require a versioned hosted governance policy and are not available in this runtime."
+        };
 
         /// <summary>
         /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karmaSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
