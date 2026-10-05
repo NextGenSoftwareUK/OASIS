@@ -53,6 +53,14 @@ $credential=Import-Clixml $CredentialPath;$login=@{username=$credential.UserName
 try{$avatar=Unwrap(Invoke-RestMethod "$Web4BaseUrl/api/avatar/authenticate" -Method Post -ContentType application/json -Body $login)}finally{$login=$null;$credential=$null}
 $headers=@{Authorization="Bearer $($avatar.jwtToken)"}
 function Api($base,$path,$method='Get',$body=$null){$a=@{Uri="$($base.TrimEnd('/'))/api/$path";Headers=$headers;Method=$method;TimeoutSec=180};if($null-ne$body){$a.ContentType='application/json';$a.Body=$body|ConvertTo-Json -Depth 80};Unwrap(Invoke-RestMethod @a)}
+function GetEventually($base,$path,[int]$attempts=8,[int]$delaySeconds=2){
+ for($attempt=1;$attempt-le$attempts;$attempt++){
+  $result=Api $base $path
+  if($null-ne$result){return $result}
+  if($attempt-lt$attempts){Start-Sleep -Seconds $delaySeconds}
+ }
+ return $null
+}
 $manifest=[ordered]@{version=1;avatarId="$($avatar.id)";suite=$suite;hotspots=@();quests=@();rewards=@()}
 if(Test-Path $ManifestPath){$manifest=Get-Content $ManifestPath -Raw|ConvertFrom-Json;if("$($manifest.avatarId)"-ne"$($avatar.id)"){throw 'Manifest belongs to another avatar.'}}
 function SaveManifest{New-Item -ItemType Directory -Force (Split-Path $ManifestPath)|Out-Null;$manifest|ConvertTo-Json -Depth 40|Set-Content $ManifestPath -Encoding UTF8}
@@ -137,7 +145,7 @@ try{
    $manifest.quests+=@{group=$group;id="$($quest.id)";name=$title};SaveManifest
  }
  foreach($fixture in $manifest.hotspots) {
-   $verifiedHotSpot=Api $Web5BaseUrl "geohotspots/$($fixture.id)"
+   $verifiedHotSpot=GetEventually $Web5BaseUrl "geohotspots/$($fixture.id)"
    if($null-eq$verifiedHotSpot){throw "GeoHotSpot verification failed for '$($fixture.name)': the API returned no persisted record."}
    $verifiedId=$verifiedHotSpot.PSObject.Properties['id']
    if($null-eq$verifiedId -or [string]$verifiedId.Value-ne[string]$fixture.id){throw "GeoHotSpot verification failed for '$($fixture.name)': $(ConvertTo-Json $verifiedHotSpot -Depth 4 -Compress)"}
