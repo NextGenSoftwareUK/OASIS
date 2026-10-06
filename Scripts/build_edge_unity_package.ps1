@@ -268,8 +268,35 @@ Get-ChildItem -LiteralPath $packageRoot -Recurse -Force | ForEach-Object { $_.La
 
 $archive = Join-Path $outputRoot "$packageName.tgz"
 if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
-& tar -czf $archive -C $outputRoot $packageName
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $archive)) { throw 'Failed to create the Unity package archive.' }
+$tarArchive = Join-Path $outputRoot "$packageName.tar"
+if (Test-Path -LiteralPath $tarArchive) { Remove-Item -LiteralPath $tarArchive -Force }
+try {
+    & tar -cf $tarArchive -C $outputRoot $packageName
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tarArchive)) {
+        throw 'Failed to create the Unity package tar archive.'
+    }
+
+    # The Holo-enabled package contains large AAR/native binaries that are already compressed.
+    # Recompressing them with bsdtar's default gzip level exceeded GitHub's six-hour job limit.
+    # A valid no-compression gzip stream preserves the UPM .tgz contract and deterministic bytes
+    # while keeping packaging proportional to bytes copied instead of CPU-bound recompression.
+    $tarInput = [IO.File]::OpenRead($tarArchive)
+    $gzipOutput = [IO.File]::Create($archive)
+    try {
+        $gzip = [IO.Compression.GZipStream]::new(
+            $gzipOutput, [IO.Compression.CompressionLevel]::NoCompression, $true)
+        try { $tarInput.CopyTo($gzip) }
+        finally { $gzip.Dispose() }
+    }
+    finally {
+        $gzipOutput.Dispose()
+        $tarInput.Dispose()
+    }
+}
+finally {
+    if (Test-Path -LiteralPath $tarArchive) { Remove-Item -LiteralPath $tarArchive -Force }
+}
+if (-not (Test-Path -LiteralPath $archive)) { throw 'Failed to create the Unity package archive.' }
 # bsdtar writes the current Unix time into bytes 4-7 of the gzip header even when every tar entry has a normalized
 # timestamp. Gzip defines zero as "timestamp unavailable"; canonicalize that header field without altering the tar
 # payload or checksum so repeat builds are byte-for-byte reproducible.
