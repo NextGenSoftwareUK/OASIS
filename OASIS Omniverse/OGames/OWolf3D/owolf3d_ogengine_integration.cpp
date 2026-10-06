@@ -18,8 +18,16 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
+
+#include "wl_def.h"
+#include "actor.h"
+#include "gamemap.h"
+#include "wl_agent.h"
+#include "wl_game.h"
+#include "wl_play.h"
 
 static bool g_owolf_started = false;
 static std::vector<std::string> g_owolf_pending;
@@ -79,9 +87,56 @@ void OWolf3D_STAR_Init(void)
 	g_owolf_pending.clear();
 }
 
+/*
+ * OASIS Omniverse Hub - protocol lives in ogengine_hub_frame (OGEngineClient); see
+ * Docs/OMNIVERSE_HUB_IPC.md. No Hub pause: ECWolf's pause blocks the play loop that
+ * runs this tick, so the Hub could never unpause it.
+ */
+static char g_hub_pending_map[9];
+static float g_hub_pending_x = 0, g_hub_pending_y = 0;
+static bool g_hub_pending_spawn = false;
+
+static void OWolf_HubApplyPendingSpawn(void)
+{
+	if (!g_hub_pending_spawn) return;
+	AActor* mo = players[ConsolePlayer].mo;
+	if (!mo) return;
+	if (g_hub_pending_map[0] && stricmp(gamestate.mapname, g_hub_pending_map) != 0) return;
+	if (g_hub_pending_x != 0 || g_hub_pending_y != 0)
+		mo->Teleport(FLOAT2FIXED(g_hub_pending_x), FLOAT2FIXED(g_hub_pending_y), mo->angle, true);
+	g_hub_pending_spawn = false;
+	g_hub_pending_map[0] = 0;
+}
+
+static void OWolf_HubFrame(void)
+{
+	ogengine_hub_frame_t hub;
+	OWolf_HubApplyPendingSpawn();
+	if (!ogengine_hub_frame("OWolf3D", gamestate.mapname, 0, &hub) || !hub.has_arrive) return;
+
+	g_hub_pending_x = hub.x;
+	g_hub_pending_y = hub.y;
+	g_hub_pending_spawn = true;
+	g_hub_pending_map[0] = 0;
+	/* ECWolf map lumps are at most 8 characters; warp the same way the debug "warp" does. */
+	if (hub.arrive_map[0]) {
+		if (strlen(hub.arrive_map) <= 8 && GameMap::CheckMapExists(hub.arrive_map)) {
+			strncpy(g_hub_pending_map, hub.arrive_map, 8);
+			g_hub_pending_map[8] = 0;
+			strncpy(gamestate.mapname, hub.arrive_map, 8);
+			gamestate.mapname[8] = 0;
+			playstate = ex_warped;
+		} else {
+			printf("[OWolf3D] Hub arrive: map '%s' not found\n", hub.arrive_map);
+			g_hub_pending_spawn = false;
+		}
+	}
+}
+
 void OWolf3D_STAR_Tick(void)
 {
 	oglib_game_tick();
+	OWolf_HubFrame();
 }
 
 void OWolf3D_STAR_OnKill(const char* class_name)
