@@ -46,6 +46,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "oglib_str.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,11 +92,7 @@ oglib_monster_find_nocase(const oglib_monster_table_t* table, const char* engine
 {
     if (!table || !engine_name) return NULL;
     for (int i = 0; i < table->count; i++) {
-#ifdef _WIN32
-        if (_stricmp(table->entries[i].engine_name, engine_name) == 0)
-#else
-        if (strcasecmp(table->entries[i].engine_name, engine_name) == 0)
-#endif
+        if (oglib_str_icmp(table->entries[i].engine_name, engine_name) == 0)
             return &table->entries[i];
     }
     return NULL;

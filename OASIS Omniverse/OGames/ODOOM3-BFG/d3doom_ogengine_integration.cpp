@@ -21,6 +21,7 @@
 #pragma hdrstop
 
 /* d3xp integration API */
+#include "Game_local.h"
 #include "d3doom_ogengine_integration.h"
 
 /* STAR API (copies arrive via COPY_TO_RBDOOM3_AND_BUILD.ps1) */
@@ -60,6 +61,35 @@ static char g_d3doom_json_path[D3DOOM_MAX_PATH] = {};
 static char g_d3doom_saved_username[128] = {};
 static char g_d3doom_saved_jwt[2048] = {};
 static char g_d3doom_saved_refresh_token[2048] = {};
+
+#define D3DOOM_INV_MAX     32
+#define D3DOOM_QUEST_MAX   16
+#define D3DOOM_TOAST_FRAMES 180   /* ~3 s at 60 fps */
+
+static bool g_d3doom_inv_popup_open   = false;
+static bool g_d3doom_quest_popup_open = false;
+static int  g_d3doom_inv_selected     = 0;
+static int  g_d3doom_quest_selected   = 0;
+static int  g_d3doom_inv_count        = 0;
+static int  g_d3doom_quest_count      = 0;
+static int  g_d3doom_xp               = 0;
+static int  g_d3doom_toast_frames     = 0;
+static char g_d3doom_toast_msg[128];
+static char g_d3doom_inv_names[D3DOOM_INV_MAX][64];
+static char g_d3doom_quest_names[D3DOOM_QUEST_MAX][64];
+static char g_d3doom_quest_descs[D3DOOM_QUEST_MAX][128];
+
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
 
 /* Monster table — loaded from oasisstar.json "odoom3bfg".monsters; defaults below. */
 static oglib_monster_table_t g_d3doom_monster_table = {};
@@ -282,6 +312,16 @@ static void D3Doom_SaveJson(const char* path) {
  * Auth callback
  *===========================================================================*/
 
+/* Main thread, from ogengine_sync_pump(), when "star send"/"star sendclan" finishes. */
+static void D3Doom_OnSendItemDone(void* user_data) {
+    (void)user_data;
+    int success = 0;
+    char err[256] = {0};
+    ogengine_sync_send_item_get_result(&success, err, sizeof(err));
+    if (success) common->Printf(D3DOOM_LOG_TAG "Item sent.\n");
+    else common->Printf(D3DOOM_LOG_TAG "Send failed: %s\n", err);
+}
+
 static void D3Doom_OnAuthDone(void* user_data) {
     int success = 0;
     char username[128] = {}, avatar_id[128] = {}, err[256] = {};
@@ -347,19 +387,19 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
     }
     const char* subcmd = args.Argv(1);
 
-    if (!strcasecmp(subcmd, "version")) {
+    if (!idStr::Icmp(subcmd, "version")) {
         common->Printf(D3DOOM_LOG_TAG "ODOOM3-BFG STAR Integration v1.0 (game_source=" D3DOOM_GAME_SOURCE ")\n");
         return;
     }
 
-    if (!strcasecmp(subcmd, "offline")) {
+    if (!idStr::Icmp(subcmd, "offline")) {
         char message[512];
         oglib_edge_command(args.Argc() >= 3 ? args.Argv(2) : "status", message, sizeof(message));
         common->Printf(D3DOOM_LOG_TAG "%s\n", message);
         return;
     }
 
-    if (!strcasecmp(subcmd, "status")) {
+    if (!idStr::Icmp(subcmd, "status")) {
         common->Printf(D3DOOM_LOG_TAG "initialized=%d client_ready=%d debug=%d\n",
             g_d3doom_initialized ? 1 : 0, g_d3doom_client_ready ? 1 : 0, g_d3doom_debug ? 1 : 0);
         if (g_d3doom_saved_username[0])
@@ -367,9 +407,9 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "debug")) {
+    if (!idStr::Icmp(subcmd, "debug")) {
         if (args.Argc() >= 3) {
-            int on = !strcasecmp(args.Argv(2), "on") || atoi(args.Argv(2));
+            int on = !idStr::Icmp(args.Argv(2), "on") || atoi(args.Argv(2));
             g_d3doom_debug = (on != 0);
             d3doom_star_debug.SetInteger(on);
             ogengine_set_debug(on);
@@ -378,7 +418,7 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "beamin")) {
+    if (!idStr::Icmp(subcmd, "beamin")) {
         if (args.Argc() < 4) {
             common->Printf(D3DOOM_LOG_TAG "Usage: star beamin <username> <password>\n");
             return;
@@ -392,7 +432,7 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "beamout")) {
+    if (!idStr::Icmp(subcmd, "beamout")) {
         g_d3doom_client_ready = false;
         g_d3doom_saved_username[0] = '\0';
         g_d3doom_saved_jwt[0] = '\0';
@@ -404,7 +444,7 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "inventory")) {
+    if (!idStr::Icmp(subcmd, "inventory")) {
         if (!g_d3doom_client_ready) { common->Printf(D3DOOM_LOG_TAG "Not beamed in.\n"); return; }
         ogengine_item_list_t* list = nullptr;
         if (ogengine_get_inventory(&list) != OGENGINE_SUCCESS || !list) {
@@ -420,11 +460,26 @@ static void D3Doom_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "add")) {
+    if (!idStr::Icmp(subcmd, "add")) {
         if (args.Argc() < 3) { common->Printf(D3DOOM_LOG_TAG "Usage: star add <item_name>\n"); return; }
         if (!g_d3doom_client_ready) { common->Printf(D3DOOM_LOG_TAG "Not beamed in.\n"); return; }
         ogengine_queue_add_item(args.Argv(2), "Added via console", D3DOOM_GAME_SOURCE, "Item", nullptr, 1, 1);
         common->Printf(D3DOOM_LOG_TAG "Queued add: %s\n", args.Argv(2));
+        return;
+    }
+
+    if (!idStr::Icmp(subcmd, "send") || !idStr::Icmp(subcmd, "sendclan")) {
+        const int toClan = !idStr::Icmp(subcmd, "sendclan");
+        if (args.Argc() < 4) {
+            common->Printf(D3DOOM_LOG_TAG "Usage: star %s <%s> <item_name> [quantity]\n", subcmd, toClan ? "clan" : "avatar");
+            return;
+        }
+        if (!g_d3doom_client_ready) { common->Printf(D3DOOM_LOG_TAG "Not beamed in.\n"); return; }
+        if (ogengine_sync_send_item_in_progress()) { common->Printf(D3DOOM_LOG_TAG "A send is already in progress.\n"); return; }
+        const int quantity = args.Argc() >= 5 ? atoi(args.Argv(4)) : 1;
+        ogengine_sync_send_item_start(args.Argv(2), args.Argv(3), quantity > 0 ? quantity : 1, toClan, nullptr,
+            D3Doom_OnSendItemDone, nullptr);
+        common->Printf(D3DOOM_LOG_TAG "Sending %s to %s...\n", args.Argv(3), args.Argv(2));
         return;
     }
 
@@ -749,34 +804,6 @@ void D3Doom_STAR_OnMonsterKilled(const char* entity_def_name, int engine_is_boss
  * New state appended here; existing global block is in the top section.
  *===========================================================================*/
 
-#define D3DOOM_INV_MAX     32
-#define D3DOOM_QUEST_MAX   16
-#define D3DOOM_TOAST_FRAMES 180   /* ~3 s at 60 fps */
-
-static bool g_d3doom_inv_popup_open   = false;
-static bool g_d3doom_quest_popup_open = false;
-static int  g_d3doom_inv_selected     = 0;
-static int  g_d3doom_quest_selected   = 0;
-static int  g_d3doom_inv_count        = 0;
-static int  g_d3doom_quest_count      = 0;
-static int  g_d3doom_xp               = 0;
-static int  g_d3doom_toast_frames     = 0;
-static char g_d3doom_toast_msg[128];
-static char g_d3doom_inv_names[D3DOOM_INV_MAX][64];
-static char g_d3doom_quest_names[D3DOOM_QUEST_MAX][64];
-static char g_d3doom_quest_descs[D3DOOM_QUEST_MAX][128];
-
-static void oasis_open_url(const char *url)
-{
-    if (!url || !url[0]) return;
-#ifdef _WIN32
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
-#elif defined(__APPLE__)
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
-#else
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
-#endif
-}
 
 int         D3Doom_STAR_IsBeamedIn(void)          { return g_d3doom_client_ready ? 1 : 0; }
 const char* D3Doom_STAR_GetUsername(void)          { return g_d3doom_saved_username; }
@@ -853,9 +880,9 @@ void D3Doom_STAR_ToggleQuestPopup(void) {
  * Virtual screen: 640 × 480 logical pixels.
  *
  * Key idRenderSystem draw calls:
- *   rs->DrawSmallString(x, y, str, color, forceColor)
- *   rs->DrawBigString(x, y, str, color, forceColor)
- *   rs->DrawFill(x, y, w, h, color)
+ *   rs->DrawSmallStringExt(x, y, str, color, forceColor)
+ *   rs->DrawBigStringExt(x, y, str, color, forceColor)
+ *   D3D_DrawFill(rs, x, y, w, h, color)
  *   rs->GetWidth() / rs->GetHeight()  — physical resolution
  *
  * Call D3Doom_STAR_DrawHUDStatus from idGameLocal::Draw() after the HUD GUI
@@ -868,6 +895,14 @@ void D3Doom_STAR_ToggleQuestPopup(void) {
 #define D3D_SH 8    /* small char height */
 #define D3D_SW 8    /* small char width  */
 
+static void D3D_DrawFill(idRenderSystem* rs, float x, float y, float w, float h, const idVec4& c) {
+    static const idMaterial* white = NULL;
+    if (!white) white = declManager->FindMaterial("_white");
+    rs->SetColor(c);
+    rs->DrawStretchPic(x, y, w, h, 0, 0, 1, 1, white);
+    rs->SetColor(colorWhite);
+}
+
 void D3Doom_STAR_DrawHUDStatus(void* render_system) {
     idRenderSystem* rs = render_system ? static_cast<idRenderSystem*>(render_system) : ::renderSystem;
     if (!rs || !g_d3doom_initialized) return;
@@ -878,7 +913,7 @@ void D3Doom_STAR_DrawHUDStatus(void* render_system) {
     /* Version — bottom-right */
     const char* ver = "ODOOM3-BFG 1.0.0";
     int vlen = (int)idStr::Length(ver);
-    rs->DrawSmallString(D3D_VW - vlen * D3D_SW - 4,
+    rs->DrawSmallStringExt(D3D_VW - vlen * D3D_SW - 4,
                         D3D_VH - D3D_SH - 4, ver, colorDkGrey, false);
 
     if (!g_d3doom_client_ready) return;
@@ -886,19 +921,19 @@ void D3Doom_STAR_DrawHUDStatus(void* render_system) {
     /* Beamed-in label — top-left */
     char buf[96];
     idStr::snPrintf(buf, sizeof(buf), "OASIS: %s", g_d3doom_saved_username);
-    rs->DrawSmallString(4, 4, buf, colorWhite, false);
+    rs->DrawSmallStringExt(4, 4, buf, colorWhite, false);
 
     /* XP — top-right */
     char xpbuf[32];
     idStr::snPrintf(xpbuf, sizeof(xpbuf), "XP: %d", g_d3doom_xp);
     int xplen = (int)idStr::Length(xpbuf);
-    rs->DrawSmallString(D3D_VW - xplen * D3D_SW - 4, 4, xpbuf, colorYellow, false);
+    rs->DrawSmallStringExt(D3D_VW - xplen * D3D_SW - 4, 4, xpbuf, colorYellow, false);
 
     /* Toast — centred, fades */
     if (g_d3doom_toast_frames > 0) {
         int tlen = (int)idStr::Length(g_d3doom_toast_msg);
         int tx   = (D3D_VW - tlen * D3D_SW) / 2;
-        rs->DrawSmallString(tx, 120, g_d3doom_toast_msg, colorWhite, false);
+        rs->DrawSmallStringExt(tx, 120, g_d3doom_toast_msg, colorWhite, false);
     }
 }
 
@@ -908,50 +943,50 @@ void D3Doom_STAR_DrawPopupOverlay(void* render_system) {
     if (!rs) return;
 
     /* Semi-transparent dark background panel */
-    rs->DrawFill(60, 40, 520, 400, idVec4(0.0f, 0.0f, 0.0f, 0.75f));
+    D3D_DrawFill(rs, 60, 40, 520, 400, idVec4(0.0f, 0.0f, 0.0f, 0.75f));
 
     if (g_d3doom_inv_popup_open) {
-        rs->DrawBigString(200, 50, "OASIS INVENTORY", colorWhite, false);
-        rs->DrawSmallString(64, 78, "-----------------------------------------------", colorDkGrey, false);
+        rs->DrawBigStringExt(200, 50, "OASIS INVENTORY", colorWhite, false);
+        rs->DrawSmallStringExt(64, 78, "-----------------------------------------------", colorDkGrey, false);
 
         if (g_d3doom_inv_count == 0) {
-            rs->DrawSmallString(80, 120, "No items in your OASIS inventory.", colorDkGrey, false);
+            rs->DrawSmallStringExt(80, 120, "No items in your OASIS inventory.", colorDkGrey, false);
         } else {
-            int visible = idMath::Imin(g_d3doom_inv_count, 16);
+            int visible = Min(g_d3doom_inv_count, 16);
             for (int i = 0; i < visible; i++) {
                 char line[80];
                 idStr::snPrintf(line, sizeof(line), "%s%s",
                                 i == g_d3doom_inv_selected ? "> " : "  ",
                                 g_d3doom_inv_names[i]);
                 idVec4 col = (i == g_d3doom_inv_selected) ? colorWhite : colorMdGrey;
-                rs->DrawSmallString(80, 100 + i * D3D_SH + 2, line, col, false);
+                rs->DrawSmallStringExt(80, 100 + i * D3D_SH + 2, line, col, false);
             }
         }
 
-        rs->DrawSmallString(64, 390, "[I] Close   [U] Use   [A] Send to Avatar   [C] Send to Clan", colorYellow, false);
+        rs->DrawSmallStringExt(64, 390, "[I] Close   [U] Use   [A] Send to Avatar   [C] Send to Clan", colorYellow, false);
     }
 
     if (g_d3doom_quest_popup_open) {
-        rs->DrawBigString(220, 50, "OASIS QUESTS", colorWhite, false);
-        rs->DrawSmallString(64, 78, "-----------------------------------------------", colorDkGrey, false);
+        rs->DrawBigStringExt(220, 50, "OASIS QUESTS", colorWhite, false);
+        rs->DrawSmallStringExt(64, 78, "-----------------------------------------------", colorDkGrey, false);
 
         if (g_d3doom_quest_count == 0) {
-            rs->DrawSmallString(80, 120, "No active OASIS quests.", colorDkGrey, false);
+            rs->DrawSmallStringExt(80, 120, "No active OASIS quests.", colorDkGrey, false);
         } else {
-            int visible = idMath::Imin(g_d3doom_quest_count, 14);
+            int visible = Min(g_d3doom_quest_count, 14);
             for (int i = 0; i < visible; i++) {
                 char line[80];
                 idStr::snPrintf(line, sizeof(line), "%s%s",
                                 i == g_d3doom_quest_selected ? "> " : "  ",
                                 g_d3doom_quest_names[i]);
                 idVec4 col = (i == g_d3doom_quest_selected) ? colorWhite : colorMdGrey;
-                rs->DrawSmallString(80, 100 + i * D3D_SH + 2, line, col, false);
+                rs->DrawSmallStringExt(80, 100 + i * D3D_SH + 2, line, col, false);
             }
             if (g_d3doom_quest_selected < g_d3doom_quest_count)
-                rs->DrawSmallString(80, 370, g_d3doom_quest_descs[g_d3doom_quest_selected], colorCyan, false);
+                rs->DrawSmallStringExt(80, 370, g_d3doom_quest_descs[g_d3doom_quest_selected], colorCyan, false);
         }
 
-        rs->DrawSmallString(64, 390, "[Q] Close   [Up/Down] Navigate", colorYellow, false);
+        rs->DrawSmallStringExt(64, 390, "[Q] Close   [Up/Down] Navigate", colorYellow, false);
     }
 }
 
@@ -992,24 +1027,22 @@ void D3Doom_STAR_HandleKey(int key, int down) {
         return;
     }
     if (key == K_u && g_d3doom_inv_popup_open && g_d3doom_inv_selected < g_d3doom_inv_count) {
-        ogengine_use_item(g_d3doom_inv_names[g_d3doom_inv_selected]);
+        ogengine_queue_use_item(g_d3doom_inv_names[g_d3doom_inv_selected], "inventory");
         snprintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "Used: %s", g_d3doom_inv_names[g_d3doom_inv_selected]);
         g_d3doom_toast_frames = D3DOOM_TOAST_FRAMES;
         g_d3doom_inv_count = 0;
         return;
     }
     if (key == K_a && g_d3doom_inv_popup_open && g_d3doom_inv_selected < g_d3doom_inv_count) {
-        ogengine_send_item_to_avatar(g_d3doom_inv_names[g_d3doom_inv_selected]);
-        snprintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "Sent to Avatar: %s", g_d3doom_inv_names[g_d3doom_inv_selected]);
+        /* Sending needs a recipient name, which this popup cannot take. */
+        idStr::snPrintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "Console: star send <avatar> %s", g_d3doom_inv_names[g_d3doom_inv_selected]);
         g_d3doom_toast_frames = D3DOOM_TOAST_FRAMES;
-        g_d3doom_inv_count = 0;
         return;
     }
     if (key == K_c && g_d3doom_inv_popup_open && g_d3doom_inv_selected < g_d3doom_inv_count) {
-        ogengine_send_item_to_clan(g_d3doom_inv_names[g_d3doom_inv_selected]);
-        snprintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "Sent to Clan: %s", g_d3doom_inv_names[g_d3doom_inv_selected]);
+        /* Sending needs a recipient name, which this popup cannot take. */
+        idStr::snPrintf(g_d3doom_toast_msg, sizeof(g_d3doom_toast_msg), "Console: star sendclan <clan> %s", g_d3doom_inv_names[g_d3doom_inv_selected]);
         g_d3doom_toast_frames = D3DOOM_TOAST_FRAMES;
-        g_d3doom_inv_count = 0;
         return;
     }
 }
