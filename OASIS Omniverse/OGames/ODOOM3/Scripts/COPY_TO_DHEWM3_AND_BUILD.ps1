@@ -28,6 +28,8 @@ $STARSrc       = Join-Path (Split-Path -Parent $OGamesRoot) "OGEngineClient"
 # BUILD_AND_DEPLOY_STAR_CLIENT.bat publishes the native Edge profile here.
 $STARPublish   = Join-Path (Split-Path -Parent (Split-Path -Parent $OGamesRoot)) "artifacts\native-games\native\Edge\win-x64\publish"
 $DHewm3Root    = "C:\Source\ODOOM3"
+# Prebuilt Windows dependencies (OpenAL, SDL2, zlib, curl): https://github.com/dhewm/dhewm3-libs
+$DHewm3Libs    = "C:\Source\dhewm3-libs\x86_64-w64-mingw32"
 $Dest          = Join-Path $DHewm3Root "neo\game"
 $BuildDir      = Join-Path $DHewm3Root "build-win64"
 
@@ -121,6 +123,7 @@ if (-not (Test-Path $BuildDir)) {
     Write-Host "  Running CMake configuration..."
     & cmake -S "$DHewm3Root\neo" -B $BuildDir -A x64 `
             -DCMAKE_BUILD_TYPE=$BuildType `
+            -DDHEWM3LIBS="$DHewm3Libs" `
             -DOASIS_STAR_SYNC_IN_CLIENT=1
     if ($LASTEXITCODE -ne 0) { Write-Error "CMake configuration failed." }
 }
