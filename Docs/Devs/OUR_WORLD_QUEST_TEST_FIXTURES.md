@@ -3,7 +3,7 @@
 Run `Scripts/seed_our_world_quest_test_matrix.ps1` to create a stable development dataset beside the Anorak quest. The script uses the normal WEB4 mint/place APIs and WEB5 quest API. It stores IDs in `%LOCALAPPDATA%/OASIS/our-world-quest-test-matrix.json`, so interrupted and repeated runs reuse the same records.
 
 To seed or reconcile every Our World GeoNFT, GeoHotSpot and quest fixture—including
-the Anorak talking-tree quest giver—in the required dependency order, run:
+the original Anorak startup quest and separate park talking-tree quests—in the required dependency order, run:
 
 ```powershell
 ./Scripts/seed_our_world_all.ps1

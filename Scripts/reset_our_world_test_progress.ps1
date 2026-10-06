@@ -59,7 +59,12 @@ try {
     $hotSpotManifest = if (Test-Path -LiteralPath $GeoHotSpotManifestPath) {
         Get-Content -LiteralPath $GeoHotSpotManifestPath -Raw | ConvertFrom-Json
     } else { $null }
-    $hotSpotIds = @($hotSpotManifest.hotspots | ForEach-Object { [string]$_.id } | Where-Object { $_ } | Select-Object -Unique)
+    $allHotSpots = @(Api $Web5BaseUrl 'geohotspots')
+    $talkingTreeHotSpotIds = @($allHotSpots | Where-Object {
+        (PropertyValue (PropertyValue $_ 'metaData') 'OurWorld.TestSuite') -eq 'talking-tree-quests'
+    } | ForEach-Object { [string]$_.id })
+    $hotSpotIds = @(@($hotSpotManifest.hotspots | ForEach-Object { [string]$_.id }) + $talkingTreeHotSpotIds |
+        Where-Object { $_ } | Select-Object -Unique)
     $hotSpotRewardIds = @($hotSpotManifest.rewards | ForEach-Object { [string]$_.id } | Where-Object { $_ } | Select-Object -Unique)
     $hotSpotRewardNames = @($hotSpotManifest.rewards | ForEach-Object { [string]$_.name } | Where-Object { $_ } | Select-Object -Unique)
 
@@ -81,7 +86,8 @@ try {
         $questSuite = PropertyValue (PropertyValue $quest 'metaData') 'OurWorld.TestSuite'
         if (@($requiredIds | Where-Object { $_ -in $testIds }).Count -gt 0 -or
             @($linkedHotSpotIds | Where-Object { $_ -in $hotSpotIds }).Count -gt 0 -or
-            $questSuite -in @('quest-mode-spawn-matrix','geohotspot-end-to-end-matrix')) { $testQuests += $quest }
+            $questSuite -in @('quest-mode-spawn-matrix','geohotspot-end-to-end-matrix','talking-tree-quests') -or
+            [string]$quest.name -match '^(Oak Guardian|Park Steward):') { $testQuests += $quest }
     }
     if ($testQuests.Count -eq 0) { throw 'No avatar quests reference the tagged Our World test GeoNFTs.' }
 
