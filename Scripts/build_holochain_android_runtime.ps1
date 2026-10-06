@@ -70,10 +70,26 @@ foreach ($property in $pin.patchedFiles.PSObject.Properties) {
 function ConvertTo-WslPath {
     param([Parameter(Mandatory)][string]$WindowsPath)
     $fullPath = [IO.Path]::GetFullPath($WindowsPath)
+    if (-not $IsWindows) {
+        return $fullPath
+    }
     if ($fullPath -notmatch '^([A-Za-z]):\\(.*)$') {
         throw "Only absolute Windows drive paths can be mapped into WSL: '$fullPath'."
     }
     return "/mnt/$($matches[1].ToLowerInvariant())/$($matches[2].Replace('\', '/'))"
+}
+
+function Invoke-NixBuildCommand {
+    param([Parameter(Mandatory)][string]$Command)
+    if ($IsWindows) {
+        & wsl.exe bash -lc $Command
+    }
+    else {
+        & bash -lc $Command
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "Pinned Holochain Android build command failed with exit code $LASTEXITCODE."
+    }
 }
 $wslSource = ConvertTo-WslPath $sourceRoot
 $gradleUserHome = Join-Path $outputRoot 'gradle-user-home'
@@ -87,16 +103,14 @@ $runtimeBuild = "pnpm run build:single-target:runtime-types-ffi $($pin.rustTarge
     " && pnpm run build:service && pnpm run publish:local:service"
 $buildCommand = "cd '$wslSource' && export GRADLE_USER_HOME='$wslGradleUserHome' && nix develop --command bash -lc '$runtimeBuild'"
 if (!$PackageExistingBuild) {
-    & wsl.exe bash -lc $buildCommand
-    if ($LASTEXITCODE -ne 0) { throw 'Pinned Holochain Android runtime build failed.' }
+    Invoke-NixBuildCommand $buildCommand
 }
 
 $bridgeRoot = Join-Path $repoRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/AndroidBridge'
 $wslBridge = ConvertTo-WslPath $bridgeRoot
 $gradleWrapper = "$wslSource/libraries/client/gradlew"
 if (!$PackageExistingBuild) {
-    & wsl.exe bash -lc "cd '$wslSource' && export GRADLE_USER_HOME='$wslGradleUserHome' && nix develop --command bash -lc 'cd libraries/client && ./gradlew -p $wslBridge :bridge:assembleRelease :bridge:exportReleaseRuntimeDependencies'"
-    if ($LASTEXITCODE -ne 0) { throw 'HoloOASIS Unity Android bridge build failed.' }
+    Invoke-NixBuildCommand "cd '$wslSource' && export GRADLE_USER_HOME='$wslGradleUserHome' && nix develop --command bash -lc 'cd libraries/client && ./gradlew -p $wslBridge :bridge:assembleRelease :bridge:exportReleaseRuntimeDependencies'"
 }
 
 $serviceAar = Join-Path $sourceRoot 'libraries/service/build/outputs/aar/service-release.aar'
