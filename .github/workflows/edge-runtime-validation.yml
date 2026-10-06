@@ -92,6 +92,25 @@ jobs:
             OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ
             OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json
 
+  build-holochain-android-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - name: Build pinned Holochain Android runtime
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/build_holochain_android_runtime.ps1 -CleanSource
+      - uses: actions/upload-artifact@v7
+        with:
+          name: verified-holochain-android-runtime
+          path: OASIS/artifacts/holochain-android-runtime/package
+          if-no-files-found: error
+
   validate-hosted-mongo-sync:
     runs-on: ubuntu-latest
     steps:
@@ -228,7 +247,7 @@ jobs:
           if-no-files-found: error
 
   validate:
-    needs: [build-holooasis-happ, validate-hosted-mongo-sync]
+    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync]
     runs-on: windows-latest
     permissions:
       contents: read
@@ -283,6 +302,10 @@ jobs:
         with:
           name: verified-holooasis-happ
           path: OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP
+      - uses: actions/download-artifact@v7
+        with:
+          name: verified-holochain-android-runtime
+          path: OASIS/artifacts/holochain-android-runtime/package
       - uses: actions/download-artifact@v7
         with:
           name: hosted-mongo-sync-evidence
