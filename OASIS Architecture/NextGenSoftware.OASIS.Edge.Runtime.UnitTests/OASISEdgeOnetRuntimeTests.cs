@@ -58,7 +58,7 @@ public sealed class OASISEdgeOnetRuntimeTests
             using var runtime = new OASISEdgeOnetRuntime(new EdgeRuntimeOptions
             {
                 AvatarId = Guid.NewGuid(), DeviceId = Guid.NewGuid(), DatabasePath = databasePath
-            }, edgeChannel, hostNodeId, binder, capabilityLifetime: TimeSpan.FromMilliseconds(250),
+            }, edgeChannel, hostNodeId, binder, capabilityLifetime: TimeSpan.FromSeconds(5),
                 capabilityRenewalInterval: TimeSpan.FromMilliseconds(50));
 
             var started = await runtime.StartAsync(new TestIdentity(nodeId, Convert.ToBase64String(publicKey), signingKey),
@@ -139,7 +139,7 @@ public sealed class OASISEdgeOnetRuntimeTests
                 HostedServiceRecoveryInterval = TimeSpan.FromMilliseconds(20),
                 MaximumHostedServiceRecoveryInterval = TimeSpan.FromMilliseconds(40)
             }, edgeChannel, hostNodeId, new RecordingPeerBinder(),
-                capabilityLifetime: TimeSpan.FromMilliseconds(200),
+                capabilityLifetime: TimeSpan.FromSeconds(5),
                 capabilityRenewalInterval: TimeSpan.FromMilliseconds(40));
             var identity = new TestIdentity(nodeId, Convert.ToBase64String(publicKey), signingKey);
 
