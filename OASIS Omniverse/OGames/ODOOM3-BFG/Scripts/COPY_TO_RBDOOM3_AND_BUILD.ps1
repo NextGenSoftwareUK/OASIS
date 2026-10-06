@@ -28,6 +28,8 @@ $STARSrc       = Join-Path (Split-Path -Parent $OGamesRoot) "OGEngineClient"
 # BUILD_AND_DEPLOY_STAR_CLIENT.bat publishes the native Edge profile here.
 $STARPublish   = Join-Path (Split-Path -Parent (Split-Path -Parent $OGamesRoot)) "artifacts\native-games\native\Edge\win-x64\publish"
 $RBDoomRoot    = "C:\Source\ODOOM3-BFG"
+# Intel ISPC (texture compression): https://github.com/ispc/ispc/releases - unzip under C:\Tools.
+$IspcExe       = Get-ChildItem "C:\Tools\ispc-*\bin\ispc.exe" -ErrorAction SilentlyContinue | Select-Object -Last 1
 $Dest          = Join-Path $RBDoomRoot "neo\d3xp"
 $BuildDir      = Join-Path $RBDoomRoot "build-win64"
 
@@ -119,8 +121,10 @@ Write-Host "`n[4/4] Building RBDOOM-3-BFG ($BuildType)..."
 
 if (-not (Test-Path $BuildDir)) {
     Write-Host "  Running CMake configuration..."
+    if (-not $IspcExe) { Write-Error "ISPC not found under C:\Tools\ispc-*\bin. Download it from https://github.com/ispc/ispc/releases." }
     & cmake -S $RBDoomRoot\neo -B $BuildDir -A x64 `
             -DCMAKE_BUILD_TYPE=$BuildType `
+            -DISPC_EXECUTABLE="$($IspcExe.FullName)" `
             -DOASIS_STAR_SYNC_IN_CLIENT=1
     if ($LASTEXITCODE -ne 0) { Write-Error "CMake configuration failed." }
 }
