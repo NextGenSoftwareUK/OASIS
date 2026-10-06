@@ -3,8 +3,8 @@
 Seeds every Our World development GeoNFT, GeoHotSpot and quest fixture in dependency order.
 .DESCRIPTION
 Runs the canonical resumable seeders for the five Anorak GeoNFTs, the complete
-GeoNFT/quest test matrix, the complete GeoHotSpot quest matrix, and the talking-tree
-quest giver. Existing tagged records are reconciled in place rather than duplicated.
+GeoNFT/quest test matrix, the complete GeoHotSpot quest matrix, the original Anorak
+startup quest, and the separate park talking-tree quests.
 #>
 [CmdletBinding()]
 param(
@@ -43,5 +43,9 @@ Invoke-SeedScript 'seed_our_world_geohotspot_quest_matrix.ps1' $hotSpotMatrix
 $treeQuest = @{ Web4BaseUrl=$Web4BaseUrl; Web5BaseUrl=$Web5BaseUrl; CredentialPath=$CredentialPath; ManifestPath=$anorakManifest }
 if ($PlanOnly) { $treeQuest.PlanOnly = $true }
 Invoke-SeedScript 'seed_our_world_tree_quest.ps1' $treeQuest
+
+$talkingTrees = @{ Web4BaseUrl=$Web4BaseUrl; Web5BaseUrl=$Web5BaseUrl; CredentialPath=$CredentialPath; Latitude=$Latitude; Longitude=$Longitude }
+if ($PlanOnly) { $talkingTrees.PlanOnly = $true }
+Invoke-SeedScript 'seed_our_world_talking_tree_quests.ps1' $talkingTrees
 
 Write-Host "`nOur World full seed completed successfully." -ForegroundColor Green
