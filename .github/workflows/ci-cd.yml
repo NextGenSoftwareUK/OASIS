@@ -525,7 +525,12 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Test
-      run: dotnet test "OASIS/${{ matrix.test }}" --configuration Release --verbosity normal
+      # OGEngine's Edge graph reaches several shared projects through both the
+      # native endpoint and the top-level client. MSBuild may therefore create
+      # distinct qualified graph nodes that share an output path. Serialize the
+      # build so those legitimate nodes cannot concurrently replace one deps or
+      # assembly file (the Linux failure was GenerateDepsFile IOException).
+      run: dotnet test "OASIS/${{ matrix.test }}" --configuration Release --verbosity normal --maxcpucount:1
 
   # Integration Tests
   integration-tests:
