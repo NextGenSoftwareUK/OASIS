@@ -101,9 +101,20 @@ jobs:
           set -e
 
           # These files encode the production source graph and must retain master
-          # semantics. The exact values are regenerated below from main branch tips.
+          # semantics. Submodule values are regenerated below from main branch tips;
+          # sibling dependency pins must come from the already-validated Development
+          # manifest because they have no parent gitlink from which to regenerate.
           cp /tmp/production.gitmodules .gitmodules
           cp /tmp/production-dependency-versions.env Docker/oasis-dependency-versions.env
+          git show origin/Development:Docker/oasis-dependency-versions.env > /tmp/development-dependency-versions.env
+          for key in LIBRARIES_REPO LIBRARIES_COMMIT HOLOCHAIN_REPO HOLOCHAIN_COMMIT; do
+            value=$(sed -n "s/^${key}=//p" /tmp/development-dependency-versions.env)
+            if [ -z "$value" ]; then
+              echo "::error::Development dependency manifest is missing ${key}."
+              exit 1
+            fi
+            sed -i "s#^${key}=.*#${key}=${value}#" Docker/oasis-dependency-versions.env
+          done
           git add .gitmodules Docker/oasis-dependency-versions.env
           git submodule sync --recursive
 
