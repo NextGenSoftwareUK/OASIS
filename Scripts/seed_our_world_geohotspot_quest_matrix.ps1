@@ -53,7 +53,7 @@ $credential=Import-Clixml $CredentialPath;$login=@{username=$credential.UserName
 try{$avatar=Unwrap(Invoke-RestMethod "$Web4BaseUrl/api/avatar/authenticate" -Method Post -ContentType application/json -Body $login)}finally{$login=$null;$credential=$null}
 $headers=@{Authorization="Bearer $($avatar.jwtToken)"}
 function Api($base,$path,$method='Get',$body=$null){$a=@{Uri="$($base.TrimEnd('/'))/api/$path";Headers=$headers;Method=$method;TimeoutSec=180};if($null-ne$body){$a.ContentType='application/json';$a.Body=$body|ConvertTo-Json -Depth 80};Unwrap(Invoke-RestMethod @a)}
-function GetEventually($base,$path,[int]$attempts=8,[int]$delaySeconds=2){
+function GetEventually($base,$path,[int]$attempts=20,[int]$delaySeconds=3){
  for($attempt=1;$attempt-le$attempts;$attempt++){
   $result=Api $base $path
   if($null-ne$result){return $result}

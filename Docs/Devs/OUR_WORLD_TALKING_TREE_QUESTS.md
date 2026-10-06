@@ -177,4 +177,4 @@ One specific tree uses a small circular GeoHotSpot. Any suitable tree within a p
 
 GeoHotSpot trigger acceptance and quest progression remain server-authoritative and idempotent. The Unity client detects and presents; it must not independently infer quest completion, grant rewards, or select an arbitrary quest merely because it has a startup sequence.
 
-`Scripts/seed_our_world_tree_quest.ps1` authors or updates the `Anorak Talking Tree` GeoHotSpot, links the quest and first objective to its stable ID, and authors the greeting as `CrossGameEventsOnGeoHotSpotTriggered`. The first objective still requires its existing GeoNFT item, so meeting the tree records the location interaction without falsely completing the collection objective.
+`Scripts/seed_our_world_tree_quest.ps1` owns only Anorak's original startup quest and its endangered-tree GeoNFT objectives. It deliberately has no park GeoHotSpot relationship. `Scripts/seed_our_world_talking_tree_quests.ps1` separately authors the recognised park trees and their seed/litter quests, linking each dedicated quest and objective to its own stable GeoHotSpot.
