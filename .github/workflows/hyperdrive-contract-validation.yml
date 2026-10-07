@@ -8,6 +8,7 @@ on:
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/**'
       - 'Docs/Devs/HYPERDRIVE_*'
       - 'Scripts/verify_hyperdrive_provider_io_manifest.ps1'
+      - 'Scripts/verify_hyperdrive_v2_operation_contracts.ps1'
       - 'Scripts/verify_web4_hyperdrive_route_manifest.ps1'
       - '.github/workflows/hyperdrive-contract-validation.yml'
   workflow_dispatch:
@@ -31,6 +32,10 @@ jobs:
       - name: Verify WEB4 route-to-boundary manifest
         shell: pwsh
         run: ./Scripts/verify_web4_hyperdrive_route_manifest.ps1
+
+      - name: Verify V2 storage-operation parity and coverage
+        shell: pwsh
+        run: ./Scripts/verify_hyperdrive_v2_operation_contracts.ps1
 
       - name: Run HyperDrive behavioral contracts
         shell: pwsh
