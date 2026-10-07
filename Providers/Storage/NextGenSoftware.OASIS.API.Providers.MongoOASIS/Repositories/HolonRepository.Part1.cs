@@ -35,7 +35,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     Name = PublicIdentityIndexName, Unique = true,
                     PartialFilterExpression = canonicalRecord
                 });
-            await _dbContext.Holon.Indexes.CreateOneAsync(index);
+            try
+            {
+                await _dbContext.Holon.Indexes.CreateOneAsync(index);
+            }
+            catch (MongoCommandException ex) when (ex.Code == 85 || ex.Code == 86)
+            {
+                var existingIndexes = await (await _dbContext.Holon.Indexes.ListAsync()).ToListAsync();
+                if (!existingIndexes.Any(IsEquivalentPublicIdentityIndex))
+                    throw;
+
+                // MongoDB rejects an equivalent index under a different name. The
+                // existing index already enforces the complete invariant, so keep it.
+                return;
+            }
             await DropLegacyPublicIdentityIndexAsync();
         }
 
@@ -49,8 +62,38 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     Name = PublicIdentityIndexName, Unique = true,
                     PartialFilterExpression = canonicalRecord
                 });
-            _dbContext.Holon.Indexes.CreateOne(index);
+            try
+            {
+                _dbContext.Holon.Indexes.CreateOne(index);
+            }
+            catch (MongoCommandException ex) when (ex.Code == 85 || ex.Code == 86)
+            {
+                if (!_dbContext.Holon.Indexes.List().ToList().Any(IsEquivalentPublicIdentityIndex))
+                    throw;
+
+                // MongoDB rejects an equivalent index under a different name. The
+                // existing index already enforces the complete invariant, so keep it.
+                return;
+            }
             DropLegacyPublicIdentityIndex();
+        }
+
+        private static bool IsEquivalentPublicIdentityIndex(BsonDocument index)
+        {
+            if (!index.TryGetValue("key", out BsonValue keyValue) || !keyValue.IsBsonDocument ||
+                keyValue.AsBsonDocument.ElementCount != 1 ||
+                !keyValue.AsBsonDocument.TryGetValue("HolonId", out BsonValue direction) ||
+                direction.ToInt32() != 1 ||
+                !index.TryGetValue("unique", out BsonValue unique) || !unique.ToBoolean() ||
+                !index.TryGetValue("partialFilterExpression", out BsonValue partialValue) ||
+                !partialValue.IsBsonDocument)
+                return false;
+
+            BsonDocument partial = partialValue.AsBsonDocument;
+            return partial.TryGetValue("ProviderUniqueStorageKey.0", out BsonValue providerKey) &&
+                   providerKey.IsBsonDocument &&
+                   providerKey.AsBsonDocument.TryGetValue("$exists", out BsonValue exists) &&
+                   exists.ToBoolean();
         }
 
         private async Task DropLegacyPublicIdentityIndexAsync()
