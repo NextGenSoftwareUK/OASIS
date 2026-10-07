@@ -55,8 +55,16 @@ $headers=@{Authorization="Bearer $($avatar.jwtToken)"}
 function Api($base,$path,$method='Get',$body=$null){$a=@{Uri="$($base.TrimEnd('/'))/api/$path";Headers=$headers;Method=$method;TimeoutSec=180};if($null-ne$body){$a.ContentType='application/json';$a.Body=$body|ConvertTo-Json -Depth 80};Unwrap(Invoke-RestMethod @a)}
 function GetEventually($base,$path,[int]$attempts=8,[int]$delaySeconds=2){
  for($attempt=1;$attempt-le$attempts;$attempt++){
-  $result=Api $base $path
-  if($null-ne$result){return $result}
+  try{
+   $result=Api $base $path
+   if($null-ne$result){return $result}
+  }
+  catch{
+   $statusCode=$null
+   if($null-ne$_.Exception.Response){$statusCode=[int]$_.Exception.Response.StatusCode}
+   $isTransientNotFound=$statusCode-in@(400,404)
+   if(!$isTransientNotFound-or$attempt-eq$attempts){throw}
+  }
   if($attempt-lt$attempts){Start-Sleep -Seconds $delaySeconds}
  }
  return $null
