@@ -3,8 +3,11 @@ param(
     [ValidateSet('Plan', 'Pack', 'Publish')]
     [string]$Operation = 'Plan',
     [bool]$NuGetPackages = $true,
+    [ValidateSet('All', 'Edge')]
+    [string]$NuGetPackageScope = 'All',
     [bool]$OASISRuntime = $true,
     [bool]$STARRuntime = $true,
+    [bool]$EdgeRuntime = $true,
     [bool]$OGEngineClient = $true,
     [bool]$NativeEndpoint = $true,
     [bool]$MCPServer = $true,
@@ -36,7 +39,10 @@ $planPath = Join-Path $OutputDirectory 'release-plan.json'
 $packageOutput = Join-Path $OutputDirectory 'nuget'
 $planBlockers = [Collections.Generic.List[string]]::new()
 $versionDecisions = [Collections.Generic.List[object]]::new()
-$selectedVersionedComponents = @($OASISRuntime, $STARRuntime, $OGEngineClient, $NativeEndpoint, $MCPServer, $OurWorld, $ODOOM, $OQUAKE, $OIDE, $ONODEManager, $HyperDriveClient) | Where-Object { $_ }
+$selectedVersionedComponents = @($OASISRuntime, $STARRuntime, $EdgeRuntime, $OGEngineClient, $NativeEndpoint, $MCPServer, $OurWorld, $ODOOM, $OQUAKE, $OIDE, $ONODEManager, $HyperDriveClient) | Where-Object { $_ }
+if ($EdgeRuntime -and -not $NuGetPackages) {
+    throw 'The coordinated Edge Runtime release requires NuGetPackages because its nine reusable assemblies are part of the release contract.'
+}
 if ($VersionMode -eq 'Manual' -and $selectedVersionedComponents.Count -ne 1) {
     throw 'Manual version mode requires exactly one selected component.'
 }
@@ -423,6 +429,24 @@ $packageProjects = @()
 $packagePlan = @()
 if ($NuGetPackages) {
     $packageProjects = @(Get-PackageProjects)
+    if ($NuGetPackageScope -eq 'Edge') {
+        $edgePackageIds = @(
+            'NextGenSoftware.OASIS.Contracts',
+            'NextGenSoftware.OASIS.HyperDrive.Synchronization',
+            'NextGenSoftware.OASIS.ONET',
+            'NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS',
+            'NextGenSoftware.OASIS.Edge.Runtime',
+            'NextGenSoftware.OASIS.Edge.ONET.Runtime',
+            'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge',
+            'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity',
+            'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge'
+        )
+        $packageProjects = @($packageProjects | Where-Object { $_.PackageId -in $edgePackageIds })
+        $missingEdgePackageIds = @($edgePackageIds | Where-Object { $_ -notin @($packageProjects.PackageId) })
+        if ($missingEdgePackageIds.Count -gt 0) {
+            throw "Edge NuGet scope is missing package projects: $($missingEdgePackageIds -join ', ')."
+        }
+    }
     Assert-PackageMetadata $packageProjects
     $packagePlan = @($packageProjects | ForEach-Object {
         $publishedRelease = Get-LatestNuGetRelease $_.PackageId
@@ -441,6 +465,7 @@ $components = [ordered]@{
     nugetPackages = $NuGetPackages
     oasisRuntime = $OASISRuntime
     starRuntime = $STARRuntime
+    edgeRuntime = $EdgeRuntime
     ogEngineClient = $OGEngineClient
     nativeEndpoint = $NativeEndpoint
     mcpServer = $MCPServer
@@ -458,6 +483,7 @@ $components = [ordered]@{
 $releaseVersions = [ordered]@{
     oasisRuntime = if ($OASISRuntime) { Get-NextReleaseVersion $bootVersions.OASISRuntimeVersion @('OASIS-Runtime-v') @('OASIS Architecture','ONODE','Providers','ONET','Edge') } else { $bootVersions.OASISRuntimeVersion }
     starRuntime = if ($STARRuntime) { Get-NextReleaseVersion $bootVersions.STARRuntimeVersion @('STAR-ODK-Runtime-v') @('STAR ODK') } else { $bootVersions.STARRuntimeVersion }
+    edgeRuntime = if ($EdgeRuntime) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.Edge.Runtime\NextGenSoftware.OASIS.Edge.Runtime.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Runtime' })) @('OASIS-Edge-Runtime-v') @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime','OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime','OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization','OASIS Architecture/NextGenSoftware.OASIS.ONET','Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge','Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity','OASIS Omniverse/OGEngineClient/Edge') } else { 'not-selected' }
     ogEngineClient = if ($OGEngineClient) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\OGEngineClient.csproj') -Raw); PackageId = 'NextGenSoftware.OGEngine.Client' })) @('OGEngineClient-v', 'STAR-API-CLIENT-v') @('OASIS Omniverse/OGEngineClient','ONET','Edge') } else { 'not-selected' }
     nativeEndpoint = if ($NativeEndpoint) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint' })) @('Native-Endpoint-v', 'v') @('Native EndPoint','OASIS Architecture','ONODE','Providers') } else { 'not-selected' }
     mcpServer = if ($MCPServer) { Get-NextRegistryReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'WEB6\NextGenSoftware.OASIS.MCP.Server\NextGenSoftware.OASIS.MCP.Server.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.MCP.Server' })) @('mcp-v') 'NextGenSoftware.OASIS.MCP.Server' @('WEB6/NextGenSoftware.OASIS.MCP.Server','WEB6/npm','WEB6/NextGenSoftware.OASIS.Web6.Core','WEB7','WEB8','WEB9','WEB10') } else { 'not-selected' }
@@ -475,6 +501,7 @@ $plan = [ordered]@{
     operation = $Operation
     versionSelection = [ordered]@{ mode = $VersionMode; manualVersion = $ManualVersion }
     components = $components
+    nugetPackageScope = $NuGetPackageScope
     releaseVersions = $releaseVersions
     apiVersions = if ($webVersions) { $webVersions } else { 'unchanged' }
     packages = $packagePlan

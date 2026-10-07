@@ -1,3 +1,12 @@
+# ODuke3D-RT
+
+> **ODuke3D-RT uses the shared Raze integration** (`OShadowWarrior/raze_ogengine_integration.cpp`,
+> built on `OGLib/oglib_game.h`), the same pattern as ODOOM/OQuake: oasisstar.json, saved
+> session, offline sync, `star beamin|beamout|status|inventory|offline|debug` in the Raze
+> console, and kill XP. Raze runs Shadow Warrior, Blood, Exhumed and Duke; the integration reports
+> whichever game is running. Engine: `ODuke3D-RT`, built with `-DOASIS_STAR_API=ON`
+> by `BUILD_ODUKE3DRT`; play with `RUN_ODUKE3DRT`. Any older standalone integration is in `Legacy/`.
+
 ﻿# ODuke3D-RT – Duke Nukem 3D + Vulkan Ray Tracing + OASIS STAR API
 
 **ODuke3D-RT** is a fork of [Duke-RT](https://github.com/fgsfdsfgs/duke-rt) — a Vulkan ray-tracing modification of EDuke32 — with the **OASIS STAR API** integrated. It offers the same cross-game OASIS features as **ODuke3D** but with modern ray-traced lighting and reflections for Duke Nukem 3D.

@@ -5,6 +5,7 @@ param(
     [string]$Web4BaseUrl = 'https://dev.api.web4.oasisomniverse.one',
     [string]$Web5BaseUrl = 'https://dev.api.starnet.oasisomniverse.one',
     [string]$HostedOnodeBaseUrl = 'https://dev.api.web4.oasisomniverse.one',
+    [ValidateSet('', 'holo')][string]$LocalProvider = '',
     [string]$BaseConfig = 'OASIS Omniverse\OASIS Hub\Assets\StreamingAssets\omniverse_host_config.json'
 )
 
@@ -37,6 +38,7 @@ $config.edgeHostedOnodeBaseUrl = $HostedOnodeBaseUrl.TrimEnd('/')
 $config.edgeOfflineGrantPublicKey = $fragment.edgeOfflineGrantPublicKey
 $config.edgeOfflineGrantLifetimeMinutes = $fragment.edgeOfflineGrantLifetimeMinutes
 $config.edgeOfflineScopes = $fragment.edgeOfflineScopes
+$config.edgeLocalProvider = $LocalProvider
 
 $parent = Split-Path $resolvedOutput -Parent
 New-Item -ItemType Directory -Path $parent -Force | Out-Null

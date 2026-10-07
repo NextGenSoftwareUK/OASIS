@@ -1,6 +1,7 @@
 name: Edge Runtime validation
 
 on:
+  workflow_call:
   workflow_dispatch:
   pull_request:
     paths:
@@ -13,6 +14,7 @@ on:
       - 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.ONET/**'
       - 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/**'
+      - 'OASIS Omniverse/OGEngineClient/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS*/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS*/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**'
@@ -20,7 +22,14 @@ on:
       - 'ONODE/**'
       - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
       - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/validate_dependency_security.ps1'
+      - 'Scripts/run_hosted_mongo_release_evidence.ps1'
+      - 'Scripts/validate_our_world_device_acceptance.ps1'
+      - 'Scripts/test_our_world_device_acceptance_validator.ps1'
+      - 'Scripts/our-world-device-acceptance-evidence.template.json'
       - 'Scripts/build_holooasis_happ.ps1'
+      - 'Scripts/build_holochain_android_runtime.ps1'
+      - 'Scripts/build_edge_unity_package.ps1'
       - 'Scripts/holo_happ_provenance.ps1'
       - 'Scripts/holo_happ_provenance_paths.txt'
       - 'UnityPackages/com.nextgensoftware.oasis.edge/**'
@@ -38,6 +47,7 @@ on:
       - 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.ONET/**'
       - 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/**'
+      - 'OASIS Omniverse/OGEngineClient/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS*/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS*/**'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**'
@@ -45,7 +55,14 @@ on:
       - 'ONODE/**'
       - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
       - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/validate_dependency_security.ps1'
+      - 'Scripts/run_hosted_mongo_release_evidence.ps1'
+      - 'Scripts/validate_our_world_device_acceptance.ps1'
+      - 'Scripts/test_our_world_device_acceptance_validator.ps1'
+      - 'Scripts/our-world-device-acceptance-evidence.template.json'
       - 'Scripts/build_holooasis_happ.ps1'
+      - 'Scripts/build_holochain_android_runtime.ps1'
+      - 'Scripts/build_edge_unity_package.ps1'
       - 'Scripts/holo_happ_provenance.ps1'
       - 'Scripts/holo_happ_provenance_paths.txt'
       - 'UnityPackages/com.nextgensoftware.oasis.edge/**'
@@ -78,6 +95,25 @@ jobs:
           path: |
             OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ
             OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json
+
+  build-holochain-android-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - name: Build pinned Holochain Android runtime
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/build_holochain_android_runtime.ps1 -CleanSource
+      - uses: actions/upload-artifact@v7
+        with:
+          name: verified-holochain-android-runtime
+          path: OASIS/artifacts/holochain-android-runtime/package
+          if-no-files-found: error
 
   validate-hosted-mongo-sync:
     runs-on: ubuntu-latest
@@ -215,14 +251,34 @@ jobs:
           if-no-files-found: error
 
   validate:
-    needs: [build-holooasis-happ, validate-hosted-mongo-sync]
+    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync]
     runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@v7
         with:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Verify clean OASIS source checkout
+        shell: pwsh
+        run: |
+          $status = @(git -C OASIS status --porcelain --untracked-files=all)
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to inspect the OASIS source checkout."
+          }
+          if ($status.Count -ne 0) {
+            $status | ForEach-Object { Write-Error $_ }
+            throw "Release validation must begin from a clean source checkout."
+          }
+      - name: Validate Unity batch lifecycle contract
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/test_edge_unity_batch_lifecycle.ps1
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
@@ -256,6 +312,10 @@ jobs:
           path: OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP
       - uses: actions/download-artifact@v7
         with:
+          name: verified-holochain-android-runtime
+          path: OASIS/artifacts/holochain-android-runtime/package
+      - uses: actions/download-artifact@v7
+        with:
           name: hosted-mongo-sync-evidence
           path: OASIS/artifacts/hosted-mongo-ci
       - name: Validate Edge release
@@ -266,6 +326,19 @@ jobs:
           -UnityEditor "${{ env.UNITY_EDITOR_PATH }}"
           -HostedMongoSyncReport artifacts/hosted-mongo-ci/hosted-mongo-sync.trx
           -HostedMongoProcessKillReport artifacts/hosted-mongo-ci/hosted-mongo-process-kill.trx
+      - name: Attest Edge release provenance
+        id: attest-edge-release
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: OASIS/artifacts/edge-release-validation/*
+      - name: Preserve signed provenance bundle
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: >-
+          Copy-Item
+          -LiteralPath '${{ steps.attest-edge-release.outputs.bundle-path }}'
+          -Destination 'OASIS/artifacts/edge-release-validation/github-slsa-provenance.sigstore.json'
       - uses: actions/upload-artifact@v7
         if: always()
         with:

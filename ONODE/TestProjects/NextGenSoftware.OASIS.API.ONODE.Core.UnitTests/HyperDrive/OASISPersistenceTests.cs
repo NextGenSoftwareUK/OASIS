@@ -33,7 +33,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
         public async Task LoadAsync_FileDoesNotExist_ReturnsNull()
         {
             var result = await OASISPersistence.LoadAsync<SampleState>(_tmpDir, "nonexistent.json");
-            result.Should().BeNull();
+            result.IsError.Should().BeFalse();
+            result.Result.Should().BeNull();
         }
 
         // ── round-trip ────────────────────────────────────────────────────────
@@ -43,20 +44,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
         {
             var state = new SampleState { Count = 42, Label = "hello", Timestamp = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
 
-            await OASISPersistence.SaveAsync(_tmpDir, "state.json", state);
+            (await OASISPersistence.SaveAsync(_tmpDir, "state.json", state)).IsError.Should().BeFalse();
             var loaded = await OASISPersistence.LoadAsync<SampleState>(_tmpDir, "state.json");
 
-            loaded.Should().NotBeNull();
-            loaded!.Count.Should().Be(42);
-            loaded.Label.Should().Be("hello");
-            loaded.Timestamp.Should().Be(state.Timestamp);
+            loaded.IsError.Should().BeFalse();
+            loaded.Result.Should().NotBeNull();
+            loaded.Result!.Count.Should().Be(42);
+            loaded.Result.Label.Should().Be("hello");
+            loaded.Result.Timestamp.Should().Be(state.Timestamp);
         }
 
         [Fact]
         public async Task SaveAsync_CreatesDataDirectoryIfAbsent()
         {
             var nested = Path.Combine(_tmpDir, "sub", "dir");
-            await OASISPersistence.SaveAsync(nested, "x.json", new SampleState { Count = 1 });
+            (await OASISPersistence.SaveAsync(nested, "x.json", new SampleState { Count = 1 })).IsError.Should().BeFalse();
             Directory.Exists(nested).Should().BeTrue();
         }
 
@@ -69,7 +71,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
             await OASISPersistence.SaveAsync(_tmpDir, "counter.json", new SampleState { Count = 99 });
 
             var loaded = await OASISPersistence.LoadAsync<SampleState>(_tmpDir, "counter.json");
-            loaded!.Count.Should().Be(99);
+            loaded.IsError.Should().BeFalse();
+            loaded.Result!.Count.Should().Be(99);
         }
 
         // ── atomic write (no .tmp file left behind) ───────────────────────────
@@ -94,8 +97,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
             var a = await OASISPersistence.LoadAsync<SampleState>(_tmpDir, "a.json");
             var b = await OASISPersistence.LoadAsync<SampleState>(_tmpDir, "b.json");
 
-            a!.Label.Should().Be("a");
-            b!.Label.Should().Be("b");
+            a.Result!.Label.Should().Be("a");
+            b.Result!.Label.Should().Be("b");
+        }
+
+        [Fact]
+        public async Task LoadAsync_MalformedJson_ReturnsStructuredError()
+        {
+            Directory.CreateDirectory(_tmpDir);
+            await File.WriteAllTextAsync(Path.Combine(_tmpDir, "broken.json"), "{not-json");
+
+            var result = await OASISPersistence.LoadAsync<SampleState>(_tmpDir, "broken.json");
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("OASIS_PERSISTENCE_LOAD_FAILED");
+            result.Exception.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task SaveAsync_UnwritableDirectory_ReturnsStructuredError()
+        {
+            Directory.CreateDirectory(_tmpDir);
+            string fileWhereDirectoryIsRequired = Path.Combine(_tmpDir, "not-a-directory");
+            await File.WriteAllTextAsync(fileWhereDirectoryIsRequired, "occupied");
+
+            var result = await OASISPersistence.SaveAsync(fileWhereDirectoryIsRequired, "state.json", new SampleState());
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("OASIS_PERSISTENCE_SAVE_FAILED");
+            result.Exception.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task SaveAsync_PathInFileName_IsRejected()
+        {
+            var result = await OASISPersistence.SaveAsync(_tmpDir, Path.Combine("nested", "state.json"), new SampleState());
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("OASIS_PERSISTENCE_FILE_INVALID");
         }
 
         private sealed class SampleState

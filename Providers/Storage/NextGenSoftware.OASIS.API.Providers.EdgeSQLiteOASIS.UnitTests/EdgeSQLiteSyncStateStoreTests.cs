@@ -621,7 +621,71 @@ public sealed class EdgeSQLiteSyncStateStoreTests : IDisposable
         all.Result.Single(x => x.EntityId == deleted).IsDeleted.Should().BeTrue();
     }
 
-    private EdgeSQLiteSyncStateStore CreateStore() => new(_databasePath);
+    [Fact]
+    public async Task LocalMutationAtomicallyCreatesIndependentProjectionQueue()
+    {
+        var operationId = Guid.NewGuid();
+        using (var store = CreateStore(localTargets: new[] { "HoloOASIS.Edge" }))
+        {
+            var saved = await store.ApplyLocalMutationAsync(
+                NewMutation(operationId, Guid.NewGuid(), Guid.NewGuid(), "{\"local\":true}"), default);
+            saved.IsError.Should().BeFalse(saved.Message);
+            (await store.ReadPendingLocalReplicationsAsync("HoloOASIS.Edge", 10, default)).Result
+                .Should().ContainSingle(x => x.OperationId == operationId);
+
+            await store.CommitExchangeAsync(new SyncCommit
+            {
+                CommittedUtc = DateTime.UtcNow,
+                OperationResults = new[] { new SyncOperationResult
+                {
+                    OperationId = operationId, Disposition = SyncOperationDisposition.Accepted,
+                    ResultVersionId = Guid.NewGuid()
+                }}
+            }, default);
+
+            (await store.ReadPendingOperationsAsync(10, default)).Result.Should().BeEmpty();
+            (await store.ReadPendingLocalReplicationsAsync("HoloOASIS.Edge", 10, default)).Result
+                .Should().ContainSingle("hosted acknowledgement must not acknowledge the Holo projection");
+        }
+
+        using var reopened = CreateStore(localTargets: new[] { "HoloOASIS.Edge" });
+        (await reopened.GetPendingLocalReplicationCountAsync("HoloOASIS.Edge", default)).Result.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CommandsAreNeverQueuedAsLocalDomainProjections()
+    {
+        using var store = CreateStore(localTargets: new[] { "HoloOASIS.Edge" });
+        var command = NewMutation(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "{}");
+        command.Kind = SyncOperationKind.Command;
+
+        (await store.ApplyLocalMutationAsync(command, default)).IsError.Should().BeFalse();
+
+        (await store.GetPendingLocalReplicationCountAsync("HoloOASIS.Edge", default)).Result.Should().Be(0);
+        (await store.ReadPendingOperationsAsync(10, default)).Result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ProjectionAcknowledgementAndFailureStateAreDurable()
+    {
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        using (var store = CreateStore(localTargets: new[] { "HoloOASIS.Edge" }))
+        {
+            await store.ApplyLocalMutationAsync(NewMutation(first, Guid.NewGuid(), Guid.NewGuid(), "{}"), default);
+            await store.ApplyLocalMutationAsync(NewMutation(second, Guid.NewGuid(), Guid.NewGuid(), "{}"), default);
+            (await store.RecordLocalReplicationFailureAsync("HoloOASIS.Edge", first,
+                "OFFLINE", "No peers", default)).IsError.Should().BeFalse();
+            (await store.CompleteLocalReplicationAsync("HoloOASIS.Edge", first, default)).IsError.Should().BeFalse();
+        }
+
+        using var reopened = CreateStore(localTargets: new[] { "HoloOASIS.Edge" });
+        var pending = await reopened.ReadPendingLocalReplicationsAsync("HoloOASIS.Edge", 10, default);
+        pending.Result.Should().ContainSingle(x => x.OperationId == second);
+    }
+
+    private EdgeSQLiteSyncStateStore CreateStore(IEdgeSQLiteTransactionFaultInjector injector = null,
+        IEnumerable<string> localTargets = null) => new(_databasePath, injector, localTargets);
 
     private void CreateLegacyOutbox(Guid operationId, int state, Guid? resultVersionId)
     {

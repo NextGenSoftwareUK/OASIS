@@ -17,6 +17,10 @@
 
 #include "oquake3_ogengine_integration.h"
 #include "ogengine_sync.h"
+#include "oglib_edge.h"
+
+/* Offline sync (edge) settings, persisted in oasisstar.json — same as OQuake. */
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -461,6 +465,7 @@ static void OQ3_LoadJsonConfig(const char* path)
     buf = (char*)malloc((size_t)file_size + 1);
     if (!buf) { fclose(f); return; }
     buf[fread(buf, 1, (size_t)file_size, f)] = '\0';
+    oglib_edge_load_json(&g_edge_settings, buf);
     fclose(f);
 
     if (OQ3_ExtractJsonValue(buf, "ogengine_url",    g_ogengine_url,  sizeof(g_ogengine_url)))  { /* loaded */ }
@@ -535,6 +540,7 @@ static void OQ3_SaveStarConfigToFile(const char* path)
     }
 
     fprintf(f, "{\n");
+    oglib_edge_save_json(f, &g_edge_settings);
     fprintf(f, "  \"config_file\": \"json\",\n");
     fprintf(f, "  \"star_transport\": \"remote\",\n");
     fprintf(f, "  \"ogengine_url\": \"%s\",\n",  g_ogengine_url);
@@ -597,7 +603,7 @@ static void OQ3_OnAuthDone(ogengine_result_t result, void* user_data)
         Q3_Com_Printf("[OQuake3-STAR] Auth OK — beamed in as: %s\n", uname);
     } else {
         char err[512] = {0};
-        ogengine_drain_error(err, sizeof(err));
+        snprintf(err, sizeof(err), "%s", ogengine_get_last_error());
         Q3_Com_Printf("[OQuake3-STAR] Auth FAILED: %s\n", err[0] ? err : "(unknown error)");
         OQ3_SetToast("OASIS: Beam-in failed.");
     }
@@ -660,6 +666,9 @@ void OQuake3_STAR_Init(void)
     cfg.transport          = 0;
     cfg.oasis_dna_path     = "";
 
+    if (oglib_edge_configure(&g_edge_settings) != OGENGINE_SUCCESS)
+        Q3_Com_Printf("[OQuake3-STAR] Offline sync settings rejected: %s\n", ogengine_get_last_error());
+
     r = ogengine_init(&cfg);
     if (r != OGENGINE_SUCCESS) {
         Q3_Com_Printf("[OQuake3-STAR] ogengine_init failed (%d). STAR disabled.\n", (int)r);
@@ -705,7 +714,8 @@ void OQuake3_STAR_Cleanup(void)
 {
     if (!g_star_initialized) return;
     OQ3_SaveStarConfigToFile(g_json_config_path);
-    ogengine_flush_pending();
+    ogengine_flush_add_item_jobs();
+    ogengine_flush_use_item_jobs();
     ogengine_cleanup();
     ogengine_sync_cleanup();
     g_star_initialized = 0;
@@ -898,6 +908,21 @@ void OQuake3_STAR_OnPlayerFragged(const char* victim_name, int is_bot)
 /* ---------------------------------------------------------------------------
  * PollItems (frame pump)
  * --------------------------------------------------------------------------- */
+/* Offline sync, same contract as OQuake: -1 = Remote-Only release, 0 = off, 1 = on. */
+int OQuake3_STAR_OfflineSyncMode(void)
+{
+    int capabilities = ogengine_get_edge_capabilities();
+    return !(capabilities & 1) ? -1 : (capabilities & 2) ? 1 : 0;
+}
+
+/* command: "status" | "on" | "off" | "sync-and-off" | "cancel" */
+void OQuake3_STAR_OfflineSyncCommand(const char* command)
+{
+    char message[512];
+    oglib_edge_command(command, message, sizeof(message));
+    Q3_Com_Printf("[OASIS] %s\n", message);
+}
+
 void OQuake3_STAR_PollItems(void)
 {
     char msg_buf[512];
@@ -906,6 +931,19 @@ void OQuake3_STAR_PollItems(void)
     if (g_offline_mode) return;
 
     ogengine_sync_pump();
+    {
+        char edge_msg[512];
+        int changed = oglib_edge_finish_change(&g_edge_settings, edge_msg, sizeof(edge_msg));
+        if (changed != 0) {
+            if (changed == 1) OQ3_SaveStarConfigToFile(g_json_config_path);
+            Q3_Com_Printf("[OASIS] %s\n", edge_msg);
+        }
+        if (g_star_beamed_in && !ogengine_sync_auth_in_progress()) {
+            char note[256];
+            if (ogengine_poll_edge_notification(note, sizeof(note)) == 1)
+                Q3_Com_Printf("[OASIS] %s\n", note);
+        }
+    }
 
     /* --- cross-game spawn poll --- */
     {
@@ -984,17 +1022,19 @@ void OQuake3_STAR_PollItems(void)
     }
 
     /* Drain mint results */
-    while (ogengine_drain_mint_result(msg_buf, sizeof(msg_buf)) > 0) {
-        Q3_Com_Printf("[OQuake3-STAR] Mint: %s\n", msg_buf);
+    {
+        char mint_item[256], nft_id[128], hash[128];
+        if (ogengine_consume_last_mint_result(mint_item, sizeof(mint_item), nft_id, sizeof(nft_id), hash, sizeof(hash)))
+            Q3_Com_Printf("[OQuake3-STAR] Mint: %s (nft %s)\n", mint_item, nft_id);
     }
 
     /* Drain errors */
-    while (ogengine_drain_error(msg_buf, sizeof(msg_buf)) > 0) {
+    while (ogengine_consume_last_background_error(msg_buf, sizeof(msg_buf))) {
         Q3_Com_Printf("[OQuake3-STAR] Error: %s\n", msg_buf);
     }
 
     /* Drain logs */
-    while (ogengine_drain_log(msg_buf, sizeof(msg_buf)) > 0) {
+    while (ogengine_consume_console_log(msg_buf, sizeof(msg_buf))) {
         Q3_Com_Printf("[OQuake3-STAR] Log: %s\n", msg_buf);
     }
 

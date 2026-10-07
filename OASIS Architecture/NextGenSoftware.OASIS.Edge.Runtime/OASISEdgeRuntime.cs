@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.HyperDrive.Synchronization;
 
 namespace NextGenSoftware.OASIS.Edge.Runtime
 {
@@ -21,7 +23,12 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
         private readonly IHyperDriveOfflineSessionAwareTransport _offlineSessionAwareTransport;
         private readonly SemaphoreSlim _runGate = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _syncWake = new SemaphoreSlim(0, 1);
+        private readonly SemaphoreSlim _localReplicationWake = new SemaphoreSlim(0, 1);
         private readonly CancellationTokenSource _lifetimeCancellation = new CancellationTokenSource();
+        private readonly Dictionary<string, HyperDriveLocalReplicationCoordinator> _localReplicationCoordinators =
+            new Dictionary<string, HyperDriveLocalReplicationCoordinator>(StringComparer.Ordinal);
+        private readonly object _localReplicationGate = new object();
+        private readonly Task _localReplicationTask;
         private readonly object _connectivityGate = new object();
         private IEdgeConnectivityMonitor _connectivityMonitor;
         private CancellationTokenSource _recoveryCancellation;
@@ -41,7 +48,8 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             IEdgeOfflineGrantValidator offlineGrantValidator = null,
             IHyperDriveClock clock = null,
             IHyperDrivePeerBindingTransport peerBindingTransport = null,
-            IHyperDriveOfflineSessionGrantTransport offlineGrantTransport = null)
+            IHyperDriveOfflineSessionGrantTransport offlineGrantTransport = null,
+            IEnumerable<IHyperDriveLocalReplicationTarget> localReplicationTargets = null)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (options.DeviceId == Guid.Empty) throw new ArgumentException("A stable device id is required.", nameof(options));
@@ -55,8 +63,11 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                 throw new ArgumentException("The hosted-service recovery interval must be greater than zero.", nameof(options));
             if (options.MaximumHostedServiceRecoveryInterval < options.HostedServiceRecoveryInterval)
                 throw new ArgumentException("The maximum hosted-service recovery interval cannot be shorter than the initial interval.", nameof(options));
+            if (options.MaximumLocalReplicationsPerRun <= 0)
+                throw new ArgumentException("The local replication batch size must be greater than zero.", nameof(options));
 
-            LocalStore = new EdgeSQLiteSyncStateStore(options.DatabasePath);
+            LocalStore = new EdgeSQLiteSyncStateStore(options.DatabasePath,
+                localReplicationTargetIds: options.LocalReplicationTargetIds);
             Entities = new EdgeEntityRepository(options.DeviceId, options.AvatarId, LocalStore,
                 SaveLocalAsync, options.PayloadSerializer ?? new EdgePayloadSerializer());
             _coordinator = new HyperDriveSyncCoordinator(options.DeviceId, options.AvatarId, LocalStore,
@@ -71,6 +82,9 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                     offlineGrantValidator, clock ?? new SystemHyperDriveClock());
             Status.Connectivity = EdgeConnectivityState.Offline;
             Status.Synchronization = EdgeSynchronizationState.Idle;
+            if (localReplicationTargets != null)
+                foreach (var target in localReplicationTargets) AttachLocalReplicationTarget(target);
+            _localReplicationTask = RunLocalReplicationLoopAsync(_lifetimeCancellation.Token);
         }
 
         public async Task<OASISResult<HyperDriveOfflineSessionGrant>> AcquireOfflineSessionAsync(
@@ -169,22 +183,70 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                 lock (_connectivityGate)
                     if (Status.Connectivity == EdgeConnectivityState.Online && _syncWake.CurrentCount == 0)
                         _syncWake.Release();
+                if (_localReplicationWake.CurrentCount == 0) _localReplicationWake.Release();
             }
             return saved;
         }
 
-        public Task<OASISResult<IReadOnlyList<EdgeSyncConflict>>> ReadUnresolvedConflictsAsync(
-            CancellationToken cancellationToken = default)
+        public void AttachLocalReplicationTarget(IHyperDriveLocalReplicationTarget target)
         {
             ThrowIfDisposed();
-            return LocalStore.ReadUnresolvedConflictsAsync(cancellationToken);
+            if (target == null || string.IsNullOrWhiteSpace(target.LocalReplicationTargetId))
+                throw new ArgumentException("A local replication target with a stable id is required.", nameof(target));
+            if (_options.LocalReplicationTargetIds == null ||
+                !_options.LocalReplicationTargetIds.Contains(target.LocalReplicationTargetId))
+                throw new InvalidOperationException($"Local replication target '{target.LocalReplicationTargetId}' was not configured before the durable store opened.");
+            lock (_localReplicationGate)
+            {
+                if (_localReplicationCoordinators.ContainsKey(target.LocalReplicationTargetId))
+                    throw new InvalidOperationException($"Local replication target '{target.LocalReplicationTargetId}' is already attached.");
+                _localReplicationCoordinators.Add(target.LocalReplicationTargetId,
+                    new HyperDriveLocalReplicationCoordinator(LocalStore, target));
+            }
+            if (_localReplicationWake.CurrentCount == 0) _localReplicationWake.Release();
         }
 
-        public Task<OASISResult<SyncOperation>> ResolveConflictAsync(EdgeConflictResolution resolution,
+        public async Task<OASISResult<LocalReplicationRunResult>> RunLocalReplicationOnceAsync(
+            string targetId, CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+            HyperDriveLocalReplicationCoordinator coordinator;
+            lock (_localReplicationGate)
+                if (!_localReplicationCoordinators.TryGetValue(targetId, out coordinator))
+                    return Error<LocalReplicationRunResult>("EDGE_LOCAL_REPLICATION_TARGET_UNAVAILABLE",
+                        $"Local replication target '{targetId}' is not attached.");
+            return await coordinator.RunOnceAsync(_options.MaximumLocalReplicationsPerRun, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<OASISResult<IReadOnlyList<EdgeSyncConflict>>> ReadUnresolvedConflictsAsync(
             CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            return LocalStore.ResolveConflictAsync(resolution, cancellationToken);
+            var result = await LocalStore.ReadUnresolvedConflictsAsync(cancellationToken).ConfigureAwait(false);
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                UpdateConflictStatus(result.Result);
+                OnStatusChanged();
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<SyncOperation>> ResolveConflictAsync(EdgeConflictResolution resolution,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+            var result = await LocalStore.ResolveConflictAsync(resolution, cancellationToken).ConfigureAwait(false);
+            if (result != null && !result.IsError)
+            {
+                var unresolved = await LocalStore.ReadUnresolvedConflictsAsync(cancellationToken).ConfigureAwait(false);
+                if (unresolved == null || unresolved.IsError || unresolved.Result == null)
+                    return Error<SyncOperation>(unresolved?.ErrorCode ?? "EDGE_CONFLICT_STATE_FAILED",
+                        unresolved?.Message ?? "The durable conflict state could not be read after resolution.");
+                UpdateConflictStatus(unresolved.Result);
+                OnStatusChanged();
+            }
+            return result;
         }
 
         public async Task<OASISResult<SyncCycleResult>> StartConnectivityMonitoringAsync(
@@ -255,6 +317,15 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             }
             if (!isOnline)
             {
+                var pending = await RefreshPendingCountAsync(cancellationToken).ConfigureAwait(false);
+                if (pending.IsError)
+                {
+                    Status.Synchronization = EdgeSynchronizationState.Error;
+                    Status.LastErrorCode = pending.ErrorCode;
+                    Status.LastMessage = pending.Message;
+                    OnStatusChanged();
+                    return Error<SyncCycleResult>(pending.ErrorCode, pending.Message);
+                }
                 Status.Synchronization = EdgeSynchronizationState.Pending;
                 Status.LastMessage = suspendedOnline
                     ? "Suspended. Local mode remains active and durable changes stay queued."
@@ -347,6 +418,7 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                             OnStatusChanged();
                             return Error<SyncCycleResult>(Status.LastErrorCode, Status.LastMessage);
                         }
+                        UpdateConflictStatus(unresolved.Result);
                         if (!IsCurrentOnlineRevision(connectivityRevision))
                             return await ConnectivityChangedResultAsync(effectiveCancellation).ConfigureAwait(false);
                         var pending = await RefreshPendingCountAsync(effectiveCancellation).ConfigureAwait(false);
@@ -405,13 +477,45 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             _connectivityMonitor = null;
             await StopHostedRecoveryLoopAsync().ConfigureAwait(false);
             _lifetimeCancellation.Cancel();
+            if (_localReplicationWake.CurrentCount == 0) _localReplicationWake.Release();
+            try { await _localReplicationTask.ConfigureAwait(false); }
+            catch (OperationCanceledException) { }
             await _runGate.WaitAsync().ConfigureAwait(false);
             try { LocalStore.Dispose(); }
             finally
             {
                 _runGate.Release();
                 _runGate.Dispose();
+                _localReplicationWake.Dispose();
                 _lifetimeCancellation.Dispose();
+            }
+        }
+
+        private async Task RunLocalReplicationLoopAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await _localReplicationWake.WaitAsync(cancellationToken).ConfigureAwait(false);
+                HyperDriveLocalReplicationCoordinator[] coordinators;
+                lock (_localReplicationGate)
+                    coordinators = new List<HyperDriveLocalReplicationCoordinator>(_localReplicationCoordinators.Values).ToArray();
+                foreach (var coordinator in coordinators)
+                {
+                    var run = await coordinator.RunOnceAsync(_options.MaximumLocalReplicationsPerRun, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (run.IsError)
+                    {
+                        Status.LastLocalReplicationErrorCode = run.ErrorCode;
+                        Status.LastMessage = run.Message;
+                        OnStatusChanged();
+                        continue;
+                    }
+                    Status.PendingLocalReplicationCount = run.Result.Remaining;
+                    Status.LastLocalReplicationErrorCode = null;
+                    OnStatusChanged();
+                    if (run.Result.Remaining > 0 && _localReplicationWake.CurrentCount == 0)
+                        _localReplicationWake.Release();
+                }
             }
         }
 
@@ -528,6 +632,22 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             if (pending.IsError) return pending;
             Status.PendingOperationCount = pending.Result;
             return pending;
+        }
+        private void UpdateConflictStatus(IReadOnlyList<EdgeSyncConflict> conflicts)
+        {
+            Status.UnresolvedConflictCount = conflicts.Count;
+            var latest = conflicts.OrderByDescending(x => x.RecordedUtc).FirstOrDefault();
+            Status.LastConflict = latest == null ? null : new EdgeConflictDiagnostic
+            {
+                OperationId = latest.OperationId,
+                EntityId = latest.EntityId,
+                EntityType = latest.EntityType,
+                ServerVersionId = latest.ServerVersionId,
+                LocalVersionId = latest.LocalVersionId,
+                Code = latest.Code,
+                Message = latest.Message,
+                RecordedUtc = latest.RecordedUtc
+            };
         }
         private static bool IsConnectivityFailure(string errorCode) =>
             string.Equals(errorCode, "HYPERDRIVE_NETWORK_UNAVAILABLE", StringComparison.Ordinal) ||

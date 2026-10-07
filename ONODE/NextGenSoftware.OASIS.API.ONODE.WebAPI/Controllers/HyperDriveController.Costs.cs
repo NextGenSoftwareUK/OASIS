@@ -21,11 +21,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         // Cost Endpoints
         // -------------------------
         [HttpGet("costs/current")]
-        public ActionResult<OASISResult<Dictionary<string, decimal>>> GetCurrentCosts()
+        public async Task<ActionResult<OASISResult<Dictionary<string, decimal>>>> GetCurrentCosts()
         {
             try
             {
-                var costs = AdvancedAnalyticsEngine.Instance.GetCurrentCostsAsync().Result;
+                var costs = await AdvancedAnalyticsEngine.Instance.GetCurrentCostsAsync();
                 return Ok(new OASISResult<Dictionary<string, decimal>> { Result = costs });
             }
             catch (Exception ex)
@@ -35,11 +35,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpGet("costs/history")]
-        public ActionResult<OASISResult<Dictionary<string, List<decimal>>>> GetCostHistory([FromQuery] string timeRange = "Last30Days")
+        public async Task<ActionResult<OASISResult<Dictionary<string, List<decimal>>>>> GetCostHistory([FromQuery] string timeRange = "Last30Days")
         {
             try
             {
-                var history = AdvancedAnalyticsEngine.Instance.GetCostHistoryAsync(timeRange).Result;
+                var history = await AdvancedAnalyticsEngine.Instance.GetCostHistoryAsync(timeRange);
                 return Ok(new OASISResult<Dictionary<string, List<decimal>>> { Result = history });
             }
             catch (Exception ex)
@@ -49,11 +49,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpGet("costs/projections")]
-        public ActionResult<OASISResult<Dictionary<string, decimal>>> GetCostProjections()
+        public async Task<ActionResult<OASISResult<Dictionary<string, decimal>>>> GetCostProjections()
         {
             try
             {
-                var projections = AdvancedAnalyticsEngine.Instance.GetCostProjectionsAsync().Result;
+                var projections = await AdvancedAnalyticsEngine.Instance.GetCostProjectionsAsync();
                 return Ok(new OASISResult<Dictionary<string, decimal>> { Result = projections });
             }
             catch (Exception ex)
@@ -82,11 +82,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         // Recommendations Endpoints
         // -------------------------
         [HttpGet("recommendations/smart")]
-        public ActionResult<OASISResult<Dictionary<string, object>>> GetSmartRecommendations()
+        public async Task<ActionResult<OASISResult<Dictionary<string, object>>>> GetSmartRecommendations()
         {
             try
             {
-                var recs = AIOptimizationEngine.Instance.GetSmartRecommendationsAsync().Result;
+                var recs = await AIOptimizationEngine.Instance.GetSmartRecommendationsAsync();
                 var result = new Dictionary<string, object> { { "recommendations", recs } };
                 return Ok(new OASISResult<Dictionary<string, object>> { Result = result });
             }
@@ -97,11 +97,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpGet("recommendations/security")]
-        public ActionResult<OASISResult<Dictionary<string, object>>> GetSecurityRecommendations()
+        public async Task<ActionResult<OASISResult<Dictionary<string, object>>>> GetSecurityRecommendations()
         {
             try
             {
-                var recs = AdvancedAnalyticsEngine.Instance.GetSecurityRecommendationsAsync().Result;
+                var recs = await AdvancedAnalyticsEngine.Instance.GetSecurityRecommendationsAsync();
                 return Ok(new OASISResult<Dictionary<string, object>> { Result = recs });
             }
             catch (Exception ex)

@@ -76,16 +76,6 @@ public static class BaseOASISHelpers
     }
 }
 
-// Wallet helper methods
-public static class WalletHelper
-{
-    public static async Task<string> GetWalletAddressAsync(string privateKey, ProviderType providerType)
-    {
-        // Simple implementation - in real scenario, this would derive the address from private key
-        return "0x" + privateKey.Substring(0, 40);
-    }
-}
-
 public sealed partial class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private readonly string _hostURI;

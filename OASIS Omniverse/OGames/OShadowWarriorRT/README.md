@@ -1,4 +1,12 @@
-# OShadowWarriorRT — Shadow Warrior (Ray-Traced) + OASIS STAR API
+# OShadowWarriorRT
+
+> **OShadowWarriorRT uses the shared Raze integration** (`OShadowWarrior/raze_ogengine_integration.cpp`,
+> built on `OGLib/oglib_game.h`), the same pattern as ODOOM/OQuake: oasisstar.json, saved
+> session, offline sync, `star beamin|beamout|status|inventory|offline|debug` in the Raze
+> console, and kill XP. Raze runs Shadow Warrior, Blood, Exhumed and Duke; the integration reports
+> whichever game is running. Engine: `OShadowWarrior-RT`, built with `-DOASIS_STAR_API=ON`
+> by `BUILD_OSHADOWWARRIORRT`; play with `RUN_OSHADOWWARRIORRT`. Any older standalone integration is in `Legacy/`.
+
 
 **OShadowWarriorRT** is a ray-traced variant of [OShadowWarrior](../OShadowWarrior/README.md), targeting the original Shadow Warrior (1997) with community Vulkan path-tracing rendering and the **OASIS STAR API** integrated. For the standard BUILD-engine version see **[OShadowWarrior](../OShadowWarrior/README.md)**.
 

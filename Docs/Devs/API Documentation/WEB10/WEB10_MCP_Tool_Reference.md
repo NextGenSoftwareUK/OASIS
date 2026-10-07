@@ -9,7 +9,7 @@ The WEB10 Source Layer exposes **1 typed MCP tool** — the root identity and on
 
 All tools return a JSON-serialised `OASISResult<T>` envelope. On success `isError` is `false` and data is in `result`. On failure `isError` is `true` and `message` describes the problem.
 
-Install: `npm install -g @oasisomniverse/mcp-server` or `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`
+Install: `npm install -g @oasisomniverse/mcp-server` or `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`, then set `OASIS_USERNAME`/`OASIS_PASSWORD` (or `OASIS_BEARER_TOKEN`) in your IDE MCP config. Tools run in the hosted WEB6 service at `/mcp` as your avatar and are metered by your WEB4 subscription; HTTP MCP clients can call `https://api.web6.oasisomniverse.one/mcp` directly with a bearer token.
 
 ---
 

@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ECWOLF_SRC="${OWOLF3D_SRC:-${HOME}/Source/OWolf3D}"
 WOLF3D_DATA="${WOLF3D_DATA:-${HOME}/Wolf3D}"
-EXE="$ECWOLF_SRC/build-linux/ecwolf"
+EXE="$ECWOLF_SRC/build/ecwolf"
 
 if [ ! -f "$EXE" ]; then
     echo "ecwolf not found. Building first..."
