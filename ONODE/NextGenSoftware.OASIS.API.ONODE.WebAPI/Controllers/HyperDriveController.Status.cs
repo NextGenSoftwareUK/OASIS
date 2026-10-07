@@ -26,17 +26,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var config = _configManager.GetConfiguration();
+                var registeredProviders = _providerManager.GetAllRegisteredProviders();
+                var mode = OASISDNAManager.OASISDNA?.OASIS?.HyperDriveMode ?? HyperDriveModes.Legacy;
                 var status = new HyperDriveStatus
                 {
-                    IsEnabled = config.IsEnabled,
-                    AutoFailoverEnabled = config.AutoFailoverEnabled,
-                    AutoReplicationEnabled = config.AutoReplicationEnabled,
-                    AutoLoadBalancingEnabled = config.AutoLoadBalancingEnabled,
+                    Mode = mode,
+                    EffectiveConfigurationSource = _providerManager.EffectiveHyperDriveConfigurationSource,
+                    EffectiveConfigurationAppliedUtc = _providerManager.EffectiveHyperDriveConfigurationAppliedUtc,
+                    IsEnabled = mode == HyperDriveModes.Legacy || config.IsEnabled,
+                    AutoFailoverEnabled = _providerManager.IsAutoFailOverEnabled,
+                    AutoReplicationEnabled = _providerManager.IsAutoReplicationEnabled,
+                    AutoLoadBalancingEnabled = _providerManager.IsAutoLoadBalanceEnabled,
                     DefaultStrategy = Enum.TryParse<LoadBalancingStrategy>(config.DefaultStrategy, out var defaultStrategy) ? defaultStrategy : LoadBalancingStrategy.RoundRobin,
-                    EnabledProviders = config.EnabledProviders.Select(p => Enum.TryParse<ProviderType>(p, out var providerType) ? providerType : ProviderType.None).Where(p => p != ProviderType.None).ToList(),
-                    LoadBalancingProviders = config.LoadBalancingProviders.Select(p => Enum.TryParse<ProviderType>(p, out var providerType) ? providerType : ProviderType.None).Where(p => p != ProviderType.None).ToList(),
-                    TotalProviders = config.EnabledProviders.Count,
-                    ActiveProviders = config.EnabledProviders.Count, // Simplified for now
+                    EnabledProviders = registeredProviders.Select(x => x.ProviderType.Value).ToList(),
+                    LoadBalancingProviders = _providerManager.GetProviderAutoLoadBalanceList().Select(x => x.Value).ToList(),
+                    FailoverProviders = _providerManager.GetProviderAutoFailOverList().Select(x => x.Value).ToList(),
+                    ReplicationProviders = _providerManager.GetProvidersThatAreAutoReplicating().Select(x => x.Value).ToList(),
+                    TotalProviders = registeredProviders.Count,
+                    ActiveProviders = registeredProviders.Count(x => x.IsProviderActivated),
                     LastHealthCheck = DateTime.UtcNow,
                     LastProviderSelection = _providerManager.LastProviderSelectionDiagnostic,
                     LastFailover = _providerManager.LastFailoverDiagnostic,
