@@ -1,48 +1,16 @@
-﻿@echo off
+@echo off
 setlocal
-
-REM RUN_ODUKE3DRT.bat — Build (if needed) and launch ODuke3D-RT
-REM
-REM Usage: RUN_ODUKE3DRT.bat [gamedata_dir]
-REM   gamedata_dir  — directory containing duke3d.grp (default: C:\Duke3D\)
-REM
-REM Environment variables:
-REM   DUKERT_SRC         — path to ODuke3D-RT (Duke-RT fork) source (default C:\Source\ODuke3D-RT)
-REM   STAR_USERNAME      — OASIS username
-REM   STAR_PASSWORD      — OASIS password
-REM   OGENGINE_KEY       — API key (alternative to username/password)
-REM   STAR_AVATAR_ID     — OASIS avatar ID
-
-set DUKERT_SRC=%DUKERT_SRC%
-if "%DUKERT_SRC%"=="" set DUKERT_SRC=C:\Source\ODuke3D-RT
-
-set GAMEDATA=%~1
-if "%GAMEDATA%"=="" set GAMEDATA=C:\Duke3D
-
-set SCRIPT_DIR=%~dp0
-set BUILD_OUT=%DUKERT_SRC%\build-vs2019-win64\Release\eduke32.exe
-
-echo.
-echo =======================================================
-echo  ODuke3D-RT - Launch (Vulkan Ray Tracing)
-echo =======================================================
-
-if not exist "%BUILD_OUT%" (
-    echo [ODuke3D-RT] Executable not found — building first...
-    call "%SCRIPT_DIR%BUILD_ODUKE3DRT.bat"
-    if %ERRORLEVEL% neq 0 (
-        echo [ERROR] Build failed.
-        pause
-        exit /b 1
-    )
+REM Launch ODuke3D-RT: Raze (ODuke3D-RT) + OASIS. Put the Duke Nukem 3D (RT) game data (duke3d.grp) where Raze
+REM finds it; Raze's startup picker selects the game, and OASIS reports it as that game.
+set "HERE=%~dp0"
+if not defined RAZE_SRC set "RAZE_SRC=C:\Source\ODuke3D-RT"
+set "RAZE_EXE=%RAZE_SRC%\build-vs\Release\raze.exe"
+if not exist "%RAZE_EXE%" (
+    echo [ODuke3D-RT] Raze not built yet. Building...
+    call "%HERE%BUILD_ODUKE3DRT.bat" batch
 )
-
-echo.
-echo [ODuke3D-RT] Launching: %BUILD_OUT%
-echo [ODuke3D-RT] Game data: %GAMEDATA%
-echo.
-
-"%BUILD_OUT%" -j "%GAMEDATA%"
-
-echo.
-pause
+if not exist "%RAZE_EXE%" (echo [ODuke3D-RT] Build failed or raze.exe missing. & pause & exit /b 1)
+pushd "%RAZE_SRC%\build-vs\Release"
+start "" "%RAZE_EXE%" %*
+popd
+exit /b 0

@@ -138,5 +138,22 @@ namespace NextGenSoftware.OASIS.API.DNA.UnitTests
             }
             finally { if (File.Exists(path)) File.Delete(path); }
         }
+
+        [Fact]
+        public void LoadDNA_ShouldRejectLocalNodeInPeerCapabilityRegistrySet()
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"oasis-dna-{Guid.NewGuid():N}.json");
+            try
+            {
+                File.WriteAllText(path,
+                    "{\"OASIS\":{\"ONET\":{\"NodeId\":\"local-node\",\"CapabilityRegistryNodeIds\":[\"peer-a\",\"local-node\"],\"CapabilityRegistryQuorum\":2}}}");
+
+                var result = OASISDNAManager.LoadDNA(path);
+
+                result.IsError.Should().BeTrue();
+                result.Message.Should().Contain("own NodeId");
+            }
+            finally { if (File.Exists(path)) File.Delete(path); }
+        }
     }
 }

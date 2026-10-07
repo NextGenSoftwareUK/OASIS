@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
     {
         private OGEngineEdgeClient _client;
         private UnityEdgeConnectivityMonitor _connectivity;
+        private IUnityEdgeLocalProviderLifecycle _localProvider;
         private bool _disposing;
         private readonly SemaphoreSlim _lifecycleGate = new SemaphoreSlim(1, 1);
 
@@ -26,15 +27,17 @@ namespace NextGenSoftware.OASIS.Edge.Unity
         public async Task InitializeAsync(Uri hostedOnodeBaseAddress, string bearerToken,
             Guid avatarId, Guid stableDeviceId, string databasePath,
             IEdgeSecureSessionStore secureSessionStore = null,
-            IEdgeOfflineGrantValidator offlineGrantValidator = null)
+            IEdgeOfflineGrantValidator offlineGrantValidator = null,
+            IUnityEdgeLocalProviderLifecycle localProvider = null)
         {
             EnsureNotInitialized();
+            await StartLocalProviderAsync(localProvider);
             _client = new OGEngineEdgeClient();
             _client.StatusChanged += ClientOnStatusChanged;
             _connectivity = new UnityEdgeConnectivityMonitor();
             var started = await _client.InitializeOnlineAsync(hostedOnodeBaseAddress, bearerToken,
                 avatarId, stableDeviceId, databasePath, _connectivity, secureSessionStore,
-                offlineGrantValidator);
+                offlineGrantValidator, default, _localProvider?.ReplicationTarget);
             if (started == null || (started.IsError && !IsExpectedNetworkAbsence(started.ErrorCode)))
             {
                 string message = started == null
@@ -48,15 +51,16 @@ namespace NextGenSoftware.OASIS.Edge.Unity
         public async Task<OASISResult<HyperDriveOfflineSessionGrant>> InitializeOfflineAsync(
             Uri hostedOnodeBaseAddress, Guid avatarId, Guid stableDeviceId, string databasePath,
             IEdgeSecureSessionStore secureSessionStore, IEdgeOfflineGrantValidator offlineGrantValidator,
-            IReadOnlyList<string> requiredScopes)
+            IReadOnlyList<string> requiredScopes, IUnityEdgeLocalProviderLifecycle localProvider = null)
         {
             EnsureNotInitialized();
+            await StartLocalProviderAsync(localProvider);
             _client = new OGEngineEdgeClient();
             _client.StatusChanged += ClientOnStatusChanged;
             _connectivity = new UnityEdgeConnectivityMonitor();
             var resumed = await _client.InitializeOfflineAsync(hostedOnodeBaseAddress, avatarId,
                 stableDeviceId, databasePath, _connectivity, secureSessionStore, offlineGrantValidator,
-                requiredScopes ?? Array.Empty<string>());
+                requiredScopes ?? Array.Empty<string>(), default, _localProvider?.ReplicationTarget);
             if (resumed == null || resumed.IsError || resumed.Result == null)
             {
                 await DisposeEndpointAsync();
@@ -82,9 +86,32 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             try
             {
                 if (_client == null || _disposing) return;
-                var result = paused ? await _client.SuspendAsync() : await _client.ResumeAsync();
-                if (result != null && result.IsError)
-                    Debug.LogError($"[OGEngineClient Edge] {result.ErrorCode}: {result.Message}");
+                if (paused)
+                {
+                    var edgeResult = await _client.SuspendAsync();
+                    LogLifecycleError(edgeResult);
+                    if (edgeResult == null || edgeResult.IsError) return;
+                    if (_localProvider != null)
+                    {
+                        var providerResult = await _localProvider.SuspendAsync();
+                        LogLifecycleError(providerResult);
+                        if (providerResult == null || providerResult.IsError)
+                            LogLifecycleError(await _client.ResumeAsync());
+                    }
+                }
+                else
+                {
+                    if (_localProvider != null)
+                    {
+                        var providerResult = await _localProvider.ResumeAsync();
+                        LogLifecycleError(providerResult);
+                        if (providerResult == null || providerResult.IsError) return;
+                    }
+                    var edgeResult = await _client.ResumeAsync();
+                    LogLifecycleError(edgeResult);
+                    if ((edgeResult == null || edgeResult.IsError) && _localProvider != null)
+                        LogLifecycleError(await _localProvider.SuspendAsync());
+                }
             }
             catch (Exception ex)
             {
@@ -115,6 +142,11 @@ namespace NextGenSoftware.OASIS.Edge.Unity
                     await _client.DisposeAsync();
                     _client = null;
                 }
+                if (_localProvider != null)
+                {
+                    await _localProvider.DisposeAsync();
+                    _localProvider = null;
+                }
                 _connectivity = null;
             }
             finally
@@ -128,6 +160,27 @@ namespace NextGenSoftware.OASIS.Edge.Unity
         {
             if (_client != null)
                 throw new InvalidOperationException("The Unity OGEngineClient host is already initialized.");
+        }
+
+        private async Task StartLocalProviderAsync(IUnityEdgeLocalProviderLifecycle localProvider)
+        {
+            if (localProvider == null) return;
+            var started = await localProvider.StartAsync();
+            if (started == null || started.IsError || !started.Result || localProvider.ReplicationTarget == null)
+            {
+                await localProvider.DisposeAsync();
+                throw new InvalidOperationException(started?.Message ??
+                    "The Unity Edge local provider did not return a replication target.");
+            }
+            _localProvider = localProvider;
+        }
+
+        private static void LogLifecycleError<T>(OASISResult<T> result)
+        {
+            if (result == null)
+                Debug.LogError("[OGEngineClient Edge] Lifecycle transition returned no result.");
+            else if (result.IsError)
+                Debug.LogError($"[OGEngineClient Edge] {result.ErrorCode}: {result.Message}");
         }
 
         private static bool IsExpectedNetworkAbsence(string code) =>

@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public int RequestTimeoutMs { get; set; } = 5000;
 
         [Required]
-        [Range(1, 1000)]
+        [Range(1000, 3600000)]
         public int HealthCheckIntervalMs { get; set; } = 30000;
 
         [Required]

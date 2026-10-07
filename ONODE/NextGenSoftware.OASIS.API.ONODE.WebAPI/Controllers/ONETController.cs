@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.Common;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -49,12 +50,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         internal static Task<ONETManager> GetOnetManagerStaticAsync()
         {
-            if (_onetManagerTask != null)
+            if (_onetManagerTask != null && !_onetManagerTask.IsFaulted && !_onetManagerTask.IsCanceled)
                 return _onetManagerTask;
 
             lock (_onetManagerLock)
             {
-                _onetManagerTask ??= InitializeOnetManagerAsync();
+                if (_onetManagerTask == null || _onetManagerTask.IsFaulted || _onetManagerTask.IsCanceled)
+                    _onetManagerTask = InitializeOnetManagerAsync();
                 return _onetManagerTask;
             }
         }
@@ -71,69 +73,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get OASISDNA configuration for ONET
+        /// ONET configuration for this node. NodePrivateKey and ONETApiKey are always returned empty.
         /// </summary>
-        [HttpGet("oasisdna")]
-        public async Task<IActionResult> GetOASISDNA()
+        [HttpGet("config")]
+        public async Task<IActionResult> GetONETConfig()
         {
             try
             {
-                var result = await (await GetOnetManagerAsync()).GetOASISDNAAsync();
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return Ok(new OASISResult<OASISDNA>
-                    {
-                        Result = null,
-                        IsError = false,
-                        Message = "OASISDNA retrieved successfully (using test data)"
-                    });
-                }
-
-                return Ok(result);
+                var result = await (await GetOnetManagerAsync()).GetRedactedONETConfigAsync();
+                return result.IsError ? StatusCode(500, result) : Ok(result);
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return Ok(new OASISResult<OASISDNA>
-                    {
-                        Result = null,
-                        IsError = false,
-                        Message = "OASISDNA retrieved successfully (using test data)"
-                    });
-                }
-                _logger.LogError(ex, "Error getting OASISDNA configuration");
-                return StatusCode(500, new { message = "Error getting OASISDNA configuration", error = ex.Message });
+                _logger.LogError(ex, "Error getting ONET configuration");
+                return StatusCode(500, new { message = "Error getting ONET configuration", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Update OASISDNA configuration for ONET
+        /// Update operator-editable ONET settings. Node identity (NodeId / keys) cannot be changed here; ONETApiKey
+        /// is only replaced when a non-empty value is supplied.
         /// </summary>
-        [HttpPut("oasisdna")]
-        public async Task<IActionResult> UpdateOASISDNA([FromBody] OASISDNA oasisdna)
+        [HttpPut("config")]
+        public async Task<IActionResult> UpdateONETConfig([FromBody] ONETConfig config)
         {
-            if (oasisdna == null)
-                return BadRequest(new { message = "The request body is required. Please provide a valid OASISDNA configuration object." });
+            if (config == null)
+                return BadRequest(new { message = "The request body is required. Please provide an ONET configuration object." });
             try
             {
-                var result = await (await GetOnetManagerAsync()).UpdateOASISDNAAsync(oasisdna);
-                if (result.IsError)
-                {
-                    return BadRequest(new { message = result.Message, errors = result.InnerMessages });
-                }
-                return Ok(result);
+                var result = await (await GetOnetManagerAsync()).UpdateONETConfigAsync(config);
+                return result.IsError ? BadRequest(new { message = result.Message, errors = result.InnerMessages }) : Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating OASISDNA configuration");
-                return StatusCode(500, new { message = "Error updating OASISDNA configuration", error = ex.Message });
+                _logger.LogError(ex, "Error updating ONET configuration");
+                return StatusCode(500, new { message = "Error updating ONET configuration", error = ex.Message });
             }
         }
-
         /// <summary>
         /// Get P2P network status
         /// </summary>
@@ -175,30 +151,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get connected nodes. Peer-to-peer callers must authenticate by supplying:
-        ///   X-ONET-NodeId: &lt;their nodeId&gt;
-        ///   X-ONET-Signature: &lt;base64 ECDSA-P256 signature over "GET /onet/network/nodes"&gt;
-        /// Human/browser callers without those headers receive the node list without enforcement
-        /// (auth enforcement can be tightened in SecurityConfig once all real peers are registered).
+        /// Get connected nodes (operator view).
         /// </summary>
         [HttpGet("network/nodes")]
         public async Task<IActionResult> GetConnectedNodes()
         {
             try
             {
-                var nodeId = Request.Headers["X-ONET-NodeId"].FirstOrDefault();
-                var signature = Request.Headers["X-ONET-Signature"].FirstOrDefault();
-
-                if (!string.IsNullOrWhiteSpace(nodeId) && !string.IsNullOrWhiteSpace(signature))
-                {
-                    var manager = await GetOnetManagerAsync();
-                    var valid = await manager.VerifyRequestSignatureAsync(nodeId, "GET /onet/network/nodes", signature);
-                    if (!valid)
-                        return Unauthorized(new { message = "Invalid or unrecognised node signature. Register your public key via /onet/network/connect first." });
-                }
-
                 var result = await (await GetOnetManagerAsync()).GetConnectedNodesAsync();
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting connected nodes");
+                return StatusCode(500, new { message = "Error getting connected nodes", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Peer exchange for ONET nodes. No avatar login: the caller authenticates as a registered node with
+        /// X-ONET-NodeId, X-ONET-Timestamp (unix seconds) and X-ONET-Signature (ECDSA-P256 over
+        /// ONETSecurity.BuildFreshSignedMessage(PeerExchangePurpose, nodeId, timestamp)). Each signature is
+        /// accepted once. Returns a JSON array of NodeInfo.
+        /// </summary>
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        [HttpGet("peers")]
+        public async Task<IActionResult> GetPeers()
+        {
+            var nodeId = Request.Headers["X-ONET-NodeId"].FirstOrDefault();
+            var timestamp = Request.Headers["X-ONET-Timestamp"].FirstOrDefault();
+            var signature = Request.Headers["X-ONET-Signature"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(nodeId) || string.IsNullOrWhiteSpace(signature) || !long.TryParse(timestamp, out var unixSeconds))
+                return Unauthorized(new { message = "X-ONET-NodeId, X-ONET-Timestamp and X-ONET-Signature headers are required." });
+
+            try
+            {
+                var manager = await GetOnetManagerAsync();
+                if (!await manager.VerifyFreshRequestSignatureAsync(nodeId, ONETSecurity.PeerExchangePurpose, unixSeconds, signature))
+                    return Unauthorized(new { message = "Invalid, expired, replayed or unregistered node signature. Register via POST api/v1/onet/nodes/register first." });
+
+                var result = await manager.GetConnectedNodesAsync();
+                if (result.IsError)
+                    return StatusCode(500, new { message = result.Message });
+
+                return Ok(result.Result.Where(n => n.Id != nodeId).Select(n => new NextGenSoftware.OASIS.API.ONODE.Core.Network.NodeInfo
+                {
+                    Id = n.Id,
+                    Address = n.Address,
+                    Capabilities = n.Capabilities,
+                    LastSeen = n.ConnectedAt,
+                    IsActive = true,
+                    PublicKey = n.PublicKey
+                }).ToList());
             }
             catch (Exception ex)
             {
@@ -340,6 +344,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Community nodes call this on startup so this server can verify their future ECDSA-signed requests
         /// (X-ONET-NodeId / X-ONET-Signature headers on GET /onet/network/nodes and other authenticated calls).
         /// </summary>
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         [HttpPost("nodes/register")]
         public async Task<IActionResult> RegisterNode([FromBody] RegisterNodeRequest request)
         {
@@ -359,17 +364,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var apiKey = dnaResult.Result?.OASIS?.ONET?.ONETApiKey;
                 if (!string.IsNullOrWhiteSpace(apiKey))
                 {
-                    var supplied = Request.Headers["X-ONET-API-Key"].FirstOrDefault();
-                    if (supplied != apiKey)
+                    var supplied = Request.Headers["X-ONET-API-Key"].FirstOrDefault() ?? string.Empty;
+                    if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                            System.Text.Encoding.UTF8.GetBytes(supplied), System.Text.Encoding.UTF8.GetBytes(apiKey)))
                         return Unauthorized(new { message = "Invalid or missing X-ONET-API-Key header." });
                 }
 
-                // Store the public key so ECDSA verification works for this node.
-                manager.RegisterNodePublicKey(request.NodeId, request.PublicKey);
+                if (!manager.RegisterNodePublicKey(request.NodeId, request.PublicKey))
+                    return BadRequest(new { message = "NodeId must be the lowercase hex SHA-256 of a valid ECDSA-P256 SubjectPublicKeyInfo PublicKey." });
 
-                // Also connect the node if an address was provided.
+                // Binding an address to a node id requires proof of the node's private key; otherwise anyone could
+                // publish a real node's public key with their own address.
                 if (!string.IsNullOrWhiteSpace(request.NodeAddress))
-                    await manager.ConnectToNodeAsync(request.NodeId, request.NodeAddress);
+                {
+                    if (!long.TryParse(Request.Headers["X-ONET-Timestamp"].FirstOrDefault(), out var unixSeconds) ||
+                        !await manager.VerifyFreshRequestSignatureAsync(request.NodeId, ONETSecurity.RegisterPurpose(request.NodeAddress),
+                            unixSeconds, Request.Headers["X-ONET-Signature"].FirstOrDefault() ?? string.Empty))
+                        return Unauthorized(new { message = "Registering a NodeAddress requires X-ONET-Timestamp and X-ONET-Signature proving ownership of the node key." });
+
+                    var connect = await manager.ConnectToNodeAsync(request.NodeId, request.NodeAddress);
+                    if (connect.IsError)
+                        return BadRequest(new { message = $"Node key registered but address could not be connected: {connect.Message}" });
+                }
 
                 return Ok(new { message = "Node registered successfully.", nodeId = request.NodeId });
             }

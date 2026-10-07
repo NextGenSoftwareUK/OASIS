@@ -100,7 +100,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git checkout -B "$SYNC_BRANCH"
-          python3 Scripts/sync_railway_dependency_manifest.py
+          # `git submodule update --remote` moves initialized working trees before
+          # the parent gitlinks are staged.
+          python3 Scripts/sync_railway_dependency_manifest.py --source working-tree
           git add --all
           git commit -m "chore(submodules): bump ${TARGET} pointers to their branch tips"
 

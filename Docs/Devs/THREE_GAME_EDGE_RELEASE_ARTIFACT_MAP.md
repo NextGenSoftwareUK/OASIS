@@ -2,6 +2,9 @@
 
 This is the operational map for the shared inventory, GeoNFT and quest-progress path used by Our World, ODOOM and OQuake. All three clients use OGEngineClient and the Edge Runtime locally, then synchronize with the hosted WEB4 ONODE through HyperDrive v2 and ONET. Provider selection, failover and replication remain owned by the existing provider and HyperDrive managers.
 
+The canonical package, provider, test-evidence and GitHub Actions map for the shared runtime is
+[OASIS Edge Runtime releases, packages and evidence](EDGE_RUNTIME_RELEASES.md).
+
 ## Source ownership
 
 | Area | Canonical source |
@@ -42,6 +45,7 @@ Run commands from the OASIS repository root.
 | ODOOM | [ODOOM v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/ODOOM_v.1.0.0_ALPHA) | `OASIS Omniverse/OGames/ODOOM/build` |
 | OQuake | [OQuake v1.0.0 Alpha](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/OQUAKE_v1.0.0_ALPHA) | `OASIS Omniverse/OGames/OQuake/build` |
 | Unity Edge package | Unity Asset Store release process | `artifacts/unity-store-candidate` or `artifacts/unity-current` |
+| OASIS Edge Runtime | [OASIS GitHub Releases](https://github.com/NextGenSoftwareUK/OASIS/releases), tag `OASIS-Edge-Runtime-vX.Y.Z`; coordinated packages on NuGet | `edge-runtime-release-evidence` from `.github/workflows/edge-runtime-validation.yml`; standalone entry point `.github/workflows/release-edge-runtime.yml` |
 
 ## Release validation status (28 September 2026)
 

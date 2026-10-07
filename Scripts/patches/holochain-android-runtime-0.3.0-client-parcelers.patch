@@ -1,0 +1,56 @@
+diff --git a/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Parcelers.kt b/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Parcelers.kt
+index d49b19a..e30f3d3 100644
+--- a/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Parcelers.kt
++++ b/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Parcelers.kt
+@@ -185,6 +185,12 @@ object AppStatusFfiParceler : Parceler<AppStatusFfi> {
+                 )
+             2 -> AppStatusFfi.Enabled
+             3 -> AppStatusFfi.AwaitingMemproofs
++            4 -> AppStatusFfi.AwaitingRestore
++            5 ->
++                AppStatusFfi.Unrecoverable(
++                    parcelableCreator<CellIdFfiParcel>().createFromParcel(parcel).inner,
++                    parcel.readString() ?: "",
++                )
+             else -> throw IllegalArgumentException("Unknown AppStatusFfi type")
+         }
+ 
+@@ -199,6 +205,12 @@ object AppStatusFfiParceler : Parceler<AppStatusFfi> {
+             }
+             is AppStatusFfi.Enabled -> parcel.writeInt(2)
+             is AppStatusFfi.AwaitingMemproofs -> parcel.writeInt(3)
++            is AppStatusFfi.AwaitingRestore -> parcel.writeInt(4)
++            is AppStatusFfi.Unrecoverable -> {
++                parcel.writeInt(5)
++                CellIdFfiParcel(cellId).writeToParcel(parcel, flags)
++                parcel.writeString(reason)
++            }
+         }
+     }
+ }
+@@ -497,16 +509,11 @@ object AppBinderUnauthorizedExceptionParceler : Parceler<AppBinderUnauthorizedEx
+ object RuntimeNetworkConfigFfiParceler : Parceler<RuntimeNetworkConfigFfi> {
+     override fun create(parcel: Parcel): RuntimeNetworkConfigFfi {
+         val bootstrapUrl = parcel.readString() ?: ""
+-        val signalUrl = parcel.readString() ?: ""
+         val relayUrl = parcel.readString() ?: ""
+-        var iceUrls = mutableListOf<String>()
+-        parcel.readStringList(iceUrls)
+ 
+         return RuntimeNetworkConfigFfi(
+             bootstrapUrl = bootstrapUrl,
+-            signalUrl = signalUrl,
+             relayUrl = relayUrl,
+-            iceUrls = iceUrls,
+         )
+     }
+ 
+@@ -515,8 +522,6 @@ object RuntimeNetworkConfigFfiParceler : Parceler<RuntimeNetworkConfigFfi> {
+         flags: Int,
+     ) {
+         parcel.writeString(bootstrapUrl)
+-        parcel.writeString(signalUrl)
+         parcel.writeString(relayUrl)
+-        parcel.writeStringList(iceUrls)
+     }
+ }

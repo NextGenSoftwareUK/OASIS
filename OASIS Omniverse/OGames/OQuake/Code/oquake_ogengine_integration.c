@@ -39,20 +39,22 @@ struct cb_context_s;
 extern void Draw_StringScaled(struct cb_context_s* cbx, float x, float y, float scale, const char* str, const unsigned char* rgba);
 #endif
 
-#if defined(_MSC_VER) || !defined(__GLIBC__)
-/* memmem is GNU-specific; provide fallback for MSVC and non-GNU. */
-static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle, size_t needlelen) {
-    const unsigned char* h = (const unsigned char*)hay;
-    const unsigned char* n = (const unsigned char*)needle;
-    size_t i;
-    if (needlelen == 0) return (void*)h;
-    if (haylen < needlelen) return NULL;
-    for (i = 0; i <= haylen - needlelen; i++)
-        if (memcmp(h + i, n, needlelen) == 0) return (void*)(h + i);
-    return NULL;
-}
-#define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
-#endif
+// memmem fallback for MSVC / non-glibc builds. Disabled: nothing calls memmem
+// any more (removed upstream in b99b4f93). Kept for reference in case it returns.
+// #if defined(_MSC_VER) || !defined(__GLIBC__)
+// /* memmem is GNU-specific; provide fallback for MSVC and non-GNU. */
+// static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle, size_t needlelen) {
+//     const unsigned char* h = (const unsigned char*)hay;
+//     const unsigned char* n = (const unsigned char*)needle;
+//     size_t i;
+//     if (needlelen == 0) return (void*)h;
+//     if (haylen < needlelen) return NULL;
+//     for (i = 0; i <= haylen - needlelen; i++)
+//         if (memcmp(h + i, n, needlelen) == 0) return (void*)(h + i);
+//     return NULL;
+// }
+// #define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
+// #endif
 
 /* OQuake overlay: 2x conchar size (ODOOM-style readability). */
 
@@ -4143,6 +4145,64 @@ void OQuake_STAR_OfflineSyncCommand(const char* command) {
     Con_Printf("[OASIS] %s\n", message);
 }
 
+/*=============================================================================
+ * OASIS Omniverse Hub — protocol lives in ogengine_hub_frame (OGEngineClient);
+ * this only applies its decisions to the engine. See Docs/OMNIVERSE_HUB_IPC.md.
+ *===========================================================================*/
+
+static char g_hub_pending_map[64];
+static float g_hub_pending_origin[3];
+static qboolean g_hub_pending_spawn = false;
+
+static void OQ_HubApplyPendingSpawn(void) {
+    extern client_state_t cl;
+    extern client_static_t cls;
+    extern server_t sv;
+    edict_t* pl;
+    if (!g_hub_pending_spawn || !sv.active || cls.signon != SIGNONS) return;
+    if (g_hub_pending_map[0] && q_strcasecmp(cl.mapname, g_hub_pending_map) != 0) return;
+    if (g_hub_pending_origin[0] != 0 || g_hub_pending_origin[1] != 0 || g_hub_pending_origin[2] != 0) {
+        pl = EDICT_NUM(1);
+        pl->v.origin[0] = g_hub_pending_origin[0];
+        pl->v.origin[1] = g_hub_pending_origin[1];
+        pl->v.origin[2] = g_hub_pending_origin[2];
+        pl->v.velocity[0] = pl->v.velocity[1] = pl->v.velocity[2] = 0;
+        SV_LinkEdict(pl, false);
+    }
+    g_hub_pending_spawn = false;
+    g_hub_pending_map[0] = 0;
+}
+
+static void OQ_HubBridgeFrame(void) {
+    extern client_state_t cl;
+    extern server_t sv;
+    extern void Cbuf_AddText(const char* text);
+    ogengine_hub_frame_t hub;
+    qboolean game_paused;
+
+    OQ_HubApplyPendingSpawn();
+    if (!g_star_initialized) return;
+
+    game_paused = sv.active && sv.paused;
+    if (!ogengine_hub_frame("OQuake", cl.mapname, game_paused ? 1 : 0, &hub)) return;
+
+    if (sv.active && ((hub.pause_change > 0 && !sv.paused) || (hub.pause_change < 0 && sv.paused)))
+        Cbuf_AddText("pause\n");
+
+    if (hub.has_arrive) {
+        g_hub_pending_origin[0] = hub.x; g_hub_pending_origin[1] = hub.y; g_hub_pending_origin[2] = hub.z;
+        g_hub_pending_spawn = true;
+        q_strlcpy(g_hub_pending_map, hub.arrive_map, sizeof(g_hub_pending_map));
+        if (hub.arrive_map[0]) {
+            char cmd[96];
+            q_snprintf(cmd, sizeof(cmd), "map %s\n", hub.arrive_map);
+            Cbuf_AddText(cmd);
+        }
+        oglib_log(OGLIB_LOG_INFO, "Hub arrive: map=%s pos=%.0f/%.0f/%.0f",
+            hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
+    }
+}
+
 /* Frame-based item/stats poll so pickups are reported even when sbar isn't drawn. Call from Host_Frame. */
 void OQuake_STAR_PollItems(void) {
     extern client_state_t cl;
@@ -4157,6 +4217,7 @@ void OQuake_STAR_PollItems(void) {
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     ogengine_sync_pump();
+    OQ_HubBridgeFrame();
     {
         char message[512];
         int changed = oglib_edge_finish_change(&g_edge_settings, message, sizeof(message));
@@ -6999,7 +7060,7 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
     extern int glwidth, glheight;
     int xp = 0;
-    long karma = 0;
+    int64_t karma = 0;
     char buf[128];
     int x, y;
 
@@ -7014,7 +7075,7 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
 
     /* Show XP and karma on the same line: "XP: 1234  Karma: 56" */
     if (ogengine_get_avatar_karma(&karma) && karma != 0)
-        q_snprintf(buf, sizeof(buf), "XP: %d  Karma: %ld", xp, karma);
+        q_snprintf(buf, sizeof(buf), "XP: %d  Karma: %lld", xp, (long long)karma);
     else
         q_snprintf(buf, sizeof(buf), "XP: %d", xp);
 

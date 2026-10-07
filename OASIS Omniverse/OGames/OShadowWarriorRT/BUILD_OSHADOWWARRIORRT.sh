@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
-# OShadowWarriorRT — Duke-RT (Raze fork, Vulkan RT) + OASIS STAR API
-# Usage: ./BUILD_OSHADOWWARRIORRT.sh [ batch ]
+# OShadowWarriorRT - Raze (OShadowWarrior-RT) + OASIS STAR API, the ODOOM/OQuake way via OGLib/oglib_game.h.
 set -e
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OMNIVERSE="$(cd "$HERE/../.." && pwd)"
+RAZE_SRC="${RAZE_SRC:-$HOME/Source/OShadowWarrior-RT}"
+OGENGINECLIENT="$OMNIVERSE/OGEngineClient"
+OGLIB="$OMNIVERSE/OGLib"
+INTEGRATION="$HERE/../OShadowWarrior"
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
-DUKERT_SRC="${DUKERT_SRC:-$HOME/Source/OShadowWarriorRT}"
-OGENGINECLIENT="$HERE/../../OGEngineClient"
-
-[ -f "$HERE/../../BUILD_AND_DEPLOY_STAR_CLIENT.sh" ] && bash "$HERE/../../BUILD_AND_DEPLOY_STAR_CLIENT.sh" || true
-
-if [ ! -d "$DUKERT_SRC/source/sw/src" ]; then
-    echo "[OShadowWarriorRT] Duke-RT source not found at: $DUKERT_SRC"; exit 1
+if [[ ! -f "$RAZE_SRC/source/core/gamecontrol.cpp" ]]; then
+  echo "[OShadowWarriorRT] Raze source not found at $RAZE_SRC (set RAZE_SRC to override)"
+  exit 1
 fi
 
-cp -f "$HERE/osw_rt_ogengine_integration.h"   "$DUKERT_SRC/source/sw/src/"
-cp -f "$HERE/osw_rt_ogengine_integration.cpp" "$DUKERT_SRC/source/sw/src/"
-cp -f "$OGENGINECLIENT/ogengine.h"            "$DUKERT_SRC/source/sw/src/"
+echo "[OShadowWarriorRT] Installing OASIS integration into $RAZE_SRC/source/core ..."
+mkdir -p "$RAZE_SRC/source/core/oasis"
+cp -f "$INTEGRATION/raze_ogengine_integration.cpp" "$INTEGRATION/raze_ogengine_integration.h" "$RAZE_SRC/source/core/"
+for f in ogengine.h ogengine_sync.h ogengine_sync.c; do cp -f "$OGENGINECLIENT/$f" "$RAZE_SRC/source/core/oasis/"; done
+for f in oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h; do cp -f "$OGLIB/$f" "$RAZE_SRC/source/core/oasis/"; done
 
-if [ -f "$DUKERT_SRC/CMakeLists.txt" ] && command -v cmake >/dev/null 2>&1; then
-    mkdir -p "$DUKERT_SRC/build-linux"
-    cmake -S "$DUKERT_SRC" -B "$DUKERT_SRC/build-linux" -DCMAKE_BUILD_TYPE=Release -DOASIS_STAR_SYNC_IN_CLIENT=1
-    cmake --build "$DUKERT_SRC/build-linux" -- -j"$(nproc 2>/dev/null || echo 4)"
-fi
-
-echo "[OShadowWarriorRT] Done."
-[ "${1:-}" != "batch" ] && read -r -p "Press Enter to continue..."
+echo "[OShadowWarriorRT] Building Raze with OASIS_STAR_API=ON..."
+cmake -S "$RAZE_SRC" -B "$RAZE_SRC/build" -DCMAKE_BUILD_TYPE=Release -DOASIS_STAR_API=ON "-DOGENGINE_DIR=$OGENGINECLIENT"
+cmake --build "$RAZE_SRC/build" --parallel
+echo "[OShadowWarriorRT] Done: $RAZE_SRC/build/raze"

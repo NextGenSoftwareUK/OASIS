@@ -44,13 +44,10 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nethereum.RPC" Version="4.4.1" />
-    <PackageReference Include="Nethereum.Web3" Version="4.4.1" />
-    <PackageReference Include="Nethereum.Signer" Version="4.4.1" />
-    <PackageReference Include="Nethereum.HdWallet" Version="4.4.1" />
-  
-    <!-- Override: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0 -->
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Nethereum.RPC" Version="7.0.0" />
+    <PackageReference Include="Nethereum.Web3" Version="7.0.0" />
+    <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
+    <PackageReference Include="Nethereum.HdWallet" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>

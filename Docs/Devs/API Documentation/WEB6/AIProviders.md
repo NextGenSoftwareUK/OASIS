@@ -1,6 +1,6 @@
 # WEB6 AI Provider & Capability Reference
 
-WEB6 is OASIS's unified AI gateway — one API surface covering every major AI provider and capability in the world, with karma-gated access tiers, automatic fallback chains, semantic caching, and holonic avatar memory. This document covers every supported provider, required environment variables, default models, and all capability endpoints added across the WEB6 build sessions.
+WEB6 is OASIS's unified AI gateway — one API surface covering every major AI provider and capability in the world, with WEB4 subscription plans (karma multiplies daily limits), automatic fallback chains, semantic caching, and holonic avatar memory. This document covers every supported provider, required environment variables, default models, and all capability endpoints added across the WEB6 build sessions.
 
 > **Running total: 100+ text providers · 9 image providers · 7 video providers · 2 TTS · 2 STT · 8 embedding providers · 6 reranking providers · 4 moderation providers · 6 web search providers · 4 document parsers · 4 code execution sandboxes · 5 translation providers · 3 classification providers · 2 extraction providers · 2 batch providers · 3 memory providers · 4 guardrail providers · 3 fine-tuning providers · 3 GraphRAG providers · 3 prompt optimisers**
 
@@ -422,16 +422,11 @@ Supply a JSON Schema in `schemaJson`; receive extracted data as a JSON string.
 
 ---
 
-## Karma access tiers
+## Plans and karma
 
-| Tier | Karma required | Endpoints available |
-|---|---|---|
-| Free | 0 | `/v1/complete` (rate-limited), `/v1/embed`, `/v1/moderation` |
-| Bronze | 100 | + `/v1/search`, `/v1/translate`, `/v1/classify` |
-| Silver | 500 | + `/v1/rerank`, `/v1/documents/parse`, `/v1/extract`, `/v1/prompts/optimise` |
-| Gold | 2,000 | + `/v1/images/generate`, `/v1/audio/*`, `/v1/memory/*`, `/v1/guardrails/*` |
-| Platinum | 10,000 | + `/v1/video/generate`, `/v1/code/execute`, `/v1/batch/*`, `/v1/graphrag/*` |
-| Enterprise | Custom | + `/v1/fine-tuning/*`, custom rate limits, priority routing |
+Access and limits are set by the avatar's **WEB4 subscription plan** (Free, Bronze, Silver, Gold, Enterprise), not by karma thresholds. Endpoints are not gated per tier: every metered endpoint is available on every plan, subject to the plan's monthly request, daily call, daily token and monthly budget limits. Karma multiplies the daily call limit (1× below 500 karma up to 10× at 100,000+).
+
+Each model's minimum plan is published by `GET /v1/models` (`?plan=Bronze` filters). See [WEB6 Quotas & Tiers](WEB6_Quotas_and_Tiers.md).
 
 ---
 
