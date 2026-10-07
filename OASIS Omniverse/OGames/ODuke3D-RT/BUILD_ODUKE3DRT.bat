@@ -9,6 +9,8 @@ if not defined RAZE_SRC set "RAZE_SRC=C:\Source\ODuke3D-RT"
 set "OMNIVERSE=%HERE%..\.."
 set "OGENGINECLIENT=%OMNIVERSE%\OGEngineClient"
 set "OGLIB=%OMNIVERSE%\OGLib"
+REM BUILD_AND_DEPLOY_STAR_CLIENT.bat publishes the native Edge profile here.
+set "STAR_PUBLISH=%OMNIVERSE%\..\artifacts\native-games\native\Edge\win-x64\publish"
 set "INTEGRATION=%HERE%..\OShadowWarrior"
 
 if exist "%OMNIVERSE%\run_oasis_header.bat" call "%OMNIVERSE%\run_oasis_header.bat" ODUKE3DRT
@@ -33,11 +35,11 @@ for %%F in (oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h) d
 
 echo [ODuke3D-RT] Building Raze with OASIS_STAR_API=ON...
 if not exist "%RAZE_SRC%\build-vs" mkdir "%RAZE_SRC%\build-vs"
-cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_DIR=%OGENGINECLIENT%"
+cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_LIB_DIR=%STAR_PUBLISH%"
 if errorlevel 1 (echo [ODuke3D-RT] CMake configure failed. & if not "%~1"=="batch" pause & exit /b 1)
 cmake --build "%RAZE_SRC%\build-vs" --config Release
 if errorlevel 1 (echo [ODuke3D-RT] Build failed. & if not "%~1"=="batch" pause & exit /b 1)
-if exist "%OGENGINECLIENT%\build\Release\ogengine.dll" copy /Y "%OGENGINECLIENT%\build\Release\ogengine.dll" "%RAZE_SRC%\build-vs\Release\" >nul
+for %%F in (ogengine.dll e_sqlite3.dll) do copy /Y "%STAR_PUBLISH%\%%F" "%RAZE_SRC%\build-vs\Release\" >nul
 
 echo.
 echo [ODuke3D-RT] Done: %RAZE_SRC%\build-vs\Release\raze.exe

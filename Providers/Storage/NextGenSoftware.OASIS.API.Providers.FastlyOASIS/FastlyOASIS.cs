@@ -1,393 +1,105 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
 {
     /// <summary>
-    /// Fastly Compute Edge OASIS Provider.
-    /// Stores and serves OASIS avatars and holons via Fastly Compute@Edge
-    /// WebAssembly functions running at Fastly's global PoP network.
-    ///
-    /// REST base: https://api.fastly.com
-    /// Services:  GET  /service/{serviceId}
-    /// KV stores: GET  /resources/stores/kv
-    /// KV put:    PUT  /resources/stores/kv/{storeId}/keys/{key}
-    /// KV get:    GET  /resources/stores/kv/{storeId}/keys/{key}
-    /// KV delete: DELETE /resources/stores/kv/{storeId}/keys/{key}
+    /// Stores OASIS avatars and holons in a Fastly KV Store through the Fastly API
+    /// (https://api.fastly.com/resources/stores/kv/{store_id}/keys/{key}), so Compute@Edge services can read them at the edge.
     /// </summary>
-    public class FastlyOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public class FastlyOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
     {
-        public bool IsVersionControlEnabled { get; set; }
-
-        private readonly HttpClient _http;
-        private readonly string _apiToken;
-        private readonly string _storeId;
-        private bool _isActivated;
-
-        private const string AvatarsPrefix = "oasis_avatar_";
-        private const string HolonsPrefix  = "oasis_holon_";
-
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        public FastlyOASIS(string apiToken, string storeId)
+            : base(new FastlyKvBackend(apiToken, storeId))
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
-
-        public FastlyOASIS(string apiToken = "", string storeId = "")
-        {
-            _apiToken = apiToken;
-            _storeId  = storeId;
-            _http = new HttpClient { BaseAddress = new Uri("https://api.fastly.com/") };
-            if (!string.IsNullOrEmpty(_apiToken))
-                _http.DefaultRequestHeaders.Add("Fastly-Key", _apiToken);
-
             ProviderName = "FastlyOASIS";
-            ProviderDescription = "Fastly Compute@Edge provider";
+            ProviderDescription = "Fastly KV Store provider: OASIS avatars and holons served from Fastly's edge.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FastlyOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
+        }
+    }
+
+    internal sealed class FastlyKvBackend : IKeyValueBackend
+    {
+        private readonly HttpClient _http;
+        private readonly string _storeId;
+
+        public FastlyKvBackend(string apiToken, string storeId)
+        {
+            if (string.IsNullOrWhiteSpace(apiToken)) throw new ArgumentException("A Fastly API token is required.", nameof(apiToken));
+            if (string.IsNullOrWhiteSpace(storeId)) throw new ArgumentException("A Fastly KV store id is required.", nameof(storeId));
+            _storeId = storeId;
+            _http = new HttpClient { BaseAddress = new Uri("https://api.fastly.com/") };
+            _http.DefaultRequestHeaders.Add("Fastly-Key", apiToken);
+            _http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
 
-        // ── Lifecycle ─────────────────────────────────────────────────────────
+        private string ItemPath(string key) => $"resources/stores/kv/{Uri.EscapeDataString(_storeId)}/keys/{Uri.EscapeDataString(key)}";
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
         {
-            var result = new OASISResult<bool>();
-            try
+            using var response = await _http.GetAsync(ItemPath(key), cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound) return null;
+            await EnsureSuccessAsync(response, "get", key);
+            return await response.Content.ReadAsStringAsync(cancellationToken);
+        }
+
+        public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
+        {
+            using var content = new ByteArrayContent(Encoding.UTF8.GetBytes(value));
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            using var response = await _http.PutAsync(ItemPath(key), content, cancellationToken);
+            await EnsureSuccessAsync(response, "put", key);
+        }
+
+        public async Task DeleteAsync(string key, CancellationToken cancellationToken = default)
+        {
+            using var response = await _http.DeleteAsync(ItemPath(key), cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound) return;
+            await EnsureSuccessAsync(response, "delete", key);
+        }
+
+        public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
+        {
+            var keys = new List<string>();
+            string cursor = null;
+            do
             {
-                if (_isActivated) { result.Result = true; result.Message = "FastlyOASIS already activated"; return result; }
-                if (!string.IsNullOrEmpty(_storeId))
-                {
-                    var resp = await _http.GetAsync($"resources/stores/kv/{Uri.EscapeDataString(_storeId)}");
-                    if (!resp.IsSuccessStatusCode)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"FastlyOASIS KV store check failed ({resp.StatusCode})");
-                        return result;
-                    }
-                }
-                _isActivated = true;
-                result.Result = true;
-                result.Message = "FastlyOASIS activated successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS activation failed: {ex.Message}", ex);
-            }
-            return result;
+                var url = $"resources/stores/kv/{Uri.EscapeDataString(_storeId)}/keys?limit=1000&prefix={Uri.EscapeDataString(prefix)}"
+                          + (cursor == null ? string.Empty : $"&cursor={Uri.EscapeDataString(cursor)}");
+                using var response = await _http.GetAsync(url, cancellationToken);
+                await EnsureSuccessAsync(response, "list", prefix);
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+                if (doc.RootElement.TryGetProperty("data", out var data))
+                    foreach (var k in data.EnumerateArray()) keys.Add(k.GetString());
+                cursor = doc.RootElement.TryGetProperty("meta", out var meta) && meta.TryGetProperty("next_cursor", out var next) && next.ValueKind == JsonValueKind.String
+                    ? next.GetString() : null;
+            } while (!string.IsNullOrEmpty(cursor));
+            return keys;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public async Task VerifyAsync(CancellationToken cancellationToken = default)
         {
-            var result = new OASISResult<bool>();
-            try
-            {
-                _isActivated = false;
-                _http.Dispose();
-                result.Result = true;
-                result.Message = "FastlyOASIS deactivated";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS deactivation failed: {ex.Message}", ex);
-            }
-            return result;
+            using var response = await _http.GetAsync($"resources/stores/kv/{Uri.EscapeDataString(_storeId)}", cancellationToken);
+            await EnsureSuccessAsync(response, "open store", _storeId);
         }
 
-        // ── Internal KV helpers ───────────────────────────────────────────────
-
-        private string KvUrl(string key) =>
-            $"resources/stores/kv/{Uri.EscapeDataString(_storeId)}/keys/{Uri.EscapeDataString(key)}";
-
-        private async Task KvPutAsync(string key, object value)
+        private static async Task EnsureSuccessAsync(HttpResponseMessage response, string operation, string key)
         {
-            var resp = await _http.PutAsync(KvUrl(key), Json(value));
-            resp.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode) return;
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Fastly KV {operation} '{key}' failed: {(int)response.StatusCode} {response.ReasonPhrase} {body}");
         }
-
-        private async Task<JsonElement?> KvGetAsync(string key)
-        {
-            var resp = await _http.GetAsync(KvUrl(key));
-            if (!resp.IsSuccessStatusCode) return null;
-            var json = await resp.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<JsonElement>(json, _jsonOpts);
-        }
-
-        private async Task KvDeleteAsync(string key)
-        {
-            await _http.DeleteAsync(KvUrl(key));
-        }
-
-        // ── Avatar CRUD ───────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (string.IsNullOrEmpty(_storeId)) { result.Result = new Avatar { Id = id }; return result; }
-                var doc = await KvGetAsync(AvatarsPrefix + id);
-                if (doc.HasValue)
-                {
-                    var avatar = new Avatar { Id = id };
-                    if (doc.Value.TryGetProperty("username", out var u)) avatar.Username = u.GetString();
-                    if (doc.Value.TryGetProperty("email",    out var e)) avatar.Email    = e.GetString();
-                    result.Result = avatar;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"FastlyOASIS KV key not found for avatar {id}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS LoadAvatarAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try { result.Result = new Avatar { Username = username }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"FastlyOASIS LoadAvatarAsync(username) error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (!string.IsNullOrEmpty(_storeId))
-                {
-                    var doc = new { username = avatar.Username, email = avatar.Email, avatarId = avatar.Id.ToString() };
-                    await KvPutAsync(AvatarsPrefix + avatar.Id, doc);
-                }
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS SaveAvatarAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!softDelete && !string.IsNullOrEmpty(_storeId))
-                    await KvDeleteAsync(AvatarsPrefix + id);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS DeleteAvatarAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            result.Result = new List<IAvatar>();
-            return result;
-        }
-
-        // ── Holon CRUD ────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (string.IsNullOrEmpty(_storeId)) { result.Result = new Holon { Id = id }; return result; }
-                var doc = await KvGetAsync(HolonsPrefix + id);
-                if (doc.HasValue)
-                {
-                    var holon = new Holon { Id = id };
-                    if (doc.Value.TryGetProperty("name", out var n)) holon.Name = n.GetString();
-                    result.Result = holon;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"FastlyOASIS KV key not found for holon {id}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS LoadHolonAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (!string.IsNullOrEmpty(_storeId))
-                {
-                    var doc = new { name = holon.Name, holonId = holon.Id.ToString(), holonType = holon.HolonType.ToString() };
-                    await KvPutAsync(HolonsPrefix + holon.Id, doc);
-                }
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS SaveHolonAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<bool>> DeleteHolonAsync_Legacy(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!softDelete && !string.IsNullOrEmpty(_storeId))
-                    await KvDeleteAsync(HolonsPrefix + id);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"FastlyOASIS DeleteHolonAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            result.Result = new List<IHolon>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            foreach (var holon in holons)
-            {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (!r.IsError && r.Result != null) saved.Add(r.Result);
-            }
-            result.Result = saved;
-            return result;
-        }
-
-        // ── Search ────────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            result.Result = new SearchResults();
-            return result;
-        }
-
-        // ── Avatar Detail ─────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "FastlyOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "FastlyOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            result.Result = new List<IAvatarDetail>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "FastlyOASIS does not support data export by email");
-            return result;
-        }
-
-        // ── Sync wrappers ─────────────────────────────────────────────────────
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) { var r = DeleteHolonAsync(providerKey).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-
-        // ── Missing async stubs ───────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => LoadAvatarByUsernameAsync(providerKey, version).Result;
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<bool>> DeleteHolonByKeyAsync(string providerKey, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
     }
 }

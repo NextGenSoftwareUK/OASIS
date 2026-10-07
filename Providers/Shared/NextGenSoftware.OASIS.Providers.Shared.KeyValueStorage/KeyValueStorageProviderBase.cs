@@ -22,8 +22,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
     ///   holon/{id}, holon-parent/{parentId}/{id}
     /// The provider unique storage key for an avatar or holon is its id.
     /// </summary>
-    public abstract class KeyValueStorageProviderBase : OASISStorageProviderBase, IOASISStorageProvider
+    public abstract class KeyValueStorageProviderBase : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
+        /// <summary>When true, every save keeps the record it replaces as a numbered version that loads can request by version.</summary>
+        public bool IsVersionControlEnabled { get; set; }
+
         private const int MaxParallelReads = 8;
 
         protected KeyValueStorageProviderBase(IKeyValueBackend backend, string keyPrefix = "oasis/")
@@ -49,6 +52,38 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private string HolonKey(Guid id) => $"{KeyPrefix}holon/{id:N}";
         private string ParentPrefix(Guid parentId) => $"{KeyPrefix}holon-parent/{parentId:N}/";
         private string ParentKey(Guid parentId, Guid id) => $"{ParentPrefix(parentId)}{id:N}";
+        // Versions live outside the record prefixes so listing avatars or holons never returns old versions.
+        private string VersionPrefix(string recordKey) => $"{KeyPrefix}version/{recordKey[KeyPrefix.Length..]}/";
+        private string VersionKey(string recordKey, int version) => $"{VersionPrefix(recordKey)}{version:D10}";
+
+        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous)
+        {
+            if (entity.VersionId == Guid.Empty) entity.VersionId = Guid.NewGuid();
+            if (previous == null)
+            {
+                if (entity.Version < 1) entity.Version = 1;
+                return;
+            }
+
+            if (IsVersionControlEnabled)
+                await Backend.PutAsync(VersionKey(recordKey, previous.Version), OasisJson.Serialize(previous));
+
+            entity.Version = previous.Version + 1;
+            entity.PreviousVersionId = previous.VersionId;
+            entity.VersionId = Guid.NewGuid();
+        }
+
+        private async Task<T> ReadVersionAsync<T>(string recordKey, T current, int version) where T : class, IHolonBase
+        {
+            if (current == null || version <= 0 || current.Version == version) return current;
+            return await ReadAsync<T>(VersionKey(recordKey, version));
+        }
+
+        private async Task DeleteVersionsAsync(string recordKey)
+        {
+            foreach (var key in await Backend.ListKeysAsync(VersionPrefix(recordKey)))
+                await Backend.DeleteAsync(key);
+        }
 
         // Usernames and emails may contain characters some services reject in keys; base64url keeps keys portable.
         private static string Encode(string value)
@@ -157,6 +192,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if (owner.HasValue && owner.Value != avatar.Id) return Fail<IAvatar>($"Email '{avatar.Email}' is already registered.");
                 }
 
+                await StampVersionAsync(AvatarKey(avatar.Id), avatar, previous);
                 await Backend.PutAsync(AvatarKey(avatar.Id), OasisJson.Serialize(avatar));
                 if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.PutAsync(UsernameKey(avatar.Username), avatar.Id.ToString());
                 if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.PutAsync(EmailKey(avatar.Email), avatar.Id.ToString());
@@ -172,8 +208,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             try
             {
-                var avatar = await ReadAsync<IAvatar>(AvatarKey(id));
-                return avatar == null ? Fail<IAvatar>($"Avatar {id} not found.") : Ok(avatar);
+                var avatar = await ReadVersionAsync(AvatarKey(id), await ReadAsync<IAvatar>(AvatarKey(id)), version);
+                return avatar == null ? Fail<IAvatar>($"Avatar {id}{(version > 0 ? $" version {version}" : "")} not found.") : Ok(avatar);
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error loading avatar {id}: {ex.Message}", ex); }
         }
@@ -234,7 +270,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 {
                     if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.DeleteAsync(UsernameKey(avatar.Username));
                     if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.DeleteAsync(EmailKey(avatar.Email));
+                    await DeleteVersionsAsync(AvatarDetailKey(id));
                     await Backend.DeleteAsync(AvatarDetailKey(id));
+                    await DeleteVersionsAsync(AvatarKey(id));
                     await Backend.DeleteAsync(AvatarKey(id));
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = $"Avatar {id} {(softDelete ? "soft" : "permanently")} deleted from {Name}." };
@@ -277,6 +315,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (avatarDetail.Id == Guid.Empty) return Fail<IAvatarDetail>("Avatar detail must carry its avatar's id.");
                 avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[StorageType] = avatarDetail.Id.ToString();
+                await StampVersionAsync(AvatarDetailKey(avatarDetail.Id), avatarDetail, await ReadAsync<IAvatarDetail>(AvatarDetailKey(avatarDetail.Id)));
                 await Backend.PutAsync(AvatarDetailKey(avatarDetail.Id), OasisJson.Serialize(avatarDetail));
                 return new OASISResult<IAvatarDetail>(avatarDetail) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
@@ -289,7 +328,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             try
             {
-                var detail = await ReadAsync<IAvatarDetail>(AvatarDetailKey(id));
+                var detail = await ReadVersionAsync(AvatarDetailKey(id), await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)), version);
                 return detail == null ? Fail<IAvatarDetail>($"Avatar detail {id} not found.") : Ok(detail);
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error loading avatar detail {id}: {ex.Message}", ex); }
@@ -345,6 +384,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
                     await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
 
+                await StampVersionAsync(HolonKey(holon.Id), holon, previous);
                 await Backend.PutAsync(HolonKey(holon.Id), OasisJson.Serialize(holon));
                 if (holon.ParentHolonId != Guid.Empty)
                     await Backend.PutAsync(ParentKey(holon.ParentHolonId, holon.Id), holon.Id.ToString());
@@ -399,7 +439,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             try
             {
-                var holon = await ReadAsync<IHolon>(HolonKey(id));
+                var holon = await ReadVersionAsync(HolonKey(id), await ReadAsync<IHolon>(HolonKey(id)), version);
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.");
                 if (loadChildren)
                 {
@@ -505,6 +545,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (holon.ParentHolonId != Guid.Empty) await Backend.DeleteAsync(ParentKey(holon.ParentHolonId, id));
                 foreach (var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))
                     await Backend.DeleteAsync(childLink);
+                await DeleteVersionsAsync(HolonKey(id));
                 await Backend.DeleteAsync(HolonKey(id));
                 return new OASISResult<IHolon>(holon) { IsDeleted = true, Message = $"Holon {id} deleted from {Name}." };
             }
