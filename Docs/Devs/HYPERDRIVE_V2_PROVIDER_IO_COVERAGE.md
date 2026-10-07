@@ -91,8 +91,8 @@ Verified WEB4 result on 2026-10-07: `691 controller actions; 597 non-local actio
 ## Executable evidence
 
 - `HyperDriveProviderExecutionTests`: includes direct config-flag-to-routing and live-latency-to-next-selection contract tests.
-- HyperDrive-filtered Core contract run on 2026-10-07: 296/296 passing, zero skipped.
-- Complete Core unit-test assembly on 2026-10-07: 307/307 passing, zero skipped; TRX captured locally at `artifacts/hyperdrive-dual-mode/hyperdrive-dual-mode-full.trx`.
+- HyperDrive-filtered Core contract run on 2026-10-07: 297/297 passing, zero skipped. This includes disposable-provider assertions for Legacy failover, replication and load-balancing as well as the V2 equivalents.
+- Complete Core unit-test assembly on 2026-10-07: 308/308 passing, zero skipped; TRX captured locally at `artifacts/hyperdrive-dual-mode/hyperdrive-dual-mode-full.trx`.
 - Hosted sync coordinator and fan-out subset: 16/16 passing.
 - Real isolated three-member MongoDB replica-set evidence: 42/42 transaction/replay/retry tests plus 1/1 abrupt-primary-termination/idempotency test. The repeatable runner is `scripts/run_hosted_mongo_release_evidence.ps1`; TRX output is written beneath the selected artifacts directory.
 - WEB4 Release build: succeeded with zero errors (866 pre-existing warnings reported by the compiler).
