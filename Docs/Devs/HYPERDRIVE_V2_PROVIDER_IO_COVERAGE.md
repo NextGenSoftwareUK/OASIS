@@ -83,16 +83,18 @@ Repeatable gate:
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify_hyperdrive_provider_io_manifest.ps1
 powershell -ExecutionPolicy Bypass -File scripts/verify_web4_hyperdrive_route_manifest.ps1
+powershell -ExecutionPolicy Bypass -File scripts/verify_hyperdrive_v2_operation_contracts.ps1
 ```
 
 Verified result on 2026-10-07: `815 public manager methods; 655 provider-backed/delegating methods intentionally classified`.
 Verified WEB4 result on 2026-10-07: `691 controller actions; 597 non-local actions intentionally classified`.
+Verified V2 router result on 2026-10-07: all `42` storage operations have synchronous/asynchronous handler parity and an executable provider-boundary contract.
 
 ## Executable evidence
 
 - `HyperDriveProviderExecutionTests`: includes direct config-flag-to-routing and live-latency-to-next-selection contract tests.
-- HyperDrive-filtered Core contract run on 2026-10-07: 297/297 passing, zero skipped. This includes disposable-provider assertions for Legacy failover, replication and load-balancing as well as the V2 equivalents.
-- Complete Core unit-test assembly on 2026-10-07: 308/308 passing, zero skipped; TRX captured locally at `artifacts/hyperdrive-dual-mode/hyperdrive-dual-mode-full.trx`.
+- HyperDrive-filtered Core contract run on 2026-10-07: 298/298 passing, zero skipped. This includes disposable-provider assertions for Legacy failover, replication and load-balancing as characterization only, plus executable provider-boundary coverage for every V2 storage operation.
+- Complete Core unit-test assembly on 2026-10-07: 309/309 passing, zero skipped; TRX captured locally at `artifacts/hyperdrive-dual-mode/hyperdrive-dual-mode-full.trx`.
 - Hosted sync coordinator and fan-out subset: 16/16 passing.
 - Real isolated three-member MongoDB replica-set evidence: 42/42 transaction/replay/retry tests plus 1/1 abrupt-primary-termination/idempotency test. The repeatable runner is `scripts/run_hosted_mongo_release_evidence.ps1`; TRX output is written beneath the selected artifacts directory.
 - WEB4 Release build: succeeded with zero errors (866 pre-existing warnings reported by the compiler).
