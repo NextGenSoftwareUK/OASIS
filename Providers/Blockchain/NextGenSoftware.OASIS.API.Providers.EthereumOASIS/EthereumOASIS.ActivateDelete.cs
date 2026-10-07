@@ -79,16 +79,40 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     _oasisAccount = new Account(ChainPrivateKey, ChainId);
                     Web3Client = CreateWeb3WithAccount(_oasisAccount, HostURI);
 
+                    HexBigInteger remoteChainId = await Web3Client.Eth.ChainId.SendRequestAsync()
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+
+                    if (remoteChainId == null || remoteChainId.Value != ChainId)
+                        throw new InvalidOperationException($"Ethereum RPC chain ID '{remoteChainId?.Value}' does not match configured chain ID '{ChainId}'.");
+
+                    if (string.IsNullOrWhiteSpace(ContractAddress))
+                        throw new InvalidOperationException("EthereumOASIS requires a deployed storage contract address.");
+
+                    string contractCode = await Web3Client.Eth.GetCode.SendRequestAsync(ContractAddress)
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+
+                    if (string.IsNullOrWhiteSpace(contractCode) || contractCode == "0x" || contractCode == "0x0")
+                        throw new InvalidOperationException($"No contract bytecode was found at configured address '{ContractAddress}'.");
+
                     _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(Web3Client, ContractAddress);
                 }
+                else
+                    throw new InvalidOperationException("EthereumOASIS requires an RPC URI, private key, and positive chain ID.");
             }
             catch (Exception ex)
             {
+                _oasisAccount = null;
+                Web3Client = null;
+                _nextGenSoftwareOasisService = null;
+                IsProviderActivated = false;
                 OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
             }
 
             if (!result.IsError)
+            {
+                result.Result = true;
                 IsProviderActivated = true;
+            }
 
             return result;
 
@@ -98,16 +122,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             //return await base.ActivateProviderAsync();
         }
 
-        /// <summary>
-        /// Create Web3 using only the 2-parameter (IAccount, string) constructor to avoid MissingMethodException
-        /// when Nethereum 4.4+ changed the 4-param overload from Common.Logging.ILog to ILogger.
-        /// </summary>
         private static Web3 CreateWeb3WithAccount(IAccount account, string url)
         {
-            var ctor = typeof(Web3).GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(IAccount), typeof(string) }, null);
-            if (ctor == null)
-                throw new InvalidOperationException("Nethereum.Web3.Web3 (IAccount, string) constructor not found. Check Nethereum.Web3 package version.");
-            return (Web3)ctor.Invoke(new object[] { account, url ?? "" });
+            return new Web3(account, url ?? string.Empty);
         }
 
         public override OASISResult<bool> ActivateProvider()
