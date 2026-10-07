@@ -99,6 +99,36 @@ Verified V2 router result on 2026-10-07: all `42` storage operations have synchr
 - Real isolated three-member MongoDB replica-set evidence: 42/42 transaction/replay/retry tests plus 1/1 abrupt-primary-termination/idempotency test. The repeatable runner is `scripts/run_hosted_mongo_release_evidence.ps1`; TRX output is written beneath the selected artifacts directory.
 - WEB4 Release build: succeeded with zero errors (866 pre-existing warnings reported by the compiler).
 
+### Four-provider real-runtime matrix
+
+`Scripts/run_four_provider_hyperdrive_matrix.ps1` is the repeatable first provider matrix. It refuses to attach to pre-existing loopback services and owns and cleans up every runtime it starts:
+
+| Provider | Isolated runtime | Executed evidence |
+|---|---|---|
+| MongoDBOASIS | Portable three-member MongoDB replica set | 43/43 transaction, replay, retry, election and abrupt-primary-termination tests |
+| SQLLiteDBOASIS | Per-test temporary SQLite database | 3/3 activation and avatar/holon persistence round trips |
+| IPFSOASIS | Pinned Kubo 0.43.1 daemon, offline and loopback-only | 1/1 activation and holon save/load round trip |
+| EthereumOASIS | Ganache chain 31337 with deterministic development-only accounts | 3/3 contract deployment, activation validation, holon save/load and wrong-chain rejection |
+
+The Ethereum run uses only free prefunded currency on a disposable local development chain. It never contacts Ethereum mainnet and cannot spend real gas. Evidence from the 2026-10-07 run is under `artifacts/four-provider-matrix`; `summary.json` records PASS and the TRX files retain individual assertions.
+
+This matrix exposed two false-positive activation defects. IPFS previously treated construction of an HTTP client as successful activation without contacting a daemon. Ethereum did the same without validating the RPC endpoint, chain ID or contract bytecode, and its reflective Nethereum constructor lookup was incompatible with Nethereum 7. Both providers now fail activation unless the external system is actually reachable and correctly configured, allowing V2 failover to operate on truthful provider state.
+
+Next provider expansion order is: Neo4jOASIS, SolanaOASIS, AzureCosmosDBOASIS, AWSOASIS, GoogleCloudOASIS, ArbitrumOASIS and PolygonOASIS. EVM-family providers should reuse the disposable-chain contract suite where their behavior is genuinely shared, while their network/chain identity checks remain provider-specific. Public testnets may be added as a separate opt-in smoke gate using faucet tokens, but must never replace the deterministic local release gate.
+
+### Railway OASISDNA mode configuration
+
+Railway holds the complete DNA document in the `OASIS_DNA_JSON` service variable; the mode was not changed in a repository JSON file. The safe update procedure was:
+
+1. read the existing variable from the exact Railway project, environment and WEB4 service;
+2. parse it in memory;
+3. set `OASIS.HyperDriveMode` to the exact value `OASISHyperDrive2`;
+4. update `OASIS.OASISHyperDriveConfig` while preserving all unrelated keys and provider credentials;
+5. serialize the complete document and pipe it directly to Railway's variable command through standard input;
+6. verify the redeployed `/api/hyperdrive/mode`, `/config` and `/status` endpoints.
+
+Secrets were neither printed nor committed. Changing `OASIS_DNA.json` locally would not change Railway because `OASIS_DNA_JSON` is the deployed source of truth. Likewise, changing only `OASIS.HyperDriveMode` is insufficient if `OASIS.OASISHyperDriveConfig` does not define the intended V2 failover, replication and load-balancing policy.
+
 ## Staging deployment evidence
 
 Verified on 2026-10-07 against `https://web4-oasis-api-staging.up.railway.app`:
