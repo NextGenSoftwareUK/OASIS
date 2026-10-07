@@ -719,6 +719,51 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task HolonLegacyLoadBalancingWritesToTheSelectedInjectedProviderWithoutChangingTheRuntimeDefault()
+    {
+        var avatarId = Guid.NewGuid();
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "load-balanced-legacy-holon" };
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "legacy-load-balance-primary");
+        var selected = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "legacy-load-balance-selected");
+        primary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        primary.Setup(x => x.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+        selected.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        selected.Setup(x => x.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+        primary.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon value, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(value) { IsSaved = true });
+        selected.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+            .ReturnsAsync((IHolon value, bool _, bool _, int _, bool _, bool _) =>
+                new OASISResult<IHolon>(value) { IsSaved = true });
+        var dna = CreateDna(HyperDriveModes.Legacy);
+        var providerManager = new ProviderManager(null, dna)
+        {
+            IsAutoFailOverEnabled = false,
+            IsAutoReplicationEnabled = false,
+            IsAutoLoadBalanceEnabled = true
+        };
+        providerManager.RegisterProvider(primary.Object).Should().BeTrue();
+        providerManager.RegisterProvider(selected.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
+        providerManager.SetAndReplaceAutoLoadBalanceListForProviders(new[]
+        {
+            new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)
+        }).IsError.Should().BeFalse();
+        var singletonBefore = ProviderManager.Instance.CurrentStorageProvider;
+
+        var result = await new HolonManager(null, dna, providerManager).SaveHolonAsync(
+            holon, avatarId, providerType: ProviderType.MongoDBOASIS);
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.InnerMessages.Should().Contain(message => message.Contains("Auto-load balanced to SQLLiteDBOASIS"));
+        providerManager.LastProviderSelectionDiagnostic.SelectedProvider.Should().Be(ProviderType.SQLLiteDBOASIS);
+        providerManager.CurrentStorageProvider.Should().BeSameAs(primary.Object);
+        ProviderManager.Instance.CurrentStorageProvider.Should().BeSameAs(singletonBefore);
+        primary.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Once);
+        selected.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false), Times.Once);
+    }
+
+    [Fact]
     public void HolonLegacyHardDeleteReplicatesToTheConfiguredInjectedProvider()
     {
         var avatarId = Guid.NewGuid();
