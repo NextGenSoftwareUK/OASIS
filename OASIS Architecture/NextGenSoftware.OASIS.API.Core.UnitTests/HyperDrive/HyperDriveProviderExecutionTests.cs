@@ -5248,6 +5248,32 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task V2TreatsANonErrorNullPayloadAsAnAuthoritativeNotFoundResult()
+    {
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
+            { IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "primary");
+        var secondary = CreateActiveProvider(ProviderType.IPFSOASIS, "secondary");
+        primary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        var holonId = Guid.NewGuid();
+        primary.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon> { Result = null! });
+        manager.RegisterProvider(primary.Object);
+        manager.RegisterProvider(secondary.Object);
+        manager.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
+        manager.SetAndReplaceAutoFailOverListForProviders(new[]
+            { new EnumValue<ProviderType>(ProviderType.IPFSOASIS) });
+
+        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
+            new StorageOperationRequest { Operation = "LoadHolon", HolonId = holonId });
+
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Should().BeNull();
+        secondary.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
     public async Task V2FailoverPublishesOrderedStructuredDiagnosticOnRecovery()
     {
         var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
@@ -5466,7 +5492,7 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
-    public async Task V2DefersMutationReplicationToDurableHostedPipelineWhenEnabled()
+    public async Task V2ReplicatesOrdinaryMutationsInlineWhenHostedSyncIsEnabled()
     {
         var dna = CreateDna(HyperDriveModes.V2);
         dna.OASIS.OASISHyperDriveConfig = new NextGenSoftware.OASIS.API.Core.Configuration.OASISHyperDriveConfig
@@ -5487,10 +5513,30 @@ public sealed class HyperDriveProviderExecutionTests
 
         result.IsError.Should().BeFalse(result.Message);
         secondary.Verify(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
-            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
-        manager.LastReplicationDiagnostic.DeferredToDurableHostedPipeline.Should().BeTrue();
-        manager.LastReplicationDiagnostic.Attempts.Should().BeEmpty();
+            It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+        manager.LastReplicationDiagnostic.DeferredToDurableHostedPipeline.Should().BeFalse();
+        manager.LastReplicationDiagnostic.Attempts.Should().ContainSingle();
         result.MetaData.Should().ContainKey("hyperDriveReplicationDiagnostic");
+    }
+
+    [Fact]
+    public async Task V2RecordsEveryProviderOutcomeInTheLoadBalancingMetricsSource()
+    {
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2));
+        var provider = CreateActiveProvider(ProviderType.MongoDBOASIS, "primary");
+        var holon = new Holon { Id = Guid.NewGuid() };
+        provider.Setup(x => x.LoadHolonAsync(holon.Id)).ReturnsAsync(new OASISResult<IHolon>(holon));
+        manager.RegisterProvider(provider.Object);
+
+        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(new StorageOperationRequest
+            { Operation = "LoadHolon", HolonId = holon.Id, PreferredProvider = ProviderType.MongoDBOASIS });
+
+        result.IsError.Should().BeFalse(result.Message);
+        var metrics = manager.PerformanceMonitor.GetMetrics(ProviderType.MongoDBOASIS);
+        metrics.Should().NotBeNull();
+        metrics.TotalRequests.Should().Be(1);
+        metrics.SuccessfulRequests.Should().Be(1);
+        metrics.FailedRequests.Should().Be(0);
     }
 
     private static Mock<IOASISStorageProvider> CreateActiveProvider(
