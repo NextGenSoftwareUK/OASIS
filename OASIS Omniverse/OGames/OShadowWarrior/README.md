@@ -1,4 +1,12 @@
-# OShadowWarrior — Shadow Warrior + OASIS STAR API
+# OShadowWarrior
+
+> **OShadowWarrior uses the shared Raze integration** (`OShadowWarrior/raze_ogengine_integration.cpp`,
+> built on `OGLib/oglib_game.h`), the same pattern as ODOOM/OQuake: oasisstar.json, saved
+> session, offline sync, `star beamin|beamout|status|inventory|offline|debug` in the Raze
+> console, and kill XP. Raze runs Shadow Warrior, Blood, Exhumed and Duke; the integration reports
+> whichever game is running. Engine: `OShadowWarrior`, built with `-DOASIS_STAR_API=ON`
+> by `BUILD_OSHADOWWARRIOR`; play with `RUN_OSHADOWWARRIOR`. Any older standalone integration is in `Legacy/`.
+
 
 **OShadowWarrior** is a fork of [Raze](https://github.com/ZDoom/Raze) targeting the original **Shadow Warrior** (1997) with the **OASIS STAR API** integrated, bringing this BUILD-engine classic into the OASIS Omniverse. For the ray-traced modern variant see **[OShadowWarriorRT](../OShadowWarriorRT/README.md)**.
 

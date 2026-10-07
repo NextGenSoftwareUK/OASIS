@@ -29,6 +29,13 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint.Edge
             Runtime = new OASISEdgeRuntime(options, transport);
         }
 
+        public OASISEdgeAPI(EdgeRuntimeOptions options, IHyperDriveSyncTransport transport,
+            IEnumerable<IHyperDriveLocalReplicationTarget> localReplicationTargets)
+        {
+            Runtime = new OASISEdgeRuntime(options, transport,
+                localReplicationTargets: localReplicationTargets);
+        }
+
         /// <summary>
         /// Composes the Unity/mobile Edge runtime directly against the hosted ONODE synchronization API.
         /// The caller owns the HttpClient and must configure its BaseAddress and authentication handler.
@@ -43,6 +50,15 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint.Edge
             IHyperDriveClock clock = null)
         {
             Runtime = new OASISEdgeRuntime(options, transport, secureSessionStore, offlineGrantValidator, clock);
+        }
+
+        public OASISEdgeAPI(EdgeRuntimeOptions options, IHyperDriveSyncTransport transport,
+            IEdgeSecureSessionStore secureSessionStore, IEdgeOfflineGrantValidator offlineGrantValidator,
+            IEnumerable<IHyperDriveLocalReplicationTarget> localReplicationTargets,
+            IHyperDriveClock clock = null)
+        {
+            Runtime = new OASISEdgeRuntime(options, transport, secureSessionStore,
+                offlineGrantValidator, clock, localReplicationTargets: localReplicationTargets);
         }
 
         /// <summary>
@@ -80,6 +96,10 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint.Edge
         public Task<OASISResult<SyncOperation>> QueueInventoryGrantAsync(Guid operationId, Guid itemId,
             HyperDriveInventoryGrantCommand payload, CancellationToken cancellationToken = default) =>
             Entities.QueueInventoryGrantAsync(operationId, itemId, payload, cancellationToken);
+
+        public Task<OASISResult<SyncOperation>> QueueGeoHotSpotTriggerAsync(Guid operationId, Guid geoHotSpotId,
+            HyperDriveGeoHotSpotTriggerCommand payload, CancellationToken cancellationToken = default) =>
+            Entities.QueueGeoHotSpotTriggerAsync(operationId, geoHotSpotId, payload, cancellationToken);
 
         public Task<OASISResult<SyncOperation>> QueueGeoNftCollectionAsync(Guid operationId, Guid geoNftId,
             HyperDriveGeoNftCollectionCommand payload, CancellationToken cancellationToken = default) =>

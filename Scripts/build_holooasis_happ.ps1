@@ -34,11 +34,11 @@ try {
         if (!(Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
             throw 'WSL with Nix is required to build the pinned Holochain toolchain on Windows.'
         }
-        $wslSourceRoot = (& wsl.exe wslpath -a ($sourceRoot -replace '\\', '/')).Trim()
+        $wslSourceRoot = (& wsl.exe wslpath -a $sourceRoot.Replace('\', '/')).Trim()
         if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($wslSourceRoot)) {
             throw "Unable to resolve the WSL path for '$sourceRoot'."
         }
-        & wsl.exe --cd $wslSourceRoot nix develop . --command bash -lc $buildCommand
+        & wsl.exe --cd $wslSourceRoot /nix/var/nix/profiles/default/bin/nix develop . --command bash -lc $buildCommand
     }
     else {
         if (!(Get-Command nix -ErrorAction SilentlyContinue)) {

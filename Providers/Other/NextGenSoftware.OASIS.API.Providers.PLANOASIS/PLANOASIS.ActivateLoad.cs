@@ -673,83 +673,157 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return null;
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var json = JsonSerializer.Serialize(avatar);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = avatar.Id == Guid.Empty
+                    ? await _httpClient.PostAsync($"{_apiBaseUrl}/avatars", content)
+                    : await _httpClient.PutAsync($"{_apiBaseUrl}/avatars/{avatar.Id}", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    result.Result = JsonSerializer.Deserialize<Avatar>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error saving avatar: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar to PLAN: {ex.Message}", ex); }
+            return result;
         }
 
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-        {
-            return null;
-        }
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var json = JsonSerializer.Serialize(avatarDetail);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = avatarDetail.Id == Guid.Empty
+                    ? await _httpClient.PostAsync($"{_apiBaseUrl}/avatar-details", content)
+                    : await _httpClient.PutAsync($"{_apiBaseUrl}/avatar-details/{avatarDetail.Id}", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    result.Result = JsonSerializer.Deserialize<AvatarDetail>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error saving avatar detail: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to PLAN: {ex.Message}", ex); }
+            return result;
         }
 
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
-        {
-            return null;
-        }
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/{id}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) result.Result = true;
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error deleting avatar: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from PLAN: {ex.Message}", ex); }
+            return result;
         }
 
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            return null;
-        }
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/by-key/{Uri.EscapeDataString(providerKey)}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) result.Result = true;
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error deleting avatar by key: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by key from PLAN: {ex.Message}", ex); }
+            return result;
         }
 
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            return null;
-        }
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) result.Result = true;
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error deleting avatar by email: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from PLAN: {ex.Message}", ex); }
+            return result;
         }
 
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            return null;
-        }
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/by-username/{Uri.EscapeDataString(avatarUsername)}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) result.Result = true;
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error deleting avatar by username: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from PLAN: {ex.Message}", ex); }
+            return result;
         }
 
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            return null;
-        }
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/{id}?version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    result.Result = JsonSerializer.Deserialize<Holon>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error loading holon: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon from PLAN: {ex.Message}", ex); }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return null;
-        }
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated) { var ar = await ActivateProviderAsync(); if (ar.IsError) { OASISErrorHandling.HandleError(ref result, ar.Message); return result; } }
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/by-key/{Uri.EscapeDataString(providerKey)}?version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    result.Result = JsonSerializer.Deserialize<Holon>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else OASISErrorHandling.HandleError(ref result, $"PLAN API error loading holon by key: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon by key from PLAN: {ex.Message}", ex); }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return null;
-        }
+            => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
     }
 }

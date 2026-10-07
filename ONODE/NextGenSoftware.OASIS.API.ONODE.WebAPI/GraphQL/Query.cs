@@ -516,13 +516,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         public Dictionary<ProviderType, ProviderPerformanceMetrics> GetHyperDriveMetrics()
         {
-            return PerformanceMonitor.Instance.GetAllMetrics();
+            return ProviderManager.Instance.PerformanceMonitor.GetAllMetrics();
         }
 
         public ProviderPerformanceMetrics? GetHyperDriveProviderMetrics(string providerType)
         {
             var pt = Enum.TryParse<ProviderType>(providerType, true, out var parsed) ? parsed : ProviderType.Default;
-            return PerformanceMonitor.Instance.GetMetrics(pt);
+            return ProviderManager.Instance.PerformanceMonitor.GetMetrics(pt);
         }
 
         public async Task<IEnumerable<OptimizationRecommendation>> GetHyperDriveAIRecommendations()
@@ -633,12 +633,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         {
             var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
             return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
-        public async Task<OASISDNA?> GetOASISDNA()
-        {
-            var result = await CreateONETManager().GetOASISDNAAsync();
-            return result.IsError ? null : result.Result;
         }
 
         public async Task<NetworkStatus?> GetNetworkStatus()

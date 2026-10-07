@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
     public partial class HoloOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IOASISLocalStorageProvider
     {
         private const string HOLO_NETWORK_URI = "https://holo.host";
-        private const string OASIS_HAPP_ID = "oasis";
+        public const string OASIS_HAPP_ID = "oasis";
         private const string OASIS_HAPP_PATH = "OASIS_hAPP\\oasis.happ";
         private const string OASIS_HAPP_ROLE_NAME = "oasis";
         private const string ZOME_LOAD_AVATAR_BY_ID_FUNCTION = "get_avatar_by_id";
@@ -130,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             Initialize();
         }
 
-        private async Task Initialize()
+        private void Initialize()
         {
             this.ProviderName = "HoloOASIS";
             this.ProviderDescription = "Holochain Provider";
@@ -142,6 +142,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             _avatarDetailRepository = new AvatarDetailRepository();
             _holonRepository = new HolonRepository();
             _genericRepository = new GenericRepository(HoloNETClientAppAgent, this.UseHoloNETORMReflection);
+        }
+
+        private void BindAppClient(IHoloNETClientAppAgent appClient)
+        {
+            HoloNETClientAppAgent = appClient ?? throw new ArgumentNullException(nameof(appClient));
+            _genericRepository = new GenericRepository(HoloNETClientAppAgent, UseHoloNETORMReflection);
         }
 
         private void HoloNETClientAdmin_OnError(object sender, HoloNETErrorEventArgs e)

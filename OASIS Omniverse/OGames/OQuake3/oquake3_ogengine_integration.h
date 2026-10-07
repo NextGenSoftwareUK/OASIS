@@ -189,6 +189,11 @@ void OQuake3_STAR_OnPlayerFragged(const char* victim_name, int is_bot);
  */
 void OQuake3_STAR_PollItems(void);
 
+/** Offline sync mode: -1 = Remote-Only release, 0 = disabled, 1 = enabled. */
+int OQuake3_STAR_OfflineSyncMode(void);
+/** Offline sync command: "status" | "on" | "off" | "sync-and-off" | "cancel". */
+void OQuake3_STAR_OfflineSyncCommand(const char* command);
+
 /* -------------------------------------------------------------------------
  * HUD / overlay draw hooks
  * ------------------------------------------------------------------------- */

@@ -14,7 +14,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../NextGenSoftware.OASIS.HyperDrive.Synchronization/NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <ProjectReference Include="../NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
     <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.csproj" />
   </ItemGroup>

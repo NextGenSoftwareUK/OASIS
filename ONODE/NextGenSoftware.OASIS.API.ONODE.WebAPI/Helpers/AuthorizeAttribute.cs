@@ -21,6 +21,9 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 
     public void OnAuthorization(AuthorizationFilterContext context)
     {
+        if (context.ActionDescriptor.EndpointMetadata.OfType<Microsoft.AspNetCore.Authorization.IAllowAnonymous>().Any())
+            return;
+
         var avatar = (Avatar)context.HttpContext.Items["Avatar"];
 
         // Not authenticated at all -> 401 and tell them how to log in.

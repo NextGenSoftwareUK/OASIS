@@ -1,4 +1,12 @@
-# OBlood — Blood + OASIS STAR API
+# OBlood
+
+> **OBlood uses the shared Raze integration** (`OShadowWarrior/raze_ogengine_integration.cpp`,
+> built on `OGLib/oglib_game.h`), the same pattern as ODOOM/OQuake: oasisstar.json, saved
+> session, offline sync, `star beamin|beamout|status|inventory|offline|debug` in the Raze
+> console, and kill XP. Raze runs Shadow Warrior, Blood, Exhumed and Duke; the integration reports
+> whichever game is running. Engine: `OShadowWarrior`, built with `-DOASIS_STAR_API=ON`
+> by `BUILD_OBLOOD`; play with `RUN_OBLOOD`. Any older standalone integration is in `Legacy/`.
+
 
 **OBlood** is a fork of [Raze](https://github.com/ZDoom/Raze) targeting the **Blood** source port with the **OASIS STAR API** integrated, bringing Blood into the OASIS Omniverse. Keys, inventory, XP, and quests are shared across all 20 OASIS Omniverse OGames.
 

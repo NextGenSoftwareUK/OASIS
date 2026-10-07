@@ -83,6 +83,36 @@ foreach (string packagePath in Directory.EnumerateFiles(output, "*.nupkg"))
         if (!string.IsNullOrWhiteSpace(id)) dependencies[id] = dependency.Attribute("version")?.Value ?? "unknown";
     }
 }
+string[] requiredPackageIds = profile == "HoloEnabled"
+    ?
+    [
+        "NextGenSoftware.OASIS.Contracts",
+        "NextGenSoftware.OASIS.HyperDrive.Synchronization",
+        "NextGenSoftware.OASIS.ONET",
+        "NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS",
+        "NextGenSoftware.OASIS.Edge.Runtime",
+        "NextGenSoftware.OASIS.Edge.ONET.Runtime",
+        "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge",
+        "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity",
+        "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge"
+    ]
+    :
+    [
+        "NextGenSoftware.OASIS.Contracts",
+        "NextGenSoftware.OASIS.HyperDrive.Synchronization",
+        "NextGenSoftware.OASIS.ONET",
+        "NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS",
+        "NextGenSoftware.OASIS.Edge.Runtime",
+        "NextGenSoftware.OASIS.Edge.ONET.Runtime",
+        "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge"
+    ];
+string[] missingPackages = requiredPackageIds
+    .Except(releasePackages.Select(package => package.Id), StringComparer.Ordinal)
+    .Order(StringComparer.Ordinal)
+    .ToArray();
+if (missingPackages.Length != 0)
+    throw new InvalidDataException(
+        $"The {profile} Edge release is missing required NuGet packages: {string.Join(", ", missingPackages)}.");
 
 WriteJson(Path.Combine(output, "sbom.spdx.json"), new
 {
@@ -100,40 +130,78 @@ WriteJson(Path.Combine(output, "sbom.spdx.json"), new
     }).ToArray()
 });
 
-string[] requiredTestReports =
+var requiredTestReports = new List<string>
 {
-    "dna.trx", "core-hyperdrive.trx", "edge-store.trx", "edge-runtime.trx", "onet-sync.trx",
-    "offline-session-grants.trx", "hosted-mongo-sync.trx", "hosted-mongo-process-kill.trx"
+    "dna.trx", "core-hyperdrive.trx", "edge-store.trx", "edge-runtime.trx", "onet-sync.trx", "onet-peer-binding.trx",
+    "offline-session-grants.trx", "hosted-sync-api.trx", "karma-weighting-policy.trx", "hosted-command-executor.trx",
+    "web5-geohotspot-authority.trx", "quest-idempotency.trx", "hyperdrive-migration.trx", "hyperdrive-persistence.trx", "hyperdrive-ai.trx",
+    "hyperdrive-predictive-failover.trx", "ogengine-edge-client.trx", "hosted-mongo-sync.trx",
+    "hosted-mongo-process-kill.trx"
 };
+if (profile == "HoloEnabled")
+{
+    requiredTestReports.Add("holonet-app-authentication.trx");
+    requiredTestReports.Add("holooasis-unity.trx");
+    requiredTestReports.Add("holooasis-edge.trx");
+}
 var minimumExecutedTests = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
 {
-    ["dna.trx"] = 11,
-    ["core-hyperdrive.trx"] = 167,
-    ["edge-store.trx"] = 26,
-    ["edge-runtime.trx"] = 49,
-    ["onet-sync.trx"] = 9,
-    ["offline-session-grants.trx"] = 12,
-    ["hosted-mongo-sync.trx"] = 24,
-    ["hosted-mongo-process-kill.trx"] = 1
+    ["dna.trx"] = 12,
+    ["core-hyperdrive.trx"] = 300,
+    ["edge-store.trx"] = 31,
+    ["edge-runtime.trx"] = 65,
+    ["onet-sync.trx"] = 15,
+    ["onet-peer-binding.trx"] = 5,
+    ["offline-session-grants.trx"] = 13,
+    ["hosted-sync-api.trx"] = 5,
+    ["karma-weighting-policy.trx"] = 2,
+    ["hosted-command-executor.trx"] = 3,
+    ["web5-geohotspot-authority.trx"] = 17,
+    ["quest-idempotency.trx"] = 4,
+    ["ogengine-edge-client.trx"] = 9,
+    ["hyperdrive-migration.trx"] = 7,
+    ["hyperdrive-persistence.trx"] = 9,
+    ["hyperdrive-ai.trx"] = 7,
+    ["hyperdrive-predictive-failover.trx"] = 8,
+    ["hosted-mongo-sync.trx"] = 42,
+    ["hosted-mongo-process-kill.trx"] = 1,
+    ["holonet-app-authentication.trx"] = 79,
+    ["holooasis-unity.trx"] = 8,
+    ["holooasis-edge.trx"] = 9
 };
 var testEvidence = requiredTestReports.Select(name => ReadTestEvidence(Path.Combine(output, name))).ToArray();
-if (testEvidence.Any(test => test.Executed <= 0 || test.Failed != 0 || test.Errors != 0 ||
-                             test.Timeouts != 0 || test.Aborted != 0))
-    throw new InvalidDataException("Every required release test report must contain executed tests with no failures, errors, timeouts or aborted tests.");
+if (testEvidence.Any(test => test.Executed <= 0 || test.Passed != test.Executed || test.Total != test.Executed ||
+                             test.Failed != 0 || test.Errors != 0 || test.Timeouts != 0 || test.Aborted != 0 ||
+                             test.Inconclusive != 0 || test.NotRunnable != 0 || test.NotExecuted != 0 ||
+                             test.Disconnected != 0 || test.Warning != 0 || test.PassedButRunAborted != 0 ||
+                             test.InProgress != 0 || test.Pending != 0))
+    throw new InvalidDataException(
+        "Every required release test report must contain only completed, passing tests; skipped, inconclusive, " +
+        "not-runnable, disconnected, warning, pending and partially executed outcomes are release failures.");
 foreach (var test in testEvidence)
     if (test.Executed < minimumExecutedTests[test.File])
         throw new InvalidDataException($"Release test report '{test.File}' executed {test.Executed} tests; at least {minimumExecutedTests[test.File]} are required by this release baseline.");
 string hAppManifestPath = Path.Combine(output, "holooasis-happ-build-manifest.json");
+string hAppPath = Path.Combine(output, "oasis.happ");
 object? holoOasisEvidence = null;
 if (profile == "HoloEnabled")
 {
     if (!File.Exists(hAppManifestPath))
         throw new FileNotFoundException("The verified HoloOASIS hApp build manifest is missing.", hAppManifestPath);
+    if (!File.Exists(hAppPath))
+        throw new FileNotFoundException("The verified HoloOASIS hApp artifact is missing.", hAppPath);
     using var hAppManifestDocument = JsonDocument.Parse(File.ReadAllText(hAppManifestPath));
     string hAppSourceCommit = hAppManifestDocument.RootElement.GetProperty("sourceCommit").GetString() ??
         throw new InvalidDataException("The HoloOASIS hApp build manifest has no source commit.");
+    string expectedHAppHash = hAppManifestDocument.RootElement.GetProperty("artifactSha256").GetString() ??
+        throw new InvalidDataException("The HoloOASIS hApp build manifest has no artifact hash.");
+    string actualHAppHash = Hash(hAppPath);
+    if (!expectedHAppHash.Equals(actualHAppHash, StringComparison.OrdinalIgnoreCase))
+        throw new InvalidDataException("The packaged HoloOASIS hApp does not match its verified build manifest.");
     holoOasisEvidence = new
     {
+        artifact = Path.GetFileName(hAppPath),
+        artifactSha256 = actualHAppHash,
         buildManifest = Path.GetFileName(hAppManifestPath),
         buildManifestSha256 = Hash(hAppManifestPath),
         sourceCommit = hAppSourceCommit
@@ -144,6 +212,50 @@ string unityManifestPath = Path.Combine(output, "unity-package-build-manifest.js
 string unityValidationLogPath = Path.Combine(output, "unity-edge-validation.log");
 string unityAndroidValidationLogPath = Path.Combine(output, "unity-edge-android-validation.log");
 string ourWorldValidationLogPath = Path.Combine(output, "our-world-edge-integration.log");
+var nativeProfiles = new[] { "edge", "remoteonly" }.Select(profileName =>
+{
+    string reportPath = Path.Combine(output, $"ogengine-native-{profileName}-win-x64.json");
+    string archivePath = Path.Combine(output, $"ogengine-native-{profileName}-win-x64.zip");
+    if (!File.Exists(reportPath) || !File.Exists(archivePath))
+        throw new FileNotFoundException($"The OGEngineClient NativeAOT {profileName} report and archive are required.");
+
+    using var reportDocument = JsonDocument.Parse(File.ReadAllText(reportPath));
+    JsonElement report = reportDocument.RootElement;
+    string expectedProfile = profileName == "edge" ? "Edge" : "RemoteOnly";
+    if (report.GetProperty("profile").GetString() != expectedProfile ||
+        report.GetProperty("runtime").GetString() != "win-x64" ||
+        !report.GetProperty("smokeTest").GetBoolean() ||
+        report.GetProperty("exportedSymbols").GetInt32() <= 0)
+        throw new InvalidDataException($"The OGEngineClient NativeAOT {expectedProfile} report did not certify the win-x64 ABI smoke test.");
+
+    using var archive = ZipFile.OpenRead(archivePath);
+    ZipArchiveEntry dllEntry = archive.Entries.SingleOrDefault(entry =>
+        entry.FullName.Equals("ogengine.dll", StringComparison.OrdinalIgnoreCase)) ??
+        throw new InvalidDataException($"The OGEngineClient NativeAOT {expectedProfile} archive has no ogengine.dll.");
+    string reportedDllHash = report.GetProperty("sha256").GetString() ?? string.Empty;
+    using Stream dllStream = dllEntry.Open();
+    string archivedDllHash = Convert.ToHexString(SHA256.HashData(dllStream));
+    if (!reportedDllHash.Equals(archivedDllHash, StringComparison.OrdinalIgnoreCase))
+        throw new InvalidDataException($"The OGEngineClient NativeAOT {expectedProfile} archive does not match its validated DLL hash.");
+
+    bool hasSqlite = archive.Entries.Any(entry =>
+        entry.FullName.Equals("e_sqlite3.dll", StringComparison.OrdinalIgnoreCase));
+    if (hasSqlite != (expectedProfile == "Edge"))
+        throw new InvalidDataException($"The OGEngineClient NativeAOT {expectedProfile} archive has an invalid SQLite capability payload.");
+
+    return new
+    {
+        profile = expectedProfile,
+        runtime = "win-x64",
+        report = Path.GetFileName(reportPath),
+        reportSha256 = Hash(reportPath),
+        archive = Path.GetFileName(archivePath),
+        archiveSha256 = Hash(archivePath),
+        dllSha256 = archivedDllHash,
+        exportedSymbols = report.GetProperty("exportedSymbols").GetInt32(),
+        smokeTest = true
+    };
+}).ToArray();
 if (!File.Exists(unityPackagePath) || !File.Exists(unityManifestPath) || !File.Exists(unityValidationLogPath) ||
     !File.Exists(unityAndroidValidationLogPath) || !File.Exists(ourWorldValidationLogPath))
     throw new FileNotFoundException("The generated Unity Edge package, build manifest, Editor validation, Android player-build and Our World integration logs are required.");
@@ -204,6 +316,7 @@ WriteJson(Path.Combine(output, "acceptance-report.json"), new
         ourWorldIntegrationLogSha256 = Hash(ourWorldValidationLogPath)
     },
     releasePackages = releasePackages.OrderBy(x => x.Id, StringComparer.Ordinal).ToArray(),
+    ogEngineNativeProfiles = nativeProfiles,
     testResults = testEvidence,
     holoOasisHApp = holoOasisEvidence,
     apiCompatibilityReport = "api-compatibility.json",
@@ -214,10 +327,13 @@ var checksumFiles = Directory.EnumerateFiles(output)
     .Where(x => Path.GetExtension(x).Equals(".nupkg", StringComparison.OrdinalIgnoreCase) ||
                 Path.GetExtension(x).Equals(".trx", StringComparison.OrdinalIgnoreCase) ||
                 Path.GetExtension(x).Equals(".tgz", StringComparison.OrdinalIgnoreCase) ||
+                Path.GetExtension(x).Equals(".zip", StringComparison.OrdinalIgnoreCase) ||
                 Path.GetFileName(x) is "api-compatibility.json" or "sbom.spdx.json" or
-                    "acceptance-report.json" or "holooasis-happ-build-manifest.json" or
+                    "acceptance-report.json" or "holooasis-happ-build-manifest.json" or "oasis.happ" or
                     "unity-package-build-manifest.json" or "unity-edge-validation.log" or
-                    "unity-edge-android-validation.log" or "our-world-edge-integration.log")
+                    "unity-edge-android-validation.log" or "our-world-edge-integration.log" or
+                    "ogengine-native-edge-win-x64.json" or "ogengine-native-remoteonly-win-x64.json" or
+                    "physical-device-acceptance.json")
     .OrderBy(Path.GetFileName, StringComparer.Ordinal).ToArray();
 File.WriteAllLines(Path.Combine(output, "SHA256SUMS.txt"), checksumFiles.Select(x => $"{Hash(x)}  {Path.GetFileName(x)}"));
 
@@ -260,10 +376,13 @@ static TestEvidence ReadTestEvidence(string path)
     XElement counters = document.Descendants().SingleOrDefault(x => x.Name.LocalName == "Counters") ??
         throw new InvalidDataException($"Test report '{path}' has no counters element.");
     int Read(string name) => int.TryParse(counters.Attribute(name)?.Value, out int value) ? value : 0;
-    return new TestEvidence(Path.GetFileName(path), Hash(path), Read("executed"), Read("passed"),
-        Read("failed"), Read("error"), Read("timeout"), Read("aborted"));
+    return new TestEvidence(Path.GetFileName(path), Hash(path), Read("total"), Read("executed"), Read("passed"),
+        Read("failed"), Read("error"), Read("timeout"), Read("aborted"), Read("inconclusive"),
+        Read("notRunnable"), Read("notExecuted"), Read("disconnected"), Read("warning"),
+        Read("passedButRunAborted"), Read("inProgress"), Read("pending"));
 }
 
-internal sealed record TestEvidence(string File, string Sha256, int Executed, int Passed, int Failed,
-    int Errors, int Timeouts, int Aborted);
+internal sealed record TestEvidence(string File, string Sha256, int Total, int Executed, int Passed, int Failed,
+    int Errors, int Timeouts, int Aborted, int Inconclusive, int NotRunnable, int NotExecuted,
+    int Disconnected, int Warning, int PassedButRunAborted, int InProgress, int Pending);
 internal sealed record PackageEvidence(string Id, string Version, string File, string Sha256);

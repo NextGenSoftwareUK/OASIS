@@ -350,7 +350,7 @@ ONET is the OASIS peer-to-peer network that allows ONODE instances to discover a
 | `AutoRegisterOnBootstrap` | `true` | ✅ | Automatically announces this node to bootstrap servers on startup. |
 | `EnableHyperDriveSyncHost` | `false` | 🔧 | Hosts authenticated HyperDrive v3 synchronization over ONET. Enable only when the default provider implements the hosted sync and durable peer-binding contracts. |
 | `RemotelyAdvertisedProviderTypes` | `[]` | 🔒 | Explicit allow-list of `ProviderType` names eligible for signed ONET capability advertisements. A listed provider is emitted only while registered and activated, and is suppressed when HyperDrive measurements exceed the health error-rate policy; empty advertises no provider routing capability. |
-| `CapabilityRegistryNodeIds` | `[]` | 🔒 | Authenticated peer ONET node IDs from which a Full ONODE pulls independently signed capability leases. Empty disables server-to-server registry reconciliation. |
+| `CapabilityRegistryNodeIds` | `[]` | 🔒 | Authenticated peer ONET node IDs from which a Full ONODE pulls independently signed capability leases. This node's own `NodeId` is invalid because the quorum counts peer responses only. Empty disables server-to-server registry reconciliation. |
 | `CapabilityRegistryQuorum` | `1` | 🔒 | Minimum peer registries that must answer each reconciliation cycle. DNA loading rejects zero or a value larger than the configured peer set. |
 | `CapabilityRegistryReconciliationSeconds` | `30` | ✅ | Signed-lease reconciliation interval; values below five seconds are rejected. |
 

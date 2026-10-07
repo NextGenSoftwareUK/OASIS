@@ -20,9 +20,44 @@ try {
     $plan = Get-Content -LiteralPath (Join-Path $testOutput 'release-plan.json') -Raw | ConvertFrom-Json
     if ($plan.packages.Count -lt 200) { throw "Expected at least 200 first-party packages, found $($plan.packages.Count)." }
     if ($plan.components.advanceWeb4ToWeb6ApiVersions) { throw 'API advancement must default to false.' }
-    foreach ($component in @('nugetPackages', 'oasisRuntime', 'starRuntime', 'ogEngineClient', 'nativeEndpoint', 'mcpServer')) {
+    foreach ($component in @('nugetPackages', 'oasisRuntime', 'starRuntime', 'edgeRuntime', 'ogEngineClient', 'nativeEndpoint', 'mcpServer')) {
         if (-not $plan.components.$component) { throw "$component must default to true." }
     }
+    foreach ($packageId in @(
+        'NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS',
+        'NextGenSoftware.OASIS.API.Providers.HoloOASIS',
+        'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge',
+        'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity',
+        'NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+        'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge',
+        'NextGenSoftware.OASIS.Edge.ONET.Runtime',
+        'NextGenSoftware.OASIS.Edge.Runtime',
+        'NextGenSoftware.OASIS.HyperDrive.Synchronization',
+        'NextGenSoftware.OASIS.ONET')) {
+        if ($packageId -notin @($plan.packages.packageId)) { throw "Global release plan is missing required Edge package '$packageId'." }
+    }
+
+    $edgePlanOutput = Join-Path $testOutput 'edge-scope'
+    & (Join-Path $PSScriptRoot 'Invoke-OASISGlobalRelease.ps1') -Operation Plan -Offline `
+        -OutputDirectory $edgePlanOutput -NuGetPackageScope Edge `
+        -OASISRuntime $false -STARRuntime $false -EdgeRuntime $true -OGEngineClient $false `
+        -NativeEndpoint $false -MCPServer $false
+    if ($LASTEXITCODE -ne 0) { throw 'Edge-only offline release plan failed.' }
+    $edgePlan = Get-Content -LiteralPath (Join-Path $edgePlanOutput 'release-plan.json') -Raw | ConvertFrom-Json
+    if ($edgePlan.nugetPackageScope -ne 'Edge') { throw 'Edge-only release plan did not preserve its NuGet scope.' }
+    if ($edgePlan.packages.Count -ne 9) { throw "Expected exactly 9 Edge NuGet packages, found $($edgePlan.packages.Count)." }
+    if (-not $edgePlan.components.edgeRuntime) { throw 'Edge Runtime must be selected in its standalone release plan.' }
+    $missingNuGetWasRejected = $false
+    try {
+        & (Join-Path $PSScriptRoot 'Invoke-OASISGlobalRelease.ps1') -Operation Plan -Offline `
+            -OutputDirectory (Join-Path $testOutput 'invalid-edge-without-nuget') -NuGetPackages $false `
+            -OASISRuntime $false -STARRuntime $false -EdgeRuntime $true -OGEngineClient $false `
+            -NativeEndpoint $false -MCPServer $false
+    }
+    catch {
+        $missingNuGetWasRejected = $_.Exception.Message -like '*requires NuGetPackages*'
+    }
+    if (-not $missingNuGetWasRejected) { throw 'Edge release planning must reject omission of its coordinated NuGet packages.' }
     foreach ($component in @('ourWorld', 'odoom', 'oquake', 'oide', 'onodeManager', 'hyperDriveClient')) {
         if ($plan.components.$component) { throw "$component must default to false." }
         if (-not $plan.releaseVersions.$component) { throw "$component must have a planned version even when excluded." }
@@ -83,6 +118,24 @@ try {
     if ($releaseScript -match 'Select-Object -First 100') { throw 'API release notes must not truncate their version changelog.' }
     if (-not $releaseScript.Contains('--format=%H%x09%s')) { throw 'API release notes must retain commit identities for linked changelogs.' }
     if (-not $releaseScript.Contains('https://github.com/$($history.Repository)/commit/')) { throw 'API release-note commits must link to their owning repository.' }
+    $globalWorkflow = Get-Content -LiteralPath (Join-Path $repoRoot '.github\workflows\global-release.yml') -Raw
+    foreach ($requiredWorkflowInvariant in @(
+        'run: ./Scripts/Invoke-OASISGlobalRelease.ps1 -Operation Pack',
+        'nuget-publish:',
+        'needs: [plan, edge-runtime-assets, nuget-publish]',
+        'The packed NuGet count',
+        'nuget-publish-candidates.zip',
+        'Publish the validated Edge Runtime GitHub release')) {
+        if (-not $globalWorkflow.Contains($requiredWorkflowInvariant)) {
+            throw "Global release workflow is missing publication-order invariant: $requiredWorkflowInvariant"
+        }
+    }
+    $edgeWorkflow = Get-Content -LiteralPath (Join-Path $repoRoot '.github\workflows\release-edge-runtime.yml') -Raw
+    foreach ($requiredEdgeInput in @('-f nuget_packages=true', '-f nuget_package_scope=Edge', '-f edge_runtime=true')) {
+        if (-not $edgeWorkflow.Contains($requiredEdgeInput)) {
+            throw "Standalone Edge release does not preserve required shared input: $requiredEdgeInput"
+        }
+    }
 }
 finally {
     if (Test-Path -LiteralPath $testOutput) { Remove-Item -LiteralPath $testOutput -Recurse -Force }

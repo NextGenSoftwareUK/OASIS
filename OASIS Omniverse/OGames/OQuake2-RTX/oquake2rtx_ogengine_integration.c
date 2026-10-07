@@ -25,8 +25,13 @@
  * See https://github.com/NVIDIA/Q2RTX for the base engine.
  */
 
+#include "g_local.h"
 #include "oquake2rtx_ogengine_integration.h"
 #include "ogengine_sync.h"
+#include "oglib_edge.h"
+
+/* Offline sync (edge) settings, persisted in oasisstar.json — same as OQuake. */
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -55,14 +60,9 @@ typedef int qboolean;
 #define false 0
 #endif
 
-/* Q2 RTX / Yamagi Q2 console print */
+/* Console print from the game module goes through the engine import table. */
 #ifndef Q2RTX_Con_Printf
-#  ifdef __cplusplus
-extern "C" void Com_Printf(const char* fmt, ...);
-#  else
-extern void Com_Printf(const char* fmt, ...);
-#  endif
-#  define Q2RTX_Con_Printf Com_Printf
+#  define Q2RTX_Con_Printf gi.dprintf
 #endif
 
 /* String helpers */
@@ -445,6 +445,7 @@ static int OQ2RTX_LoadJsonConfig(const char* json_path) {
     len = fread(json, 1, (size_t)fsz, f); fclose(f);
     if (len == 0) { free(json); return 0; }
     json[len] = '\0';
+    oglib_edge_load_json(&g_edge_settings, json);
 
     if (OQ2RTX_ExtractJsonValue(json, "ogengine_url", value, sizeof(value)) && value[0])
         { Q2RTX_Q_strlcpy(g_ogengine_url, value, sizeof(g_ogengine_url)); loaded = 1; }
@@ -506,6 +507,7 @@ static void OQ2RTX_SaveStarConfigToFile(void) {
         Q2RTX_Q_strlcpy(path, "oasisstar.json", sizeof(path));
     f = fopen(path, "w"); if (!f) return;
     fprintf(f, "{\n");
+    oglib_edge_save_json(f, &g_edge_settings);
     fprintf(f, "  \"ogengine_url\": \"%s\"", g_ogengine_url);
     fprintf(f, ",\n  \"oasis_api_url\": \"%s\"", g_oasis_api_url);
     fprintf(f, ",\n  \"star_transport\": \"%s\"", g_star_transport);
@@ -639,6 +641,9 @@ void OQuake2RTX_STAR_Init(void) {
     g_star_config.transport         = (!strcmp(g_star_transport, "native")) ? 1 : 0;
     g_star_config.oasis_dna_path    = g_oasis_dna_path[0] ? g_oasis_dna_path : NULL;
 
+    if (oglib_edge_configure(&g_edge_settings) != OGENGINE_SUCCESS)
+        Q2RTX_Con_Printf("[OQuake2-RTX] Offline sync settings rejected: %s\n", ogengine_get_last_error());
+
     if (ogengine_init(&g_star_config) != OGENGINE_SUCCESS) {
         Q2RTX_Con_Printf("[OQuake2-RTX] STAR API init failed: %s\n", ogengine_get_last_error());
         return;
@@ -755,10 +760,77 @@ void OQuake2RTX_STAR_OnBossKilled(const char* boss_name) {
  * Public API: Frame pump
  * ------------------------------------------------------------------------- */
 
+/* Offline sync, same contract as OQuake: -1 = Remote-Only release, 0 = off, 1 = on. */
+int OQuake2RTX_STAR_OfflineSyncMode(void) {
+    int capabilities = ogengine_get_edge_capabilities();
+    return !(capabilities & 1) ? -1 : (capabilities & 2) ? 1 : 0;
+}
+
+/* command: "status" | "on" | "off" | "sync-and-off" | "cancel" */
+void OQuake2RTX_STAR_OfflineSyncCommand(const char* command) {
+    char message[512];
+    oglib_edge_command(command, message, sizeof(message));
+    Q2RTX_Con_Printf("[OASIS] %s\n", message);
+}
+
+/* -------------------------------------------------------------------------
+ * OASIS Omniverse Hub — protocol lives in ogengine_hub_frame (OGEngineClient);
+ * see Docs/OMNIVERSE_HUB_IPC.md. Pausing is not supported here: this runs from
+ * G_RunFrame, which the server stops calling while paused, so the Hub could
+ * never unpause the game. The Hub still hides the window.
+ * ------------------------------------------------------------------------- */
+
+static char g_hub_pending_map[64];
+static float g_hub_pending_origin[3];
+static int g_hub_pending_spawn = 0;
+
+static void OQ2RTX_HubApplyPendingSpawn(void) {
+    edict_t* player_ent = &g_edicts[1];
+    if (!g_hub_pending_spawn || !player_ent->inuse || !player_ent->client) return;
+    if (g_hub_pending_map[0] && Q_stricmp(level.mapname, g_hub_pending_map) != 0) return;
+    if (g_hub_pending_origin[0] != 0 || g_hub_pending_origin[1] != 0 || g_hub_pending_origin[2] != 0) {
+        VectorCopy(g_hub_pending_origin, player_ent->s.origin);
+        VectorClear(player_ent->velocity);
+        gi.linkentity(player_ent);
+    }
+    g_hub_pending_spawn = 0;
+    g_hub_pending_map[0] = 0;
+}
+
+static void OQ2RTX_HubBridgeFrame(void) {
+    ogengine_hub_frame_t hub;
+    OQ2RTX_HubApplyPendingSpawn();
+    if (!ogengine_hub_frame("OQuake2-RTX", level.mapname, 0, &hub) || !hub.has_arrive) return;
+
+    g_hub_pending_origin[0] = hub.x; g_hub_pending_origin[1] = hub.y; g_hub_pending_origin[2] = hub.z;
+    g_hub_pending_spawn = 1;
+    Q2RTX_Q_strlcpy(g_hub_pending_map, hub.arrive_map, sizeof(g_hub_pending_map));
+    if (hub.arrive_map[0]) {
+        char cmd[96];
+        Q_snprintf(cmd, sizeof(cmd), "map %s\n", hub.arrive_map);
+        gi.AddCommandString(cmd);
+    }
+    OQ2RTX_StarLog("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
+}
+
 void OQuake2RTX_STAR_PollItems(void) {
     char mint_item[256], nft_id[128], hash[128], err_buf[384];
     if (!g_star_initialized) return;
     ogengine_sync_pump();
+    OQ2RTX_HubBridgeFrame();
+    {
+        char edge_msg[512];
+        int changed = oglib_edge_finish_change(&g_edge_settings, edge_msg, sizeof(edge_msg));
+        if (changed != 0) {
+            if (changed == 1) OQ2RTX_SaveStarConfigToFile();
+            Q2RTX_Con_Printf("[OASIS] %s\n", edge_msg);
+        }
+        if (!ogengine_sync_auth_in_progress()) {
+            char note[256];
+            if (ogengine_poll_edge_notification(note, sizeof(note)) == 1)
+                Q2RTX_Con_Printf("[OASIS] %s\n", note);
+        }
+    }
 
     /* --- cross-game spawn poll --- */
     {
@@ -772,7 +844,7 @@ void OQuake2RTX_STAR_PollItems(void) {
                 else if (strncmp(classname, "oquake2_", 8) == 0)   classname += 8;
                 edict_t *ent = G_Spawn();
                 if (ent) {
-                    ent->classname = classname;
+                    ent->classname = (char*)classname;
                     VectorSet(ent->s.origin, sx, sy, sz);
                     ent->s.angles[YAW] = 0.0f;
                     ED_CallSpawn(ent);
