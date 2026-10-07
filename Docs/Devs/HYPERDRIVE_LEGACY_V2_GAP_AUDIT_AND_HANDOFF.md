@@ -452,6 +452,7 @@ The gaps are closed only when all of the following are true:
 - Unit tests execute with non-zero discovery and pass.
 - Authenticated WEB4 development endpoint results are captured as release evidence.
 - Authenticated WEB4 staging V2 evidence was captured on 2026-10-07 from deployment `7519f239-6954-4125-b50c-8415f1673214`: mode/config/status contracts passed, MongoDBOASIS activated, all three routing policies were effective, and 20/20 concurrent authentication requests succeeded. See `HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md` for the exact evidence and scope.
+- Production master merge `8c44e3d67` and Railway deployment `23b7ac3d-4665-4624-9e2f-cde58cf2644c` passed the same authenticated V2 contract and 20/20 concurrent authentication run. Production reported failover, replication, and load balancing enabled with two active providers.
 - WEB5 version-aware `STARNETHolonId` behavior remains unchanged.
 - No unrelated user worktree changes are overwritten.
 
