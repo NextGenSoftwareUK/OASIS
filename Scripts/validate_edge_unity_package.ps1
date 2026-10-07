@@ -139,7 +139,7 @@ Set-Content -LiteralPath (Join-Path $projectRoot 'ProjectSettings\ProjectVersion
 
 $logPath = Join-Path $logRoot 'unity-edge-validation.log'
 $unityProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
-    '-batchmode', '-nographics', '-projectPath', $projectRoot,
+    '-batchmode', '-nographics', '-quit', '-projectPath', $projectRoot,
     '-executeMethod', 'NextGenSoftware.OASIS.Edge.Unity.Editor.OASISEdgePackageValidator.Validate',
     '-logFile', $logPath
 ) -WindowStyle Hidden -Wait -PassThru
@@ -157,7 +157,7 @@ if (-not (Select-String -LiteralPath $logPath -Pattern 'OASIS_EDGE_UNITY_PACKAGE
 }
 $androidLogPath = Join-Path $logRoot 'unity-edge-android-validation.log'
 $androidProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
-    '-batchmode', '-nographics', '-projectPath', $projectRoot, '-buildTarget', 'Android',
+    '-batchmode', '-nographics', '-quit', '-projectPath', $projectRoot, '-buildTarget', 'Android',
     '-executeMethod', 'NextGenSoftware.OASIS.Edge.Unity.Editor.OASISEdgePackageValidator.ValidateAndroidBuild',
     '-logFile', $androidLogPath
 ) -WindowStyle Hidden -Wait -PassThru
