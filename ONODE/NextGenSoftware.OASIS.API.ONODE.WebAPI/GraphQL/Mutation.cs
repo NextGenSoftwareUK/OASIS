@@ -203,15 +203,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             return saveResult.IsError ? 0 : (saveResult.Result?.XP ?? 0);
         }
 
-        public bool VoteForPositiveKarmaWeighting(string karmaType, int weighting)
-        {
-            return true;
-        }
-
-        public bool VoteForNegativeKarmaWeighting(string karmaType, int weighting)
-        {
-            return true;
-        }
+        // Karma weighting vote mutations are intentionally not exposed until the hosted runtime has
+        // durable, versioned governance. The previous methods returned true without changing policy,
+        // which violated the GraphQL mutation contract and concealed an unavailable operation.
 
         // ── Social ────────────────────────────────────────────────────────────────
 
@@ -484,12 +478,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         public void ResetHyperDriveProviderMetrics(string providerType)
         {
             var pt = Enum.TryParse<ProviderType>(providerType, true, out var parsed) ? parsed : ProviderType.Default;
-            PerformanceMonitor.Instance.ResetMetrics(pt);
+            ProviderManager.Instance.PerformanceMonitor.ResetMetrics(pt);
         }
 
         public void ResetAllHyperDriveMetrics()
         {
-            PerformanceMonitor.Instance.ResetAllMetrics();
+            ProviderManager.Instance.PerformanceMonitor.ResetAllMetrics();
         }
 
         // ── Bridge ────────────────────────────────────────────────────────────────
@@ -548,12 +542,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         {
             var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
             return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
-        public async Task<bool> UpdateOASISDNA(OASISDNA oasisdna)
-        {
-            var result = await CreateONETManager().UpdateOASISDNAAsync(oasisdna);
-            return !result.IsError;
         }
 
         public async Task<bool> ConnectToNode(string nodeId, string nodeAddress)

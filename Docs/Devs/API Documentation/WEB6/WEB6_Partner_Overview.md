@@ -122,13 +122,13 @@ OpenRouter routes requests to individual models. **WEB6 coordinates multiple AI 
 
 | Plan | Monthly | Daily Call Limit | Model Access |
 |---|---|---|---|
-| Free | $0 | 100 | Local/self-hosted only ($0 cost) |
-| Bronze | $9 | 500 | Cheap cloud: Venice, OrcaRouter, Groq, GPT-4o-mini |
-| Silver | $29 | 2,000 | Mid-tier: GPT-4o, Claude Sonnet, Gemini Pro |
-| Gold | $99 | 10,000 | Premium: GPT-5, o3, Claude Opus, Grok-3 |
+| Free | $0 | 20 | Local/self-hosted only ($0 cost) |
+| Bronze | $9 | 100 | Cheap cloud: Venice, OrcaRouter, Groq, GPT-4o-mini |
+| Silver | $29 | 500 | Mid-tier: GPT-4o, Claude Sonnet, Gemini Pro |
+| Gold | $99 | 2,000 | Premium: GPT-5, o3, Claude Opus, Grok-3 |
 | Enterprise | Custom | Unlimited | All models + priority routing + SLA |
 
-> Karma multiplies your daily call limit — high karma users get more headroom within their plan tier.
+> Karma multiplies your daily call limit — high karma users get more headroom within their plan tier. Plans, limits and billing are enforced by WEB4; see [WEB6_Quotas_and_Tiers.md](WEB6_Quotas_and_Tiers.md) for monthly, token and budget limits.
 
 ---
 

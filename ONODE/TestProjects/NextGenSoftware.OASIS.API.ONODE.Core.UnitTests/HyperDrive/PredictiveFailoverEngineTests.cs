@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -127,6 +128,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
             {
                 _engine.ClearFailoverOverride(fromA);
                 _engine.ClearFailoverOverride(fromB);
+            }
+        }
+
+        [Fact]
+        public async Task InitiatePreventiveFailover_NullProviders_ReturnsStructuredError()
+        {
+            var result = await _engine.InitiatePreventiveFailoverAsync(null);
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("HYPERDRIVE_FAILOVER_PROVIDERS_REQUIRED");
+        }
+
+        [Fact]
+        public async Task InitiatePreventiveFailover_EmptyProviders_ReturnsSuccessfulNoOp()
+        {
+            var result = await _engine.InitiatePreventiveFailoverAsync(new List<ProviderType>());
+
+            result.IsError.Should().BeFalse();
+            result.Result.Should().BeTrue();
+            result.Message.Should().Contain("No high-risk providers");
+        }
+
+        [Fact]
+        public async Task InitiatePreventiveFailover_DuplicateProvider_RecordsSingleOverride()
+        {
+            const ProviderType provider = ProviderType.SolanaOASIS;
+            try
+            {
+                var result = await _engine.InitiatePreventiveFailoverAsync(new List<ProviderType> { provider, provider });
+
+                result.IsError.Should().BeFalse();
+                result.Result.Should().BeTrue();
+                _engine.GetFailoverOverride(provider).Should().NotBe(ProviderType.Default);
+            }
+            finally
+            {
+                _engine.ClearFailoverOverride(provider);
             }
         }
     }

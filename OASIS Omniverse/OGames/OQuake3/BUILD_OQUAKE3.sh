@@ -66,6 +66,7 @@ mkdir -p "$Q3E_SRC/code/game"
 cp -f "$OQUAKE3_CODE/oquake3_ogengine_integration.c" "$Q3E_SRC/code/game/"
 cp -f "$OQUAKE3_CODE/oquake3_ogengine_integration.h" "$Q3E_SRC/code/game/"
 cp -f "$OGENGINECLIENT/ogengine.h" "$Q3E_SRC/code/game/"
+for f in oglib_edge.h oglib_json.h; do cp -f "$OGENGINECLIENT/../OGLib/$f" "$Q3E_SRC/code/game/"; done
 [ -f "$OQUAKE3_CODE/ogengine_sync.h" ] && cp -f "$OQUAKE3_CODE/ogengine_sync.h" "$Q3E_SRC/code/game/"
 cp -f "$STAR_SO" "$Q3E_SRC/"
 echo "  Copied to: $Q3E_SRC/code/game/"

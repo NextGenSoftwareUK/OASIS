@@ -25,9 +25,13 @@ $OmniverseRoot = Split-Path -Parent $PSScriptRoot   # ODOOM3 folder
 $OGamesRoot    = Split-Path -Parent $OmniverseRoot  # OGames folder
 $OGLibSrc      = Join-Path (Split-Path -Parent $OGamesRoot) "OGLib"
 $STARSrc       = Join-Path (Split-Path -Parent $OGamesRoot) "OGEngineClient"
+# BUILD_AND_DEPLOY_STAR_CLIENT.bat publishes the native Edge profile here.
+$STARPublish   = Join-Path (Split-Path -Parent (Split-Path -Parent $OGamesRoot)) "artifacts\native-games\native\Edge\win-x64\publish"
 $DHewm3Root    = "C:\Source\ODOOM3"
+# Prebuilt Windows dependencies (OpenAL, SDL2, zlib, curl): https://github.com/dhewm/dhewm3-libs
+$DHewm3Libs    = "C:\Source\dhewm3-libs\x86_64-w64-mingw32"
 $Dest          = Join-Path $DHewm3Root "neo\game"
-$BuildDir      = Join-Path $DHewm3Root "build-vs2019-win64"
+$BuildDir      = Join-Path $DHewm3Root "build-win64"
 
 Write-Host "[ODOOM3] Source root : $OmniverseRoot"
 Write-Host "[ODOOM3] Destination : $Dest"
@@ -74,7 +78,9 @@ $OGLibFiles = @(
     "oglib_monster.h",
     "oglib_session.h",
     "oglib_config.h",
-    "oglib_beamin.h"
+    "oglib_beamin.h",
+    "oglib_log.h",
+    "oglib_edge.h"
 )
 foreach ($f in $OGLibFiles) {
     $src = Join-Path $OGLibSrc $f
@@ -92,16 +98,20 @@ foreach ($f in $OGLibFiles) {
 # -----------------------------------------------------------------
 Write-Host "`n[3/4] Copying STAR API files..."
 
-$STARFiles = @("ogengine.h", "star_sync.h", "ogengine.lib", "ogengine.dll")
+$STARFiles = @(
+    @{ Name = "ogengine.h";      Dir = $STARSrc },
+    @{ Name = "ogengine_sync.h"; Dir = $STARSrc },
+    @{ Name = "ogengine.lib";    Dir = $STARPublish },
+    @{ Name = "ogengine.dll";    Dir = $STARPublish },
+    @{ Name = "e_sqlite3.dll";   Dir = $STARPublish }
+)
 foreach ($f in $STARFiles) {
-    $src = Join-Path $STARSrc $f
-    $dst = Join-Path $Dest $f
-    if (Test-Path $src) {
-        Copy-Item $src $dst -Force
-        Write-Host "  Copied: $f"
-    } else {
-        Write-Warning "  Missing (may be ok if not yet built): $f"
+    $src = Join-Path $f.Dir $f.Name
+    if (-not (Test-Path $src)) {
+        Write-Error "Missing $src. Run BUILD_AND_DEPLOY_STAR_CLIENT.bat in OASIS Omniverse first."
     }
+    Copy-Item $src (Join-Path $Dest $f.Name) -Force
+    Write-Host "  Copied: $($f.Name)"
 }
 
 # -----------------------------------------------------------------
@@ -111,8 +121,9 @@ Write-Host "`n[4/4] Building dhewm3 base.dll ($BuildType)..."
 
 if (-not (Test-Path $BuildDir)) {
     Write-Host "  Running CMake configuration..."
-    & cmake -S "$DHewm3Root\neo" -B $BuildDir -G "Visual Studio 16 2019" -A x64 `
+    & cmake -S "$DHewm3Root\neo" -B $BuildDir -A x64 `
             -DCMAKE_BUILD_TYPE=$BuildType `
+            -DDHEWM3LIBS="$DHewm3Libs" `
             -DOASIS_STAR_SYNC_IN_CLIENT=1
     if ($LASTEXITCODE -ne 0) { Write-Error "CMake configuration failed." }
 }
@@ -120,12 +131,11 @@ if (-not (Test-Path $BuildDir)) {
 & cmake --build $BuildDir --config $BuildType --target base -- /m
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed." }
 
-# Deploy ogengine.dll next to the dhewm3 executable
+# Deploy the native STAR client next to the dhewm3 executable
 $ExeDir = Join-Path $BuildDir $BuildType
-$DllSrc = Join-Path $Dest "ogengine.dll"
-if ((Test-Path $DllSrc) -and (Test-Path $ExeDir)) {
-    Copy-Item $DllSrc $ExeDir -Force
-    Write-Host "  Deployed ogengine.dll to $ExeDir"
+foreach ($name in @("ogengine.dll", "e_sqlite3.dll")) {
+    Copy-Item (Join-Path $Dest $name) $ExeDir -Force
+    Write-Host "  Deployed $name to $ExeDir"
 }
 
 # Copy oasisstar.json next to exe if not already there

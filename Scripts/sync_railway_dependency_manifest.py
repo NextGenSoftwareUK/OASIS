@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronize Railway's private dependency pins with checked-out submodules."""
+"""Synchronize Railway's private dependency pins with parent gitlinks."""
 
 from __future__ import annotations
 
@@ -23,17 +23,27 @@ GITLINKS = {
 }
 
 
-def checked_out_commit(path: str) -> str:
+def gitlink_commit(path: str, source: str) -> str:
+    # HEAD/index modes resolve the parent gitlink and are safe for uninitialized
+    # submodules. Working-tree mode is explicit and is only used after a workflow
+    # has initialized and advanced every submodule checkout.
+    if source == "working-tree":
+        command = ["git", "-C", path, "rev-parse", "HEAD"]
+    else:
+        tree = "HEAD" if source == "head" else ""
+        command = ["git", "rev-parse", f"{tree}:{path}"]
+
     result = subprocess.run(
-        ["git", "-C", str(ROOT / path), "rev-parse", "HEAD"],
+        command,
+        cwd=ROOT,
         text=True,
         capture_output=True,
     )
     if result.returncode:
-        raise RuntimeError(f"Cannot resolve checked-out submodule {path}: {result.stderr.strip()}")
+        raise RuntimeError(f"Cannot resolve parent gitlink {path}: {result.stderr.strip()}")
     commit = result.stdout.strip()
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise RuntimeError(f"Submodule {path} returned an invalid commit: {commit}")
+        raise RuntimeError(f"Gitlink {path} returned an invalid commit: {commit}")
     return commit
 
 
@@ -44,6 +54,13 @@ def main() -> int:
         action="store_true",
         help="report drift without changing the manifest",
     )
+    parser.add_argument(
+        "--source",
+        choices=("head", "index", "working-tree"),
+        default="head",
+        help=("where to resolve gitlinks: committed HEAD, the staged index, or "
+              "initialized submodule working trees"),
+    )
     args = parser.parse_args()
 
     original = MANIFEST.read_text(encoding="utf-8")
@@ -52,7 +69,7 @@ def main() -> int:
 
     try:
         for key, path in GITLINKS.items():
-            commit = checked_out_commit(path)
+            commit = gitlink_commit(path, args.source)
             pattern = re.compile(rf"(?m)^{re.escape(key)}=([0-9a-f]{{40}})$")
             match = pattern.search(updated)
             if not match:
@@ -65,7 +82,7 @@ def main() -> int:
         return 1
 
     if not changes:
-        print("Railway manifest already matches the checked-out private submodules.")
+        print("Railway manifest already matches the parent repository gitlinks.")
         return 0
 
     print("Railway manifest drift:")

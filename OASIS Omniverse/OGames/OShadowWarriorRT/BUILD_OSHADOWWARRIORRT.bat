@@ -1,39 +1,47 @@
 @echo off
 setlocal
-REM OShadowWarriorRT - Duke-RT (Raze fork, Vulkan RT) + OASIS STAR API
-REM Usage: BUILD_OSHADOWWARRIORRT.bat [ batch ]
+REM OShadowWarriorRT - Raze (OShadowWarrior-RT) + OASIS STAR API, the ODOOM/OQuake way via OGLib/oglib_game.h.
+REM One Raze integration covers Shadow Warrior, Blood, Exhumed and Duke; the game source is
+REM chosen at runtime. Usage: BUILD_OSHADOWWARRIORRT.bat [ batch ]
 
 set "HERE=%~dp0"
-set "DUKERT_SRC=C:\Source\OShadowWarriorRT"
-set "OGENGINECLIENT=%HERE%..\..\OGEngineClient"
+if not defined RAZE_SRC set "RAZE_SRC=C:\Source\OShadowWarrior-RT"
+set "OMNIVERSE=%HERE%..\.."
+set "OGENGINECLIENT=%OMNIVERSE%\OGEngineClient"
+set "OGLIB=%OMNIVERSE%\OGLib"
+REM BUILD_AND_DEPLOY_STAR_CLIENT.bat publishes the native Edge profile here.
+set "STAR_PUBLISH=%OMNIVERSE%\..\artifacts\native-games\native\Edge\win-x64\publish"
+set "INTEGRATION=%HERE%..\OShadowWarrior"
 
-if exist "%HERE%..\..\run_oasis_header.bat" call "%HERE%..\..\run_oasis_header.bat" OSHADOWWARRIORRT
+if exist "%OMNIVERSE%\run_oasis_header.bat" call "%OMNIVERSE%\run_oasis_header.bat" OSHADOWWARRIORRT
 
-if exist "%HERE%..\..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
-    call "%HERE%..\..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-    if errorlevel 1 (echo [OShadowWarriorRT] OGEngineClient build failed. & pause & exit /b 1)
+if exist "%OMNIVERSE%\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
+    call "%OMNIVERSE%\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+    if errorlevel 1 (echo [OShadowWarriorRT] OGEngineClient build failed. & if not "%~1"=="batch" pause & exit /b 1)
 )
 
-if not exist "%DUKERT_SRC%" (
-    echo [OShadowWarriorRT] Duke-RT source not found at %DUKERT_SRC%
-    echo Clone Duke-RT from https://github.com/postmemetic/Duke-RT to C:\Source\OShadowWarriorRT
+if not exist "%RAZE_SRC%\source\core\gamecontrol.cpp" (
+    echo [OShadowWarriorRT] Raze source not found at %RAZE_SRC% ^(set RAZE_SRC to override^)
     if not "%~1"=="batch" pause
     exit /b 1
 )
 
-echo [OShadowWarriorRT] Copying integration files...
-copy /Y "%HERE%osw_rt_ogengine_integration.h"   "%DUKERT_SRC%\source\sw\src\" >nul
-copy /Y "%HERE%osw_rt_ogengine_integration.cpp" "%DUKERT_SRC%\source\sw\src\" >nul
-copy /Y "%OGENGINECLIENT%\ogengine.h"           "%DUKERT_SRC%\source\sw\src\" >nul
+echo [OShadowWarriorRT] Installing OASIS integration into %RAZE_SRC%\source\core ...
+if not exist "%RAZE_SRC%\source\core\oasis" mkdir "%RAZE_SRC%\source\core\oasis"
+copy /Y "%INTEGRATION%\raze_ogengine_integration.cpp" "%RAZE_SRC%\source\core\" >nul
+copy /Y "%INTEGRATION%\raze_ogengine_integration.h"   "%RAZE_SRC%\source\core\" >nul
+for %%F in (ogengine.h ogengine_sync.h ogengine_sync.c) do copy /Y "%OGENGINECLIENT%\%%F" "%RAZE_SRC%\source\core\oasis\" >nul
+for %%F in (oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h) do copy /Y "%OGLIB%\%%F" "%RAZE_SRC%\source\core\oasis\" >nul
 
-echo [OShadowWarriorRT] Building Duke-RT (Vulkan RTX)...
-if exist "%DUKERT_SRC%\CMakeLists.txt" (
-    if not exist "%DUKERT_SRC%\build-vs" mkdir "%DUKERT_SRC%\build-vs"
-    cmake -S "%DUKERT_SRC%" -B "%DUKERT_SRC%\build-vs" -A x64 -DCMAKE_BUILD_TYPE=Release -DOASIS_STAR_SYNC_IN_CLIENT=1
-    cmake --build "%DUKERT_SRC%\build-vs" --config Release
-)
+echo [OShadowWarriorRT] Building Raze with OASIS_STAR_API=ON...
+if not exist "%RAZE_SRC%\build-vs" mkdir "%RAZE_SRC%\build-vs"
+cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_LIB_DIR=%STAR_PUBLISH%"
+if errorlevel 1 (echo [OShadowWarriorRT] CMake configure failed. & if not "%~1"=="batch" pause & exit /b 1)
+cmake --build "%RAZE_SRC%\build-vs" --config Release
+if errorlevel 1 (echo [OShadowWarriorRT] Build failed. & if not "%~1"=="batch" pause & exit /b 1)
+for %%F in (ogengine.dll e_sqlite3.dll) do copy /Y "%STAR_PUBLISH%\%%F" "%RAZE_SRC%\build-vs\Release\" >nul
 
 echo.
-echo [OShadowWarriorRT] Done.
+echo [OShadowWarriorRT] Done: %RAZE_SRC%\build-vs\Release\raze.exe
 if not "%~1"=="batch" pause
 exit /b 0
