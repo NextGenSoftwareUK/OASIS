@@ -94,6 +94,11 @@ Live verification procedure:
 5. Compare reported settings with the `ProviderManager` runtime state, not only `OASISHyperDriveConfigManager` output.
 6. Perform controlled provider-failure tests using disposable test providers or an isolated environment. Do not intentionally break the shared development MongoDB service.
 
+The read-only capture is automated by `Scripts/verify_hyperdrive_web4_endpoints.ps1`.
+Set a short-lived JWT in `ONODE_JWT_TOKEN`; the script does not print or persist the token,
+validates agreement between the effective mode/config/status responses, and writes the three
+responses beneath `artifacts/hyperdrive-v2-gap-evidence/`.
+
 Production base URL is documented elsewhere as:
 
 ```text
