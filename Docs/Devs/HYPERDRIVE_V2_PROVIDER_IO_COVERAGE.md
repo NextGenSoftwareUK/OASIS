@@ -98,3 +98,15 @@ Verified V2 router result on 2026-10-07: all `42` storage operations have synchr
 - Hosted sync coordinator and fan-out subset: 16/16 passing.
 - Real isolated three-member MongoDB replica-set evidence: 42/42 transaction/replay/retry tests plus 1/1 abrupt-primary-termination/idempotency test. The repeatable runner is `scripts/run_hosted_mongo_release_evidence.ps1`; TRX output is written beneath the selected artifacts directory.
 - WEB4 Release build: succeeded with zero errors (866 pre-existing warnings reported by the compiler).
+
+## Staging deployment evidence
+
+Verified on 2026-10-07 against `https://web4-oasis-api-staging.up.railway.app`:
+
+- Railway deployment `7519f239-6954-4125-b50c-8415f1673214` built the branch Docker context and started WEB4 with `HyperDriveMode = OASISHyperDrive2`.
+- MongoDBOASIS activated as the default provider. Startup did not fall through to the configured SQLLiteDBOASIS failover provider.
+- Authenticated `GET /api/hyperdrive/mode`, `/config`, and `/status` passed the checked-in `Scripts/verify_hyperdrive_web4_endpoints.ps1` contract. The effective configuration source was `OASIS.OASISHyperDriveConfig`; automatic failover, replication, and load balancing were all enabled; two providers were configured and MongoDBOASIS was active.
+- Twenty concurrent authentications completed successfully through MongoDBOASIS with zero transport or OASIS errors. This exercises the deployed avatar read/authentication path under concurrent V2 routing.
+- Controlled provider failure, latency selection, disabled-policy, explicit-provider, authoritative-not-found, mutation replication, and every-operation sync/async behavior remain covered by the disposable-provider test suite. Staging provider credentials were not intentionally broken because doing so would mutate shared environment configuration rather than produce isolated failure evidence.
+
+Deployment also exposed and fixed two packaging/runtime defects before this evidence was accepted: broad `.railwayignore` patterns had removed production `TestData*` types, and Mongo startup did not accept an already-equivalent public-identity index under its legacy name. The latter now verifies the complete index invariant before accepting it; incompatible indexes still fail activation.
