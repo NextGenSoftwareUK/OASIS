@@ -31,7 +31,8 @@ The inspected WEB4 operational DNA is configured with `HyperDriveMode: Legacy`. 
 - Every routed provider outcome records latency/success/failure in the same `PerformanceMonitor` consumed by load-balancing selection.
 - Failover distinguishes unavailable providers from authoritative misses: a null result wrapper or `IsError` fails over; a non-error null payload or empty collection is terminal.
 - Ordinary WEB4 V2 mutations always replicate inline. They are never marked durably deferred without enrollment. Hosted Edge sync remains a separate transactionally enrolled path.
-- Core tests: 305 discovered, 305 passed. HyperDrive provider execution: 179/179. Hosted sync/fan-out subset: 16/16. WEB4 build: zero errors.
+- Core tests: 307 discovered, 307 passed, zero skipped. Hosted sync/fan-out subset: 16/16. The real three-member Mongo replica-set gate passed 42/42 transaction tests plus 1/1 abrupt-primary/idempotency test. WEB4 build: zero errors.
+- The checked-in public-manager manifest catalogs 815 public methods and intentionally classifies 655 provider-backed/delegating methods; its verifier fails on unreviewed source drift.
 - WEB5 `STARNETHolonId` loading code was not changed.
 
 ## Important architecture invariants
@@ -356,7 +357,7 @@ xunit.analyzers.fixes.dll
 Microsoft.TestPlatform test-host assemblies
 ```
 
-The build ended with `CS0006` for missing xUnit analyzer assemblies. This restore/cache problem was repaired in the isolated implementation worktree; the current Core suite discovers and passes 305/305 tests.
+The build ended with `CS0006` for missing xUnit analyzer assemblies. This restore/cache problem was repaired in the isolated implementation worktree; the current Core suite discovers and passes 307/307 tests.
 
 Completed repair:
 
@@ -441,10 +442,9 @@ The gaps are closed only when all of the following are true:
 | Main behavioral tests | `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveProviderExecutionTests.cs` |
 | Config-manager tests | `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/OASISHyperDriveConfigManagerTests.cs` |
 
-## Audit limitations
+## Remaining deployment-owner verification
 
-- No authenticated WEB4 JWT was available during this audit, so deployed effective mode/config/status values were not read.
+- No authenticated WEB4 JWT was available during this audit, so deployed effective mode/config/status values were not read. The routes themselves resolve and correctly return `401` without a token. This is the only acceptance item requiring external credential/deployment state rather than repository work.
 - No provider was deliberately disabled on the shared development environment.
-- Unit tests did not execute because required NuGet test/analyzer artifacts were missing locally.
 - The ignored local operational DNA cannot prove Railway environment-variable or mounted-file values.
 - This audit made no production configuration changes.
