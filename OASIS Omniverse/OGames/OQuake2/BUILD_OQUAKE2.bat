@@ -45,11 +45,7 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API DLL ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OQUAKE2_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE2_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE2_INTEGRATION%\ogengine.lib"
+if exist "%OQUAKE2_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE2_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE2_INTEGRATION%\ogengine.lib"
 if not defined STAR_DLL (
     echo ogengine.dll missing after deploy. Check OGEngineClient build.
     pause
@@ -73,6 +69,7 @@ if not exist "%YQUAKE2_SRC%\src\game" mkdir "%YQUAKE2_SRC%\src\game"
 copy /Y "%OQUAKE2_INTEGRATION%oquake2_ogengine_integration.c" "%YQUAKE2_SRC%\src\game\" >nul
 copy /Y "%OQUAKE2_INTEGRATION%oquake2_ogengine_integration.h" "%YQUAKE2_SRC%\src\game\" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%YQUAKE2_SRC%\src\game\" >nul
+for %%F in (oglib_edge.h oglib_json.h) do copy /Y "%HERE%..\..\OGLib\%%F" "%YQUAKE2_SRC%\src\game\" >nul
 if exist "%OQUAKE2_CODE%ogengine_sync.h" copy /Y "%OQUAKE2_CODE%ogengine_sync.h" "%YQUAKE2_SRC%\src\game\" >nul
 copy /Y "%STAR_DLL%" "%YQUAKE2_SRC%\ogengine.dll" >nul
 if defined STAR_LIB copy /Y "%STAR_LIB%" "%YQUAKE2_SRC%\ogengine.lib" >nul

@@ -1,4 +1,11 @@
-# OStrife — Strife + OASIS STAR API
+# OStrife
+
+> **OStrife runs on the ODOOM integration.** ODOOM is UZDoom with OASIS, and UZDoom
+> plays Strife natively. The shared ODOOM integration detects Strife and reports
+> game source `OSTRIFE`, with Strife's monsters (XP/NFT), keys and artifacts. Build with
+> `BUILD_OSTRIFE` (which builds ODOOM) and play with `RUN_OSTRIFE` (ODOOM + `-iwad strife1.wad`).
+> The old standalone integration is kept in `Legacy/` for reference only.
+
 
 **OStrife** is a fork of **UZDoom** (a GZDoom variant) targeting Strife with the **OASIS STAR API** integrated, bringing this unique RPG-infused Doom-engine game into the OASIS Omniverse. Keys, inventory, XP, and quests are shared across all 20 OASIS Omniverse OGames.
 

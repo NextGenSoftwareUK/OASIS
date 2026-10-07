@@ -5,11 +5,11 @@
 WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
-The WEB8 Galactic Mesh Layer exposes **8 typed MCP tools** covering distributed mesh node registration, routing, message relay, and protocol translation. All tools are in-process — no extra HTTP layer.
+The WEB8 Galactic Mesh Layer exposes **8 typed MCP tools** covering distributed mesh node registration, routing, message relay, and protocol translation. The tools call the WEB8 managers directly inside the hosted WEB6 MCP service, so each call is one metered request with no extra HTTP hop.
 
 All tools return a JSON-serialised `OASISResult<T>` envelope (or a raw JSON string for translation tools). On success `isError` is `false` and data is in `result`. On failure `isError` is `true` and `message` describes the problem.
 
-Install: `npm install -g @oasisomniverse/mcp-server` or `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`
+Install: `npm install -g @oasisomniverse/mcp-server` or `dotnet tool install -g NextGenSoftware.OASIS.MCP.Server`, then set `OASIS_USERNAME`/`OASIS_PASSWORD` (or `OASIS_BEARER_TOKEN`) in your IDE MCP config. Tools run in the hosted WEB6 service at `/mcp` as your avatar and are metered by your WEB4 subscription; HTTP MCP clients can call `https://api.web6.oasisomniverse.one/mcp` directly with a bearer token.
 
 ---
 

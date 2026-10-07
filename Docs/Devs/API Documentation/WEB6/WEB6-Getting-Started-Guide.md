@@ -489,25 +489,37 @@ ws.on('message', (data) => {
 
 WEB6 self-registers as an MCP orchestrator on startup. Every FAHRN agent, memory provider and protocol adapter is exposed as an MCP tool — auto-discovered by Claude Code, Cursor, Continue and any MCP-compatible host.
 
-**HTTP MCP transport (for cloud agents and claude.ai connectors):**
+**Hosted MCP endpoint (all 512 tools, for cloud agents and claude.ai connectors):**
 
 ```
-GET  https://api.web6.oasisomniverse.one/mcp        — SSE stream
-POST https://api.web6.oasisomniverse.one/mcp        — JSON-RPC tool calls
+POST https://api.web6.oasisomniverse.one/mcp                    — MCP JSON-RPC (Streamable HTTP, stateless)
 GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discovery
 GET  https://api.web6.oasisomniverse.one/.well-known/agent.json — A2A agent card
 ```
 
-Point your MCP client at the discovery URL and it configures itself automatically.
+Every `tools/call` runs as the avatar in the bearer token and is metered through that avatar's WEB4 subscription: AI tools on measured provider tokens, everything else as one API request (`initialize`, `tools/list` and `ping` are free). Send one JSON-RPC message per request and an `Idempotency-Key` header per `tools/call`, reused when you retry, so a retry is never billed twice. Tools that act on an avatar accept only your own avatar ID, email or username unless you are a Wizard.
 
-**Claude Code config:**
+**Claude Code config (direct HTTP):**
 
 ```json
 {
   "mcpServers": {
     "oasis-web6": {
       "url": "https://api.web6.oasisomniverse.one/mcp",
-      "headers": { "Authorization": "Bearer <your-oasis-avatar-key>" }
+      "headers": { "Authorization": "Bearer <your-oasis-jwt>" }
+    }
+  }
+}
+```
+
+**IDE config via the stdio proxy** (`npm install -g @oasisomniverse/mcp-server`), which signs in and renews your token for you:
+
+```json
+{
+  "mcpServers": {
+    "oasis": {
+      "command": "oasis-mcp",
+      "env": { "OASIS_USERNAME": "your-avatar-username-or-email", "OASIS_PASSWORD": "your-avatar-password" }
     }
   }
 }
@@ -779,14 +791,16 @@ The `StorageProviders` section (separate from `Web6`) controls which of the 40+ 
 
 ## 13. Hosted API Plans
 
-| Plan | Requests/month | FAHRN | Holonic BRAID | Price |
-|------|----------------|-------|---------------|-------|
-| Free | ~1,000 | Basic | Shared library read | Free |
-| Pro | 100,000 | All modes | Full BRAID read/write | Coming soon |
-| Enterprise | Unlimited | All modes + custom agents | Private BRAID namespace | Coming soon |
-| ONODE (self-hosted) | Unlimited | Full | Local + global BRAID | See below |
+| Plan | Price | Requests/month | Daily calls | Daily tokens | Monthly AI budget |
+|------|-------|----------------|-------------|--------------|-------------------|
+| Free | $0 | 1,000 | 20 | 50,000 | $1 |
+| Bronze | $9/mo | 10,000 | 100 | 250,000 | $10 |
+| Silver | $29/mo | 100,000 | 500 | 1,000,000 | $50 |
+| Gold | $99/mo | 1,000,000 | 2,000 | 5,000,000 | $250 |
+| Enterprise | Custom | Unlimited | Unlimited | Unlimited | Unlimited |
+| ONODE (self-hosted) | — | Unlimited | — | — | See below |
 
-Plans are tied to your OASIS avatar and governed by the karma system — higher karma unlocks better routing and more capable models.
+Plans are tied to your OASIS avatar and enforced by WEB4. Karma multiplies your daily call limit within your plan (up to 10×); it does not unlock other plans' features. See [Quotas & Tiers](WEB6_Quotas_and_Tiers.md).
 
 ---
 
@@ -934,7 +948,7 @@ If you're using a vector database (Pinecone, Weaviate, pgvector) or a hosted kno
 |-----------|------------------|----------------------|
 | Duplicate content | Stored N times per document | Stored once, linked N times via semantic dedup |
 | Retrieval unit | Raw embedding comparison | Hierarchical — query hits the right level, not every chunk |
-| Storage backend | Locked to one vendor | 40+ providers via COSMIC ORM; switch without data migration |
+| Storage backend | Locked to one vendor | 222 providers via COSMIC ORM; switch without data migration |
 | Retention control | Manual TTL / lifecycle rules | Built-in per-holon TTL (`SessionOnly`, `Persistent`, `Expiring`) |
 | Session notes | Manual indexing | Auto-holonised, semantic search included |
 | Portability | Vendor lock-in | Open, portable, self-hostable |
@@ -973,9 +987,10 @@ httpx.post(
 
 `https://api.web6.oasisomniverse.one`
 
-- Free plan: ~1,000 requests/month, basic routing, shared BRAID library
-- Pro plan (coming soon): 100,000 requests/month, full FAHRN, full BRAID
-- Enterprise plan (coming soon): unlimited, private BRAID namespace, SLA, dedicated support
+- Free ($0): 1,000 requests/month, 20 calls/day
+- Bronze ($9), Silver ($29), Gold ($99): 10,000 / 100,000 / 1,000,000 requests/month with higher daily call, token and budget limits
+- Enterprise (custom): unlimited, SLA, dedicated support
+- Plans are enforced by WEB4 — see [Quotas & Tiers](WEB6_Quotas_and_Tiers.md)
 - No infrastructure to manage; your data governed by OASIS membrane rules
 
 ### Self-hosted ONODE (for data sovereignty or enterprise scale)
@@ -1000,7 +1015,7 @@ See [Section 12](#12-spinning-up-your-own-onode) for the full ONODE configuratio
 | Resource | Description |
 |----------|-------------|
 | [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full endpoint docs — request/response shapes, auth, gRPC and GraphQL |
-| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 516 MCP tools — parameters and return values |
+| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 512 MCP tools — parameters and return values |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Common workflows, environment setup, recipes |
 | [WEB6 for Leela AI](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage |
 | [Holonic Braid Whitepaper](https://web6.oasisomniverse.one/holonic-braid-whitepaper.html) | Deep technical detail on BRAID, FAHRN, holonic memory |

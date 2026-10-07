@@ -9,6 +9,9 @@ REM Load VS environment so dumpbin/lib are in PATH and ogengine.lib can be gener
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
+REM The NativeAOT linker step invokes vswhere.exe by name; vcvars64 does not put it on PATH.
+if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" set "PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer;%PATH%"
+
 REM Prefer VS with C++ tools; fallback to any VS so vcvars64 sets PATH for dumpbin/lib (script also finds tools via vswhere if PATH not set)
 for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2^>nul`) do set "VSINSTALL=%%i"
 if not defined VSINSTALL for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath 2^>nul`) do set "VSINSTALL=%%i"

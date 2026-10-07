@@ -69,11 +69,11 @@ and synchronized data, the client must present login instead of inventing an ide
 |---|---|---|---|
 | Avatar profile | WEB4/WEB5 avatar GET candidates | Durable private Avatar projection read | Prove online bootstrap, offline restart and reconnect refresh |
 | Shared inventory | WEB5/WEB4 inventory GET candidates | Durable AvatarDetail inventory projection read; inventory-grant command exists | Map every game grant/removal currently emitted and prove idempotent replay |
-| Quest list/tracker | WEB5 quest GET candidates | Durable Quest projection read; quest-progress command exists | Wire every current progress/active-objective mutation and prove ordering/replay |
+| Quest list/tracker | WEB5 quest GET candidates; canonical active-selection write is `POST /api/avatar/set-active-quest` | Durable Quest and AvatarDetail projection reads; quest-progress and active quest/objective commands use the durable journal | The popup and persistent tracker both select the exact quest/objective; prove ordering/replay and physical-device UX |
 | NFT/GeoNFT list | WEB5 NFT/WEB4 NFT GET candidates | Durable `GeoNft` projections (not collection-command entities) | Prove that the synchronized assets match the exact assets shown by the online endpoint |
-| Karma | WEB4 total and history GETs | Durable AvatarDetail total only | Keep total available; add history projection only if the current offline UI requires parity |
+| Karma | WEB4 total and history GETs | Durable private AvatarDetail total and Edge-safe history | Total and ordered history remain available offline; provider identity and external links are excluded from the mobile projection |
 | Clan/social | WEB4/WEB5/holon GET candidates | Durable Clan Holon membership plus avatar projections | Member identity, owner/member role and last beam state remain available offline; live game and per-member Karma remain authoritative/live fields |
-| Global preferences | WEB4 settings GET/PUT | Local device preferences; remote sync online-only | Queue only preferences that the current client actually sends and reconcile after reconnect |
+| Global preferences | Versioned `oasis.avatar-preferences.v1` command/projection; remote-only profile uses `/api/settings/omniverse-preferences` | PlayerPrefs supplies immediate device UX, while the typed avatar-scoped command is durably queued offline and reconciled after reconnect | Prove restart survival, hosted idempotent replay and confirmed projection replacement |
 | Authentication | WEB4 login plus signed offline grant | Secure device-bound grant resume exists | Prove expiry, revocation boundary, offline restart and reconnect renewal |
 
 ## OGEngineClient and Edge composition
@@ -84,9 +84,11 @@ The current source has two separate composition roots:
   `OGEngineEdgeClient`. `OASISEdgeUnityHost` is only the Unity lifecycle/connectivity/secure-storage binding; it does
   not own domain, persistence or synchronization behavior. Our World never constructs or routes through
   `OASISEdgeAPI` directly.
-- ODOOM and OQuake load the slim NativeAOT OGEngineClient. It owns the reusable C ABI, HTTP, caches, gameplay queues
-  and main-thread callback pump. Its `remote` transport is implemented; selecting `native` currently fails explicitly
-  because Edge Runtime is not linked into that artifact.
+- ODOOM and OQuake load the slim NativeAOT OGEngineClient. It owns the reusable C ABI, HTTP, caches, gameplay queues,
+  main-thread callback pump and (in the Edge profile) the lightweight Edge Runtime. They continue to select the HTTP
+  transport because that setting describes the hosted command channel, not offline capability. The legacy `native`
+  transport means embedding the full OASIS/ONODE runtime and remains deliberately unavailable in the slim game DLL;
+  selecting it fails explicitly instead of silently changing architectures.
 
 The agreed target architecture is one reusable, offline-first OGEngineClient with Edge Runtime always composed:
 
@@ -302,18 +304,37 @@ definition converges rather than producing a second user-visible world object.
    IL2CPP APK are built and archive-inspected. Physical Android profiling under throttled, absent and restored
    networks remains the final product acceptance gate.
 
+Generic NFT, NFT-collection and GeoHotSpot definitions now have stable first-class HyperDrive entity names and
+Mongo domain codecs alongside GeoNFT. Reverse capture publishes them as global definitions, and the Our World
+cross-game asset view merges generic NFT and GeoNFT projections by stable id while offline. The real Our World
+map/presentation loader and canonical `OGEngineClient.GetGeoHotSpotAsync` now select the durable GeoHotSpot
+projection whenever Edge mode is enabled, return missing/corrupt local data as a visible error, and never silently
+fall back to REST. Remote-only builds retain the established STAR API request path from the same source file. This
+combination compiles in Unity against the exact manifested SQLite MVP package and is protected by an editor
+regression test. GeoHotSpot trigger submission now records canonical evidence and a stable operation id as a durable
+HyperDrive command. The shared hosted authority validates authored rules, reserves spawn limits/cooldowns, applies
+protected rewards idempotently and publishes the authoritative result after reconnect.
+
 ## Deferred full-API coverage
+
+The narrowed Our World inventory surface is complete through add, update, remove, use, atomic transfer, local list
+reads and local statistics. When Edge mode is enabled, both inventory rows and aggregate statistics come from the
+private authoritative avatar-detail projection; remote-only mode remains an explicit configuration choice.
 
 The later comprehensive milestone retains these work items:
 
 - all Avatar and AvatarDetail mutations and overloads;
 - generic Holon CRUD/query overload compatibility;
-- Karma history plus authorized add/deduct command semantics;
+- administrative Karma weighting/versioning changes; Karma transfer is intentionally unsupported because Karma is
+  reputation rather than a transferable balance. Authenticated add/deduct is now
+  an idempotent AvatarGameplay command whose hosted provider validates the named Karma type against the canonical
+  Core weighting before atomically committing total, Akashic history and operation receipt;
 - provider administration and capability management where offline operation is meaningful;
 - complete generic NFT mint, update, ownership, transfer and trading workflows;
 - first-class GeoHotSpot CRUD, query and conflict semantics;
 - complete GeoNFT creation, editing, transfer and trading workflows;
-- complete inventory add/remove/use/transfer/trade semantics;
+- marketplace/barter trade semantics involving consideration or escrow (durable add/update/remove/use and atomic
+  cross-avatar item transfer are implemented);
 - exhaustive Legacy versus `OASISHyperDrive2` manager/API regression matrices;
 - long-running ONET partition, multi-device conflict and mobile resource soak tests.
 
@@ -334,6 +355,15 @@ The narrow milestone is complete only when automated evidence proves:
 - physical-device loss/recovery tests meet recorded frame, memory, battery, storage and latency budgets.
 ## HoloOASIS 0.7 implementation status
 
-The Holochain 0.7 DNA/hApp in `OASIS-Holochain-hApp` now builds, packs and passes real-conductor Sweettest coverage for provider lookup, HyperDrive replay idempotency and public-DHT secret rejection. The C# HoloOASIS and Unity adapter also build against that contract.
+The Holochain 0.7 DNA/hApp in `OASIS-Holochain-hApp` now builds, packs and passes real-conductor Sweettest coverage for provider lookup, HyperDrive replay idempotency and public-DHT secret rejection. The C# HoloOASIS and Unity adapter also build against that contract. The provenance-verified `HoloEnabled` UPM profile now compiles in Unity 2022.3 and produces an Android API 27+, ARM64-only IL2CPP APK containing the required Holochain conductor libraries. Its Kotlin 1.6.21/coroutines 1.6.4 dependency closure is pinned to Unity 2022.3's Android build-tool boundary and hash-verified during packaging.
 
-This completes the desktop/runtime contract gate. Physical Android profiling plus two-device offline/gossip/online-resynchronization field tests remain required before HoloOASIS replaces Edge SQLite as the default Our World mobile provider; desktop conductor tests do not establish phone CPU, memory, storage, thermal or battery budgets.
+The lightweight Holo Edge repository is now implemented without importing the full OASIS Core/server dependency
+graph. Edge SQLite atomically writes a separate per-target Holo projection record with each accepted local entity
+mutation; hosted acknowledgement cannot delete it. OGEngineClient configures that target before opening the store,
+and its Unity host owns deterministic conductor/Edge start, suspend, resume, rollback and disposal ordering. Queued
+work survives process restart and drains in device-sequence order after the authenticated Holo session returns.
+
+This completes the software composition and Android player-build contract gates. Physical Android
+installation/lifecycle and process-death tests, profiling, plus two-device offline/gossip/online-resynchronization
+field tests remain required before HoloOASIS replaces Edge SQLite as the default Our World mobile provider; a
+successful player build does not establish phone CPU, memory, storage, thermal or battery budgets.

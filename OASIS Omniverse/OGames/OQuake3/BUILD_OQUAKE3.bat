@@ -42,11 +42,7 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API DLL ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll" if exist "%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib" (
-    set "STAR_DLL=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\publish\ogengine.dll"
-    set "STAR_LIB=%OGENGINECLIENT%\bin\Release\net9.0\win-x64\native\ogengine.lib"
-)
-if not defined STAR_DLL if exist "%OQUAKE3_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE3_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE3_INTEGRATION%\ogengine.lib"
+if exist "%OQUAKE3_INTEGRATION%\ogengine.dll" set "STAR_DLL=%OQUAKE3_INTEGRATION%\ogengine.dll" & set "STAR_LIB=%OQUAKE3_INTEGRATION%\ogengine.lib"
 if not defined STAR_DLL (
     echo ogengine.dll missing after deploy. Check OGEngineClient build.
     pause & exit /b 1
@@ -72,6 +68,7 @@ if not exist "%Q3E_SRC%\code\game" mkdir "%Q3E_SRC%\code\game"
 copy /Y "%OQUAKE3_CODE%oquake3_ogengine_integration.c" "%Q3E_SRC%\code\game\" >nul
 copy /Y "%OQUAKE3_CODE%oquake3_ogengine_integration.h" "%Q3E_SRC%\code\game\" >nul
 copy /Y "%OGENGINECLIENT%\ogengine.h" "%Q3E_SRC%\code\game\" >nul
+for %%F in (oglib_edge.h oglib_json.h) do copy /Y "%HERE%..\..\OGLib\%%F" "%Q3E_SRC%\code\game\" >nul
 if exist "%OQUAKE3_CODE%ogengine_sync.h" copy /Y "%OQUAKE3_CODE%ogengine_sync.h" "%Q3E_SRC%\code\game\" >nul
 copy /Y "%STAR_DLL%" "%Q3E_SRC%\ogengine.dll" >nul
 if defined STAR_LIB copy /Y "%STAR_LIB%" "%Q3E_SRC%\ogengine.lib" >nul

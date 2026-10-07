@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>OASIS Key-Value Storage Provider Base</Product>
+    <Title>OASIS Key-Value Storage Provider Base</Title>
+    <Description>Complete OASIS storage provider implementation (avatars, avatar details, holons, parent/child links, search, import/export) over any key-value or blob service. Used by the edge KV and blob storage providers. https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS; Provider; Storage; KeyValue; Blob</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>2.0.1</Version>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+  </ItemGroup>
+</Project>

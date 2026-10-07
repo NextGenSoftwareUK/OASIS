@@ -112,24 +112,90 @@ public class ONETIntegrationTests
         {
             await Task.Delay(300);
 
-            var sig = Convert.ToBase64String(ecdsa.SignData(Encoding.UTF8.GetBytes("ONET_PING"), HashAlgorithmName.SHA256));
-            var pingLine = Encoding.UTF8.GetBytes($"ONET_PING {nodeId} {sig}\n");
+            var pingLine = FreshPingLine(ecdsa, nodeId, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
-            using var client = new TcpClient();
-            await client.ConnectAsync(IPAddress.Loopback, node.ListenPort);
-            using var stream = client.GetStream();
-            await stream.WriteAsync(pingLine);
-
-            var buf  = new byte[512];
-            var read = await stream.ReadAsync(buf);
-            var resp = Encoding.UTF8.GetString(buf, 0, read);
-
-            resp.Should().Contain("ONET_PONG", "authenticated PING with valid signature must be accepted");
+            (await SendLineAsync(node.ListenPort, pingLine)).Should().Contain("ONET_PONG", "authenticated PING with valid signature must be accepted");
+            (await SendLineAsync(node.ListenPort, pingLine)).Should().Contain("ONET_AUTH_FAILED", "a captured PING must not be replayable");
         }
         finally
         {
             await node.StopNetworkAsync();
         }
+    }
+
+    [Fact]
+    public async Task ONETProtocol_AuthenticatedPing_StaleOrLegacyFormat_ReturnsAuthFailed()
+    {
+        using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var pubKeyB64 = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+        var nodeId = Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(pubKeyB64))).ToLowerInvariant();
+
+        var node = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        node.RegisterNodePublicKey(nodeId, pubKeyB64).Should().BeTrue();
+        await node.StartNetworkAsync();
+
+        try
+        {
+            await Task.Delay(300);
+
+            var stale = FreshPingLine(ecdsa, nodeId, DateTimeOffset.UtcNow.AddMinutes(-10).ToUnixTimeSeconds());
+            (await SendLineAsync(node.ListenPort, stale)).Should().Contain("ONET_AUTH_FAILED");
+
+            var legacySig = Convert.ToBase64String(ecdsa.SignData(Encoding.UTF8.GetBytes("ONET_PING"), HashAlgorithmName.SHA256));
+            (await SendLineAsync(node.ListenPort, $"ONET_PING {nodeId} {legacySig}")).Should().Contain("ONET_AUTH_FAILED");
+        }
+        finally
+        {
+            await node.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETManager_ConnectAndDisconnect_UseTheProtocolPeerTable()
+    {
+        var dna = new OASISDNA();
+        dna.OASIS.ONET = new ONETConfig { TcpPort = GetFreeTcpPort(), BootstrapServers = new List<string>(), AutoRegisterOnBootstrap = false };
+        var mgr = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        var peer = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await mgr.InitializeAsync();
+        await mgr.StartNetworkAsync();
+        await peer.StartNetworkAsync();
+
+        try
+        {
+            await Task.Delay(300);
+            (await mgr.ConnectToNodeAsync("peer-1", $"127.0.0.1:{peer.ListenPort}")).IsError.Should().BeFalse();
+
+            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(1);
+            (await mgr.GetConnectedNodesAsync()).Result.Should().ContainSingle(n => n.Id == "peer-1");
+
+            (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeFalse();
+            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(0);
+            (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeTrue("the peer is no longer connected");
+        }
+        finally
+        {
+            await peer.StopNetworkAsync();
+            await mgr.StopNetworkAsync();
+        }
+    }
+
+    private static string FreshPingLine(ECDsa ecdsa, string nodeId, long unixSeconds)
+    {
+        var message = ONETSecurity.BuildFreshSignedMessage(ONETSecurity.PingPurpose, nodeId, unixSeconds);
+        var sig = Convert.ToBase64String(ecdsa.SignData(Encoding.UTF8.GetBytes(message), HashAlgorithmName.SHA256));
+        return $"ONET_PING {nodeId} {unixSeconds} {sig}";
+    }
+
+    private static async Task<string> SendLineAsync(int port, string line)
+    {
+        using var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, port);
+        using var stream = client.GetStream();
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(line + "\n"));
+        var buf = new byte[512];
+        var read = await stream.ReadAsync(buf);
+        return Encoding.UTF8.GetString(buf, 0, read);
     }
 
     [Fact]
@@ -148,7 +214,7 @@ public class ONETIntegrationTests
         {
             await Task.Delay(300);
 
-            var pingLine = Encoding.UTF8.GetBytes($"ONET_PING {unknownNodeId} {sig}\n");
+            var pingLine = Encoding.UTF8.GetBytes($"ONET_PING {unknownNodeId} {DateTimeOffset.UtcNow.ToUnixTimeSeconds()} {sig}\n");
 
             using var client = new TcpClient();
             await client.ConnectAsync(IPAddress.Loopback, node.ListenPort);

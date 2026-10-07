@@ -8,7 +8,7 @@ if "%WOLF3D_DATA%"=="" set "WOLF3D_DATA=C:\Wolf3D"
 set "ECWOLF_SRC=%OWOLF3D_SRC%"
 if "%ECWOLF_SRC%"=="" set "ECWOLF_SRC=C:\Source\OWolf3D"
 
-set "EXE=%ECWOLF_SRC%\build-vs2019-win64\Release\ecwolf.exe"
+set "EXE=%ECWOLF_SRC%\build-vs\Release\ecwolf.exe"
 
 if not exist "%EXE%" (
     echo ecwolf.exe not found. Building first...

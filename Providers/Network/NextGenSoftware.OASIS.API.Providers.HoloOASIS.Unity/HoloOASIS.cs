@@ -1,19 +1,21 @@
-﻿//using NextGenSoftware.Holochain.HoloNET.Client.Core;
-//using NextGenSoftware.Holochain.HoloNET.Client.Unity;
-//using NextGenSoftware.OASIS.API.Core.Helpers;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
-//using System;
-//using System.Collections.Generic;
-//using System.Threading.Tasks;
+using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.OASIS.API.DNA;
 
-//namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity
-//{
-//    public class HoloOASIS : HoloOASISBase
-//    {
-//        public HoloOASIS(string holochainURI, HolochainVersion version) : base(new HoloNETClient(holochainURI, version))
-//        {
-            
-//        }
-//    }
-//}
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity
+{
+    /// <summary>Unity-compatible HoloOASIS composition over HoloNET.</summary>
+    public sealed class HoloOASIS : global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS
+    {
+        public HoloOASIS(HoloNETClientAdmin adminClient, HoloNETClientAppAgent appAgentClient,
+            OASISDNA oasisDNA = null, string holoNetworkUri = "https://holo.host",
+            bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
+            : base(adminClient, appAgentClient, oasisDNA, holoNetworkUri, useLocalNode,
+                useHoloNetwork, useHoloNETORMReflection) { }
+
+        public HoloOASIS(string conductorAdminUri, string conductorAppUri,
+            OASISDNA oasisDNA = null, string holoNetworkUri = "https://holo.host",
+            bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
+            : base(conductorAdminUri, conductorAppUri, oasisDNA, holoNetworkUri, useLocalNode,
+                useHoloNetwork, useHoloNETORMReflection) { }
+    }
+}

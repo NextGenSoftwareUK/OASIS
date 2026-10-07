@@ -53,6 +53,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (UseLocalNode)
                 {
+                    if (HoloNETClientAdmin == null)
+                    {
+                        if (HoloNETClientAppAgent == null)
+                        {
+                            OASISErrorHandling.HandleError(ref result,
+                                $"{errorMessage}A service-provisioned HoloOASIS session requires an app client.");
+                            return result;
+                        }
+
+                        if (HoloNETClientAppAgent.State != System.Net.WebSockets.WebSocketState.Open)
+                        {
+                            HoloNETConnectedEventArgs appConnectResult = await HoloNETClientAppAgent.ConnectAsync();
+                            if (appConnectResult == null || appConnectResult.IsError || !appConnectResult.IsConnected)
+                            {
+                                OASISErrorHandling.HandleError(ref result,
+                                    $"{errorMessage}Error connecting the service-provisioned HoloNET app endpoint {HoloNETClientAppAgent.EndPoint?.AbsoluteUri}. Reason: {appConnectResult?.Message}");
+                                return result;
+                            }
+                        }
+
+                        HoloNETClientAppAgent.OnError += HoloNETClientAppAgent_OnError;
+                        IsProviderActivated = true;
+                        result.Result = true;
+                    }
+                    else
+                    {
                     HoloNETClientAdmin.OnError += HoloNETClientAdmin_OnError;
 
                     if (HoloNETClientAdmin.State == System.Net.WebSockets.WebSocketState.Open)
@@ -76,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {
-                                HoloNETClientAppAgent = installedAppResult.HoloNETClientAppAgent;
+                                BindAppClient(installedAppResult.HoloNETClientAppAgent);
                                 IsProviderActivated = true;
                                 result.Result = true;
                             }
@@ -99,6 +125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                     if (HoloNETClientAppAgent != null)
                         HoloNETClientAppAgent.OnError += HoloNETClientAppAgent_OnError;
+                    }
                 }
                 
                 if (UseHoloNetwork)
@@ -207,12 +234,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (HoloNETClientAppAgent != null)
                     HoloNETClientAppAgent.OnError -= HoloNETClientAppAgent_OnError;
 
-                if (holoNETClientAdminResult != null && holoNETClientAdminResult.IsDisconnected && !holoNETClientAdminResult.IsError && holoNETClientAppAgent != null && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError)
-                {
-                    result.Result = true;
-                    IsProviderActivated = false;
-                }
-                else if (holoNETClientAdminResult == null || holoNETClientAppAgent == null)
+                bool adminDisconnected = HoloNETClientAdmin == null ||
+                    (holoNETClientAdminResult != null && holoNETClientAdminResult.IsDisconnected && !holoNETClientAdminResult.IsError);
+                bool appDisconnected = HoloNETClientAppAgent == null ||
+                    (holoNETClientAppAgent != null && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError);
+                if (adminDisconnected && appDisconnected)
                 {
                     result.Result = true;
                     IsProviderActivated = false;

@@ -219,6 +219,19 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// <summary>TCP port ONETProtocol listens on for peer connections. Default matches the hardcoded constant in ONETProtocol.</summary>
         public int TcpPort { get; set; } = 38470;
 
+        /// <summary>
+        /// Externally reachable host:port of this node's ONET TCP listener, sent (with a proof-of-key signature)
+        /// when registering with bootstrap servers so peers can connect. Leave empty for nodes that only dial out.
+        /// </summary>
+        public string AdvertisedAddress { get; set; } = "";
+
+        /// <summary>
+        /// Stable identifier for this node deployment, used to persist its ONET identity and peers through the
+        /// storage provider across ephemeral restarts. Falls back to RAILWAY_SERVICE_ID; give each replica its own
+        /// value when running more than one. The identity is only persisted when OASIS_ONET_STATE_KEY is set.
+        /// </summary>
+        public string InstanceId { get; set; } = "";
+
         /// <summary>Enable mDNS local-network peer discovery (Internal mode only).</summary>
         public bool EnableMDNS { get; set; } = true;
 

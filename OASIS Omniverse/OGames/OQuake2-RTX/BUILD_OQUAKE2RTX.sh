@@ -66,6 +66,7 @@ mkdir -p "$Q2RTX_SRC/src/game"
 cp -f "$OQUAKE2RTX_CODE/oquake2rtx_ogengine_integration.c" "$Q2RTX_SRC/src/game/"
 cp -f "$OQUAKE2RTX_CODE/oquake2rtx_ogengine_integration.h" "$Q2RTX_SRC/src/game/"
 cp -f "$OGENGINECLIENT/ogengine.h" "$Q2RTX_SRC/src/game/"
+for f in oglib_edge.h oglib_json.h; do cp -f "$HERE/../../OGLib/$f" "$Q2RTX_SRC/src/game/"; done
 [ -f "$OQUAKE2RTX_CODE/ogengine_sync.h" ] && cp -f "$OQUAKE2RTX_CODE/ogengine_sync.h" "$Q2RTX_SRC/src/game/"
 cp -f "$STAR_SO" "$Q2RTX_SRC/"
 echo "  Copied to: $Q2RTX_SRC/src/game/"

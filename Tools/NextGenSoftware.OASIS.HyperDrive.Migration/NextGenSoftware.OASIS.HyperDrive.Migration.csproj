@@ -10,4 +10,7 @@
     <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization/NextGenSoftware.OASIS.HyperDrive.Synchronization.csproj" />
     <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests" />
+  </ItemGroup>
 </Project>

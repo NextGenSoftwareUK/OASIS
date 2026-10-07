@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
     /// Tests for ONETController singleton caching and endpoint delegation.
     /// Uses reflection to inject a stub ONETManager so OASISBootLoader is never touched.
     /// </summary>
+    [Collection(ONETControllerSingletonCollection.Name)]
     public class ONETControllerLifecycleTests : IDisposable
     {
         // ── helpers ────────────────────────────────────────────────────────────
@@ -181,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             public override Task<OASISResult<bool>> StopNetworkAsync()
                 => Task.FromResult(new OASISResult<bool>(true));
 
-            public override void RegisterNodePublicKey(string nodeId, string publicKey) { }
+            public override bool RegisterNodePublicKey(string nodeId, string publicKey) => true;
         }
     }
 }

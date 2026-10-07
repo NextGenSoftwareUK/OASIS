@@ -1,4 +1,11 @@
-# OHeretic — Heretic + OASIS STAR API
+# OHeretic
+
+> **OHeretic runs on the ODOOM integration.** ODOOM is UZDoom with OASIS, and UZDoom
+> plays Heretic natively. The shared ODOOM integration detects Heretic and reports
+> game source `OHERETIC`, with Heretic's monsters (XP/NFT), keys and artifacts. Build with
+> `BUILD_OHERETIC` (which builds ODOOM) and play with `RUN_OHERETIC` (ODOOM + `-iwad heretic.wad`).
+> The old standalone integration is kept in `Legacy/` for reference only.
+
 
 **OHeretic** is a fork of **UZDoom** (a GZDoom variant) targeting Heretic with the **OASIS STAR API** integrated, bringing Heretic into the OASIS Omniverse. Keys, inventory, XP, and quests are shared across all 20 OASIS Omniverse OGames.
 

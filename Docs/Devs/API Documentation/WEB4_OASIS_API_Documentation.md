@@ -715,8 +715,10 @@ POST /api/oland
 
 #### **ONET Network Management**
 ```http
-GET /api/onet/oasisdna
-PUT /api/onet/oasisdna
+GET /api/v1/onet/config        (Wizard; secrets redacted)
+PUT /api/v1/onet/config        (Wizard; identity keys immutable)
+GET /api/v1/onet/peers         (peer exchange; X-ONET-NodeId/Timestamp/Signature)
+POST /api/v1/onet/nodes/register (anonymous; NodeId = SHA-256(PublicKey); NodeAddress needs signature)
 GET /api/onet/network/status
 GET /api/onet/network/nodes
 POST /api/onet/network/connect

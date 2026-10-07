@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "runId": "replace-with-unique-device-run-id",
+  "operator": "replace-with-tester-name",
+  "observedAtUtc": "2026-10-03T00:00:00Z",
+  "sourceCommit": "replace-with-40-character-oasis-commit",
+  "profile": "HoloEnabled",
+  "build": {
+    "version": "replace-with-version",
+    "androidSha256": "replace-with-apk-or-aab-sha256",
+    "iosSha256": "replace-with-ipa-sha256"
+  },
+  "devices": [
+    { "id": "android-a", "platform": "Android", "model": "replace", "osVersion": "replace", "architecture": "arm64-v8a" },
+    { "id": "android-b", "platform": "Android", "model": "replace", "osVersion": "replace", "architecture": "arm64-v8a" },
+    { "id": "ios-a", "platform": "iOS", "model": "replace", "osVersion": "replace", "architecture": "arm64" }
+  ],
+  "measurements": [
+    {
+      "platform": "Android",
+      "frameTimeP95Ms": 0,
+      "maxFrameTimeP95Ms": 0,
+      "cpuUtilizationP95Percent": 0,
+      "maxCpuUtilizationP95Percent": 0,
+      "peakPssMb": 0,
+      "maxPeakPssMb": 0,
+      "databaseGrowthMb": 0,
+      "maxDatabaseGrowthMb": 0,
+      "reconnectSeconds": 0,
+      "maxReconnectSeconds": 0,
+      "syncDrainSeconds": 0,
+      "maxSyncDrainSeconds": 0,
+      "batteryDrainPercentPerHour": 0,
+      "maxBatteryDrainPercentPerHour": 0,
+      "networkUploadMb": 0,
+      "maxNetworkUploadMb": 0,
+      "networkDownloadMb": 0,
+      "maxNetworkDownloadMb": 0
+    },
+    {
+      "platform": "iOS",
+      "frameTimeP95Ms": 0,
+      "maxFrameTimeP95Ms": 0,
+      "cpuUtilizationP95Percent": 0,
+      "maxCpuUtilizationP95Percent": 0,
+      "peakPssMb": 0,
+      "maxPeakPssMb": 0,
+      "databaseGrowthMb": 0,
+      "maxDatabaseGrowthMb": 0,
+      "reconnectSeconds": 0,
+      "maxReconnectSeconds": 0,
+      "syncDrainSeconds": 0,
+      "maxSyncDrainSeconds": 0,
+      "batteryDrainPercentPerHour": 0,
+      "maxBatteryDrainPercentPerHour": 0,
+      "networkUploadMb": 0,
+      "maxNetworkUploadMb": 0,
+      "networkDownloadMb": 0,
+      "maxNetworkDownloadMb": 0
+    }
+  ],
+  "cases": [
+    { "id": "android-online-sign-in", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-flight-mode-warm-session", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-flight-mode-cold-start", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-network-loss-in-flight", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-process-kill-offline-restart", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-suspend-resume", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-reconnect-drain", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "android-hardware-backed-session", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "ios-offline-lifecycle", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "ios-process-kill-offline-restart", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "ios-reconnect-drain", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "holo-two-device-offline-convergence", "status": "PENDING", "notes": "", "artifacts": [] },
+    { "id": "holo-two-device-hosted-reconciliation", "status": "PENDING", "notes": "", "artifacts": [] }
+  ]
+}

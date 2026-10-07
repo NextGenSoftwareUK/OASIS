@@ -119,13 +119,32 @@ public class ONETManagerUnitTests
     }
 
     [Fact]
-    public void RegisterNodePublicKey_DoesNotThrow()
+    public void RegisterNodePublicKey_NodeIdDerivedFromKey_IsAccepted()
     {
         var manager = new ONETManager(storageProvider: null, oasisdna: null, networkType: P2PNetworkType.Internal);
-        // Use a valid base64-encoded 32-byte value so ONETSecurity.RegisterNodePublicKey can parse it.
-        string validBase64Key = Convert.ToBase64String(new byte[32]);
-        Action act = () => manager.RegisterNodePublicKey("nodeid123", validBase64Key);
-        act.Should().NotThrow();
+        using var ecdsa = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+        var publicKey = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+        var nodeId = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Convert.FromBase64String(publicKey))).ToLowerInvariant();
+
+        manager.RegisterNodePublicKey(nodeId, publicKey).Should().BeTrue();
+    }
+
+    [Fact]
+    public void RegisterNodePublicKey_NodeIdNotDerivedFromKey_IsRejected()
+    {
+        var manager = new ONETManager(storageProvider: null, oasisdna: null, networkType: P2PNetworkType.Internal);
+        using var ecdsa = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+        var publicKey = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+
+        manager.RegisterNodePublicKey("victim-node-id", publicKey).Should().BeFalse();
+    }
+
+    [Fact]
+    public void RegisterNodePublicKey_InvalidKey_IsRejected()
+    {
+        var manager = new ONETManager(storageProvider: null, oasisdna: null, networkType: P2PNetworkType.Internal);
+
+        manager.RegisterNodePublicKey("nodeid123", Convert.ToBase64String(new byte[32])).Should().BeFalse();
     }
 
     [Fact]
@@ -179,5 +198,25 @@ public class ONETManagerUnitTests
 
         result.IsError.Should().BeFalse();
         result.Result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task UpdateONETConfigAsync_RejectsLocalNodeInPeerRegistrySetWithoutMutatingConfiguration()
+    {
+        var dna = BuildDna(nodeId: "local-node");
+        dna.OASIS.ONET.CapabilityRegistryNodeIds = new List<string> { "existing-peer" };
+        dna.OASIS.ONET.CapabilityRegistryQuorum = 1;
+        var manager = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        var update = BuildDna(nodeId: "ignored").OASIS.ONET;
+        update.CapabilityRegistryNodeIds = new List<string> { "peer-a", "local-node" };
+        update.CapabilityRegistryQuorum = 2;
+        update.CapabilityRegistryReconciliationSeconds = 30;
+
+        var result = await manager.UpdateONETConfigAsync(update);
+
+        result.IsError.Should().BeTrue();
+        result.Message.Should().Contain("own NodeId");
+        dna.OASIS.ONET.CapabilityRegistryNodeIds.Should().Equal("existing-peer");
+        dna.OASIS.ONET.CapabilityRegistryQuorum.Should().Be(1);
     }
 }
