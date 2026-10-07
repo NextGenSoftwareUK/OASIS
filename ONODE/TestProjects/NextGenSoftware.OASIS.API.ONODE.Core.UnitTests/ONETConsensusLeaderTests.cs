@@ -62,8 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             consensus.CurrentLeader.Should().Be("only");
 
             await Task.Delay(300);
-            // Any vote triggers a consensus evaluation pass.
-            await consensus.VoteAsync("no-such-proposal", "only", approve: true);
+            await consensus.EvaluateAsync();
 
             consensus.CurrentLeader.Should().BeEmpty();
         }

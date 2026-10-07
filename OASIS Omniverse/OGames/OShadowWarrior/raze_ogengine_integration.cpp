@@ -17,6 +17,8 @@
 #include "c_dispatch.h"
 #include "coreactor.h"
 #include "gamecontrol.h"
+#include "gamestate.h"
+#include "mapinfo.h"
 #include "printf.h"
 
 static const char* Raze_GameSource(void)
@@ -79,9 +81,49 @@ void Raze_STAR_Init(void)
 		std::atexit([] { oglib_game_shutdown(); });
 }
 
+/*
+ * OASIS Omniverse Hub - protocol lives in ogengine_hub_frame (OGEngineClient); see
+ * Docs/OMNIVERSE_HUB_IPC.md. Raze's main loop keeps running while paused, so the Hub
+ * can pause and unpause. Arrivals use Raze's own "map" and "warptocoords" commands.
+ */
+static FString g_hub_pending_map;
+static float g_hub_pending_pos[3];
+static bool g_hub_pending_spawn = false;
+
+static void Raze_HubApplyPendingSpawn(void)
+{
+	if (!g_hub_pending_spawn || gamestate != GS_LEVEL || !currentLevel) return;
+	if (g_hub_pending_map.IsNotEmpty() && g_hub_pending_map.CompareNoCase(currentLevel->labelName) != 0) return;
+	if (g_hub_pending_pos[0] != 0 || g_hub_pending_pos[1] != 0 || g_hub_pending_pos[2] != 0)
+		C_DoCommand(FStringf("warptocoords %f %f %f", g_hub_pending_pos[0], g_hub_pending_pos[1], g_hub_pending_pos[2]).GetChars());
+	g_hub_pending_spawn = false;
+	g_hub_pending_map = "";
+}
+
+static void Raze_HubFrame(void)
+{
+	Raze_HubApplyPendingSpawn();
+	const char* mapName = (gamestate == GS_LEVEL && currentLevel) ? currentLevel->labelName.GetChars() : "";
+	ogengine_hub_frame_t hub;
+	if (!ogengine_hub_frame(Raze_DisplayName(), mapName, paused ? 1 : 0, &hub)) return;
+
+	if ((hub.pause_change > 0 && !paused) || (hub.pause_change < 0 && paused))
+		C_DoCommand("pause");
+
+	if (hub.has_arrive) {
+		g_hub_pending_pos[0] = hub.x; g_hub_pending_pos[1] = hub.y; g_hub_pending_pos[2] = hub.z;
+		g_hub_pending_spawn = true;
+		g_hub_pending_map = hub.arrive_map;
+		if (hub.arrive_map[0])
+			C_DoCommand(FStringf("map %s", hub.arrive_map).GetChars());
+		Printf("[OASIS] Hub arrive: map=%s pos=%.0f/%.0f/%.0f\n", hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
+	}
+}
+
 void Raze_STAR_Tick(void)
 {
 	oglib_game_tick();
+	Raze_HubFrame();
 }
 
 void Raze_STAR_OnKill(DCoreActor* killed)

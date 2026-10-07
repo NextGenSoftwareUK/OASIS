@@ -204,6 +204,39 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         }
 
         [TestMethod]
+        public async Task Version_control_keeps_prior_versions_without_polluting_listings()
+        {
+            _provider.IsVersionControlEnabled = true;
+            var holon = new Holon { Name = "v1" };
+            await _provider.SaveHolonAsync(holon);
+            holon.Name = "v2";
+            await _provider.SaveHolonAsync(holon);
+
+            var current = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.AreEqual("v2", current.Result.Name);
+            Assert.AreEqual(2, current.Result.Version);
+
+            var first = await _provider.LoadHolonAsync(holon.Id, loadChildren: false, version: 1);
+            Assert.IsFalse(first.IsError, first.Message);
+            Assert.AreEqual("v1", first.Result.Name);
+            Assert.AreEqual(1, (await _provider.LoadAllHolonsAsync()).Result.Count());
+
+            Assert.IsFalse((await _provider.DeleteHolonAsync(holon.Id)).IsError);
+            Assert.AreEqual(0, _backend.Items.Count);
+        }
+
+        [TestMethod]
+        public async Task Without_version_control_old_versions_are_not_kept()
+        {
+            var holon = new Holon { Name = "v1" };
+            await _provider.SaveHolonAsync(holon);
+            holon.Name = "v2";
+            await _provider.SaveHolonAsync(holon);
+
+            Assert.IsTrue((await _provider.LoadHolonAsync(holon.Id, loadChildren: false, version: 1)).IsError);
+        }
+
+        [TestMethod]
         public async Task Stored_json_cannot_instantiate_non_OASIS_types()
         {
             var id = Guid.NewGuid();

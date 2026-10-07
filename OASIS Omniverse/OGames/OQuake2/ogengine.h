@@ -325,7 +325,7 @@ int ogengine_hub_is_hidden(const char* avatar_id);
 typedef struct {
     int32_t pause_change;   /* +1 pause the game now, -1 unpause it now, 0 no change */
     int32_t has_arrive;     /* 1 = portal arrival received this call */
-    char arrive_map[64];    /* validated map to load first ([A-Za-z0-9_]); empty = stay on current map */
+    char arrive_map[64];    /* validated map to load first ([A-Za-z0-9_/], no dots); empty = stay on current map */
     float x, y, z;          /* spawn point; all 0 = game default spawn */
 } ogengine_hub_frame_t;
 
