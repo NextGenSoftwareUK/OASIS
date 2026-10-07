@@ -275,6 +275,10 @@ jobs:
             $status | ForEach-Object { Write-Error $_ }
             throw "Release validation must begin from a clean source checkout."
           }
+      - name: Validate Unity batch lifecycle contract
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/test_edge_unity_batch_lifecycle.ps1
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
