@@ -246,32 +246,71 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError) { OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}"); return result; }
+                }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/{id}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) { result.Result = true; result.Message = $"Avatar {id} {(softDelete ? "soft" : "hard")} deleted from ThreeFold Grid"; }
+                else OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error deleting avatar: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from ThreeFold Grid: {ex.Message}", ex); }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError) { OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}"); return result; }
+                }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/by-key/{Uri.EscapeDataString(providerKey)}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) { result.Result = true; result.Message = $"Avatar with key '{providerKey}' {(softDelete ? "soft" : "hard")} deleted from ThreeFold Grid"; }
+                else OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error deleting avatar by key: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from ThreeFold Grid: {ex.Message}", ex); }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError) { OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}"); return result; }
+                }
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}?softDelete={softDelete}");
+                if (response.IsSuccessStatusCode) { result.Result = true; result.Message = $"Avatar with email '{avatarEmail}' {(softDelete ? "soft" : "hard")} deleted from ThreeFold Grid"; }
+                else OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error deleting avatar by email: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from ThreeFold Grid: {ex.Message}", ex); }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
@@ -642,12 +681,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError) { OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}"); return result; }
+                }
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons?type={type}&version={version}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<Holon>();
+                    result.Result = holons.Cast<IHolon>();
+                }
+                else OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error loading all holons: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading all holons from ThreeFold Grid: {ex.Message}", ex); }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

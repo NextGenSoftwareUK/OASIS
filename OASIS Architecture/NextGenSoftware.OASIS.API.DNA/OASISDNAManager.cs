@@ -236,6 +236,12 @@ namespace NextGenSoftware.OASIS.API.DNA
                 onet.CapabilityRegistryNodeIds = (onet.CapabilityRegistryNodeIds ?? new List<string>())
                     .Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim())
                     .Distinct(StringComparer.Ordinal).ToList();
+                if (!string.IsNullOrWhiteSpace(onet.NodeId) &&
+                    onet.CapabilityRegistryNodeIds.Contains(onet.NodeId.Trim(), StringComparer.Ordinal))
+                {
+                    error = "ONET CapabilityRegistryNodeIds contains this node's own NodeId; only authenticated peer registry ids are allowed.";
+                    return false;
+                }
                 if (onet.CapabilityRegistryQuorum < 1 ||
                     (onet.CapabilityRegistryNodeIds.Count > 0 &&
                      onet.CapabilityRegistryQuorum > onet.CapabilityRegistryNodeIds.Count))

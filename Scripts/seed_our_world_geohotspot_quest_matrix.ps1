@@ -21,31 +21,77 @@ $ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
 $suite='geohotspot-end-to-end-matrix'
 $imageRoot='https://raw.githubusercontent.com/NextGenSoftwareUK/OASIS/Development/Docs/Assets/OurWorld/TreeBigIcons'
 $cases=@(
- @{key='arrival-map';name='Violet Arrival Gate';group='triggers';trigger='WhenArrivedAtGeoLocation';content='Map';bearing=25;distance=270;radius=20;perm=$false;share=$true;global=0;player=1;cooldown=0;safe=$true;near=$false;visible=$true},
- @{key='dwell-text';name='Lavender Dwell Archive';group='triggers';trigger='WhenAtGeoLocationForXSeconds';content='Text';bearing=55;distance=290;radius=18;dwell=8;perm=$true;share=$true;global=0;player=1;cooldown=20;safe=$true;near=$false;visible=$true},
- @{key='gaze-ar';name='Amethyst Gaze Beacon';group='triggers';trigger='WhenLookingAtObjectOrImageForXSecondsInARMode';content='AR';bearing=85;distance=310;radius=15;gaze=5;perm=$true;share=$true;global=0;player=1;cooldown=0;safe=$false;near=$false;visible=$true},
- @{key='touch-ir';name='Orchid Touch Sigil';group='triggers';trigger='WhenObjectOrImageIsTouchedInARMode';content='IR';bearing=115;distance=330;radius=15;perm=$false;share=$true;global=0;player=2;cooldown=0;safe=$false;near=$false;visible=$true},
- @{key='audio-inventory';name='Plum Resonance Cache';group='rewards';trigger='WhenArrivedAtGeoLocation';content='Audio';bearing=145;distance=270;radius=20;perm=$false;share=$true;global=0;player=1;cooldown=0;safe=$true;near=$false;visible=$true;inventory=0},
- @{key='video-geonft';name='Indigo Memory Well';group='rewards';trigger='WhenAtGeoLocationForXSeconds';content='Video';bearing=175;distance=290;radius=18;dwell=5;perm=$false;share=$true;global=3;player=1;cooldown=0;safe=$true;near=$false;visible=$true;geonft=0},
- @{key='website-multi';name='Purple Crossroads Cache';group='rewards';trigger='WhenObjectOrImageIsTouchedInARMode';content='WebsiteLink';bearing=205;distance=310;radius=15;perm=$false;share=$true;global=-1;player=0;cooldown=10;safe=$true;near=$false;visible=$true;inventory=1;geonft=1},
- @{key='vr-events';name='Ultraviolet Event Nexus';group='rewards';trigger='WhenLookingAtObjectOrImageForXSecondsInARMode';content='VR';bearing=235;distance=330;radius=15;gaze=4;perm=$false;share=$false;global=0;player=2;cooldown=5;safe=$false;near=$false;visible=$true;inventory=2},
- @{key='global-precedence';name='Royal Global Reserve';group='policies';trigger='WhenArrivedAtGeoLocation';content='Map';bearing=265;distance=270;radius=20;perm=$false;share=$true;global=2;player=5;cooldown=0;safe=$true;near=$false;visible=$true},
- @{key='player-unlimited';name='Mauve Personal Spring';group='policies';trigger='WhenArrivedAtGeoLocation';content='Map';bearing=295;distance=290;radius=20;perm=$false;share=$true;global=0;player=-1;cooldown=10;safe=$true;near=$false;visible=$true},
- @{key='exclusive-near';name='Heather Exclusive Portal';group='policies';trigger='WhenArrivedAtGeoLocation';content='Map';bearing=325;distance=310;radius=20;perm=$false;share=$false;global=0;player=1;cooldown=0;safe=$false;near=$true;visible=$true},
- @{key='permanent-delayed';name='Magenta Renewal Portal';group='policies';trigger='WhenAtGeoLocationForXSeconds';content='Text';bearing=355;distance=330;radius=18;dwell=3;perm=$true;share=$true;global=0;player=1;cooldown=30;safe=$true;near=$true;visible=$true}
+ @{key='arrival-map';name='Violet Arrival Gate';group='triggers';trigger='WhenArrivedAtGeoLocation';content='Map';karma=5;xp=0;bearing=25;distance=270;radius=20;perm=$false;share=$true;global=0;player=1;cooldown=0;safe=$true;near=$false;visible=$true},
+ @{key='dwell-text';name='Lavender Dwell Archive';group='triggers';trigger='WhenAtGeoLocationForXSeconds';content='Text';karma=0;xp=15;bearing=55;distance=290;radius=18;dwell=8;perm=$true;share=$true;global=0;player=1;cooldown=20;safe=$true;near=$false;visible=$true},
+ @{key='gaze-ar';name='Amethyst Gaze Beacon';group='triggers';trigger='WhenLookingAtObjectOrImageForXSecondsInARMode';content='AR';karma=20;xp=25;bearing=85;distance=310;radius=15;gaze=5;perm=$true;share=$true;global=0;player=1;cooldown=0;safe=$false;near=$false;visible=$true},
+ @{key='touch-ir';name='Orchid Touch Sigil';group='triggers';trigger='WhenObjectOrImageIsTouchedInARMode';content='IR';karma=35;xp=40;bearing=115;distance=330;radius=15;perm=$false;share=$true;global=0;player=2;cooldown=0;safe=$false;near=$false;visible=$true},
+ @{key='audio-inventory';name='Plum Resonance Cache';group='rewards';trigger='WhenArrivedAtGeoLocation';content='Audio';karma=10;xp=20;bearing=145;distance=270;radius=20;perm=$false;share=$true;global=0;player=1;cooldown=0;safe=$true;near=$false;visible=$true;inventory=0},
+ @{key='video-geonft';name='Indigo Memory Well';group='rewards';trigger='WhenAtGeoLocationForXSeconds';content='Video';karma=30;xp=45;bearing=175;distance=290;radius=18;dwell=5;perm=$false;share=$true;global=3;player=1;cooldown=0;safe=$true;near=$false;visible=$true;geonft=0},
+ @{key='website-multi';name='Purple Crossroads Cache';group='rewards';trigger='WhenObjectOrImageIsTouchedInARMode';content='WebsiteLink';karma=55;xp=65;bearing=205;distance=310;radius=15;perm=$false;share=$true;global=-1;player=0;cooldown=10;safe=$true;near=$false;visible=$true;inventory=1;geonft=1},
+ @{key='vr-events';name='Ultraviolet Event Nexus';group='rewards';trigger='WhenLookingAtObjectOrImageForXSecondsInARMode';content='VR';karma=90;xp=110;bearing=235;distance=330;radius=15;gaze=4;perm=$false;share=$false;global=0;player=2;cooldown=5;safe=$false;near=$false;visible=$true;inventory=2},
+ @{key='global-precedence';name='Royal Global Reserve';group='policies';trigger='WhenArrivedAtGeoLocation';content='Map';karma=25;xp=10;bearing=265;distance=270;radius=20;perm=$false;share=$true;global=2;player=5;cooldown=0;safe=$true;near=$false;visible=$true},
+ @{key='player-unlimited';name='Mauve Personal Spring';group='policies';trigger='WhenArrivedAtGeoLocation';content='Map';karma=45;xp=35;bearing=295;distance=290;radius=20;perm=$false;share=$true;global=0;player=-1;cooldown=10;safe=$true;near=$false;visible=$true},
+ @{key='exclusive-near';name='Heather Exclusive Portal';group='policies';trigger='WhenArrivedAtGeoLocation';content='Map';karma=70;xp=80;bearing=325;distance=310;radius=20;perm=$false;share=$false;global=0;player=1;cooldown=0;safe=$false;near=$true;visible=$true},
+ @{key='permanent-delayed';name='Magenta Renewal Portal';group='policies';trigger='WhenAtGeoLocationForXSeconds';content='Text';karma=120;xp=130;bearing=355;distance=330;radius=18;dwell=3;perm=$true;share=$true;global=0;player=1;cooldown=30;safe=$true;near=$true;visible=$true}
 )
 function Point($bearing,$distance){$r=[Math]::PI/180;$lat=$Latitude*$r;$lon=$Longitude*$r;$h=$bearing*$r;$a=$distance/6371008.8;$nlat=[Math]::Asin([Math]::Sin($lat)*[Math]::Cos($a)+[Math]::Cos($lat)*[Math]::Sin($a)*[Math]::Cos($h));$nlon=$lon+[Math]::Atan2([Math]::Sin($h)*[Math]::Sin($a)*[Math]::Cos($lat),[Math]::Cos($a)-[Math]::Sin($lat)*[Math]::Sin($nlat));@{lat=[Math]::Round($nlat/$r,8);long=[Math]::Round((($nlon/$r+540)%360)-180,8)}}
-if($PlanOnly){$cases|ConvertTo-Json -Depth 10;return}
+if($PlanOnly){$cases|ForEach-Object{[pscustomobject]@{key=$_.key;name=$_.name;group=$_.group;rewardKarma=$_.karma;rewardXP=$_.xp}}|ConvertTo-Json -Depth 10;return}
+$schema=Invoke-RestMethod "$($Web5BaseUrl.TrimEnd('/'))/swagger/v1/swagger.json"
+$objectiveRewardContract=@($schema.components.schemas.PSObject.Properties|Where-Object{$propertiesProperty=$_.Value.PSObject.Properties['properties'];$properties=if($null-ne$propertiesProperty){$propertiesProperty.Value}else{$null};$_.Name-match'Objective'-and$null-ne$properties-and$null-ne$properties.PSObject.Properties['rewardKarma']-and$null-ne$properties.PSObject.Properties['rewardXP']})
+if($objectiveRewardContract.Count-eq0){throw 'Deploy the WEB5 objective XP/Karma reward contract before running this seed. No data has been changed.'}
+$triggerRequestSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{$_.Name-eq'TriggerGeoHotSpotRequest'})|Select-Object -First 1
+$geoHotSpotSchema=@($schema.components.schemas.PSObject.Properties|Where-Object{
+ $propertiesProperty=$_.Value.PSObject.Properties['properties']
+ $properties=if($null-ne$propertiesProperty){$propertiesProperty.Value}else{$null}
+ $null-ne$properties-and
+ $null-ne$properties.PSObject.Properties['boundaryType']-and
+ $null-ne$properties.PSObject.Properties['recognitionTargetKey']
+})|Select-Object -First 1
+if($null-eq$triggerRequestSchema-or$null-eq$triggerRequestSchema.Value.properties.PSObject.Properties['recognitionConfidence']-or$null-eq$geoHotSpotSchema){throw 'Deploy the WEB5 GeoHotSpot boundary/recognition evidence contract before running this seed. No data has been changed.'}
 function Unwrap($r){if($null-eq$r.PSObject.Properties['isError']){$r=$r.result};if($null-eq$r-or$r.isError){throw "API operation failed: $($r.message)"};$r.result}
 $credential=Import-Clixml $CredentialPath;$login=@{username=$credential.UserName;password=$credential.GetNetworkCredential().Password}|ConvertTo-Json
 try{$avatar=Unwrap(Invoke-RestMethod "$Web4BaseUrl/api/avatar/authenticate" -Method Post -ContentType application/json -Body $login)}finally{$login=$null;$credential=$null}
 $headers=@{Authorization="Bearer $($avatar.jwtToken)"}
 function Api($base,$path,$method='Get',$body=$null){$a=@{Uri="$($base.TrimEnd('/'))/api/$path";Headers=$headers;Method=$method;TimeoutSec=180};if($null-ne$body){$a.ContentType='application/json';$a.Body=$body|ConvertTo-Json -Depth 80};Unwrap(Invoke-RestMethod @a)}
+function GetEventually($base,$path,[int]$attempts=8,[int]$delaySeconds=2){
+ for($attempt=1;$attempt-le$attempts;$attempt++){
+  try{
+   $result=Api $base $path
+   if($null-ne$result){return $result}
+  }
+  catch{
+   $statusCode=$null
+   if($null-ne$_.Exception.Response){$statusCode=[int]$_.Exception.Response.StatusCode}
+   $isTransientNotFound=$statusCode-in@(400,404)
+   if(!$isTransientNotFound-or$attempt-eq$attempts){throw}
+  }
+  if($attempt-lt$attempts){Start-Sleep -Seconds $delaySeconds}
+ }
+ return $null
+}
 $manifest=[ordered]@{version=1;avatarId="$($avatar.id)";suite=$suite;hotspots=@();quests=@();rewards=@()}
 if(Test-Path $ManifestPath){$manifest=Get-Content $ManifestPath -Raw|ConvertFrom-Json;if("$($manifest.avatarId)"-ne"$($avatar.id)"){throw 'Manifest belongs to another avatar.'}}
 function SaveManifest{New-Item -ItemType Directory -Force (Split-Path $ManifestPath)|Out-Null;$manifest|ConvertTo-Json -Depth 40|Set-Content $ManifestPath -Encoding UTF8}
 function CaseValue($case,[string]$key,$defaultValue){if($case.ContainsKey($key)){return $case[$key]};return $defaultValue}
 function TriggerValue([string]$name){switch($name){'WhenArrivedAtGeoLocation'{0}'WhenAtGeoLocationForXSeconds'{1}'WhenLookingAtObjectOrImageForXSecondsInARMode'{2}'WhenObjectOrImageIsTouchedInARMode'{3}default{throw "Unknown trigger type '$name'."}}}
+function IsArCase($case){return $case.trigger-in@('WhenLookingAtObjectOrImageForXSecondsInARMode','WhenObjectOrImageIsTouchedInARMode')}
+function HotSpotBody($case,$point){
+ $ar=IsArCase $case
+ @{
+  name=$case.name;description="$($case.content) fixture for $($case.trigger).";lat=$point.lat;long=$point.long
+  triggerType=(TriggerValue $case.trigger);hotSpotRadiusInMetres=$case.radius;boundaryType='Circle';boundaryLatitudes=@();boundaryLongitudes=@()
+  recognitionTargetKey=if($ar){'our-world-tree-v1'}else{''};recognitionTargetClass=if($ar){'Tree'}else{''};minimumRecognitionConfidence=if($ar){0.65}else{0}
+  rewardKarma=$case.karma;rewardXP=$case.xp
+  timeInSecondsNeedToBeAtLocationToTriggerHotSpot=(CaseValue $case 'dwell' 0)
+  timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot=(CaseValue $case 'gaze' 0)
+  allowOtherPlayersToAlsoCollect=$case.share;permSpawn=$case.perm
+  globalSpawnQuantity=$case.global;playerSpawnQuantity=$case.player;respawnDurationInSeconds=$case.cooldown
+  spawnInSafeZone=$case.safe;spawnNearPlayer=$case.near;spawnWithinXMetersFromPlayer=80
+  spawnXMetersAwayFromPlayer=$case.distance;isVisibleOnMap=$case.visible
+  image2DURI="$imageRoot/mycelium-tree.png";textContent="GeoHotSpot matrix: $($case.content)";websiteUrl='https://oasisweb4.one'
+  metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.FixtureKey'=$case.key;'OurWorld.ContentType'=$case.content;'OurWorld.RecognitionProfile'=if($ar){'our-world-tree-v1'}else{''};'GeoHotSpotType'=$case.content}
+ }
+}
 try{
  if(!(Test-Path $GeoNFTManifestPath)){throw 'Seed the GeoNFT quest matrix first; its tagged GeoNFTs are the reward fixtures.'}
  $geoManifest=Get-Content $GeoNFTManifestPath -Raw|ConvertFrom-Json;$geoRewards=@($geoManifest.fixtures|Where-Object geoNFTId|Select-Object -First 2)
@@ -56,7 +102,7 @@ try{
    $saved=@($manifest.hotspots|Where-Object key -eq $c.key)|Select-Object -First 1
    if($null-ne$saved) {
      $persisted=Api $Web5BaseUrl "geohotspots/$($saved.id)"
-     if($null-ne$persisted){continue}
+     if($null-ne$persisted){$body=HotSpotBody $c @{lat=[double]$persisted.lat;long=[double]$persisted.long};$null=Api $Web5BaseUrl "geohotspots/$($saved.id)" 'Put' $body;continue}
      $manifest.hotspots=@($manifest.hotspots|Where-Object key -ne $c.key)
      SaveManifest
    }
@@ -65,20 +111,7 @@ try{
    if($existing.Count-eq1){$hot=$existing[0]}
    else {
      $p=Point $c.bearing $c.distance
-     $body=@{
-       name=$c.name; description="$($c.content) fixture for $($c.trigger)."; lat=$p.lat; long=$p.long
-       triggerType=(TriggerValue $c.trigger); hotSpotRadiusInMetres=$c.radius
-       timeInSecondsNeedToBeAtLocationToTriggerHotSpot=(CaseValue $c 'dwell' 0)
-       timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot=(CaseValue $c 'gaze' 0)
-       allowOtherPlayersToAlsoCollect=$c.share; permSpawn=$c.perm
-       globalSpawnQuantity=$c.global; playerSpawnQuantity=$c.player; respawnDurationInSeconds=$c.cooldown
-       spawnInSafeZone=$c.safe; spawnNearPlayer=$c.near; spawnWithinXMetersFromPlayer=80
-       spawnXMetersAwayFromPlayer=$c.distance; isVisibleOnMap=$c.visible
-       image2DURI="$imageRoot/mycelium-tree.png"
-       textContent="GeoHotSpot matrix: $($c.content)"
-       websiteUrl='https://oasisweb4.one'
-       metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.FixtureKey'=$c.key;'OurWorld.ContentType'=$c.content;'GeoHotSpotType'=$c.content}
-     }
+     $body=HotSpotBody $c $p
      $inventoryIndex=CaseValue $c 'inventory' $null
      $geoNFTIndex=CaseValue $c 'geonft' $null
      if($null-ne$inventoryIndex){$body.rewardIds=@("$($manifest.rewards[$inventoryIndex].id)")}
@@ -94,6 +127,7 @@ try{
    rewards='ANY-ORDER REWARD/EVENT TEST: All incomplete portals are visible and each objective progresses independently. Objective 1 grants the Violet Access Shard and fires ShowNarration, ShowImage, and PlayAudio. Objective 2 grants the first tagged GeoNFT, enforces a global quantity of 3, and fires PlayVideo, OpenWebsite, and PlayAnimation. Objective 3 grants the Amethyst Field Key plus the second tagged GeoNFT, uses unlimited global quantity with zero per-player limit and a 10-second cooldown, and fires SpawnEntity, UnlockPortal, and TeleportTo. Objective 4 grants the Purple Signal Crystal, disallows sharing, permits 2 collections per player, and has a 5-second cooldown.'
    policies='ANY-ORDER SPAWN-POLICY TEST: All incomplete portals are visible and each objective progresses independently. Objective 1 proves finite global quantity 2 takes precedence over per-player quantity 5. Objective 2 proves no global cap plus unlimited per-player quantity (-1) with a 10-second cooldown. Objective 3 proves an exclusive/non-shareable, near-player, unsafe-zone spawn limited to 1 per player. Objective 4 proves a permanent, shareable, near-player dwell trigger (3 seconds) with a 30-second cooldown.'
  }
+ $questRewards=@{triggers=@{karma=80;xp=120};rewards=@{karma=175;xp=225};policies=@{karma=300;xp=200}}
  $questRows=@(Api $Web5BaseUrl 'quests/all-for-avatar/game')
  foreach($group in 'triggers','rewards','policies') {
    $title=switch($group){'triggers'{'GeoHotSpot Signals: Four Ways In'}'rewards'{'GeoHotSpot Rewards: Purple Protocol'}default{'GeoHotSpot Limits: Shared Ground'}}
@@ -102,23 +136,24 @@ try{
    $members=@($manifest.hotspots|Where-Object group -eq $group)
    $objectives=@();$index=0
    foreach($h in $members) {
+     $case=@($cases|Where-Object key -eq $h.key)|Select-Object -First 1
      $events=@()
      if($group-eq'rewards') {
        for($e=$index*3;$e-lt[Math]::Min($index*3+3,$eventTypes.Count);$e++) {
          $events+=@{eventType=$eventTypes[$e];targetGame='Our World';narrationText="$($eventTypes[$e]) fixture";imageUrl="$imageRoot/rainbow-tree.png";audioUrl='https://oasisweb4.one';videoUrl='https://oasisweb4.one';websiteUrl='https://oasisweb4.one';animationKey='objective-complete';entityClassname='GeoHotSpotFixture';spawnCount=1;portalId='fixture';targetMap='UnityWorldSpace'}
        }
      }
-     $objectives+=@{title="Trigger $($h.name)";description="Complete the $group fixture $($h.name).";gameSource='Our World';order=$index;linkedGeoHotSpotId=$h.id;dictionaries=@{needToGoToGeoHotSpots=@{'Our World'=@("$($h.id)")}};crossGameEventsOnGeoHotSpotTriggered=$events}
+     $objectives+=@{title="Trigger $($h.name)";description="Complete the $group fixture $($h.name).";gameSource='Our World';order=$index;rewardKarma=$case.karma;rewardXP=$case.xp;linkedGeoHotSpotId=$h.id;dictionaries=@{needToGoToGeoHotSpots=@{'Our World'=@("$($h.id)")}};crossGameEventsOnGeoHotSpotTriggered=$events}
      $index++
    }
    $order=if($group-eq'triggers'){0}else{1}
-   $questBody=@{name=$title;description=$questDescriptions[$group];gameSource='Our World';status=1;createdByAvatarId=$avatar.id;objectiveCompletionOrder=$order;objectives=$objectives;metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.TestGroup'=$group}}
+   $questBody=@{name=$title;description=$questDescriptions[$group];gameSource='Our World';status=1;createdByAvatarId=$avatar.id;objectiveCompletionOrder=$order;rewardKarma=$questRewards[$group].karma;rewardXP=$questRewards[$group].xp;objectives=$objectives;metaData=@{'OurWorld.TestSuite'=$suite;'OurWorld.TestGroup'=$group}}
    $quest=if($existing.Count-eq1){Api $Web5BaseUrl "quests/$($existing[0].id)" 'Put' $questBody}else{Api $Web5BaseUrl 'quests' 'Post' $questBody}
    $manifest.quests=@($manifest.quests|Where-Object group -ne $group)
    $manifest.quests+=@{group=$group;id="$($quest.id)";name=$title};SaveManifest
  }
  foreach($fixture in $manifest.hotspots) {
-   $verifiedHotSpot=Api $Web5BaseUrl "geohotspots/$($fixture.id)"
+   $verifiedHotSpot=GetEventually $Web5BaseUrl "geohotspots/$($fixture.id)"
    if($null-eq$verifiedHotSpot){throw "GeoHotSpot verification failed for '$($fixture.name)': the API returned no persisted record."}
    $verifiedId=$verifiedHotSpot.PSObject.Properties['id']
    if($null-eq$verifiedId -or [string]$verifiedId.Value-ne[string]$fixture.id){throw "GeoHotSpot verification failed for '$($fixture.name)': $(ConvertTo-Json $verifiedHotSpot -Depth 4 -Compress)"}

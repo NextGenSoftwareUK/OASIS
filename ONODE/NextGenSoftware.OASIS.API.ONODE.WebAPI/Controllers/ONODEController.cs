@@ -36,12 +36,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private static Task<ONODEManager> GetOnodeManagerAsync()
         {
-            if (_onodeManagerTask != null)
+            if (_onodeManagerTask != null && !_onodeManagerTask.IsFaulted && !_onodeManagerTask.IsCanceled)
                 return _onodeManagerTask;
 
             lock (_onodeManagerLock)
             {
-                _onodeManagerTask ??= InitializeOnodeManagerAsync();
+                if (_onodeManagerTask == null || _onodeManagerTask.IsFaulted || _onodeManagerTask.IsCanceled)
+                    _onodeManagerTask = InitializeOnodeManagerAsync();
                 return _onodeManagerTask;
             }
         }
@@ -57,70 +58,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var onetManager = await ONETController.GetOnetManagerStaticAsync();
 
             return new ONODEManager(providerResult.Result, OASISBootLoader.OASISBootLoader.OASISDNA, onetManager);
-        }
-
-        /// <summary>
-        /// Get OASISDNA configuration for ONODE
-        /// </summary>
-        [HttpGet("oasisdna")]
-        public async Task<IActionResult> GetOASISDNA()
-        {
-            try
-            {
-                var result = await (await GetOnodeManagerAsync()).GetOASISDNAAsync();
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return Ok(new OASISResult<OASISDNA>
-                    {
-                        Result = null,
-                        IsError = false,
-                        Message = "OASISDNA retrieved successfully (using test data)"
-                    });
-                }
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return Ok(new OASISResult<OASISDNA>
-                    {
-                        Result = null,
-                        IsError = false,
-                        Message = "OASISDNA retrieved successfully (using test data)"
-                    });
-                }
-                _logger.LogError(ex, "Error getting OASISDNA configuration");
-                return StatusCode(500, new { message = "Error getting OASISDNA configuration", error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Update OASISDNA configuration for ONODE
-        /// </summary>
-        [HttpPut("oasisdna")]
-        public async Task<IActionResult> UpdateOASISDNA([FromBody] OASISDNA oasisdna)
-        {
-            if (oasisdna == null)
-                return BadRequest(new { message = "The request body is required. Please provide a valid OASISDNA configuration object." });
-            try
-            {
-                var result = await (await GetOnodeManagerAsync()).UpdateOASISDNAAsync(oasisdna);
-                if (result.IsError)
-                {
-                    return BadRequest(new { message = result.Message, errors = result.InnerMessages });
-                }
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating OASISDNA configuration");
-                return StatusCode(500, new { message = "Error updating OASISDNA configuration", error = ex.Message });
-            }
         }
 
         /// <summary>

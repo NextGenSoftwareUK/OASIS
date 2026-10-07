@@ -18,7 +18,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse. It give
 - **Holonic BRAID shared memory** — agents across sessions share a growing library of Mermaid reasoning graphs. Over time, the network gets better at your specific problem types.
 - **Fractal holonic memory** — structured, hierarchical memory from session level all the way up to a shared planetary Earth holon, with consent-governed membrane rules controlling what propagates upward.
 - **External memory** — plug in Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, or Weaviate as memory backends. WEB6 searches them all and injects the relevant context into your prompts automatically.
-- **516 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
+- **512 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
 
 ---
 
@@ -30,7 +30,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse. It give
 # npm — recommended, no .NET SDK required
 npm install -g @oasisomniverse/mcp-server
 
-# NuGet dotnet tool
+# NuGet dotnet tool (.NET 10 SDK)
 dotnet tool install -g NextGenSoftware.OASIS.MCP.Server
 ```
 
@@ -42,16 +42,17 @@ Add to your IDE config (`~/.cursor/mcp.json`, `.vscode/mcp.json`, or `claude_des
     "oasis": {
       "command": "oasis-mcp",
       "env": {
-        "OASIS_API_URL": "https://api.web4.oasisomniverse.one",
-        "OPENAI_API_KEY": "sk-...",
-        "ANTHROPIC_API_KEY": "sk-ant-..."
+        "OASIS_USERNAME": "your-avatar-username-or-email",
+        "OASIS_PASSWORD": "your-avatar-password"
       }
     }
   }
 }
 ```
 
-Restart your IDE. The 111 OASIS tools now appear in the tool list.
+Restart your IDE. The 512 OASIS tools now appear in the tool list.
+
+`oasis-mcp` is a stdio proxy to the hosted endpoint `https://api.web6.oasisomniverse.one/mcp`. Every tool runs server-side **as your avatar** and is **billed to your WEB4 subscription** (AI tools on measured tokens, everything else as one API request), so you need no OASIS DNA or AI provider keys. Tools that act on an avatar only accept your own avatar ID, email or username unless you are a Wizard, and bulk/administration tools are Wizard-only. You can use `OASIS_BEARER_TOKEN` instead of a username and password; see the [MCP Server README](../../../../WEB6/NextGenSoftware.OASIS.MCP.Server/README.md) for every option.
 
 ---
 
@@ -102,7 +103,7 @@ ZEP_API_KEY=...
 LETTA_BASE_URL=http://localhost:8283
 
 # OASIS platform
-OASIS_API_URL=https://api.web4.oasisomniverse.one
+WEB4_API_BASE_URL=https://api.web4.oasisomniverse.one   # WEB4 authority for subscriptions and WEB4-delegated MCP tools
 ```
 
 ---
@@ -468,7 +469,10 @@ curl -X POST /v1/complete \
 Set at least one AI provider key in your environment (e.g. `OPENAI_API_KEY`) or store one in the key vault.
 
 **429 Too Many Requests**
-You've hit the per-avatar token or cost quota. Check the `Retry-After` header and either wait or increase the quota via usage settings.
+You've hit a WEB4 subscription limit. The error code says which: `MONTHLY_REQUEST_LIMIT_EXCEEDED`, `DAILY_CALL_LIMIT_EXCEEDED` (resets 00:00 UTC), `DAILY_TOKEN_LIMIT_EXCEEDED` or `MONTHLY_BUDGET_EXCEEDED`. Check `GET /v1/usage` for your remaining allowance, wait for the reset, or upgrade your plan. See [Quotas & Tiers](WEB6_Quotas_and_Tiers.md).
+
+**503 SETTLEMENT_PENDING**
+Your call ran, but WEB4 was briefly unreachable when recording usage. It is stored and settled automatically; do not resubmit with a new `Idempotency-Key`.
 
 **Provider returns an error but auto-routing is on**
 WEB6 tries fallback providers automatically. If all fail, check `GET /v1/providers/status` for a live health report.
@@ -501,7 +505,7 @@ Ensure the server has `app.UseWebSockets()` enabled (it does by default). Check 
 ## See also
 
 - [WEB6 REST API Reference](WEB6_REST_API_Reference.md) — full endpoint docs with request/response shapes
-- [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) — detailed examples plus the complete 516-command catalog
+- [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) — detailed examples plus the complete 512-command catalog
 - [WEB6 GitHub README](../../../../WEB6/README.md)
 - [MCP Server README](../../../../WEB6/NextGenSoftware.OASIS.MCP.Server/README.md)
 - [WEB4 API Docs](../WEB4%20OASIS%20API/README.md)

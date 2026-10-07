@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             try
             {
                 var pt = ParseEnum(request.ProviderType, ProviderType.Default);
-                PerformanceMonitor.Instance.ResetMetrics(pt);
+                ProviderManager.Instance.PerformanceMonitor.ResetMetrics(pt);
                 return Task.FromResult(new OASISGrpcResponse());
             }
             catch (Exception ex) { return Task.FromResult(new OASISGrpcResponse { IsError = true, Message = ex.Message }); }
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                PerformanceMonitor.Instance.ResetAllMetrics();
+                ProviderManager.Instance.PerformanceMonitor.ResetAllMetrics();
                 return Task.FromResult(new OASISGrpcResponse());
             }
             catch (Exception ex) { return Task.FromResult(new OASISGrpcResponse { IsError = true, Message = ex.Message }); }

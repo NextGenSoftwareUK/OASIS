@@ -228,13 +228,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             entityType == HyperDriveEntityTypes.Holon ||
             entityType == HyperDriveEntityTypes.Quest ||
             entityType == HyperDriveEntityTypes.InventoryItem ||
+            entityType == HyperDriveEntityTypes.Nft ||
+            entityType == HyperDriveEntityTypes.NftCollection ||
             entityType == HyperDriveEntityTypes.GeoNft ||
-            entityType == HyperDriveEntityTypes.GeoNftCollection;
+            entityType == HyperDriveEntityTypes.GeoNftCollection ||
+            entityType == HyperDriveEntityTypes.GeoHotSpot;
 
         private static bool IsGlobalDomainEntityType(string entityType) =>
             entityType == HyperDriveEntityTypes.Quest ||
+            entityType == HyperDriveEntityTypes.Nft ||
+            entityType == HyperDriveEntityTypes.NftCollection ||
             entityType == HyperDriveEntityTypes.GeoNft ||
-            entityType == HyperDriveEntityTypes.GeoNftCollection;
+            entityType == HyperDriveEntityTypes.GeoNftCollection ||
+            entityType == HyperDriveEntityTypes.GeoHotSpot;
 
         private static string SyncAudienceForEntityType(string entityType) =>
             IsGlobalDomainEntityType(entityType) ? "global" : "avatar";
@@ -247,10 +253,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 return holonType == HolonType.Quest;
             if (entityType == HyperDriveEntityTypes.InventoryItem)
                 return holonType == HolonType.InventoryItem;
+            if (entityType == HyperDriveEntityTypes.Nft)
+                return holonType == HolonType.Web3NFT || holonType == HolonType.Web4NFT || holonType == HolonType.Web5NFT;
+            if (entityType == HyperDriveEntityTypes.NftCollection)
+                return holonType == HolonType.Web4NFTCollection || holonType == HolonType.Web5NFTCollection;
             if (entityType == HyperDriveEntityTypes.GeoNft)
                 return holonType == HolonType.Web4GeoNFT || holonType == HolonType.Web5GeoNFT;
             if (entityType == HyperDriveEntityTypes.GeoNftCollection)
                 return holonType == HolonType.Web4GeoNFTCollection || holonType == HolonType.Web5GeoNFTCollection;
+            if (entityType == HyperDriveEntityTypes.GeoHotSpot)
+                return holonType == HolonType.GeoHotSpot;
             return false;
         }
 
@@ -261,10 +273,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 case HolonType.Quest: return HyperDriveEntityTypes.Quest;
                 case HolonType.InventoryItem: return HyperDriveEntityTypes.InventoryItem;
+                case HolonType.Web3NFT:
+                case HolonType.Web4NFT:
+                case HolonType.Web5NFT: return HyperDriveEntityTypes.Nft;
+                case HolonType.Web4NFTCollection:
+                case HolonType.Web5NFTCollection: return HyperDriveEntityTypes.NftCollection;
                 case HolonType.Web4GeoNFT:
                 case HolonType.Web5GeoNFT: return HyperDriveEntityTypes.GeoNft;
                 case HolonType.Web4GeoNFTCollection:
                 case HolonType.Web5GeoNFTCollection: return HyperDriveEntityTypes.GeoNftCollection;
+                case HolonType.GeoHotSpot: return HyperDriveEntityTypes.GeoHotSpot;
                 default: return HyperDriveEntityTypes.Holon;
             }
         }

@@ -1,9 +1,10 @@
 # OASIS Provider Summary
 
-_227 unique providers across 9 categories — last updated: 2026-09-22 (capabilities audit)_
+_222 working providers across 9 categories — last updated: 2026-10-02 (implementation audit)_
 
 > Provider count is derived directly from the `Providers/` directory tree.
-> Duplicate folder copies (Ceramic in Blockchain, MoralisDBOASIS in Blockchain, Arweave in Network) have been removed — each provider now lives in exactly one canonical folder.
+> A provider is counted only if its folder contains a buildable provider class. Packaging variants, libraries, commented-out shells and retired providers are listed under [Not counted](#not-counted) instead.
+> Each provider lives in exactly one canonical folder; the Ceramic and Moralis duplicates in `Network/` were removed on 2026-10-02 in favour of the more complete `Blockchain/` copies.
 
 ---
 
@@ -16,16 +17,16 @@ Each provider also has a `ProviderCapabilities` list (secondary capabilities —
 | Folder | `ProviderCategory` | Providers |
 |---|---|---|
 | AI | `AI` (Bittensor, Ritual) · `EVMBlockchain` (Galadriel) | 3 |
-| Blockchain | `EVMBlockchain` (34 EVM chains) · `Blockchain` (24 non-EVM) | 58 |
+| Blockchain | `EVMBlockchain` (34 EVM chains) · `Blockchain` (24 non-EVM) · `StorageAndNetwork` (Ceramic, Moralis) | 60 |
 | Cloud | `Cloud` | 16 |
 | Identity | `Identity` | 7 |
 | Maps | `Map` (most) · `Spatial` (Decentraland, Ready Player Me, The Sandbox) | 10 |
-| Network | `Network` | 48 |
-| Other | `Storage` (GUN, OrbitDB) · `Network` (Dapr, PLAN, Temporal) · `Application` (SEEDS, Urbit) · `AI` (IntelOpenVINO) · stubs (Cargo, ONION, Orion) | 11 |
+| Network | `Network` | 40 |
+| Other | `Storage` (GUN, OrbitDB) · `Network` (Dapr, Orion, PLAN, Temporal) · `StorageAndNetwork` (ONION) · `Application` (SEEDS, Urbit) · `AI` (IntelOpenVINO) | 10 |
 | Social | `Social` | 12 |
-| Storage | `Storage` (most) · `StorageLocal` (LocalFile, SQLite, DuckDB) | 65 |
+| Storage | `Storage` (most) · `StorageLocal` (LocalFile, SQLite, DuckDB) | 64 |
 
-**Total unique providers: 227**
+**Total working providers: 222**
 
 ---
 
@@ -43,13 +44,15 @@ These are AI-network blockchain adapters that expose network data as holons. The
 
 ---
 
-### Blockchain / L1 / L2 / Cross-chain (58) — `EVMBlockchain` / `Blockchain`
+### Blockchain / L1 / L2 / Cross-chain (60) — `EVMBlockchain` / `Blockchain`
 
 Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain tooling.
 
 **EVM-compatible (`EVMBlockchain`, 34):** Abstract, Arbitrum, Avalanche, Base, Basechain, Berachain, BNB Chain, ChainLink, Chainlink Functions, Connext, deBridge, EigenLayer, Espresso Systems, Ethereum, Fantom, Fhenix, Gelato Network, Hyperlane, LayerZero V2, Linea, Monad, OpenZeppelin Defender, Optimism, Polygon, Rootstock, Scroll, Sei, Stargate, Synapse, Telos, TRON, Web3Core, Wormhole, zkSync
 
 **Non-EVM (`Blockchain`, 24):** Algorand, Aptos, Axelar, Aztec, Bitcoin, Stacks, Cardano, Chainflip, Cosmos, EOS, MultiversX, Filecoin, Hashgraph, Miden, NEAR, Polkadot, Radix, Solana, Starknet, Stellar, Sui, TON, XRP, Zcash
+
+**On-chain data / storage (`StorageAndNetwork`, 2):** Ceramic / ComposeDB, Moralis
 
 | Provider | Package | Description |
 |---|---|---|
@@ -67,6 +70,7 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 | Bitcoin | `NextGenSoftware.OASIS.API.Providers.BitcoinOASIS` | Bitcoin L1 |
 | Stacks (BlockStack) | `NextGenSoftware.OASIS.API.Providers.BlockStackOASIS` | Stacks Bitcoin L2 |
 | Cardano | `NextGenSoftware.OASIS.API.Providers.CardanoOASIS` | Cardano L1 |
+| Ceramic / ComposeDB | `NextGenSoftware.OASIS.API.Providers.CeramicOASIS` | Ceramic / ComposeDB data streams |
 | ChainLink | `NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS` | Chainlink decentralised oracle network |
 | Chainflip | `NextGenSoftware.OASIS.API.Providers.ChainflipOASIS` | Chainflip native cross-chain DEX |
 | Chainlink Functions | `NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS` | Chainlink Functions serverless on-chain compute |
@@ -88,6 +92,7 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 | Linea | `NextGenSoftware.OASIS.API.Providers.LineaOASIS` | Linea zkEVM L2 (Consensys) |
 | Miden | `NextGenSoftware.OASIS.API.Providers.MidenOASIS` | Polygon Miden ZK rollup |
 | Monad | `NextGenSoftware.OASIS.API.Providers.MonadOASIS` | Monad high-performance EVM L1 |
+| Moralis | `NextGenSoftware.OASIS.API.Providers.MoralisOASIS` | Moralis Web3 data API |
 | NEAR | `NextGenSoftware.OASIS.API.Providers.NEAROASIS` | NEAR Protocol L1 |
 | OpenZeppelin Defender | `NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS` | OpenZeppelin Defender smart contract security |
 | Optimism | `NextGenSoftware.OASIS.API.Providers.OptimismOASIS` | Optimism L2 (OP Stack) |
@@ -170,7 +175,7 @@ Includes L1/L2 chains, cross-chain bridges, omnichain messaging, and on-chain to
 
 ---
 
-### Network / Web3 API (48) — `Network`
+### Network / Web3 API (40) — `Network`
 
 Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scoring, messaging, and social networks not in the dedicated Social folder.
 
@@ -180,10 +185,8 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 | Akash | `NextGenSoftware.OASIS.API.Providers.AkashOASIS` | Akash decentralised cloud compute |
 | Alchemy | `NextGenSoftware.OASIS.API.Providers.AlchemyOASIS` | Alchemy Web3 developer platform |
 | Ankr | `NextGenSoftware.OASIS.API.Providers.AnkrOASIS` | Ankr multi-chain RPC & staking |
-| Arweave | `NextGenSoftware.OASIS.API.Providers.ArweaveOASIS` | Arweave permanent storage |
 | Blockscout | `NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS` | Blockscout open-source block explorer API |
 | Celestia | `NextGenSoftware.OASIS.API.Providers.CelestiaOASIS` | Celestia modular data availability layer |
-| Ceramic / ComposeDB | `NextGenSoftware.OASIS.API.Providers.CeramicOASIS` | Ceramic / ComposeDB data streams |
 | Civic | `NextGenSoftware.OASIS.API.Providers.CivicOASIS` | Civic identity & KYC |
 | Covalent | `NextGenSoftware.OASIS.API.Providers.CovalentOASIS` | Covalent unified multi-chain data API |
 | Dune Analytics | `NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS` | Dune Analytics on-chain SQL queries |
@@ -192,15 +195,10 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 | Gitcoin Passport | `NextGenSoftware.OASIS.API.Providers.GitcoinPassportOASIS` | Gitcoin Passport decentralised identity scoring |
 | Goldsky | `NextGenSoftware.OASIS.API.Providers.GoldskyOASIS` | Goldsky real-time subgraph indexing |
 | Holochain | `NextGenSoftware.OASIS.API.Providers.HoloOASIS` | Holochain / HoloNET distributed P2P |
-| Holochain Desktop | `NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop` | HoloNET desktop runtime |
-| Holochain Unity | `NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity` | HoloNET Unity integration |
-| HoloWeb | `NextGenSoftware.OASIS.API.Providers.HoloWeb` | HoloWeb browser extension |
-| HoloWebOASIS | `NextGenSoftware.OASIS.API.Providers.HoloWebOASIS` | HoloWeb OASIS provider wrapper |
 | IPFS | `NextGenSoftware.OASIS.API.Providers.IPFSOASIS` | IPFS distributed file system |
 | Infura | `NextGenSoftware.OASIS.API.Providers.InfuraOASIS` | Infura Ethereum / IPFS infrastructure |
 | LayerZero | `NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS` | LayerZero V1 omnichain messaging |
 | Livepeer | `NextGenSoftware.OASIS.API.Providers.LivepeerOASIS` | Livepeer decentralised video transcoding |
-| Moralis | `NextGenSoftware.OASIS.API.Providers.MoralisOASIS` | Moralis Web3 data API |
 | Moralis Streams | `NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS` | Moralis Streams real-time blockchain events |
 | NATS JetStream | `NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS` | NATS JetStream high-performance messaging |
 | Nansen | `NextGenSoftware.OASIS.API.Providers.NansenOASIS` | Nansen on-chain analytics & wallet labels |
@@ -226,17 +224,16 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 
 ---
 
-### Other / Infrastructure (11) — mixed
+### Other / Infrastructure (10) — mixed
 
 | Provider | Package | Category | Description |
 |---|---|---|---|
-| Cargo | `NextGenSoftware.OASIS.API.Providers.CargoOASIS` | *(stub — no provider class yet)* | Cargo NFT minting & marketplace |
 | Dapr | `NextGenSoftware.OASIS.API.Providers.DaprOASIS` | `Network` | Dapr distributed application runtime |
 | GUN | `NextGenSoftware.OASIS.API.Providers.GUNOASIS` | `Storage` | GUN decentralised graph database |
 | Intel OpenVINO | `NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS` | `AI` | Intel OpenVINO AI/ML inference toolkit |
-| ONION Protocol | `NextGenSoftware.OASIS.API.Providers.ONION-Protocol` | *(stub — no provider class yet)* | Tor / Onion routing privacy network |
+| ONION Protocol | `NextGenSoftware.OASIS.API.Providers.ONION-Protocol` | `StorageAndNetwork` | Tor / Onion routing privacy network |
 | OrbitDB | `NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS` | `Storage` | OrbitDB peer-to-peer database (IPFS-based) |
-| Orion Protocol | `NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS` | *(stub — no ProviderCategory set)* | Orion Protocol DEX aggregator |
+| Orion Protocol | `NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS` | `Network` | Orion Protocol DEX aggregator — market ticker and order-book reads |
 | PLAN | `NextGenSoftware.OASIS.API.Providers.PLANOASIS` | `Network` | PLAN collaborative community platform |
 | SEEDS | `NextGenSoftware.OASIS.API.Providers.SEEDSOASIS` | `Application` | SEEDS regenerative economy protocol |
 | Temporal | `NextGenSoftware.OASIS.API.Providers.TemporalOASIS` | `Network` | Temporal workflow orchestration engine |
@@ -263,7 +260,7 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 
 ---
 
-### Storage / Database (65) — `Storage` / `StorageLocal`
+### Storage / Database (64) — `Storage` / `StorageLocal`
 
 | Provider | Package | Description |
 |---|---|---|
@@ -302,7 +299,6 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 | MotherDuck | `NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS` | MotherDuck serverless DuckDB in the cloud |
 | Neo4j | `NextGenSoftware.OASIS.API.Providers.Neo4jOASIS` | Neo4j graph database |
 | Neo4j Aura | `NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura` | Neo4j Aura fully managed cloud graph DB |
-| Neo4j v2 | `NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2` | Neo4j v2 updated driver |
 | Netlify Blobs | `NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS` | Netlify Blobs edge object storage |
 | Nile | `NextGenSoftware.OASIS.API.Providers.NileOASIS` | Nile serverless multi-tenant Postgres |
 | OpenSearch | `NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS` | OpenSearch (Elasticsearch fork) |
@@ -335,8 +331,23 @@ Broadly scoped: P2P protocols, Web3 RPC/indexing infrastructure, identity scorin
 
 ---
 
+## Not counted
+
+These folders live under `Providers/` but are not counted as providers.
+
+| Folder | Reason |
+|---|---|
+| `Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop` | Packaging variant of HoloOASIS (references the HoloOASIS project); not a separate provider |
+| `Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity` | Unity packaging of HoloOASIS, shipped in the HoloEnabled Edge release; not a separate provider |
+| `Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2` | Provider class is commented out; Neo4j is served by `Neo4jOASIS` and `Neo4jOASIS.Aura` |
+| `Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS` | Edge offline-sync state store library, not a provider |
+| `Other/NextGenSoftware.OASIS.API.Providers.CargoOASIS` | Cargo SDK only; Cargo is no longer used |
+
+---
+
 ## Change History
 
+> **2026-10-02 (implementation audit):** Count corrected to 222 working providers (previous docs said 227/229 by counting folders). Ceramic and Moralis existed twice (`Blockchain/` and `Network/`, same class and `ProviderType`); the `Network/` copies were removed and the more complete `Blockchain/` copies kept. HoloWeb and HoloWebOASIS (empty/commented-out shells) removed. HoloOASIS.Desktop/.Unity, Neo4jOASIS2, EdgeSQLite and Cargo moved to [Not counted](#not-counted). All 12 Network data providers (Ankr, Blockscout, Covalent, Dune Analytics, Goldsky, Moralis Streams, Nansen, QuickNode, Reservoir, SubQuery, Tenderly, Zapper) rewritten on their real REST/RPC/GraphQL APIs and no longer claim `IOASISBlockchainStorageProvider`/`IOASISNETProvider`. AI (Bittensor, Galadriel, Ritual) and Blockchain (Chainlink Functions, EigenLayer, Espresso Systems, Gelato Network, OpenZeppelin Defender) providers implemented on their real APIs. ThreeFoldOASIS and PLANOASIS methods that returned `null` implemented. OrionProtocolOASIS and OnionOASIS now set `ProviderType`/`ProviderCategory`; Orion serves market reads.
 > **2026-09-22 (capabilities audit):** `ProviderCategories` renamed to `ProviderCapabilities` across all 227 providers, `IOASISProvider` interface, and `OASISProvider` base class. Secondary capabilities audited and filled in for all folders: Storage providers get `Network`; Cloud providers get `Storage`, `Network`; Identity providers get `Network`, `Storage`, `KeyManager`; Social/Maps providers get `Storage`, `Network`; Network providers get `Storage`. Blockchain providers with full VM capability (Algorand, Basechain, Cardano, MultiversX, Fhenix, Filecoin, TON, Galadriel) given `NFT`, `SmartContract`, `Storage`/`Network` capabilities. Bridge/infra providers (Axelar, Chainflip, Connext, deBridge, Espresso, Hyperlane, LayerZero V2, Stargate, Synapse, Wormhole) get `Network`; oracle/automation providers (ChainLink, Chainlink Functions, EigenLayer, Gelato, OpenZeppelin Defender) get `SmartContract`, `Network`. Template updated to use `Storage` as default example category. `HoloWebOASIS` and `Neo4jOASIS2` stray-line build errors fixed. Total: 227 providers.
 > **2026-09-22 (category audit):** ProviderCategory enum assignments corrected across all providers. `Social` added to enum. 12 Social providers → `Social`. 58 Blockchain folder providers split into `EVMBlockchain` (34 EVM-compatible) and `Blockchain` (24 non-EVM) — fixes missed `new(...)` syntax providers and promotes EVM chains from generic `Blockchain`. 16 Cloud → `Cloud`. 27 Network → `Network`. Storage folder → `Storage`/`StorageLocal`. Other folder fixed (GUN/OrbitDB → `Storage`, PLAN/Dapr/Temporal → `Network`, SEEDS/Urbit → `Application`). ProviderManager updated to use interface checks for activation; `GetCloudProviders`, `GetSocialProviders`, `GetIdentityProviders`, `GetAIProviders`, `GetMapProviders`, `GetSpatialProviders` and matching `IsProvider*` helpers added. GaladrielOASIS → `EVMBlockchain`. Duplicate folder copies removed (Ceramic/Blockchain, MoralisDBOASIS/Blockchain, Arweave/Network). Total: 227 providers.
 > **2026-09-21:** Added COSMOS submodule to Blockchain — updated to 220.
