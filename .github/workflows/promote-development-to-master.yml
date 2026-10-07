@@ -141,7 +141,8 @@ jobs:
             echo 'All merge conflicts were limited to the production graph and were resolved deterministically.' >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          python3 Scripts/sync_railway_dependency_manifest.py
+          # The production submodule pointers are staged but not committed yet.
+          python3 Scripts/sync_railway_dependency_manifest.py --source index
           git add --all
           if git diff --cached --quiet; then
             echo '## Nothing to promote' >> "$GITHUB_STEP_SUMMARY"
