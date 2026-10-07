@@ -5539,6 +5539,105 @@ public sealed class HyperDriveProviderExecutionTests
         metrics.FailedRequests.Should().Be(0);
     }
 
+    [Fact]
+    public async Task ApplyingV2FailoverFlagChangesTheNextRequestsRoutingBehavior()
+    {
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2));
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "runtime-policy-primary");
+        var secondary = CreateActiveProvider(ProviderType.IPFSOASIS, "runtime-policy-secondary");
+        var avatarId = Guid.NewGuid();
+        primary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        primary.Setup(x => x.LoadAvatarAsync(avatarId, 0)).ReturnsAsync(new OASISResult<IAvatar>
+        {
+            IsError = true,
+            ErrorCount = 1,
+            ErrorCode = "PRIMARY_UNAVAILABLE",
+            Message = "Primary unavailable."
+        });
+        secondary.Setup(x => x.LoadAvatarAsync(avatarId, 0))
+            .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId }));
+        manager.RegisterProvider(primary.Object);
+        manager.RegisterProvider(secondary.Object);
+        manager.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
+        var hyperDrive = new OASISHyperDrive(manager);
+        var disabledPolicy = new NextGenSoftware.OASIS.API.Core.Configuration.OASISHyperDriveConfig
+        {
+            AutoFailoverEnabled = false,
+            AutoLoadBalancingEnabled = false,
+            AutoReplicationEnabled = false,
+            AutoFailoverProviders = new List<string> { "IPFSOASIS" }
+        };
+
+        manager.ApplyHyperDriveConfiguration(disabledPolicy).IsError.Should().BeFalse();
+        var disabledResult = await hyperDrive.RouteRequestAsync<IAvatar>(new StorageOperationRequest
+            { Operation = "LoadAvatar", AvatarId = avatarId });
+
+        disabledResult.IsError.Should().BeTrue();
+        secondary.Verify(x => x.LoadAvatarAsync(avatarId, 0), Times.Never);
+
+        var enabledPolicy = new NextGenSoftware.OASIS.API.Core.Configuration.OASISHyperDriveConfig
+        {
+            AutoFailoverEnabled = true,
+            AutoLoadBalancingEnabled = false,
+            AutoReplicationEnabled = false,
+            AutoFailoverProviders = new List<string> { "IPFSOASIS" }
+        };
+        manager.ApplyHyperDriveConfiguration(enabledPolicy).IsError.Should().BeFalse();
+
+        var enabledResult = await hyperDrive.RouteRequestAsync<IAvatar>(new StorageOperationRequest
+            { Operation = "LoadAvatar", AvatarId = avatarId });
+
+        enabledResult.IsError.Should().BeFalse(enabledResult.Message);
+        enabledResult.Result.Id.Should().Be(avatarId);
+        secondary.Verify(x => x.LoadAvatarAsync(avatarId, 0), Times.Once);
+    }
+
+    [Fact]
+    public async Task LiveRecordedLatencyChangesTheNextAutomaticProviderSelection()
+    {
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
+            { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = true };
+        var slow = CreateActiveProvider(ProviderType.IPFSOASIS, "slow-live-provider");
+        var fast = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "fast-live-provider");
+        slow.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>())).Returns(async () =>
+        {
+            await Task.Delay(75);
+            return new OASISResult<IHolon>(new Holon { Id = Guid.NewGuid() });
+        });
+        fast.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>())).ReturnsAsync(
+            new OASISResult<IHolon>(new Holon { Id = Guid.NewGuid() }));
+        manager.RegisterProvider(slow.Object);
+        manager.RegisterProvider(fast.Object);
+        manager.SetAndReplaceAutoLoadBalanceListForProviders(new[]
+        {
+            new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
+            new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)
+        }).IsError.Should().BeFalse();
+        var hyperDrive = new OASISHyperDrive(manager);
+
+        (await hyperDrive.RouteRequestAsync<IHolon>(new StorageOperationRequest
+        {
+            Operation = "LoadHolon",
+            HolonId = Guid.NewGuid(),
+            PreferredProvider = ProviderType.IPFSOASIS
+        })).IsError.Should().BeFalse();
+        (await hyperDrive.RouteRequestAsync<IHolon>(new StorageOperationRequest
+        {
+            Operation = "LoadHolon",
+            HolonId = Guid.NewGuid(),
+            PreferredProvider = ProviderType.SQLLiteDBOASIS
+        })).IsError.Should().BeFalse();
+
+        var automaticallyRouted = await hyperDrive.RouteRequestAsync<IHolon>(new StorageOperationRequest
+            { Operation = "LoadHolon", HolonId = Guid.NewGuid() });
+
+        automaticallyRouted.IsError.Should().BeFalse(automaticallyRouted.Message);
+        manager.PerformanceMonitor.GetMetrics(ProviderType.IPFSOASIS).TotalRequests.Should().Be(1);
+        manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests.Should().Be(2);
+        fast.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>()), Times.Exactly(2));
+        slow.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>()), Times.Once);
+    }
+
     private static Mock<IOASISStorageProvider> CreateActiveProvider(
         ProviderType providerType = ProviderType.MongoDBOASIS,
         string providerName = "test-mongo")

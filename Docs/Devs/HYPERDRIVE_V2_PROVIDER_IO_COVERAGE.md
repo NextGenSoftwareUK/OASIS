@@ -14,6 +14,13 @@ An explicit-provider request is request-scoped. It calls the selected registered
 
 ## Public operation matrix
 
+The human-readable surface matrix below is backed by the exhaustive checked-in
+[`HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv`](HYPERDRIVE_V2_PUBLIC_MANAGER_METHOD_MANIFEST.csv).
+It contains all **815** public method declarations under `API.Core/Managers`, including
+overloads, and classifies **655** provider-backed/delegating methods by their intentional
+boundary. `scripts/verify_hyperdrive_provider_io_manifest.ps1` reparses the source and fails
+when a method is added, removed, or has its signature changed without a manifest review.
+
 | Public API surface | Provider-backed operations | V2 path | Sync/async and explicit-provider disposition | Evidence |
 |---|---|---|---|---|
 | `AvatarManager` | load by ID/username/email/keys/tokens, load all, save, delete, AvatarDetail, karma, inventory | Direct typed `StorageOperationRequest`/avatar requests | Sync and async route through their corresponding V2 helpers; explicit provider remains request-scoped | `Managers/AvatarManager/AvatarManager-Load*.cs`, `AvatarManager-Save*.cs`, `AvatarManager-Delete*.cs`, `AvatarManager-Karma.cs`, `AvatarManager-Inventory.cs` |
@@ -61,10 +68,18 @@ The matrix was checked by searching `Managers/**/*.cs` for direct provider metho
 
 The former duplicate `ProviderManagerNew` and `ProviderConfigurator` implementation had no production references and was removed. `ProviderManager` is now the sole runtime policy owner.
 
+Repeatable gate:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/verify_hyperdrive_provider_io_manifest.ps1
+```
+
+Verified result on 2026-10-07: `815 public manager methods; 655 provider-backed/delegating methods intentionally classified`.
+
 ## Executable evidence
 
-- `HyperDriveProviderExecutionTests`: 179/179 passing.
-- Complete Core unit-test assembly: 305/305 passing.
+- `HyperDriveProviderExecutionTests`: includes direct config-flag-to-routing and live-latency-to-next-selection contract tests.
+- Complete Core unit-test assembly: 307/307 passing, zero skipped.
 - Hosted sync coordinator and fan-out subset: 16/16 passing.
+- Real isolated three-member MongoDB replica-set evidence: 42/42 transaction/replay/retry tests plus 1/1 abrupt-primary-termination/idempotency test. The repeatable runner is `scripts/run_hosted_mongo_release_evidence.ps1`; TRX output is written beneath the selected artifacts directory.
 - WEB4 project build: succeeded with zero errors.
-
