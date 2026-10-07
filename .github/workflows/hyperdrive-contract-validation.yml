@@ -1,0 +1,42 @@
+name: HyperDrive contract validation
+
+on:
+  pull_request:
+    paths:
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/**'
+      - 'Docs/Devs/HYPERDRIVE_*'
+      - 'Scripts/verify_hyperdrive_provider_io_manifest.ps1'
+      - 'Scripts/verify_web4_hyperdrive_route_manifest.ps1'
+      - '.github/workflows/hyperdrive-contract-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  manifests-and-contracts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify public manager provider-I/O manifest
+        shell: pwsh
+        run: ./Scripts/verify_hyperdrive_provider_io_manifest.ps1
+
+      - name: Verify WEB4 route-to-boundary manifest
+        shell: pwsh
+        run: ./Scripts/verify_web4_hyperdrive_route_manifest.ps1
+
+      - name: Run HyperDrive behavioral contracts
+        shell: pwsh
+        run: >-
+          dotnet test
+          'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
+          --configuration Release
+          --filter 'FullyQualifiedName~HyperDrive'
+          --logger 'trx;LogFileName=hyperdrive-contracts.trx'
