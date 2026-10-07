@@ -14,6 +14,11 @@ executable manifest rather than an estimate: 691 controller actions are classifi
 layered at the shared manager/router boundary because hundreds of thin controller overloads
 delegate to the same operations; route existence is not represented as storage-behavior proof.
 
+**Implementation priority:** V2 is the only gap-closing target. Legacy behavior is retained
+for compatibility and receives characterization tests/documentation only; newly discovered
+Legacy limitations are recorded rather than repaired unless they prevent safe V2 operation or
+mode isolation.
+
 ## Handoff prompt
 
 Use this prompt in a new agent/session:

@@ -4805,6 +4805,78 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task EveryRemainingV2StorageOperationHandlerExecutesItsAsyncProviderContract()
+    {
+        var avatarId = Guid.NewGuid();
+        var holon = new Holon { Id = Guid.NewGuid() };
+        var avatar = new Avatar { Id = avatarId };
+        var detail = new AvatarDetail { Id = avatarId };
+        var holons = new IHolon[] { holon };
+        var details = new IAvatarDetail[] { detail };
+        var provider = CreateActiveProvider();
+        provider.Setup(x => x.LoadHolonsForParentAsync("parent-key", HolonType.All, true, true, 2, 1, false, true, 7))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(holons));
+        provider.Setup(x => x.DeleteHolonAsync("holon-key")).ReturnsAsync(new OASISResult<IHolon>(holon));
+        provider.Setup(x => x.LoadAvatarByEmailAsync("edge@example.test", 7))
+            .ReturnsAsync(new OASISResult<IAvatar>(avatar));
+        provider.Setup(x => x.LoadAvatarDetailByUsernameAsync("edge", 7))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.LoadAvatarDetailByEmailAsync("edge@example.test", 7))
+            .ReturnsAsync(new OASISResult<IAvatarDetail>(detail));
+        provider.Setup(x => x.LoadAllAvatarDetailsAsync(7))
+            .ReturnsAsync(new OASISResult<IEnumerable<IAvatarDetail>>(details));
+        provider.Setup(x => x.DeleteAvatarByEmailAsync("edge@example.test", false))
+            .ReturnsAsync(new OASISResult<bool>(true));
+        provider.Setup(x => x.DeleteAvatarDetailAsync(avatarId, false))
+            .ReturnsAsync(new OASISResult<bool>(true));
+        provider.Setup(x => x.DeleteAvatarDetailByUsernameAsync("edge", false))
+            .ReturnsAsync(new OASISResult<bool>(true));
+        provider.Setup(x => x.DeleteAvatarDetailByEmailAsync("edge@example.test", false))
+            .ReturnsAsync(new OASISResult<bool>(true));
+        var runtime = new ProviderManager(null, CreateDna(HyperDriveModes.V2));
+        runtime.RegisterProvider(provider.Object).Should().BeTrue();
+        var hyperDrive = new OASISHyperDrive(runtime);
+
+        (await hyperDrive.RouteRequestToProviderAsync<IEnumerable<IHolon>>(new StorageOperationRequest
+        {
+            Operation = "LoadHolonsForParentByProviderKey", ProviderKey = "parent-key", HolonType = HolonType.All,
+            LoadChildren = true, Recursive = true, MaxChildDepth = 2, CurrentChildDepth = 1,
+            ContinueOnError = false, ChildrenFromProvider = true, Version = 7
+        }, ProviderType.MongoDBOASIS)).Result.Should().BeSameAs(holons);
+        (await hyperDrive.RouteRequestToProviderAsync<IHolon>(new StorageOperationRequest
+        {
+            Operation = "DeleteHolonByProviderKey", ProviderKey = "holon-key", SoftDelete = false
+        }, ProviderType.MongoDBOASIS)).Result.Should().BeSameAs(holon);
+        (await hyperDrive.RouteRequestToProviderAsync<IAvatar>(new StorageOperationRequest
+        {
+            Operation = "LoadAvatarByEmail", Email = "edge@example.test", Version = 7
+        }, ProviderType.MongoDBOASIS)).Result.Should().BeSameAs(avatar);
+        (await hyperDrive.RouteRequestToProviderAsync<IAvatarDetail>(new StorageOperationRequest
+        {
+            Operation = "LoadAvatarDetailByUsername", Username = "edge", Version = 7
+        }, ProviderType.MongoDBOASIS)).Result.Should().BeSameAs(detail);
+        (await hyperDrive.RouteRequestToProviderAsync<IAvatarDetail>(new StorageOperationRequest
+        {
+            Operation = "LoadAvatarDetailByEmail", Email = "edge@example.test", Version = 7
+        }, ProviderType.MongoDBOASIS)).Result.Should().BeSameAs(detail);
+        (await hyperDrive.RouteRequestToProviderAsync<IEnumerable<IAvatarDetail>>(new StorageOperationRequest
+        {
+            Operation = "LoadAllAvatarDetails", Version = 7
+        }, ProviderType.MongoDBOASIS)).Result.Should().BeSameAs(details);
+
+        foreach (var request in new[]
+        {
+            new StorageOperationRequest { Operation = "DeleteAvatarByEmail", Email = "edge@example.test", SoftDelete = false },
+            new StorageOperationRequest { Operation = "DeleteAvatarDetail", AvatarId = avatarId, SoftDelete = false },
+            new StorageOperationRequest { Operation = "DeleteAvatarDetailByUsername", Username = "edge", SoftDelete = false },
+            new StorageOperationRequest { Operation = "DeleteAvatarDetailByEmail", Email = "edge@example.test", SoftDelete = false }
+        })
+            (await hyperDrive.RouteRequestToProviderAsync<bool>(request, ProviderType.MongoDBOASIS)).Result.Should().BeTrue();
+
+        provider.VerifyAll();
+    }
+
+    [Fact]
     public void RemainingStorageContractOperationsRouteDirectlyInSynchronousMode()
     {
         var avatarId = Guid.NewGuid();
