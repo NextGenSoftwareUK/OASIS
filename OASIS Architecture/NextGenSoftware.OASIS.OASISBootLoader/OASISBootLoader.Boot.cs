@@ -109,6 +109,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     OASISDNAManager.OASISDNA = OASISDNA;
+                    ProviderManager.Instance.OASISDNA = OASISDNA;
 
                     OASISResult<bool> secretKeyResult = await OASISDNAManager.EnsureSecuritySecretKeyPersistedAsync();
                     if (secretKeyResult.IsError)
@@ -154,6 +155,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfUsernameAlreadyInUse;
                     ProviderManager.Instance.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
                     ProviderManager.Instance.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
+                    ProviderManager.Instance.MarkLegacyStorageProviderConfigurationApplied();
 
                     LoggingManager.Log($"FIRING UP THE OASIS HYPERDRIVE...", LogType.Info, true);
                     //LoggingManager.Log($"LOADING PROVIDER LISTS...", LogType.Info, true, false, false, 1, true);
@@ -174,6 +176,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         {
                             //LoggingManager.Log($"DONE BUT ERROR(S) OCCURED: {loadProviderListsResult.Message}", LogType.Info, false, false, false, 0);
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error Occured In OASISBootLoader.LoadProviderLists. Reason: {loadProviderListsResult.Message}");
+                        }
+                    }
+
+                    if (OASISDNA.OASIS.HyperDriveMode == HyperDriveModes.V2)
+                    {
+                        OASISResult<bool> runtimePolicyResult = ProviderManager.Instance.ApplyHyperDriveConfiguration(
+                            OASISDNA.OASIS.OASISHyperDriveConfig);
+                        if (runtimePolicyResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result,
+                                $"{errorMessage}HyperDrive V2 runtime policy is invalid. {runtimePolicyResult.Message}");
+                            IsOASISBooting = false;
+                            return result;
                         }
                     }
 
@@ -291,14 +306,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             LoggingManager.Log(jwtReady.Message, LogType.Warning);
                         if (jwtReady.IsError)
                             OASISErrorHandling.HandleWarning(ref result, jwtReady.Message ?? "EnsureJwtSecretKeyReadyForAvatarAuth failed.");
-                        try
-                        {
-                            ProviderManager.Instance.OASISDNA = OASISDNA;
-                        }
-                        catch
-                        {
-                            // non-fatal
-                        }
                     }
 
                     IsOASISBooting = false;
