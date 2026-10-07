@@ -41,6 +41,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly IWebHostEnvironment _env;
         private static readonly object StarLogLock = new object();
 
+        /// <summary>
+        /// Returns the authoritative minimum karma required for every avatar level.
+        /// Key: level, value: minimum total karma required.
+        /// </summary>
+        [Authorize]
+        [HttpGet("get-level-thresholds")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<int, long>>), StatusCodes.Status200OK)]
+        public OASISResult<Dictionary<int, long>> GetLevelThresholds()
+        {
+            return new OASISResult<Dictionary<int, long>>
+            {
+                Result = new Dictionary<int, long>(LevelManager.LevelLookup),
+                Message = "Avatar level thresholds retrieved successfully."
+            };
+        }
+
         public AvatarProfileController(ILogger<AvatarProfileController> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             _logger = logger;
@@ -1058,12 +1074,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
                     return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Target (clan name) and ItemName are required." }, HttpStatusCode.BadRequest);
                 var quantity = request.Quantity < 1 ? 1 : request.Quantity;
-                var result = await AvatarManager.SendItemToClanAsync(AvatarId, request.Target.Trim(), request.ItemName.Trim(), quantity, request.ItemId);
+                var result = await AvatarManager.SendItemToClanAsync(AvatarId, request.Target.Trim(),
+                    request.ItemName.Trim(), quantity, request.ItemId);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
             {
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = $"Error sending item to clan: {ex.Message}", Exception = ex }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Transfers an inventory stack to a clan using a client-stable operation identity. The
+        /// selected hosted provider must commit source, destination and receipts atomically.
+        /// </summary>
+        [HttpPost("inventory/send-to-clan-atomic")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> SendItemToClanAtomic([FromBody] SendItemRequest request)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarId is required. Please authenticate or provide X-Avatar-Id header." }, HttpStatusCode.BadRequest);
+                if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Target (clan name) and ItemName are required." }, HttpStatusCode.BadRequest);
+                if (request.Quantity < 1 || !request.OperationId.HasValue || request.OperationId == Guid.Empty ||
+                    !request.DestinationInventoryItemId.HasValue || request.DestinationInventoryItemId == Guid.Empty)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        ErrorCode = "CLAN_TRANSFER_IDEMPOTENCY_REQUIRED",
+                        Message = "A positive Quantity plus stable OperationId and DestinationInventoryItemId values are required."
+                    }, HttpStatusCode.BadRequest);
+                var result = await AvatarManager.SendItemToClanAsync(AvatarId, request.Target.Trim(),
+                    request.ItemName.Trim(), request.Quantity, request.ItemId, ProviderType.Default,
+                    request.OperationId, request.DestinationInventoryItemId, HttpContext.RequestAborted);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true,
+                    Message = $"Error atomically sending item to clan: {ex.Message}", Exception = ex },
+                    HttpStatusCode.InternalServerError);
             }
         }
     }

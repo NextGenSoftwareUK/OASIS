@@ -26,6 +26,7 @@ $hostConfigLoader = Get-Content -LiteralPath (Join-Path $projectRoot 'Assets\Scr
 $offlinePreference = Get-Content -LiteralPath (Join-Path $projectRoot 'Assets\Scripts\Runtime\OfflineSyncPreferenceStore.cs') -Raw
 $globalSettings = Get-Content -LiteralPath (Join-Path $projectRoot 'Assets\Scripts\Runtime\GlobalSettingsService.cs') -Raw
 $hud = Get-Content -LiteralPath (Join-Path $projectRoot 'Assets\Scripts\UI\SharedHudOverlay.cs') -Raw
+$questTracker = Get-Content -LiteralPath (Join-Path $projectRoot 'Assets\Scripts\UI\QuestTrackerWidget.cs') -Raw
 $streamingConfig = Get-Content -LiteralPath (Join-Path $projectRoot 'Assets\StreamingAssets\omniverse_host_config.json') -Raw
 $notificationStateMachine = Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.Edge.Runtime\EdgeRuntimeNotificationStateMachine.cs') -Raw
 if ($kernel -notmatch 'InitializeOfflineAsync' -or $kernel -notmatch 'AuthenticateHostedSessionAsync' -or
@@ -64,11 +65,11 @@ if ($offlinePreference -notmatch 'GetInt\(EnabledKey,\s*1\)' -or
     $hud -notmatch 'Sync Now & Disable') {
     throw 'Our World must default offline sync on and refuse unsafe disable while durable operations are pending.'
 }
-if ($gateway -notmatch 'CanAccessHostedUserApis' -or
+if ($gateway -notmatch 'CanPersistUserPreferences' -or
     $globalSettings -notmatch 'PendingRemoteSettingsKey' -or
     $globalSettings -notmatch 'SynchronizePendingPreferencesAsync' -or
     $kernel -notmatch 'SynchronizePendingPreferencesAsync') {
-    throw 'Offline startup and preference changes must remain local and reconcile through an authenticated hosted session.'
+    throw 'Offline preference changes must enter the durable Edge journal and remote-only builds must require an authenticated hosted session.'
 }
 
 # Keep the documented offline plan tied to the actual gateway surface. Any newly added network method must be
@@ -76,7 +77,8 @@ if ($gateway -notmatch 'CanAccessHostedUserApis' -or
 $classifiedGatewayMethods = @(
     'GetSharedInventoryAsync', 'GetCrossGameQuestsAsync', 'GetCrossGameNftsAsync',
     'GetAvatarProfileAsync', 'GetClanMembersAsync', 'GetKarmaOverviewAsync',
-    'GetGlobalPreferencesAsync', 'SaveGlobalPreferencesAsync', 'AuthenticateAsync'
+    'GetGlobalPreferencesAsync', 'SaveGlobalPreferencesAsync', 'SetActiveQuestAndObjectiveAsync',
+    'AuthenticateAsync'
 )
 $gatewayMethods = [regex]::Matches($gateway,
     'public\s+async\s+Task<[^\r\n]+?>\s+(?<name>\w+Async)\s*\(') |
@@ -94,6 +96,9 @@ $requiredOfflineRoutes = @{
     GetAvatarProfileAsync = 'GetAvatarAsync'
     GetKarmaOverviewAsync = 'GetKarmaAsync'
     GetClanMembersAsync = 'GetClanMembersAsync'
+    GetGlobalPreferencesAsync = 'GetPreferencesAsync'
+    SaveGlobalPreferencesAsync = 'SavePreferencesAsync'
+    SetActiveQuestAndObjectiveAsync = 'SetActiveQuestAndObjectiveAsync'
 }
 foreach ($route in $requiredOfflineRoutes.GetEnumerator()) {
     $methodPattern = '(?s)public\s+async\s+Task<[^\r\n]+?>\s+' + [regex]::Escape($route.Key) +
@@ -110,12 +115,28 @@ foreach ($route in $requiredOfflineRoutes.GetEnumerator()) {
 if ($gateway -notmatch 'private\s+bool\s+HasEdgeProjectionSource\s*=>\s*_edgeSource\s*!=\s*null') {
     throw 'Our World Edge-enabled reads must use one durable projection path online and offline.'
 }
+if ($gateway -notmatch '/api/avatar/set-active-quest' -or
+    $edgeProjection -notmatch 'HyperDriveAvatarGameplayAction\.SetActiveQuest' -or
+    $hud -notmatch 'TrackSelectedObjectiveAsync' -or
+    $hud -notmatch 'SetActiveQuestAndObjectiveAsync' -or
+    $questTracker -notmatch 'activeQuestId' -or
+    $questTracker -notmatch 'activeObjectiveId' -or
+    $questTracker -notmatch 'TrackSelectionAsync' -or
+    $questTracker -notmatch 'SetActiveQuestAndObjectiveAsync') {
+    throw 'Our World quest tracking must expose quest/objective selection and persist the exact selection through the durable Edge command route.'
+}
 
 $unityEdgeHost = Get-Content -LiteralPath (Join-Path $projectRoot 'Packages\com.nextgensoftware.oasis.edge\Runtime\OASISEdgeUnityHost.cs') -Raw
 $ogEngineEdgeClientPath = Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\Edge\OGEngineEdgeClient.cs'
 $ogEngineEdgeClient = Get-Content -LiteralPath $ogEngineEdgeClientPath -Raw
 if ($unityEdgeHost -notmatch 'OGEngineEdgeClient' -or $unityEdgeHost -match 'new\s+OASISEdgeAPI') {
     throw 'Our World Unity must bind OGEngineClient and must not construct OASISEdgeAPI directly.'
+}
+if ($kernel -notmatch 'UnityEdgeLocalProviderFactory\.Create' -or
+    $kernel -notmatch 'edgeLocalProviderAppResource' -or
+    $unityEdgeHost -notmatch 'IUnityEdgeLocalProviderLifecycle' -or
+    $unityEdgeHost -notmatch 'localProvider\.ReplicationTarget') {
+    throw 'Our World must compose deployment-profile local providers through the shared OGEngineClient Unity host.'
 }
 if ($gateway -match 'OASISEdgeAPI' -or $edgeProjection -match 'OASISEdgeAPI') {
     throw 'Our World gateway/projection code must consume OGEngineClient rather than the low-level OASISEdgeAPI.'

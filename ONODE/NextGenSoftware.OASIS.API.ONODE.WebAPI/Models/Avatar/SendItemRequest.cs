@@ -21,5 +21,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
 
         /// <summary>Number of items to send (default 1).</summary>
         public int Quantity { get; set; } = 1;
+
+        /// <summary>
+        /// Stable client-generated identity for the transfer. Reusing this value retries the same
+        /// operation without applying it twice.
+        /// </summary>
+        public Guid? OperationId { get; set; }
+
+        /// <summary>
+        /// Stable identity assigned to the clan inventory entry. It is generated once by the client
+        /// and is part of the idempotent transfer contract.
+        /// </summary>
+        public Guid? DestinationInventoryItemId { get; set; }
     }
 }

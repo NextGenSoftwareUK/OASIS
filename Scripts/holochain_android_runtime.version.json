@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/holochain/android-service-runtime.git",
+  "commit": "a7b5bb12a64d837694a6939701823d61803654bf",
+  "upstreamRelease": "0.3.0",
+  "holochainCompatibility": "0.7",
+  "androidAbi": "arm64-v8a",
+  "rustTarget": "aarch64-linux-android",
+  "patchedFiles": {
+    "libraries/client/build.gradle.kts": "BB61EF30BF64CA2D2C77302341BC484177FC9F6D936483206FD1C5551C182C82",
+    "libraries/client/settings.gradle": "B4873F357D359BEC502CF7C70A7922D5FFF8008339822E5C6BA140DD442B187D",
+    "libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Json.kt": "4FC9128E5CF89B167DE3711B65E7F2D096570D6042A718FE6ED50F54059777AD",
+    "libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Parcelers.kt": "F5A617B3D7065D154334AF11C287044877AFAC9C7577CDAAA462DA1DEEBFF407",
+    "libraries/service/build.gradle.kts": "EA4C8D131506AB59A16718280402C76D0846D86191172E4BC96FC4A29427363D",
+    "libraries/service/settings.gradle": "E4337BCB3763E4613D92A8670838A6117B138B3C14318F8208AC0EBEABCACE9C",
+    "libraries/service/src/main/java/org/holochain/androidserviceruntime/service/AppAuthorizationRequestMap.kt": "4DA7C47C628338E08907966242C3B179B5C9B020119F6749DD5C87711A9DDC79"
+  }
+}

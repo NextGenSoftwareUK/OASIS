@@ -30,7 +30,6 @@ DemoQuestSeed.csproj
 # Duplicate project names - a solution cannot hold two projects with the same name.
 # In each of these the real implementation is in a solution and these empty shells
 # are kept on disk only. See Docs/REMOVED_AND_MOVED_PROJECTS.md.
-Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloWeb/
 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/
 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.TestHarness/
 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/

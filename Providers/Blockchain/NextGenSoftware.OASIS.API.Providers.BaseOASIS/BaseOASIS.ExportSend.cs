@@ -142,42 +142,27 @@ public sealed partial class BaseOASIS
         return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
+    // Only the provider's own (OASIS) account can sign without a wallet lookup, so the from address must be that account.
     public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         OASISResult<ITransactionResponse> result = new();
         string errorMessage = "Error in SendTransactionAsync method in BaseOASIS sending transaction. Reason: ";
 
-        try
+        var activation = await EnsureActivatedForSendAsync();
+        if (activation.IsError)
         {
-            // Convert decimal amount to Wei (Base uses 18 decimals like Ethereum)
-            var amountInWei = Nethereum.Util.UnitConversion.Convert.ToWei(amount, Nethereum.Util.UnitConversion.EthUnit.Ether);
-
-            TransactionReceipt transactionResult = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(toWalletAddress, (decimal)amountInWei);
-
-            if (transactionResult.HasErrors() is true)
-            {
-                result.Message = string.Concat(errorMessage, "Base transaction performing failed! " +
-                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
-                                 $"Reason: {transactionResult.Logs}");
-                OASISErrorHandling.HandleError(ref result, result.Message);
-                return result;
-            }
-
-            result.Result.TransactionResult = transactionResult.TransactionHash;
-            result.Message = $"Base transaction successful. Hash: {transactionResult.TransactionHash}";
-            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, activation.Message));
+            return result;
         }
 
-        return result;
+        if (!string.Equals(fromWalletAddress, _oasisAccount.Address, StringComparison.OrdinalIgnoreCase))
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage,
+                $"BaseOASIS holds the signing key only for {_oasisAccount.Address}. Use SendTransactionById/ByUsername/ByEmail to send from an avatar wallet."));
+            return result;
+        }
+
+        return await SendBaseTransaction(_chainPrivateKey, toWalletAddress, amount, null, memoText);
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
@@ -187,39 +172,15 @@ public sealed partial class BaseOASIS
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        OASISResult<ITransactionResponse> result = new();
-        string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in EthereumOASIS sending transaction. Reason: ";
-
-        OASISResult<IProviderWallet> senderAvatarPrivateKeysResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-        OASISResult<IProviderWallet> receiverAvatarAddressesResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-
-        if (senderAvatarPrivateKeysResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
-                senderAvatarPrivateKeysResult.Exception);
-            return result;
-        }
-
-        if (receiverAvatarAddressesResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
-                receiverAvatarAddressesResult.Exception);
-            return result;
-        }
-
-        string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result.PrivateKey;
-        string receiverAvatarAddress = receiverAvatarAddressesResult.Result.WalletAddress;
-        result = await SendBaseTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
-
-        if (result.IsError)
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
-
-        return result;
+        return await SendBetweenAvatarWalletsAsync(
+            WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.BaseOASIS, showPrivateKeys: true),
+            WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.BaseOASIS),
+            amount, null, nameof(SendTransactionByDefaultWalletAsync));
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "ETH").Result;
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, null).Result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
@@ -229,58 +190,20 @@ public sealed partial class BaseOASIS
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        return await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "ETH");
+        return await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, null);
     }
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        var result = new OASISResult<ITransactionResponse>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Get wallet addresses for both avatars
-            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarEmail, Core.Enums.ProviderType.BaseOASIS);
-            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarEmail, Core.Enums.ProviderType.BaseOASIS);
-
-            if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress ?? "null"} {toAddress ?? "null"}");
-                return result;
-            }
-
-            // Send transaction using Base client
-            var transactionResult = await SendTransactionAsync($"{{\"from\":\"{fromAddress}\",\"to\":\"{toAddress}\",\"amount\":{amount},\"token\":\"{token}\"}}");
-            if (!transactionResult.IsSuccessStatusCode)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.ReasonPhrase}");
-                return result;
-            }
-
-            var content = await transactionResult.Content.ReadAsStringAsync();
-            var transactionResponse = ParseBaseToTransactionResponse(content);
-            result.Result = transactionResponse;
-            result.IsError = false;
-            result.Message = "Transaction sent successfully via Base";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Base: {ex.Message}", ex);
-        }
-        return result;
+        return await SendBetweenAvatarWalletsAsync(
+            WalletManager.Instance.GetAvatarDefaultWalletByEmailAsync(fromAvatarEmail, Core.Enums.ProviderType.BaseOASIS, showPrivateKeys: true),
+            WalletManager.Instance.GetAvatarDefaultWalletByEmailAsync(toAvatarEmail, Core.Enums.ProviderType.BaseOASIS),
+            amount, token, nameof(SendTransactionByEmailAsync));
     }
 
     public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, "ETH").Result;
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, null).Result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
@@ -290,58 +213,20 @@ public sealed partial class BaseOASIS
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, "ETH");
+        return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, null);
     }
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        var result = new OASISResult<ITransactionResponse>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Get wallet addresses for both avatars
-            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarId.ToString(), Core.Enums.ProviderType.BaseOASIS);
-            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarId.ToString(), Core.Enums.ProviderType.BaseOASIS);
-
-            if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress ?? "null"} {toAddress ?? "null"}");
-                return result;
-            }
-
-            // Send transaction using Base client
-            var transactionResult = await SendTransactionAsync($"{{\"from\":\"{fromAddress}\",\"to\":\"{toAddress}\",\"amount\":{amount},\"token\":\"{token}\"}}");
-            if (!transactionResult.IsSuccessStatusCode)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.ReasonPhrase}");
-                return result;
-            }
-
-            var content = await transactionResult.Content.ReadAsStringAsync();
-            var transactionResponse = ParseBaseToTransactionResponse(content);
-            result.Result = transactionResponse;
-            result.IsError = false;
-            result.Message = "Transaction sent successfully via Base";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Base: {ex.Message}", ex);
-        }
-        return result;
+        return await SendBetweenAvatarWalletsAsync(
+            WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.BaseOASIS, showPrivateKeys: true),
+            WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.BaseOASIS),
+            amount, token, nameof(SendTransactionByIdAsync));
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
     {
-        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, null).Result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
@@ -351,102 +236,132 @@ public sealed partial class BaseOASIS
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
     {
+        return await SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, null);
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    {
+        return await SendBetweenAvatarWalletsAsync(
+            WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(fromAvatarUsername, showPrivateKeys: true, providerType: Core.Enums.ProviderType.BaseOASIS),
+            WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(toAvatarUsername, providerType: Core.Enums.ProviderType.BaseOASIS),
+            amount, token, nameof(SendTransactionByUsernameAsync));
+    }
+
+    private async Task<OASISResult<bool>> EnsureActivatedForSendAsync()
+    {
+        if (IsProviderActivated && _web3Client != null && _oasisAccount != null)
+            return new OASISResult<bool>(true);
+
+        return await ActivateProviderAsync();
+    }
+
+    private async Task<OASISResult<ITransactionResponse>> SendBetweenAvatarWalletsAsync(
+        Task<OASISResult<IProviderWallet>> senderWalletTask,
+        Task<OASISResult<IProviderWallet>> receiverWalletTask,
+        decimal amount, string token, string caller)
+    {
         OASISResult<ITransactionResponse> result = new();
-        string errorMessage = "Error in SendTransactionByUsernameAsync method in BaseOASIS sending transaction. Reason: ";
+        string errorMessage = $"Error in {caller} method in BaseOASIS sending transaction. Reason: ";
 
-        OASISResult<List<string>> senderAvatarPrivateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, this.ProviderType.Value);
-        OASISResult<List<string>> receiverAvatarAddressesResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, this.ProviderType.Value);
-
-        if (senderAvatarPrivateKeysResult.IsError)
+        var activation = await EnsureActivatedForSendAsync();
+        if (activation.IsError)
         {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
-                senderAvatarPrivateKeysResult.Exception);
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, activation.Message));
             return result;
         }
 
-        if (receiverAvatarAddressesResult.IsError)
+        var senderWallet = await senderWalletTask;
+        if (senderWallet.IsError || senderWallet.Result == null || string.IsNullOrWhiteSpace(senderWallet.Result.PrivateKey))
         {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
-                receiverAvatarAddressesResult.Exception);
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage,
+                senderWallet.IsError ? senderWallet.Message : "The sender has no Base wallet with a private key."), senderWallet.Exception);
             return result;
         }
 
-        string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
-        string receiverAvatarAddress = receiverAvatarAddressesResult.Result[0];
-        result = await SendBaseTransaction(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+        var receiverWallet = await receiverWalletTask;
+        if (receiverWallet.IsError || receiverWallet.Result == null || string.IsNullOrWhiteSpace(receiverWallet.Result.WalletAddress))
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage,
+                receiverWallet.IsError ? receiverWallet.Message : "The receiver has no Base wallet address."), receiverWallet.Exception);
+            return result;
+        }
 
+        result = await SendBaseTransaction(senderWallet.Result.PrivateKey, receiverWallet.Result.WalletAddress, amount, token, null);
         if (result.IsError)
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
 
         return result;
     }
 
-    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Get wallet addresses for both avatars
-            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarUsername, Core.Enums.ProviderType.BaseOASIS);
-            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarUsername, Core.Enums.ProviderType.BaseOASIS);
-
-            if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress ?? "null"} {toAddress ?? "null"}");
-                return result;
-            }
-
-            // Send transaction using Base client
-            var transactionResult = await SendTransactionAsync($"{{\"from\":\"{fromAddress}\",\"to\":\"{toAddress}\",\"amount\":{amount},\"token\":\"{token}\"}}");
-            if (!transactionResult.IsSuccessStatusCode)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.ReasonPhrase}");
-                return result;
-            }
-
-            var content = await transactionResult.Content.ReadAsStringAsync();
-            var transactionResponse = ParseBaseToTransactionResponse(content);
-            result.Result = transactionResponse;
-            result.IsError = false;
-            result.Message = "Transaction sent successfully via Base";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Base: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    private async Task<OASISResult<ITransactionResponse>> SendBaseTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
+    // token: null/"ETH" sends native ETH; otherwise it must be an ERC-20 contract address on Base.
+    private async Task<OASISResult<ITransactionResponse>> SendBaseTransaction(string senderPrivateKey, string receiverAddress, decimal amount, string token, string memoText)
     {
         OASISResult<ITransactionResponse> result = new();
         string errorMessage = "Error in SendBaseTransaction method in BaseOASIS sending transaction. Reason: ";
 
         try
         {
-            Account senderEthAccount = new(senderAccountPrivateKey);
-
-            TransactionReceipt receipt = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, (decimal)amount);
-
-            if (receipt.HasErrors() is true)
+            if (amount <= 0)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receipt.Logs));
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Amount must be greater than zero."));
                 return result;
             }
 
-            result.Result.TransactionResult = receipt.TransactionHash;
-            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+            if (!AddressUtil.Current.IsValidEthereumAddressHexFormat(receiverAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"'{receiverAddress}' is not a valid Base address."));
+                return result;
+            }
+
+            var senderAccount = new Account(senderPrivateKey, _chainId);
+            var senderWeb3 = new Web3(senderAccount, _hostURI);
+            TransactionReceipt receipt;
+
+            if (string.IsNullOrWhiteSpace(token) || string.Equals(token, "ETH", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrEmpty(memoText))
+                {
+                    receipt = await senderWeb3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(receiverAddress, amount);
+                }
+                else
+                {
+                    var input = new TransactionInput
+                    {
+                        From = senderAccount.Address,
+                        To = receiverAddress,
+                        Value = new HexBigInteger(Web3.Convert.ToWei(amount)),
+                        Data = Encoding.UTF8.GetBytes(memoText).ToHex(true)
+                    };
+                    input.Gas = await senderWeb3.Eth.TransactionManager.EstimateGasAsync(input);
+                    receipt = await senderWeb3.Eth.TransactionManager.SendTransactionAndWaitForReceiptAsync(input);
+                }
+            }
+            else
+            {
+                if (!AddressUtil.Current.IsValidEthereumAddressHexFormat(token))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Token '{token}' must be 'ETH' or an ERC-20 contract address on Base."));
+                    return result;
+                }
+
+                var erc20 = senderWeb3.Eth.ERC20.GetContractService(token);
+                var decimals = await erc20.DecimalsQueryAsync();
+                receipt = await erc20.TransferRequestAndWaitForReceiptAsync(receiverAddress, Web3.Convert.ToWei(amount, decimals));
+            }
+
+            if (receipt == null || receipt.HasErrors() == true)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage,
+                    $"Base transaction {receipt?.TransactionHash} failed (status {receipt?.Status?.Value})."));
+                return result;
+            }
+
+            result.Result = new TransactionResponse { TransactionResult = receipt.TransactionHash };
+            result.Message = $"Base transaction successful. Hash: {receipt.TransactionHash}";
+        }
+        catch (RpcResponseException ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError?.Message ?? ex.Message), ex);
         }
         catch (Exception ex)
         {
@@ -493,7 +408,7 @@ public sealed partial class BaseOASIS
                 transaction.MemoText
             );
 
-            if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)
+            if (txReceipt.HasErrors() is true && txReceipt.Logs.Any())
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, txReceipt.Status));
                 return result;
@@ -563,7 +478,7 @@ public sealed partial class BaseOASIS
                 transaction.JSONMetaDataURL
             );
 
-            if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)
+            if (txReceipt.HasErrors() is true && txReceipt.Logs.Any())
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, txReceipt.Logs));
                 return result;

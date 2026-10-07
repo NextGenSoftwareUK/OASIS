@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.Common;
@@ -88,7 +89,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             try { signingKey.ImportPkcs8PrivateKey(Convert.FromBase64String(onet.NodePrivateKey), out _); }
             catch (Exception ex) when (ex is FormatException || ex is CryptographicException)
             { throw new InvalidOperationException("The Full ONODE capability advertisement requires its configured ECDSA private key.", ex); }
-            var providers = new ONETProviderCapabilitySource().GetEligibleCapabilities(onet.RemotelyAdvertisedProviderTypes);
+            var providerManager = ProviderManager.Instance;
+            var providers = new ONETProviderCapabilitySource(
+                providerManager.GetAllRegisteredProviders,
+                type => providerManager.PerformanceMonitor.GetProviderMetrics(type))
+                .GetEligibleCapabilities(onet.RemotelyAdvertisedProviderTypes);
             var advertisement = await ONETCapabilityProof.CreateAsync(onet.NodeId, onet.NodePublicKey,
                 ONETNodeProfile.Full, new[] { "hyperdrive-sync-v3", "hosted-onode" }, providers,
                 DateTime.UtcNow, TimeSpan.FromMinutes(10), (message, _) => Task.FromResult(

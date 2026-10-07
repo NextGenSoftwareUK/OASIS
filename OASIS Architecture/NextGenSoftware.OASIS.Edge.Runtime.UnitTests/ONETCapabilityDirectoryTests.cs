@@ -156,6 +156,121 @@ public sealed class ONETCapabilityDirectoryTests
         result.ErrorCode.Should().Be("ONET_CAPABILITY_GOSSIP_QUORUM_FAILED");
     }
 
+    [Fact]
+    public async Task RegistryReconciliationSurvivesRepeatedPartitionsAndRejectsEquivocationAfterRecovery()
+    {
+        DateTime now = new(2026, 9, 23, 12, 0, 0, DateTimeKind.Utc);
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var first = await CreateAdvertisementAsync(key, ONETNodeProfile.Full, now.AddMinutes(-3),
+            "MongoDBOASIS", "sync-host");
+        var recovered = await CreateAdvertisementAsync(key, ONETNodeProfile.Full, now.AddMinutes(-2),
+            "MongoDBOASIS", "sync-host");
+        var equivocation = await CreateAdvertisementAsync(key, ONETNodeProfile.Full, recovered.IssuedUtc,
+            "MongoDBOASIS", "forged-capability");
+        var peerOne = new MutableDirectory(new[] { first });
+        var peerTwo = new MutableDirectory(new[] { first });
+        var peerThree = new MutableDirectory("OFFLINE", "partitioned");
+        var localChannel = new MemoryChannel("local-registry");
+        using var localEndpoint = new ONETRequestResponseEndpoint(localChannel);
+        var local = new ONETCapabilityRegistry(localEndpoint, () => now);
+        var reconciler = new ONETCapabilityRegistryReconciler(local,
+            new IONETCapabilityDirectory[] { peerOne, peerTwo, peerThree }, 2);
+
+        for (int cycle = 0; cycle < 4; cycle++)
+        {
+            peerOne.SetLeases(cycle < 2 ? new[] { first } : new[] { recovered });
+            peerTwo.SetLeases(cycle < 2 ? new[] { first } : new[] { recovered });
+            peerThree.SetFailure("OFFLINE", $"partition cycle {cycle}");
+
+            var reconciled = await reconciler.ReconcileAsync(default);
+
+            reconciled.IsError.Should().BeFalse(reconciled.Message);
+            reconciled.IsWarning.Should().BeTrue();
+            reconciled.WarningCount.Should().Be(1);
+        }
+
+        local.TryGetCurrent(recovered.NodeId, out var retained).Should().BeTrue();
+        retained.IssuedUtc.Should().Be(recovered.IssuedUtc);
+        retained.Providers.Single().Capabilities.Should().Contain("sync-host");
+
+        peerThree.SetLeases(new[] { equivocation });
+        var conflict = await reconciler.ReconcileAsync(default);
+
+        conflict.IsError.Should().BeTrue();
+        conflict.ErrorCode.Should().Be("ONET_CAPABILITY_EQUIVOCATION");
+        local.TryGetCurrent(recovered.NodeId, out retained).Should().BeTrue();
+        retained.Signature.Should().Be(recovered.Signature);
+        retained.Providers.Single().Capabilities.Should().Contain("sync-host");
+    }
+
+    [Fact]
+    public async Task RegistryReconciliationSurvivesDeterministicFiveHundredCyclePartitionSoak()
+    {
+        DateTime now = new(2026, 9, 23, 12, 0, 0, DateTimeKind.Utc);
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var current = await CreateAdvertisementAsync(key, ONETNodeProfile.Full, now,
+            "MongoDBOASIS", "sync-host");
+        var peers = Enumerable.Range(0, 5).Select(_ => new MutableDirectory(new[] { current })).ToArray();
+        var localChannel = new MemoryChannel("soak-local-registry");
+        using var localEndpoint = new ONETRequestResponseEndpoint(localChannel);
+        var local = new ONETCapabilityRegistry(localEndpoint, () => now);
+        var reconciler = new ONETCapabilityRegistryReconciler(local, peers, 3);
+        int expectedQuorumFailures = 0;
+
+        for (int cycle = 1; cycle <= 500; cycle++)
+        {
+            now = now.AddSeconds(1);
+            if (cycle % 20 == 0)
+                current = await CreateAdvertisementAsync(key, ONETNodeProfile.Full, now,
+                    "MongoDBOASIS", "sync-host");
+
+            for (int peer = 0; peer < peers.Length; peer++)
+            {
+                // Rotate two unavailable registries so every peer repeatedly partitions and recovers.
+                bool unavailable = peer == cycle % peers.Length || peer == (cycle + 2) % peers.Length;
+                if (cycle % 73 == 0 && peer == (cycle + 4) % peers.Length)
+                    unavailable = true; // deterministic loss of quorum
+                if (unavailable) peers[peer].SetFailure("OFFLINE", $"cycle {cycle}, peer {peer}");
+                else peers[peer].SetLeases(new[] { current });
+            }
+
+            var result = await reconciler.ReconcileAsync(default);
+            if (cycle % 73 == 0)
+            {
+                expectedQuorumFailures++;
+                result.IsError.Should().BeTrue();
+                result.ErrorCode.Should().Be("ONET_CAPABILITY_GOSSIP_QUORUM_FAILED");
+            }
+            else
+            {
+                result.IsError.Should().BeFalse($"cycle {cycle}: {result.Message}");
+                result.IsWarning.Should().BeTrue();
+                result.WarningCount.Should().Be(2);
+            }
+
+            local.TryGetCurrent(current.NodeId, out var retained).Should().BeTrue($"cycle {cycle}");
+            retained.Signature.Should().Be(current.Signature, $"cycle {cycle} must retain the newest valid lease");
+        }
+
+        expectedQuorumFailures.Should().Be(6);
+
+        var equivocation = await CreateAdvertisementAsync(key, ONETNodeProfile.Full, current.IssuedUtc,
+            "MongoDBOASIS", "forged-capability");
+        peers[0].SetLeases(new[] { current });
+        peers[1].SetLeases(new[] { current });
+        peers[2].SetLeases(new[] { current });
+        peers[3].SetLeases(new[] { equivocation });
+        peers[4].SetFailure("OFFLINE", "post-soak partition");
+
+        var conflict = await reconciler.ReconcileAsync(default);
+
+        conflict.IsError.Should().BeTrue();
+        conflict.ErrorCode.Should().Be("ONET_CAPABILITY_EQUIVOCATION");
+        local.TryGetCurrent(current.NodeId, out var final).Should().BeTrue();
+        final.Signature.Should().Be(current.Signature);
+        final.Providers.Single().Capabilities.Should().Contain("sync-host");
+    }
+
     private static async Task<ONETCapabilityAdvertisement> CreateAdvertisementAsync(ONETNodeProfile profile,
         DateTime issued, string providerType, string capability)
     {
@@ -226,6 +341,36 @@ public sealed class ONETCapabilityDirectoryTests
         public StubPublisher(OASISResult<bool> result) => _result = result;
         public Task<OASISResult<bool>> PublishAsync(ONETCapabilityAdvertisement advertisement,
             CancellationToken cancellationToken) => Task.FromResult(_result);
+    }
+
+    private sealed class MutableDirectory : IONETCapabilityDirectory
+    {
+        private OASISResult<IReadOnlyList<ONETCapabilityAdvertisement>> _result;
+
+        public MutableDirectory(IReadOnlyList<ONETCapabilityAdvertisement> advertisements) =>
+            SetLeases(advertisements);
+
+        public MutableDirectory(string code, string message) => SetFailure(code, message);
+
+        public void SetLeases(IReadOnlyList<ONETCapabilityAdvertisement> advertisements) =>
+            _result = new OASISResult<IReadOnlyList<ONETCapabilityAdvertisement>>(advertisements);
+
+        public void SetFailure(string code, string message) => _result =
+            new OASISResult<IReadOnlyList<ONETCapabilityAdvertisement>>
+            { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message };
+
+        public Task<OASISResult<IReadOnlyList<ONETCapabilityAdvertisement>>> QueryAsync(
+            ONETCapabilityQuery query, CancellationToken cancellationToken) => Task.FromResult(_result);
+
+        public async Task<OASISResult<ONETCapabilityAdvertisement>> SelectNodeAsync(
+            ONETCapabilityQuery query, CancellationToken cancellationToken)
+        {
+            var queried = await QueryAsync(query, cancellationToken);
+            return queried.IsError || queried.Result.Count == 0
+                ? new OASISResult<ONETCapabilityAdvertisement> { IsError = true, ErrorCount = 1,
+                    ErrorCode = queried.ErrorCode ?? "EMPTY", Message = queried.Message }
+                : new OASISResult<ONETCapabilityAdvertisement>(queried.Result[0]);
+        }
     }
 
     private sealed class ThrowingDirectory : IONETCapabilityDirectory

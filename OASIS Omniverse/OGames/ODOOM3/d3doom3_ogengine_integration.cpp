@@ -23,17 +23,8 @@
  *   - No precompiled headers; include explicitly.
  */
 
-#include "sys/platform.h"
-#include "gamesys/SysCvar.h"      /* idCVar via framework/CVarSystem.h */
-#include "framework/CmdSystem.h"  /* idCmdArgs, idCmdSystem */
-#include "framework/Common.h"     /* idCommon */
-
-#include "d3doom3_ogengine_integration.h"
-
-/* STAR API (copies arrive via COPY_TO_DHEWM3_AND_BUILD.ps1) */
-#include "ogengine.h"
-#include "ogengine_sync.h"
-
+/* STAR API and OGLib are plain C and use snprintf/vsnprintf. idlib's Str.h redefines those
+ * to undefined names to forbid them in engine code, so these must come before any engine header. */
 #ifdef _MSC_VER
 #  ifndef NOMINMAX
 #    define NOMINMAX
@@ -42,10 +33,28 @@
 #  define strncasecmp _strnicmp
 #endif
 
+/* STAR API (copies arrive via COPY_TO_DHEWM3_AND_BUILD.ps1) */
+#include "ogengine.h"
+#include "ogengine_sync.h"
+
 /* OGLib: session forwarders + JSON-driven monster table (single-TU impl) */
 #define OGLIB_SESSION_IMPL
 #define OGLIB_MONSTER_IMPL
 #include "OGLib/oglib.h"
+#include "OGLib/oglib_edge.h"
+
+#include "sys/platform.h"
+#include "gamesys/SysCvar.h"      /* idCVar via framework/CVarSystem.h */
+#include "framework/CmdSystem.h"  /* idCmdArgs, idCmdSystem */
+#include "framework/Common.h"     /* idCommon */
+#include "renderer/RenderSystem.h" /* idRenderSystem, renderSystem */
+#include "Game_local.h"            /* gameLocal */
+#include "Player.h"                /* idPlayer */
+
+#include "d3doom3_ogengine_integration.h"
+
+/* Offline sync (edge) settings, persisted in oasisstar.json — same as ODOOM/OQuake. */
+static oglib_edge_settings_t g_edge_settings = OGLIB_EDGE_SETTINGS_DEFAULT;
 
 /*
  * Engine global pointers — defined in game/Game_local.cpp (#ifdef GAME_DLL)
@@ -53,6 +62,35 @@
  */
 extern idCommon     *common;
 extern idCmdSystem  *cmdSystem;
+
+#define D3DOOM3_INV_MAX      32
+#define D3DOOM3_QUEST_MAX    16
+#define D3DOOM3_TOAST_FRAMES 180   /* ~3 s at 60 fps */
+
+static bool g_d3doom3_inv_popup_open   = false;
+static bool g_d3doom3_quest_popup_open = false;
+static int  g_d3doom3_inv_selected     = 0;
+static int  g_d3doom3_quest_selected   = 0;
+static int  g_d3doom3_inv_count        = 0;
+static int  g_d3doom3_quest_count      = 0;
+static int  g_d3doom3_xp               = 0;
+static int  g_d3doom3_toast_frames     = 0;
+static char g_d3doom3_toast_msg[128];
+static char g_d3doom3_inv_names[D3DOOM3_INV_MAX][64];
+static char g_d3doom3_quest_names[D3DOOM3_QUEST_MAX][64];
+static char g_d3doom3_quest_descs[D3DOOM3_QUEST_MAX][128];
+
+static void oasis_open_url(const char *url)
+{
+    if (!url || !url[0]) return;
+#ifdef _WIN32
+    { char _cmd[512]; idStr::snPrintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+#elif defined(__APPLE__)
+    { char _cmd[512]; idStr::snPrintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+#else
+    { char _cmd[512]; idStr::snPrintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+#endif
+}
 extern idCVarSystem *cvarSystem;
 
 /*=============================================================================
@@ -135,7 +173,7 @@ static idCVar d3doom3_star_consume_key_on_door(
 static int D3Doom3_ExtractJsonValue(const char* json, const char* key, char* out, int maxlen)
 {
     char search[128];
-    snprintf(search, sizeof(search), "\"%s\"", key);
+    idStr::snPrintf(search, sizeof(search), "\"%s\"", key);
     const char* p = strstr(json, search);
     if (!p) return 0;
     p += strlen(search);
@@ -152,7 +190,7 @@ static void StarLog(const char* fmt, ...) {
     char buf[1024];
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, ap);
+    idStr::vsnPrintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
     buf[sizeof(buf) - 1] = '\0';
     common->Printf(D3DOOM3_LOG_TAG "%s\n", buf);
@@ -164,7 +202,7 @@ static void StarLogDebug(const char* fmt, ...) {
     char buf[1024];
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, ap);
+    idStr::vsnPrintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
     buf[sizeof(buf) - 1] = '\0';
     common->Printf(D3DOOM3_LOG_TAG "%s\n", buf);
@@ -183,7 +221,7 @@ static bool D3Doom3_FindJsonPath(char* out, int out_max) {
     };
     for (int i = 0; kCandidates[i]; ++i) {
         FILE* f = fopen(kCandidates[i], "r");
-        if (f) { fclose(f); snprintf(out, out_max, "%s", kCandidates[i]); return true; }
+        if (f) { fclose(f); idStr::snPrintf(out, out_max, "%s", kCandidates[i]); return true; }
     }
 #ifdef _WIN32
     char exe[MAX_PATH] = {};
@@ -191,7 +229,7 @@ static bool D3Doom3_FindJsonPath(char* out, int out_max) {
         char* slash = strrchr(exe, '\\');
         if (slash) {
             *slash = '\0';
-            snprintf(out, out_max, "%s\\oasisstar.json", exe);
+            idStr::snPrintf(out, out_max, "%s\\oasisstar.json", exe);
             FILE* f = fopen(out, "r");
             if (f) { fclose(f); return true; }
         }
@@ -208,6 +246,7 @@ static void D3Doom3_LoadJson(const char* path) {
     fclose(f);
     if (!n) return;
     buf[n] = '\0';
+    oglib_edge_load_json(&g_edge_settings, buf);
 
     char val[256];
     if (oglib_json_extract(buf, "ogengine_url", val, sizeof(val)) && val[0])
@@ -228,11 +267,11 @@ static void D3Doom3_LoadJson(const char* path) {
     /* Session restore */
     char jwt_buf[2048] = {};
     if (oglib_json_extract(buf, "beamedin_avatar", val, sizeof(val)) && val[0])
-        snprintf(g_d3doom3_saved_username, sizeof(g_d3doom3_saved_username), "%s", val);
+        idStr::snPrintf(g_d3doom3_saved_username, sizeof(g_d3doom3_saved_username), "%s", val);
     if ((oglib_json_extract(buf, "jwt_token", jwt_buf, sizeof(jwt_buf))) && jwt_buf[0])
-        snprintf(g_d3doom3_saved_jwt, sizeof(g_d3doom3_saved_jwt), "%s", jwt_buf);
+        idStr::snPrintf(g_d3doom3_saved_jwt, sizeof(g_d3doom3_saved_jwt), "%s", jwt_buf);
     if (oglib_json_extract(buf, "refresh_token", jwt_buf, sizeof(jwt_buf)) && jwt_buf[0])
-        snprintf(g_d3doom3_saved_refresh_token, sizeof(g_d3doom3_saved_refresh_token), "%s", jwt_buf);
+        idStr::snPrintf(g_d3doom3_saved_refresh_token, sizeof(g_d3doom3_saved_refresh_token), "%s", jwt_buf);
 
     /* Monster table — JSON entries take priority over hardcoded defaults */
     oglib_monster_table_load_from_oasisstar(&g_d3doom3_monster_table, buf, "odoom3");
@@ -256,9 +295,10 @@ static void D3Doom3_SaveJson(const char* path) {
         }
     }
     if (!uname[0] && g_d3doom3_saved_username[0])
-        snprintf(uname, sizeof(uname), "%s", g_d3doom3_saved_username);
+        idStr::snPrintf(uname, sizeof(uname), "%s", g_d3doom3_saved_username);
 
     fprintf(f, "{\n");
+    oglib_edge_save_json(f, &g_edge_settings);
     fprintf(f, "  \"ogengine_url\": \"%s\",\n",   d3doom3_ogengine_url.GetString());
     fprintf(f, "  \"oasis_api_url\": \"%s\",\n",  d3doom3_star_oasis_url.GetString());
     fprintf(f, "  \"nft_provider\": \"%s\",\n",   d3doom3_star_nft_provider.GetString());
@@ -292,6 +332,16 @@ static void D3Doom3_SaveJson(const char* path) {
  * Auth callback
  *===========================================================================*/
 
+/* Main thread, from ogengine_sync_pump(), when "star send"/"star sendclan" finishes. */
+static void D3Doom3_OnSendItemDone(void* user_data) {
+    (void)user_data;
+    int success = 0;
+    char err[256] = {0};
+    ogengine_sync_send_item_get_result(&success, err, sizeof(err));
+    if (success) common->Printf(D3DOOM3_LOG_TAG "Item sent.\n");
+    else common->Printf(D3DOOM3_LOG_TAG "Send failed: %s\n", err);
+}
+
 static void D3Doom3_OnAuthDone(void* user_data) {
     int success = 0;
     char username[128] = {}, avatar_id[128] = {}, err[256] = {};
@@ -299,8 +349,8 @@ static void D3Doom3_OnAuthDone(void* user_data) {
     if (success) {
         char jwt_buf[2048] = {};
         ogengine_sync_auth_get_result_jwt(jwt_buf, sizeof(jwt_buf));
-        snprintf(g_d3doom3_saved_username, sizeof(g_d3doom3_saved_username), "%s", username);
-        if (jwt_buf[0]) snprintf(g_d3doom3_saved_jwt, sizeof(g_d3doom3_saved_jwt), "%s", jwt_buf);
+        idStr::snPrintf(g_d3doom3_saved_username, sizeof(g_d3doom3_saved_username), "%s", username);
+        if (jwt_buf[0]) idStr::snPrintf(g_d3doom3_saved_jwt, sizeof(g_d3doom3_saved_jwt), "%s", jwt_buf);
         g_d3doom3_client_ready = true;
         ogengine_refresh_avatar_profile();
         StarLog("Beamed in as %s", username);
@@ -328,8 +378,8 @@ static void D3Doom3_InitMonsterTable(void) {
     for (int i = 0; k_D3Doom3DefaultMonsters[i].engine_name; ++i) {
         if (g_d3doom3_monster_table.count >= OGLIB_MONSTER_TABLE_MAX) break;
         oglib_monster_entry_t* e = &g_d3doom3_monster_table.entries[g_d3doom3_monster_table.count++];
-        snprintf(e->engine_name,  sizeof(e->engine_name),  "%s", k_D3Doom3DefaultMonsters[i].engine_name);
-        snprintf(e->display_name, sizeof(e->display_name), "%s", k_D3Doom3DefaultMonsters[i].display_name);
+        idStr::snPrintf(e->engine_name,  sizeof(e->engine_name),  "%s", k_D3Doom3DefaultMonsters[i].engine_name);
+        idStr::snPrintf(e->display_name, sizeof(e->display_name), "%s", k_D3Doom3DefaultMonsters[i].display_name);
         e->xp      = k_D3Doom3DefaultMonsters[i].xp;
         e->is_boss = k_D3Doom3DefaultMonsters[i].is_boss;
         e->do_mint = k_D3Doom3DefaultMonsters[i].do_mint;
@@ -350,17 +400,25 @@ static void D3Doom3_STAR_CmdHandler(const idCmdArgs& args) {
                        "  beamout             Log out of OASIS STAR\n"
                        "  inventory           List STAR inventory items\n"
                        "  add <name>          Add item to STAR inventory (testing)\n"
-                       "  debug <on|off>      Toggle debug logging\n");
+                       "  debug <on|off>      Toggle debug logging\n"
+                       "  offline <status|on|off|sync-and-off>  Offline sync\n");
         return;
     }
     const char* subcmd = args.Argv(1);
 
-    if (!strcasecmp(subcmd, "version")) {
+    if (!idStr::Icmp(subcmd, "version")) {
         common->Printf(D3DOOM3_LOG_TAG "ODOOM3 STAR Integration v1.0 (game_source=" D3DOOM3_GAME_SOURCE ")\n");
         return;
     }
 
-    if (!strcasecmp(subcmd, "status")) {
+    if (!idStr::Icmp(subcmd, "offline")) {
+        char message[512];
+        oglib_edge_command(args.Argc() >= 3 ? args.Argv(2) : "status", message, sizeof(message));
+        common->Printf(D3DOOM3_LOG_TAG "%s\n", message);
+        return;
+    }
+
+    if (!idStr::Icmp(subcmd, "status")) {
         common->Printf(D3DOOM3_LOG_TAG "initialized=%d client_ready=%d debug=%d\n",
             g_d3doom3_initialized ? 1 : 0, g_d3doom3_client_ready ? 1 : 0, g_d3doom3_debug ? 1 : 0);
         if (g_d3doom3_saved_username[0])
@@ -368,9 +426,9 @@ static void D3Doom3_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "debug")) {
+    if (!idStr::Icmp(subcmd, "debug")) {
         if (args.Argc() >= 3) {
-            int on = !strcasecmp(args.Argv(2), "on") || atoi(args.Argv(2));
+            int on = !idStr::Icmp(args.Argv(2), "on") || atoi(args.Argv(2));
             g_d3doom3_debug = (on != 0);
             d3doom3_star_debug.SetInteger(on);
             ogengine_set_debug(on);
@@ -379,7 +437,7 @@ static void D3Doom3_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "beamin")) {
+    if (!idStr::Icmp(subcmd, "beamin")) {
         if (args.Argc() < 4) {
             common->Printf(D3DOOM3_LOG_TAG "Usage: star beamin <username> <password>\n");
             return;
@@ -393,7 +451,7 @@ static void D3Doom3_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "beamout")) {
+    if (!idStr::Icmp(subcmd, "beamout")) {
         g_d3doom3_client_ready = false;
         g_d3doom3_saved_username[0] = '\0';
         g_d3doom3_saved_jwt[0] = '\0';
@@ -405,7 +463,7 @@ static void D3Doom3_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "inventory")) {
+    if (!idStr::Icmp(subcmd, "inventory")) {
         if (!g_d3doom3_client_ready) { common->Printf(D3DOOM3_LOG_TAG "Not beamed in.\n"); return; }
         ogengine_item_list_t* list = nullptr;
         if (ogengine_get_inventory(&list) != OGENGINE_SUCCESS || !list) {
@@ -421,11 +479,26 @@ static void D3Doom3_STAR_CmdHandler(const idCmdArgs& args) {
         return;
     }
 
-    if (!strcasecmp(subcmd, "add")) {
+    if (!idStr::Icmp(subcmd, "add")) {
         if (args.Argc() < 3) { common->Printf(D3DOOM3_LOG_TAG "Usage: star add <item_name>\n"); return; }
         if (!g_d3doom3_client_ready) { common->Printf(D3DOOM3_LOG_TAG "Not beamed in.\n"); return; }
         ogengine_queue_add_item(args.Argv(2), "Added via console", D3DOOM3_GAME_SOURCE, "Item", nullptr, 1, 1);
         common->Printf(D3DOOM3_LOG_TAG "Queued add: %s\n", args.Argv(2));
+        return;
+    }
+
+    if (!idStr::Icmp(subcmd, "send") || !idStr::Icmp(subcmd, "sendclan")) {
+        const int toClan = !idStr::Icmp(subcmd, "sendclan");
+        if (args.Argc() < 4) {
+            common->Printf(D3DOOM3_LOG_TAG "Usage: star %s <%s> <item_name> [quantity]\n", subcmd, toClan ? "clan" : "avatar");
+            return;
+        }
+        if (!g_d3doom3_client_ready) { common->Printf(D3DOOM3_LOG_TAG "Not beamed in.\n"); return; }
+        if (ogengine_sync_send_item_in_progress()) { common->Printf(D3DOOM3_LOG_TAG "A send is already in progress.\n"); return; }
+        const int quantity = args.Argc() >= 5 ? atoi(args.Argv(4)) : 1;
+        ogengine_sync_send_item_start(args.Argv(2), args.Argv(3), quantity > 0 ? quantity : 1, toClan, nullptr,
+            D3Doom3_OnSendItemDone, nullptr);
+        common->Printf(D3DOOM3_LOG_TAG "Sending %s to %s...\n", args.Argv(3), args.Argv(2));
         return;
     }
 
@@ -453,11 +526,11 @@ void D3Doom3_STAR_Init(void) {
         char exe[MAX_PATH] = {};
         if (GetModuleFileNameA(nullptr, exe, sizeof(exe))) {
             char* slash = strrchr(exe, '\\');
-            if (slash) { *slash = '\0'; snprintf(g_d3doom3_json_path, sizeof(g_d3doom3_json_path), "%s\\oasisstar.json", exe); }
+            if (slash) { *slash = '\0'; idStr::snPrintf(g_d3doom3_json_path, sizeof(g_d3doom3_json_path), "%s\\oasisstar.json", exe); }
         }
         if (!g_d3doom3_json_path[0])
 #endif
-            snprintf(g_d3doom3_json_path, sizeof(g_d3doom3_json_path), "oasisstar.json");
+            idStr::snPrintf(g_d3doom3_json_path, sizeof(g_d3doom3_json_path), "oasisstar.json");
         D3Doom3_SaveJson(g_d3doom3_json_path);
         StarLog("Created default oasisstar.json: %s", g_d3doom3_json_path);
     }
@@ -473,6 +546,9 @@ void D3Doom3_STAR_Init(void) {
     cfg.timeout_seconds    = 15;
 
     ogengine_sync_init();
+
+    if (oglib_edge_configure(&g_edge_settings) != OGENGINE_SUCCESS)
+        StarLog("Offline sync settings rejected: %s", ogengine_get_last_error());
 
     ogengine_result_t r = ogengine_init(&cfg);
     if (r != OGENGINE_SUCCESS) {
@@ -516,10 +592,70 @@ void D3Doom3_STAR_Cleanup(void) {
     StarLog("STAR integration shut down.");
 }
 
+/*=============================================================================
+ * OASIS Omniverse Hub - protocol lives in ogengine_hub_frame (OGEngineClient);
+ * see Docs/OMNIVERSE_HUB_IPC.md. No Hub pause: this runs from idGameLocal::RunFrame,
+ * which does not run while the game is paused, so the Hub could never unpause it.
+ *===========================================================================*/
+
+static idStr g_hub_pending_map;
+static idVec3 g_hub_pending_origin;
+static bool g_hub_pending_spawn = false;
+
+/* "maps/game/mars_city1.map" -> "game/mars_city1", the form the "map" command takes. */
+static idStr D3Doom3_HubCurrentMap(void) {
+    idStr name = gameLocal.GetMapName();
+    name.BackSlashesToSlashes();
+    if (idStr::Icmpn(name.c_str(), "maps/", 5) == 0) name = name.Right(name.Length() - 5);
+    name.StripFileExtension();
+    return name;
+}
+
+static void D3Doom3_HubApplyPendingSpawn(void) {
+    if (!g_hub_pending_spawn) return;
+    idPlayer *localPlayer = gameLocal.GetLocalPlayer();
+    if (!localPlayer) return;
+    if (g_hub_pending_map.Length() && D3Doom3_HubCurrentMap().Icmp(g_hub_pending_map) != 0) return;
+    if (g_hub_pending_origin != vec3_origin) {
+        idAngles ang(0.0f, 0.0f, 0.0f);
+        localPlayer->Teleport(g_hub_pending_origin, ang, NULL);
+    }
+    g_hub_pending_spawn = false;
+    g_hub_pending_map.Clear();
+}
+
+static void D3Doom3_HubFrame(void) {
+    ogengine_hub_frame_t hub;
+    D3Doom3_HubApplyPendingSpawn();
+    if (!ogengine_hub_frame("ODOOM3", D3Doom3_HubCurrentMap().c_str(), 0, &hub) || !hub.has_arrive) return;
+
+    g_hub_pending_origin.Set(hub.x, hub.y, hub.z);
+    g_hub_pending_spawn = true;
+    g_hub_pending_map = hub.arrive_map;
+    if (hub.arrive_map[0])
+        cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("map %s\n", hub.arrive_map));
+    StarLog("Hub arrive: map=%s pos=%.0f/%.0f/%.0f", hub.arrive_map[0] ? hub.arrive_map : "(current)", hub.x, hub.y, hub.z);
+}
+
 void D3Doom3_STAR_Tick(void) {
     if (!g_d3doom3_initialized) return;
 
     ogengine_sync_pump();
+    D3Doom3_HubFrame();
+
+    {
+        char edge_msg[512];
+        int changed = oglib_edge_finish_change(&g_edge_settings, edge_msg, sizeof(edge_msg));
+        if (changed != 0) {
+            if (changed == 1 && g_d3doom3_json_path[0]) D3Doom3_SaveJson(g_d3doom3_json_path);
+            StarLog("%s", edge_msg);
+        }
+        if (g_d3doom3_client_ready && !ogengine_sync_auth_in_progress()) {
+            char note[256];
+            if (ogengine_poll_edge_notification(note, sizeof(note)) == 1)
+                StarLog("%s", note);
+        }
+    }
 
     char logbuf[512];
     while (ogengine_consume_console_log(logbuf, sizeof(logbuf)))
@@ -541,7 +677,7 @@ void D3Doom3_STAR_Tick(void) {
         {
             StarLog("OASIS SpawnEvent: %s at %.0f/%.0f/%.0f", entity_id, sx, sy, sz);
             char spawn_cmd[256];
-            snprintf(spawn_cmd, sizeof(spawn_cmd), "spawn %s\n", entity_id);
+            idStr::snPrintf(spawn_cmd, sizeof(spawn_cmd), "spawn %s\n", entity_id);
             cmdSystem->BufferCommandText(CMD_EXEC_APPEND, spawn_cmd);
             ogengine_confirm_spawn(entity_id);
         }
@@ -558,7 +694,7 @@ void D3Doom3_STAR_Tick(void) {
                 char narration[128] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "NarrationText", narration, sizeof(narration));
                 if (narration[0]) {
-                    snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", narration);
+                    idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", narration);
                     g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES;
                 }
             } else if (strcmp(evt_type, "PlayAudio") == 0) {
@@ -566,14 +702,14 @@ void D3Doom3_STAR_Tick(void) {
                 D3Doom3_ExtractJsonValue(evt_json, "AudioTitle", audio_title, sizeof(audio_title));
                 D3Doom3_ExtractJsonValue(evt_json, "AudioUrl",   audio_url,   sizeof(audio_url));
                 oasis_open_url(audio_url);
-                if (audio_title[0]) { snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", audio_title); g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES; }
+                if (audio_title[0]) { idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", audio_title); g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES; }
                 StarLog("OASIS PlayAudio: %s → %s", audio_title, audio_url);
             } else if (strcmp(evt_type, "PlayVideo") == 0) {
                 char video_title[128] = "", video_url[256] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "VideoTitle", video_title, sizeof(video_title));
                 D3Doom3_ExtractJsonValue(evt_json, "VideoUrl",   video_url,   sizeof(video_url));
                 oasis_open_url(video_url);
-                if (video_title[0]) { snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", video_title); g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES; }
+                if (video_title[0]) { idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "%s", video_title); g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES; }
                 StarLog("OASIS PlayVideo: %s → %s", video_title, video_url);
             } else if (strcmp(evt_type, "OpenWebsite") == 0) {
                 char website_url[256] = "";
@@ -584,7 +720,7 @@ void D3Doom3_STAR_Tick(void) {
                 char portal_id[64] = "";
                 D3Doom3_ExtractJsonValue(evt_json, "PortalId", portal_id, sizeof(portal_id));
                 ogengine_notify_portal_unlock(portal_id);
-                snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Portal unlocked!");
+                idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Portal unlocked!");
                 g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES;
                 StarLog("OASIS UnlockPortal: %s", portal_id);
             }
@@ -610,9 +746,9 @@ void D3Doom3_STAR_OnItemPickup(const char* inv_name, const char* inv_classname, 
 
     char desc[256];
     if (inv_classname && inv_classname[0])
-        snprintf(desc, sizeof(desc), "Doom 3 (Classic) %s (%s)", item_type, inv_classname);
+        idStr::snPrintf(desc, sizeof(desc), "Doom 3 (Classic) %s (%s)", item_type, inv_classname);
     else
-        snprintf(desc, sizeof(desc), "Doom 3 (Classic) %s", item_type);
+        idStr::snPrintf(desc, sizeof(desc), "Doom 3 (Classic) %s", item_type);
 
     int do_mint = is_carry_item ? d3doom3_star_mint_keys.GetInteger() : 0;
 
@@ -674,34 +810,6 @@ void D3Doom3_STAR_OnMonsterKilled(const char* entity_def_name, int engine_is_bos
  * New state for inventory/quest popups, XP display, beamed-in face, toasts.
  *===========================================================================*/
 
-#define D3DOOM3_INV_MAX      32
-#define D3DOOM3_QUEST_MAX    16
-#define D3DOOM3_TOAST_FRAMES 180   /* ~3 s at 60 fps */
-
-static bool g_d3doom3_inv_popup_open   = false;
-static bool g_d3doom3_quest_popup_open = false;
-static int  g_d3doom3_inv_selected     = 0;
-static int  g_d3doom3_quest_selected   = 0;
-static int  g_d3doom3_inv_count        = 0;
-static int  g_d3doom3_quest_count      = 0;
-static int  g_d3doom3_xp               = 0;
-static int  g_d3doom3_toast_frames     = 0;
-static char g_d3doom3_toast_msg[128];
-static char g_d3doom3_inv_names[D3DOOM3_INV_MAX][64];
-static char g_d3doom3_quest_names[D3DOOM3_QUEST_MAX][64];
-static char g_d3doom3_quest_descs[D3DOOM3_QUEST_MAX][128];
-
-static void oasis_open_url(const char *url)
-{
-    if (!url || !url[0]) return;
-#ifdef _WIN32
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
-#elif defined(__APPLE__)
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
-#else
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
-#endif
-}
 
 int         D3Doom3_STAR_IsBeamedIn(void)          { return g_d3doom3_client_ready ? 1 : 0; }
 const char* D3Doom3_STAR_GetUsername(void)          { return g_d3doom3_saved_username; }
@@ -721,7 +829,7 @@ void D3Doom3_STAR_ToggleInventoryPopup(void) {
         ogengine_item_list_t *list = nullptr;
         if (ogengine_get_inventory(&list) == OGENGINE_SUCCESS && list) {
             for (int i = 0; i < (int)list->count && i < D3DOOM3_INV_MAX; i++)
-                snprintf(g_d3doom3_inv_names[i], sizeof(g_d3doom3_inv_names[i]),
+                idStr::snPrintf(g_d3doom3_inv_names[i], sizeof(g_d3doom3_inv_names[i]),
                          "%s", list->items[i].name);
             g_d3doom3_inv_count = (int)list->count < D3DOOM3_INV_MAX
                                    ? (int)list->count : D3DOOM3_INV_MAX;
@@ -752,14 +860,14 @@ void D3Doom3_STAR_ToggleQuestPopup(void) {
                         const char *t2 = (const char *)memchr(f2, '\t', (size_t)(eol - f2));
                         int nlen = t2 ? (int)(t2 - f2) : (int)(eol - f2);
                         if (nlen > 63) nlen = 63;
-                        snprintf(g_d3doom3_quest_names[g_d3doom3_quest_count],
+                        idStr::snPrintf(g_d3doom3_quest_names[g_d3doom3_quest_count],
                                  sizeof(g_d3doom3_quest_names[0]), "%.*s", nlen, f2);
                         if (t2 && t2 + 1 < eol) {
                             const char *f3 = t2 + 1;
                             const char *t3 = (const char *)memchr(f3, '\t', (size_t)(eol - f3));
                             int dlen = t3 ? (int)(t3 - f3) : (int)(eol - f3);
                             if (dlen > 127) dlen = 127;
-                            snprintf(g_d3doom3_quest_descs[g_d3doom3_quest_count],
+                            idStr::snPrintf(g_d3doom3_quest_descs[g_d3doom3_quest_count],
                                      sizeof(g_d3doom3_quest_descs[0]), "%.*s", dlen, f3);
                         }
                         g_d3doom3_quest_count++;
@@ -776,11 +884,11 @@ void D3Doom3_STAR_ToggleQuestPopup(void) {
  *
  * dhewm3 idRenderSystem 2-D drawing (virtual 640×480 screen):
  *   rs->DrawStretchPic(x, y, w, h, s1, t1, s2, t2, material)
- *   rs->DrawFill(x, y, w, h, r, g, b, a)
+ *   D3D3_DrawFill(rs, x, y, w, h, r, g, b, a)
  *   rs->DrawSmallChar(x, y, ch)
- *   rs->DrawSmallString(x, y, str, color, forceColor)
+ *   D3D3_DrawSmall(rs, x, y, str, color, forceColor)
  *   rs->DrawBigChar(x, y, ch)
- *   rs->DrawBigString(x, y, str, color, forceColor)
+ *   D3D3_DrawBig(rs, x, y, str, color, forceColor)
  *
  * Call D3Doom3_STAR_DrawHUDStatus from idGameLocal::Draw() after the HUD
  * GUI has been rendered.  Pass ::renderSystem or NULL.
@@ -791,6 +899,26 @@ void D3Doom3_STAR_ToggleQuestPopup(void) {
 #define D3D3_SW 8
 #define D3D3_SH 8
 
+/* dhewm3's 2-D API takes a font material; the console uses textures/bigchars and _white. */
+static const idMaterial* D3D3_CharSet(void) {
+    static const idMaterial* m = NULL;
+    if (!m) m = declManager->FindMaterial("textures/bigchars");
+    return m;
+}
+static void D3D3_DrawSmall(idRenderSystem* rs, int x, int y, const char* s, const idVec4& c, bool forceColor) {
+    rs->DrawSmallStringExt(x, y, s, c, forceColor, D3D3_CharSet());
+}
+static void D3D3_DrawBig(idRenderSystem* rs, int x, int y, const char* s, const idVec4& c, bool forceColor) {
+    rs->DrawBigStringExt(x, y, s, c, forceColor, D3D3_CharSet());
+}
+static void D3D3_DrawFill(idRenderSystem* rs, float x, float y, float w, float h, float r, float g, float b, float a) {
+    static const idMaterial* white = NULL;
+    if (!white) white = declManager->FindMaterial("_white");
+    rs->SetColor4(r, g, b, a);
+    rs->DrawStretchPic(x, y, w, h, 0, 0, 1, 1, white);
+    rs->SetColor(colorWhite);
+}
+
 void D3Doom3_STAR_DrawHUDStatus(void* render_system) {
     idRenderSystem* rs = render_system ? static_cast<idRenderSystem*>(render_system) : ::renderSystem;
     if (!rs || !g_d3doom3_initialized) return;
@@ -800,26 +928,26 @@ void D3Doom3_STAR_DrawHUDStatus(void* render_system) {
     /* Version — bottom-right */
     const char* ver = "ODOOM3 1.0.0";
     int vlen = (int)idStr::Length(ver);
-    rs->DrawSmallString(D3D3_VW - vlen * D3D3_SW - 4, D3D3_VH - D3D3_SH - 4, ver, colorDkGrey, false);
+    D3D3_DrawSmall(rs, D3D3_VW - vlen * D3D3_SW - 4, D3D3_VH - D3D3_SH - 4, ver, colorDkGrey, false);
 
     if (!g_d3doom3_client_ready) return;
 
     /* Beamed-in label — top-left */
     char buf[96];
     idStr::snPrintf(buf, sizeof(buf), "OASIS: %s", g_d3doom3_saved_username);
-    rs->DrawSmallString(4, 4, buf, colorWhite, false);
+    D3D3_DrawSmall(rs, 4, 4, buf, colorWhite, false);
 
     /* XP — top-right */
     char xpbuf[32];
     idStr::snPrintf(xpbuf, sizeof(xpbuf), "XP: %d", g_d3doom3_xp);
     int xplen = (int)idStr::Length(xpbuf);
-    rs->DrawSmallString(D3D3_VW - xplen * D3D3_SW - 4, 4, xpbuf, colorYellow, false);
+    D3D3_DrawSmall(rs, D3D3_VW - xplen * D3D3_SW - 4, 4, xpbuf, colorYellow, false);
 
     /* Toast — centred */
     if (g_d3doom3_toast_frames > 0) {
         int tlen = (int)idStr::Length(g_d3doom3_toast_msg);
         int tx   = (D3D3_VW - tlen * D3D3_SW) / 2;
-        rs->DrawSmallString(tx, 120, g_d3doom3_toast_msg, colorWhite, false);
+        D3D3_DrawSmall(rs, tx, 120, g_d3doom3_toast_msg, colorWhite, false);
     }
 }
 
@@ -828,48 +956,48 @@ void D3Doom3_STAR_DrawPopupOverlay(void* render_system) {
     idRenderSystem* rs = render_system ? static_cast<idRenderSystem*>(render_system) : ::renderSystem;
     if (!rs) return;
 
-    rs->DrawFill(60, 40, 520, 400, 0.0f, 0.0f, 0.0f, 0.75f);
+    D3D3_DrawFill(rs, 60, 40, 520, 400, 0.0f, 0.0f, 0.0f, 0.75f);
 
     if (g_d3doom3_inv_popup_open) {
-        rs->DrawBigString(200, 50, "OASIS INVENTORY", colorWhite, false);
-        rs->DrawSmallString(64, 78, "-----------------------------------------------", colorDkGrey, false);
+        D3D3_DrawBig(rs, 200, 50, "OASIS INVENTORY", colorWhite, false);
+        D3D3_DrawSmall(rs, 64, 78, "-----------------------------------------------", colorDkGrey, false);
 
         if (g_d3doom3_inv_count == 0) {
-            rs->DrawSmallString(80, 120, "No items in your OASIS inventory.", colorDkGrey, false);
+            D3D3_DrawSmall(rs, 80, 120, "No items in your OASIS inventory.", colorDkGrey, false);
         } else {
             int visible = (g_d3doom3_inv_count < 16) ? g_d3doom3_inv_count : 16;
             for (int i = 0; i < visible; i++) {
                 char line[80];
                 idStr::snPrintf(line, sizeof(line), "%s%s",
                     i == g_d3doom3_inv_selected ? "> " : "  ", g_d3doom3_inv_names[i]);
-                rs->DrawSmallString(80, 100 + i * D3D3_SH + 2, line,
+                D3D3_DrawSmall(rs, 80, 100 + i * D3D3_SH + 2, line,
                     (i == g_d3doom3_inv_selected) ? colorWhite : colorMdGrey, false);
             }
         }
 
-        rs->DrawSmallString(64, 390, "[I] Close  [U] Use  [A] Send to Avatar  [C] Send to Clan", colorYellow, false);
+        D3D3_DrawSmall(rs, 64, 390, "[I] Close  [U] Use  [A] Send to Avatar  [C] Send to Clan", colorYellow, false);
     }
 
     if (g_d3doom3_quest_popup_open) {
-        rs->DrawBigString(220, 50, "OASIS QUESTS", colorWhite, false);
-        rs->DrawSmallString(64, 78, "-----------------------------------------------", colorDkGrey, false);
+        D3D3_DrawBig(rs, 220, 50, "OASIS QUESTS", colorWhite, false);
+        D3D3_DrawSmall(rs, 64, 78, "-----------------------------------------------", colorDkGrey, false);
 
         if (g_d3doom3_quest_count == 0) {
-            rs->DrawSmallString(80, 120, "No active OASIS quests.", colorDkGrey, false);
+            D3D3_DrawSmall(rs, 80, 120, "No active OASIS quests.", colorDkGrey, false);
         } else {
             int visible = (g_d3doom3_quest_count < 14) ? g_d3doom3_quest_count : 14;
             for (int i = 0; i < visible; i++) {
                 char line[80];
                 idStr::snPrintf(line, sizeof(line), "%s%s",
                     i == g_d3doom3_quest_selected ? "> " : "  ", g_d3doom3_quest_names[i]);
-                rs->DrawSmallString(80, 100 + i * D3D3_SH + 2, line,
+                D3D3_DrawSmall(rs, 80, 100 + i * D3D3_SH + 2, line,
                     (i == g_d3doom3_quest_selected) ? colorWhite : colorMdGrey, false);
             }
             if (g_d3doom3_quest_selected < g_d3doom3_quest_count)
-                rs->DrawSmallString(80, 370, g_d3doom3_quest_descs[g_d3doom3_quest_selected], colorCyan, false);
+                D3D3_DrawSmall(rs, 80, 370, g_d3doom3_quest_descs[g_d3doom3_quest_selected], colorCyan, false);
         }
 
-        rs->DrawSmallString(64, 390, "[Q] Close   [Up/Down] Navigate", colorYellow, false);
+        D3D3_DrawSmall(rs, 64, 390, "[Q] Close   [Up/Down] Navigate", colorYellow, false);
     }
 }
 
@@ -904,24 +1032,21 @@ void D3Doom3_STAR_HandleKey(int key, int down) {
         return;
     }
     if (key == 'u' && g_d3doom3_inv_popup_open && g_d3doom3_inv_selected < g_d3doom3_inv_count) {
-        ogengine_use_item(g_d3doom3_inv_names[g_d3doom3_inv_selected]);
-        snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Used: %s", g_d3doom3_inv_names[g_d3doom3_inv_selected]);
+        ogengine_queue_use_item(g_d3doom3_inv_names[g_d3doom3_inv_selected], "inventory");
+        idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Used: %s", g_d3doom3_inv_names[g_d3doom3_inv_selected]);
         g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES;
         g_d3doom3_inv_count = 0;
         return;
     }
+    /* Sending needs a recipient name, which this popup cannot take; point the player at the console command. */
     if (key == 'a' && g_d3doom3_inv_popup_open && g_d3doom3_inv_selected < g_d3doom3_inv_count) {
-        ogengine_send_item_to_avatar(g_d3doom3_inv_names[g_d3doom3_inv_selected]);
-        snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Sent to Avatar: %s", g_d3doom3_inv_names[g_d3doom3_inv_selected]);
+        idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Console: star send <avatar> %s", g_d3doom3_inv_names[g_d3doom3_inv_selected]);
         g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES;
-        g_d3doom3_inv_count = 0;
         return;
     }
     if (key == 'c' && g_d3doom3_inv_popup_open && g_d3doom3_inv_selected < g_d3doom3_inv_count) {
-        ogengine_send_item_to_clan(g_d3doom3_inv_names[g_d3doom3_inv_selected]);
-        snprintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Sent to Clan: %s", g_d3doom3_inv_names[g_d3doom3_inv_selected]);
+        idStr::snPrintf(g_d3doom3_toast_msg, sizeof(g_d3doom3_toast_msg), "Console: star sendclan <clan> %s", g_d3doom3_inv_names[g_d3doom3_inv_selected]);
         g_d3doom3_toast_frames = D3DOOM3_TOAST_FRAMES;
-        g_d3doom3_inv_count = 0;
         return;
     }
 }

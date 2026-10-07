@@ -45,6 +45,20 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Editor
 
         public static void ValidateAndroidBuild()
         {
+            if (!EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android))
+                throw new InvalidOperationException("Unity could not activate the Android build target.");
+            string packageManifest = PackageManifestPath();
+            string packageManifestJson = File.ReadAllText(packageManifest);
+            if (packageManifestJson.IndexOf("\"profile\": \"HoloEnabled\"", StringComparison.Ordinal) >= 0)
+            {
+                PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel27;
+                PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+                PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+                AssetDatabase.SaveAssets();
+                Debug.Log($"OASIS_HOLO_ANDROID_SETTINGS minSdk={PlayerSettings.Android.minSdkVersion} " +
+                    $"backend={PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android)} " +
+                    $"architectures={PlayerSettings.Android.targetArchitectures}");
+            }
             const string scenePath = "Assets/OASISEdgeValidation.unity";
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             if (!EditorSceneManager.SaveScene(scene, scenePath))
@@ -60,6 +74,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Editor
                 scenes = new[] { importedScenePath },
                 locationPathName = "Build/OASISEdgeValidation.apk",
                 target = BuildTarget.Android,
+                targetGroup = BuildTargetGroup.Android,
                 options = BuildOptions.CleanBuildCache
             });
             if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded)
@@ -70,13 +85,18 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Editor
 
         private static string PackageManifestHash()
         {
-            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(OASISEdgeUnityHost).Assembly);
-            if (package == null || string.IsNullOrWhiteSpace(package.resolvedPath))
-                throw new InvalidOperationException("Unity could not resolve the OASIS Edge package path.");
-            string path = Path.Combine(package.resolvedPath, "build-manifest.json");
+            string path = PackageManifestPath();
             if (!File.Exists(path)) throw new FileNotFoundException("The OASIS Edge package manifest is missing.", path);
             using var sha = SHA256.Create();
             return BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(path))).Replace("-", string.Empty);
+        }
+
+        private static string PackageManifestPath()
+        {
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(OASISEdgeUnityHost).Assembly);
+            if (package == null || string.IsNullOrWhiteSpace(package.resolvedPath))
+                throw new InvalidOperationException("Unity could not resolve the OASIS Edge package path.");
+            return Path.Combine(package.resolvedPath, "build-manifest.json");
         }
     }
 }

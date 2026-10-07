@@ -2,6 +2,8 @@
 param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
+    [ValidateSet('SqliteMvp', 'HoloEnabled')]
+    [string]$Profile = 'SqliteMvp',
     [string]$OutputDirectory
 )
 
@@ -43,6 +45,111 @@ New-Item -ItemType Directory -Path $managedRoot -Force | Out-Null
 $nativeEndpointOutput = Join-Path $repoRoot "Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge\bin\$Configuration\netstandard2.1"
 Get-ChildItem -LiteralPath $nativeEndpointOutput -Filter '*.dll' -File | Copy-Item -Destination $managedRoot -Force
 Get-ChildItem -LiteralPath $buildOutput -Filter '*.dll' -File | Copy-Item -Destination $managedRoot -Force
+
+if ($Profile -eq 'HoloEnabled') {
+    $holoProject = Join-Path $repoRoot 'Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj'
+    & dotnet build $holoProject --configuration $Configuration --framework netstandard2.1 --nologo
+    if ($LASTEXITCODE -ne 0) { throw "HoloOASIS.Unity build failed with exit code $LASTEXITCODE." }
+    # The provider build remains a release gate, but its full-Core assembly graph is deliberately
+    # not copied into the mobile package. The JNI service contract lives in Edge Runtime; the
+    # lightweight Holo Edge repository is the sole permitted owner of mobile Holo persistence.
+
+    $holoEdgeProject = Join-Path $repoRoot 'Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.csproj'
+    & dotnet build $holoEdgeProject --configuration $Configuration --framework netstandard2.1 --nologo
+    if ($LASTEXITCODE -ne 0) { throw "HoloOASIS.Edge build failed with exit code $LASTEXITCODE." }
+    $holoEdgeOutput = Join-Path (Split-Path $holoEdgeProject -Parent) "bin\$Configuration\netstandard2.1"
+    $holoNetAssembly = Join-Path $holoEdgeOutput 'NextGenSoftware.Holochain.HoloNET.Client.dll'
+    if (-not (Test-Path -LiteralPath $holoNetAssembly -PathType Leaf)) {
+        throw 'The lightweight HoloNET assembly is missing from the Holo Edge dependency closure.'
+    }
+    if ((Get-Item -LiteralPath $holoNetAssembly).Length -gt 2MB) {
+        throw 'The HoloNET mobile assembly exceeds 2 MiB; embedded desktop conductor resources leaked into the lightweight build.'
+    }
+    foreach ($forbiddenHoloArtifact in @('holochain_serialisation_wrapper.dll', 'Sodium.Core.dll', 'hc.exe', 'holochain.exe')) {
+        if (Test-Path -LiteralPath (Join-Path $holoEdgeOutput $forbiddenHoloArtifact)) {
+            throw "Platform-specific HoloNET artifact leaked into the mobile closure: $forbiddenHoloArtifact"
+        }
+    }
+    # Unity supplies the .NET Standard reference facade assemblies itself. Copying NuGet's
+    # compatibility facades creates duplicate assembly identities (CS1703), so package only
+    # application/library assets plus the System.* compatibility libraries already owned by
+    # the base Edge closure.
+    $unityFrameworkFacades = @(
+        'Microsoft.CSharp.dll', 'System.Collections.Concurrent.dll', 'System.Dynamic.Runtime.dll',
+        'System.IO.FileSystem.Primitives.dll', 'System.Linq.dll', 'System.Linq.Expressions.dll',
+        'System.ObjectModel.dll', 'System.Reflection.Emit.ILGeneration.dll',
+        'System.Runtime.InteropServices.RuntimeInformation.dll', 'System.Text.RegularExpressions.dll',
+        'System.Threading.dll'
+    )
+    Get-ChildItem -LiteralPath $holoEdgeOutput -Filter '*.dll' -File |
+        Where-Object { $unityFrameworkFacades -notcontains $_.Name } |
+        Copy-Item -Destination $managedRoot -Force
+
+    $linkerPath = Join-Path $packageRoot 'Runtime\link.xml'
+    [xml]$linker = Get-Content -LiteralPath $linkerPath -Raw
+    foreach ($assemblyName in @(
+            'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge',
+            'NextGenSoftware.Holochain.HoloNET.Client',
+            'Chaos.NaCl', 'MessagePack', 'MessagePack.Annotations')) {
+        $assembly = $linker.CreateElement('assembly')
+        $assembly.SetAttribute('fullname', $assemblyName)
+        $assembly.SetAttribute('preserve', 'all')
+        [void]$linker.linker.AppendChild($assembly)
+    }
+    $linker.Save($linkerPath)
+
+    $holoAndroidPackage = Join-Path $repoRoot 'artifacts\holochain-android-runtime\package'
+    $holoAndroidManifestPath = Join-Path $holoAndroidPackage 'build-manifest.json'
+    if (-not (Test-Path -LiteralPath $holoAndroidManifestPath -PathType Leaf)) {
+        throw 'The provenance-verified Holochain Android runtime is missing. Run Scripts/build_holochain_android_runtime.ps1.'
+    }
+    $holoAndroidManifest = Get-Content -LiteralPath $holoAndroidManifestPath -Raw | ConvertFrom-Json
+    if ($holoAndroidManifest.holochainCompatibility -ne '0.7' -or $holoAndroidManifest.androidAbi -ne 'arm64-v8a') {
+        throw 'The HoloEnabled profile requires the pinned Holochain 0.7 ARM64 Android runtime.'
+    }
+    foreach ($artifact in $holoAndroidManifest.artifacts) {
+        $source = Join-Path $holoAndroidPackage ([string]$artifact.name).Replace('/', '\')
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "Holochain Android artifact is missing: '$source'."
+        }
+        $actualHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
+        if ($actualHash -ne $artifact.sha256 -or (Get-Item -LiteralPath $source).Length -ne $artifact.bytes) {
+            throw "Holochain Android artifact does not match its build manifest: '$source'."
+        }
+        $destination = Join-Path $packageRoot "Runtime\Plugins\Android\Holochain\$($artifact.name)"
+        New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
+        Copy-Item -LiteralPath $source -Destination $destination -Force
+    }
+    Copy-Item -LiteralPath $holoAndroidManifestPath `
+        -Destination (Join-Path $packageRoot 'Runtime\Plugins\Android\Holochain\build-manifest.json') -Force
+
+    $unityBridgeSource = Join-Path $packageRoot 'HoloEnabled~\UnityHolochainAndroidServiceBridge.cs'
+    $unityBridgeDestination = Join-Path $packageRoot 'Runtime\Holochain\UnityHolochainAndroidServiceBridge.cs'
+    New-Item -ItemType Directory -Path (Split-Path $unityBridgeDestination -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath $unityBridgeSource -Destination $unityBridgeDestination -Force
+    $unityProviderSource = Join-Path $packageRoot 'HoloEnabled~\HoloEdgeUnityLocalProvider.cs'
+    $unityProviderDestination = Join-Path $packageRoot 'Runtime\Holochain\HoloEdgeUnityLocalProvider.cs'
+    Copy-Item -LiteralPath $unityProviderSource -Destination $unityProviderDestination -Force
+    $buildGuardSource = Join-Path $packageRoot 'HoloEnabled~\UnityHolochainAndroidBuildGuard.cs'
+    $buildGuardDestination = Join-Path $packageRoot 'Runtime\Holochain\Editor\UnityHolochainAndroidBuildGuard.cs'
+    New-Item -ItemType Directory -Path (Split-Path $buildGuardDestination -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath $buildGuardSource -Destination $buildGuardDestination -Force
+
+    # HoloEnabled~ is a source-template directory. Unity deliberately ignores folders whose
+    # names end in '~', so retaining it in the generated package creates redundant files and
+    # orphaned metadata. The selected sources now have their single authoritative package
+    # locations under Runtime/Holochain.
+    $holoTemplateRoot = Join-Path $packageRoot 'HoloEnabled~'
+    Remove-Item -LiteralPath $holoTemplateRoot -Recurse -Force
+
+    $happSource = Join-Path $repoRoot 'Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\OASIS_hAPP\oasis.happ'
+    if (-not (Test-Path -LiteralPath $happSource -PathType Leaf)) {
+        throw 'The HoloEnabled profile requires the provenance-verified oasis.happ artifact.'
+    }
+    $happDestination = Join-Path $packageRoot 'Runtime\Resources\OASIS\Holochain\oasis.happ.bytes'
+    New-Item -ItemType Directory -Path (Split-Path $happDestination -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath $happSource -Destination $happDestination -Force
+}
 
 $nugetRoot = if ($env:NUGET_PACKAGES) { $env:NUGET_PACKAGES } else { Join-Path $env:USERPROFILE '.nuget\packages' }
 $sqliteVersion = '2.1.13'
@@ -139,6 +246,7 @@ $manifest = [ordered]@{
     schemaVersion = 1
     package = $packageName
     configuration = $Configuration
+    profile = $Profile
     sourceCommit = (& git -C $repoRoot rev-parse HEAD).Trim()
     files = @($files | ForEach-Object {
         [ordered]@{
@@ -152,8 +260,50 @@ $buildManifestPath = Join-Path $packageRoot 'build-manifest.json'
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $buildManifestPath -Encoding utf8
 Write-UnityMeta $buildManifestPath $defaultImporter
 
+# Tar records filesystem modification times. Normalize the generated tree so the same source/profile produces the
+# same archive bytes and checksum on every host run; provenance must not depend on when packaging happened.
+$archiveTimestamp = [DateTime]::SpecifyKind([DateTime]'2000-01-01T00:00:00', [DateTimeKind]::Utc)
+Get-ChildItem -LiteralPath $packageRoot -Recurse -Force | ForEach-Object { $_.LastWriteTimeUtc = $archiveTimestamp }
+(Get-Item -LiteralPath $packageRoot).LastWriteTimeUtc = $archiveTimestamp
+
 $archive = Join-Path $outputRoot "$packageName.tgz"
 if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
-& tar -czf $archive -C $outputRoot $packageName
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $archive)) { throw 'Failed to create the Unity package archive.' }
+$tarArchive = Join-Path $outputRoot "$packageName.tar"
+if (Test-Path -LiteralPath $tarArchive) { Remove-Item -LiteralPath $tarArchive -Force }
+try {
+    & tar -cf $tarArchive -C $outputRoot $packageName
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $tarArchive)) {
+        throw 'Failed to create the Unity package tar archive.'
+    }
+
+    # The Holo-enabled package contains large AAR/native binaries that are already compressed.
+    # Recompressing them with bsdtar's default gzip level exceeded GitHub's six-hour job limit.
+    # A valid no-compression gzip stream preserves the UPM .tgz contract and deterministic bytes
+    # while keeping packaging proportional to bytes copied instead of CPU-bound recompression.
+    $tarInput = [IO.File]::OpenRead($tarArchive)
+    $gzipOutput = [IO.File]::Create($archive)
+    try {
+        $gzip = [IO.Compression.GZipStream]::new(
+            $gzipOutput, [IO.Compression.CompressionLevel]::NoCompression, $true)
+        try { $tarInput.CopyTo($gzip) }
+        finally { $gzip.Dispose() }
+    }
+    finally {
+        $gzipOutput.Dispose()
+        $tarInput.Dispose()
+    }
+}
+finally {
+    if (Test-Path -LiteralPath $tarArchive) { Remove-Item -LiteralPath $tarArchive -Force }
+}
+if (-not (Test-Path -LiteralPath $archive)) { throw 'Failed to create the Unity package archive.' }
+# bsdtar writes the current Unix time into bytes 4-7 of the gzip header even when every tar entry has a normalized
+# timestamp. Gzip defines zero as "timestamp unavailable"; canonicalize that header field without altering the tar
+# payload or checksum so repeat builds are byte-for-byte reproducible.
+$archiveBytes = [IO.File]::ReadAllBytes($archive)
+if ($archiveBytes.Length -lt 10 -or $archiveBytes[0] -ne 0x1f -or $archiveBytes[1] -ne 0x8b) {
+    throw 'The generated Unity package archive does not have a valid gzip header.'
+}
+for ($index = 4; $index -le 7; $index++) { $archiveBytes[$index] = 0 }
+[IO.File]::WriteAllBytes($archive, $archiveBytes)
 Write-Host "Unity Edge package created: $archive"

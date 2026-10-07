@@ -1,51 +1,30 @@
-﻿#!/usr/bin/env bash
-# OWolf3D Build Script (Linux / macOS)
+#!/usr/bin/env bash
+# OWolf3D - install the OASIS integration (OGLib/oglib_game.h, the ODOOM/OQuake pattern)
+# into ECWolf and build it with -DOASIS_STAR_API=ON.
 set -e
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OMNIVERSE="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ECWOLF_SRC="${OWOLF3D_SRC:-${HOME}/Source/OWolf3D}"
-OASIS_DIR="${SCRIPT_DIR}"
-OGLIB_DIR="${SCRIPT_DIR}/../../OGLib"
-STAR_DIR="${SCRIPT_DIR}/../../OGEngineClient"
-
-echo "============================================================="
-echo " OWolf3D Build"
-echo "============================================================="
-
-if [ ! -d "$ECWOLF_SRC" ]; then
-    echo "ERROR: ECWolf source not found at $ECWOLF_SRC"
-    echo "Set OWOLF3D_SRC env var or clone OWolf3D to $ECWOLF_SRC"
-    exit 1
-fi
-
+OGLIB_DIR="$OMNIVERSE/OGLib"
+STAR_DIR="$OMNIVERSE/OGEngineClient"
+BUILD_DIR="$ECWOLF_SRC/build"
 DST="$ECWOLF_SRC/src"
 
-echo "[1/4] Copying integration files to $DST ..."
-cp -v "$OASIS_DIR/owolf3d_ogengine_integration.h"   "$DST/"
-cp -v "$OASIS_DIR/owolf3d_ogengine_integration.cpp" "$DST/"
-cp -rv "$OGLIB_DIR/"   "$DST/OGLib/"
-cp -v  "$STAR_DIR/ogengine.h"   "$DST/"
-cp -v  "$STAR_DIR/ogengine_sync.h"  "$DST/"
-
-echo "[2/4] Patching CMakeLists.txt ..."
-CMAKEFILE="$ECWOLF_SRC/src/CMakeLists.txt"
-if ! grep -q "owolf3d_ogengine_integration" "$CMAKEFILE"; then
-    # Insert before the closing ) of initial_sources(...)
-    sed -i 's/\tzstring\.cpp$/\tzstring.cpp\n\towolf3d_ogengine_integration.cpp/' "$CMAKEFILE"
-    echo "  Added owolf3d_ogengine_integration.cpp to source list"
-else
-    echo "  Already present in CMakeLists.txt"
+if [[ ! -f "$DST/wl_main.cpp" ]]; then
+  echo "ECWolf source not found at $ECWOLF_SRC (set OWOLF3D_SRC)"
+  exit 1
 fi
 
-echo "[3/4] Configuring CMake ..."
-BUILD_DIR="$ECWOLF_SRC/build-linux"
-mkdir -p "$BUILD_DIR"
-cmake -S "$ECWOLF_SRC" -B "$BUILD_DIR" \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DGPL=ON
+echo "[1/3] Installing integration files into $DST ..."
+mkdir -p "$DST/oasis"
+cp -f "$SCRIPT_DIR/owolf3d_ogengine_integration.h" "$SCRIPT_DIR/owolf3d_ogengine_integration.cpp" "$DST/"
+for f in ogengine.h ogengine_sync.h ogengine_sync.c; do cp -f "$STAR_DIR/$f" "$DST/oasis/"; done
+for f in oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h; do cp -f "$OGLIB_DIR/$f" "$DST/oasis/"; done
 
-echo "[4/4] Building ..."
-cmake --build "$BUILD_DIR" --config Release -- -j"$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
+echo "[2/3] Configuring CMake (OASIS_STAR_API=ON)..."
+cmake -S "$ECWOLF_SRC" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DGPL=ON -DOASIS_STAR_API=ON "-DOGENGINE_DIR=$STAR_DIR"
 
-echo ""
-echo "Build complete: $BUILD_DIR/ecwolf"
+echo "[3/3] Building..."
+cmake --build "$BUILD_DIR" --parallel
+[[ -f "$BUILD_DIR/oasisstar.json" ]] || cp -f "$SCRIPT_DIR/oasisstar.json" "$BUILD_DIR/" 2>/dev/null || true
+echo "Done: $BUILD_DIR/ecwolf   (beam in once with: ecwolf --star \"beamin <user> <pass>\")"

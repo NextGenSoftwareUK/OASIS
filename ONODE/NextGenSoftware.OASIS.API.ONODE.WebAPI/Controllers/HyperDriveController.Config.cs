@@ -31,41 +31,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Result = config,
                     Message = "HyperDrive configuration retrieved successfully."
                 };
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                // Note: HyperDriveController doesn't inherit from OASISControllerBase, so we need to check config directly
-                var configService = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
-                bool useTestData = configService?.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
-                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false")) ?? false;
-
-                if (useTestData && (result == null || result.IsError || result.Result == null))
-                {
-                    return Ok(new OASISResult<OASISHyperDriveConfig>
-                    {
-                        Result = null,
-                        IsError = false,
-                        Message = "HyperDrive configuration retrieved successfully (using test data)."
-                    });
-                }
+                result.MetaData["effectiveMode"] = OASISDNAManager.OASISDNA?.OASIS?.HyperDriveMode ?? HyperDriveModes.Legacy;
+                result.MetaData["effectiveConfigurationSource"] = _providerManager.EffectiveHyperDriveConfigurationSource;
+                result.MetaData["effectiveConfigurationAppliedUtc"] =
+                    _providerManager.EffectiveHyperDriveConfigurationAppliedUtc.ToString("O");
+                result.MetaData["effectiveAutoFailoverEnabled"] = _providerManager.IsAutoFailOverEnabled.ToString();
+                result.MetaData["effectiveAutoReplicationEnabled"] = _providerManager.IsAutoReplicationEnabled.ToString();
+                result.MetaData["effectiveAutoLoadBalancingEnabled"] = _providerManager.IsAutoLoadBalanceEnabled.ToString();
+                result.MetaData["effectiveFailoverProviders"] = _providerManager.GetProviderAutoFailOverListAsString();
+                result.MetaData["effectiveReplicationProviders"] = _providerManager.GetProvidersThatAreAutoReplicatingAsString();
+                result.MetaData["effectiveLoadBalancingProviders"] = _providerManager.GetProviderAutoLoadBalanceListAsString();
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                var configService = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
-                bool useTestData = configService?.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
-                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false")) ?? false;
-
-                if (useTestData)
-                {
-                    return Ok(new OASISResult<OASISHyperDriveConfig>
-                    {
-                        Result = null,
-                        IsError = false,
-                        Message = "HyperDrive configuration retrieved successfully (using test data)."
-                    });
-                }
                 return BadRequest(new OASISResult<OASISHyperDriveConfig>
                 {
                     IsError = true,
@@ -85,7 +65,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
                 var mode = dna?.HyperDriveMode ?? "Legacy";
-                return Ok(new OASISResult<string> { Result = mode, Message = "HyperDrive mode retrieved." });
+                var result = new OASISResult<string> { Result = mode, Message = "HyperDrive mode retrieved." };
+                result.MetaData["effectiveConfigurationSource"] = _providerManager.EffectiveHyperDriveConfigurationSource;
+                result.MetaData["effectiveConfigurationAppliedUtc"] =
+                    _providerManager.EffectiveHyperDriveConfigurationAppliedUtc.ToString("O");
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -97,17 +81,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("mode")]
         public async Task<ActionResult<OASISResult<bool>>> SetHyperDriveMode([FromBody] string mode)
         {
-            if (mode == null)
+            if (string.IsNullOrWhiteSpace(mode))
                 return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide the HyperDrive mode value." });
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
-                if (dna != null)
+                if (dna == null)
+                    return BadRequest(new OASISResult<bool> { IsError = true, ErrorCode = "OASIS_DNA_NOT_LOADED", Message = "OASIS DNA is not loaded." });
+
+                string normalizedMode = mode.Trim();
+                if (!string.Equals(normalizedMode, HyperDriveModes.Legacy, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(normalizedMode, HyperDriveModes.V2, StringComparison.OrdinalIgnoreCase))
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        ErrorCode = "HYPERDRIVE_MODE_INVALID",
+                        Message = $"Unsupported HyperDrive mode '{mode}'. Valid values are '{HyperDriveModes.Legacy}' and '{HyperDriveModes.V2}'."
+                    });
+
+                normalizedMode = string.Equals(normalizedMode, HyperDriveModes.V2, StringComparison.OrdinalIgnoreCase)
+                    ? HyperDriveModes.V2 : HyperDriveModes.Legacy;
+                string previousMode = dna.HyperDriveMode;
+                dna.HyperDriveMode = normalizedMode;
+                OASISResult<bool> saveResult = await OASISDNAManager.SaveDNAAsync();
+                if (saveResult == null || saveResult.IsError || !saveResult.Result)
                 {
-                    dna.HyperDriveMode = mode;
-                    await OASISDNAManager.SaveDNAAsync();
+                    dna.HyperDriveMode = previousMode;
+                    return BadRequest(saveResult ?? new OASISResult<bool>
+                    {
+                        IsError = true,
+                        ErrorCode = "HYPERDRIVE_MODE_SAVE_FAILED",
+                        Message = "Saving the HyperDrive mode returned no result."
+                    });
                 }
-                return Ok(new OASISResult<bool> { Result = true, Message = "HyperDrive mode updated." });
+
+                OASISResult<bool> applyResult = normalizedMode == HyperDriveModes.V2
+                    ? _providerManager.ApplyHyperDriveConfiguration(dna.OASISHyperDriveConfig)
+                    : _providerManager.ApplyLegacyStorageProviderConfiguration(dna.StorageProviders);
+                if (applyResult.IsError)
+                {
+                    dna.HyperDriveMode = previousMode;
+                    OASISResult<bool> rollbackResult = await OASISDNAManager.SaveDNAAsync();
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        ErrorCode = applyResult.ErrorCode ?? "HYPERDRIVE_MODE_APPLY_FAILED",
+                        Message = rollbackResult != null && !rollbackResult.IsError && rollbackResult.Result
+                            ? $"The runtime rejected mode '{normalizedMode}' and DNA was rolled back. {applyResult.Message}"
+                            : $"The runtime rejected mode '{normalizedMode}', and DNA rollback failed. {applyResult.Message} {rollbackResult?.Message}"
+                    });
+                }
+
+                return Ok(new OASISResult<bool> { Result = true, Message = $"HyperDrive mode '{normalizedMode}' is persisted and active." });
             }
             catch (Exception ex)
             {

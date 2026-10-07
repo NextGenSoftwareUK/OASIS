@@ -1,7 +1,6 @@
 import { Box, Card, CardContent, CardHeader, Chip, Grid, Typography } from '@mui/material';
 
-// Source of truth: C:\Source\OASIS\Providers\ directory tree — 229 unique providers, 232 folder entries
-// (Ceramic, Moralis, Arweave each exist in two category folders)
+// Mirrors OASIS Docs/Provider-Summary.md: one entry per working provider, in its canonical category.
 const providers: Record<string, { name: string; description: string }[]> = {
   'AI / Decentralised AI': [
     { name: 'Bittensor', description: 'Decentralised ML network' },
@@ -120,22 +119,18 @@ const providers: Record<string, { name: string; description: string }[]> = {
     { name: 'Akash', description: 'Decentralised cloud compute' },
     { name: 'Alchemy', description: 'Web3 developer platform' },
     { name: 'Ankr', description: 'Multi-chain RPC & staking' },
-    { name: 'Arweave', description: 'Permanent on-chain storage' },
     { name: 'Blockscout', description: 'Open-source block explorer API' },
     { name: 'Celestia', description: 'Modular data availability' },
-    { name: 'Ceramic / ComposeDB', description: 'Data streams' },
     { name: 'Covalent', description: 'Unified multi-chain data API' },
     { name: 'Dune Analytics', description: 'On-chain SQL queries' },
     { name: 'ENS', description: 'Ethereum Name Service' },
     { name: 'Eclipse', description: 'SVM L2 (Solana VM on Ethereum)' },
     { name: 'Goldsky', description: 'Real-time subgraph indexing' },
     { name: 'Holochain', description: 'Distributed P2P application platform' },
-    { name: 'HoloWeb', description: 'Holochain browser extension' },
     { name: 'IPFS', description: 'Distributed file system' },
     { name: 'Infura', description: 'Ethereum / IPFS infrastructure' },
     { name: 'LayerZero', description: 'Omnichain messaging V1' },
     { name: 'Livepeer', description: 'Decentralised video transcoding' },
-    { name: 'Moralis', description: 'Web3 data API' },
     { name: 'Moralis Streams', description: 'Real-time blockchain events' },
     { name: 'NATS JetStream', description: 'High-performance messaging' },
     { name: 'Nansen', description: 'On-chain analytics & wallet labels' },
@@ -156,7 +151,6 @@ const providers: Record<string, { name: string; description: string }[]> = {
     { name: 'Zapper', description: 'DeFi portfolio tracker' },
   ],
   'Other / Infrastructure': [
-    { name: 'Cargo', description: 'NFT minting & marketplace' },
     { name: 'Dapr', description: 'Distributed application runtime' },
     { name: 'GUN', description: 'Decentralised graph database' },
     { name: 'Intel OpenVINO', description: 'AI/ML inference toolkit' },
@@ -250,9 +244,7 @@ const providers: Record<string, { name: string; description: string }[]> = {
   ],
 };
 
-// Count unique names (Ceramic, Moralis, Arweave appear in two categories each)
-const allNames = new Set(Object.values(providers).flatMap(arr => arr.map(p => p.name)));
-const total = allNames.size;
+const total = Object.values(providers).reduce((sum, items) => sum + items.length, 0);
 
 const categoryIcons: Record<string, string> = {
   'AI / Decentralised AI': '🤖',
@@ -275,8 +267,7 @@ export default function Providers() {
           <Chip label={`${total} providers`} color="primary" size="medium" />
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          All providers are fully implemented and hot-swappable via OASIS HyperDrive. Three providers
-          (Ceramic, Moralis, Arweave) span two categories each — they are counted once.
+          All providers are fully implemented and hot-swappable via OASIS HyperDrive.
         </Typography>
       </Grid>
       {Object.entries(providers).map(([group, items]) => (

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke-test a published OASIS MCP executable over its real stdio protocol."""
+"""Smoke-test a published OASIS MCP executable over its local stdio protocol."""
 
 from __future__ import annotations
 
@@ -41,7 +41,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("binary")
     parser.add_argument("--timeout-seconds", type=int, default=30)
-    parser.add_argument("--minimum-tools", type=int, default=500)
+    parser.add_argument(
+        "--minimum-tools",
+        type=int,
+        default=500,
+        help="Also verify hosted tools/list when greater than zero (requires a compatible live WEB6 endpoint).",
+    )
     args = parser.parse_args()
 
     binary = Path(args.binary).resolve(strict=True)
@@ -77,14 +82,17 @@ def main() -> int:
             raise RuntimeError(f"Unexpected MCP server name: {server_name!r}")
 
         send(process.stdin, {"jsonrpc": "2.0", "method": "notifications/initialized"})
-        send(process.stdin, {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
-        tools_response = receive(process.stdout, 2, args.timeout_seconds)
-        tools = tools_response["result"]["tools"]
-        if len(tools) < args.minimum_tools:
-            raise RuntimeError(
-                f"Expected at least {args.minimum_tools} MCP tools, received {len(tools)}"
-            )
-        print(f"MCP release smoke test passed: server={server_name}, tools={len(tools)}")
+        if args.minimum_tools > 0:
+            send(process.stdin, {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
+            tools_response = receive(process.stdout, 2, args.timeout_seconds)
+            tools = tools_response["result"]["tools"]
+            if len(tools) < args.minimum_tools:
+                raise RuntimeError(
+                    f"Expected at least {args.minimum_tools} MCP tools, received {len(tools)}"
+                )
+            print(f"MCP release smoke test passed: server={server_name}, tools={len(tools)}")
+        else:
+            print(f"MCP release smoke test passed: server={server_name}, local_stdio=ready")
         return 0
     finally:
         process.terminate()

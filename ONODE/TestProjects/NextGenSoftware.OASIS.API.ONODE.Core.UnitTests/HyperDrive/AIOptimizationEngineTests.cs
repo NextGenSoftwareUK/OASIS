@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -35,7 +36,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
                 .First(r => r.ProviderType == provider).Score;
 
             // Real success, fast response (<1000ms) - should nudge the provider's score up.
-            await engine.RecordPerformanceDataAsync(provider, new FakeRequest(), new OASISResult<object> { IsError = false }, responseTimeMs: 50);
+            var recordResult = await engine.RecordPerformanceDataAsync(provider, new FakeRequest(), new OASISResult<object> { IsError = false }, responseTimeMs: 50);
+            recordResult.IsError.Should().BeFalse();
+            recordResult.Result.Should().BeTrue();
 
             var afterScore = await GetProviderScoreAsync(engine, provider);
             afterScore.Should().BeGreaterThan(0.5, "a fast, successful result should raise the score above the neutral 0.5 baseline");
@@ -102,6 +105,66 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests.HyperDrive
             // genuinely below the 0.3 threshold used in GenerateCostOptimizationRecommendations - this is an
             // indirect check that the method compiles/runs against the new cost-based filter without error.
             recommendations.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task RecordPerformanceDataAsync_InvalidInput_ReturnsStructuredError()
+        {
+            var engine = new AIOptimizationEngine();
+
+            var result = await engine.RecordPerformanceDataAsync(
+                ProviderType.MongoDBOASIS,
+                request: null,
+                new OASISResult<object>(),
+                responseTimeMs: 10);
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("HYPERDRIVE_AI_REQUEST_REQUIRED");
+        }
+
+        [Fact]
+        public void RecordPerformanceData_InvalidDuration_ReturnsStructuredError()
+        {
+            var engine = new AIOptimizationEngine();
+
+            var result = engine.RecordPerformanceData(ProviderType.SQLLiteDBOASIS, new PerformanceDataPoint
+            {
+                Operation = "LoadHolon",
+                Success = true,
+                Duration = TimeSpan.FromMilliseconds(-1),
+                Timestamp = DateTime.UtcNow
+            });
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("HYPERDRIVE_AI_DURATION_INVALID");
+        }
+
+        [Fact]
+        public async Task ConcurrentRecordingAndRecommendation_PreservesEveryTelemetrySample()
+        {
+            var engine = new AIOptimizationEngine();
+            const int sampleCount = 500;
+            var tasks = new List<Task>();
+
+            for (var i = 0; i < sampleCount; i++)
+            {
+                var provider = i % 2 == 0 ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS;
+                tasks.Add(engine.RecordPerformanceDataAsync(
+                    provider,
+                    new FakeRequest(),
+                    new OASISResult<object> { IsError = i % 7 == 0 },
+                    responseTimeMs: i % 6000));
+                tasks.Add(engine.GetProviderRecommendationsAsync(
+                    new FakeRequest(),
+                    new List<ProviderType> { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS }));
+                tasks.Add(engine.GetSmartRecommendationsAsync());
+            }
+
+            await Task.WhenAll(tasks);
+
+            var field = typeof(AIOptimizationEngine).GetField("_historicalData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var samples = (List<ProviderPerformanceData>)field!.GetValue(engine)!;
+            samples.Should().HaveCount(sampleCount, "each accepted concurrent telemetry record must be retained exactly once");
         }
 
         /// <summary>Reads the private _providerScores dictionary via reflection - there is no public getter, and adding one purely for tests would widen the production API surface unnecessarily.</summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.Edge.Runtime
 {
@@ -16,6 +17,12 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
         public TimeSpan CommandOutcomePollInterval { get; set; } = TimeSpan.FromMilliseconds(500);
         public TimeSpan HostedServiceRecoveryInterval { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan MaximumHostedServiceRecoveryInterval { get; set; } = TimeSpan.FromMinutes(5);
+        /// <summary>
+        /// Durable device-local projection queues created atomically with each non-command mutation.
+        /// Configure ids even when the target connects later so offline startup cannot lose projection work.
+        /// </summary>
+        public IReadOnlyList<string> LocalReplicationTargetIds { get; set; } = Array.Empty<string>();
+        public int MaximumLocalReplicationsPerRun { get; set; } = 100;
     }
 
     public enum EdgeConnectivityState { Offline, Connecting, Online }
@@ -29,5 +36,21 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
         public string LastErrorCode { get; internal set; }
         public string LastMessage { get; internal set; }
         public long PendingOperationCount { get; internal set; }
+        public long PendingLocalReplicationCount { get; internal set; }
+        public string LastLocalReplicationErrorCode { get; internal set; }
+        public int UnresolvedConflictCount { get; internal set; }
+        public EdgeConflictDiagnostic LastConflict { get; internal set; }
+    }
+
+    public sealed class EdgeConflictDiagnostic
+    {
+        public Guid OperationId { get; set; }
+        public Guid EntityId { get; set; }
+        public string EntityType { get; set; }
+        public Guid ServerVersionId { get; set; }
+        public Guid LocalVersionId { get; set; }
+        public string Code { get; set; }
+        public string Message { get; set; }
+        public DateTime RecordedUtc { get; set; }
     }
 }

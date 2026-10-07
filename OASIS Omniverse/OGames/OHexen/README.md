@@ -1,4 +1,11 @@
-# OHexen — Hexen + OASIS STAR API
+# OHexen
+
+> **OHexen runs on the ODOOM integration.** ODOOM is UZDoom with OASIS, and UZDoom
+> plays Hexen natively. The shared ODOOM integration detects Hexen and reports
+> game source `OHEXEN`, with Hexen's monsters (XP/NFT), keys and artifacts. Build with
+> `BUILD_OHEXEN` (which builds ODOOM) and play with `RUN_OHEXEN` (ODOOM + `-iwad hexen.wad`).
+> The old standalone integration is kept in `Legacy/` for reference only.
+
 
 **OHexen** is a fork of **UZDoom** (a GZDoom variant) targeting Hexen with the **OASIS STAR API** integrated, bringing Hexen into the OASIS Omniverse. Keys, inventory, XP, and quests are shared across all 20 OASIS Omniverse OGames.
 

@@ -1,6 +1,7 @@
 using NextGenSoftware.OASIS.Common;
 using Xunit;
 using FluentAssertions;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests
 {
@@ -67,6 +68,37 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             // Assert
             result.IsError.Should().BeTrue();
             result.Exception.Should().Be(exception);
+        }
+
+        [Fact]
+        public void CopyWithoutInnerResult_PreservesCompleteOperationDiagnostics()
+        {
+            var source = new OASISResult<string>
+            {
+                IsError = true,
+                IsWarning = true,
+                IsSaved = true,
+                IsLoaded = true,
+                IsDeleted = true,
+                ErrorCode = "PROVIDER_CONTRACT_ERROR",
+                Message = "message",
+                DetailedMessage = "details",
+                ResultsCount = 11,
+                ErrorCount = 2,
+                WarningCount = 3,
+                SavedCount = 4,
+                LoadedCount = 5,
+                DeletedCount = 6,
+                HasAnyHolonsChanged = true,
+                InnerMessages = new System.Collections.Generic.List<string> { "inner" },
+                StackTraces = new System.Collections.Generic.List<string> { "stack" },
+                MetaData = new System.Collections.Generic.Dictionary<string, string> { ["provider"] = "test" }
+            };
+
+            var copy = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<string, int>(source);
+
+            copy.Should().BeEquivalentTo(source, options => options.Excluding(x => x.Result));
+            copy.Result.Should().Be(0);
         }
     }
 }

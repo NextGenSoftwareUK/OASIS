@@ -64,7 +64,7 @@ A unique service-outbox claim prevents duplicate provider execution across repli
 
 Operations retain owner, service, endpoint/category, fingerprint, timestamps, reserved units/cost, status/outcome, individual receipts, tokens, units, actual cost and catalogue version. USD uses Decimal128. Round at the invoice boundary, not per call.
 
-`api.request` measures an included request. `ai.tokens` reserves conservative token/USD upper bounds enforced by the consumer's input/output/fan-out policy. Unknown prices and unsupported measurement paths fail before provider work. Failures/cancellation still settle any measured costs. HTTP failure does not mean the provider charged nothing.
+`api.request` measures an included request. `ai.tokens` reserves conservative token/USD upper bounds enforced by the consumer's input/output/fan-out policy. The 512 MCP tools are hosted by WEB6 at `/mcp` and follow the same contract: each `tools/call` is one operation, `ai.tokens` for tools that always call a provider and `api.request` for the rest, bound to the bearer's avatar (see `WEB6/docs/SUBSCRIPTION_USAGE_PROTOCOL.md`, "Hosted MCP"). Unknown prices and unsupported measurement paths fail before provider work. Failures/cancellation still settle any measured costs. HTTP failure does not mean the provider charged nothing.
 
 Buckets are `{avatar}:month:yyyy-MM` and `{avatar}:day:yyyy-MM-dd`. Late settlement updates the original authorization periods, never resets today's counters. Reserved tokens/costs count against admission until definitive settlement or provably unstarted expiry.
 

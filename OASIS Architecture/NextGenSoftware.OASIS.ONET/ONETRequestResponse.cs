@@ -25,6 +25,8 @@ namespace NextGenSoftware.OASIS.ONET
     {
         public string SourceNodeId { get; set; } = string.Empty;
         public string TargetNodeId { get; set; } = string.Empty;
+        /// <summary>Send time (unix seconds), covered by the frame signature; receivers reject stale or replayed frames.</summary>
+        public long IssuedUnixSeconds { get; set; }
         public ONETRequestResponseEnvelope Envelope { get; set; } = new ONETRequestResponseEnvelope();
     }
 
