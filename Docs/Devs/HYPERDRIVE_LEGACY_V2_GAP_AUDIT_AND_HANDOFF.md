@@ -6,6 +6,14 @@
 
 **Implementation status (2026-10-07):** Completed on `codex/hyperdrive-v2-gaps`. The checked-in coverage and evidence record is `Docs/Devs/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`.
 
+**Exhaustive WEB4 follow-up (2026-10-07):** Work continues on
+`codex/hyperdrive-dual-mode-route-matrix`. The HTTP action inventory is now a checked-in,
+executable manifest rather than an estimate: 691 controller actions are classified in
+`Docs/Devs/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv` and guarded by
+`Scripts/verify_web4_hyperdrive_route_manifest.ps1`. Behavioral proof remains intentionally
+layered at the shared manager/router boundary because hundreds of thin controller overloads
+delegate to the same operations; route existence is not represented as storage-behavior proof.
+
 ## Handoff prompt
 
 Use this prompt in a new agent/session:

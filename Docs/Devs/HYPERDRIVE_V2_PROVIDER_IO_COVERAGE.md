@@ -21,6 +21,16 @@ overloads, and classifies **655** provider-backed/delegating methods by their in
 boundary. `scripts/verify_hyperdrive_provider_io_manifest.ps1` reparses the source and fails
 when a method is added, removed, or has its signature changed without a manifest review.
 
+The WEB4 HTTP surface is independently catalogued in
+[`HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv`](HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv). It currently
+contains all **691** `[HttpGet|Post|Put|Patch|Delete]` controller actions and records whether
+each action enters a mode-aware manager, delegates to another reviewed action/manager,
+operates the HyperDrive/provider control plane, targets an explicit external/provider-native
+boundary, or is local/non-storage. `Scripts/verify_web4_hyperdrive_route_manifest.ps1`
+reparses the controller source and fails when the action surface drifts. This closes the
+route-to-manager inventory gap without pretending that a Swagger request made with `{}` is
+an end-to-end business assertion.
+
 | Public API surface | Provider-backed operations | V2 path | Sync/async and explicit-provider disposition | Evidence |
 |---|---|---|---|---|
 | `AvatarManager` | load by ID/username/email/keys/tokens, load all, save, delete, AvatarDetail, karma, inventory | Direct typed `StorageOperationRequest`/avatar requests | Sync and async route through their corresponding V2 helpers; explicit provider remains request-scoped | `Managers/AvatarManager/AvatarManager-Load*.cs`, `AvatarManager-Save*.cs`, `AvatarManager-Delete*.cs`, `AvatarManager-Karma.cs`, `AvatarManager-Inventory.cs` |
@@ -72,14 +82,17 @@ Repeatable gate:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify_hyperdrive_provider_io_manifest.ps1
+powershell -ExecutionPolicy Bypass -File scripts/verify_web4_hyperdrive_route_manifest.ps1
 ```
 
 Verified result on 2026-10-07: `815 public manager methods; 655 provider-backed/delegating methods intentionally classified`.
+Verified WEB4 result on 2026-10-07: `691 controller actions; 597 non-local actions intentionally classified`.
 
 ## Executable evidence
 
 - `HyperDriveProviderExecutionTests`: includes direct config-flag-to-routing and live-latency-to-next-selection contract tests.
-- Complete Core unit-test assembly: 307/307 passing, zero skipped.
+- HyperDrive-filtered Core contract run on 2026-10-07: 296/296 passing, zero skipped.
+- Complete Core unit-test assembly on 2026-10-07: 307/307 passing, zero skipped; TRX captured locally at `artifacts/hyperdrive-dual-mode/hyperdrive-dual-mode-full.trx`.
 - Hosted sync coordinator and fan-out subset: 16/16 passing.
 - Real isolated three-member MongoDB replica-set evidence: 42/42 transaction/replay/retry tests plus 1/1 abrupt-primary-termination/idempotency test. The repeatable runner is `scripts/run_hosted_mongo_release_evidence.ps1`; TRX output is written beneath the selected artifacts directory.
-- WEB4 project build: succeeded with zero errors.
+- WEB4 Release build: succeeded with zero errors (866 pre-existing warnings reported by the compiler).
