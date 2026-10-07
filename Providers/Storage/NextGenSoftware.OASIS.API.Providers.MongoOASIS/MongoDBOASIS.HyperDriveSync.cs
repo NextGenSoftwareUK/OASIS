@@ -82,6 +82,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             cancellationToken, snapshotId).ConfigureAwait(false);
                     return snapshotPage;
                 }
+                var availability = await RefreshGeoNftCollectionAvailabilityAsync(authenticatedAvatarId,
+                    cancellationToken).ConfigureAwait(false);
+                if (availability == null || availability.IsError)
+                {
+                    SetSyncError(result, availability?.ErrorCode ?? "MONGO_GEONFT_AVAILABILITY_REFRESH_FAILED",
+                        availability?.Message ?? "The private GeoNFT availability projection was not refreshed.",
+                        availability?.Exception);
+                    return result;
+                }
                 using (var session = await Database.MongoClient.StartSessionAsync(cancellationToken: cancellationToken)
                     .ConfigureAwait(false))
                 {
@@ -420,7 +429,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             if (operation.EntityType == HyperDriveEntityTypes.Avatar ||
                 operation.EntityType == HyperDriveEntityTypes.AvatarDetail ||
-                operation.EntityType == HyperDriveEntityTypes.QuestProgress)
+                operation.EntityType == HyperDriveEntityTypes.QuestProgress ||
+                operation.EntityType == HyperDriveEntityTypes.GeoNftCollectionAvailability)
                 return await RecordTerminalOperationAsync(session, operation, SyncOperationDisposition.Rejected,
                     "HOSTED_DOMAIN_SERVER_AUTHORITATIVE",
                     $"'{operation.EntityType}' is a server-authoritative projection and cannot be overwritten by an Edge entity mutation.",

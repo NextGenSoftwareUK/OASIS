@@ -13,6 +13,7 @@ All component switches default to **on**:
 | All first-party NuGet projects | One validated `.nupkg` per project, including packages that have never been published |
 | OASIS Runtime | `OASIS-Runtime-vX.Y.Z` GitHub release and `OASIS.Runtime.vX.Y.Z.zip` |
 | STAR ODK Runtime | `STAR-ODK-Runtime-vX.Y.Z` GitHub release with self-contained STAR Runtime/CLI archives for Windows x64, Linux x64/ARM64, and macOS x64/ARM64 |
+| OASIS Edge Runtime | `OASIS-Edge-Runtime-vX.Y.Z` GitHub release with attested Edge evidence, Unity package, Holochain hApp, Edge/RemoteOnly native profiles, and nine coordinated NuGet packages |
 | OGEngineClient | `OGEngineClient-vX.Y.Z` GitHub release and archive; this is the renamed STAR API Client |
 | Native Endpoint | `Native-Endpoint-vX.Y.Z` GitHub release and archive |
 | MCP Server | Existing comprehensive MCP workflow: native binaries, GitHub release, NuGet package and npm package |
@@ -34,7 +35,7 @@ The dated distinction between passing rehearsals and permanent public downloads 
 
 The workflow builds every selected output before publishing. If a build or metadata validation fails, publishing does not start for that job. NuGet versions are calculated from the greater of the source project version and the latest **listed** stable version on NuGet.org. GitHub release versions use the greater of the source version and the latest matching public release tag. Existing packages advance by one patch. Every package absent from NuGet starts at `1.0.0`, independently of the assembly/API version declared by its source project.
 
-Runtime GitHub releases use separate generated notes for OASIS Runtime, STAR ODK Runtime, OGEngineClient, Native Integrated Endpoint and MCP Server. `Scripts/New-OASISReleaseNotes.ps1` starts with the component introduction, finds its previous release tag, reads commits affecting that component, groups the version-specific features/fixes/other changes, and ends with that component's compare link. The workflow never reuses platform-wide notes for component releases.
+Runtime GitHub releases use separate generated notes for OASIS Runtime, STAR ODK Runtime, OASIS Edge Runtime, OGEngineClient, Native Integrated Endpoint and MCP Server. `Scripts/New-OASISReleaseNotes.ps1` starts with the component introduction, finds its previous release tag, reads commits affecting that component, groups the version-specific features/fixes/other changes, and ends with that component's compare link. The workflow never reuses platform-wide notes for component releases.
 
 Every NuGet package receives the same structure in its embedded `PackageReleaseNotes`: package description, target version, changes to that project since its latest listed NuGet publication, and a package-path changelog link. A package with no prior listed version receives initial-release contents and starts at `1.0.0`.
 
@@ -68,7 +69,9 @@ Version/history changes must be committed and pass CI before publishing from `ma
 
 ## Individual releases, version modes and preview
 
-The global workflow is the coordinated monthly orchestrator. Every independently releasable component must also have a manual workflow: WEB4, WEB5, WEB6, MCP Server, OASIS Runtime, STAR ODK Runtime, OGEngineClient, Native Endpoint, Our World, ODOOM, OQUAKE, OIDE, ONODE Manager and HyperDrive Client. Each entry calls shared planning/build/publish code; it must not copy release logic. External products run their canonical owning-repository workflow. A missing tested binary workflow is a preview blocker, never permission to create a source-only release.
+The global workflow is the coordinated monthly orchestrator. Every independently releasable component must also have a manual workflow: WEB4, WEB5, WEB6, MCP Server, OASIS Runtime, STAR ODK Runtime, OASIS Edge Runtime, OGEngineClient, Native Endpoint, Our World, ODOOM, OQUAKE, OIDE, ONODE Manager and HyperDrive Client. Each entry calls shared planning/build/publish code; it must not copy release logic. External products run their canonical owning-repository workflow. A missing tested binary workflow is a preview blocker, never permission to create a source-only release.
+
+The Edge Runtime entry point is `.github/workflows/release-edge-runtime.yml`. It dispatches the shared workflow with `edge_runtime=true`, `nuget_packages=true`, and `nuget_package_scope=Edge`. The shared workflow enforces that an Edge release cannot omit its nine NuGet packages, runs the reusable Edge validation gate, packs the complete set before mutation, publishes that reviewed NuGet set after validation succeeds, and creates the GitHub release only after NuGet publication succeeds. Edge has no npm package; npm remains the JavaScript distribution channel for MCP Server.
 
 Each component offers `Automatic` (default), `Patch`, `Minor`, `Major` and `Manual`. Automatic selects major only for `BREAKING CHANGE`, a Conventional Commit `!`, or `release:major`; new public capabilities select minor; fixes, documentation, packaging and internal changes select patch. `release:major`, `release:minor`, `release:patch` and `release:none` override inference. New public packages start at `1.0.0`. Manual versions must be stable SemVer, greater than the latest publication and unused at every destination. No relevant changes stops the release.
 
@@ -131,5 +134,6 @@ The `.bat` and `.sh` wrappers accept the same arguments. Run `Scripts/Test-OASIS
 | Runtime output | GitHub release assets and the `global-release-runtime-assets` workflow artifact |
 | Comprehensive GitHub release body | `Docs/Releases/GLOBAL_RELEASE_NOTES.md` |
 | Complete CI/release map | `Docs/Devs/CI_CD_WORKFLOWS_AND_RELEASES.md` |
+| Edge package/evidence/release map | `Docs/Devs/EDGE_RUNTIME_RELEASES.md` |
 
 The emergency disk cleanup wrappers in `Scripts/tools/cleanup-emergency-space.*` remove only the disposable `artifacts/global-release-validation` and `artifacts/global-release-optional-version-check` directories created by release-plan checks. They preserve `artifacts/global-release`, packaged releases, and all build output trees. Pass `-KeepOASISTemporaryArtifacts` on Windows or `--keep-oasis-temp-artifacts` on Linux to retain the validation directories too. The Windows cleanup resolves and checks every target against the repository root before deletion.

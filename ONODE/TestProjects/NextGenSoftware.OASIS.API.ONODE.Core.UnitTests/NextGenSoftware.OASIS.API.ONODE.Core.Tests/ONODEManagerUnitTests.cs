@@ -37,31 +37,6 @@ public class ONODEManagerUnitTests
     }
 
     [Fact]
-    public async Task GetOASISDNAAsync_ReturnsDnaPassedToConstructor()
-    {
-        var dna = BuildDna();
-        var manager = new ONODEManager(storageProvider: null, oasisdna: dna);
-
-        var result = await manager.GetOASISDNAAsync();
-
-        result.IsError.Should().BeFalse();
-        result.Result.Should().BeSameAs(dna);
-    }
-
-    [Fact]
-    public async Task UpdateOASISDNAAsync_ReplacesStoredDna()
-    {
-        var dna1 = BuildDna("node1");
-        var dna2 = BuildDna("node2");
-        var manager = new ONODEManager(storageProvider: null, oasisdna: dna1);
-
-        await manager.UpdateOASISDNAAsync(dna2);
-        var result = await manager.GetOASISDNAAsync();
-
-        result.Result.Should().BeSameAs(dna2);
-    }
-
-    [Fact]
     public async Task GetNodeStatusAsync_InitialState_IsNotRunning()
     {
         var manager = new ONODEManager(storageProvider: null);

@@ -14,14 +14,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS
     /// conflicts and the pull checkpoint share one SQLite transaction boundary.
     /// </summary>
     public sealed partial class EdgeSQLiteSyncStateStore : IHyperDriveSyncStateStore,
-        IHyperDriveIdempotentReplicationTarget, IDisposable
+        IHyperDriveIdempotentReplicationTarget, IHyperDriveLocalReplicationOutbox, IDisposable
     {
         private readonly string _connectionString;
         private readonly IEdgeSQLiteTransactionFaultInjector _faultInjector;
+        private readonly IReadOnlyList<string> _localReplicationTargetIds;
         public string ReplicationTargetId => "EdgeSQLiteOASIS";
 
         public EdgeSQLiteSyncStateStore(string databasePath,
-            IEdgeSQLiteTransactionFaultInjector faultInjector = null)
+            IEdgeSQLiteTransactionFaultInjector faultInjector = null,
+            IEnumerable<string> localReplicationTargetIds = null)
         {
             if (string.IsNullOrWhiteSpace(databasePath))
                 throw new ArgumentException("A SQLite database path is required.", nameof(databasePath));
@@ -35,6 +37,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS
                 Pooling = false
             }.ToString();
             _faultInjector = faultInjector;
+            var targets = new List<string>();
+            if (localReplicationTargetIds != null)
+                foreach (var targetId in localReplicationTargetIds)
+                {
+                    if (string.IsNullOrWhiteSpace(targetId))
+                        throw new ArgumentException("Local replication target ids cannot be blank.", nameof(localReplicationTargetIds));
+                    if (targets.Contains(targetId))
+                        throw new ArgumentException($"Duplicate local replication target id '{targetId}'.", nameof(localReplicationTargetIds));
+                    targets.Add(targetId);
+                }
+            _localReplicationTargetIds = targets;
             Initialize();
         }
 
@@ -93,6 +106,20 @@ VALUES($operation_id, $device_id, $avatar_id, $sequence, $entity_id, $entity_typ
                         Add(command, "$created_utc", createdUtc.ToString("O"));
                         await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
+
+                    // The local-domain projection queue is independent from the hosted outbox.
+                    // Both records are created in this transaction, so a crash can produce neither
+                    // or both, but never a committed local mutation with missing Holo delivery.
+                    if (mutation.Kind != SyncOperationKind.Command)
+                        foreach (var targetId in _localReplicationTargetIds)
+                            using (var replication = CreateCommand(connection, transaction, @"
+INSERT INTO local_replication_outbox(target_id, operation_id, state, attempt_count)
+VALUES($target_id, $operation_id, 0, 0);"))
+                            {
+                                Add(replication, "$target_id", targetId);
+                                Add(replication, "$operation_id", mutation.OperationId.ToString("D"));
+                                await replication.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                            }
 
                     await InjectAsync(EdgeSQLiteTransactionBoundary.LocalOutboxWrittenBeforeCommit, cancellationToken)
                         .ConfigureAwait(false);
@@ -665,6 +692,14 @@ CREATE TABLE IF NOT EXISTS sync_conflicts(
  FOREIGN KEY(operation_id) REFERENCES sync_outbox(operation_id));
 CREATE TABLE IF NOT EXISTS sync_inbox(change_id TEXT PRIMARY KEY, applied_utc TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS replication_inbox(operation_id TEXT PRIMARY KEY, applied_utc TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS local_replication_outbox(
+ target_id TEXT NOT NULL, operation_id TEXT NOT NULL, state INTEGER NOT NULL,
+ attempt_count INTEGER NOT NULL, last_error_code TEXT NULL, last_error_message TEXT NULL,
+ last_attempt_utc TEXT NULL, completed_utc TEXT NULL,
+ PRIMARY KEY(target_id, operation_id),
+ FOREIGN KEY(operation_id) REFERENCES sync_outbox(operation_id));
+CREATE INDEX IF NOT EXISTS ix_local_replication_pending
+ ON local_replication_outbox(target_id, state, operation_id);
 CREATE TABLE IF NOT EXISTS sync_state(singleton_id INTEGER PRIMARY KEY CHECK(singleton_id = 1),
  pull_checkpoint TEXT NULL, last_successful_sync_utc TEXT NULL,
  snapshot_id TEXT NULL, snapshot_page_index INTEGER NOT NULL DEFAULT 0);

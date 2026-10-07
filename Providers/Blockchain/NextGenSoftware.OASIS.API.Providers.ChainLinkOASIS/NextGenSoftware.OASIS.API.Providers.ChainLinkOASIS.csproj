@@ -41,11 +41,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Nethereum.Web3" Version="4.19.0" />
-	  <PackageReference Include="Nethereum.HdWallet" Version="4.19.0" />
-	
-    <!-- Override: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0 -->
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+	  <PackageReference Include="Nethereum.Web3" Version="7.0.0" />
+	  <PackageReference Include="Nethereum.HdWallet" Version="7.0.0" />
   </ItemGroup>
 
 	<ItemGroup>

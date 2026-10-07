@@ -15,6 +15,18 @@ extern "C" {
 #endif
 
 /**
+ * Case-insensitive compare (strcmp semantics). OGLib does not call _stricmp/strcasecmp because
+ * idTech engines redefine those names to force their own string class.
+ */
+static inline int oglib_str_icmp(const char* a, const char* b)
+{
+    for (;; a++, b++) {
+        int ca = tolower((unsigned char)*a), cb = tolower((unsigned char)*b);
+        if (ca != cb || ca == 0) return ca - cb;
+    }
+}
+
+/**
  * Case-insensitive substring search.
  * Returns 1 if needle is found anywhere in haystack (case-insensitive), 0 otherwise.
  */
