@@ -11,6 +11,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests")]
+
 namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
 {
     /// <summary>
@@ -19,8 +21,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
     /// </summary>
     public class FastlyOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
     {
-        public FastlyOASIS(string apiToken, string storeId)
-            : base(new FastlyKvBackend(apiToken, storeId))
+        public FastlyOASIS(string apiToken, string storeId) : this(new FastlyKvBackend(apiToken, storeId, null))
+        {
+        }
+
+        internal FastlyOASIS(FastlyKvBackend backend) : base(backend)
         {
             ProviderName = "FastlyOASIS";
             ProviderDescription = "Fastly KV Store provider: OASIS avatars and holons served from Fastly's edge.";
@@ -35,12 +40,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FastlyOASIS
         private readonly HttpClient _http;
         private readonly string _storeId;
 
-        public FastlyKvBackend(string apiToken, string storeId)
+        public FastlyKvBackend(string apiToken, string storeId, HttpMessageHandler handler)
         {
             if (string.IsNullOrWhiteSpace(apiToken)) throw new ArgumentException("A Fastly API token is required.", nameof(apiToken));
             if (string.IsNullOrWhiteSpace(storeId)) throw new ArgumentException("A Fastly KV store id is required.", nameof(storeId));
             _storeId = storeId;
-            _http = new HttpClient { BaseAddress = new Uri("https://api.fastly.com/") };
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri("https://api.fastly.com/");
             _http.DefaultRequestHeaders.Add("Fastly-Key", apiToken);
             _http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
