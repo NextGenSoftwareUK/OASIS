@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronize Railway's private dependency pins with checked-out submodules."""
+"""Synchronize Railway's private dependency pins with parent gitlinks."""
 
 from __future__ import annotations
 
@@ -23,17 +23,22 @@ GITLINKS = {
 }
 
 
-def checked_out_commit(path: str) -> str:
+def gitlink_commit(path: str) -> str:
+    # Resolve the commit recorded by the parent tree, not `git -C <path> HEAD`.
+    # An uninitialized submodule directory has no .git metadata, so Git walks up
+    # to the parent repository and the latter command silently returns the
+    # parent's HEAD instead of the gitlink SHA.
     result = subprocess.run(
-        ["git", "-C", str(ROOT / path), "rev-parse", "HEAD"],
+        ["git", "rev-parse", f"HEAD:{path}"],
+        cwd=ROOT,
         text=True,
         capture_output=True,
     )
     if result.returncode:
-        raise RuntimeError(f"Cannot resolve checked-out submodule {path}: {result.stderr.strip()}")
+        raise RuntimeError(f"Cannot resolve parent gitlink {path}: {result.stderr.strip()}")
     commit = result.stdout.strip()
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise RuntimeError(f"Submodule {path} returned an invalid commit: {commit}")
+        raise RuntimeError(f"Gitlink {path} returned an invalid commit: {commit}")
     return commit
 
 
@@ -52,7 +57,7 @@ def main() -> int:
 
     try:
         for key, path in GITLINKS.items():
-            commit = checked_out_commit(path)
+            commit = gitlink_commit(path)
             pattern = re.compile(rf"(?m)^{re.escape(key)}=([0-9a-f]{{40}})$")
             match = pattern.search(updated)
             if not match:
@@ -65,7 +70,7 @@ def main() -> int:
         return 1
 
     if not changes:
-        print("Railway manifest already matches the checked-out private submodules.")
+        print("Railway manifest already matches the parent repository gitlinks.")
         return 0
 
     print("Railway manifest drift:")
