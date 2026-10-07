@@ -2,7 +2,9 @@
 
 **Audit date:** 2026-10-06  
 **Repository/branch inspected:** `C:\Source\OASIS`, `Development`  
-**Purpose:** Give a new engineering agent enough verified context to close the auto-failover, auto-load-balancing, and auto-replication gaps without relying on chat history.
+**Purpose:** Record the original gap audit and the verified implementation that closed it.
+
+**Implementation status (2026-10-07):** Completed on `codex/hyperdrive-v2-gaps`. The checked-in coverage and evidence record is `Docs/Devs/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`.
 
 ## Handoff prompt
 
@@ -19,6 +21,18 @@ Use this prompt in a new agent/session:
 | Auto-load-balancing | Partial, concentrated in selected Avatar/Holon save paths; frequently performs an additional write after the primary save | Central provider selection with multiple strategies | V2 contains the intended design, but configuration authority and real metric feedback are incomplete |
 
 The inspected WEB4 operational DNA is configured with `HyperDriveMode: Legacy`. Therefore enabling individual V2-looking configuration fields does not make V2 the active routing path.
+
+## Implemented resolution
+
+- `OASIS.StorageProviders` is the sole effective Legacy authority; `OASIS.OASISHyperDriveConfig` is the sole effective V2 authority. Boot and mode changes atomically map the selected authority into `ProviderManager`.
+- V2 configuration updates persist first, apply the runtime policy, and roll persistence back when runtime application is rejected.
+- WEB4 `/mode`, `/config` and `/status` expose the effective source and actual runtime flags/lists; status counts registered and active providers.
+- The unused duplicate `ProviderManagerNew`/`ProviderConfigurator` control plane was removed.
+- Every routed provider outcome records latency/success/failure in the same `PerformanceMonitor` consumed by load-balancing selection.
+- Failover distinguishes unavailable providers from authoritative misses: a null result wrapper or `IsError` fails over; a non-error null payload or empty collection is terminal.
+- Ordinary WEB4 V2 mutations always replicate inline. They are never marked durably deferred without enrollment. Hosted Edge sync remains a separate transactionally enrolled path.
+- Core tests: 305 discovered, 305 passed. HyperDrive provider execution: 179/179. Hosted sync/fan-out subset: 16/16. WEB4 build: zero errors.
+- WEB5 `STARNETHolonId` loading code was not changed.
 
 ## Important architecture invariants
 
@@ -174,8 +188,8 @@ The central V2 sequence is:
 1. Check subscription quota.
 2. Select an allowed provider.
 3. Route the typed request to that provider.
-4. If the result is an error and failover is enabled, try the ordered failover providers.
-5. If the request is a successful mutation and replication is enabled, replicate inline or defer to hosted durable sync.
+4. If the provider returned no result wrapper or an error and failover is enabled, try the ordered failover providers.
+5. If an ordinary WEB4 mutation succeeds and replication is enabled, replicate inline. Hosted Edge synchronization owns its separate durable transaction/fan-out path.
 6. Record usage and attach structured diagnostics.
 
 ### V2 auto-failover
@@ -188,11 +202,11 @@ Implemented:
 - Quota enforcement and diagnostic attempt records.
 - Predictive failover overrides without changing the global current provider.
 
-Gaps:
+Resolved semantics:
 
-- Automatic failover begins only when `result.IsError` is true.
-- Empty/not-found success semantics are not operation-aware. Define explicitly which reads should fail over on authoritative misses and which must not.
-- Retry policy fields such as `MaxRetryAttempts` are not visibly applied by the main failover loop; verify and implement only if the contract requires retries.
+- A missing result wrapper or explicit provider error triggers failover.
+- A non-error null payload is an authoritative not-found result; a non-error empty collection is an authoritative empty query. Neither fails over.
+- `MaxRetryAttempts` does not retry ordinary non-idempotent WEB4 mutations. Durable hosted fan-out owns bounded retry/backoff after transactional enrollment.
 
 ### V2 auto-load-balancing
 
@@ -205,12 +219,10 @@ Implemented:
 - ProviderManager supplies RoundRobin, WeightedRoundRobin, LeastConnections, Geographic, CostBased and Performance strategies.
 - Deterministic tie-breaking is present in several selectors.
 
-Gaps:
+Resolved behavior:
 
-- The router contains the comment `Optionally update performance metrics (not available in current PerformanceMonitor API)` after execution.
-- Therefore request execution does not yet clearly feed every latency/success/failure measurement back into selection.
-- Default metrics can make an apparently intelligent selection behave like a static deterministic choice.
-- Active connection accounting and geographic/cost data require end-to-end verification.
+- Every synchronous and asynchronous provider execution records success/failure and latency in `ProviderManager.PerformanceMonitor`, the same instance used by load-balancing selectors.
+- Cost and geographic values remain explicitly declared operator inputs; latency, error rate, uptime and overall score are live measured inputs.
 
 ### V2 auto-replication
 
@@ -225,15 +237,9 @@ Implemented:
 
 Hosted-sync behavior:
 
-- With `EnableHostedSync == false`, the V2 router replicates inline.
-- With `EnableHostedSync == true`, the router does not perform the fan-out. It marks replication as deferred to the durable hosted pipeline.
-
-Gaps:
-
-- Prove that every relevant primary mutation creates a durable command/outbox entry before relying on deferred replication.
-- Prove restart recovery, idempotency, retry/backoff, poison-message handling and eventual completion.
-- Prove that a successful primary response cannot be returned while the mutation was never enrolled in the hosted pipeline.
-- Confirm provider support for all `StorageOperationRequest` mutation types.
+- Ordinary WEB4 V2 mutations replicate inline regardless of `EnableHostedSync`; no unenrolled operation claims durable deferral.
+- Edge sync calls use the hosted provider contract. MongoDB atomically writes the mutation, change feed, terminal operation/device sequence and fan-out record.
+- Dispatcher tests verify leases, renewal, ordered batches and bounded retry/backoff; coordinator tests verify atomic acknowledgement/checkpoint commits and unchanged durable state on transport failure.
 
 ## Highest-priority defect: conflicting configuration authorities
 
@@ -342,7 +348,7 @@ They include coverage for:
 - ReplicatorManager delegation
 - Explicit-operation quota checks
 
-At audit time, tests could not be executed reliably. `dotnet test` exited without discovering output, and a direct build revealed missing NuGet artifacts including:
+At original audit time, tests could not be executed reliably. `dotnet test` exited without discovering output, and a direct build revealed missing NuGet artifacts including:
 
 ```text
 xunit.analyzers.dll
@@ -350,9 +356,9 @@ xunit.analyzers.fixes.dll
 Microsoft.TestPlatform test-host assemblies
 ```
 
-The build ended with `CS0006` for missing xUnit analyzer assemblies. Existing tests are therefore evidence of intended behavior, not evidence that the current branch passes.
+The build ended with `CS0006` for missing xUnit analyzer assemblies. This restore/cache problem was repaired in the isolated implementation worktree; the current Core suite discovers and passes 305/305 tests.
 
-Required repair:
+Completed repair:
 
 1. Repair/restore the NuGet dependency cache or lock-file inputs without committing machine-specific paths.
 2. Run the focused HyperDrive tests and record discovered/passed/failed counts.
