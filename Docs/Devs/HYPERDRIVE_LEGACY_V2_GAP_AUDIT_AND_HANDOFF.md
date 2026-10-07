@@ -83,7 +83,21 @@ GET /api/hyperdrive/config
 GET /api/hyperdrive/status
 ```
 
-On 2026-10-07 all three routes were rechecked after implementation and returned HTTP `401` without a JWT, with the expected authentication boundary. This proves the WEB4 development routes resolve. No Wizard credential/JWT was present in the environment, so authenticated effective values must be captured by the deployment owner after this commit is deployed; no result was fabricated.
+On 2026-10-07 all three routes first returned HTTP `401` without a JWT, proving the expected authentication boundary. After the corrected Railway dependency pins deployed, an authorized development account captured and validated all three read-only responses at `2026-10-07T21:45:25Z` using `Scripts/verify_hyperdrive_web4_endpoints.ps1`. The token was neither printed nor persisted.
+
+Authenticated development evidence:
+
+| Runtime value | Captured value |
+|---|---|
+| Mode | `Legacy` |
+| Effective source | `OASIS.StorageProviders` |
+| Effective policy applied | `2026-10-07T21:45:07.4979993Z` |
+| Auto-failover | `true` |
+| Auto-replication | `false` |
+| Auto-load-balancing | `true` |
+| Registered / active providers | `14 / 1` |
+
+The mode, config metadata and status response agreed on the effective mode/source and exposed the ordered failover, replication and load-balancing provider lists. The raw response artifact was captured locally at `artifacts/hyperdrive-v2-gap-evidence/web4-development-endpoints.json`.
 
 Live verification procedure:
 
@@ -447,9 +461,9 @@ The gaps are closed only when all of the following are true:
 | Main behavioral tests | `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveProviderExecutionTests.cs` |
 | Config-manager tests | `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/OASISHyperDriveConfigManagerTests.cs` |
 
-## Remaining deployment-owner verification
+## Final verification notes
 
-- No authenticated WEB4 JWT was available during this audit, so deployed effective mode/config/status values were not read. The routes themselves resolve and correctly return `401` without a token. This is the only acceptance item requiring external credential/deployment state rather than repository work.
+- Authenticated WEB4 development mode/config/status evidence was captured successfully on 2026-10-07 after deployment commit `2a0da2228` repaired the Railway dependency pins.
 - No provider was deliberately disabled on the shared development environment.
 - The ignored local operational DNA cannot prove Railway environment-variable or mounted-file values.
 - This audit made no production configuration changes.
