@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.FastlyOASIS;
 using NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS;
+using NextGenSoftware.OASIS.API.Providers.VercelKVOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
 {
@@ -95,6 +96,62 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
             var result = await failing.SaveAvatarAsync(new Avatar { Username = "neo", Email = "neo@m.io" });
             Assert.IsTrue(result.IsError);
             StringAssert.Contains(result.Message, "401");
+        }
+    }
+
+    [TestClass]
+    public class VercelKVProtocolTests
+    {
+        private readonly ConcurrentDictionary<string, string> _redis = new();
+        private FakeService _service;
+        private VercelKVOASIS.VercelKVOASIS _provider;
+
+        [TestInitialize]
+        public void Init()
+        {
+            _service = new FakeService((req, body) =>
+            {
+                Assert.AreEqual(HttpMethod.Post, req.Method);
+                Assert.AreEqual("kv-token", req.Headers.Authorization.Parameter);
+                var cmd = JsonSerializer.Deserialize<string[]>(body);
+                switch (cmd[0])
+                {
+                    case "PING": return FakeService.Json(new { result = "PONG" });
+                    case "GET": return FakeService.Json(new { result = _redis.TryGetValue(cmd[1], out var v) ? v : null });
+                    case "SET": _redis[cmd[1]] = cmd[2]; return FakeService.Json(new { result = "OK" });
+                    case "DEL": return FakeService.Json(new { result = _redis.TryRemove(cmd[1], out _) ? 1 : 0 });
+                    case "SCAN":
+                        // Return one key per call so the provider must iterate the cursor to the end.
+                        var prefix = cmd[3].TrimEnd('*').Replace("\\", string.Empty);
+                        var all = _redis.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList();
+                        var at = int.Parse(cmd[1]);
+                        var next = at + 1 < all.Count ? (at + 1).ToString() : "0";
+                        return FakeService.Json(new { result = new object[] { next, all.Skip(at).Take(1).ToArray() } });
+                    default: return FakeService.Json(new { error = $"ERR unknown command '{cmd[0]}'" });
+                }
+            });
+            _provider = new VercelKVOASIS.VercelKVOASIS(new UpstashRestBackend("https://example.kv.vercel-storage.com", "kv-token", _service));
+        }
+
+        [TestMethod]
+        public async Task Holons_round_trip_through_redis_commands_and_scan()
+        {
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            for (var i = 0; i < 3; i++) await _provider.SaveHolonAsync(new Holon { Name = $"h{i}" });
+
+            var all = await _provider.LoadAllHolonsAsync();
+            Assert.IsFalse(all.IsError, all.Message);
+            Assert.AreEqual(3, all.Result.Count());
+        }
+
+        [TestMethod]
+        public async Task Redis_errors_surface_as_OASIS_errors()
+        {
+            var failing = new VercelKVOASIS.VercelKVOASIS(new UpstashRestBackend("https://example.kv.vercel-storage.com", "kv-token",
+                new FakeService((_, _) => FakeService.Json(new { error = "WRONGPASS invalid token" }))));
+            var result = await failing.ActivateProviderAsync();
+            Assert.IsTrue(result.IsError);
+            StringAssert.Contains(result.Message, "WRONGPASS");
         }
     }
 
