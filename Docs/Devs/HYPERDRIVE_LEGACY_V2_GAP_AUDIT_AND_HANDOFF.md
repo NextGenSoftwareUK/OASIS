@@ -82,7 +82,7 @@ GET /api/hyperdrive/config
 GET /api/hyperdrive/status
 ```
 
-On 2026-10-06 all three routes resolved and returned HTTP `401` without a JWT, with the expected message requiring `api/avatar/authenticate`. This proves the WEB4 development routes are deployed. It does not reveal their authenticated results.
+On 2026-10-07 all three routes were rechecked after implementation and returned HTTP `401` without a JWT, with the expected authentication boundary. This proves the WEB4 development routes resolve. No Wizard credential/JWT was present in the environment, so authenticated effective values must be captured by the deployment owner after this commit is deployed; no result was fabricated.
 
 Live verification procedure:
 
