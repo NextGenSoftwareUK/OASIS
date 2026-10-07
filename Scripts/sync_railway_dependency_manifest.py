@@ -23,13 +23,18 @@ GITLINKS = {
 }
 
 
-def gitlink_commit(path: str) -> str:
-    # Resolve the commit recorded by the parent tree, not `git -C <path> HEAD`.
-    # An uninitialized submodule directory has no .git metadata, so Git walks up
-    # to the parent repository and the latter command silently returns the
-    # parent's HEAD instead of the gitlink SHA.
+def gitlink_commit(path: str, source: str) -> str:
+    # HEAD/index modes resolve the parent gitlink and are safe for uninitialized
+    # submodules. Working-tree mode is explicit and is only used after a workflow
+    # has initialized and advanced every submodule checkout.
+    if source == "working-tree":
+        command = ["git", "-C", path, "rev-parse", "HEAD"]
+    else:
+        tree = "HEAD" if source == "head" else ""
+        command = ["git", "rev-parse", f"{tree}:{path}"]
+
     result = subprocess.run(
-        ["git", "rev-parse", f"HEAD:{path}"],
+        command,
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -49,6 +54,13 @@ def main() -> int:
         action="store_true",
         help="report drift without changing the manifest",
     )
+    parser.add_argument(
+        "--source",
+        choices=("head", "index", "working-tree"),
+        default="head",
+        help=("where to resolve gitlinks: committed HEAD, the staged index, or "
+              "initialized submodule working trees"),
+    )
     args = parser.parse_args()
 
     original = MANIFEST.read_text(encoding="utf-8")
@@ -57,7 +69,7 @@ def main() -> int:
 
     try:
         for key, path in GITLINKS.items():
-            commit = gitlink_commit(path)
+            commit = gitlink_commit(path, args.source)
             pattern = re.compile(rf"(?m)^{re.escape(key)}=([0-9a-f]{{40}})$")
             match = pattern.search(updated)
             if not match:
