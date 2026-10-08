@@ -21,13 +21,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-// using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
@@ -40,7 +36,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
     public partial class CosmosBlockChainOASIS
     {
-        public void Dispose() => _httpClient?.Dispose();
+        public void Dispose()
+        {
+            IsProviderActivated = false;
+            ((CosmosSdkBackend)Backend).Dispose();
+        }
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
             => SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).GetAwaiter().GetResult();
         public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)

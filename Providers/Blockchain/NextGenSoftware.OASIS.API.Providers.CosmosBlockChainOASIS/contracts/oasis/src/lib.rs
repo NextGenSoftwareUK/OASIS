@@ -2,6 +2,7 @@ use cosmwasm_std::{entry_point, to_json_binary, Addr, Binary, Deps, DepsMut, Env
 use cw_storage_plus::{Bound, Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+mod assets;
 
 // The shared OASIS key-value provider serializes entities and indexes as opaque
 // JSON. Only the configured service signer may mutate this contract's store.
@@ -17,6 +18,7 @@ pub struct InstantiateMsg { pub owner: Option<String> }
 pub enum ExecuteMsg {
     Put { key: String, value: String },
     Delete { key: String },
+    Asset { message: assets::ExecuteMsg },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -25,6 +27,7 @@ pub enum QueryMsg {
     Config {},
     Get { key: String },
     List { prefix: String, start_after: Option<String>, limit: Option<u32> },
+    Asset { message: assets::QueryMsg },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -42,6 +45,9 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
 
 #[entry_point]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+    if let ExecuteMsg::Asset { message } = msg {
+        return assets::execute(deps, info, message);
+    }
     if info.sender != OWNER.load(deps.storage)? {
         return Err(StdError::generic_err("unauthorized: storage owner required"));
     }
@@ -58,12 +64,14 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             VALUES.remove(deps.storage, &key);
             Ok(Response::new().add_attribute("action", "delete").add_attribute("key", key))
         }
+        ExecuteMsg::Asset { .. } => unreachable!("asset messages are dispatched before storage authorization"),
     }
 }
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
+        QueryMsg::Asset { message } => assets::query(deps, message),
         QueryMsg::Config {} => to_json_binary(&ConfigResponse { owner: OWNER.load(deps.storage)?.to_string() }),
         QueryMsg::Get { key } => to_json_binary(&VALUES.may_load(deps.storage, &key)?),
         QueryMsg::List { prefix, start_after, limit } => {

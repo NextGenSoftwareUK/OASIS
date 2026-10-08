@@ -27,7 +27,14 @@ public class CosmosBlockChainOASISIntegrationTests
     }
 
     [TestCleanup]
-    public async Task Cleanup() => await _provider.DeActivateProviderAsync();
+    public async Task Cleanup()
+    {
+        if (_provider != null)
+        {
+            await _provider.DeActivateProviderAsync();
+            _provider.Dispose();
+        }
+    }
 
     [TestMethod]
     public async Task AvatarAndDetailPersistWithIndexesAndVersions()
