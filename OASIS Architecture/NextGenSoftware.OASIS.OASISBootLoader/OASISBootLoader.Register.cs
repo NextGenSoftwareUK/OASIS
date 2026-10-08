@@ -152,10 +152,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         case ProviderType.SEEDSOASIS:
                             {
                                 var seedsProvider = new SEEDSOASIS(new TelosOASIS(
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey));
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.RpcEndpoint ?? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.AccountName,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.AccountPrivateKey));
                                 seedsProvider.OnStorageProviderError += SEEDSOASIS_StorageProviderError;
                                 result.Result = seedsProvider;
                             }
