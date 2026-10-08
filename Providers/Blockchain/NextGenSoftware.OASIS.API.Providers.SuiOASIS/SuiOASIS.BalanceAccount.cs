@@ -132,52 +132,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
-                if (!_isActivated)
+                var key = await InvokeSdkAsync("generateKey");
+                result.Result = new KeyPairAndWallet
                 {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                // Generate Sui Ed25519 key pair (Sui uses Ed25519).
-                // The private key seed is 32 bytes; public key is derived deterministically from it.
-                var privateKeySeed = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeySeed);
-                }
-
-                byte[] publicKeyBytes;
-                byte[] expandedPrivateKey;
-                Chaos.NaCl.Ed25519.KeyPairFromSeed(out publicKeyBytes, out expandedPrivateKey, privateKeySeed);
-
-                var privateKey = Convert.ToBase64String(privateKeySeed);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                // Sui address derivation: blake2b-256( schemeFlag || publicKey )
-                var address = DeriveSuiAddress(publicKeyBytes);
-
-                // Create KeyPairAndWallet using KeyHelper but override with Sui-specific values
-                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                //if (keyPair != null)
-                //{
-                //    keyPair.PrivateKey = privateKey;
-                //    keyPair.PublicKey = publicKey;
-                //    keyPair.WalletAddressLegacy = address; // Sui address
-                //}
-
-                result.Result = new KeyPairAndWallet()
-                {
-                    PrivateKey = privateKey,
-                    PublicKey = publicKey,
-                    WalletAddressLegacy = address
+                    PrivateKey = key.GetProperty("privateKey").GetString(),
+                    PublicKey = key.GetProperty("publicKey").GetString(),
+                    WalletAddressLegacy = key.GetProperty("address").GetString()
                 };
-                result.IsError = false;
-                result.Message = "Sui Ed25519 key pair generated successfully";
+                result.Message = "Official Sui SDK Ed25519 key pair generated.";
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
@@ -194,31 +158,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             return new Guid(bytes.Take(16).ToArray());
         }
 
-        /// <summary>
-        /// Derives Sui address from public key
-        /// Sui uses a specific address format derived from Ed25519 public keys
-        /// </summary>
-        private string DeriveSuiAddress(byte[] publicKeyBytes)
-        {
-            try
-            {
-                const byte ed25519SchemeFlag = 0x00;
-                var data = new byte[1 + publicKeyBytes.Length];
-                data[0] = ed25519SchemeFlag;
-                Buffer.BlockCopy(publicKeyBytes, 0, data, 1, publicKeyBytes.Length);
-
-                // Sui uses Blake2b-256 (32 bytes) over scheme flag + public key
-                var config = new Isopoh.Cryptography.Blake2b.Blake2BConfig { OutputSizeInBytes = 32 };
-                var hash = Isopoh.Cryptography.Blake2b.Blake2B.ComputeHash(data, config, Isopoh.Cryptography.SecureArray.SecureArray.DefaultCall);
-
-                return "0x" + Convert.ToHexString(hash).ToLowerInvariant();
-            }
-            catch
-            {
-                // Fallback to hex representation
-                return "0x" + BitConverter.ToString(publicKeyBytes).Replace("-", "").ToLowerInvariant();
-            }
-        }
 
 
 

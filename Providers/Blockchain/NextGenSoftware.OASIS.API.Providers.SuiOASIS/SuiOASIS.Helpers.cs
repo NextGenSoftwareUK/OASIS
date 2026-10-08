@@ -43,38 +43,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
             try
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                // Generate Sui Ed25519 key pair
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-
-                // Generate Ed25519 key pair for Sui
-                // Sui uses Ed25519 for key generation
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                
-                // Derive public key from private key using Ed25519 (simplified - in production use proper Ed25519 library)
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var hash = sha512.ComputeHash(privateKeyBytes);
-                var publicKeyBytes = new byte[32];
-                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                result.Result = (publicKey, privateKey, string.Empty);
-                result.IsError = false;
-                result.Message = "Sui account key pair created successfully. Seed phrase not applicable for Sui.";
+                var account = await InvokeSdkAsync("createAccount", cancellationToken: token);
+                result.Result = (account.GetProperty("publicKey").GetString(), account.GetProperty("privateKey").GetString(),
+                    account.GetProperty("seedPhrase").GetString());
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error creating Sui account: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
@@ -83,48 +56,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<(string PublicKey, string PrivateKey)>();
             try
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                // Sui uses Ed25519 keys - derive keypair from seed phrase using Chaos.NaCl
-                byte[] seedBytes;
-                try
-                {
-                    // Try to decode seed phrase as base64, otherwise use UTF-8 bytes
-                    seedBytes = Convert.FromBase64String(seedPhrase);
-                    if (seedBytes.Length != 32)
-                    {
-                        // If not 32 bytes, hash the seed phrase to get 32 bytes
-                        using var sha256 = System.Security.Cryptography.SHA256.Create();
-                        seedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(seedPhrase));
-                    }
-                }
-                catch
-                {
-                    // If base64 decode fails, hash the seed phrase string
-                    using var sha256 = System.Security.Cryptography.SHA256.Create();
-                    seedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(seedPhrase));
-                }
-
-                // Derive Ed25519 keypair from seed
-                byte[] publicKeyBytes = new byte[32];
-                byte[] privateKeyBytes = new byte[64];
-                Chaos.NaCl.Ed25519.KeyPairFromSeed(publicKeyBytes, privateKeyBytes, seedBytes);
-
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-                result.Result = (publicKey, privateKey);
-                result.IsError = false;
-                result.Message = "Sui account restored successfully.";
+                var account = await InvokeSdkAsync("restoreAccount", new { seedPhrase }, token);
+                result.Result = (account.GetProperty("publicKey").GetString(), account.GetProperty("privateKey").GetString());
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error restoring Sui account: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
