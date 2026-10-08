@@ -30,52 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
     {
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            var response = new OASISResult<IAvatar>();
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Use EOSIO SDK to construct and push action rather than raw RPC
-                TransferArgs args = new TransferArgs() { from = avatar.Username, to = avatar.Username, quantity = "0.0000 SEEDS", memo = "SaveAvatar" };
-                EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("saveavatar", SEEDS_EOSIO_ACCOUNT_TEST, "active", SEEDS_EOSIO_ACCOUNT_TEST, args);
-
-                var keypairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS);
-                if (keypairResult.IsError || keypairResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to generate SEEDS key pair: {keypairResult.Message}");
-                    return response;
-                }
-                List<string> privateKeysInWIF = new List<string> { keypairResult.Result.PrivateKey };
-
-                var transactionResult = TelosOASIS.EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
-
-                if (transactionResult != null)
-                {
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar saved to SEEDS blockchain successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to save avatar to SEEDS blockchain");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to SEEDS: {ex.Message}");
-            }
-
-            return response;
+            return await TelosOASIS.SaveAvatarAsync(avatar);
         }
 
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -90,68 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("upsertavatardetail", SEEDS_EOSIO_ACCOUNT_TEST, "active", SEEDS_EOSIO_ACCOUNT_TEST, new
-                {
-                    id = avatarDetail.Id.ToString(),
-                    username = avatarDetail.Username ?? "",
-                    email = avatarDetail.Email ?? "",
-                    karma = avatarDetail.Karma,
-                    xp = avatarDetail.XP,
-                    model3d = avatarDetail.Model3D ?? "",
-                    uma_json = avatarDetail.UmaJson ?? "",
-                    portrait = avatarDetail.Portrait ?? "",
-                    town = avatarDetail.Town ?? "",
-                    county = avatarDetail.County ?? "",
-                    dob = ((DateTimeOffset)avatarDetail.DOB).ToUnixTimeSeconds(),
-                    address = avatarDetail.Address ?? "",
-                    country = avatarDetail.Country ?? "",
-                    postcode = avatarDetail.Postcode ?? "",
-                    landline = avatarDetail.Landline ?? "",
-                    mobile = avatarDetail.Mobile ?? "",
-                    favourite_colour = (int)avatarDetail.FavouriteColour,
-                    starcli_colour = (int)avatarDetail.STARCLIColour,
-                    created_date = ((DateTimeOffset)avatarDetail.CreatedDate).ToUnixTimeSeconds(),
-                    modified_date = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
-                    description = avatarDetail.Description ?? "SEEDS Avatar Detail",
-                    is_active = avatarDetail.IsActive
-                });
-
-                var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
-                List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
-
-                var transactionResult = TelosOASIS.EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
-
-                if (transactionResult != null)
-                {
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail saved to SEEDS blockchain successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to save avatar detail to SEEDS blockchain");
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to SEEDS: {ex.Message}");
-            }
-
-            return result;
+            return await TelosOASIS.SaveAvatarDetailAsync(avatarDetail);
         }
 
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
