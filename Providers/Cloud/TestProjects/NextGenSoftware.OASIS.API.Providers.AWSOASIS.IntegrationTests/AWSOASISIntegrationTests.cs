@@ -1,115 +1,57 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.AWSOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Threading.Tasks;
-using System;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
-namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
+
+[TestClass]
+public class AWSOASISIntegrationTests
 {
-    [TestClass]
-    public class AWSOASISIntegrationTests
+    private AWSOASIS _provider = null!;
+
+    [TestInitialize]
+    public async Task Setup()
     {
-        private AWSOASIS _provider;
+        string endpoint = Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL") ?? "http://127.0.0.1:8000";
+        _provider = new AWSOASIS("us-east-1", "fakeMyKeyId", "fakeSecretAccessKey", endpoint);
+        var activated = await _provider.ActivateProviderAsync();
+        Assert.IsFalse(activated.IsError, activated.Message);
+        Assert.IsTrue(_provider.IsProviderActivated);
+    }
 
-        [TestInitialize]
-        public void Setup()
+    [TestMethod]
+    public async Task AvatarRoundTrip_UsesOfficialDynamoDbApi()
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"aws-{Guid.NewGuid():N}", Email = $"{Guid.NewGuid():N}@example.test" };
+
+        var saved = await _provider.SaveAvatarAsync(avatar);
+        var loaded = await _provider.LoadAvatarAsync(avatar.Id);
+
+        Assert.IsFalse(saved.IsError, saved.Message);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.AreEqual(avatar.Username, loaded.Result.Username);
+        Assert.AreEqual(avatar.Id.ToString(), loaded.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
+    }
+
+    [TestMethod]
+    public async Task HolonRoundTripAndSearch_UseOfficialDynamoDbApi()
+    {
+        string marker = $"aws-holon-{Guid.NewGuid():N}";
+        var holon = new Holon { Id = Guid.NewGuid(), Name = marker, Description = "AWS SDK integration evidence" };
+
+        var saved = await _provider.SaveHolonAsync(holon);
+        var loaded = await _provider.LoadHolonAsync(holon.Id);
+        var search = await _provider.SearchAsync(new SearchParams
         {
-            _provider = new AWSOASIS();
-        }
+            SearchGroups = [new SearchTextGroup { SearchQuery = marker }]
+        });
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
-
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
-        {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        [Ignore("Search not implemented on this provider")]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            await Task.CompletedTask;
-        }
-
-        [TestMethod]
-        [Ignore("Search not implemented on this provider")]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            await Task.CompletedTask;
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+        Assert.IsFalse(saved.IsError, saved.Message);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.AreEqual(marker, loaded.Result.Name);
+        Assert.IsFalse(search.IsError, search.Message);
+        Assert.IsTrue(search.Result.SearchResultHolons.Any(x => x.Id == holon.Id));
+        Assert.AreEqual(holon.Id.ToString(), loaded.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
     }
 }

@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
     public class DynamoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly AmazonDynamoDBClient _client;
+        protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -49,8 +50,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public DynamoDBOASIS(string accessKey, string secretKey, string region, string? serviceUrl = null)
         {
             var creds = new BasicAWSCredentials(accessKey, secretKey);
-            var config = new AmazonDynamoDBConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(region) };
-            if (!string.IsNullOrEmpty(serviceUrl)) config.ServiceURL = serviceUrl;
+            var config = new AmazonDynamoDBConfig();
+            if (string.IsNullOrWhiteSpace(serviceUrl))
+                config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
+            else
+            {
+                config.ServiceURL = serviceUrl;
+                config.AuthenticationRegion = region;
+                config.UseHttp = serviceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+            }
             _client = new AmazonDynamoDBClient(creds, config);
             ProviderName = "DynamoDBOASIS";
             ProviderDescription = "AWS DynamoDB provider (AWSSDK.DynamoDBv2 — serverless NoSQL for OASIS holons and avatars)";
@@ -130,14 +138,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     MakeGsi("parentHolonId-index", "parentHolonId", "ALL")
                 });
 
-                result.Result = true; result.IsError = false; result.Message = "DynamoDBOASIS activated — tables ready.";
+                IsProviderActivated = true;
+                result.Result = true; result.IsError = false; result.Message = $"{ProviderName} activated — DynamoDB tables ready.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"{ProviderName}: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _client.Dispose(); return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "DynamoDBOASIS deactivated." }); }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _client.Dispose(); IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = $"{ProviderName} deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -149,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.DynamoDBOASIS] = avatar.Id.ToString();
+                avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
                 await _client.PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisAvatars",
@@ -360,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.DynamoDBOASIS] = holon.Id.ToString();
+                holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
                 await _client.PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisHolons",

@@ -125,14 +125,14 @@ The second expansion pass produced the following evidence on 2026-10-07:
 | ArbitrumOASIS Web3Core | PASS (activation boundary) | Same contract deployed to a disposable Ganache chain with chain ID 42161; 2/2 live activation and unreachable-RPC rejection tests passed with zero skips. No real currency or public RPC was used. |
 | SolanaOASIS | BUILD PASS; runtime pending | Activation now performs a bounded Solana RPC health request and cannot succeed merely because client objects were constructed. The provider builds successfully. A local Solana validator is not installed on the verification host, so transaction round trips are not claimed. |
 | AzureCosmosDBOASIS | NOT VERIFIED | No Cosmos emulator or isolated Azure credentials are present. Construction of repositories is not accepted as runtime evidence. |
-| AWSOASIS | IMPLEMENTATION GAP | Audit found fabricated unsigned HTTP routes such as `/dynamodb/avatar/{id}` against `https://{region}.amazonaws.com`; this is not the AWS DynamoDB API and must not be described as working. `DynamoDBOASIS` uses the real AWS SDK and is the implementation to consolidate around. |
+| AWSOASIS | PASS | Consolidated onto the official `AWSSDK.DynamoDBv2` implementation. Against DynamoDB Local, 2/2 activation, avatar CRUD, holon CRUD and search tests passed with zero skips. The former fabricated unsigned `/dynamodb/...` HTTP implementation is excluded from compilation. |
 | GoogleCloudOASIS | NOT VERIFIED | The provider uses Google SDK clients, but no Firestore emulator/runtime is installed and the current multi-service activation path has not been proven against an isolated project. |
 
 Both EVM providers now verify RPC reachability, chain identity and deployed bytecode before reporting active. The standalone Arbitrum provider has the same checks. This prevents HyperDrive V2 from selecting a provider that only constructed a local client successfully. `Web3CoreOASIS/package.json` no longer attempts to install Node as a project dependency, the Hardhat configuration no longer requires a production private key for local compilation, and all 148 Solidity sources compile on a clean dependency install.
 
 The portable provider runner also validates cached ZIP archives before reuse and re-expands empty/corrupt runtime directories. This prevents an interrupted download from poisoning every later verification run.
 
-These statuses are deliberately not rolled up as “all providers work.” V2 routing/failover/load-balancing/replication contracts are complete at the HyperDrive boundary, but a provider can participate only when its own activation and operations are truthful. AWS requires implementation replacement/consolidation, and Azure/Google/Solana require their isolated runtimes before their provider rows can be promoted to real-runtime PASS.
+These statuses are deliberately not rolled up as “all providers work.” V2 routing/failover/load-balancing/replication contracts are complete at the HyperDrive boundary, but a provider can participate only when its own activation and operations are truthful. Azure/Google/Solana still require their isolated runtimes before their provider rows can be promoted to real-runtime PASS.
 
 ### Railway OASISDNA mode configuration
 
