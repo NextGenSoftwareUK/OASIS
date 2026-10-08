@@ -55,7 +55,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 
-public sealed partial class BaseOASIS
+public sealed partial class BaseOASIS_Legacy
 {
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
