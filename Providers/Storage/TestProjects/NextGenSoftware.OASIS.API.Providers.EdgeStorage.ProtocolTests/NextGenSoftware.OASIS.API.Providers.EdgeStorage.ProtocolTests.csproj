@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.FastlyOASIS\NextGenSoftware.OASIS.API.Providers.FastlyOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TigrisOASIS\NextGenSoftware.OASIS.API.Providers.TigrisOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.VercelKVOASIS\NextGenSoftware.OASIS.API.Providers.VercelKVOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS\NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj" />
   </ItemGroup>
