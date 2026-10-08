@@ -33,33 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                _httpClient = new HttpClient();
-                _httpClient.DefaultRequestHeaders.Accept.Clear();
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var arweaveConfig = _OASISDNA?.OASIS?.StorageProviders?.ArweaveOASIS;
-                if (arweaveConfig != null)
-                    ParseConnectionString(arweaveConfig.ConnectionString);
-
-                _gatewayUrl ??= "https://arweave.net";
-                _httpClient.BaseAddress = new Uri(_gatewayUrl);
-
-                _arweaveService = new ArweaveService(_walletJson, _gatewayUrl);
-
-                result.Result = true;
-                IsProviderActivated = true;
-                result.Message = "ArweaveOASIS Provider activated successfully";
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error occurred in ArweaveOASIS Provider in ActivateProvider. Reason: {e}");
-            }
-
-            return result;
+            return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -79,7 +53,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
                 _gatewayUrl ??= "https://arweave.net";
                 _httpClient.BaseAddress = new Uri(_gatewayUrl);
 
-                _arweaveService = new ArweaveService(_walletJson, _gatewayUrl);
+                _arweaveService = new ArweaveService(_walletJson, _gatewayUrl, _nodeExecutable, _sdkBridgePath, _mineAfterPost);
+                await _arweaveService.ProbeAsync();
+
+                if (string.IsNullOrWhiteSpace(_walletJson))
+                    throw new InvalidOperationException("ArweaveOASIS is a writable storage provider and requires a JWK wallet.");
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -277,6 +255,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
             return $"{_gatewayUrl ?? "https://arweave.net"}/{txId}";
         }
 
+        private async Task<bool> HasTombstoneAsync(string oasisType, Guid id)
+        {
+            var txIds = await _arweaveService.QueryByTagsAsync(new Dictionary<string, string>
+            {
+                { "OASIS-Type", $"{oasisType}-Tombstone" },
+                { "OASIS-Id", id.ToString() }
+            });
+            return txIds.Count > 0;
+        }
+
         // Avatar load/save methods
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
@@ -335,6 +323,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
                     return result;
                 }
 
+                if (await HasTombstoneAsync("Avatar", id))
+                {
+                    result.Result = null;
+                    result.Message = $"Avatar with ID {id} has an Arweave tombstone.";
+                    return result;
+                }
+
                 var data = await _arweaveService.GetTransactionDataAsync(txIds.First());
                 var avatar = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(data));
                 result.Result = avatar;
@@ -376,6 +371,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
 
                 var data = await _arweaveService.GetTransactionDataAsync(txIds.First());
                 var avatar = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(data));
+                if (avatar != null && await HasTombstoneAsync("Avatar", avatar.Id))
+                {
+                    result.Result = null;
+                    result.Message = $"Avatar with email {avatarEmail} has an Arweave tombstone.";
+                    return result;
+                }
                 result.Result = avatar;
                 result.Message = "Avatar loaded from Arweave successfully by email";
             }
@@ -415,6 +416,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
 
                 var data = await _arweaveService.GetTransactionDataAsync(txIds.First());
                 var avatar = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(data));
+                if (avatar != null && await HasTombstoneAsync("Avatar", avatar.Id))
+                {
+                    result.Result = null;
+                    result.Message = $"Avatar with username {avatarUsername} has an Arweave tombstone.";
+                    return result;
+                }
                 result.Result = avatar;
                 result.Message = "Avatar loaded from Arweave successfully by username";
             }
@@ -454,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
                         var data = await _arweaveService.GetTransactionDataAsync(txId);
                         if (data == null) continue;
                         var avatar = JsonConvert.DeserializeObject<Avatar>(Encoding.UTF8.GetString(data));
-                        if (avatar != null)
+                        if (avatar != null && !await HasTombstoneAsync("Avatar", avatar.Id))
                             avatars.Add(avatar);
                     }
                     catch { /* ignore non-avatar transactions */ }
