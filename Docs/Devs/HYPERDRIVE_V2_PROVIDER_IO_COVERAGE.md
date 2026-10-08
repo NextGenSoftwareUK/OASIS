@@ -1,7 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
 **Verified:** 2026-10-07  
-**Branch:** `codex/hyperdrive-v2-gaps`
+**Branch:** `codex/hyperdrive-dual-mode-route-matrix`
 
 ## Routing contract
 
@@ -131,12 +131,14 @@ The second expansion pass produced the following evidence on 2026-10-07:
 | AzureCosmosDBOASIS | NOT VERIFIED | No Cosmos emulator or isolated Azure credentials are present. Construction of repositories is not accepted as runtime evidence. |
 | AWSOASIS | PASS | Consolidated onto the official `AWSSDK.DynamoDBv2` implementation. Against DynamoDB Local, 2/2 activation, avatar CRUD, holon CRUD and search tests passed with zero skips. The former fabricated unsigned `/dynamodb/...` HTTP implementation is excluded from compilation. |
 | GoogleCloudOASIS | NOT VERIFIED | The provider uses Google SDK clients, but no Firestore emulator/runtime is installed and the current multi-service activation path has not been proven against an isolated project. |
+| ThreeFoldOASIS | PASS | Replaced the fabricated custom `/avatars` and `/holons` HTTP contract with ThreeFold QSS S3-CAS through the official `AWSSDK.S3` client. The official QSS server was built from `threefoldtech/qss_s3_cas` and run locally; 2/2 activation, bucket provisioning, avatar CRUD and holon CRUD tests passed with zero skips. Activation uses portable S3 `ListBuckets`/`PutBucket` operations because QSS intentionally does not implement `GetBucketAcl`. |
+| HoloOASIS | BUILD PASS; runtime pending | Uses the HoloNET clients, but a Holochain conductor and compatible DNA are not installed on this verification host. WebSocket construction alone is not accepted as runtime evidence. |
 
 Both EVM providers now verify RPC reachability, chain identity and deployed bytecode before reporting active. The standalone Arbitrum provider has the same checks. Web3 mutations wait for successful mined receipts; holons use the correct contract collection; tuple results use Nethereum's typed struct/output mapping; and create/update/delete now mutate actual chain state. This prevents HyperDrive V2 from selecting a provider that only constructed a local client successfully or reporting success before persistence. `Web3CoreOASIS/package.json` no longer attempts to install Node as a project dependency, the Hardhat configuration no longer requires a production private key for local compilation, and all 148 Solidity sources compile on a clean dependency install.
 
 The portable provider runner also validates cached ZIP archives before reuse and re-expands empty/corrupt runtime directories. This prevents an interrupted download from poisoning every later verification run.
 
-These statuses are deliberately not rolled up as “all providers work.” V2 routing/failover/load-balancing/replication contracts are complete at the HyperDrive boundary, but a provider can participate only when its own activation and operations are truthful. Azure/Google/Solana still require their isolated runtimes before their provider rows can be promoted to real-runtime PASS.
+These statuses are deliberately not rolled up as “all providers work.” V2 routing/failover/load-balancing/replication contracts are complete at the HyperDrive boundary, but a provider can participate only when its own activation and operations are truthful. Azure, Google, Solana, Holochain, Pinata and Antelope still require their isolated or credentialed runtimes before their provider rows can be promoted to real-runtime PASS.
 
 ### Real-provider V2 orchestration gate
 
