@@ -52,9 +52,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Chaos.NaCl.Standard" Version="*" />
-    <PackageReference Include="Isopoh.Cryptography.Blake2b" Version="*" />
-    <PackageReference Include="Isopoh.Cryptography.SecureArray" Version="*" />
+    <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" Link="SuiSdkBridge\bridge.mjs" />
+    <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" Link="SuiSdkBridge\package.json" />
+    <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" Link="SuiSdkBridge\package-lock.json" />
   </ItemGroup>
 
 </Project>

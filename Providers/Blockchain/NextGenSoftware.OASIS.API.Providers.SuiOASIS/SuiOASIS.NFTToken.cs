@@ -117,58 +117,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText = "")
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                // Sui native SUI transfer via RPC
-                var mistAmount = (ulong)(amount * 1_000_000_000m);
-                
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sui_transferSui",
-                    @params = new object[]
-                    {
-                        fromWalletAddress,
-                        toWalletAddress,
-                        mistAmount.ToString(),
-                        _privateKey // In production, this would be properly signed
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txHash = responseData.TryGetProperty("result", out var resultProp) ? resultProp.GetString() : string.Empty;
-                    result.Result.TransactionResult = txHash ?? string.Empty;
-                    result.IsError = false;
-                    result.Message = "Sui transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to send Sui transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText = "")
+            => SendSuiAsync(fromWalletAddress, toWalletAddress, amount, _privateKey, memoText);
 
 
 
@@ -532,61 +482,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<double>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
-                    return result;
-                }
-
-                // Get Sui balance via RPC
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sui_getBalance",
-                    @params = new object[] { request.WalletAddress }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    if (responseData.TryGetProperty("result", out var resultProp))
-                    {
-                        var totalBalance = resultProp.TryGetProperty("totalBalance", out var balanceProp) ? balanceProp.GetString() : "0";
-                        var balanceInMist = ulong.Parse(totalBalance);
-                        var balanceInSUI = balanceInMist / 1_000_000_000.0;
-                        result.Result = balanceInSUI;
-                        result.IsError = false;
-                        result.Message = "Balance retrieved successfully";
-                    }
-                    else
-                    {
-                        result.Result = 0.0;
-                        result.IsError = false;
-                    }
-                }
-                else
-                {
-                    result.Result = 0.0;
-                    result.IsError = false;
-                    result.Message = "Account not found or has zero balance";
-                }
+                    throw new ArgumentException("Sui wallet address is required.");
+                var balance = await InvokeSdkAsync("balance", new { walletAddress = request.WalletAddress });
+                var units = System.Numerics.BigInteger.Parse(balance.GetProperty("balance").GetString(),
+                    System.Globalization.CultureInfo.InvariantCulture);
+                result.Result = (double)units / 1000000000d;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 

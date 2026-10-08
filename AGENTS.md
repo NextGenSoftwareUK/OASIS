@@ -35,6 +35,7 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 
 - Reuse the existing task worktree and one reusable provider-test environment. Do not create repeated fresh worktrees, runtime installs or per-run database copies.
 - Cache pinned runtime executables once; retain compact test reports, but remove disposable test databases and generated outputs after owned processes stop. Validate exact cleanup paths before removal. Never delete source, credentials, user databases or unrelated environments.
+- Bound .NET build/test workers with `/m:2 /nr:false /p:UseSharedCompilation=false` unless a measured requirement warrants more. Avoid retaining dozens of idle MSBuild nodes and inflating the Windows pagefile. Shut down owned idle build servers only after confirming no active build/test operation.
 
 - Prefer **real implementations**; avoid TODOs/placeholders for shipping paths.
 - **No workaround-first coding** — see `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md` (section A: general code).

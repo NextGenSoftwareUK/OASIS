@@ -1,6 +1,6 @@
 # HyperDrive V2 provider-I/O coverage
 
-**Verified:** 2026-10-08 (Cosmos partial checkpoint; prior provider evidence dated below)
+**Verified:** 2026-10-08 (Cosmos and Sui partial checkpoints; prior provider evidence dated below)
 **Branch:** `codex/hyperdrive-dual-mode-route-matrix`
 
 ## Routing contract
@@ -166,9 +166,19 @@ The reusable local blockchain is official `cosmwasm/wasmd:v0.70.3`, pinned to im
 
 The boot loader now passes the actual chain ID and signing key to the correct constructor arguments. DNA exposes `ContractAddress`, `AddressPrefix`, `GasPrice`, `NativeDenom` and `NativeDecimals`; native transfers and balances no longer infer an asset from a fee denomination or sum unrelated coins. Native wallet operations do not require a storage contract. Avatar-addressed transfers load the existing WalletManager default wallets, request the sender's private key only, and use the same signed transfer implementation. Those WalletManager-backed routes still require their own integration evidence.
 
+### Sui implementation and verification checkpoint
+
+Sui remains **outside the passing-provider set**. The provider now uses pinned official `@mysten/sui` 2.35.0 for Ed25519 wallets and BIP39 account derivation, with pinned `@scure/bip39` 2.4.0. Private keys use the SDK's canonical `suiprivkey` encoding; account recovery uses the Sui derivation path rather than hashing arbitrary text into a seed. Five SDK tests and four .NET wallet/validation tests passed with zero skips on 2026-10-08. The fixed .NET report is `TestResults/SuiRuntime/sui-sdk-wallets.trx`. The provider and boot-loader builds succeeded with zero errors; the boot-loader retains 866 warnings.
+
+DNA and boot-loader registration now separate `PrivateKey` from `ChainId`; the constructor no longer interprets a network/chain label as signing credentials. `ChainId`, when supplied, must match the SDK's genesis chain identifier, not the human-readable network name. The native address-to-address transfer method now creates and signs a programmable transaction using the official gRPC client, validates sender ownership and requires a successful transaction digest. Amounts must fit u64 MIST exactly; zero, negatives, precision loss and overflow fail explicitly. The native transfer path currently rejects nonempty memo text because it has no memo field; it does not silently discard the caller's text. Balance errors no longer become successful zero balances.
+
+No Sui transaction has yet been proven against a live chain in this checkpoint. The gRPC transfer and balance paths require consensus/runtime evidence; existing storage, NFT/token, avatar-addressed transfers and bridge methods still need replacement and verification. The old activation HTTP-page check is not storage proof. These tests and changes do not close the all-provider failover/load-balancing/replication gate. Mysten's current client/signing contracts are documented in the [official gRPC client guide](https://sdk.mystenlabs.com/sui/clients/grpc) and [transaction execution guide](https://sdk.mystenlabs.com/sui/clients/executing).
+
 ### Reusable environment and disk cleanup
 
 The task continues in `C:\Source\OASIS-hyperdrive-v2-gaps` without new worktrees or duplicate SDK environments. The hosted Mongo runner now uses a locked fixed `runs/current` directory, overwrites bounded per-run logs and removes its disposable databases after owned processes stop, retaining logs and TRX reports. The revised runner passed 43/43 transaction/election tests and 1/1 abrupt-primary-termination test on 2026-10-08, with zero skips; it exited successfully and all three owned database directories were absent afterward. Reports are retained in `TestResults/HostedMongoRelease/evidence`.
+
+Unbounded .NET builds retained 70 MSBuild workers using approximately 9 GiB of RAM. With no active .NET CLI operation, `dotnet build-server shutdown` stopped the idle servers. Subsequent builds/tests use `/m:2 /nr:false /p:UseSharedCompilation=false` to bound workers and avoid retaining server processes. Free C: space rose from approximately 90 GiB to 101 GiB after shutdown; no pagefile or user files were deleted. This transient free-space change is not counted as additional artifact cleanup.
 
 Cleanup removed approximately 16.5 GiB of verified disposable Mongo archives/debug symbols, inactive synthetic Mongo databases, Antelope code caches and generated Holochain native-test output. Authorized WSL trim/shutdown/compaction reduced the Ubuntu VHD from about 69.6 GiB to 45.9 GiB, reclaiming a further 23.7 GiB without deleting Linux user data. Source, uncommitted work, credentials, packaged Holochain output and unrelated environments were retained. This accounts for about 40 GiB reclaimed, not the entire 60–70 GiB the user requested. Remaining disk usage still needs investigation; deleting user data or unrelated environments is not authorized.
 

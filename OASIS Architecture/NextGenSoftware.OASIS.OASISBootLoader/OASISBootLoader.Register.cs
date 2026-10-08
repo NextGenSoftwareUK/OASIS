@@ -470,7 +470,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint ?? "https://fullnode.mainnet.sui.io:443",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.Network ?? "mainnet",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "");
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "",
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.PrivateKey ?? "");
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }
