@@ -114,7 +114,25 @@ The Ethereum run uses only free prefunded currency on a disposable local develop
 
 This matrix exposed two false-positive activation defects. IPFS previously treated construction of an HTTP client as successful activation without contacting a daemon. Ethereum did the same without validating the RPC endpoint, chain ID or contract bytecode, and its reflective Nethereum constructor lookup was incompatible with Nethereum 7. Both providers now fail activation unless the external system is actually reachable and correctly configured, allowing V2 failover to operate on truthful provider state.
 
-Next provider expansion order is: Neo4jOASIS, SolanaOASIS, AzureCosmosDBOASIS, AWSOASIS, GoogleCloudOASIS, ArbitrumOASIS and PolygonOASIS. EVM-family providers should reuse the disposable-chain contract suite where their behavior is genuinely shared, while their network/chain identity checks remain provider-specific. Public testnets may be added as a separate opt-in smoke gate using faucet tokens, but must never replace the deterministic local release gate.
+### Expanded provider verification
+
+The second expansion pass produced the following evidence on 2026-10-07:
+
+| Provider | Result | Evidence and remaining boundary |
+|---|---|---|
+| Neo4jOASIS | PASS | Portable Neo4j Community 2026.08.1 on loopback; 5/5 activation, avatar and holon save/load, query and soft-delete tests passed with zero skips. |
+| PolygonOASIS | PASS (activation boundary) | Web3Core contract compiled and deployed to a disposable Ganache chain with chain ID 137; 2/2 live activation and unreachable-RPC rejection tests passed with zero skips. No real currency or public RPC was used. |
+| ArbitrumOASIS Web3Core | PASS (activation boundary) | Same contract deployed to a disposable Ganache chain with chain ID 42161; 2/2 live activation and unreachable-RPC rejection tests passed with zero skips. No real currency or public RPC was used. |
+| SolanaOASIS | BUILD PASS; runtime pending | Activation now performs a bounded Solana RPC health request and cannot succeed merely because client objects were constructed. The provider builds successfully. A local Solana validator is not installed on the verification host, so transaction round trips are not claimed. |
+| AzureCosmosDBOASIS | NOT VERIFIED | No Cosmos emulator or isolated Azure credentials are present. Construction of repositories is not accepted as runtime evidence. |
+| AWSOASIS | IMPLEMENTATION GAP | Audit found fabricated unsigned HTTP routes such as `/dynamodb/avatar/{id}` against `https://{region}.amazonaws.com`; this is not the AWS DynamoDB API and must not be described as working. `DynamoDBOASIS` uses the real AWS SDK and is the implementation to consolidate around. |
+| GoogleCloudOASIS | NOT VERIFIED | The provider uses Google SDK clients, but no Firestore emulator/runtime is installed and the current multi-service activation path has not been proven against an isolated project. |
+
+Both EVM providers now verify RPC reachability, chain identity and deployed bytecode before reporting active. The standalone Arbitrum provider has the same checks. This prevents HyperDrive V2 from selecting a provider that only constructed a local client successfully. `Web3CoreOASIS/package.json` no longer attempts to install Node as a project dependency, the Hardhat configuration no longer requires a production private key for local compilation, and all 148 Solidity sources compile on a clean dependency install.
+
+The portable provider runner also validates cached ZIP archives before reuse and re-expands empty/corrupt runtime directories. This prevents an interrupted download from poisoning every later verification run.
+
+These statuses are deliberately not rolled up as “all providers work.” V2 routing/failover/load-balancing/replication contracts are complete at the HyperDrive boundary, but a provider can participate only when its own activation and operations are truthful. AWS requires implementation replacement/consolidation, and Azure/Google/Solana require their isolated runtimes before their provider rows can be promoted to real-runtime PASS.
 
 ### Railway OASISDNA mode configuration
 
