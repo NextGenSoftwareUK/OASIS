@@ -1,111 +1,37 @@
-using System;
-using System.Threading.Tasks;
-using Xunit;
-using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using Xunit;
 
-namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.UnitTests
+namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.UnitTests;
+
+public sealed class ThreeFoldOASISTests
 {
-    public class ThreeFoldOASISTests
+    [Fact]
+    public void DirectConstructor_UsesThreeFoldMetadata()
     {
-        [Fact]
-        public void Constructor_ShouldInitializeProviderCorrectly()
-        {
-            // Arrange
-            var hostUri = "https://grid.threefold.io";
+        var provider = new ThreeFoldOASIS("https://qss.example", "access", "secret", "oasis", useSSL: true);
 
-            // Act
-            var threeFoldProvider = new ThreeFoldOASIS(hostUri);
+        Assert.Equal("ThreeFoldOASIS", provider.ProviderName);
+        Assert.Equal("ThreeFold QSS provider (S3-compatible object storage via AWSSDK.S3)", provider.ProviderDescription);
+        Assert.Equal(ProviderType.ThreeFoldOASIS, provider.ProviderType.Value);
+        Assert.Equal(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
+    }
 
-            // Assert
-            Assert.Equal("ThreeFoldOASIS", threeFoldProvider.ProviderName);
-            Assert.Equal("ThreeFold Provider", threeFoldProvider.ProviderDescription);
-            Assert.Equal(ProviderType.ThreeFoldOASIS, threeFoldProvider.ProviderType.Value);
-            Assert.Equal(ProviderCategory.StorageAndNetwork, threeFoldProvider.ProviderCategory.Value);
-            Assert.Equal(hostUri, threeFoldProvider.HostUri);
-        }
+    [Fact]
+    public void ConnectionStringConstructor_ParsesQssConfiguration()
+    {
+        var provider = new ThreeFoldOASIS(
+            "https://qss.example?accessKey=access&amp;secretKey=secret&amp;bucket=oasis&amp;useSSL=true".Replace("&amp;", "&"));
 
-        [Fact]
-        public void ProviderName_ShouldBeSetCorrectly()
-        {
-            // Arrange & Act
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
+        Assert.Equal(ProviderType.ThreeFoldOASIS, provider.ProviderType.Value);
+    }
 
-            // Assert
-            Assert.Equal("ThreeFoldOASIS", threeFoldProvider.ProviderName);
-        }
-
-        [Fact]
-        public void ProviderDescription_ShouldBeSetCorrectly()
-        {
-            // Arrange & Act
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-
-            // Assert
-            Assert.Equal("ThreeFold Provider", threeFoldProvider.ProviderDescription);
-        }
-
-        [Fact]
-        public void ProviderType_ShouldBeThreeFoldOASIS()
-        {
-            // Arrange & Act
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-
-            // Assert
-            Assert.Equal(ProviderType.ThreeFoldOASIS, threeFoldProvider.ProviderType.Value);
-        }
-
-        [Fact]
-        public void ProviderCategory_ShouldBeStorageAndNetwork()
-        {
-            // Arrange & Act
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-
-            // Assert
-            Assert.Equal(ProviderCategory.StorageAndNetwork, threeFoldProvider.ProviderCategory.Value);
-        }
-
-        [Fact]
-        public void HostUri_ShouldBeSetCorrectly()
-        {
-            // Arrange
-            var hostUri = "https://grid.threefold.io";
-
-            // Act
-            var threeFoldProvider = new ThreeFoldOASIS(hostUri);
-
-            // Assert
-            Assert.Equal(hostUri, threeFoldProvider.HostUri);
-        }
-
-        [Fact]
-        public async Task ActivateProviderAsync_ShouldReturnSuccess()
-        {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-
-            // Act
-            var result = await threeFoldProvider.ActivateProviderAsync();
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.True(result.Result);
-            Assert.Contains("ThreeFold provider activated successfully", result.Message);
-        }
-
-        [Fact]
-        public async Task DeActivateProviderAsync_ShouldReturnSuccess()
-        {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-
-            // Act
-            var result = await threeFoldProvider.DeActivateProviderAsync();
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.True(result.Result);
-            Assert.Contains("ThreeFold provider deactivated successfully", result.Message);
-        }
+    [Theory]
+    [InlineData("")]
+    [InlineData("https://qss.example")]
+    [InlineData("https://qss.example?accessKey=access")]
+    public void ConnectionStringConstructor_RejectsMissingCredentials(string connectionString)
+    {
+        Assert.Throws<ArgumentException>(() => new ThreeFoldOASIS(connectionString));
     }
 }

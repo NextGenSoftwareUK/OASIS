@@ -1,101 +1,74 @@
-using System;
-using System.Threading.Tasks;
-using Xunit;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using Xunit;
 
-namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.IntegrationTests;
+
+public sealed class ThreeFoldOASISIntegrationTests
 {
-    public class ThreeFoldOASISIntegrationTests
+    private static ThreeFoldOASIS CreateProvider()
     {
-        [Fact]
-        public async Task FullProviderLifecycle_ShouldWorkCorrectly()
+        string endpoint = Environment.GetEnvironmentVariable("THREEFOLD_QSS_ENDPOINT")
+            ?? throw new InvalidOperationException("THREEFOLD_QSS_ENDPOINT must identify a running ThreeFold QSS S3-CAS server.");
+        string accessKey = Environment.GetEnvironmentVariable("THREEFOLD_QSS_ACCESS_KEY")
+            ?? throw new InvalidOperationException("THREEFOLD_QSS_ACCESS_KEY is required.");
+        string secretKey = Environment.GetEnvironmentVariable("THREEFOLD_QSS_SECRET_KEY")
+            ?? throw new InvalidOperationException("THREEFOLD_QSS_SECRET_KEY is required.");
+        string bucket = Environment.GetEnvironmentVariable("THREEFOLD_QSS_BUCKET") ?? "oasis-integration";
+        bool useSsl = bool.TryParse(Environment.GetEnvironmentVariable("THREEFOLD_QSS_USE_SSL"), out bool configured) && configured;
+        return new ThreeFoldOASIS(endpoint, accessKey, secretKey, bucket, useSsl);
+    }
+
+    [Fact]
+    public async Task QssAvatarCrud_RoundTripsThroughOfficialS3Protocol()
+    {
+        var provider = CreateProvider();
+        var activation = await provider.ActivateProviderAsync();
+        Assert.False(activation.IsError, activation.Message);
+        Assert.True(activation.Result);
+        Assert.Equal(ProviderType.ThreeFoldOASIS, provider.ProviderType.Value);
+
+        var avatar = new Avatar
         {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
+            Id = Guid.NewGuid(),
+            Username = $"qss-{Guid.NewGuid():N}",
+            Email = $"qss-{Guid.NewGuid():N}@integration.invalid"
+        };
 
-            // Act & Assert - Activation
-            var activationResult = await threeFoldProvider.ActivateProviderAsync();
-            Assert.False(activationResult.IsError);
-            Assert.True(activationResult.Result);
-            Assert.Contains("ThreeFold provider activated successfully", activationResult.Message);
+        var save = await provider.SaveAvatarAsync(avatar);
+        Assert.False(save.IsError, save.Message);
+        Assert.Equal(avatar.Id.ToString(), save.Result.ProviderUniqueStorageKey[ProviderType.ThreeFoldOASIS]);
 
-            // Act & Assert - Deactivation
-            var deactivationResult = await threeFoldProvider.DeActivateProviderAsync();
-            Assert.False(deactivationResult.IsError);
-            Assert.True(deactivationResult.Result);
-            Assert.Contains("ThreeFold provider deactivated successfully", deactivationResult.Message);
-        }
+        var load = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.False(load.IsError, load.Message);
+        Assert.Equal(avatar.Username, load.Result.Username);
 
-        [Fact]
-        public async Task MultipleActivationDeactivationCycles_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
+        var delete = await provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+        Assert.False(delete.IsError, delete.Message);
+        Assert.True(delete.Result);
+        await provider.DeActivateProviderAsync();
+    }
 
-            // Act & Assert - Multiple cycles
-            for (int i = 0; i < 3; i++)
-            {
-                var activationResult = await threeFoldProvider.ActivateProviderAsync();
-                Assert.False(activationResult.IsError);
-                Assert.True(activationResult.Result);
+    [Fact]
+    public async Task QssHolonCrud_RoundTripsThroughOfficialS3Protocol()
+    {
+        var provider = CreateProvider();
+        var activation = await provider.ActivateProviderAsync();
+        Assert.False(activation.IsError, activation.Message);
 
-                var deactivationResult = await threeFoldProvider.DeActivateProviderAsync();
-                Assert.False(deactivationResult.IsError);
-                Assert.True(deactivationResult.Result);
-            }
-        }
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"QSS holon {Guid.NewGuid():N}" };
+        var save = await provider.SaveHolonAsync(holon);
+        Assert.False(save.IsError, save.Message);
+        Assert.Equal(holon.Id.ToString(), save.Result.ProviderUniqueStorageKey[ProviderType.ThreeFoldOASIS]);
 
-        [Fact]
-        public void ProviderWallets_ShouldHandleDifferentIds()
-        {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-            var testIds = new[]
-            {
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                Guid.NewGuid()
-            };
+        var load = await provider.LoadHolonAsync(holon.Id);
+        Assert.False(load.IsError, load.Message);
+        Assert.Equal(holon.Name, load.Result.Name);
 
-            // Act & Assert
-            foreach (var id in testIds)
-            {
-                var result = threeFoldProvider.LoadProviderWalletsForAvatarById(id);
-                Assert.False(result.IsError);
-                Assert.NotNull(result.Result);
-                Assert.Contains(ProviderType.ThreeFoldOASIS, result.Result.Keys);
-            }
-        }
-
-        [Fact]
-        public async Task AsyncProviderWallets_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await threeFoldProvider.LoadProviderWalletsForAvatarByIdAsync(avatarId);
-
-            // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Contains(ProviderType.ThreeFoldOASIS, result.Result.Keys);
-            Assert.Contains("ThreeFold grid", result.Message);
-        }
-
-        [Fact]
-        public void ProviderProperties_ShouldBeConsistent()
-        {
-            // Arrange
-            var threeFoldProvider = new ThreeFoldOASIS("https://grid.threefold.io");
-
-            // Act & Assert
-            Assert.Equal("ThreeFoldOASIS", threeFoldProvider.ProviderName);
-            Assert.Equal("ThreeFold Provider", threeFoldProvider.ProviderDescription);
-            Assert.NotNull(threeFoldProvider.ProviderType);
-            Assert.NotNull(threeFoldProvider.ProviderCategory);
-            Assert.Equal("https://grid.threefold.io", threeFoldProvider.HostUri);
-        }
+        var delete = await provider.DeleteHolonAsync(holon.Id);
+        Assert.False(delete.IsError, delete.Message);
+        Assert.Equal(holon.Id, delete.Result.Id);
+        await provider.DeActivateProviderAsync();
     }
 }
