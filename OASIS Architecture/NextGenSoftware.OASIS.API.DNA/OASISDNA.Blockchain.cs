@@ -104,6 +104,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://rpc.mainnet.near.org";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "mainnet";
+        public string ContractAddress { get; set; } = "oasis.near";
+        public string AccountId { get; set; } = "";
+        public string PrivateKey { get; set; } = "";
     }
 
     public class BaseOASISProviderSettings : ProviderSettingsBase

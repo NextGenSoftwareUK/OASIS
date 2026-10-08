@@ -434,7 +434,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             var nearProvider = new NEAROASIS(
                                 OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
                                 OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ContractAddress ?? "oasis.near",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.AccountId ?? "",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.PrivateKey ?? "");
                             nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
                             result.Result = nearProvider;
                             break;
