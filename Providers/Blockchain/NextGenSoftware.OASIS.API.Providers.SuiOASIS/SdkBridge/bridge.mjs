@@ -17,6 +17,7 @@ const Storage = bcs.struct('Storage', {
   id: bcs.Address, owner: bcs.Address,
   values: bcs.struct('Table', { id: bcs.Address, size: bcs.u64() }),
 });
+const NFT = bcs.struct('NFT', { id: bcs.Address, creator: bcs.Address, metadata: bcs.string() });
 
 async function storageInfo(client, request) {
   if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.storageObjectId))
@@ -62,6 +63,41 @@ export async function invoke(request) {
   if (!chainIdentifier) throw new Error('Sui node returned no genesis chain identifier');
   if (request.chainId && request.chainId !== chainIdentifier) throw new Error('Sui chain identifier mismatch');
   if (request.operation === 'probe') return { chainIdentifier };
+  if (request.operation === 'nftMint') {
+    if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.recipient)
+        || !Array.isArray(request.metadata) || request.metadata.some(value => typeof value !== 'string')
+        || !Number.isSafeInteger(request.count) || request.count < 1 || request.metadata.length !== request.count)
+      throw new Error('Published package, recipient, serialized metadata and positive integral mint count are required');
+    const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
+    const tx = new Transaction();
+    for (let i = 0; i < request.count; i++)
+      tx.moveCall({ target: `${request.packageAddress}::nft::mint`, arguments: [tx.pure.string(request.metadata[i]), tx.pure.address(request.recipient)] });
+    const committed = await execute(client, tx, signer, { objectTypes: true });
+    const tokenIds = Object.entries(committed.objectTypes).filter(([, type]) => type === `${normalizeSuiAddress(request.packageAddress)}::nft::NFT`).map(([id]) => id);
+    if (tokenIds.length !== request.count) throw new Error(`Mint ${committed.digest} committed but returned an unexpected NFT object count`);
+    return { transactionHash: committed.digest, tokenIds };
+  }
+  if (['nftGet', 'nftSend', 'nftBurn'].includes(request.operation)) {
+    if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.tokenId))
+      throw new Error('Published package and NFT object ID are required');
+    const { object } = await client.getObject({ objectId: request.tokenId, include: { content: true } });
+    if (object.type !== `${normalizeSuiAddress(request.packageAddress)}::nft::NFT` || !object.content)
+      throw new Error('NFT object does not match the configured package ABI');
+    const nft = NFT.parse(object.content);
+    if (request.operation === 'nftGet') return { ...nft, owner: object.owner };
+    const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
+    if (request.fromWalletAddress && normalizeSuiAddress(request.fromWalletAddress) !== signer.toSuiAddress())
+      throw new Error('Signing key does not own sender wallet');
+    const tx = new Transaction();
+    if (request.operation === 'nftBurn')
+      tx.moveCall({ target: `${request.packageAddress}::nft::burn`, arguments: [tx.object(request.tokenId)] });
+    else {
+      if (!isValidSuiAddress(request.recipient)) throw new Error('Valid NFT recipient is required');
+      tx.transferObjects([tx.object(request.tokenId)], tx.pure.address(request.recipient));
+    }
+    const committed = await execute(client, tx, signer);
+    return { transactionHash: committed.digest };
+  }
   if (request.operation === 'publish') {
     if (!Array.isArray(request.modules) || request.modules.length === 0 || !Array.isArray(request.dependencies))
       throw new Error('Compiled Move modules and dependencies are required');

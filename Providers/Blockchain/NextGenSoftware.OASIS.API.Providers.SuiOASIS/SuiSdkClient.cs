@@ -44,7 +44,10 @@ internal sealed class SuiSdkClient : IDisposable
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("OASIS_SUI_NODE") ?? "node")
         {
             UseShellExecute = false, CreateNoWindow = true,
-            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true
+            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
+            StandardInputEncoding = new System.Text.UTF8Encoding(false, true),
+            StandardOutputEncoding = new System.Text.UTF8Encoding(false, true),
+            StandardErrorEncoding = new System.Text.UTF8Encoding(false, true)
         };
         start.ArgumentList.Add(path);
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Sui SDK bridge.");
