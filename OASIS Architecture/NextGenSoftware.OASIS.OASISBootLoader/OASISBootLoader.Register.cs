@@ -304,16 +304,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        case ProviderType.BitcoinOASIS:
-                        {
-                            var bitcoinProvider = new BitcoinOASIS(
-                                OASISDNA.OASIS.StorageProviders.BitcoinOASIS.RpcEndpoint ?? "https://blockstream.info/api",
-                                OASISDNA.OASIS.StorageProviders.BitcoinOASIS.Network ?? "mainnet");
-                            bitcoinProvider.OnStorageProviderError += BitcoinOASIS_StorageProviderError;
-                            result.Result = bitcoinProvider;
-                        }
-                        break;
-
                         //case ProviderType.CardanoOASIS:
                         //    {
                         //        CardanoOASIS cardanoOASIS = new CardanoOASIS(
