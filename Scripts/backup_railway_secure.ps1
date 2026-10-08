@@ -28,14 +28,21 @@ Verifies an existing backup offline using a locally entered password.
 .EXAMPLE
 pwsh -File Scripts/backup_railway_secure.ps1 -SelfTest
 Tests serialized-envelope round trip, wrong-password rejection and tamper rejection with synthetic data.
+.EXAMPLE
+pwsh -File Scripts/backup_railway_secure.ps1 -DecryptPath C:\Backups\railway.encrypted.json -OutputPath C:\Backups\railway.private.json
+Explicitly exports plaintext JSON. The output contains credentials and private keys: store it securely,
+never commit or share it, and remove it when no longer needed. No Railway settings are changed.
 #>
 param(
     [string]$OutputPath,
     [string]$VerifyPath,
+    [string]$DecryptPath,
     [switch]$PasswordDialog,
     [switch]$SelfTest
 )
 $ErrorActionPreference = 'Stop'
+if ($VerifyPath -and $DecryptPath) { throw 'Choose verification or decryption, not both.' }
+if ($DecryptPath -and !$OutputPath) { throw 'Decryption requires an explicit plaintext OutputPath.' }
 # Passwords and exported settings never travel through arguments or plaintext files.
 function Get-BackupPassword {
     if ($PasswordDialog) {
@@ -44,14 +51,15 @@ function Get-BackupPassword {
         $form.Text = 'Portable Railway backup password'
         $form.Width = 480; $form.Height = 210; $form.StartPosition = 'CenterScreen'
         $label = New-Object Windows.Forms.Label
-        $label.Text = 'Enter a strong backup password (16+ characters). Save it separately.'
+        $label.Text = if ($DecryptPath) { 'Enter backup password twice. Output will contain plaintext secrets.' } else { 'Enter a strong backup password (16+ characters). Save it separately.' }
         $label.SetBounds(15,15,440,35); $form.Controls.Add($label)
         $box = New-Object Windows.Forms.TextBox
         $box.UseSystemPasswordChar = $true; $box.SetBounds(15,55,430,25); $form.Controls.Add($box)
         $confirm = New-Object Windows.Forms.TextBox
         $confirm.UseSystemPasswordChar = $true; $confirm.SetBounds(15,90,430,25); $form.Controls.Add($confirm)
         $button = New-Object Windows.Forms.Button
-        $button.Text = 'Encrypt backup'; $button.SetBounds(290,125,155,30)
+        $button.Text = if ($DecryptPath) { 'Decrypt backup' } elseif ($VerifyPath) { 'Verify backup' } else { 'Encrypt backup' }
+        $button.SetBounds(290,125,155,30)
         $button.Add_Click({ if ($box.Text.Length -ge 16 -and $box.Text -ceq $confirm.Text) { $form.DialogResult = 'OK'; $form.Close() } })
         $form.Controls.Add($button); $form.AcceptButton = $button
         if ($form.ShowDialog() -ne 'OK') { throw 'Backup cancelled; nothing exported.' }
@@ -99,6 +107,24 @@ if ($SelfTest) {
     Write-Output 'Encryption round trip, wrong-password rejection and tamper rejection passed.'; exit
 }
 $password = Get-BackupPassword
+if ($DecryptPath) {
+    $plain = $null
+    try {
+        $plain = Unprotect-Backup (Get-Content -LiteralPath $DecryptPath -Raw | ConvertFrom-Json) $password
+        $backup = [Text.Encoding]::UTF8.GetString($plain) | ConvertFrom-Json
+        if ($backup.format -ne 1 -or $null -eq $backup.environments) { throw 'Decrypted payload has an unsupported schema.' }
+        $full = [IO.Path]::GetFullPath($OutputPath)
+        $null = [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($full))
+        $stream = [IO.File]::Open($full,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        try { $stream.Write($plain,0,$plain.Length) } finally { $stream.Dispose() }
+        Write-Output "Decrypted to: $full"
+        Write-Warning 'This file contains plaintext secrets/private keys. Keep it secure and out of Git.'
+    } finally {
+        if ($plain) { [Array]::Clear($plain,0,$plain.Length) }
+        $password=$null; $backup=$null
+    }
+    exit
+}
 if ($VerifyPath) {
     $plain = Unprotect-Backup (Get-Content -LiteralPath $VerifyPath -Raw | ConvertFrom-Json) $password
     $backup = [Text.Encoding]::UTF8.GetString($plain) | ConvertFrom-Json
