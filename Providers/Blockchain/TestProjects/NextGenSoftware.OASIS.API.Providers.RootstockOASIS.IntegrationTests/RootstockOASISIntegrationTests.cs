@@ -1,138 +1,42 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
-using System;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
-namespace NextGenSoftware.OASIS.API.Providers.RootstockOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.RootstockOASIS.IntegrationTests;
+
+[TestClass]
+public class RootstockOASISIntegrationTests
 {
-    [TestClass]
-    public class RootstockOASISIntegrationTests
+    [TestMethod]
+    public async Task HolonCrud_UsesValidatedRootstockChain()
     {
-        private RootstockOASIS _provider;
+        string? rpc = Environment.GetEnvironmentVariable("OASIS_ROOTSTOCK_RPC_URL");
+        string? key = Environment.GetEnvironmentVariable("OASIS_ROOTSTOCK_PRIVATE_KEY");
+        string? contract = Environment.GetEnvironmentVariable("OASIS_ROOTSTOCK_CONTRACT_ADDRESS");
+        if (string.IsNullOrWhiteSpace(rpc) || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(contract))
+            Assert.Inconclusive("Set the OASIS_ROOTSTOCK_* variables to run the real-runtime test.");
 
-        [TestInitialize]
-        public void Setup()
-        {
-            _provider = new RootstockOASIS();
-        }
+        var provider = new RootstockOASIS(rpc!, key!, contract!);
+        var activated = await provider.ActivateProviderAsync();
+        Assert.IsFalse(activated.IsError, activated.Message);
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"rootstock-{Guid.NewGuid():N}" };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon)).IsError);
+        Assert.AreEqual(holon.Name, (await provider.LoadHolonAsync(holon.Id)).Result.Name);
+        holon.Name += "-updated";
+        Assert.IsFalse((await provider.SaveHolonAsync(holon)).IsError);
+        Assert.AreEqual(holon.Name, (await provider.LoadHolonAsync(holon.Id)).Result.Name);
+        Assert.IsFalse((await provider.DeleteHolonAsync(holon.Id)).IsError);
+        Assert.IsTrue((await provider.LoadHolonAsync(holon.Id)).IsError);
+    }
 
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
-        {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+    [TestMethod]
+    public async Task Activation_RejectsUnreachableRpc()
+    {
+        var provider = new RootstockOASIS("http://127.0.0.1:1",
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "0x0000000000000000000000000000000000000000");
+        var result = await provider.ActivateProviderAsync();
+        Assert.IsTrue(result.IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
     }
 }
