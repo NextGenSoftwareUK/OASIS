@@ -304,6 +304,22 @@ jobs:
           unity-version: 2022.3.62f3 (e9b2a6e6c3a0)
           build-targets: Android
           cache-installation: true
+      - name: Require Unity activation credentials
+        shell: pwsh
+        env:
+          UNITY_USERNAME: ${{ secrets.UNITY_USERNAME }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:UNITY_USERNAME) -or
+              [string]::IsNullOrWhiteSpace($env:UNITY_PASSWORD)) {
+            throw 'Unity editor validation requires the UNITY_USERNAME and UNITY_PASSWORD repository secrets. The editor cannot be launched unattended on a GitHub-hosted runner without an activated Unity seat.'
+          }
+      - name: Activate Unity license
+        uses: RageAgainstThePixel/activate-unity-license@e73ff1f81db81a2595f86642123ce2b73b9a9258 # v2
+        with:
+          license: personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
