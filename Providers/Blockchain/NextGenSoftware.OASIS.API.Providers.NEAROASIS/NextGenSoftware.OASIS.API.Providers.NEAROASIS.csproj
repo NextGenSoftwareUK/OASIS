@@ -46,9 +46,13 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" Link="SdkBridge\bridge.mjs" />
+    <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" Link="SdkBridge\package.json" />
+    <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" Link="SdkBridge\package-lock.json" Condition="Exists('SdkBridge\package-lock.json')" />
   </ItemGroup>
 
 </Project>

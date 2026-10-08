@@ -1,2 +1,4 @@
 api:
-  address: "0.0.0.0:18080"
+  # Provider evidence is strictly local. Binding to every network interface makes
+  # Windows Firewall repeatedly ask whether aptos.exe should accept inbound traffic.
+  address: "127.0.0.1:18080"
