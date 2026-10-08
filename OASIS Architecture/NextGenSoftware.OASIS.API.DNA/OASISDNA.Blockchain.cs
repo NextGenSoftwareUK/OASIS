@@ -131,6 +131,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ChainId { get; set; } = "";
         public string PrivateKey { get; set; } = "";
         public string ContractAddress { get; set; } = "";
+        public string StorageObjectId { get; set; } = "";
     }
 
     public class MoralisOASISProviderSettings : ProviderSettingsBase
