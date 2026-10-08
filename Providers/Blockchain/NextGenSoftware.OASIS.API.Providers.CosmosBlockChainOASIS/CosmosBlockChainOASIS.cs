@@ -20,13 +20,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-// using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
@@ -39,16 +35,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
     public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _rpcEndpoint;
-        private readonly string _chainId;
         private readonly string _privateKey;
         private readonly string _contractAddress;
         private readonly string _nativeDenom;
         private readonly int _nativeDecimals;
-        private bool _isActivated => IsProviderActivated;
         private WalletManager _walletManager;
-        private KeyManager _keyManager;
 
         public WalletManager WalletManager
         {
@@ -59,16 +50,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 return _walletManager;
             }
             set => _walletManager = value;
-        }
-
-        private KeyManager KeyManager
-        {
-            get
-            {
-                if (_keyManager == null)
-                    _keyManager = new KeyManager(this);
-                return _keyManager;
-            }
         }
 
         /// <summary>
@@ -89,18 +70,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
-            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
-            _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
             _privateKey = privateKey;
             _contractAddress = contractAddress;
             if (string.IsNullOrWhiteSpace(nativeDenom)) throw new ArgumentException("Native denomination is required.", nameof(nativeDenom));
             if (nativeDecimals < 0 || nativeDecimals > 18) throw new ArgumentOutOfRangeException(nameof(nativeDecimals));
             _nativeDenom = nativeDenom;
             _nativeDecimals = nativeDecimals;
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(_rpcEndpoint)
-            };
         }
 
 

@@ -58,6 +58,8 @@ async function execute(input) {
       case "put":
       case "delete":
       case "execute": {
+        if (input.fromWalletAddress && input.fromWalletAddress !== sender)
+          throw new Error("The signing key does not own the requested Cosmos sender address");
         const message = input.operation === "put" ? { put: { key: input.key, value: input.value } }
           : input.operation === "delete" ? { delete: { key: input.key } } : input.message;
         const result = await client.execute(sender, input.targetContractAddress ?? input.contractAddress,
