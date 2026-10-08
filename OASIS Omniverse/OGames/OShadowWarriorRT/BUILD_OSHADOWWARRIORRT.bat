@@ -17,7 +17,7 @@ if exist "%OMNIVERSE%\run_oasis_header.bat" call "%OMNIVERSE%\run_oasis_header.b
 
 if exist "%OMNIVERSE%\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
     call "%OMNIVERSE%\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-    if errorlevel 1 (echo [OShadowWarriorRT] OGEngineClient build failed. & if not "%~1"=="batch" pause & exit /b 1)
+    if errorlevel 1 (echo [OShadowWarriorRT] OGEngineClient build failed. & (if not "%~1"=="batch" pause) & exit /b 1)
 )
 
 if not exist "%RAZE_SRC%\source\core\gamecontrol.cpp" (
@@ -36,9 +36,9 @@ for %%F in (oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h) d
 echo [OShadowWarriorRT] Building Raze with OASIS_STAR_API=ON...
 if not exist "%RAZE_SRC%\build-vs" mkdir "%RAZE_SRC%\build-vs"
 cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_LIB_DIR=%STAR_PUBLISH%"
-if errorlevel 1 (echo [OShadowWarriorRT] CMake configure failed. & if not "%~1"=="batch" pause & exit /b 1)
+if errorlevel 1 (echo [OShadowWarriorRT] CMake configure failed. & (if not "%~1"=="batch" pause) & exit /b 1)
 cmake --build "%RAZE_SRC%\build-vs" --config Release
-if errorlevel 1 (echo [OShadowWarriorRT] Build failed. & if not "%~1"=="batch" pause & exit /b 1)
+if errorlevel 1 (echo [OShadowWarriorRT] Build failed. & (if not "%~1"=="batch" pause) & exit /b 1)
 for %%F in (ogengine.dll e_sqlite3.dll) do copy /Y "%STAR_PUBLISH%\%%F" "%RAZE_SRC%\build-vs\Release\" >nul
 
 echo.
