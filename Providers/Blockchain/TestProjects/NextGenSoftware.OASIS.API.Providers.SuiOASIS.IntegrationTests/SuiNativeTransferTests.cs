@@ -11,7 +11,7 @@ public class SuiNativeTransferTests
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real Sui test setting {name} is required; no skipped or mocked evidence.");
 
-    private static async Task FundAsync(string address)
+    internal static async Task FundAsync(string address)
     {
         var path = Path.Combine(Path.GetDirectoryName(Required("OASIS_SUI_SDK_BRIDGE"))!, "test-fund.mjs");
         var start = new ProcessStartInfo("node")
