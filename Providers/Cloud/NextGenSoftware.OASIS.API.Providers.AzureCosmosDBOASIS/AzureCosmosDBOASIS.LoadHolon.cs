@@ -339,7 +339,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatar avatar = avatarRepository.GetByIdAsync(id.ToString()).Result;
 
                 if (avatar == null)
@@ -364,7 +363,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 var avatar = await avatarRepository.GetByIdAsync(Id.ToString());
                 
                 if (avatar == null)
@@ -389,12 +387,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
-                //TODO: Need to test to make sure this works!
                 IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);
-
-                //var avatarList = avatarRepository.GetList();
-                //var avatar = avatarList.Where(a => a.Email == avatarEmail).FirstOrDefault();
 
                 if (avatar == null)
                 {
@@ -418,8 +411,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
-                //TODO: Need to test to make sure this works!
                 IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);                
 
                 if (avatar == null)
@@ -444,9 +435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
-                //TODO: Need to test to make sure this works!
-                IAvatar avatar = avatarRepository.GetByField("UserName", avatarUsername, version);
+                IAvatar avatar = avatarRepository.GetByField("Username", avatarUsername, version);
 
                 if (avatar == null)
                 {
@@ -480,7 +469,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail =await avatarDetailRepository.GetByIdAsync(id.ToString());
 
                 if (avatarDetail == null)
@@ -505,7 +493,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
                 IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("Email",avatarEmail, version);
 
                 if (avatarDetail == null)
@@ -535,8 +522,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                //TODO HB: Re-write so follows other methods that use OASISErrorHandling.HandlerError etc.
-                IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("UserName", avatarUsername, version);
+                IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("Username", avatarUsername, version);
 
                 if (avatarDetail == null)
                 {

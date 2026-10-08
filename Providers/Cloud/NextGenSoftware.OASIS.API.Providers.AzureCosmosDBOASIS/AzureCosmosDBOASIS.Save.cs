@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                IAvatar objAvatar = avatarRepository.AddAsync(avatar).Result;
+                IAvatar objAvatar = avatarRepository.UpsertAsync(avatar).Result;
                 return new OASISResult<IAvatar> { IsSaved = true, Result = objAvatar };
             }
             catch (Exception ex)
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                IAvatar objAvatar = await avatarRepository.AddAsync(avatar);
+                IAvatar objAvatar = await avatarRepository.UpsertAsync(avatar);
                 return new OASISResult<IAvatar> { IsSaved = true, IsError = false, Result = objAvatar };
             }
             catch (Exception ex)
@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                IAvatarDetail objAvatar = avatarDetailRepository.AddAsync(avatarDetail).Result;
+                IAvatarDetail objAvatar = avatarDetailRepository.UpsertAsync(avatarDetail).Result;
                 return new OASISResult<IAvatarDetail> { IsSaved = true, Result = objAvatar };
             }
             catch (Exception ex)
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                IAvatarDetail objAvatar = await avatarDetailRepository.AddAsync(avatarDetail);
+                IAvatarDetail objAvatar = await avatarDetailRepository.UpsertAsync(avatarDetail);
                 return new OASISResult<IAvatarDetail> { IsSaved = true, Result = objAvatar };
             }
             catch (Exception ex)
@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                IHolon objHolon = holonRepository.AddAsync(holon).Result;
+                IHolon objHolon = holonRepository.UpsertAsync(holon).Result;
                 return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
             }
             catch (Exception ex)
@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
-                IHolon objHolon = await holonRepository.AddAsync(holon);
+                IHolon objHolon = await holonRepository.UpsertAsync(holon);
                 return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
             }
             catch (Exception ex)
@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 if (holons != null)
                 {
                     foreach (var holon in holons)
-                        savedHolons.Add(holonRepository.AddAsync(holon).Result);
+                        savedHolons.Add(holonRepository.UpsertAsync(holon).Result);
                 }
 
                 return new OASISResult<IEnumerable<IHolon>> { IsSaved = true, IsError = false, Result = savedHolons };
@@ -126,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 if (holons != null)
                 {
                     foreach (var holon in holons)
-                        savedHolons.Add(await holonRepository.AddAsync(holon));
+                        savedHolons.Add(await holonRepository.UpsertAsync(holon));
                 }
                 
                 return new OASISResult<IEnumerable<IHolon>> { IsSaved = true, IsError = false, Result = savedHolons };
@@ -372,36 +372,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             return ExportAllAsync(version).Result;
         }
-
-        //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

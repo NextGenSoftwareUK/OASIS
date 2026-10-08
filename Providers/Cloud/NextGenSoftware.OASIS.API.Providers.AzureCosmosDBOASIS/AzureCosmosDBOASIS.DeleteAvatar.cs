@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -21,33 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
     {
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason:";
-
-            try
-            {
-                if (dbClientFactory == null)
-                {
-                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
-                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
-                    OASISResult<bool> ensureDbSetupResult = dbClientFactory.EnsureDbSetupAsync().Result;
-
-                    if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
-                    else
-                    {
-                        avatarRepository = new AvatarRepository(dbClientFactory);
-                        holonRepository = new HolonRepository(dbClientFactory);
-                        avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
-            }
-
-            return result;
+            return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -59,12 +34,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (dbClientFactory == null)
                 {
-                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
+                    var clientOptions = new CosmosClientOptions
+                    {
+                        ConnectionMode = ConnectionMode.Gateway
+                    };
+
+                    if (serviceEndpoint.IsLoopback)
+                    {
+                        clientOptions.HttpClientFactory = () => new HttpClient(
+                            new HttpClientHandler
+                            {
+                                ServerCertificateCustomValidationCallback =
+                                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                            });
+                    }
+
+                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey, clientOptions);
                     dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
                     OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
+                    {
+                        dbClientFactory.Dispose();
+                        dbClientFactory = null;
+                        IsProviderActivated = false;
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
+                        return result;
+                    }
                     else
                     {
                         avatarRepository = new AvatarRepository(dbClientFactory);
@@ -73,6 +69,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     }
 
                     IsProviderActivated = true;
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Azure Cosmos DB provider activated successfully.";
                 }
             }
             catch (Exception ex)
@@ -85,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
+            dbClientFactory?.Dispose();
             dbClientFactory = null;
             avatarRepository = null;
             avatarDetailRepository = null;
@@ -97,6 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            dbClientFactory?.Dispose();
             dbClientFactory = null;
             avatarRepository = null;
             avatarDetailRepository = null;
@@ -175,7 +176,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with providerKey {providerKey}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 //Normally the providerKey is different to the Id but in this case they are the same since Azure uses GUID's the same as the OASIS does for ID.
                 if (softDelete)
                 {
@@ -233,7 +233,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with id {id}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
                 if (softDelete)
                 {
                     OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(id);
@@ -266,7 +265,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     }
                 }
                 else
-                    await avatarRepository.DeleteAsync(id);                
+                {
+                    await avatarRepository.DeleteAsync(id);
+                    result.Result = true;
+                    result.IsSaved = true;
+                }
             }
             catch (Exception ex) {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
@@ -340,9 +343,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with email {avatarEmail}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-
                 OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(avatarEmail);
 
                 if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -398,9 +398,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with email {avatarEmail}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-                
                 OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
 
                 if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -456,9 +453,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with username {avatarUsername}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-
                 OASISResult<IAvatar> avatarResult = LoadAvatarByUsername(avatarUsername);
 
                 if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -514,9 +508,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with user name {avatarUsername}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-                //TODO: May want to cache this in future?
-
                 OASISResult<IAvatar> avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
 
                 if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
