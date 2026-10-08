@@ -34,8 +34,6 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -54,60 +52,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return response;
                 }
 
-                // Save holon to Aptos blockchain using real Aptos RPC
-                var sequenceNumber = await GetSequenceNumber();
-                var request = new
-                {
-                    sender = APTOS_ACCOUNT_ADDRESS,
-                    sequence_number = sequenceNumber.ToString(),
-                    max_gas_amount = "1000",
-                    gas_unit_price = "1",
-                    expiration_timestamp_secs = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds().ToString(),
-                    payload = new
-                    {
-                        type = "entry_function_payload",
-                        function = $"{APTOS_CONTRACT_ADDRESS}::oasis::save_holon",
-                        arguments = new object[]
-                        {
-                            holon.Id.ToString(),
-                            holon.Name ?? "",
-                            holon.Description ?? "",
-                            (int)holon.HolonType,
-                            holon.ParentHolonId.ToString(),
-                            holon.ParentOmniverseId.ToString(),
-                            holon.ParentMultiverseId.ToString(),
-                            holon.ParentUniverseId.ToString(),
-                            holon.ParentDimensionId.ToString(),
-                            holon.ParentGalaxyClusterId.ToString(),
-                            holon.ParentGalaxyId.ToString(),
-                            holon.ParentSolarSystemId.ToString(),
-                            holon.ParentPlanetId.ToString(),
-                            holon.ParentMoonId.ToString(),
-                            holon.ParentStarId.ToString(),
-                            holon.ParentZomeId.ToString(),
-                            holon.MetaData != null ? System.Text.Json.JsonSerializer.Serialize(holon.MetaData) : "",
-                            ((DateTimeOffset)holon.CreatedDate).ToUnixTimeSeconds(),
-                            ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
-                            holon.IsActive
-                        },
-                        type_arguments = new object[0]
-                    }
-                };
+                if (holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
 
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/transactions", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = holon;
-                    response.IsError = false;
-                    response.Message = "Holon saved to Aptos blockchain successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Aptos: {httpResponse.StatusCode}");
-                }
+                await UpsertRecordAsync(HolonRecordType, holon.Id.ToString(), holon);
+                response.Result = holon;
+                response.IsError = false;
+                response.Message = "Holon committed to Aptos by a signed SDK transaction";
             }
             catch (Exception ex)
             {
@@ -170,28 +121,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
                 
-                // Delete holon using Aptos Move smart contract
-                var deletePayload = new
-                {
-                    type = "entry_function_payload",
-                    function = "0x1::oasis::delete_holon",
-                    type_arguments = new string[0],
-                    arguments = new[] { providerKey }
-                };
-                
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(deletePayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/transactions", content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    result.Result = loadResult.Result;
-                    result.Message = "Holon deleted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete holon: {httpResponse.StatusCode}");
-                }
+                await DeleteRecordAsync(HolonRecordType, providerKey);
+                result.Result = loadResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted by a signed Aptos SDK transaction";
             }
             catch (Exception ex)
             {
@@ -244,14 +177,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
                 var request = new
                 {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_avatar",
+                    function = $"{_contractAddress}::oasis::get_holons_by_avatar",
                     arguments = new object[] { id.ToString() },
                     type_arguments = new object[0]
                 };
 
                 var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                var httpResponse = await _httpClient.PostAsync("view", content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {

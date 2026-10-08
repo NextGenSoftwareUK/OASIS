@@ -43,7 +43,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
+    <PackageReference Include="Aptos" Version="0.1.1-beta" />
+    <PackageReference Include="NBitcoin" Version="10.0.7" />
   </ItemGroup>
 
   <ItemGroup>

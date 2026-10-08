@@ -34,8 +34,10 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
+using NBitcoin;
+using AptosEd25519Account = Aptos.Ed25519Account;
+using AptosEd25519PrivateKey = Aptos.Ed25519PrivateKey;
+using AptosEd25519PublicKey = Aptos.Ed25519PublicKey;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -389,34 +391,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
-                // Generate Aptos-specific key pair using Ed25519 (production-ready)
-                // Aptos uses Ed25519 curve (same as Solana), so we can use Solnet.Wallet SDK
-                var mnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
-                var wallet = new Wallet(mnemonic);
-                var account = wallet.Account;
-                
-                // Aptos addresses are derived from public keys (32 bytes, hex encoded with 0x prefix)
-                var aptosAddress = "0x" + BitConverter.ToString(account.PublicKey.KeyBytes).Replace("-", "").ToLowerInvariant();
-                
-                // Create key pair structure
-                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                //if (keyPair != null)
-                //{
-                //    keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
-                //    keyPair.PublicKey = account.PublicKey.Key;
-                //    keyPair.WalletAddressLegacy = aptosAddress;
-                //}
+                var account = AptosEd25519Account.Generate();
 
                 //result.Result = keyPair;
                 result.Result = new KeyPairAndWallet
                 {
-                    PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
-                    PublicKey = account.PublicKey.Key,
-                    WalletAddressLegacy = aptosAddress
+                    PrivateKey = account.PrivateKey.ToAIP80String(),
+                    PublicKey = account.PublicKey.ToString(),
+                    WalletAddressLegacy = account.Address.ToString()
                 };
 
                 result.IsError = false;
-                result.Message = "Aptos key pair generated successfully using Ed25519 (Solnet.Wallet SDK).";
+                result.Message = "Aptos key pair generated successfully using the Aptos Labs .NET SDK.";
             }
             catch (Exception ex)
             {
@@ -426,28 +412,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         }
 
         /// <summary>
-        /// Derives Aptos public key from private key using Ed25519
-        /// Note: This is a simplified implementation. In production, use proper Aptos SDK for key derivation.
+        /// Derives the Aptos Ed25519 public key with the Aptos Labs SDK.
         /// </summary>
         private string DeriveAptosPublicKey(byte[] privateKeyBytes)
         {
-            // Aptos uses Ed25519 elliptic curve (same as Solana)
-            // In production, use Aptos SDK for proper key derivation
-            try
-            {
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    var hash = sha256.ComputeHash(privateKeyBytes);
-                    // Aptos public keys are typically 64 characters (32 bytes hex)
-                    var publicKey = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                    return publicKey.Length >= 64 ? publicKey.Substring(0, 64) : publicKey.PadRight(64, '0');
-                }
-            }
-            catch
-            {
-                var hash = System.Security.Cryptography.SHA256.HashData(privateKeyBytes);
-                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant().PadRight(64, '0');
-            }
+            using var key = new AptosEd25519PrivateKey(privateKeyBytes);
+            return key.PublicKey().ToString();
         }
 
         /// <summary>
@@ -455,23 +425,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         /// </summary>
         private string DeriveAptosAddress(string publicKey)
         {
-            // Aptos addresses are derived from public keys
-            try
-            {
-                var publicKeyBytes = System.Text.Encoding.UTF8.GetBytes(publicKey);
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    var hash = sha256.ComputeHash(publicKeyBytes);
-                    // Take portion for address (Aptos addresses are typically 32 bytes)
-                    var addressBytes = new byte[32];
-                    Array.Copy(hash, addressBytes, 32);
-                    return "0x" + BitConverter.ToString(addressBytes).Replace("-", "").ToLowerInvariant();
-                }
-            }
-            catch
-            {
-                return publicKey.Length >= 64 ? "0x" + publicKey.Substring(0, 64) : "0x" + publicKey.PadRight(64, '0');
-            }
+            var key = new AptosEd25519PublicKey(publicKey);
+            return key.AuthKey().DerivedAddress().ToString();
         }
 
         // Bridge methods
@@ -550,23 +505,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
-                // Generate Aptos Ed25519 key pair
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    var privateKeyBytes = new byte[32];
-                    rng.GetBytes(privateKeyBytes);
-                    
-                    // Generate Ed25519 key pair (Aptos uses Ed25519)
-                    var privateKeyHex = Convert.ToHexString(privateKeyBytes).ToLower();
-                    var publicKeyHex = privateKeyHex; // Simplified - in production, derive public key from private key using Ed25519
-                    
-                    // Generate seed phrase (BIP39) for Aptos
-                    var seedPhrase = GenerateAptosSeedPhrase();
-                    
-                    result.Result = (publicKeyHex, privateKeyHex, seedPhrase);
-                    result.IsError = false;
-                    result.Message = "Aptos account key pair created successfully";
-                }
+                var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+                var account = AptosEd25519Account.FromDerivationPath("m/44'/637'/0'/0'/0'", mnemonic.ToString());
+                result.Result = (account.PublicKey.ToString(), account.PrivateKey.ToAIP80String(), mnemonic.ToString());
+                result.IsError = false;
+                result.Message = "Aptos account created using the Aptos Labs .NET SDK";
             }
             catch (Exception ex)
             {
@@ -592,27 +535,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
-                // Restore Aptos account from seed phrase
-                // If seedPhrase is actually a private key, use it directly
-                // Otherwise, derive from BIP39 seed phrase
-                string privateKeyHex;
-                string publicKeyHex;
-                
-                if (seedPhrase.Length == 64 && System.Text.RegularExpressions.Regex.IsMatch(seedPhrase, "^[0-9a-fA-F]+$"))
-                {
-                    // Treat as private key hex
-                    privateKeyHex = seedPhrase.ToLower();
-                    publicKeyHex = privateKeyHex; // Simplified - in production, derive public key using Ed25519
-                }
-                else
-                {
-                    // Derive from BIP39 seed phrase
-                    var seed = DeriveSeedFromMnemonic(seedPhrase);
-                    privateKeyHex = Convert.ToHexString(seed.Take(32).ToArray()).ToLower();
-                    publicKeyHex = privateKeyHex; // Simplified - in production, derive public key using Ed25519
-                }
-                
-                result.Result = (publicKeyHex, privateKeyHex);
+                var account = seedPhrase.Contains(' ')
+                    ? AptosEd25519Account.FromDerivationPath("m/44'/637'/0'/0'/0'", seedPhrase)
+                    : new AptosEd25519Account(new AptosEd25519PrivateKey(seedPhrase, strict: false));
+                result.Result = (account.PublicKey.ToString(), account.PrivateKey.ToAIP80String());
                 result.IsError = false;
                 result.Message = "Aptos account restored successfully from seed phrase";
             }
