@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
@@ -48,6 +49,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
     public partial class EOSIOOASIS
     {
+        private static string GetEOSExceptionDetails(Exception exception)
+        {
+            var errorField = exception.GetType().GetField("error", BindingFlags.Instance | BindingFlags.NonPublic);
+            var error = errorField?.GetValue(exception);
+            return error == null ? exception.ToString() : $"{exception}\nEOS API error: {JsonConvert.SerializeObject(error)}";
+        }
         /// <summary>
         /// Decode WIF (Wallet Import Format) private key
         /// </summary>

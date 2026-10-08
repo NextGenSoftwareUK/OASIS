@@ -290,6 +290,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
+            return await _eosioOASIS.LoadAvatarAsync(Id, version);
+#pragma warning disable CS0162
             var result = new OASISResult<IAvatar>();
 
             try
@@ -360,6 +362,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             }
 
             return result;
+#pragma warning restore CS0162
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)

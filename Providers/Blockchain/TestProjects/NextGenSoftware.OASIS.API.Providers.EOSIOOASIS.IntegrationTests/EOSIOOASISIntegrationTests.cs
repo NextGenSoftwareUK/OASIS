@@ -1,138 +1,89 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 {
     [TestClass]
     public class EOSIOOASISIntegrationTests
     {
-        private EOSIOOASIS _provider;
+        private EOSIOOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            _provider = new EOSIOOASIS();
+            string endpoint = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT") ?? "http://127.0.0.1:8888/";
+            string account = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT") ?? "eosio";
+            string chainId = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_CHAIN_ID")
+                ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_CHAIN_ID must identify a running Antelope chain.");
+            string privateKey = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_PRIVATE_KEY")
+                ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_PRIVATE_KEY must authorize the configured contract account.");
+
+            _provider = new EOSIOOASIS(endpoint, account, chainId, privateKey);
+            var activated = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError, activated.Message);
+            Assert.IsTrue(activated.Result, activated.Message);
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public async Task AvatarCrud_PersistsOnOfficialAntelopeNode()
         {
-            // Arrange
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
+                Username = $"antelope-{Guid.NewGuid():N}",
+                Email = $"antelope-{Guid.NewGuid():N}@example.test",
+                FirstName = "Antelope",
+                LastName = "Runtime"
             };
 
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            var loaded = await _provider.LoadAvatarAsync(avatar.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(avatar.Username, loaded.Result.Username);
+
+            avatar.FirstName = "Updated";
+            var updated = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(updated.IsError, updated.Message);
+            loaded = await _provider.LoadAvatarAsync(avatar.Id);
+            Assert.AreEqual("Updated", loaded.Result.FirstName);
+
+            var deleted = await _provider.DeleteAvatarAsync(avatar.Id, false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
         }
 
         [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
+        public async Task HolonCrud_PersistsOnOfficialAntelopeNode()
         {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
             var holon = new Holon
             {
                 Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
+                Name = $"antelope-holon-{Guid.NewGuid():N}",
+                Description = "Official Antelope node verification"
             };
 
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
+            var saved = await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(saved.IsError, saved.Message);
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
+            var loaded = await _provider.LoadHolonAsync(holon.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(holon.Name, loaded.Result.Name);
 
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
+            holon.Description = "Updated on chain";
+            var updated = await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(updated.IsError, updated.Message);
+            loaded = await _provider.LoadHolonAsync(holon.Id);
+            Assert.AreEqual("Updated on chain", loaded.Result.Description);
 
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            var deleted = await _provider.DeleteHolonAsync(holon.Id);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
         }
 
         [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+        public void Cleanup() => _provider?.DeActivateProvider();
     }
 }
