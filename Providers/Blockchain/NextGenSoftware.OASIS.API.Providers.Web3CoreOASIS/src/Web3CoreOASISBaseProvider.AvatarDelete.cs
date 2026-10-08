@@ -51,45 +51,43 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
-    public override Task<OASISResult<bool>> ActivateProviderAsync()
-    {
-        OASISResult<bool> result;
-
-        try
-        {
-            result = ActivateProvider();
-        }
-        catch (Exception ex)
-        {
-            return Task.FromException<OASISResult<bool>>(ex);
-        }
-
-        return Task.FromResult(result);
-    }
-
-    public override OASISResult<bool> ActivateProvider()
+    public override async Task<OASISResult<bool>> ActivateProviderAsync()
     {
         OASISResult<bool> result = new();
 
         try
         {
-            if (_hostURI is { Length: > 0 } &&
-                _chainPrivateKey is { Length: > 0 })
-            {
-                _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
-                // Initialize Web3 client for bridge operations
-                var account = new Account(_chainPrivateKey);
-                _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
-                this.IsProviderActivated = true;
-            }
+            if (string.IsNullOrWhiteSpace(_hostURI) || string.IsNullOrWhiteSpace(_chainPrivateKey) || string.IsNullOrWhiteSpace(_contractAddress))
+                throw new InvalidOperationException("The EVM provider requires an RPC URI, private key and deployed contract address.");
+
+            var account = new Account(_chainPrivateKey);
+            _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
+            HexBigInteger remoteChainId = await _web3Client.Eth.ChainId.SendRequestAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            if (_expectedChainId.HasValue && remoteChainId.Value != _expectedChainId.Value)
+                throw new InvalidOperationException($"EVM RPC chain ID '{remoteChainId.Value}' does not match expected chain ID '{_expectedChainId.Value}'.");
+
+            string contractCode = await _web3Client.Eth.GetCode.SendRequestAsync(_contractAddress).WaitAsync(TimeSpan.FromSeconds(10));
+            if (string.IsNullOrWhiteSpace(contractCode) || contractCode == "0x" || contractCode == "0x0")
+                throw new InvalidOperationException($"No contract bytecode was found at configured address '{_contractAddress}'.");
+
+            _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
+            IsProviderActivated = true;
+            result.Result = true;
         }
         catch (Exception ex)
         {
-            this.IsProviderActivated = false;
-            OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in {this.ProviderName} -> Web3CoreOASIS Provider. Reason: {ex}");
+            _web3CoreOASIS = null;
+            _web3Client = null;
+            IsProviderActivated = false;
+            OASISErrorHandling.HandleError(ref result, $"Error activating {ProviderName} through Web3CoreOASIS. Reason: {ex.Message}", ex);
         }
 
         return result;
+    }
+
+    public override OASISResult<bool> ActivateProvider()
+    {
+        return ActivateProviderAsync().GetAwaiter().GetResult();
     }
 
     public override Task<OASISResult<bool>> DeActivateProviderAsync()
