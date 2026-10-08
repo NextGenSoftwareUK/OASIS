@@ -4,6 +4,11 @@ For a normal release, use the **Promote Development to master** GitHub Actions w
 
 The purpose and output of every workflow are documented in [OASIS CI/CD, Tests, Artifacts, and Releases](./CI_CD_WORKFLOWS_AND_RELEASES.md).
 
+Staging does not require another branch in each repository. The planned immutable-candidate staging gate,
+environment-isolation rules and remaining automation work are documented in
+[Staging release-candidate process](./DEVELOPMENT_TO_MASTER_PROMOTION.md#staging-release-candidate-process-planned-enhancement).
+This is a follow-up design, not a gate already enforced by the current workflow.
+
 ## A. Start the promotion
 
 1. Open the OASIS repository on GitHub.
