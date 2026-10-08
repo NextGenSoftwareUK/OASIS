@@ -12,17 +12,9 @@
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
-	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
-- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
-- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
-- Improved error handling: explicit errors when provider returns null content; null guards throughout.
-- Updated to align with OASIS API Core v2.0.0.
-- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
-- Miscellaneous bug fixes and stability improvements.
-- Improved null safety and error reporting.
-- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
-- Many misc improvements.
-- Multiple bug fixes.</PackageReleaseNotes>
+	  <PackageReleaseNotes>- Uses the Aptos Labs .NET SDK for activation, accounts, transaction construction, BCS signing, submission, confirmation, and Move-backed storage.
+- Removes fabricated signing and mnemonic fallbacks.
+- NFT and smart-contract capability flags remain disabled until every corresponding operation is migrated to the official SDK and proven against an Aptos node.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
