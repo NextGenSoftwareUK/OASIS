@@ -5,7 +5,7 @@ $validatorPath = Join-Path $repoRoot 'Scripts\validate_edge_unity_package.ps1'
 $source = Get-Content -LiteralPath $validatorPath -Raw
 $invocations = [regex]::Matches(
     $source,
-    '(?ms)Start-Process\s+-FilePath\s+\$UnityEditor\s+-ArgumentList\s+@\((?<arguments>.*?)\)\s+-WindowStyle\s+Hidden\s+-Wait\s+-PassThru')
+    '(?ms)Invoke-UnityBatchProcess\s+-Phase\s+''[^'']+''.*?-Arguments\s+@\((?<arguments>.*?)\)')
 
 if ($invocations.Count -ne 2) {
     throw "Expected exactly two Unity batch invocations in '$validatorPath'; found $($invocations.Count)."
@@ -20,4 +20,12 @@ foreach ($invocation in $invocations) {
     }
 }
 
-Write-Host 'Edge Unity batch lifecycle contract passed: both validator processes terminate deterministically.'
+foreach ($requiredSupervisorContract in @(
+        '$process.WaitForExit(5000)', '$process.Kill($true)',
+        'EditorValidationTimeoutMinutes', 'AndroidBuildTimeoutMinutes')) {
+    if ($source.IndexOf($requiredSupervisorContract, [StringComparison]::Ordinal) -lt 0) {
+        throw "Unity batch supervisor is missing required contract '$requiredSupervisorContract'."
+    }
+}
+
+Write-Host 'Edge Unity batch lifecycle contract passed: both validator processes are supervised and terminate deterministically.'

@@ -253,6 +253,7 @@ jobs:
   validate:
     needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync]
     runs-on: windows-latest
+    timeout-minutes: 150
     permissions:
       contents: read
       id-token: write
