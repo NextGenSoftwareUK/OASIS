@@ -36,7 +36,7 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
-    public partial class SuiOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public partial class SuiOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         private readonly string _chainId;
         private readonly string _privateKey;
         private readonly string _contractAddress;
-        private bool _isActivated;
+        private bool _isActivated => IsProviderActivated;
 
         /// <summary>
         /// Initializes a new instance of the SuiOASIS provider
@@ -52,7 +52,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <param name="rpcEndpoint">Sui RPC endpoint URL</param>
         /// <param name="network">Sui network (mainnet, testnet, devnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "")
+        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "")
+            : base(new SuiStorageBackend(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId)))
         {
             this.ProviderName = "SuiOASIS";
             this.ProviderDescription = "Sui Provider - High-performance blockchain platform";
@@ -75,5 +76,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
 
+        public void Dispose()
+        {
+            ((SuiStorageBackend)Backend).Client.Dispose();
+            _httpClient.Dispose();
+            IsProviderActivated = false;
+        }
     }
 }

@@ -39,201 +39,55 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
     public partial class SuiOASIS
     {
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            var response = new OASISResult<bool>();
 
-            try
-            {
-                if (_isActivated)
-                {
-                    response.Result = true;
-                    response.Message = "Sui provider is already activated";
-                    return response;
-                }
 
-                // Test connection to Sui RPC endpoint
-                var testResponse = await _httpClient.GetAsync("/");
-                if (testResponse.IsSuccessStatusCode)
-                {
-                    _isActivated = true;
-                    response.Result = true;
-                    response.Message = "Sui provider activated successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Sui RPC endpoint: {testResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error activating Sui provider: {ex.Message}");
-            }
 
-            return response;
-        }
 
-        public override OASISResult<bool> ActivateProvider()
-        {
-            return ActivateProviderAsync().Result;
-        }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            var response = new OASISResult<bool>();
-
-            try
-            {
-                _isActivated = false;
-                _httpClient?.Dispose();
-                response.Result = true;
-                response.Message = "Sui provider deactivated successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deactivating Sui provider: {ex.Message}");
-            }
-
-            return response;
-        }
-
-        public override OASISResult<bool> DeActivateProvider()
-        {
-            return DeActivateProviderAsync().Result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
-                    return response;
-                }
-
-                // Load avatar from Sui blockchain
-                var queryUrl = $"/object/{id}";
-
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var avatar = ParseSuiToAvatar(content);
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar loaded successfully from Sui blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Sui blockchain: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Sui: {ex.Message}");
-            }
-
-            return response;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
-        {
-            return LoadAvatarAsync(id, version).Result;
-        }
 
 
 
 
         OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
-                    return response;
-                }
-
-                // Load all avatars and filter by location
-                var allAvatarsResult = LoadAllAvatarsAsync().Result;
-                if (allAvatarsResult.IsError || allAvatarsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to load avatars from Sui blockchain");
-                    return response;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearbyAvatars = new List<IAvatar>();
-
-                foreach (var avatar in allAvatarsResult.Result)
-                {
-                    // Note: GeoLocation is not available on IAvatar interface
-                    // For now, we'll include all avatars. In a real implementation,
-                    // you would need to store location data in avatar metadata or use a different approach
-                    if (avatar != null)
-                    {
-                        nearbyAvatars.Add(avatar);
-                    }
-                }
-
-                response.Result = nearbyAvatars;
-                response.IsError = false;
-                response.Message = $"Found {nearbyAvatars.Count} avatars within {radiusInMeters} meters";
+                if (radiusInMeters < 0 || geoLat < -90000000 || geoLat > 90000000
+                    || geoLong < -180000000 || geoLong > 180000000)
+                    throw new ArgumentOutOfRangeException(nameof(radiusInMeters), "Valid coordinates and nonnegative radius are required.");
+                result = LoadAllAvatarsAsync().GetAwaiter().GetResult();
+                if (result.IsError) return result;
+                result.Result = result.Result.Where(item => item.MetaData != null
+                    && item.MetaData.TryGetValue("Latitude", out var lat)
+                    && item.MetaData.TryGetValue("Longitude", out var lon)
+                    && GeoHelper.CalculateDistance(geoLat / 1000000d, geoLong / 1000000d,
+                        Convert.ToDouble(lat, System.Globalization.CultureInfo.InvariantCulture),
+                        Convert.ToDouble(lon, System.Globalization.CultureInfo.InvariantCulture)) <= radiusInMeters).ToList();
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from Sui: {ex.Message}");
-            }
-
-            return response;
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            return result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType holonType)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
+            var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
-                    return response;
-                }
-
-                // Get holons near me from Sui blockchain
-                var queryUrl = $"/objects/holons?type={holonType}";
-
-                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    var holons = ParseSuiToHolons(content);
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = $"Loaded {holons.Count()} holons from Sui blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Sui blockchain: {httpResponse.StatusCode}");
-                }
+                if (radiusInMeters < 0 || geoLat < -90000000 || geoLat > 90000000
+                    || geoLong < -180000000 || geoLong > 180000000)
+                    throw new ArgumentOutOfRangeException(nameof(radiusInMeters), "Valid coordinates and nonnegative radius are required.");
+                result = LoadAllHolonsAsync(holonType).GetAwaiter().GetResult();
+                if (result.IsError) return result;
+                result.Result = result.Result.Where(item => item.MetaData != null
+                    && item.MetaData.TryGetValue("Latitude", out var lat)
+                    && item.MetaData.TryGetValue("Longitude", out var lon)
+                    && GeoHelper.CalculateDistance(geoLat / 1000000d, geoLong / 1000000d,
+                        Convert.ToDouble(lat, System.Globalization.CultureInfo.InvariantCulture),
+                        Convert.ToDouble(lon, System.Globalization.CultureInfo.InvariantCulture)) <= radiusInMeters).ToList();
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Sui: {ex.Message}");
-            }
-
-            return response;
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            return result;
         }
 
 
@@ -401,161 +255,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <summary>
         /// Parse Sui blockchain response to Avatar object
         /// </summary>
-        private Avatar ParseSuiToAvatar(string suiJson)
-        {
-            try
-            {
-                // Deserialize the complete Avatar object from Sui JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(suiJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
 
-                return avatar;
-            }
-            catch (Exception)
-            {
-                // If JSON deserialization fails, try to extract basic info
-                return CreateAvatarFromSui(suiJson);
-            }
-        }
-
-        private List<IHolon> ParseSuiToHolons(string suiJson)
-        {
-            try
-            {
-                // Deserialize the complete Holon list from Sui JSON
-                var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(suiJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-
-                return holons?.Cast<IHolon>().ToList() ?? new List<IHolon>();
-            }
-            catch (Exception)
-            {
-                // If JSON deserialization fails, return empty list
-                return new List<IHolon>();
-            }
-        }
 
         /// <summary>
         /// Create Avatar from Sui response when JSON deserialization fails
         /// </summary>
-        private Avatar CreateAvatarFromSui(string suiJson)
-        {
-            try
-            {
-                // Extract basic information from Sui JSON response
-                var suiAddress = ExtractSuiProperty(suiJson, "address") ?? "sui_user";
-                var avatar = new Avatar
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{suiAddress}"),
-                    Username = suiAddress,
-                    Email = ExtractSuiProperty(suiJson, "email") ?? $"user@{suiAddress}.sui",
-                    FirstName = ExtractSuiProperty(suiJson, "first_name"),
-                    LastName = ExtractSuiProperty(suiJson, "last_name"),
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
 
         /// <summary>
         /// Extract property value from Sui JSON response
         /// </summary>
-        private string ExtractSuiProperty(string suiJson, string propertyName)
-        {
-            try
-            {
-                // Simple regex-based extraction for Sui properties
-                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
-                var match = System.Text.RegularExpressions.Regex.Match(suiJson, pattern);
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
 
         /// <summary>
         /// Convert Avatar to Sui blockchain format
         /// </summary>
-        private string ConvertAvatarToSui(IAvatar avatar)
-        {
-            try
-            {
-                // Serialize Avatar to JSON with Sui blockchain structure
-                var suiData = new
-                {
-                    address = avatar.Username,
-                    email = avatar.Email,
-                    first_name = avatar.FirstName,
-                    last_name = avatar.LastName,
-                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(suiData, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-        }
 
         /// <summary>
         /// Convert Holon to Sui blockchain format
         /// </summary>
-        private string ConvertHolonToSui(IHolon holon)
-        {
-            try
-            {
-                // Serialize Holon to JSON with Sui blockchain structure
-                var suiData = new
-                {
-                    id = holon.Id.ToString(),
-                    type = holon.HolonType.ToString(),
-                    name = holon.Name,
-                    description = holon.Description,
-                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(suiData, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-        }
 
 
 
