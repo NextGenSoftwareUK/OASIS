@@ -103,6 +103,25 @@ Do not point a Docker build at a moving branch, use `git clone --depth 1` withou
 
 ## Enforcement
 
+### Offline-grant signing recovery (2026-10-08)
+
+Staging and production WEB4 had a valid public key incorrectly stored in
+`OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY`. The corresponding original private key was reported lost.
+The owner approved generating a replacement and explicitly required staging and production to share the
+same pair; dev's existing verified pair was left unchanged. The replacement private key was generated in
+memory and stored directly in Railway, not files, Git, logs or command-line arguments. Both environments'
+`OASIS_DNA_JSON` now contains the matching public key and references
+`OASIS_OFFLINE_GRANT_SIGNING_PUBLIC_KEY`; their scopes and lifetime match. Stored signing configuration
+parity and signing/verification proof were checked. Redeployment and hosted functional acceptance remain
+separate gates; configuration validity alone does not prove healthy deployments.
+
+Client public-pin fragments are `Config/Edge/staging-offline-grant.public.json` and
+`Config/Edge/production-offline-grant.public.json`. Use `Scripts/new_our_world_edge_release_config.ps1`
+with the appropriate fragment and environment HTTPS endpoints when packaging clients. Existing distributed
+clients must receive the new pin; old grants/old client pins do not automatically migrate. Back up both the
+Railway private-key variable and DNA through secure controls: a DNA/public-key backup cannot recover the
+private key. Do not copy any private key into these public fragments.
+
 `Scripts/validate_railway_dependency_manifest.py` checks that:
 
 - all required values exist and use full lowercase commit SHAs;
