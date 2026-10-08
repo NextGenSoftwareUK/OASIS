@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
         private readonly string _network;
+        private readonly string _chainId;
         private readonly string _privateKey;
         private readonly string _contractAddress;
         private bool _isActivated;
@@ -51,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <param name="rpcEndpoint">Sui RPC endpoint URL</param>
         /// <param name="network">Sui network (mainnet, testnet, devnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "")
+        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "")
         {
             this.ProviderName = "SuiOASIS";
             this.ProviderDescription = "Sui Provider - High-performance blockchain platform";
@@ -60,7 +61,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _network = network ?? throw new ArgumentNullException(nameof(network));
-            _privateKey = chainId; // Using chainId parameter as privateKey for backward compatibility
+            _chainId = chainId;
+            _privateKey = privateKey;
             _contractAddress = contractAddress;
             _httpClient = new HttpClient
             {

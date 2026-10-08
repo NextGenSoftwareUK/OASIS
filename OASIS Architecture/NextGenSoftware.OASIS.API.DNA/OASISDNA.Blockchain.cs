@@ -128,7 +128,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
         public string Network { get; set; } = "mainnet";
-        public string ChainId { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "";
+        public string PrivateKey { get; set; } = "";
         public string ContractAddress { get; set; } = "";
     }
 
