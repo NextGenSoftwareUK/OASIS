@@ -45,6 +45,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         private readonly string _privateKey;
         private readonly string _contractAddress;
         private bool _isActivated => IsProviderActivated;
+        private WalletManager _walletManager;
+        public WalletManager WalletManager
+        {
+            get => _walletManager ??= new WalletManager(this, OASISDNA);
+            set => _walletManager = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the SuiOASIS provider
