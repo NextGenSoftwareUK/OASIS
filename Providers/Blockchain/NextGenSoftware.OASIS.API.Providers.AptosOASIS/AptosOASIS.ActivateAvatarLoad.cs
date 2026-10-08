@@ -34,8 +34,6 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -51,17 +49,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    // Test connection to Aptos network
-                    var testResponse = await _httpClient.GetAsync("/");
-                    if (testResponse.IsSuccessStatusCode)
+                    var ledger = await _aptosClient.Block.GetLedgerInfo();
+                    if (ledger != null && ledger.ChainId > 0)
                     {
                         _isActivated = true;
+                        IsProviderActivated = true;
                         response.Result = true;
-                        response.Message = "Aptos provider activated successfully";
+                        response.Message = $"Aptos provider activated against chain {ledger.ChainId} at ledger version {ledger.LedgerVersion}";
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to connect to Aptos network: {testResponse.StatusCode}");
+                        OASISErrorHandling.HandleError(ref response, "Aptos fullnode returned no valid ledger information");
                     }
                 }
                 else
@@ -91,6 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             try
             {
                 _isActivated = false;
+                IsProviderActivated = false;
                 response.Result = true;
                 response.Message = "Aptos provider deactivated successfully";
             }
