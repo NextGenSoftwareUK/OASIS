@@ -9,13 +9,16 @@ Every process started by this script is stopped in the finally block.
 #>
 [CmdletBinding()]
 param(
-    [string]$WorkingPath = (Join-Path $PSScriptRoot '..\TestResults\HostedMongoRelease'),
+    [string]$WorkingPath,
     [string]$ArtifactsDirectory = 'artifacts/hosted-mongo-local',
     [int]$FirstPort = 27117
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+if ([string]::IsNullOrWhiteSpace($WorkingPath)) {
+    $WorkingPath = Join-Path $repoRoot 'TestResults\HostedMongoRelease'
+}
 $work = [IO.Path]::GetFullPath($WorkingPath)
 $testResultsRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot 'TestResults')).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 if (!$work.StartsWith($testResultsRoot, [StringComparison]::OrdinalIgnoreCase)) {
@@ -163,7 +166,33 @@ try {
 
     New-Item -ItemType File -Path (Join-Path $coordination 'continue') -Force | Out-Null
     $testProcess.WaitForExit()
-    if ($testProcess.ExitCode -ne 0) { throw "Primary-termination test failed with exit code $($testProcess.ExitCode). See '$stdout' and '$stderr'." }
+    $testProcess.Refresh()
+    $testExitCode = $testProcess.ExitCode
+    if ($null -eq $testExitCode) {
+        # Windows PowerShell can omit ExitCode for a redirected Start-Process even after
+        # the child has exited. In that host-specific case, use the VSTest result as the
+        # authoritative outcome instead of turning a passing run into a false failure.
+        $processKillTrx = Join-Path $artifacts 'hosted-mongo-process-kill.trx'
+        if (!(Test-Path -LiteralPath $processKillTrx -PathType Leaf)) {
+            throw "Primary-termination test exposed no exit code and produced no TRX. See '$stdout' and '$stderr'."
+        }
+        [xml]$processKillResult = Get-Content -LiteralPath $processKillTrx -Raw
+        $counters = $processKillResult.TestRun.ResultSummary.Counters
+        $trxPassed = [int]$counters.total -eq 1 -and
+            [int]$counters.executed -eq 1 -and
+            [int]$counters.passed -eq 1 -and
+            [int]$counters.failed -eq 0 -and
+            [int]$counters.error -eq 0 -and
+            [int]$counters.timeout -eq 0 -and
+            [int]$counters.aborted -eq 0 -and
+            [int]$counters.notExecuted -eq 0
+        if (!$trxPassed) {
+            throw "Primary-termination test TRX did not report one clean pass. See '$stdout' and '$stderr'."
+        }
+    }
+    elseif ($testExitCode -ne 0) {
+        throw "Primary-termination test failed with exit code $testExitCode. See '$stdout' and '$stderr'."
+    }
 
     Write-Host "Hosted Mongo release evidence passed: '$artifacts'."
 }
