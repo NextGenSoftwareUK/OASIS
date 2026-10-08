@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using System.Net.Http;
 using System.Text.Json;
+using Aptos;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS;
 
@@ -113,8 +114,20 @@ public partial class AptosOASIS
 
     public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
     {
-        if (!string.Equals(senderAccountAddress?.TrimStart('0', 'x'), _account.Address.ToString().TrimStart('0', 'x'), StringComparison.OrdinalIgnoreCase))
+        if (NormalizeAddress(senderAccountAddress) != NormalizeAddress(_account.Address.ToString()))
             return BridgeResult(null, true, "Withdrawal sender must match the configured Aptos signing account.");
+        if (string.IsNullOrWhiteSpace(senderPrivateKey))
+            return BridgeResult(null, true, "Withdrawal requires the Aptos sender private key.");
+        try
+        {
+            var suppliedAccount = new Ed25519Account(new Ed25519PrivateKey(senderPrivateKey, strict: false));
+            if (NormalizeAddress(suppliedAccount.Address.ToString()) != NormalizeAddress(senderAccountAddress))
+                return BridgeResult(null, true, "Withdrawal private key does not control the requested Aptos sender account.");
+        }
+        catch (Exception ex)
+        {
+            return BridgeResult(null, true, $"Withdrawal private key is invalid: {ex.Message}");
+        }
         var sent = await SendTokenAsync(new SendWeb3TokenRequest { FromWalletAddress = senderAccountAddress, ToWalletAddress = _contractAddress, Amount = amount });
         return BridgeResult(sent.Result?.TransactionResult, sent.IsError, sent.Message);
     }
@@ -144,7 +157,8 @@ public partial class AptosOASIS
     {
         try
         {
-            var id = functionName.Contains("::") ? functionName : $"{contractAddress}::{functionName}";
+            var segments = functionName.Split("::", StringSplitOptions.RemoveEmptyEntries);
+            var id = segments.Length == 3 ? functionName : $"{contractAddress}::{functionName}";
             var hash = await ExecuteEntryFunctionAsync(id, Array.Empty<object>(), parameters);
             return new(hash) { Message = "Aptos entry function executed by a signed SDK transaction." };
         }
