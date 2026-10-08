@@ -47,6 +47,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
+            return await _eosioOASIS.DeleteHolonAsync(id);
+#pragma warning disable CS0162
             var result = new OASISResult<IHolon>();
             try
             {
@@ -109,6 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Telos: {ex.Message}", ex);
             }
             return result;
+#pragma warning restore CS0162
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
