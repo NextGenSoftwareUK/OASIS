@@ -62,6 +62,54 @@ public class AptosOASISIntegrationTests
     }
 
     [TestMethod]
+    public async Task OfficialSdk_PerformsRealAvatarAndDetailCrudAndLookup()
+    {
+        using var provider = CreateProvider();
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Message);
+
+        var marker = Guid.NewGuid().ToString("N");
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            Username = $"aptos-{marker}",
+            Email = $"{marker}@aptos.test"
+        };
+        var detail = new AvatarDetail
+        {
+            Id = avatar.Id,
+            Username = avatar.Username,
+            Email = avatar.Email,
+            Karma = 42
+        };
+
+        var savedAvatar = await provider.SaveAvatarAsync(avatar);
+        var savedDetail = await provider.SaveAvatarDetailAsync(detail);
+        Assert.IsFalse(savedAvatar.IsError, savedAvatar.Message);
+        Assert.IsFalse(savedDetail.IsError, savedDetail.Message);
+
+        var byId = await provider.LoadAvatarAsync(avatar.Id);
+        var byUsername = await provider.LoadAvatarByUsernameAsync(avatar.Username);
+        var byEmail = await provider.LoadAvatarByEmailAsync(avatar.Email);
+        var loadedDetail = await provider.LoadAvatarDetailAsync(detail.Id);
+        Assert.IsFalse(byId.IsError, byId.Message);
+        Assert.IsFalse(byUsername.IsError, byUsername.Message);
+        Assert.IsFalse(byEmail.IsError, byEmail.Message);
+        Assert.IsFalse(loadedDetail.IsError, loadedDetail.Message);
+        Assert.AreEqual(avatar.Id, byId.Result.Id);
+        Assert.AreEqual(avatar.Id, byUsername.Result.Id);
+        Assert.AreEqual(avatar.Id, byEmail.Result.Id);
+        Assert.AreEqual(42, loadedDetail.Result.Karma);
+
+        var deleted = await provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+        Assert.IsFalse(deleted.IsError, deleted.Message);
+        Assert.IsTrue(deleted.Result);
+        var missing = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.IsFalse(missing.IsError, missing.Message);
+        Assert.IsNull(missing.Result);
+    }
+
+    [TestMethod]
     public async Task OfficialSdk_RejectsUnreachableFullnode()
     {
         using var provider = new AptosOASIS(
