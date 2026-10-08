@@ -6,7 +6,7 @@ $ProgressPreference = 'SilentlyContinue'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
 $runRoot = Join-Path $tempRoot ("oasis-aptos-provider-evidence-{0}" -f [Guid]::NewGuid().ToString('N'))
-$cliRoot = Join-Path $runRoot 'cli'
+$cliRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OASIS/provider-evidence/aptos-cli/9.6.0'
 $nodeRoot = Join-Path $runRoot 'node'
 $profileRoot = Join-Path $runRoot 'profile'
 $stdoutLog = Join-Path $runRoot 'localnet.stdout.log'
@@ -20,12 +20,18 @@ New-Item -ItemType Directory -Path $cliRoot, $nodeRoot, $profileRoot -Force | Ou
 
 try {
     $releaseBase = 'https://github.com/aptos-labs/aptos-cli-releases/releases/download/aptos-cli-v9.6.0'
-    Invoke-WebRequest "$releaseBase/aptos-cli-9.6.0-x86_64-pc-windows-msvc.zip" -OutFile $cliZip
-    Invoke-WebRequest "$releaseBase/SHA256SUMS" -OutFile $checksumFile
+    if (-not (Test-Path -LiteralPath $cliZip)) {
+        Invoke-WebRequest "$releaseBase/aptos-cli-9.6.0-x86_64-pc-windows-msvc.zip" -OutFile $cliZip
+    }
+    if (-not (Test-Path -LiteralPath $checksumFile)) {
+        Invoke-WebRequest "$releaseBase/SHA256SUMS" -OutFile $checksumFile
+    }
     $expected = (Select-String -Path $checksumFile -Pattern 'aptos-cli-9.6.0-x86_64-pc-windows-msvc.zip').Line.Split()[0].ToUpperInvariant()
     $actual = (Get-FileHash $cliZip -Algorithm SHA256).Hash
     if ($actual -ne $expected) { throw "Aptos CLI checksum mismatch: expected $expected, got $actual" }
-    Expand-Archive -Path $cliZip -DestinationPath $cliRoot -Force
+    if (-not (Test-Path -LiteralPath $cli)) {
+        Expand-Archive -Path $cliZip -DestinationPath $cliRoot -Force
+    }
 
     $override = Join-Path $repoRoot 'Scripts/TestHosts/aptos-node-override.yaml'
     $arguments = @(
@@ -69,13 +75,14 @@ try {
 
         $env:OASIS_APTOS_RPC_ENDPOINT = 'http://127.0.0.1:18080/v1'
         $env:OASIS_APTOS_CONTRACT_ADDRESS = $address
+        $env:OASIS_APTOS_ACCOUNT_ADDRESS = $address
         $env:OASIS_APTOS_PRIVATE_KEY = $privateKey
         $tests = Join-Path $repoRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests.csproj'
         & dotnet test $tests --nologo --logger 'console;verbosity=minimal'
         if ($LASTEXITCODE -ne 0) { throw "Aptos provider tests failed with exit code $LASTEXITCODE" }
     } finally {
         Pop-Location
-        Remove-Item Env:OASIS_APTOS_RPC_ENDPOINT, Env:OASIS_APTOS_CONTRACT_ADDRESS, Env:OASIS_APTOS_PRIVATE_KEY -ErrorAction SilentlyContinue
+        Remove-Item Env:OASIS_APTOS_RPC_ENDPOINT, Env:OASIS_APTOS_CONTRACT_ADDRESS, Env:OASIS_APTOS_ACCOUNT_ADDRESS, Env:OASIS_APTOS_PRIVATE_KEY -ErrorAction SilentlyContinue
     }
 } finally {
     if ($localnet -and -not $localnet.HasExited) {
