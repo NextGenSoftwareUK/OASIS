@@ -407,45 +407,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
-                // Query Aptos account balance using REST API
-                var accountResponse = await _httpClient.GetAsync($"/accounts/{accountAddress}/resource/0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>");
-                
-                if (accountResponse.IsSuccessStatusCode)
-                {
-                    var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-                    
-                    if (accountData.TryGetProperty("data", out var data) &&
-                        data.TryGetProperty("coin", out var coin) &&
-                        coin.TryGetProperty("value", out var value))
-                    {
-                        var balanceStr = value.GetString();
-                        if (decimal.TryParse(balanceStr, out var balance))
-                        {
-                            // Convert from smallest unit (octas) to APT
-                            result.Result = balance / 100_000_000m;
-                            result.IsError = false;
-                            result.Message = "Account balance retrieved successfully";
-                        }
-                        else
-                        {
-                            OASISErrorHandling.HandleError(ref result, "Failed to parse balance from Aptos API response");
-                        }
-                    }
-                    else
-                    {
-                        result.Result = 0m;
-                        result.IsError = false;
-                        result.Message = "Account balance is zero or account not found";
-                    }
-                }
-                else
-                {
-                    // Account might not exist or have no balance
-                    result.Result = 0m;
-                    result.IsError = false;
-                    result.Message = "Account balance retrieved (zero or account not found)";
-                }
+                result.Result = await GetNativeAptBalanceOctasAsync(accountAddress) / 100_000_000m;
+                result.Message = "Native APT balance retrieved through the Aptos SDK.";
             }
             catch (Exception ex)
             {
