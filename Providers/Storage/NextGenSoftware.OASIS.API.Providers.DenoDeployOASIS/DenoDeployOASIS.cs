@@ -1,310 +1,234 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
+using Google.Protobuf;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS.Datapath;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
+
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests")]
 
 namespace NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS
 {
     /// <summary>
-    /// Deno Deploy Edge Serverless OASIS Provider.
-    /// Stores and retrieves OASIS avatars and holons as Deno KV entries served
-    /// via Deno Deploy edge functions on Deno's global network.
-    ///
-    /// REST base: https://api.deno.com/v1
-    /// Projects:  GET  /projects/{projectId}
-    /// KV DB:     GET  /projects/{projectId}/databases
-    /// Deployments: GET /projects/{projectId}/deployments
+    /// Stores OASIS avatars and holons in a Deno KV database on Deno Deploy using the KV Connect protocol
+    /// (https://github.com/denoland/denokv/blob/main/proto/kv-connect.md): a metadata exchange returns the data
+    /// endpoints and a short-lived token, then reads and writes are protobuf SnapshotRead / AtomicWrite requests.
     /// </summary>
-    public class DenoDeployOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public class DenoDeployOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
     {
-        public bool IsVersionControlEnabled { get; set; }
-
-        private readonly HttpClient _http;
-        private readonly string _accessToken;
-        private readonly string _projectId;
-        private bool _isActivated;
-
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        /// <param name="accessToken">A Deno Deploy access token with access to the database.</param>
+        /// <param name="databaseId">The Deno KV database id (shown in the Deno Deploy dashboard).</param>
+        public DenoDeployOASIS(string accessToken, string databaseId)
+            : this(new DenoKvConnectBackend($"https://api.deno.com/databases/{RequireId(databaseId)}/connect", accessToken, null))
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+        }
 
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
-
-        public DenoDeployOASIS(string accessToken = "", string projectId = "")
+        internal DenoDeployOASIS(DenoKvConnectBackend backend) : base(backend)
         {
-            _accessToken = accessToken;
-            _projectId   = projectId;
-            _http = new HttpClient { BaseAddress = new Uri("https://api.deno.com/v1/") };
-            if (!string.IsNullOrEmpty(_accessToken))
-                _http.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
-
             ProviderName = "DenoDeployOASIS";
-            ProviderDescription = "Deno Deploy edge serverless provider";
+            ProviderDescription = "Deno KV provider: OASIS avatars and holons in a Deno Deploy KV database (KV Connect).";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DenoDeployOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
 
-        // ── Lifecycle ─────────────────────────────────────────────────────────
+        private static string RequireId(string databaseId)
+            => string.IsNullOrWhiteSpace(databaseId) ? throw new ArgumentException("A Deno KV database id is required.", nameof(databaseId)) : Uri.EscapeDataString(databaseId);
+    }
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+    internal sealed class DenoKvConnectBackend : IKeyValueBackend
+    {
+        private const int PageSize = 500;
+        private static readonly int[] SupportedVersions = { 1, 2, 3 };
+
+        private readonly string _connectUrl;
+        private readonly string _accessToken;
+        private readonly HttpClient _http;
+        private readonly SemaphoreSlim _metadataLock = new(1, 1);
+        private Metadata _metadata;
+
+        public DenoKvConnectBackend(string connectUrl, string accessToken, HttpMessageHandler handler)
         {
-            var result = new OASISResult<bool>();
+            if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentException("A Deno Deploy access token is required.", nameof(accessToken));
+            _connectUrl = connectUrl;
+            _accessToken = accessToken;
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("NextGenSoftware-OASIS-DenoDeployOASIS/2.0");
+        }
+
+        private sealed record Metadata(int Version, string DatabaseId, string Endpoint, string Token, DateTimeOffset ExpiresAt);
+
+        #region Key encoding (denokv tuple encoding of a single string part)
+
+        internal static byte[] EncodeKey(string key)
+        {
+            var bytes = Encoding.UTF8.GetBytes(key);
+            var output = new List<byte>(bytes.Length + 2) { 0x02 };
+            foreach (var b in bytes)
+            {
+                output.Add(b);
+                if (b == 0) output.Add(0xFF);
+            }
+            output.Add(0x00);
+            return output.ToArray();
+        }
+
+        internal static string DecodeKey(ByteString encoded)
+        {
+            var span = encoded.Span;
+            if (span.Length < 2 || span[0] != 0x02 || span[^1] != 0x00)
+                throw new FormatException("Deno KV key is not a single string key part.");
+            var raw = new List<byte>(span.Length);
+            for (var i = 1; i < span.Length - 1; i++)
+            {
+                raw.Add(span[i]);
+                if (span[i] == 0 && i + 1 < span.Length - 1 && span[i + 1] == 0xFF) i++;
+            }
+            return Encoding.UTF8.GetString(raw.ToArray());
+        }
+
+        // Every encoded key whose string starts with the prefix sorts between these two bounds.
+        private static (byte[] Start, byte[] End) PrefixRange(string prefix)
+        {
+            var start = EncodeKey(prefix);
+            var open = start[..^1];
+            return (open, open.Append((byte)0xFF).ToArray());
+        }
+
+        #endregion
+
+        #region KV Connect transport
+
+        private async Task<Metadata> GetMetadataAsync(CancellationToken ct, bool forceRefresh = false)
+        {
+            var current = _metadata;
+            if (!forceRefresh && current != null && current.ExpiresAt > DateTimeOffset.UtcNow.AddSeconds(30)) return current;
+
+            await _metadataLock.WaitAsync(ct);
             try
             {
-                if (_isActivated) { result.Result = true; result.Message = "DenoDeployOASIS already activated"; return result; }
-                if (!string.IsNullOrEmpty(_projectId))
+                if (!forceRefresh && _metadata != null && _metadata.ExpiresAt > DateTimeOffset.UtcNow.AddSeconds(30)) return _metadata;
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, _connectUrl)
                 {
-                    var resp = await _http.GetAsync($"projects/{Uri.EscapeDataString(_projectId)}");
-                    if (!resp.IsSuccessStatusCode)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS project check failed ({resp.StatusCode})");
-                        return result;
-                    }
+                    Content = JsonContent.Create(new { supportedVersions = SupportedVersions })
+                };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                using var response = await _http.SendAsync(request, ct);
+                var body = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"Deno KV metadata exchange failed: {(int)response.StatusCode} {response.ReasonPhrase} {body}");
+
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                var version = root.GetProperty("version").GetInt32();
+                if (!SupportedVersions.Contains(version)) throw new HttpRequestException($"Deno KV negotiated unsupported protocol version {version}.");
+                var endpoint = root.GetProperty("endpoints").EnumerateArray()
+                    .FirstOrDefault(e => e.GetProperty("consistency").GetString() == "strong");
+                if (endpoint.ValueKind == JsonValueKind.Undefined) throw new HttpRequestException("Deno KV returned no strongly consistent endpoint.");
+
+                _metadata = new Metadata(version, root.GetProperty("uuid").GetString(), endpoint.GetProperty("url").GetString().TrimEnd('/'),
+                    root.GetProperty("token").GetString(), root.GetProperty("expiresAt").GetDateTimeOffset());
+                return _metadata;
+            }
+            finally { _metadataLock.Release(); }
+        }
+
+        private async Task<TOut> CallAsync<TOut>(string method, IMessage input, MessageParser<TOut> parser, CancellationToken ct) where TOut : IMessage<TOut>
+        {
+            for (var attempt = 0; ; attempt++)
+            {
+                var meta = await GetMetadataAsync(ct, forceRefresh: attempt > 0);
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"{meta.Endpoint}/{method}") { Content = new ByteArrayContent(input.ToByteArray()) };
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", meta.Token);
+                if (meta.Version == 1) request.Headers.Add("x-transaction-domain-id", meta.DatabaseId);
+                else
+                {
+                    request.Headers.Add("x-denokv-version", meta.Version.ToString());
+                    request.Headers.Add("x-denokv-database-id", meta.DatabaseId);
                 }
-                _isActivated = true;
-                result.Result = true;
-                result.Message = "DenoDeployOASIS activated successfully";
+
+                using var response = await _http.SendAsync(request, ct);
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && attempt == 0) continue; // token expired early: re-exchange once
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"Deno KV {method} failed: {(int)response.StatusCode} {response.ReasonPhrase} {await response.Content.ReadAsStringAsync(ct)}");
+                return parser.ParseFrom(await response.Content.ReadAsByteArrayAsync(ct));
             }
-            catch (Exception ex)
+        }
+
+        private async Task<IReadOnlyList<KvEntry>> ReadRangeAsync(byte[] start, byte[] end, int limit, CancellationToken ct)
+        {
+            var read = new SnapshotRead();
+            read.Ranges.Add(new ReadRange { Start = ByteString.CopyFrom(start), End = ByteString.CopyFrom(end), Limit = limit });
+            var output = await CallAsync("snapshot_read", read, SnapshotReadOutput.Parser, ct);
+            if (output.ReadDisabled || output.Status == SnapshotReadStatus.SrReadDisabled)
+                throw new HttpRequestException("Deno KV region cannot serve reads right now.");
+            if (output.Ranges.Count != 1) throw new HttpRequestException("Deno KV returned an unexpected number of read ranges.");
+            return output.Ranges[0].Values;
+        }
+
+        private async Task WriteAsync(Mutation mutation, CancellationToken ct)
+        {
+            var write = new AtomicWrite();
+            write.Mutations.Add(mutation);
+            var output = await CallAsync("atomic_write", write, AtomicWriteOutput.Parser, ct);
+            if (output.Status != AtomicWriteStatus.AwSuccess)
+                throw new HttpRequestException($"Deno KV atomic write failed with status {output.Status}.");
+        }
+
+        #endregion
+
+        public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
+        {
+            var encoded = EncodeKey(key);
+            var values = await ReadRangeAsync(encoded, encoded.Append((byte)0x00).ToArray(), 1, cancellationToken);
+            var entry = values.FirstOrDefault(v => v.Key.Span.SequenceEqual(encoded));
+            if (entry == null) return null;
+            if (entry.Encoding != ValueEncoding.VeBytes)
+                throw new FormatException($"Deno KV value for '{key}' uses {entry.Encoding}; OASIS stores values as raw bytes.");
+            return entry.Value.ToStringUtf8();
+        }
+
+        public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
+            => WriteAsync(new Mutation
             {
-                OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS activation failed: {ex.Message}", ex);
-            }
-            return result;
-        }
+                Key = ByteString.CopyFrom(EncodeKey(key)),
+                MutationType = MutationType.MSet,
+                Value = new KvValue { Data = ByteString.CopyFromUtf8(value), Encoding = ValueEncoding.VeBytes }
+            }, cancellationToken);
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
+            => WriteAsync(new Mutation { Key = ByteString.CopyFrom(EncodeKey(key)), MutationType = MutationType.MDelete }, cancellationToken);
+
+        public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
         {
-            var result = new OASISResult<bool>();
-            try
+            var (start, end) = PrefixRange(prefix);
+            var keys = new List<string>();
+            while (true)
             {
-                _isActivated = false;
-                _http.Dispose();
-                result.Result = true;
-                result.Message = "DenoDeployOASIS deactivated";
+                var page = await ReadRangeAsync(start, end, PageSize, cancellationToken);
+                keys.AddRange(page.Select(e => DecodeKey(e.Key)));
+                if (page.Count < PageSize) return keys;
+                start = page[^1].Key.ToByteArray().Append((byte)0x00).ToArray();
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS deactivation failed: {ex.Message}", ex);
-            }
-            return result;
         }
 
-        // ── Avatar CRUD async ─────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        public async Task VerifyAsync(CancellationToken cancellationToken = default)
         {
-            var result = new OASISResult<IAvatar>();
-            try { result.Result = new Avatar { Id = id }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS LoadAvatarAsync error: {ex.Message}", ex); }
-            return result;
+            await GetMetadataAsync(cancellationToken, forceRefresh: true);
+            await ListKeysAsync("__oasis_verify__", cancellationToken);
         }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-            => await LoadAvatarByUsernameAsync(providerKey, version);
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try { result.Result = new Avatar { Username = avatarUsername }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS LoadAvatarByUsernameAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            result.Result = new List<IAvatar>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try { if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid(); result.Result = avatar; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS SaveAvatarAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-            => new OASISResult<bool> { Result = true };
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        // ── Avatar Detail async ───────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "DenoDeployOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            result.Result = new List<IAvatarDetail>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "DenoDeployOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        // ── Holon CRUD async ──────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try { result.Result = new Holon { Id = id }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS LoadHolonAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            result.Result = new List<IHolon>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try { if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid(); result.Result = holon; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"DenoDeployOASIS SaveHolonAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            foreach (var holon in holons)
-            {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (!r.IsError && r.Result != null) saved.Add(r.Result);
-            }
-            result.Result = saved;
-            return result;
-        }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        // ── Export/Import async ───────────────────────────────────────────────
-
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        // ── Search async ──────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            result.Result = new SearchResults();
-            return result;
-        }
-
-        // ── Sync wrappers (call .Result on async counterpart) ─────────────────
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) { var r = DeleteHolonAsync(providerKey).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
     }
 }
