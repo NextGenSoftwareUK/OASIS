@@ -43,8 +43,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         private async Task UpsertRecordAsync(string recordType, string providerKey, object value)
         {
+            await UpsertRecordWithHashAsync(recordType, providerKey, value);
+        }
+
+        private Task<string> UpsertRecordWithHashAsync(string recordType, string providerKey, object value)
+        {
             var payload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
-            await ExecuteEntryFunctionAsync(
+            return ExecuteEntryFunctionAsync(
                 "upsert_record",
                 Encoding.UTF8.GetBytes(recordType),
                 Encoding.UTF8.GetBytes(providerKey),
@@ -131,6 +136,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         };
 
         private Task DeleteRecordAsync(string recordType, string providerKey) =>
+            DeleteRecordWithHashAsync(recordType, providerKey);
+
+        private Task<string> DeleteRecordWithHashAsync(string recordType, string providerKey) =>
             ExecuteEntryFunctionAsync(
                 "delete_record",
                 Encoding.UTF8.GetBytes(recordType),
