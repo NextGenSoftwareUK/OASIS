@@ -97,6 +97,12 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://cosmos-rpc.polkachu.com";
         public string Network { get; set; } = "cosmos";
         public string ChainId { get; set; } = "cosmoshub-4";
+        public string PrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
+        public string AddressPrefix { get; set; } = "cosmos";
+        public string GasPrice { get; set; } = "0.025uatom";
+        public string NativeDenom { get; set; } = "uatom";
+        public int NativeDecimals { get; set; } = 6;
     }
 
     public class NEAROASISProviderSettings : ProviderSettingsBase

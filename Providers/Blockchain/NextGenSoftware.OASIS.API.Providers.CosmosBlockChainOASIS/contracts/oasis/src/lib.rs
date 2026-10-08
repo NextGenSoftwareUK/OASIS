@@ -1,324 +1,134 @@
-use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, to_binary,
-    Addr, Uint128,
-};
-use cw_storage_plus::{Item, Map};
+use cosmwasm_std::{entry_point, to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult};
+use cw_storage_plus::{Bound, Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// Avatar structure
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Avatar {
-    pub id: String,
-    pub username: String,
-    pub email: String,
-    pub first_name: String,
-    pub last_name: String,
-    pub created_date: u64,
-    pub modified_date: u64,
-}
+// The shared OASIS key-value provider serializes entities and indexes as opaque
+// JSON. Only the configured service signer may mutate this contract's store.
+const OWNER: Item<Addr> = Item::new("owner");
+const VALUES: Map<&str, String> = Map::new("values");
+const MAX_PAGE: u32 = 100;
 
-/// AvatarDetail structure
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AvatarDetail {
-    pub id: String,
-    pub username: String,
-    pub email: String,
-    pub karma_akashic_records: String,
-    pub xp: u64,
-    pub level: u64,
-    pub created_date: u64,
-    pub modified_date: u64,
-}
+pub struct InstantiateMsg { pub owner: Option<String> }
 
-/// Holon structure
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Holon {
-    pub id: String,
-    pub name: String,
-    pub description: String,
-    pub parent_id: String,
-    pub holon_type: u8,
-    pub created_date: u64,
-    pub modified_date: u64,
-}
-
-/// Instantiate message
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InstantiateMsg {
-    pub owner: Option<String>,
-}
-
-/// Execute messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    CreateAvatar {
-        avatar_id: String,
-        username: String,
-        email: String,
-        first_name: String,
-        last_name: String,
-    },
-    SaveAvatarDetail {
-        avatar_id: String,
-        username: String,
-        email: String,
-        karma_akashic_records: String,
-        xp: u64,
-        level: u64,
-    },
-    DeleteAvatar {
-        avatar_id: String,
-        soft_delete: bool,
-    },
-    SaveHolon {
-        holon_id: String,
-        name: String,
-        description: String,
-        parent_id: String,
-        holon_type: u8,
-    },
-    DeleteHolon {
-        holon_id: String,
-    },
+    Put { key: String, value: String },
+    Delete { key: String },
 }
 
-/// Query messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    GetAvatarById { avatar_id: String },
-    GetAvatarByUsername { username: String },
-    GetAvatarByEmail { email: String },
-    GetAllAvatars {},
-    GetAvatarDetail { avatar_id: String },
-    GetAvatarDetailByUsername { username: String },
-    GetAvatarDetailByEmail { email: String },
-    GetAllAvatarDetails {},
-    GetHolon { holon_id: String },
-    GetHolonsForParent { parent_id: String },
-    GetHolonsByMetadata { meta_key: String, meta_value: String },
-    GetAllHolons {},
-    Search { query: String },
+    Config {},
+    Get { key: String },
+    List { prefix: String, start_after: Option<String>, limit: Option<u32> },
 }
 
-// Storage
-const AVATARS: Map<&str, Avatar> = Map::new("avatars");
-const AVATARS_BY_USERNAME: Map<&str, String> = Map::new("avatars_by_username");
-const AVATARS_BY_EMAIL: Map<&str, String> = Map::new("avatars_by_email");
-const AVATAR_DETAILS: Map<&str, AvatarDetail> = Map::new("avatar_details");
-const AVATAR_DETAILS_BY_USERNAME: Map<&str, String> = Map::new("avatar_details_by_username");
-const AVATAR_DETAILS_BY_EMAIL: Map<&str, String> = Map::new("avatar_details_by_email");
-const HOLONS: Map<&str, Holon> = Map::new("holons");
-const HOLONS_BY_PARENT: Map<&str, Vec<String>> = Map::new("holons_by_parent");
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ConfigResponse { pub owner: String }
 
 #[entry_point]
-pub fn instantiate(
-    _deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    _msg: InstantiateMsg,
-) -> StdResult<Response> {
-    Ok(Response::default())
+pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> StdResult<Response> {
+    let owner = match msg.owner {
+        Some(owner) => deps.api.addr_validate(&owner)?,
+        None => info.sender,
+    };
+    OWNER.save(deps.storage, &owner)?;
+    Ok(Response::new().add_attribute("action", "instantiate").add_attribute("owner", owner))
 }
 
 #[entry_point]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> StdResult<Response> {
+pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+    if info.sender != OWNER.load(deps.storage)? {
+        return Err(StdError::generic_err("unauthorized: storage owner required"));
+    }
+    if !info.funds.is_empty() {
+        return Err(StdError::generic_err("storage writes do not accept funds"));
+    }
     match msg {
-        ExecuteMsg::CreateAvatar {
-            avatar_id,
-            username,
-            email,
-            first_name,
-            last_name,
-        } => create_avatar(deps, env, avatar_id, username, email, first_name, last_name),
-        ExecuteMsg::SaveAvatarDetail {
-            avatar_id,
-            username,
-            email,
-            karma_akashic_records,
-            xp,
-            level,
-        } => save_avatar_detail(deps, env, avatar_id, username, email, karma_akashic_records, xp, level),
-        ExecuteMsg::DeleteAvatar { avatar_id, soft_delete: _ } => delete_avatar(deps, avatar_id),
-        ExecuteMsg::SaveHolon {
-            holon_id,
-            name,
-            description,
-            parent_id,
-            holon_type,
-        } => save_holon(deps, env, holon_id, name, description, parent_id, holon_type),
-        ExecuteMsg::DeleteHolon { holon_id } => delete_holon(deps, holon_id),
+        ExecuteMsg::Put { key, value } => {
+            if key.is_empty() { return Err(StdError::generic_err("key must not be empty")); }
+            VALUES.save(deps.storage, &key, &value)?;
+            Ok(Response::new().add_attribute("action", "put").add_attribute("key", key))
+        }
+        ExecuteMsg::Delete { key } => {
+            VALUES.remove(deps.storage, &key);
+            Ok(Response::new().add_attribute("action", "delete").add_attribute("key", key))
+        }
     }
 }
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetAvatarById { avatar_id } => {
-            let avatar = AVATARS.may_load(deps.storage, &avatar_id)?;
-            to_binary(&avatar)
-        }
-        QueryMsg::GetAvatarByUsername { username } => {
-            let avatar_id = AVATARS_BY_USERNAME.may_load(deps.storage, &username)?;
-            let avatar = avatar_id.and_then(|id| AVATARS.may_load(deps.storage, &id).ok()?).flatten();
-            to_binary(&avatar)
-        }
-        QueryMsg::GetAvatarByEmail { email } => {
-            let avatar_id = AVATARS_BY_EMAIL.may_load(deps.storage, &email)?;
-            let avatar = avatar_id.and_then(|id| AVATARS.may_load(deps.storage, &id).ok()?).flatten();
-            to_binary(&avatar)
-        }
-        QueryMsg::GetAllAvatars {} => {
-            // In production, would maintain a list of all avatar IDs
-            to_binary(&Vec::<Avatar>::new())
-        }
-        QueryMsg::GetAvatarDetail { avatar_id } => {
-            let avatar_detail = AVATAR_DETAILS.may_load(deps.storage, &avatar_id)?;
-            to_binary(&avatar_detail)
-        }
-        QueryMsg::GetAvatarDetailByUsername { username } => {
-            let avatar_detail_id = AVATAR_DETAILS_BY_USERNAME.may_load(deps.storage, &username)?;
-            let avatar_detail = avatar_detail_id.and_then(|id| AVATAR_DETAILS.may_load(deps.storage, &id).ok()?).flatten();
-            to_binary(&avatar_detail)
-        }
-        QueryMsg::GetAvatarDetailByEmail { email } => {
-            let avatar_detail_id = AVATAR_DETAILS_BY_EMAIL.may_load(deps.storage, &email)?;
-            let avatar_detail = avatar_detail_id.and_then(|id| AVATAR_DETAILS.may_load(deps.storage, &id).ok()?).flatten();
-            to_binary(&avatar_detail)
-        }
-        QueryMsg::GetAllAvatarDetails {} => {
-            // In production, would maintain a list of all avatar detail IDs
-            to_binary(&Vec::<AvatarDetail>::new())
-        }
-        QueryMsg::GetHolon { holon_id } => {
-            let holon = HOLONS.may_load(deps.storage, &holon_id)?;
-            to_binary(&holon)
-        }
-        QueryMsg::GetHolonsForParent { parent_id } => {
-            let holon_ids = HOLONS_BY_PARENT.may_load(deps.storage, &parent_id)?.unwrap_or_default();
-            let holons: Vec<Holon> = holon_ids
-                .iter()
-                .filter_map(|id| HOLONS.may_load(deps.storage, id).ok()?.flatten())
-                .collect();
-            to_binary(&holons)
-        }
-        QueryMsg::GetHolonsByMetadata { meta_key: _, meta_value: _ } => {
-            // In production, would maintain metadata index
-            to_binary(&Vec::<Holon>::new())
-        }
-        QueryMsg::GetAllHolons {} => {
-            // In production, would maintain a list of all holon IDs
-            to_binary(&Vec::<Holon>::new())
-        }
-        QueryMsg::Search { query: _ } => {
-            // In production, would implement full-text search
-            to_binary(&Vec::<Holon>::new())
+        QueryMsg::Config {} => to_json_binary(&ConfigResponse { owner: OWNER.load(deps.storage)?.to_string() }),
+        QueryMsg::Get { key } => to_json_binary(&VALUES.may_load(deps.storage, &key)?),
+        QueryMsg::List { prefix, start_after, limit } => {
+            let limit = limit.unwrap_or(MAX_PAGE).min(MAX_PAGE);
+            if limit == 0 { return Err(StdError::generic_err("limit must be positive")); }
+            // Prefix keys are contiguous in byte ordering. Start at the prefix,
+            // not at the beginning of the store, and preserve query errors.
+            let start = match start_after.as_deref() {
+                Some(cursor) if cursor >= prefix.as_str() => Bound::exclusive(cursor),
+                _ => Bound::inclusive(prefix.as_str()),
+            };
+            let keys = VALUES.keys(deps.storage, Some(start), None, Order::Ascending)
+                .take_while(|key| key.as_ref().map(|k| k.starts_with(&prefix)).unwrap_or(true))
+                .take(limit as usize)
+                .collect::<StdResult<Vec<String>>>()?;
+            to_json_binary(&keys)
         }
     }
 }
 
-fn create_avatar(
-    deps: DepsMut,
-    env: Env,
-    avatar_id: String,
-    username: String,
-    email: String,
-    first_name: String,
-    last_name: String,
-) -> StdResult<Response> {
-    let now = env.block.time.seconds();
-    let avatar = Avatar {
-        id: avatar_id.clone(),
-        username: username.clone(),
-        email: email.clone(),
-        first_name,
-        last_name,
-        created_date: now,
-        modified_date: now,
-    };
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cosmwasm_std::{from_json, testing::{mock_dependencies, mock_env, message_info}, coins};
 
-    AVATARS.save(deps.storage, &avatar_id, &avatar)?;
-    AVATARS_BY_USERNAME.save(deps.storage, &username, &avatar_id)?;
-    AVATARS_BY_EMAIL.save(deps.storage, &email, &avatar_id)?;
+    #[test]
+    fn owner_only_writes_and_missing_values_are_null() {
+        let mut deps = mock_dependencies();
+        let owner = deps.api.addr_make("owner");
+        let other = deps.api.addr_make("other");
+        instantiate(deps.as_mut(), mock_env(), message_info(&owner, &[]), InstantiateMsg { owner: None }).unwrap();
+        let put = ExecuteMsg::Put { key: "oasis/holon/1".into(), value: "{\"name\":\"Oak\"}".into() };
+        assert!(execute(deps.as_mut(), mock_env(), message_info(&other, &[]), put.clone()).is_err());
+        assert!(execute(deps.as_mut(), mock_env(), message_info(&owner, &coins(1, "utest")), put.clone()).is_err());
+        execute(deps.as_mut(), mock_env(), message_info(&owner, &[]), put).unwrap();
+        let value: Option<String> = from_json(query(deps.as_ref(), mock_env(), QueryMsg::Get { key: "oasis/holon/1".into() }).unwrap()).unwrap();
+        assert_eq!(value.as_deref(), Some("{\"name\":\"Oak\"}"));
+        assert!(execute(deps.as_mut(), mock_env(), message_info(&other, &[]), ExecuteMsg::Delete { key: "oasis/holon/1".into() }).is_err());
+        execute(deps.as_mut(), mock_env(), message_info(&owner, &[]), ExecuteMsg::Delete { key: "oasis/holon/1".into() }).unwrap();
+        let missing: Option<String> = from_json(query(deps.as_ref(), mock_env(), QueryMsg::Get { key: "oasis/holon/1".into() }).unwrap()).unwrap();
+        assert_eq!(missing, None);
+    }
 
-    Ok(Response::default())
+    #[test]
+    fn prefix_pages_are_complete_and_exclusive() {
+        let mut deps = mock_dependencies();
+        let owner = deps.api.addr_make("owner");
+        instantiate(deps.as_mut(), mock_env(), message_info(&owner, &[]), InstantiateMsg { owner: None }).unwrap();
+        for i in 0..205 {
+            VALUES.save(deps.as_mut().storage, &format!("oasis/{i:03}"), &"value".into()).unwrap();
+        }
+        VALUES.save(deps.as_mut().storage, "before", &"value".into()).unwrap();
+        VALUES.save(deps.as_mut().storage, "outside", &"value".into()).unwrap();
+        let mut all = Vec::<String>::new();
+        loop {
+            let page: Vec<String> = from_json(query(deps.as_ref(), mock_env(), QueryMsg::List {
+                prefix: "oasis/".into(), start_after: all.last().cloned(), limit: Some(1000),
+            }).unwrap()).unwrap();
+            assert!(page.len() <= MAX_PAGE as usize);
+            if page.is_empty() { break; }
+            all.extend(page);
+        }
+        assert_eq!(all.len(), 205);
+        assert_eq!(all.first().unwrap(), "oasis/000");
+        assert_eq!(all.last().unwrap(), "oasis/204");
+        assert!(query(deps.as_ref(), mock_env(), QueryMsg::List { prefix: "".into(), start_after: None, limit: Some(0) }).is_err());
+    }
 }
-
-fn save_avatar_detail(
-    deps: DepsMut,
-    env: Env,
-    avatar_id: String,
-    username: String,
-    email: String,
-    karma_akashic_records: String,
-    xp: u64,
-    level: u64,
-) -> StdResult<Response> {
-    let now = env.block.time.seconds();
-    let avatar_detail = AvatarDetail {
-        id: avatar_id.clone(),
-        username: username.clone(),
-        email: email.clone(),
-        karma_akashic_records,
-        xp,
-        level,
-        created_date: now,
-        modified_date: now,
-    };
-
-    AVATAR_DETAILS.save(deps.storage, &avatar_id, &avatar_detail)?;
-    AVATAR_DETAILS_BY_USERNAME.save(deps.storage, &username, &avatar_id)?;
-    AVATAR_DETAILS_BY_EMAIL.save(deps.storage, &email, &avatar_id)?;
-
-    Ok(Response::default())
-}
-
-fn delete_avatar(deps: DepsMut, avatar_id: String) -> StdResult<Response> {
-    AVATARS.remove(deps.storage, &avatar_id);
-    Ok(Response::default())
-}
-
-fn save_holon(
-    deps: DepsMut,
-    env: Env,
-    holon_id: String,
-    name: String,
-    description: String,
-    parent_id: String,
-    holon_type: u8,
-) -> StdResult<Response> {
-    let now = env.block.time.seconds();
-    let holon = Holon {
-        id: holon_id.clone(),
-        name,
-        description,
-        parent_id: parent_id.clone(),
-        holon_type,
-        created_date: now,
-        modified_date: now,
-    };
-
-    HOLONS.save(deps.storage, &holon_id, &holon)?;
-
-    // Add to parent index
-    let mut parent_holons = HOLONS_BY_PARENT
-        .may_load(deps.storage, &parent_id)?
-        .unwrap_or_default();
-    parent_holons.push(holon_id);
-    HOLONS_BY_PARENT.save(deps.storage, &parent_id, &parent_holons)?;
-
-    Ok(Response::default())
-}
-
-fn delete_holon(deps: DepsMut, holon_id: String) -> StdResult<Response> {
-    HOLONS.remove(deps.storage, &holon_id);
-    Ok(Response::default())
-}
-
