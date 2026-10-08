@@ -1,116 +1,101 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests
 {
     [TestClass]
     public class AzureCosmosDBOASISIntegrationTests
     {
-        private AzureCosmosDBOASIS _provider;
+        private AzureCosmosDBOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            _provider = new AzureCosmosDBOASIS(new Uri("https://localhost:8081"), "testKey", "testDb", new List<string> { "testCollection" });
+            string endpoint = Environment.GetEnvironmentVariable("OASIS_AZURE_COSMOS_ENDPOINT")
+                ?? "https://127.0.0.1:8081";
+            string key = Environment.GetEnvironmentVariable("OASIS_AZURE_COSMOS_KEY")
+                ?? throw new AssertInconclusiveException("OASIS_AZURE_COSMOS_KEY must identify a real Cosmos account or emulator.");
+            string database = Environment.GetEnvironmentVariable("OASIS_AZURE_COSMOS_DATABASE")
+                ?? $"oasis-integration-{Guid.NewGuid():N}";
+
+            _provider = new AzureCosmosDBOASIS(
+                new Uri(endpoint),
+                key,
+                database,
+                new List<string> { "avatarItems", "avatarDetailItems", "holonItems" });
+
+            var activation = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError, activation.Message);
+            Assert.IsTrue(activation.Result, activation.Message);
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public async Task AvatarCrud_PersistsThroughOfficialCosmosSdk()
         {
-            // Arrange
             var avatar = new Avatar
             {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
+                Username = $"cosmos-{Guid.NewGuid():N}",
+                Email = $"cosmos-{Guid.NewGuid():N}@example.test",
+                FirstName = "Azure",
+                LastName = "Cosmos"
             };
 
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsNotNull(saved.Result);
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
+            var loaded = await _provider.LoadAvatarAsync(saved.Result.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(avatar.Username, loaded.Result.Username);
+
+            loaded.Result.FirstName = "Updated";
+            var updated = await _provider.SaveAvatarAsync(loaded.Result);
+            Assert.IsFalse(updated.IsError, updated.Message);
+            Assert.AreEqual(saved.Result.Id, updated.Result.Id);
+
+            var byEmail = await _provider.LoadAvatarByEmailAsync(avatar.Email);
+            Assert.IsFalse(byEmail.IsError, byEmail.Message);
+            Assert.AreEqual("Updated", byEmail.Result.FirstName);
+
+            var byUsername = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
+            Assert.IsFalse(byUsername.IsError, byUsername.Message);
+            Assert.AreEqual(saved.Result.Id, byUsername.Result.Id);
+
+            var deleted = await _provider.DeleteAvatarAsync(saved.Result.Id, false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.Result, deleted.Message);
         }
 
         [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
+        public async Task HolonCrud_PersistsThroughOfficialCosmosSdk()
         {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
             var holon = new Holon
             {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
+                Name = $"cosmos-holon-{Guid.NewGuid():N}",
+                Description = "Official Cosmos SDK integration verification"
             };
 
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
+            var saved = await _provider.SaveHolonAsync(holon);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsNotNull(saved.Result);
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
+            var loaded = await _provider.LoadHolonAsync(saved.Result.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(holon.Name, loaded.Result.Name);
 
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        [Ignore("SearchAvatarsAsync signature/params not used on this provider")]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            await Task.CompletedTask;
-        }
-
-        [TestMethod]
-        [Ignore("SearchHolonsAsync signature/params not used on this provider")]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            await Task.CompletedTask;
+            var deleted = await _provider.DeleteHolonAsync(saved.Result.Id);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
+            _provider?.DeActivateProvider();
         }
     }
 }

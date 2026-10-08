@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
     /// binder only resolves NextGenSoftware types: stored data must never be able to instantiate arbitrary .NET types.
     /// Holon navigation members are not stored; relationships are persisted by id.
     /// </summary>
-    internal static class OasisJson
+    public static class OasisJson
     {
         private static readonly JsonSerializerSettings Settings = new()
         {
@@ -28,6 +28,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public static string Serialize<T>(T value) => JsonConvert.SerializeObject(value, typeof(T), Settings);
 
         public static T Deserialize<T>(string json) => JsonConvert.DeserializeObject<T>(json, Settings);
+
+        public static object Deserialize(string json, Type type) => JsonConvert.DeserializeObject(json, type, Settings);
 
         private sealed class OasisTypesOnlyBinder : ISerializationBinder
         {
