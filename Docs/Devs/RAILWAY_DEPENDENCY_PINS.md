@@ -74,6 +74,16 @@ failed in `clone-pinned-oasis-dependencies.sh` with `GITHUB_PAT: parameter not s
 After configuring the missing variables, redeploy the reviewed staging commit and inspect every affected service's
 terminal result and hosted endpoint. This is a configuration repair, not evidence that the source pins are wrong.
 
+The missing staging variables were subsequently configured using the existing credential with explicit user approval,
+without writing the credential to files or command-line arguments. Redeployments retained reviewed master commit
+`cfda48d9af175498522d320d39bf70ce9ed8caff`. WEB5, WEB6, WEB7 and WEB8 hosted Swagger endpoints returned HTTP 200
+after their deployments succeeded (WEB6 uses `/swagger/v2/swagger.json`; the others use `/swagger/v1/swagger.json`).
+WEB10 deployment `40927e11-4f69-4767-a0d3-3c0fcf06a7c4` succeeded, but its custom domain initially failed TLS
+validation. Railway reported propagated, verified DNS and `CERTIFICATE_ERROR_TYPE_INTERNAL` during certificate
+issuance. One Railway certificate-issuance retry restored a valid certificate; the HTTPS Swagger endpoint then
+returned HTTP 200. TLS validation was never disabled. WEB9 and subsequently queued replacement deployments still
+require terminal-result and hosted-endpoint verification; this evidence does not certify a new release or promotion.
+
 When a deployed change lands in a submodule:
 
 1. Advance the submodule pointer in the OASIS parent repository to the tested commit.
