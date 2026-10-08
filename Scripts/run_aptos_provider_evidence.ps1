@@ -15,6 +15,7 @@ $cliZip = Join-Path $cliRoot 'aptos.zip'
 $checksumFile = Join-Path $cliRoot 'SHA256SUMS'
 $cli = Join-Path $cliRoot 'aptos.exe'
 $localnet = $null
+$testPrivateKey = '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
 
 New-Item -ItemType Directory -Path $cliRoot, $nodeRoot, $profileRoot -Force | Out-Null
 
@@ -36,6 +37,7 @@ try {
     $override = Join-Path $repoRoot 'Scripts/TestHosts/aptos-node-override.yaml'
     $arguments = @(
         'node', 'run-localnet', '--no-txn-stream', '--force-restart', '--assume-yes',
+        '--bind-to', '127.0.0.1',
         '--test-dir', $nodeRoot, '--test-config-override', $override,
         '--faucet-port', '18081', '--ready-server-listen-port', '18070'
     )
@@ -57,7 +59,7 @@ try {
 
     Push-Location $profileRoot
     try {
-        & $cli init --network custom --rest-url http://127.0.0.1:18080 --faucet-url http://127.0.0.1:18081 --profile oasis-local --random-seed 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef --assume-yes | Out-Host
+        & $cli init --network custom --rest-url http://127.0.0.1:18080 --faucet-url http://127.0.0.1:18081 --profile oasis-local --private-key $testPrivateKey --assume-yes | Out-Host
         if ($LASTEXITCODE -ne 0) { throw "aptos init failed with exit code $LASTEXITCODE" }
 
         $config = Get-Content (Join-Path $profileRoot '.aptos/config.yaml') -Raw
