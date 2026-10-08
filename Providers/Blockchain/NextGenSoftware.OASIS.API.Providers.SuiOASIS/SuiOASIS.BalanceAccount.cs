@@ -376,56 +376,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<decimal>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(accountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Account address is required");
-                    return result;
-                }
-
-                // Call Sui RPC API to get account balance
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "suix_getBalance",
-                    @params = new object[] { accountAddress }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) &&
-                    resultElement.TryGetProperty("totalBalance", out var totalBalanceElement))
-                {
-                    var balanceStr = totalBalanceElement.GetString();
-                    if (ulong.TryParse(balanceStr, out var balance))
-                    {
-                        // Sui amounts are in MIST (1 SUI = 10^9 MIST)
-                        result.Result = balance / 1_000_000_000m;
-                        result.IsError = false;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse balance");
-                    }
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                }
+                var balance = await InvokeSdkAsync("balance", new { walletAddress = accountAddress }, token);
+                result.Result = decimal.Parse(balance.GetProperty("balance").GetString(),
+                    System.Globalization.CultureInfo.InvariantCulture) / 1000000000m;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Sui account balance: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
