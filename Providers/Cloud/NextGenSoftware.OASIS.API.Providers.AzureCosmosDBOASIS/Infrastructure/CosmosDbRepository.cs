@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var partitionKey = ResolvePartitionKey(id);
                 var json = await cosmosDbClient.ReadDocumentAsync(id, partitionKey);
-                return json == null ? default : JsonConvert.DeserializeObject<T>(json);
+                return json == null ? default : DeserializeEntity(json);
             }
             catch (CosmosException e)
             {
@@ -42,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var json = cosmosDbClient.ReadDocumentByField(fieldName, fieldValue, version);
-                return json == null ? default : JsonConvert.DeserializeObject<T>(json);
+                return json == null ? default : DeserializeEntity(json);
             }
             catch (CosmosException e)
             {
@@ -60,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 var jsonList = cosmosDbClient.ReadAllDocuments();
                 var list = new List<T>();
                 foreach (var json in jsonList)
-                    list.Add(JsonConvert.DeserializeObject<T>(json));
+                    list.Add(DeserializeEntity(json));
                 return list;
             }
             catch (CosmosException e)
@@ -75,13 +76,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
-                entity.Id = GenerateId(entity);
+                if (entity.Id == Guid.Empty)
+                    entity.Id = GenerateId(entity);
                 entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
 
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var partitionKey = ResolvePartitionKey(entity.Id.ToString());
                 var json = await cosmosDbClient.CreateDocumentAsync(entity, partitionKey);
-                return json == null ? entity : JsonConvert.DeserializeObject<T>(json);
+                return json == null ? entity : DeserializeEntity(json);
             }
             catch (CosmosException e)
             {
@@ -89,6 +91,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     throw new EntityAlreadyExistsException();
                 throw;
             }
+        }
+
+        public async Task<T> UpsertAsync(T entity)
+        {
+            if (entity.Id == Guid.Empty)
+                entity.Id = GenerateId(entity);
+
+            entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
+            var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
+            var json = await cosmosDbClient.UpsertDocumentAsync(entity, ResolvePartitionKey(entity.Id.ToString()));
+            return json == null ? entity : DeserializeEntity(json);
         }
 
         public async Task UpdateAsync(T entity)
@@ -134,7 +147,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         }
 
         public abstract string CollectionName { get; }
+        protected abstract Type EntityType { get; }
         public virtual Guid GenerateId(T entity) => Guid.NewGuid();
         public virtual PartitionKey? ResolvePartitionKey(string entityId) => null;
+
+        private T DeserializeEntity(string json) => (T)OasisJson.Deserialize(json, EntityType);
     }
 }

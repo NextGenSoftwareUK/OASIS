@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -79,7 +80,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(document)));
+            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
+            jsonDocument["id"] = jsonDocument["Id"]?.ToString();
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
             var pk = partitionKey ?? PartitionKey.None;
             var response = await _container.CreateItemStreamAsync(stream, pk, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -88,10 +91,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             return await reader.ReadToEndAsync();
         }
 
+        public async Task<string> UpsertDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        {
+            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
+            jsonDocument["id"] = jsonDocument["Id"]?.ToString();
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
+            var response = await _container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new CosmosException(response.ErrorMessage ?? "Upsert failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+            using var reader = new StreamReader(response.Content);
+            return await reader.ReadToEndAsync();
+        }
+
         public async Task ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var pk = partitionKey ?? PartitionKey.None;
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(document)));
+            var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
+            jsonDocument["id"] = documentId;
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
             var response = await _container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Replace failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
