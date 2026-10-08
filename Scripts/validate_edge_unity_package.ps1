@@ -2,7 +2,11 @@
 param(
     [string]$UnityEditor = 'C:\Program Files\Unity\Hub\Editor\2022.3.62f3\Editor\Unity.exe',
     [string]$PackageDirectory = 'artifacts\unity\com.nextgensoftware.oasis.edge',
-    [string]$LogDirectory = 'artifacts'
+    [string]$LogDirectory = 'artifacts',
+    [ValidateRange(1, 120)]
+    [int]$EditorValidationTimeoutMinutes = 20,
+    [ValidateRange(1, 240)]
+    [int]$AndroidBuildTimeoutMinutes = 90
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,6 +23,37 @@ if (-not $logRoot.StartsWith($artifactsRoot, [StringComparison]::OrdinalIgnoreCa
 }
 New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
 if (-not (Test-Path -LiteralPath $UnityEditor -PathType Leaf)) { throw "Unity editor not found: $UnityEditor" }
+
+function Invoke-UnityBatchProcess {
+    param(
+        [Parameter(Mandatory)] [string]$Phase,
+        [Parameter(Mandatory)] [string[]]$Arguments,
+        [Parameter(Mandatory)] [string]$LogPath,
+        [Parameter(Mandatory)] [int]$TimeoutMinutes
+    )
+
+    Write-Host "Starting Unity $Phase validation (timeout: $TimeoutMinutes minutes)."
+    $process = Start-Process -FilePath $UnityEditor -ArgumentList $Arguments `
+        -WindowStyle Hidden -PassThru
+    $deadline = [DateTime]::UtcNow.AddMinutes($TimeoutMinutes)
+    $nextProgress = [DateTime]::UtcNow.AddMinutes(1)
+    while (-not $process.WaitForExit(5000)) {
+        if ([DateTime]::UtcNow -ge $deadline) {
+            try { $process.Kill($true) } catch { Write-Warning "Unable to terminate timed-out Unity process tree: $($_.Exception.Message)" }
+            $process.WaitForExit()
+            if (Test-Path -LiteralPath $LogPath -PathType Leaf) {
+                Write-Host "--- Timed-out Unity $Phase validation log ---"
+                Get-Content -LiteralPath $LogPath | Write-Host
+            }
+            throw "Unity $Phase validation exceeded its $TimeoutMinutes-minute phase timeout. See '$LogPath'."
+        }
+        if ([DateTime]::UtcNow -ge $nextProgress) {
+            Write-Host "Unity $Phase validation is still running (PID $($process.Id), elapsed $([Math]::Round(([DateTime]::UtcNow - $process.StartTime.ToUniversalTime()).TotalMinutes, 1)) minutes)."
+            $nextProgress = [DateTime]::UtcNow.AddMinutes(1)
+        }
+    }
+    return $process.ExitCode
+}
 $packageManifestPath = Join-Path $packageRoot 'build-manifest.json'
 $packageManifest = Get-Content -LiteralPath $packageManifestPath -Raw | ConvertFrom-Json
 $isHoloEnabled = $packageManifest.profile -eq 'HoloEnabled'
@@ -138,17 +173,18 @@ Set-Content -LiteralPath (Join-Path $projectRoot 'ProjectSettings\ProjectVersion
     -Value "m_EditorVersion: 2022.3.62f3`nm_EditorVersionWithRevision: 2022.3.62f3 (e9b2a6e6c3a0)" -Encoding utf8
 
 $logPath = Join-Path $logRoot 'unity-edge-validation.log'
-$unityProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
+$unityExitCode = Invoke-UnityBatchProcess -Phase 'editor package' -LogPath $logPath `
+    -TimeoutMinutes $EditorValidationTimeoutMinutes -Arguments @(
     '-batchmode', '-nographics', '-quit', '-projectPath', $projectRoot,
     '-executeMethod', 'NextGenSoftware.OASIS.Edge.Unity.Editor.OASISEdgePackageValidator.Validate',
     '-logFile', $logPath
-) -WindowStyle Hidden -Wait -PassThru
-if ($unityProcess.ExitCode -ne 0) {
+)
+if ($unityExitCode -ne 0) {
     if (Test-Path -LiteralPath $logPath -PathType Leaf) {
         Write-Host "--- Unity Edge validation log ---"
         Get-Content -LiteralPath $logPath | Write-Host
     }
-    throw "Unity Edge package validation failed with exit code $($unityProcess.ExitCode). See '$logPath'."
+    throw "Unity Edge package validation failed with exit code $unityExitCode. See '$logPath'."
 }
 $errors = Select-String -LiteralPath $logPath -Pattern 'error CS\d+|Assembly .* will not be loaded|Failed to resolve packages' -CaseSensitive:$false
 if ($errors) { throw "Unity reported package compilation errors. See '$logPath'." }
@@ -156,12 +192,13 @@ if (-not (Select-String -LiteralPath $logPath -Pattern 'OASIS_EDGE_UNITY_PACKAGE
     throw "Unity did not complete the Edge package secure-storage smoke test. See '$logPath'."
 }
 $androidLogPath = Join-Path $logRoot 'unity-edge-android-validation.log'
-$androidProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
+$androidExitCode = Invoke-UnityBatchProcess -Phase 'Android IL2CPP build' -LogPath $androidLogPath `
+    -TimeoutMinutes $AndroidBuildTimeoutMinutes -Arguments @(
     '-batchmode', '-nographics', '-quit', '-projectPath', $projectRoot, '-buildTarget', 'Android',
     '-executeMethod', 'NextGenSoftware.OASIS.Edge.Unity.Editor.OASISEdgePackageValidator.ValidateAndroidBuild',
     '-logFile', $androidLogPath
-) -WindowStyle Hidden -Wait -PassThru
-if ($androidProcess.ExitCode -ne 0 -or
+)
+if ($androidExitCode -ne 0 -or
     -not (Select-String -LiteralPath $androidLogPath -Pattern 'OASIS_EDGE_ANDROID_BUILD_VALIDATION_PASSED' -Quiet)) {
     if (Test-Path -LiteralPath $androidLogPath -PathType Leaf) {
         Write-Host "--- Unity Android validation log ---"
