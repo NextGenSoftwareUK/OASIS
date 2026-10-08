@@ -10,14 +10,18 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 // All requests use the official CosmJS client. Secrets travel on stdin, never argv.
-internal sealed class CosmosSdkBackend : IKeyValueBackend
+internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
 {
     private readonly string _rpcEndpoint, _chainId, _privateKey, _contractAddress;
     private readonly string _addressPrefix, _gasPrice, _nodeExecutable, _bridgePath;
+    private bool _disposed;
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
         string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nodeExecutable = null, string bridgePath = null)
     {
+        if (string.IsNullOrWhiteSpace(rpcEndpoint) || !Uri.TryCreate(rpcEndpoint, UriKind.Absolute, out var uri)
+            || (uri.Scheme != "http" && uri.Scheme != "https")) throw new ArgumentException("HTTP(S) Cosmos RPC endpoint is required.", nameof(rpcEndpoint));
+        if (string.IsNullOrWhiteSpace(chainId)) throw new ArgumentException("Expected Cosmos chain ID is required.", nameof(chainId));
         _rpcEndpoint = rpcEndpoint;
         _chainId = chainId;
         _privateKey = privateKey;
@@ -79,6 +83,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend
 
     internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         if (!File.Exists(_bridgePath))
             throw new FileNotFoundException("Install the locked official CosmJS SDK bridge before activating Cosmos.", _bridgePath);
         var request = new Dictionary<string, object>
@@ -121,4 +126,6 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend
             throw;
         }
     }
+
+    public void Dispose() => _disposed = true;
 }
