@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
                     if (activateResult.IsError)
@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
                     if (activateResult.IsError)
