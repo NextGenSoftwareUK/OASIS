@@ -18,6 +18,7 @@ const Storage = bcs.struct('Storage', {
   values: bcs.struct('Table', { id: bcs.Address, size: bcs.u64() }),
 });
 const NFT = bcs.struct('NFT', { id: bcs.Address, creator: bcs.Address, metadata: bcs.string() });
+const LockedNFT = bcs.struct('LockedNFT', { id: bcs.Address, owner: bcs.Address, nft: NFT });
 const Currency = bcs.struct('Currency', { id: bcs.Address, issuer: bcs.Address,
   treasury: bcs.struct('TreasuryCap', { id: bcs.Address, supply: bcs.u64() }) });
 const LockedCoin = bcs.struct('LockedCoin', { id: bcs.Address, owner: bcs.Address,
@@ -101,19 +102,38 @@ export async function invoke(request) {
     if (tokenIds.length !== request.count) throw new Error(`Mint ${committed.digest} committed but returned an unexpected NFT object count`);
     return { transactionHash: committed.digest, tokenIds };
   }
-  if (['nftGet', 'nftSend', 'nftBurn'].includes(request.operation)) {
+  if (['nftEscrowGet', 'nftUnlock'].includes(request.operation)) {
+    if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.tokenId))
+      throw new Error('Published package and original NFT object ID are required');
+    const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
+    const owner = signer.toSuiAddress();
+    const escrows = await pages(cursor => client.listOwnedObjects({ owner,
+      type: `${request.packageAddress}::nft::LockedNFT`, include: { content: true }, limit: 100, cursor }));
+    const escrow = escrows.find(object => LockedNFT.parse(object.content).nft.id === normalizeSuiAddress(request.tokenId));
+    if (!escrow) throw new Error('No owned escrow exists for this NFT');
+    if (request.operation === 'nftEscrowGet') return LockedNFT.parse(escrow.content);
+    const tx = new Transaction();
+    const [nft] = tx.moveCall({ target: `${request.packageAddress}::nft::unlock`, arguments: [tx.object(escrow.objectId)] });
+    tx.transferObjects([nft], tx.pure.address(owner));
+    const committed = await execute(client, tx, signer);
+    return { transactionHash: committed.digest };
+  }
+  if (['nftGet', 'nftSend', 'nftBurn', 'nftLock'].includes(request.operation)) {
     if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.tokenId))
       throw new Error('Published package and NFT object ID are required');
     const { object } = await client.getObject({ objectId: request.tokenId, include: { content: true } });
     if (object.type !== `${normalizeSuiAddress(request.packageAddress)}::nft::NFT` || !object.content)
       throw new Error('NFT object does not match the configured package ABI');
     const nft = NFT.parse(object.content);
+    // Wrapped objects are not directly readable by object ID; escrow reads use owned objects.
     if (request.operation === 'nftGet') return { ...nft, owner: object.owner };
     const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
     if (request.fromWalletAddress && normalizeSuiAddress(request.fromWalletAddress) !== signer.toSuiAddress())
       throw new Error('Signing key does not own sender wallet');
     const tx = new Transaction();
-    if (request.operation === 'nftBurn')
+    if (request.operation === 'nftLock')
+      tx.moveCall({ target: `${request.packageAddress}::nft::lock`, arguments: [tx.object(request.tokenId)] });
+    else if (request.operation === 'nftBurn')
       tx.moveCall({ target: `${request.packageAddress}::nft::burn`, arguments: [tx.object(request.tokenId)] });
     else {
       if (!isValidSuiAddress(request.recipient)) throw new Error('Valid NFT recipient is required');

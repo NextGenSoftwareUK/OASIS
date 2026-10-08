@@ -22,6 +22,7 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
   assert.equal(minted.tokenIds.length, 2);
   assert.equal(new Set(minted.tokenIds).size, 2);
   const remaining = new Set(minted.tokenIds);
+  const locked = new Set();
   const signers = new Map(minted.tokenIds.map(id => [id, base.privateKey]));
   try {
     const [tokenId] = minted.tokenIds;
@@ -29,6 +30,13 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
     assert.equal(nft.metadata, metadata);
     assert.equal(nft.creator, owner.address);
     assert.equal(nft.owner.AddressOwner, owner.address);
+    await invoke({ ...base, operation: 'nftLock', tokenId });
+    locked.add(tokenId);
+    await assert.rejects(invoke({ ...base, operation: 'nftSend', tokenId, recipient: recipient.address }), /not found|not exist|wrapped/i);
+    await assert.rejects(invoke({ ...base, operation: 'nftUnlock', tokenId, privateKey: recipient.privateKey }), /No owned escrow/i);
+    await invoke({ ...base, operation: 'nftUnlock', tokenId });
+    locked.delete(tokenId);
+    assert.equal((await invoke({ ...base, operation: 'nftGet', tokenId })).metadata, metadata);
     const moved = await invoke({ ...base, operation: 'nftSend', tokenId, fromWalletAddress: owner.address, recipient: recipient.address });
     signers.set(tokenId, recipient.privateKey);
     assert.equal((await invoke({ ...base, operation: 'transaction', transactionHash: moved.transactionHash })).status.success, true);
@@ -38,7 +46,9 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
     remaining.delete(tokenId);
     await assert.rejects(invoke({ ...base, operation: 'nftGet', tokenId }), /not found|not exist|deleted/i);
   } finally {
-    for (const tokenId of remaining)
+    for (const tokenId of remaining) {
+      if (locked.has(tokenId)) await invoke({ ...base, operation: 'nftUnlock', tokenId, privateKey: signers.get(tokenId) });
       await invoke({ ...base, operation: 'nftBurn', tokenId, privateKey: signers.get(tokenId) });
+    }
   }
 });

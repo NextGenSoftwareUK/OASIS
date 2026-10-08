@@ -17,6 +17,50 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
 public partial class SuiOASIS
 {
+    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+        => LockNFTAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        try
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            var loaded = await LoadOnChainNFTDataAsync(request.NFTTokenAddress);
+            if (loaded.IsError) throw new InvalidOperationException(loaded.Message);
+            if (request.Web3NFTId != Guid.Empty && request.Web3NFTId != loaded.Result.Id)
+                throw new ArgumentException("OASIS NFT ID does not match the on-chain metadata.");
+            var committed = await InvokeSdkAsync("nftLock", new { tokenId = request.NFTTokenAddress,
+                privateKey = await TokenSigningKeyAsync(request.LockedByAvatarId) });
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = committed.GetProperty("transactionHash").GetString(), Web3NFT = loaded.Result };
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+        => UnlockNFTAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        try
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            var key = await TokenSigningKeyAsync(request.UnlockedByAvatarId);
+            var escrow = await InvokeSdkAsync("nftEscrowGet", new { tokenId = request.NFTTokenAddress, privateKey = key });
+            var metadata = OasisJson.Deserialize<Web3NFT>(escrow.GetProperty("nft").GetProperty("metadata").GetString());
+            if (request.Web3NFTId != Guid.Empty && request.Web3NFTId != metadata.Id)
+                throw new ArgumentException("OASIS NFT ID does not match the escrow metadata.");
+            var committed = await InvokeSdkAsync("nftUnlock", new { tokenId = request.NFTTokenAddress, privateKey = key });
+            var loaded = await LoadOnChainNFTDataAsync(request.NFTTokenAddress);
+            if (loaded.IsError) throw new InvalidOperationException("Unlock committed but NFT readback failed: " + loaded.Message);
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = committed.GetProperty("transactionHash").GetString(), Web3NFT = loaded.Result };
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
     private async Task<string> MintRecipientAsync(IMintWeb3NFTRequest request, string signer)
     {
         if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) return request.SendToAddressAfterMinting;
