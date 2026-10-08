@@ -20,21 +20,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 throw new InvalidOperationException("Aptos PrivateKey must be configured for write operations.");
         }
 
-        private async Task ExecuteEntryFunctionAsync(string functionName, params object[] arguments)
+        private Task<string> ExecuteEntryFunctionAsync(string functionName, params object[] arguments) =>
+            ExecuteEntryFunctionAsync($"{_contractAddress}::oasis::{functionName}", Array.Empty<object>(), arguments);
+
+        private async Task<string> ExecuteEntryFunctionAsync(string functionId, IReadOnlyList<object> typeArguments, params object[] arguments)
         {
             EnsureTransactionAccount();
             var transaction = await _aptosClient.Transaction.Build(
                 _account.Address,
                 new GenerateEntryFunctionPayloadData(
-                    $"{_contractAddress}::oasis::{functionName}",
+                    functionId,
                     new List<object>(arguments),
-                    new List<object>()),
+                    new List<object>(typeArguments)),
                 withFeePayer: false,
                 options: new TransactionBuilder.GenerateTransactionOptions(maxGasAmount: 100_000));
             var pending = await _aptosClient.Transaction.SignAndSubmitTransaction(_account, transaction);
             var committed = await _aptosClient.Transaction.WaitForTransaction(pending);
             if (!committed.Success)
                 throw new InvalidOperationException($"Aptos transaction {committed.Hash} failed: {committed.VmStatus}");
+            return committed.Hash.ToString();
         }
 
         private async Task UpsertRecordAsync(string recordType, string providerKey, object value)
@@ -131,5 +135,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 "delete_record",
                 Encoding.UTF8.GetBytes(recordType),
                 Encoding.UTF8.GetBytes(providerKey));
+
+        private async Task<ulong> GetNativeAptBalanceOctasAsync(string address)
+        {
+            var values = await _aptosClient.Contract.View(new GenerateViewFunctionPayloadData(
+                "0x1::coin::balance",
+                new List<object> { address },
+                new List<object> { "0x1::aptos_coin::AptosCoin" }));
+            if (values == null || values.Count == 0) return 0;
+            return values[0] switch
+            {
+                JValue value when ulong.TryParse(value.ToString(), out var parsed) => parsed,
+                string value when ulong.TryParse(value, out var parsed) => parsed,
+                ulong value => value,
+                long value when value >= 0 => (ulong)value,
+                _ => throw new InvalidOperationException($"Unexpected Aptos balance response: {values[0]}")
+            };
+        }
     }
 }
