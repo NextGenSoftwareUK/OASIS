@@ -165,62 +165,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
         {
-            // Query Aptos for holons created by this avatar
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
-                }
-
-                var request = new
-                {
-                    function = $"{_contractAddress}::oasis::get_holons_by_avatar",
-                    arguments = new object[] { id.ToString() },
-                    type_arguments = new object[0]
-                };
-
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("view", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
-                    {
-                        var holons = new List<IHolon>();
-                        foreach (var holonData in holonsArray.EnumerateArray())
-                        {
-                            var holon = ParseAptosToHolon(holonData);
-                            if (holon != null)
-                                holons.Add(holon);
-                        }
-                        
-                        response.Result = holons;
-                        response.IsError = false;
-                        response.Message = $"Exported {holons.Count} holons for avatar {id} from Aptos blockchain";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "No holons found for avatar on Aptos blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export data from Aptos: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error exporting data from Aptos: {ex.Message}");
-            }
-            return response;
+            var all = await LoadAllHolonsAsync(version: version);
+            if (!all.IsError)
+                all.Result = all.Result.Where(h => h.CreatedByAvatarId == id).ToList();
+            return all;
         }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0) => ExportAllDataForAvatarByIdAsync(id, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
