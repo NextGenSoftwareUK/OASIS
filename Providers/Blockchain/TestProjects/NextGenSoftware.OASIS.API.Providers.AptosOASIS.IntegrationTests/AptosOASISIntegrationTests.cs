@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests;
@@ -164,5 +165,24 @@ public class AptosOASISIntegrationTests
         Assert.IsTrue(result.IsError);
         Assert.IsFalse(result.Result);
         Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [TestMethod]
+    public async Task OfficialSdk_SignsAndCommitsNativeAptTransfer()
+    {
+        using var provider = CreateProvider();
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var recipient = await provider.GenerateKeyPairAsync();
+        Assert.IsFalse(recipient.IsError, recipient.Message);
+        var sent = await provider.SendTokenAsync(new SendWeb3TokenRequest
+        {
+            ToWalletAddress = recipient.Result.WalletAddressLegacy,
+            Amount = 0.00000001m
+        });
+        Assert.IsFalse(sent.IsError, sent.Message);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(sent.Result.TransactionResult));
+        var balance = await provider.GetBalanceAsync(new GetWeb3WalletBalanceRequest { WalletAddress = RequiredEnvironment("OASIS_APTOS_ACCOUNT_ADDRESS") });
+        Assert.IsFalse(balance.IsError, balance.Message);
+        Assert.IsTrue(balance.Result > 0d);
     }
 }

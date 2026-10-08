@@ -241,48 +241,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
-                // Query Aptos account balance
-                var accountResponse = await _httpClient.GetAsync($"/v1/accounts/{request.WalletAddress}/resource/0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>");
-                
-                if (accountResponse.IsSuccessStatusCode)
-                {
-                    var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-                    
-                    if (accountData.TryGetProperty("data", out var data) && 
-                        data.TryGetProperty("coin", out var coin) && 
-                        coin.TryGetProperty("value", out var value))
-                    {
-                        var balanceStr = value.GetString();
-                        if (decimal.TryParse(balanceStr, out var balance))
-                        {
-                            result.Result = (double)balance / 100000000; // Convert from octas (10^8) to APT
-                            result.IsError = false;
-                            result.Message = "Balance retrieved successfully";
-                        }
-                        else
-                        {
-                            OASISErrorHandling.HandleError(ref result, "Failed to parse balance value");
-                        }
-                    }
-                    else
-                    {
-                        result.Result = 0.0;
-                        result.IsError = false;
-                        result.Message = "Account has no balance";
-                    }
-                }
-                else if (accountResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    result.Result = 0.0;
-                    result.IsError = false;
-                    result.Message = "Account not found or has no balance";
-                }
-                else
-                {
-                    var errorContent = await accountResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Aptos API error: {accountResponse.StatusCode} - {errorContent}");
-                }
+                result.Result = await GetNativeAptBalanceOctasAsync(request.WalletAddress) / 100_000_000d;
+                result.Message = "Native APT balance retrieved through the Aptos SDK.";
             }
             catch (Exception ex)
             {
