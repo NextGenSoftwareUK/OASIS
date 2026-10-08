@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         private string _secretKey;
         private string _jwt;
         private string _gatewayUrl;
+        private string _apiUrl = "https://api.pinata.cloud";
         private OASISDNA _OASISDNA;
         private string _OASISDNAPath;
         private IPinataService _pinataService;
@@ -48,7 +49,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             OASISDNAManager.LoadDNA();
             _OASISDNA = OASISDNAManager.OASISDNA;
             _OASISDNAPath = OASISDNAManager.OASISDNAPath;
-            _pinataService = new PinataService(_apiKey, _secretKey, _jwt);
             Init();
         }
 
@@ -71,6 +71,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         {
             _OASISDNA = OASISDNA;
             _OASISDNAPath = OASISDNAPath;
+            Init();
+        }
+
+        public PinataOASIS(string apiUrl, string apiKey, string secretKey, string jwt, string gatewayUrl)
+        {
+            _apiUrl = apiUrl.TrimEnd('/');
+            _apiKey = apiKey;
+            _secretKey = secretKey;
+            _jwt = jwt;
+            _gatewayUrl = gatewayUrl.TrimEnd('/');
             Init();
         }
     }
