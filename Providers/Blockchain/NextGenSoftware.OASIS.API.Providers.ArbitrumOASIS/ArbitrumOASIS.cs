@@ -97,51 +97,47 @@ public sealed partial class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBSt
 
     public bool IsVersionControlEnabled { get; set; }
 
-    public override Task<OASISResult<bool>> ActivateProviderAsync()
-    {
-        OASISResult<bool> result;
-
-        try
-        {
-            result = ActivateProvider();
-        }
-        catch (Exception ex)
-        {
-            return Task.FromException<OASISResult<bool>>(ex);
-        }
-
-        return Task.FromResult(result);
-    }
-
-    public override OASISResult<bool> ActivateProvider()
+    public override async Task<OASISResult<bool>> ActivateProviderAsync()
     {
         OASISResult<bool> result = new();
 
         try
         {
-            if (!this.IsProviderActivated)
-            {
-                if (_hostURI is { Length: > 0 } &&
-                _chainPrivateKey is { Length: > 0 } &&
-                _chainId > 0 &&
-                _contractAddress is { Length: > 0 })
-                {
-                    _oasisAccount = new Account(_chainPrivateKey, _chainId);
-                    _web3Client = new Web3(_oasisAccount, _hostURI);
-                    _contract = _web3Client.Eth.GetContract(ArbitrumContractHelper.Abi, _contractAddress);
-                    _contractHandler = _web3Client.Eth.GetContractHandler(_contractAddress);
+            if (string.IsNullOrWhiteSpace(_hostURI) || string.IsNullOrWhiteSpace(_chainPrivateKey) ||
+                _chainId <= 0 || string.IsNullOrWhiteSpace(_contractAddress))
+                throw new InvalidOperationException("The Arbitrum provider requires an RPC URI, private key, chain ID and deployed contract address.");
 
-                    this.IsProviderActivated = true;
-                }
-            }
+            _oasisAccount = new Account(_chainPrivateKey, _chainId);
+            _web3Client = new Web3(_oasisAccount, _hostURI);
+            HexBigInteger remoteChainId = await _web3Client.Eth.ChainId.SendRequestAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            if (remoteChainId.Value != _chainId)
+                throw new InvalidOperationException($"Arbitrum RPC chain ID '{remoteChainId.Value}' does not match configured chain ID '{_chainId}'.");
+
+            string contractCode = await _web3Client.Eth.GetCode.SendRequestAsync(_contractAddress).WaitAsync(TimeSpan.FromSeconds(10));
+            if (string.IsNullOrWhiteSpace(contractCode) || contractCode == "0x" || contractCode == "0x0")
+                throw new InvalidOperationException($"No contract bytecode was found at configured address '{_contractAddress}'.");
+
+            _contract = _web3Client.Eth.GetContract(ArbitrumContractHelper.Abi, _contractAddress);
+            _contractHandler = _web3Client.Eth.GetContractHandler(_contractAddress);
+            IsProviderActivated = true;
+            result.Result = true;
         }
         catch (Exception ex)
         {
-            this.IsProviderActivated = false;
-            OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
+            _contractHandler = null;
+            _contract = null;
+            _web3Client = null;
+            _oasisAccount = null;
+            IsProviderActivated = false;
+            OASISErrorHandling.HandleError(ref result, $"Error activating ArbitrumOASIS. Reason: {ex.Message}", ex);
         }
 
         return result;
+    }
+
+    public override OASISResult<bool> ActivateProvider()
+    {
+        return ActivateProviderAsync().GetAwaiter().GetResult();
     }
 
     public override Task<OASISResult<bool>> DeActivateProviderAsync()

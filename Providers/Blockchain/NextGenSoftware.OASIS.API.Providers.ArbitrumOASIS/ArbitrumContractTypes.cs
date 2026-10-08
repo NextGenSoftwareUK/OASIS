@@ -367,8 +367,9 @@ public sealed class ArbitrumOASIS_Web3Core : Web3CoreOASISBaseProvider,
     public ArbitrumOASIS_Web3Core(
         string hostUri = "https://arb1.arbitrum.io/rpc",
         string chainPrivateKey = "",
-        string contractAddress = "")
-        : base(hostUri, chainPrivateKey, contractAddress)
+        string contractAddress = "",
+        BigInteger? expectedChainId = null)
+        : base(hostUri, chainPrivateKey, contractAddress, expectedChainId ?? new BigInteger(42161))
     {
         ProviderName = "ArbitrumOASIS";
         ProviderDescription = "Arbitrum Provider - Ethereum Layer 2 scaling solution using Web3Core";
