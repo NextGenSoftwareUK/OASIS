@@ -131,7 +131,7 @@ CREATE INDEX IF NOT EXISTS ix_oasis_holons_type   ON oasis_holons(holon_type);";
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null)
                     avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PostgreSQLOASIS] = avatar.Id.ToString();
+                avatar.ProviderUniqueStorageKey[ProviderType.Value] = avatar.Id.ToString();
 
                 const string sql = @"
 INSERT INTO oasis_avatars (id, username, email, is_deleted, data_json)
@@ -465,7 +465,7 @@ ON CONFLICT (id) DO UPDATE SET
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null)
                     holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PostgreSQLOASIS] = holon.Id.ToString();
+                holon.ProviderUniqueStorageKey[ProviderType.Value] = holon.Id.ToString();
 
                 const string sql = @"
 INSERT INTO oasis_holons (id, parent_holon_id, holon_type, is_deleted, data_json)
