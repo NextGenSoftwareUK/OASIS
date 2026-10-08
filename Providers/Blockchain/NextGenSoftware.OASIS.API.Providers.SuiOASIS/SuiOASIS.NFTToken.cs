@@ -38,78 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
     public partial class SuiOASIS
     {
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
-                    return response;
-                }
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sui_queryObjects",
-                    @params = new object[]
-                    {
-                        new { StructType = "Holon" },
-                        new { DataType = "MoveObject", CreatedByAvatarId = id.ToString() }
-                    }
-                };
 
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", httpContent);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var result) && result.TryGetProperty("data", out var dataArray))
-                    {
-                        var holons = new List<IHolon>();
-                        foreach (var item in dataArray.EnumerateArray())
-                        {
-                            var objectId = item.TryGetProperty("objectId", out var objId) ? objId.GetString() : null;
-                            if (!string.IsNullOrEmpty(objectId))
-                            {
-                                var holonResult = await LoadHolonAsync(objectId);
-                                if (!holonResult.IsError && holonResult.Result != null)
-                                    holons.Add(holonResult.Result);
-                            }
-                        }
-                        response.Result = holons;
-                        response.IsError = false;
-                        response.Message = $"Exported {holons.Count} holons for avatar {id} from Sui blockchain";
-                    }
-                    else
-                    {
-                        response.Result = new List<IHolon>();
-                        response.IsError = false;
-                        response.Message = "No holons found for avatar on Sui blockchain";
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Sui: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByIdAsync: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
 
         // Add IOASISBlockchainStorageProvider methods
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText = "")
