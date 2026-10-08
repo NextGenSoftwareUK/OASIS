@@ -30,44 +30,50 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
     {
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            if (!TelosOASIS.IsProviderActivated)
-                await TelosOASIS.ActivateProviderAsync();
-
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            OASISResult<bool> activation = TelosOASIS.IsProviderActivated
+                ? new OASISResult<bool>(true)
+                : await TelosOASIS.ActivateProviderAsync();
+            IsProviderActivated = !activation.IsError && activation.Result;
+            if (!IsProviderActivated)
+                activation.Message = $"SEEDSOASIS could not activate its Telos storage transport. {activation.Message}";
+            return activation;
         }
 
         public override OASISResult<bool> ActivateProvider()
         {
-            if (!TelosOASIS.IsProviderActivated)
-                TelosOASIS.ActivateProvider();
-
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            OASISResult<bool> activation = TelosOASIS.IsProviderActivated
+                ? new OASISResult<bool>(true)
+                : TelosOASIS.ActivateProvider();
+            IsProviderActivated = !activation.IsError && activation.Result;
+            if (!IsProviderActivated)
+                activation.Message = $"SEEDSOASIS could not activate its Telos storage transport. {activation.Message}";
+            return activation;
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            if (TelosOASIS.IsProviderActivated)
-                await TelosOASIS.DeActivateProviderAsync();
+            OASISResult<bool> deactivation = TelosOASIS.IsProviderActivated
+                ? await TelosOASIS.DeActivateProviderAsync()
+                : new OASISResult<bool>(true);
 
             _keyManager = null;
             _avatarManager = null;
 
             IsProviderActivated = false;
-            return new OASISResult<bool>(true);
+            return deactivation;
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            if (TelosOASIS.IsProviderActivated)
-                TelosOASIS.DeActivateProvider();
+            OASISResult<bool> deactivation = TelosOASIS.IsProviderActivated
+                ? TelosOASIS.DeActivateProvider()
+                : new OASISResult<bool>(true);
 
             _keyManager = null;
             _avatarManager = null;
 
             IsProviderActivated = false;
-            return new OASISResult<bool>(true);
+            return deactivation;
         }
 
         public async Task<string> GetBalanceAsync(string telosAccountName)
