@@ -59,6 +59,21 @@ Never solve a production incompatibility by pointing `master` at a submodule's `
 
 ## Updating a dependency
 
+### Private checkout credentials are environment-specific
+
+Each Railway WEB4-WEB10 service must receive a non-empty `GITHUB_PAT` build variable with read access to the
+private repositories named by the manifest. GitHub Actions' `PRIVATE_SUBMODULE_PAT` secret does not automatically
+configure Railway. A successful dev or production build does not prove that staging has this variable.
+Configure it through Railway's secret-variable controls (or an explicitly approved shared-variable reference);
+never put its value in Git, documentation, logs, or a command-line argument. Keep the pinned clone's fail-fast
+credential requirement; do not replace it with a public clone, moving branch, or cached dependency fallback.
+
+On 2026-10-08, staging WEB5-WEB10 had no non-empty `GITHUB_PAT`. WEB5 deployment
+`c16f92e3-717d-4c77-a6e9-96675403446a` and WEB6 deployment `838bc194-77b5-490d-be38-df98d022e851`
+failed in `clone-pinned-oasis-dependencies.sh` with `GITHUB_PAT: parameter not set`, before .NET compilation.
+After configuring the missing variables, redeploy the reviewed staging commit and inspect every affected service's
+terminal result and hosted endpoint. This is a configuration repair, not evidence that the source pins are wrong.
+
 When a deployed change lands in a submodule:
 
 1. Advance the submodule pointer in the OASIS parent repository to the tested commit.
