@@ -1,5 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests;
@@ -107,6 +109,46 @@ public class AptosOASISIntegrationTests
         var missing = await provider.LoadAvatarAsync(avatar.Id);
         Assert.IsFalse(missing.IsError, missing.Message);
         Assert.IsNull(missing.Result);
+    }
+
+    [TestMethod]
+    public async Task OfficialSdk_EnumeratesFiltersSearchesAndDeletesStoredRecords()
+    {
+        using var provider = CreateProvider();
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var marker = Guid.NewGuid().ToString("N");
+        var parentId = Guid.NewGuid();
+        var holon = new Holon
+        {
+            Id = Guid.NewGuid(),
+            ParentHolonId = parentId,
+            Name = $"searchable-{marker}",
+            Description = "official Aptos Move table search evidence",
+            MetaData = new Dictionary<string, object> { ["runtime"] = marker }
+        };
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"delete-{marker}", Email = $"delete-{marker}@aptos.test" };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+
+        var all = await provider.LoadAllHolonsAsync();
+        var children = await provider.LoadHolonsForParentAsync(parentId);
+        var metadata = await provider.LoadHolonsByMetaDataAsync("runtime", marker);
+        var search = await provider.SearchAsync(new SearchParams
+        {
+            SearchOnlyForCurrentAvatar = false,
+            SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = marker, SearchHolons = true } }
+        });
+        Assert.IsFalse(all.IsError, all.Message);
+        Assert.IsTrue(all.Result.Any(x => x.Id == holon.Id));
+        Assert.IsTrue(children.Result.Any(x => x.Id == holon.Id));
+        Assert.IsTrue(metadata.Result.Any(x => x.Id == holon.Id));
+        Assert.IsFalse(search.IsError, search.Message);
+        Assert.IsTrue(search.Result.SearchResultHolons.Any(x => x.Id == holon.Id));
+
+        var deleteByUsername = await provider.DeleteAvatarByUsernameAsync(avatar.Username, softDelete: false);
+        Assert.IsFalse(deleteByUsername.IsError, deleteByUsername.Message);
+        Assert.IsTrue(deleteByUsername.Result);
+        Assert.IsFalse((await provider.DeleteHolonAsync(holon.Id)).IsError);
     }
 
     [TestMethod]
