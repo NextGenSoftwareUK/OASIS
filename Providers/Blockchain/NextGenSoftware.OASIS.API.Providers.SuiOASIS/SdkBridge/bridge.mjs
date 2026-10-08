@@ -36,6 +36,13 @@ export async function invoke(request) {
   if (!chainIdentifier) throw new Error('Sui node returned no genesis chain identifier');
   if (request.chainId && request.chainId !== chainIdentifier) throw new Error('Sui chain identifier mismatch');
   if (request.operation === 'probe') return { chainIdentifier };
+  if (request.operation === 'transaction') {
+    if (!request.transactionHash) throw new Error('Transaction digest is required');
+    const response = await client.getTransaction({ digest: request.transactionHash, include: { effects: true } });
+    const transaction = response.Transaction ?? response.FailedTransaction;
+    if (!transaction?.digest || !transaction.effects) throw new Error('Sui returned no transaction effects');
+    return { transactionHash: transaction.digest, status: transaction.status, gasUsed: transaction.effects.gasUsed };
+  }
   if (request.operation === 'balance') {
     if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui wallet address is required');
     return (await client.getBalance({ owner: request.walletAddress, coinType: '0x2::sui::SUI' })).balance;
