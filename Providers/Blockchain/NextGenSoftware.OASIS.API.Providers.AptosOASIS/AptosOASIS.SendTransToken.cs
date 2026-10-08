@@ -348,71 +348,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
-                if (string.IsNullOrEmpty(request.FromWalletAddress) || string.IsNullOrEmpty(request.ToWalletAddress))
+                EnsureTransactionAccount();
+                if (string.IsNullOrEmpty(request.ToWalletAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "FromWalletAddress and ToWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "ToWalletAddress is required");
                     return result;
                 }
-
-                // Get account sequence number
-                var accountResponse = await _httpClient.GetAsync($"/v1/accounts/{request.FromWalletAddress}");
-                if (!accountResponse.IsSuccessStatusCode)
+                if (!string.IsNullOrWhiteSpace(request.FromWalletAddress) &&
+                    !string.Equals(request.FromWalletAddress.TrimStart('0', 'x'), _account.Address.ToString().TrimStart('0', 'x'), StringComparison.OrdinalIgnoreCase))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get account info: {accountResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, "FromWalletAddress does not match the configured Aptos signing account.");
                     return result;
                 }
-
-                var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-                var sequenceNumber = accountData.TryGetProperty("sequence_number", out var seq) ? seq.GetString() : "0";
-
-                // Determine token type (default to AptosCoin if not specified)
-                var tokenType = string.IsNullOrEmpty(request.FromTokenAddress) 
-                    ? "0x1::aptos_coin::AptosCoin" 
-                    : request.FromTokenAddress;
-
-                // Create transaction payload for Aptos token transfer
-                var transactionPayload = new
-                {
-                    sender = request.FromWalletAddress,
-                    sequence_number = sequenceNumber,
-                    max_gas_amount = "1000",
-                    gas_unit_price = "1",
-                    expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds().ToString(),
-                    payload = new
-                    {
-                        type = "entry_function_payload",
-                        function = "0x1::coin::transfer",
-                        type_arguments = new[] { tokenType },
-                        arguments = new[] { request.ToWalletAddress, request.Amount.ToString() }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/v1/transactions", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var hash = transactionResult.TryGetProperty("hash", out var hashProp) 
-                        ? hashProp.GetString() 
-                        : "unknown";
-
-                    result.Result = new TransactionResponse
-                    {
-                        TransactionResult = hash
-                    };
-                    result.IsError = false;
-                    result.Message = "Token sent successfully to Aptos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Aptos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
+                if (request.Amount <= 0) { OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero."); return result; }
+                if (!string.IsNullOrWhiteSpace(request.FromTokenAddress) && request.FromTokenAddress != "0x1::aptos_coin::AptosCoin")
+                { OASISErrorHandling.HandleError(ref result, "This Aptos SDK path currently supports native APT transfers only."); return result; }
+                var octas = checked((ulong)decimal.Round(request.Amount * 100_000_000m, 0, MidpointRounding.AwayFromZero));
+                var hash = await ExecuteEntryFunctionAsync("0x1::aptos_account::transfer", Array.Empty<object>(), request.ToWalletAddress, octas);
+                result.Result = new TransactionResponse { TransactionResult = hash };
+                result.Message = "APT transferred by an Aptos SDK signed transaction.";
             }
             catch (Exception ex)
             {
