@@ -48,3 +48,8 @@ foreach ($requiredActivationContract in @(
 }
 
 Write-Host 'Edge Unity batch lifecycle contract passed: Unity is activated before both supervised validator processes run.'
+foreach ($requiredTrigger in @('Scripts/validate_edge_unity_package.ps1', 'Scripts/test_edge_unity_batch_lifecycle.ps1')) {
+    if ([regex]::Matches($workflowSource, [regex]::Escape("- '$requiredTrigger'")).Count -ne 2) {
+        throw "Both push and pull-request path filters must validate changes to '$requiredTrigger'."
+    }
+}
