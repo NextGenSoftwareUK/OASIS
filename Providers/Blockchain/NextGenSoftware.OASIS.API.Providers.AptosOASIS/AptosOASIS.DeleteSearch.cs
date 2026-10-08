@@ -34,8 +34,6 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -270,29 +268,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var request = new
-                {
-                    function = "get_holon_by_id",
-                    arguments = new[] { id.ToString() }
-                };
-
-                var json = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(responseContent);
-                    var holon = ParseAptosToHolon(jsonElement);
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully from Aptos";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Aptos: {response.StatusCode}");
-                }
+                result.Result = await GetRecordAsync<Holon>(HolonRecordType, id.ToString());
+                result.IsError = result.Result == null;
+                result.Message = result.Result == null
+                    ? $"Holon {id} was not found on Aptos"
+                    : "Holon loaded from Aptos contract storage";
             }
             catch (Exception ex)
             {
@@ -310,29 +290,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var request = new
-                {
-                    function = "get_holon_by_provider_key",
-                    arguments = new[] { providerKey }
-                };
-
-                var json = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(responseContent);
-                    var holon = ParseAptosToHolon(jsonElement);
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully from Aptos";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Aptos: {response.StatusCode}");
-                }
+                result.Result = await GetRecordAsync<Holon>(HolonRecordType, providerKey);
+                result.IsError = result.Result == null;
+                result.Message = result.Result == null
+                    ? $"Holon {providerKey} was not found on Aptos"
+                    : "Holon loaded from Aptos contract storage";
             }
             catch (Exception ex)
             {
@@ -358,14 +320,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // Query Aptos for holons with matching parent ID
                 var request = new
                 {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_parent",
+                    function = $"{_contractAddress}::oasis::get_holons_by_parent",
                     arguments = new object[] { id.ToString(), (int)type },
                     type_arguments = new object[0]
                 };
 
                 var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                var httpResponse = await _httpClient.PostAsync("view", content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
@@ -435,14 +397,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // Query Aptos for holons matching metadata
                 var request = new
                 {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_metadata",
+                    function = $"{_contractAddress}::oasis::get_holons_by_metadata",
                     arguments = new object[] { metaKey, metaValue, (int)type },
                     type_arguments = new object[0]
                 };
 
                 var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                var httpResponse = await _httpClient.PostAsync("view", content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
@@ -500,14 +462,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // Query Aptos for holons matching multiple metadata pairs
                 var request = new
                 {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_metadata_multi",
+                    function = $"{_contractAddress}::oasis::get_holons_by_metadata_multi",
                     arguments = new object[] { metadataJson, metaKeyValuePairMatchMode.ToString(), (int)type },
                     type_arguments = new object[0]
                 };
 
                 var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                var httpResponse = await _httpClient.PostAsync("view", content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
@@ -562,14 +524,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // Load all holons from Aptos blockchain using real Aptos RPC
                 var request = new
                 {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_all_holons",
+                    function = $"{_contractAddress}::oasis::get_all_holons",
                     arguments = new object[] { (int)type },
                     type_arguments = new object[0]
                 };
 
                 var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                var httpResponse = await _httpClient.PostAsync("view", content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
