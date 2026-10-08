@@ -1,0 +1,128 @@
+// Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
+// Source: https://github.com/denoland/denokv/blob/main/proto/schema/datapath.proto
+// Only csharp_namespace was added; the wire schema is unchanged.
+
+syntax = "proto3";
+
+package com.deno.kv.datapath;
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS.Datapath";
+
+message SnapshotRead {
+  repeated ReadRange ranges = 1;
+}
+
+message SnapshotReadOutput {
+  reserved 3, 5, 6, 7;
+  repeated ReadRangeOutput ranges = 1;
+  bool read_disabled = 2;
+  bool read_is_strongly_consistent = 4;
+  SnapshotReadStatus status = 8;
+}
+
+enum SnapshotReadStatus {
+  SR_UNSPECIFIED = 0;
+  SR_SUCCESS = 1;
+  SR_READ_DISABLED = 2;
+}
+
+message ReadRange {
+  bytes start = 1;
+  bytes end = 2;
+  int32 limit = 3;
+  bool reverse = 4;
+}
+
+message ReadRangeOutput {
+  repeated KvEntry values = 1;
+}
+
+message AtomicWrite {
+  repeated Check checks = 1;
+  repeated Mutation mutations = 2;
+  repeated Enqueue enqueues = 3;
+}
+
+message AtomicWriteOutput {
+  reserved 3;
+  AtomicWriteStatus status = 1;
+  bytes versionstamp = 2;
+  repeated uint32 failed_checks = 4;
+}
+
+message Check {
+  bytes key = 1;
+  bytes versionstamp = 2;
+}
+
+message Mutation {
+  bytes key = 1;
+  KvValue value = 2;
+  MutationType mutation_type = 3;
+  int64 expire_at_ms = 4;
+  bytes sum_min = 5;
+  bytes sum_max = 6;
+  bool sum_clamp = 7;
+}
+
+message KvValue {
+  bytes data = 1;
+  ValueEncoding encoding = 2;
+}
+
+message KvEntry {
+  bytes key = 1;
+  bytes value = 2;
+  ValueEncoding encoding = 3;
+  bytes versionstamp = 4;
+}
+
+enum MutationType {
+  M_UNSPECIFIED = 0;
+  M_SET = 1;
+  M_DELETE = 2;
+  M_SUM = 3;
+  M_MAX = 4;
+  M_MIN = 5;
+  M_SET_SUFFIX_VERSIONSTAMPED_KEY = 9;
+}
+
+enum ValueEncoding {
+  VE_UNSPECIFIED = 0;
+  VE_V8 = 1;
+  VE_LE64 = 2;
+  VE_BYTES = 3;
+}
+
+enum AtomicWriteStatus {
+  reserved 3, 4, 6;
+  AW_UNSPECIFIED = 0;
+  AW_SUCCESS = 1;
+  AW_CHECK_FAILURE = 2;
+  AW_WRITE_DISABLED = 5;
+}
+
+message Enqueue {
+  bytes payload = 1;
+  int64 deadline_ms = 2;
+  repeated bytes keys_if_undelivered = 3;
+  repeated uint32 backoff_schedule = 4;
+}
+
+message Watch {
+  repeated WatchKey keys = 1;
+}
+
+message WatchOutput {
+  SnapshotReadStatus status = 1;
+  repeated WatchKeyOutput keys = 2;
+}
+
+message WatchKey {
+  bytes key = 1;
+}
+
+message WatchKeyOutput {
+  bool changed = 1;
+  KvEntry entry_if_changed = 2;
+}
