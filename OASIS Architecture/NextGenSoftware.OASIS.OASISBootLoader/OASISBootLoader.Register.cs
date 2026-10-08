@@ -478,18 +478,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         }
                         break;
 
-                        case ProviderType.MoralisOASIS:
-                        {
-                            // TODO: Fix MoralisOASIS build errors
-                            // var moralisProvider = new MoralisOASIS(
-                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey ?? "",
-                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint ?? "https://speedy-nodes-nyc.moralis.io",
-                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network ?? "mainnet");
-                            // moralisProvider.OnStorageProviderError += MoralisOASIS_StorageProviderError;
-                            // result.Result = moralisProvider;
-                            break;
-                        }
-
                         //case ProviderType.TelosOASIS:
                         //    {
                         //        TelosOASIS telosOASIS = new TelosOASIS(
@@ -500,18 +488,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //        result.Result = telosOASIS;
                         //    }
                         //    break;
-
-                        case ProviderType.ActivityPubOASIS:
-                            {
-                                var baseUrl = OASISDNA.OASIS.StorageProviders.ActivityPubOASIS?.BaseUrl ?? "https://mastodon.social";
-                                // Remove /api/v1 if present since ActivityPubOASIS constructor expects instance URL
-                                if (baseUrl.EndsWith("/api/v1"))
-                                    baseUrl = baseUrl.Replace("/api/v1", "");
-                                var activityPubProvider = new ActivityPubOASIS(baseUrl, "");
-                                activityPubProvider.OnStorageProviderError += ActivityPubOASIS_StorageProviderError;
-                                result.Result = activityPubProvider;
-                            }
-                            break;
 
                         case ProviderType.GoogleCloudOASIS:
                             {
