@@ -77,7 +77,7 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             //TODO: Double check this still works! lol
-            string transactionHash = await _web3CoreOASIS.SendNFTAsync(
+            TransactionReceipt transactionReceipt = await _web3CoreOASIS.SendNFTAsync(
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 Convert.ToInt64(transaction.TokenId),
@@ -88,6 +88,7 @@ public partial class Web3CoreOASISBaseProvider
                 new BigInteger(transaction.Amount),
                 transaction.MemoText
             );
+            string transactionHash = transactionReceipt.TransactionHash;
 
             IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
@@ -138,7 +139,8 @@ public partial class Web3CoreOASISBaseProvider
         {
             string metadataJson = Newtonsoft.Json.JsonConvert.SerializeObject(transaction);
             //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
-            string transactionHash = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
+            TransactionReceipt transactionReceipt = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
+            string transactionHash = transactionReceipt.TransactionHash;
 
             IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
