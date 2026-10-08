@@ -34,6 +34,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _logger = logger;
         }
 
+        /// <summary>The process-wide ONODEManager, shared with the GraphQL and gRPC surfaces.</summary>
+        internal static Task<ONODEManager> GetOnodeManagerStaticAsync() => GetOnodeManagerAsync();
+
         private static Task<ONODEManager> GetOnodeManagerAsync()
         {
             if (_onodeManagerTask != null && !_onodeManagerTask.IsFaulted && !_onodeManagerTask.IsCanceled)
