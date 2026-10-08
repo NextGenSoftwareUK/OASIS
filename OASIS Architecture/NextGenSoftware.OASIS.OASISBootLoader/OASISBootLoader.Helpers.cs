@@ -344,11 +344,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("CosmosBlockChainOASIS", e);
         }
 
-        private static void BitcoinOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("BitcoinOASIS", e);
-        }
-
         private static void NEAROASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("NEAROASIS", e);
