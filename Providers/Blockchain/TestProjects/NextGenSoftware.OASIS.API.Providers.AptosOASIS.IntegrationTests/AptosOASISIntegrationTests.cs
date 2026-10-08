@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests;
@@ -184,5 +185,36 @@ public class AptosOASISIntegrationTests
         var balance = await provider.GetBalanceAsync(new GetWeb3WalletBalanceRequest { WalletAddress = RequiredEnvironment("OASIS_APTOS_ACCOUNT_ADDRESS") });
         Assert.IsFalse(balance.IsError, balance.Message);
         Assert.IsTrue(balance.Result > 0d);
+    }
+
+    [TestMethod]
+    public async Task OfficialSdk_PerformsMoveBackedNftLifecycle()
+    {
+        using var provider = CreateProvider();
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var marker = Guid.NewGuid().ToString("N");
+        var minted = await provider.MintNFTAsync(new MintWeb3NFTRequest
+        {
+            Title = $"Aptos NFT {marker}", Symbol = "OASIS", JSONMetaData = $"{{\"marker\":\"{marker}\"}}",
+            MetaData = new Dictionary<string, string> { ["marker"] = marker }, Tags = new List<string> { "aptos", "runtime" }
+        });
+        Assert.IsFalse(minted.IsError, minted.Message);
+        var key = minted.Result.Web3NFT.NFTTokenAddress;
+        Assert.IsFalse(string.IsNullOrWhiteSpace(minted.Result.TransactionResult));
+        var loaded = await provider.LoadOnChainNFTDataAsync(key);
+        Assert.AreEqual($"Aptos NFT {marker}", loaded.Result.Title);
+
+        var sent = await provider.SendNFTAsync(new SendWeb3NFTRequest { TokenId = key, ToWalletAddress = "0x123" });
+        Assert.IsFalse(sent.IsError, sent.Message);
+        Assert.AreEqual("0x123", sent.Result.Web3NFT.SendToAddressAfterMinting);
+        var locked = await provider.LockNFTAsync(new LockWeb3NFTRequest { NFTTokenAddress = key, LockedByAvatarId = Guid.NewGuid() });
+        Assert.IsFalse(locked.IsError, locked.Message);
+        Assert.AreEqual("True", locked.Result.Web3NFT.MetaData["aptos:locked"]);
+        var unlocked = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { NFTTokenAddress = key, UnlockedByAvatarId = Guid.NewGuid() });
+        Assert.IsFalse(unlocked.IsError, unlocked.Message);
+        Assert.AreEqual("False", unlocked.Result.Web3NFT.MetaData["aptos:locked"]);
+        var burned = await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = key, OwnerPublicKey = "", OwnerPrivateKey = "", OwnerSeedPhrase = "" });
+        Assert.IsFalse(burned.IsError, burned.Message);
+        Assert.IsNull((await provider.LoadOnChainNFTDataAsync(key)).Result);
     }
 }

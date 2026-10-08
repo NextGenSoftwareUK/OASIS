@@ -14,7 +14,7 @@
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
 	  <PackageReleaseNotes>- Uses the Aptos Labs .NET SDK for activation, accounts, transaction construction, BCS signing, submission, confirmation, and Move-backed storage.
 - Removes fabricated signing and mnemonic fallbacks.
-- NFT and smart-contract capability flags remain disabled until every corresponding operation is migrated to the official SDK and proven against an Aptos node.</PackageReleaseNotes>
+- NFT and smart-contract operations use the deployed Move contract and official SDK, with runtime lifecycle evidence.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
