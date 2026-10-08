@@ -1,0 +1,12 @@
+{
+  "name": "oasis-cosmos-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test bridge.test.mjs" },
+  "dependencies": {
+    "@cosmjs/cosmwasm": "0.39.0",
+    "@cosmjs/proto-signing": "0.39.0",
+    "@cosmjs/stargate": "0.39.0",
+    "@cosmjs/encoding": "0.39.0"
+  }
+}

@@ -41,16 +41,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
-  </ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
 	  <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
 	</ItemGroup>
 
   <ItemGroup>
+    <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>

@@ -22,8 +22,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 // using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using Nethereum.Signer;
-using Nethereum.Hex.HexConvertors.Extensions;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
