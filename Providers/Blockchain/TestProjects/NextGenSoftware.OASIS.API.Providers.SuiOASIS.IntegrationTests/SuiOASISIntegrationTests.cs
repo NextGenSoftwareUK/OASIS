@@ -3,6 +3,9 @@ using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
@@ -94,12 +97,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
+                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "test", HolonType = HolonType.Avatar } }
             };
 
             // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
+            var result = await _provider.SearchAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);
@@ -113,12 +115,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
+                SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "test", HolonType = HolonType.All } }
             };
 
             // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
+            var result = await _provider.SearchAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);
