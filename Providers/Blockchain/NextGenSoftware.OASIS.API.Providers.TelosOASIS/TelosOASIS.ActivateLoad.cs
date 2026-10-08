@@ -43,20 +43,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            if (_eosioOASIS != null && !_eosioOASIS.IsProviderActivated)
-                await _eosioOASIS.ActivateProviderAsync();
+            if (_eosioOASIS == null)
+                return new OASISResult<bool> { IsError = true, Message = "The EOSIO client is not configured." };
 
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            var result = _eosioOASIS.IsProviderActivated
+                ? new OASISResult<bool>(true)
+                : await _eosioOASIS.ActivateProviderAsync();
+            IsProviderActivated = !result.IsError && result.Result;
+            return result;
         }
 
         public override OASISResult<bool> ActivateProvider()
         {
-            if (_eosioOASIS != null && !_eosioOASIS.IsProviderActivated)
-                _eosioOASIS.ActivateProvider();
+            if (_eosioOASIS == null)
+                return new OASISResult<bool> { IsError = true, Message = "The EOSIO client is not configured." };
 
-            IsProviderActivated = true;
-            return new OASISResult<bool>(true);
+            var result = _eosioOASIS.IsProviderActivated
+                ? new OASISResult<bool>(true)
+                : _eosioOASIS.ActivateProvider();
+            IsProviderActivated = !result.IsError && result.Result;
+            return result;
         }
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
@@ -144,8 +150,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public async Task<string> GetBalanceAsync(string telosAccountName, string code, string symbol)
         {
-            // return await EOSIOOASIS?.GetBalanceAsync(telosAccountName, code, symbol);
-            return await Task.FromResult("0.0000");
+            if (EOSIOOASIS == null)
+                throw new InvalidOperationException("The EOSIO client is not configured.");
+
+            return await EOSIOOASIS.GetBalanceAsync(telosAccountName, code, symbol);
         }
 
         public string GetBalanceForTelosAccount(string telosAccountName, string code, string symbol)
