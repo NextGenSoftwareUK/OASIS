@@ -5,6 +5,8 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.IntegrationTests;
 
@@ -216,5 +218,115 @@ public class AptosOASISIntegrationTests
         var burned = await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = key, OwnerPublicKey = "", OwnerPrivateKey = "", OwnerSeedPhrase = "" });
         Assert.IsFalse(burned.IsError, burned.Message);
         Assert.IsNull((await provider.LoadOnChainNFTDataAsync(key)).Result);
+    }
+
+    [TestMethod]
+    public async Task OfficialSdk_PerformsMoveBackedCustomTokenLifecycle()
+    {
+        using var provider = CreateProvider();
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var symbol = $"OASIS-{Guid.NewGuid():N}";
+        var owner = RequiredEnvironment("OASIS_APTOS_ACCOUNT_ADDRESS");
+        var recipient = await provider.GenerateKeyPairAsync();
+        Assert.IsFalse(recipient.IsError, recipient.Message);
+
+        var minted = await provider.MintTokenAsync(new MintWeb3TokenRequest
+        {
+            Symbol = symbol,
+            Title = "OASIS Aptos runtime token",
+            Description = "Move-backed custom-token lifecycle evidence",
+            Amount = 100m,
+            MetaData = new Dictionary<string, string> { ["evidence"] = "real-localnet" }
+        });
+        Assert.IsFalse(minted.IsError, minted.Message);
+        Assert.AreEqual(100m, (await provider.GetCustomTokenBalanceAsync(symbol, owner)).Result);
+
+        var sent = await provider.SendTokenAsync(new SendWeb3TokenRequest
+        {
+            FromTokenAddress = symbol,
+            FromWalletAddress = owner,
+            ToWalletAddress = recipient.Result.WalletAddressLegacy,
+            Amount = 10m
+        });
+        Assert.IsFalse(sent.IsError, sent.Message);
+        Assert.AreEqual(90m, (await provider.GetCustomTokenBalanceAsync(symbol, owner)).Result);
+        Assert.AreEqual(10m, (await provider.GetCustomTokenBalanceAsync(symbol, recipient.Result.WalletAddressLegacy)).Result);
+
+        var locked = await provider.LockTokenAsync(new LockWeb3TokenRequest { TokenAddress = symbol });
+        Assert.IsFalse(locked.IsError, locked.Message);
+        var rejectedWhileLocked = await provider.SendTokenAsync(new SendWeb3TokenRequest
+        {
+            FromTokenAddress = symbol,
+            FromWalletAddress = owner,
+            ToWalletAddress = recipient.Result.WalletAddressLegacy,
+            Amount = 1m
+        });
+        Assert.IsTrue(rejectedWhileLocked.IsError);
+
+        var unlocked = await provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = symbol });
+        Assert.IsFalse(unlocked.IsError, unlocked.Message);
+        var sentAfterUnlock = await provider.SendTokenAsync(new SendWeb3TokenRequest
+        {
+            FromTokenAddress = symbol,
+            FromWalletAddress = owner,
+            ToWalletAddress = recipient.Result.WalletAddressLegacy,
+            Amount = 1m
+        });
+        Assert.IsFalse(sentAfterUnlock.IsError, sentAfterUnlock.Message);
+
+        var burned = await provider.BurnTokenAsync(new BurnWeb3TokenRequest
+        {
+            TokenAddress = symbol,
+            OwnerPublicKey = "",
+            OwnerPrivateKey = "",
+            OwnerSeedPhrase = ""
+        });
+        Assert.IsFalse(burned.IsError, burned.Message);
+        Assert.IsTrue((await provider.GetCustomTokenBalanceAsync(symbol, owner)).IsError);
+    }
+
+    [TestMethod]
+    public async Task OfficialSdk_PerformsBridgeTransferAndReportsCommittedStatus()
+    {
+        using var provider = CreateProvider();
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var recipient = await provider.GenerateKeyPairAsync();
+        Assert.IsFalse(recipient.IsError, recipient.Message);
+
+        var deposited = await provider.DepositAsync(0.00000001m, recipient.Result.WalletAddressLegacy);
+        Assert.IsFalse(deposited.IsError, deposited.Message);
+        Assert.IsTrue(deposited.Result.IsSuccessful);
+        var status = await provider.GetTransactionStatusAsync(deposited.Result.TransactionId);
+        Assert.IsFalse(status.IsError, status.Message);
+        Assert.AreEqual(BridgeTransactionStatus.Completed, status.Result);
+
+        var rejected = await provider.WithdrawAsync(
+            0.00000001m,
+            RequiredEnvironment("OASIS_APTOS_ACCOUNT_ADDRESS"),
+            recipient.Result.PrivateKey);
+        Assert.IsTrue(rejected.IsError, "A private key for another Aptos account must be rejected.");
+
+        var withdrawn = await provider.WithdrawAsync(
+            0.00000001m,
+            RequiredEnvironment("OASIS_APTOS_ACCOUNT_ADDRESS"),
+            RequiredEnvironment("OASIS_APTOS_PRIVATE_KEY"));
+        Assert.IsFalse(withdrawn.IsError, withdrawn.Message);
+        Assert.AreEqual(BridgeTransactionStatus.Completed, (await provider.GetTransactionStatusAsync(withdrawn.Result.TransactionId)).Result);
+    }
+
+    [TestMethod]
+    public async Task OfficialSdk_ExecutesGenericMoveEntryFunction()
+    {
+        using var provider = CreateProvider();
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var marker = Guid.NewGuid().ToString("N");
+        var executed = await provider.SendSmartContractFunctionAsync(
+            RequiredEnvironment("OASIS_APTOS_CONTRACT_ADDRESS"),
+            "oasis::upsert_record",
+            Encoding.UTF8.GetBytes("generic-evidence"),
+            Encoding.UTF8.GetBytes(marker),
+            Encoding.UTF8.GetBytes($"{{\"marker\":\"{marker}\"}}"));
+        Assert.IsFalse(executed.IsError, executed.Message);
+        Assert.AreEqual(BridgeTransactionStatus.Completed, (await provider.GetTransactionStatusAsync(executed.Result)).Result);
     }
 }
