@@ -1,0 +1,8 @@
+{
+  "name": "oasis-arweave-sdk-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "arweave": "2.1.0"
+  }
+}
