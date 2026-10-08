@@ -1,6 +1,6 @@
 # HyperDrive V2 provider-I/O coverage
 
-**Verified:** 2026-10-07  
+**Verified:** 2026-10-08 (Cosmos partial checkpoint; prior provider evidence dated below)
 **Branch:** `codex/hyperdrive-dual-mode-route-matrix`
 
 ## Routing contract
@@ -151,6 +151,22 @@ Moralis is intentionally excluded from the HyperDrive storage-provider matrix. M
 ActivityPub is likewise excluded from generic HyperDrive storage selection. It is a federated social protocol: Mastodon-compatible account and status endpoints represent remote actors and posts, not an OASIS avatar/holon database. The former boot-loader registration supplied no OAuth token and nevertheless advertised the adapter as a failover/replication target, where writes could not succeed and account creation/deletion would be semantically unsafe. The storage registration and unused storage-error callback were removed; ActivityPub remains available as a social/network integration and must be exercised through protocol-specific authenticated operations rather than generic storage routing.
 
 Bitcoin is not a generic document store and is excluded from HyperDrive storage routing. The previous implementation attempted to serialize an entire avatar or holon into one `OP_RETURN` output and used obsolete or mismatched RPC/indexer calls to read it back. Standard Bitcoin relay policy only permits a small data-carrier payload, so realistic OASIS records cannot round-trip that way; silently adding an unrelated side database would not constitute Bitcoin-backed persistence. The boot-loader registration and `Storage`/`NFT`/`SmartContract` capability claims were removed. Bitcoin remains categorized as a blockchain provider for real wallet, transaction, and hash-anchoring work, while full records must be persisted by an actual storage provider and may separately anchor their content hash to Bitcoin.
+
+### Cosmos implementation and verification checkpoint
+
+Cosmos is **not yet a passing storage provider**. Its replacement storage backend uses the shared key-value provider implementation and official CosmJS 0.39.0 clients. The owner-authorized CosmWasm contract compiles and its two Rust unit tests pass, but the generated Wasm still contains instructions rejected by the local VM. Contract deployment, .NET avatar/detail/holon persistence, NFT/token lifecycles and Cosmos participation in real V2 routing remain release gates. Existing NFT/token placeholder paths are still being replaced; they are not verified implementations.
+
+The reusable local blockchain is official `cosmwasm/wasmd:v0.70.3`, pinned to image digest `sha256:3741178a4d747fd5cf281550ab4ac30d771163af1c543f9da503c411a1691773`, in the existing root-Podman WSL container `oasis-wasmd`. Its RPC binds to host loopback port 26657 and its chain ID is `oasis-cosmos-local`. The older `oasis-cosmos` container is Azure Cosmos DB, not this blockchain. Only public development keys and locally minted `stake` are used.
+
+`CosmosTransferTests` and `CosmosFailureTests` passed **6/6, zero skips**, on 2026-10-08. The live chain assertions cover SDK-signed .NET transfers with committed transaction status and exact recipient balance deltas; decoded sender/recipient transaction history; real native bridge deposits and sender-signed withdrawals including gas debit; mnemonic recovery matching compressed secp256k1 public keys; wrong-sender and wrong-chain rejection; exact amount validation; and unreachable-RPC activation failure. The fixed report is `TestResults/CosmosRuntime/cosmos-transfers.trx`. These tests do not substitute for contract-storage or all-provider orchestration evidence.
+
+The boot loader now passes the actual chain ID and signing key to the correct constructor arguments. DNA exposes `ContractAddress`, `AddressPrefix`, `GasPrice`, `NativeDenom` and `NativeDecimals`; native transfers and balances no longer infer an asset from a fee denomination or sum unrelated coins. Native wallet operations do not require a storage contract. Avatar-addressed transfers load the existing WalletManager default wallets, request the sender's private key only, and use the same signed transfer implementation. Those WalletManager-backed routes still require their own integration evidence.
+
+### Reusable environment and disk cleanup
+
+The task continues in `C:\Source\OASIS-hyperdrive-v2-gaps` without new worktrees or duplicate SDK environments. The hosted Mongo runner now uses a locked fixed `runs/current` directory, overwrites bounded per-run logs and removes its disposable databases after owned processes stop, retaining logs and TRX reports. The revised runner passed 43/43 transaction/election tests and 1/1 abrupt-primary-termination test on 2026-10-08, with zero skips; it exited successfully and all three owned database directories were absent afterward. Reports are retained in `TestResults/HostedMongoRelease/evidence`.
+
+Cleanup removed approximately 16.5 GiB of verified disposable Mongo archives/debug symbols, inactive synthetic Mongo databases, Antelope code caches and generated Holochain native-test output. Authorized WSL trim/shutdown/compaction reduced the Ubuntu VHD from about 69.6 GiB to 45.9 GiB, reclaiming a further 23.7 GiB without deleting Linux user data. Source, uncommitted work, credentials, packaged Holochain output and unrelated environments were retained. This accounts for about 40 GiB reclaimed, not the entire 60–70 GiB the user requested. Remaining disk usage still needs investigation; deleting user data or unrelated environments is not authorized.
 
 ### Real-provider V2 orchestration gate
 
