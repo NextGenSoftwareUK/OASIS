@@ -33,10 +33,19 @@ if (!$artifacts.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase)) 
 
 $downloads = Join-Path $work 'downloads'
 $runtime = Join-Path $work 'runtime'
-$run = Join-Path $work ("runs/{0}" -f [Guid]::NewGuid().ToString('N'))
+$run = Join-Path $work 'runs/current'
 $logs = Join-Path $run 'logs'
 $coordination = Join-Path $run 'kill-coordination'
 New-Item -ItemType Directory -Force $downloads, $runtime, $logs, $coordination, $artifacts | Out-Null
+# One owned environment; refuse concurrent execution instead of allocating another.
+$environmentLock = [IO.File]::Open((Join-Path $work 'environment.lock'), [IO.FileMode]::OpenOrCreate,
+    [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+try {
+# A reused coordination directory must not contain signals from the last run.
+foreach ($signal in 'ready', 'continue') {
+    $ownedSignal = Join-Path $coordination $signal
+    if (Test-Path -LiteralPath $ownedSignal -PathType Leaf) { Remove-Item -LiteralPath $ownedSignal -Force }
+}
 
 $archives = [ordered]@{
     mongodb = @('mongodb-7.0.26.zip', 'https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.26.zip')
@@ -98,7 +107,7 @@ try {
         New-Item -ItemType Directory -Force $dataPath | Out-Null
         $processes[$port] = Start-Process $mongod -ArgumentList @(
             '--dbpath', $dataPath, '--bind_ip', '127.0.0.1', '--port', "$port",
-            '--replSet', 'oasisReleaseRs', '--logpath', (Join-Path $logs "mongodb-$port.log"), '--logappend'
+            '--replSet', 'oasisReleaseRs', '--logpath', (Join-Path $logs "mongodb-$port.log")
         ) -PassThru -WindowStyle Hidden
         Wait-Port $port
     }
@@ -146,7 +155,10 @@ try {
     $primaryAddress = Invoke-Mongo $ports[0] 'print(db.hello().primary)'
     $primaryPort = [int]($primaryAddress.Split(':')[-1])
     if (!$processes.ContainsKey($primaryPort)) { throw "Replica set reported unexpected primary '$primaryAddress'." }
-    Stop-Process -Id $processes[$primaryPort].Id -Force
+    $terminatedPrimary = $processes[$primaryPort]
+    Stop-Process -Id $terminatedPrimary.Id -Force
+    $terminatedPrimary.WaitForExit()
+    $terminatedPrimary.Dispose()
     $processes.Remove($primaryPort)
 
     $elected = $false
@@ -200,12 +212,26 @@ catch {
     $failure = $_
 }
 finally {
-    if ($testProcess -and !$testProcess.HasExited) { Stop-Process -Id $testProcess.Id -Force -ErrorAction SilentlyContinue }
+    if ($testProcess) {
+        if (!$testProcess.HasExited) { Stop-Process -Id $testProcess.Id -Force; $testProcess.WaitForExit() }
+        $testProcess.Dispose()
+    }
     foreach ($process in @($processes.Values)) {
-        if (!$process.HasExited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue }
+        if (!$process.HasExited) { Stop-Process -Id $process.Id -Force; $process.WaitForExit() }
+        $process.Dispose()
+    }
+    foreach ($port in $ports) {
+        $ownedData = [IO.Path]::GetFullPath((Join-Path $run "data-$port"))
+        $runPrefix = [IO.Path]::GetFullPath($run).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+        if (!$ownedData.StartsWith($runPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Refusing cleanup outside the owned Mongo evidence run: '$ownedData'."
+        }
+        if (Test-Path -LiteralPath $ownedData) { Remove-Item -LiteralPath $ownedData -Recurse -Force }
     }
     Remove-Item Env:OASIS_MONGO_REPLICA_SET_CONNECTION -ErrorAction SilentlyContinue
     Remove-Item Env:OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY -ErrorAction SilentlyContinue
 }
 
 if ($failure) { throw $failure }
+}
+finally { $environmentLock.Dispose() }
