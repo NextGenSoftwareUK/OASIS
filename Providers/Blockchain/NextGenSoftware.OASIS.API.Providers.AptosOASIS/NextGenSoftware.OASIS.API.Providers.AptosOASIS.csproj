@@ -45,11 +45,6 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="AptosOASIS.ActivateAvatarLoad.cs" />
-    <Compile Remove="AptosOASIS.AvatarDetail.cs" />
-  </ItemGroup>
-
 </Project>
 
 
