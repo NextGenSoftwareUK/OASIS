@@ -53,3 +53,56 @@ foreach ($requiredTrigger in @('Scripts/validate_edge_unity_package.ps1', 'Scrip
         throw "Both push and pull-request path filters must validate changes to '$requiredTrigger'."
     }
 }
+
+# Exercise the real supervisor independently of an installed/licensed Unity editor.
+$tokens = $null
+$parseErrors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseInput($source, [ref]$tokens, [ref]$parseErrors)
+if ($parseErrors.Count -ne 0) { throw 'Unity validator has PowerShell syntax errors.' }
+$supervisor = $ast.Find({ param($node)
+    $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $node.Name -eq 'Invoke-UnityBatchProcess'
+}, $true)
+if ($null -eq $supervisor) { throw 'Unity batch supervisor function was not found.' }
+Invoke-Expression $supervisor.Extent.Text
+$UnityEditor = (Get-Command pwsh -ErrorAction Stop).Source
+$fixtureDirectory = Join-Path $repoRoot 'artifacts\unity-supervisor-regression'
+New-Item -ItemType Directory -Path $fixtureDirectory -Force | Out-Null
+$fixtureLog = Join-Path $fixtureDirectory 'fixture.log'
+$fixtureArguments = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes(
+    '[Console]::Out.WriteLine("fixture stdout"); [Console]::Error.WriteLine("fixture stderr"); exit 7'))
+try {
+    $fixtureExitCode = Invoke-UnityBatchProcess -Phase 'supervisor regression' -LogPath $fixtureLog `
+        -TimeoutMinutes 1 -Arguments @('-NoProfile', '-EncodedCommand', $fixtureArguments)
+    if ($fixtureExitCode -ne 7) { throw "Supervisor did not preserve failed exit code: $fixtureExitCode." }
+    if ((Get-Content -LiteralPath "$fixtureLog.stdout.log" -Raw) -notmatch 'fixture stdout' -or
+        (Get-Content -LiteralPath "$fixtureLog.stderr.log" -Raw) -notmatch 'fixture stderr') {
+        throw 'Supervisor did not capture both diagnostic streams.'
+    }
+    $timeoutArguments = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes(
+        '[Console]::Out.WriteLine("fixture pid=" + $PID); [Console]::Error.WriteLine("timeout fixture stderr"); Start-Sleep -Seconds 120'))
+    $timeoutRejected = $false
+    try {
+        $null = Invoke-UnityBatchProcess -Phase 'timeout regression' -LogPath $fixtureLog `
+            -TimeoutMinutes 1 -Arguments @('-NoProfile', '-EncodedCommand', $timeoutArguments)
+    } catch {
+        if ($_.Exception.Message -notmatch 'exceeded its 1-minute phase timeout') { throw }
+        $timeoutRejected = $true
+    }
+    if (!$timeoutRejected) { throw 'Supervisor accepted a timed-out process.' }
+    $timeoutOutput = Get-Content -LiteralPath "$fixtureLog.stdout.log" -Raw
+    if ($timeoutOutput -notmatch 'fixture pid=(\d+)') { throw 'Timeout process identity was not captured.' }
+    $fixtureProcessId = [int]$Matches[1]
+    if (Get-Process -Id $fixtureProcessId -ErrorAction SilentlyContinue) { throw 'Timed-out fixture is still running.' }
+    if ((Get-Content -LiteralPath "$fixtureLog.stderr.log" -Raw) -notmatch 'timeout fixture stderr') {
+        throw 'Timeout stderr diagnostic was not preserved.'
+    }
+} finally {
+    # Only this fixture's stopped process outputs are disposable; never remove Unity project caches here.
+    foreach ($fixtureOutput in @("$fixtureLog.stdout.log", "$fixtureLog.stderr.log")) {
+        if (Test-Path -LiteralPath $fixtureOutput -PathType Leaf) {
+            Remove-Item -LiteralPath $fixtureOutput -Force
+        }
+    }
+}
+Write-Host 'Unity supervisor regression passed: failed exit code, timeout termination and diagnostic streams verified.'
