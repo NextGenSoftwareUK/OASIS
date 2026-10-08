@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Google.Cloud.Storage.V1;
 using Google.Cloud.Firestore;
 using Google.Cloud.BigQuery.V2;
+using Google.Api.Gax;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -62,7 +63,26 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 // Initialize Firestore client if enabled
                 if (_enableFirestore)
                 {
-                    _firestoreDb = FirestoreDb.Create(_projectId);
+                    var firestoreBuilder = new FirestoreDbBuilder
+                    {
+                        ProjectId = _projectId,
+                        DatabaseId = _firestoreDatabaseId,
+                        EmulatorDetection = EmulatorDetection.EmulatorOrProduction
+                    };
+                    if (!string.IsNullOrWhiteSpace(_credentialsPath))
+                        firestoreBuilder.CredentialsPath = _credentialsPath;
+                    _firestoreDb = firestoreBuilder.Build();
+
+                    // Client construction does not contact Firestore. Perform a real,
+                    // reversible write so an unreachable or unauthorized provider can
+                    // never be advertised to HyperDrive as active.
+                    var activationProbe = _firestoreDb.Collection("_oasis_health").Document(Guid.NewGuid().ToString("N"));
+                    await activationProbe.SetAsync(new Dictionary<string, object>
+                    {
+                        ["provider"] = "GoogleCloudOASIS",
+                        ["checkedAt"] = Timestamp.GetCurrentTimestamp()
+                    });
+                    await activationProbe.DeleteAsync();
                 }
                 
                 // Initialize BigQuery client if enabled
@@ -506,6 +526,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     return result;
                 }
 
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS] = avatar.Id.ToString();
+
                 // Save avatar to Firestore with FULL property mapping
                 var docRef = _firestoreDb.Collection("avatars").Document(avatar.Id.ToString());
                 var avatarData = new Dictionary<string, object>
@@ -515,8 +540,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["email"] = avatar.Email,
                     ["firstName"] = avatar.FirstName,
                     ["lastName"] = avatar.LastName,
-                    ["createdDate"] = Timestamp.FromDateTime(avatar.CreatedDate),
-                    ["modifiedDate"] = Timestamp.FromDateTime(avatar.ModifiedDate),
+                    ["createdDate"] = ToFirestoreTimestamp(avatar.CreatedDate),
+                    ["modifiedDate"] = ToFirestoreTimestamp(avatar.ModifiedDate),
                     // Map ALL Avatar properties to Google Cloud fields
                     // Address, Country, Postcode, Mobile, Landline properties not available in IAvatar interface
                     ["title"] = avatar.Title,
@@ -527,7 +552,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["googleCloudBucketName"] = _bucketName,
                     ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
                     ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                    ["savedAt"] = Timestamp.FromDateTime(DateTime.Now)
+                    ["savedAt"] = Timestamp.GetCurrentTimestamp()
                 };
                 
                 await docRef.SetAsync(avatarData);
