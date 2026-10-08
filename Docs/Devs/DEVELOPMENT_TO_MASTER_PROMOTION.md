@@ -86,8 +86,12 @@ The intended deployment sequence is:
 Staging mirrors production's runtime versions, configuration **schema**, feature flags, deployment topology and
 dependency pins. Use separate staging databases, storage, queues, service credentials and external-service sandbox
 accounts where possible. Copying production settings verbatim can expose live data or send real payments/messages.
-Signing identities and client public-key pins need an explicit environment-specific policy; never rotate or copy them
-implicitly. Review configuration parity without printing secret values, and validate migrations against representative
+Signing identities and client public-key pins need an explicit policy; never rotate or copy them implicitly.
+The owner explicitly selected matching staging/production offline-grant signing keys on 2026-10-08; dev remains
+separate. These two environments therefore share that trust identity and are not cryptographically isolated by
+signing keys. Keep their public pins, scopes and lifetimes identical, and coordinate future rotation and client
+updates together. Other isolation recommendations above remain recommendations rather than permission to
+change the owner's environment settings. Review configuration parity without printing secret values, and validate migrations against representative
 sanitized data with a documented rollback/forward-recovery plan.
 
 **Not implemented by this documentation:** the current process above merges `master` and then verifies staging and
