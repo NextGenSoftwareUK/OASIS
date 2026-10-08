@@ -137,6 +137,10 @@ The portable provider runner also validates cached ZIP archives before reuse and
 
 These statuses are deliberately not rolled up as “all providers work.” V2 routing/failover/load-balancing/replication contracts are complete at the HyperDrive boundary, but a provider can participate only when its own activation and operations are truthful. Azure/Google/Solana still require their isolated runtimes before their provider rows can be promoted to real-runtime PASS.
 
+### Real-provider V2 orchestration gate
+
+`NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests` runs the V2 router against isolated LocalFile and SQLite stores, not provider mocks. Its 3/3 zero-skip gate proves that a failed primary mutation is written by the real secondary provider, a successful mutation is persisted and readable from both configured replicas, and performance selection consumes latency measured from actual provider reads. The SQLite provider now has an explicit disposal lifecycle so repeatable tests and hosts can close its real database handle deterministically.
+
 ### Railway OASISDNA mode configuration
 
 Railway holds the complete DNA document in the `OASIS_DNA_JSON` service variable; the mode was not changed in a repository JSON file. The safe update procedure was:
