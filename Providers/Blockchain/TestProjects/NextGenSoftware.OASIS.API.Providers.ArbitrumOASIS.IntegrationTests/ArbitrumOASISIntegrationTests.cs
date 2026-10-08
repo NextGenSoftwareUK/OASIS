@@ -1,5 +1,6 @@
 using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.IntegrationTests;
 
@@ -24,6 +25,13 @@ public class ArbitrumOASISIntegrationTests
         Assert.IsFalse(result.IsError, result.Message);
         Assert.IsTrue(result.Result);
         Assert.IsTrue(provider.IsProviderActivated);
+
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"arbitrum-{Guid.NewGuid():N}" };
+        var saved = await provider.SaveHolonAsync(holon);
+        var loaded = await provider.LoadHolonAsync(holon.Id);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.AreEqual(holon.Name, loaded.Result.Name);
     }
 
     [TestMethod]

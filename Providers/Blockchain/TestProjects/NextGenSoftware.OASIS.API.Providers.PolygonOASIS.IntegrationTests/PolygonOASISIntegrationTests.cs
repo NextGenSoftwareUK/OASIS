@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.IntegrationTests;
 
@@ -22,6 +23,25 @@ public class PolygonOASISIntegrationTests
         Assert.IsFalse(result.IsError, result.Message);
         Assert.IsTrue(result.Result);
         Assert.IsTrue(provider.IsProviderActivated);
+
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"polygon-{Guid.NewGuid():N}" };
+        var saved = await provider.SaveHolonAsync(holon);
+        var loaded = await provider.LoadHolonAsync(holon.Id);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.AreEqual(holon.Name, loaded.Result.Name);
+
+        holon.Name += "-updated";
+        var updated = await provider.SaveHolonAsync(holon);
+        var reloaded = await provider.LoadHolonAsync(holon.Id);
+        Assert.IsFalse(updated.IsError, updated.Message);
+        Assert.AreEqual(holon.Name, reloaded.Result.Name);
+
+        var deleted = await provider.DeleteHolonAsync(holon.Id);
+        var missing = await provider.LoadHolonAsync(holon.Id);
+        Assert.IsFalse(deleted.IsError, deleted.Message);
+        Assert.IsTrue(missing.IsError);
+
         Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
     }
 
