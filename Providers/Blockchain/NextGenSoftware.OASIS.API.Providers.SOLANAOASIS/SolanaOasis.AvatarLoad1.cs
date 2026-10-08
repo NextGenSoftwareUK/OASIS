@@ -53,6 +53,10 @@ public partial class SolanaOASIS
 
         try
         {
+            var health = await _rpcClient.GetHealthAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            if (!health.WasSuccessful || !string.Equals(health.Result, "ok", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"Solana RPC health check failed: {health.Reason ?? health.RawRpcResponse}. ");
+
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
             _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
 
@@ -61,6 +65,9 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
+            _solanaRepository = null;
+            _solanaService = null;
+            IsProviderActivated = false;
             OASISErrorHandling.HandleError(ref result,
                 $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}");
         }
@@ -70,23 +77,7 @@ public partial class SolanaOASIS
 
     public override OASISResult<bool> ActivateProvider()
     {
-        OASISResult<bool> result = new();
-
-        try
-        {
-            _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
-
-            result.Result = true;
-            IsProviderActivated = true;
-        }
-        catch (Exception e)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProvider. Reason: {e}");
-        }
-
-        return result;
+        return ActivateProviderAsync().GetAwaiter().GetResult();
     }
 
     public override async Task<OASISResult<bool>> DeActivateProviderAsync()
