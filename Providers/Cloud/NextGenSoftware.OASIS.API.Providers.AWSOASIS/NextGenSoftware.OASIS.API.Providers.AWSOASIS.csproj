@@ -6,23 +6,15 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API AWS OASIS Provider</Product>
 	  <Title>WEB4 OASIS API AWS OASIS Provider</Title>
-	  <Summary>AWS OASIS Provider -- Amazon DynamoDB and S3 cloud storage for OASIS holons and avatars. Enterprise-grade persistence at global AWS scale. https://oasisomniverse.one</Summary>
-	  <Description>Connects the OASIS to Amazon Web Services -- leveraging DynamoDB (key-value/document) and S3 (object storage) for OASIS holon and avatar persistence at global AWS scale. Ideal for existing AWS-hosted applications adding OASIS capabilities with enterprise SLAs. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+	  <Summary>AWS OASIS Provider -- Amazon DynamoDB persistence for OASIS holons and avatars through the official AWS SDK. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Amazon DynamoDB through AWSSDK.DynamoDBv2 for holon and avatar persistence. The same SDK path supports AWS-hosted DynamoDB and DynamoDB Local for repeatable integration evidence. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
-	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
-- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
-- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
-- Improved error handling: explicit errors when provider returns null content; null guards throughout.
-- Updated to align with OASIS API Core v2.0.0.
-- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
-- Miscellaneous bug fixes and stability improvements.
-- Improved null safety and error reporting.
-- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
-- Many misc improvements.
-- Multiple bug fixes.</PackageReleaseNotes>
+	  <PackageReleaseNotes>- Uses the official AWSSDK.DynamoDBv2 implementation inherited from DynamoDBOASIS.
+- Supports real AWS DynamoDB endpoints and DynamoDB Local without an alternate storage implementation.
+- Removes the obsolete unsigned /dynamodb HTTP prototype.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
@@ -47,12 +39,6 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="AWSOASIS.ActivateSave.cs" />
-    <Compile Remove="AWSOASIS.LoadOps.cs" />
-    <Compile Remove="AWSOASIS.SaveLoad.cs" />
   </ItemGroup>
 
 </Project>
