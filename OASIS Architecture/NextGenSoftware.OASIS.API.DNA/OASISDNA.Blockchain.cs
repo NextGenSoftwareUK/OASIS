@@ -149,6 +149,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.telos.net";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11";
+        public string AccountName { get; set; }
+        public string AccountPrivateKey { get; set; }
     }
 
     public class ActivityPubOASISProviderSettings : ProviderSettingsBase
