@@ -65,6 +65,9 @@ public class SuiNativeTransferTests
                 var after = await provider.GetBalanceAsync(new GetWeb3WalletBalanceRequest { WalletAddress = recipient.Result.WalletAddressLegacy });
                 Assert.IsFalse(after.IsError, after.Message);
                 Assert.AreEqual(1d, after.Result - before.Result);
+                var exactBalance = await provider.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy);
+                Assert.IsFalse(exactBalance.IsError, exactBalance.Message);
+                Assert.AreEqual((decimal)after.Result, exactBalance.Result);
                 var wrongSender = await provider.SendTransactionAsync(recipient.Result.WalletAddressLegacy, sender.Result.WalletAddressLegacy, 1m);
                 Assert.IsTrue(wrongSender.IsError);
                 StringAssert.Contains(wrongSender.Message, "does not own sender");
@@ -76,6 +79,8 @@ public class SuiNativeTransferTests
                 var rejected = await wrongChain.GetBalanceAsync(new GetWeb3WalletBalanceRequest { WalletAddress = recipient.Result.WalletAddressLegacy });
                 Assert.IsTrue(rejected.IsError, "Chain failure must not be reported as a successful zero balance.");
                 StringAssert.Contains(rejected.Message, "chain identifier mismatch");
+                var exactRejected = await wrongChain.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy);
+                Assert.IsTrue(exactRejected.IsError, "Decimal account balance must not hide a chain failure as zero.");
             }
             finally { wrongChain.Dispose(); }
         }
