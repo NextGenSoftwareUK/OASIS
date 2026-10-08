@@ -24,7 +24,9 @@ foreach ($invocation in $invocations) {
 
 foreach ($requiredSupervisorContract in @(
         '$process.WaitForExit(5000)', '$process.Kill($true)',
-        'EditorValidationTimeoutMinutes', 'AndroidBuildTimeoutMinutes')) {
+        'EditorValidationTimeoutMinutes', 'AndroidBuildTimeoutMinutes',
+        '-RedirectStandardOutput $stdoutPath', '-RedirectStandardError $stderrPath',
+        'Get-Content -LiteralPath $diagnosticPath -Tail 120')) {
     if ($source.IndexOf($requiredSupervisorContract, [StringComparison]::Ordinal) -lt 0) {
         throw "Unity batch supervisor is missing required contract '$requiredSupervisorContract'."
     }

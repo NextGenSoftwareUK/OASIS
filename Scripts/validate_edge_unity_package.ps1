@@ -32,24 +32,38 @@ function Invoke-UnityBatchProcess {
         [Parameter(Mandatory)] [int]$TimeoutMinutes
     )
 
+    $stdoutPath = "$LogPath.stdout.log"
+    $stderrPath = "$LogPath.stderr.log"
     Write-Host "Starting Unity $Phase validation (timeout: $TimeoutMinutes minutes)."
     $process = Start-Process -FilePath $UnityEditor -ArgumentList $Arguments `
-        -WindowStyle Hidden -PassThru
+        -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru
     $deadline = [DateTime]::UtcNow.AddMinutes($TimeoutMinutes)
     $nextProgress = [DateTime]::UtcNow.AddMinutes(1)
     while (-not $process.WaitForExit(5000)) {
         if ([DateTime]::UtcNow -ge $deadline) {
             try { $process.Kill($true) } catch { Write-Warning "Unable to terminate timed-out Unity process tree: $($_.Exception.Message)" }
             $process.WaitForExit()
-            if (Test-Path -LiteralPath $LogPath -PathType Leaf) {
-                Write-Host "--- Timed-out Unity $Phase validation log ---"
-                Get-Content -LiteralPath $LogPath | Write-Host
+            foreach ($diagnosticPath in @($LogPath, $stdoutPath, $stderrPath)) {
+                if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
+                    Write-Host "--- Timed-out Unity $Phase diagnostic: $diagnosticPath ---"
+                    Get-Content -LiteralPath $diagnosticPath -Tail 120 | Write-Host
+                } else {
+                    Write-Warning "Unity did not create diagnostic '$diagnosticPath'."
+                }
             }
             throw "Unity $Phase validation exceeded its $TimeoutMinutes-minute phase timeout. See '$LogPath'."
         }
         if ([DateTime]::UtcNow -ge $nextProgress) {
             Write-Host "Unity $Phase validation is still running (PID $($process.Id), elapsed $([Math]::Round(([DateTime]::UtcNow - $process.StartTime.ToUniversalTime()).TotalMinutes, 1)) minutes)."
             $nextProgress = [DateTime]::UtcNow.AddMinutes(1)
+        }
+    }
+    if ($process.ExitCode -ne 0) {
+        foreach ($diagnosticPath in @($stdoutPath, $stderrPath)) {
+            if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
+                Write-Host "--- Failed Unity $Phase diagnostic: $diagnosticPath ---"
+                Get-Content -LiteralPath $diagnosticPath -Tail 120 | Write-Host
+            }
         }
     }
     return $process.ExitCode
