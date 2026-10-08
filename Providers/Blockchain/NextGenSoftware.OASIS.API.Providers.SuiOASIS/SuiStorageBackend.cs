@@ -11,10 +11,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 // The provider supplies its single SDK transport; no second RPC or signing path.
 internal sealed class SuiStorageBackend : IKeyValueBackend
 {
-    private readonly Func<string, object, CancellationToken, Task<JsonElement>> _invoke;
+    internal SuiSdkClient Client { get; }
 
-    internal SuiStorageBackend(Func<string, object, CancellationToken, Task<JsonElement>> invoke)
-        => _invoke = invoke ?? throw new ArgumentNullException(nameof(invoke));
+    private Task<JsonElement> _invoke(string operation, object args, CancellationToken cancellationToken)
+        => Client.InvokeAsync(operation, args, cancellationToken);
+
+    internal SuiStorageBackend(SuiSdkClient client)
+        => Client = client ?? throw new ArgumentNullException(nameof(client));
 
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
     {
