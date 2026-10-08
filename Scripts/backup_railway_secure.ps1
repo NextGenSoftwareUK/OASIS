@@ -7,7 +7,8 @@ Exports accessible environments, raw shared/service variables (including DNA and
 service build/deployment/source/domain settings, and a project inventory snapshot.
 Database/volume contents, account credentials and settings not exposed by the API are excluded.
 Unreadable/sealed variable names are recorded inside the encrypted payload and their count is reported.
-Only encrypted data is written. Encryption is AES-256-GCM with a random 32-byte salt,
+Only encrypted data is written by default. Explicit Plaintext export and DecryptPath write
+secret-bearing JSON only to the specified OutputPath. Encryption is AES-256-GCM with a random 32-byte salt,
 12-byte nonce, 16-byte tag and PBKDF2-HMAC-SHA256 (600000 iterations).
 The authenticated format header is stored with the encrypted envelope. No Windows-bound
 encryption is used. Keep the backup password separately; there is no password recovery.
@@ -32,16 +33,22 @@ Tests serialized-envelope round trip, wrong-password rejection and tamper reject
 pwsh -File Scripts/backup_railway_secure.ps1 -DecryptPath C:\Backups\railway.encrypted.json -OutputPath C:\Backups\railway.private.json
 Explicitly exports plaintext JSON. The output contains credentials and private keys: store it securely,
 never commit or share it, and remove it when no longer needed. No Railway settings are changed.
+.EXAMPLE
+pwsh -File Scripts/backup_railway_secure.ps1 -Plaintext -OutputPath C:\Backups\railway.private.json
+Exports a fresh plain JSON snapshot without password prompting. Encrypt this secret-bearing file
+yourself and keep it out of Git. Existing files are never overwritten.
 #>
 param(
     [string]$OutputPath,
     [string]$VerifyPath,
     [string]$DecryptPath,
+    [switch]$Plaintext,
     [switch]$PasswordDialog,
     [switch]$SelfTest
 )
 $ErrorActionPreference = 'Stop'
 if ($VerifyPath -and $DecryptPath) { throw 'Choose verification or decryption, not both.' }
+if ($Plaintext -and ($VerifyPath -or $DecryptPath -or $SelfTest)) { throw 'Plaintext export cannot be combined with verification, decryption or self-test.' }
 if ($DecryptPath -and !$OutputPath) { throw 'Decryption requires an explicit plaintext OutputPath.' }
 # Passwords and exported settings never travel through arguments or plaintext files.
 function Get-BackupPassword {
@@ -49,7 +56,7 @@ function Get-BackupPassword {
         Add-Type -AssemblyName System.Windows.Forms
         $form = New-Object Windows.Forms.Form
         $form.Text = 'Portable Railway backup password'
-        $form.Width = 480; $form.Height = 210; $form.StartPosition = 'CenterScreen'
+        $form.Width = 480; $form.Height = 260; $form.StartPosition = 'CenterScreen'
         $label = New-Object Windows.Forms.Label
         $label.Text = if ($DecryptPath) { 'Enter backup password twice. Output will contain plaintext secrets.' } else { 'Enter a strong backup password (16+ characters). Save it separately.' }
         $label.SetBounds(15,15,440,35); $form.Controls.Add($label)
@@ -60,7 +67,21 @@ function Get-BackupPassword {
         $button = New-Object Windows.Forms.Button
         $button.Text = if ($DecryptPath) { 'Decrypt backup' } elseif ($VerifyPath) { 'Verify backup' } else { 'Encrypt backup' }
         $button.SetBounds(290,125,155,30)
-        $button.Add_Click({ if ($box.Text.Length -ge 16 -and $box.Text -ceq $confirm.Text) { $form.DialogResult = 'OK'; $form.Close() } })
+        $feedback = New-Object Windows.Forms.Label
+        $feedback.ForeColor = [Drawing.Color]::DarkRed
+        $feedback.SetBounds(15,165,430,45); $form.Controls.Add($feedback)
+        $minimumLength = if ($DecryptPath -or $VerifyPath) { 1 } else { 16 }
+        $button.Add_Click({
+            if ($box.Text.Length -lt $minimumLength) {
+                $feedback.Text = if ($minimumLength -eq 1) { 'Enter your existing backup password.' } else { 'Use at least 16 characters for the new backup password.' }
+                return
+            }
+            if ($box.Text -cne $confirm.Text) {
+                $feedback.Text = 'The two password entries do not match. Please re-enter them.'
+                return
+            }
+            $form.DialogResult = 'OK'; $form.Close()
+        })
         $form.Controls.Add($button); $form.AcceptButton = $button
         if ($form.ShowDialog() -ne 'OK') { throw 'Backup cancelled; nothing exported.' }
         $password = $box.Text; $form.Dispose(); return $password
@@ -69,7 +90,8 @@ function Get-BackupPassword {
     $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
     try { $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) }
     finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr); $secure.Dispose() }
-    if ($password.Length -lt 16) { throw 'Password must contain at least 16 characters.' }
+    $minimumLength = if ($DecryptPath -or $VerifyPath) { 1 } else { 16 }
+    if ($password.Length -lt $minimumLength) { throw "Password must contain at least $minimumLength characters." }
     return $password
 }
 function Protect-Backup([byte[]]$Data, [string]$Password) {
@@ -106,7 +128,7 @@ if ($SelfTest) {
     if (!$rejected) { throw 'Tampering accepted.' }
     Write-Output 'Encryption round trip, wrong-password rejection and tamper rejection passed.'; exit
 }
-$password = Get-BackupPassword
+$password = if ($Plaintext) { $null } else { Get-BackupPassword }
 if ($DecryptPath) {
     $plain = $null
     try {
@@ -174,6 +196,22 @@ $environments = foreach ($edge in $project.environments.edges) {
     @{id=$env.id;name=$env.name;sharedVariables=$shared;services=@($services)}
 }
 $payload = @{format=1;createdUtc=[DateTime]::UtcNow.ToString('o');projectSnapshot=$project;environments=@($environments);unreadableVariables=@($missing);excluded=@('Database and volume contents','Account credentials','Settings not exposed by Railway CLI/API')}
+if ($Plaintext) {
+    $full = [IO.Path]::GetFullPath($OutputPath)
+    $null = [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($full))
+    $bytes = [Text.Encoding]::UTF8.GetBytes(($payload | ConvertTo-Json -Depth 100))
+    $stream = [IO.File]::Open($full,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try { $stream.Write($bytes,0,$bytes.Length) } finally { $stream.Dispose() }
+    $readback = [IO.File]::ReadAllBytes($full)
+    try {
+        if (![Security.Cryptography.CryptographicOperations]::FixedTimeEquals($bytes,$readback)) { throw 'Plaintext backup failed read-back verification.' }
+        $null = [Text.Encoding]::UTF8.GetString($readback) | ConvertFrom-Json
+    } finally { [Array]::Clear($bytes,0,$bytes.Length); [Array]::Clear($readback,0,$readback.Length) }
+    Write-Output "Plain JSON exported and verified: $full"
+    Write-Output "Environments: $($environments.Count); unreadable/sealed variables: $($missing.Count)."
+    Write-Warning 'This file contains plaintext secrets/private keys. Encrypt it yourself and never commit or share it.'
+    exit
+}
 $bytes = [Text.Encoding]::UTF8.GetBytes(($payload | ConvertTo-Json -Depth 100 -Compress))
 $envelope = Protect-Backup $bytes $password
 $verified = Unprotect-Backup $envelope $password
