@@ -200,10 +200,16 @@ public partial class Web3CoreOASISBaseProvider
         {
             string holonInfo = Newtonsoft.Json.JsonConvert.SerializeObject(holon);
             int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-            string holonId = holon.Id.ToString();
+            byte[] holonId = holon.Id.ToByteArray();
 
-            await _web3CoreOASIS.CreateAvatarAsync(
-                (uint)holonEntityId, Encoding.UTF8.GetBytes(holonId), Encoding.UTF8.GetBytes(holonInfo));
+            if (holon.IsNewHolon)
+                await _web3CoreOASIS.CreateHolonAsync((uint)holonEntityId, holonId, Encoding.UTF8.GetBytes(holonInfo));
+            else if (!await _web3CoreOASIS.UpdateHolonAsync((uint)holonEntityId, Encoding.UTF8.GetBytes(holonInfo)))
+                throw new InvalidOperationException($"The EVM update transaction for holon '{holon.Id}' failed.");
+
+            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            holon.ProviderUniqueStorageKey[ProviderType.Value] = holon.Id.ToString();
+            holon.IsNewHolon = false;
 
             result.Result = holon;
             result.IsError = false;

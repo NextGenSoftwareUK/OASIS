@@ -6,6 +6,7 @@ using Nethereum.Hex.HexTypes;
 using System.Threading.Tasks;
 using System;
 using System.Numerics;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -14,6 +15,30 @@ public sealed class Web3CoreOASIS
     private readonly Web3 _web3;
     private readonly string _contractAddress;
     private readonly string _abi;
+
+    private async Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
+    {
+        string transactionHash = await function.SendTransactionAsync(
+            _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(3_000_000),
+            value: null,
+            functionInput);
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        while (!timeout.IsCancellationRequested)
+        {
+            TransactionReceipt? receipt = await _web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            if (receipt is not null)
+            {
+                if (!receipt.Succeeded())
+                    throw new InvalidOperationException($"EVM transaction '{transactionHash}' reverted.");
+                return receipt;
+            }
+            await Task.Delay(100, timeout.Token);
+        }
+
+        throw new TimeoutException($"Timed out waiting for EVM transaction '{transactionHash}' to be mined.");
+    }
 
     public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi)
     {
@@ -26,106 +51,94 @@ public sealed class Web3CoreOASIS
         _abi = abi;
     }
 
-    public Task<string> CreateAvatarAsync(uint entityId, byte[] avatarId, byte[] info)
+    public Task<TransactionReceipt> CreateAvatarAsync(uint entityId, byte[] avatarId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function createAvatarFunction = contract.GetFunction(Web3CoreOASISHelper.CreateAvatarFuncName);
-        return createAvatarFunction.SendTransactionAsync(
-            _web3.TransactionManager.Account.Address,
-            gas: new HexBigInteger(value: 300000),
-            value: null,
-            entityId,
-            avatarId,
-            info);
+        return SendAndWaitForReceiptAsync(createAvatarFunction, entityId, avatarId, info);
     }
 
-    public Task<string> CreateHolonAsync(uint entityId, byte[] holonId, byte[] info)
+    public Task<TransactionReceipt> CreateHolonAsync(uint entityId, byte[] holonId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function createHolonFunction = contract.GetFunction(Web3CoreOASISHelper.CreateHolonFuncName);
-        return createHolonFunction.SendTransactionAsync(
-            _web3.TransactionManager.Account.Address,
-            gas: new HexBigInteger(value: 300000),
-            value: null,
-            entityId,
-            holonId,
-            info);
+        return SendAndWaitForReceiptAsync(createHolonFunction, entityId, holonId, info);
     }
 
-    public Task<string> CreateAvatarDetailAsync(uint entityId, byte[] avatarId, byte[] info)
+    public Task<TransactionReceipt> CreateAvatarDetailAsync(uint entityId, byte[] avatarId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function createAvatarDetailFunction = contract.GetFunction(Web3CoreOASISHelper.CreateAvatarDetailFuncName);
-        return createAvatarDetailFunction.SendTransactionAsync(
-            _web3.TransactionManager.Account.Address,
-            gas: new HexBigInteger(value: 300000),
-            value: null,
-            entityId,
-            avatarId,
-            info);
+        return SendAndWaitForReceiptAsync(createAvatarDetailFunction, entityId, avatarId, info);
     }
 
-    public Task<bool> UpdateAvatarAsync(uint entityId, byte[] info)
+    public async Task<bool> UpdateAvatarAsync(uint entityId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function updateAvatarFunction = contract.GetFunction(Web3CoreOASISHelper.UpdateAvatarFuncName);
-        return updateAvatarFunction.CallAsync<bool>(entityId, info);
+        var receipt = await SendAndWaitForReceiptAsync(updateAvatarFunction, entityId, info);
+        return receipt.Succeeded();
     }
 
-    public Task<bool> UpdateAvatarDetailAsync(uint entityId, byte[] info)
+    public async Task<bool> UpdateAvatarDetailAsync(uint entityId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function updateAvatarDetailFunction = contract.GetFunction(Web3CoreOASISHelper.UpdateAvatarDetailFuncName);
-        return updateAvatarDetailFunction.CallAsync<bool>(entityId, info);
+        var receipt = await SendAndWaitForReceiptAsync(updateAvatarDetailFunction, entityId, info);
+        return receipt.Succeeded();
     }
 
-    public Task<bool> UpdateHolonAsync(uint entityId, byte[] info)
+    public async Task<bool> UpdateHolonAsync(uint entityId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function updateHolonFunction = contract.GetFunction(Web3CoreOASISHelper.UpdateHolonFuncName);
-        return updateHolonFunction.CallAsync<bool>(entityId, info);
+        var receipt = await SendAndWaitForReceiptAsync(updateHolonFunction, entityId, info);
+        return receipt.Succeeded();
     }
 
-    public Task<bool> DeleteAvatarAsync(uint entityId)
+    public async Task<bool> DeleteAvatarAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function deleteAvatarFunction = contract.GetFunction(Web3CoreOASISHelper.DeleteAvatarFuncName);
-        return deleteAvatarFunction.CallAsync<bool>(entityId);
+        var receipt = await SendAndWaitForReceiptAsync(deleteAvatarFunction, entityId);
+        return receipt.Succeeded();
     }
 
-    public Task<bool> DeleteAvatarDetailAsync(uint entityId)
+    public async Task<bool> DeleteAvatarDetailAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function deleteAvatarDetailFunction = contract.GetFunction(Web3CoreOASISHelper.DeleteAvatarDetailFuncName);
-        return deleteAvatarDetailFunction.CallAsync<bool>(entityId);
+        var receipt = await SendAndWaitForReceiptAsync(deleteAvatarDetailFunction, entityId);
+        return receipt.Succeeded();
     }
 
-    public Task<bool> DeleteHolonAsync(uint entityId)
+    public async Task<bool> DeleteHolonAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function deleteHolonFunction = contract.GetFunction(Web3CoreOASISHelper.DeleteHolonFuncName);
-        return deleteHolonFunction.CallAsync<bool>(entityId);
+        var receipt = await SendAndWaitForReceiptAsync(deleteHolonFunction, entityId);
+        return receipt.Succeeded();
     }
 
-    public Task<EntityOASIS> GetAvatarByIdAsync(uint entityId)
+    public async Task<EntityOASIS> GetAvatarByIdAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function getAvatarByIdFunction = contract.GetFunction(Web3CoreOASISHelper.GetAvatarByIdFuncName);
-        return getAvatarByIdFunction.CallAsync<EntityOASIS>(entityId);
+        return (await getAvatarByIdFunction.CallDeserializingToObjectAsync<EntityOASISOutput>(entityId)).Entity;
     }
 
-    public Task<EntityOASIS> GetAvatarDetailByIdAsync(uint entityId)
+    public async Task<EntityOASIS> GetAvatarDetailByIdAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function getAvatarDetailByIdFunction = contract.GetFunction(Web3CoreOASISHelper.GetAvatarDetailByIdFuncName);
-        return getAvatarDetailByIdFunction.CallAsync<EntityOASIS>(entityId);
+        return (await getAvatarDetailByIdFunction.CallDeserializingToObjectAsync<EntityOASISOutput>(entityId)).Entity;
     }
 
-    public Task<EntityOASIS> GetHolonByIdAsync(uint entityId)
+    public async Task<EntityOASIS> GetHolonByIdAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function getHolonByIdFunction = contract.GetFunction(Web3CoreOASISHelper.GetHolonByIdFuncName);
-        return getHolonByIdFunction.CallAsync<EntityOASIS>(entityId);
+        return (await getHolonByIdFunction.CallDeserializingToObjectAsync<EntityOASISOutput>(entityId)).Entity;
     }
 
     public Task<uint> GetAvatarsCountAsync()
@@ -153,19 +166,14 @@ public sealed class Web3CoreOASIS
         _web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(receiverAddress, etherAmount);
     
 
-    public Task<string> MintAsync(string toAddress, string metadataJson)
+    public Task<TransactionReceipt> MintAsync(string toAddress, string metadataJson)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function mintFunction = contract.GetFunction(Web3CoreOASISHelper.MintFuncName);
-        return mintFunction.SendTransactionAsync(
-            _web3.TransactionManager.Account.Address,
-            gas: new HexBigInteger(value: 300000),
-            value: null,
-            toAddress,
-            metadataJson);
+        return SendAndWaitForReceiptAsync(mintFunction, toAddress, metadataJson);
     }
 
-    public Task<string> SendNFTAsync(
+    public Task<TransactionReceipt> SendNFTAsync(
         string fromAddress, 
         string toAddress, 
         BigInteger tokenId, 
@@ -176,10 +184,7 @@ public sealed class Web3CoreOASIS
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
         Function sendNFTFunction = contract.GetFunction(Web3CoreOASISHelper.SendNFTFuncName);
-        return sendNFTFunction.SendTransactionAsync(
-            _web3.TransactionManager.Account.Address,
-            gas: new HexBigInteger(value: 300000),
-            value: null,
+        return SendAndWaitForReceiptAsync(sendNFTFunction,
             fromAddress,
             toAddress,
             tokenId,
