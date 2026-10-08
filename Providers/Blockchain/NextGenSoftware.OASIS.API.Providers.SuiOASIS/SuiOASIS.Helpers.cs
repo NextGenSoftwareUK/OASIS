@@ -182,51 +182,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                // Query Sui RPC for transaction status
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sui_getTransactionBlock",
-                    @params = new object[] { transactionHash, new { showInput = true, showEffects = true, showEvents = true } }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) &&
-                    resultElement.TryGetProperty("effects", out var effectsElement) &&
-                    effectsElement.TryGetProperty("status", out var statusElement))
-                {
-                    var status = statusElement.GetProperty("status").GetString();
-                    result.Result = status == "success" ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
-                }
+                var receipt = await InvokeSdkAsync("transaction", new { transactionHash }, token);
+                if (!receipt.GetProperty("status").GetProperty("success").GetBoolean())
+                    throw new InvalidOperationException("Sui consensus reports failed execution: " + receipt.GetProperty("status").GetRawText());
+                result.Result = BridgeTransactionStatus.Completed;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Sui transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
