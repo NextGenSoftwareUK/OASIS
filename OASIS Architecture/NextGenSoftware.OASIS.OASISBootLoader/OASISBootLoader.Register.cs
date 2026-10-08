@@ -472,7 +472,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId ?? "",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.PrivateKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageObjectId ?? "");
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageObjectId ?? "",
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.CurrencyObjectId ?? "");
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }
