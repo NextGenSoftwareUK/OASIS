@@ -46,6 +46,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             _httpClient?.Dispose();
         }
 
+        /// <summary>
+        /// Blocks the removed legacy JSON-RPC signing path. Aptos does not expose the
+        /// JSON-RPC methods that path attempted to call, and returning fabricated signed
+        /// payloads would be unsafe. Callers are migrated to Aptos Labs SDK transaction
+        /// builders before their capability can be advertised as supported.
+        /// </summary>
+        private Task<string> CreateAptosTransaction(string method, string data) =>
+            throw new NotSupportedException(
+                $"Aptos operation '{method}' is not available through the removed legacy signing path. " +
+                "Use the Aptos Labs SDK transaction builder for this operation.");
+
 
 
         /// <summary>
@@ -123,164 +134,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         }
 
         /// <summary>
-        /// Create an Aptos transaction for smart contract calls
-        /// </summary>
-        private async Task<string> CreateAptosTransaction(string method, string data)
-        {
-            try
-            {
-                // Get current sequence number
-                var sequenceRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "get_account",
-                    @params = new[] { "0x1" }
-                };
-
-                var sequenceResponse = await _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(sequenceRequest), Encoding.UTF8, "application/json"));
-                var sequenceContent = await sequenceResponse.Content.ReadAsStringAsync();
-                var sequenceData = JsonSerializer.Deserialize<JsonElement>(sequenceContent);
-
-                var sequenceNumber = sequenceData.TryGetProperty("result", out var result) &&
-                                   result.TryGetProperty("sequence_number", out var seq) ? seq.GetString() : "0";
-
-                // Create Aptos transaction
-                var transaction = new
-                {
-                    sender = "0x1",
-                    sequence_number = sequenceNumber,
-                    max_gas_amount = "1000",
-                    gas_unit_price = "1",
-                    expiration_timestamp_secs = (DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 600).ToString(),
-                    payload = new
-                    {
-                        type = "script_function_payload",
-                        function = $"0x1::Oasis::{method}",
-                        type_arguments = new string[0],
-                        arguments = new[] { data }
-                    }
-                };
-
-                // REAL Aptos transaction signing using Aptos SDK
-                var transactionJson = JsonSerializer.Serialize(transaction);
-
-                // Use REAL Aptos SDK for transaction signing
-                var aptosTransaction = await SignAptosTransaction(transactionJson);
-
-                return aptosTransaction;
-            }
-            catch (Exception)
-            {
-                // Return a basic signed transaction for testing
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"transaction\":{\"sender\":\"0x1\",\"sequence_number\":\"0\",\"max_gas_amount\":\"1000\",\"gas_unit_price\":\"1\",\"expiration_timestamp_secs\":\"" + (DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 600) + "\",\"payload\":{\"type\":\"script_function_payload\",\"function\":\"0x1::Oasis::" + method + "\",\"type_arguments\":[],\"arguments\":[\"" + Convert.ToBase64String(Encoding.UTF8.GetBytes(data)) + "\"]}},\"signature\":\"0xtest\"}"));
-            }
-        }
-
-        /// <summary>
-        /// REAL Aptos transaction signing using Aptos SDK
-        /// </summary>
-        private async Task<string> SignAptosTransaction(string transactionJson)
-        {
-            try
-            {
-                // Use REAL Aptos SDK for transaction signing
-                var signingRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sign_transaction",
-                    @params = new
-                    {
-                        transaction = JsonSerializer.Deserialize<JsonElement>(transactionJson),
-                        private_key = _privateKey // Real private key for signing
-                    }
-                };
-
-                var signingResponse = await _httpClient.PostAsync("", new StringContent(JsonSerializer.Serialize(signingRequest), Encoding.UTF8, "application/json"));
-                var signingContent = await signingResponse.Content.ReadAsStringAsync();
-                var signingData = JsonSerializer.Deserialize<JsonElement>(signingContent);
-
-                if (signingData.TryGetProperty("result", out var result) &&
-                    result.TryGetProperty("signature", out var signature))
-                {
-                    var signedTransaction = new
-                    {
-                        transaction = JsonSerializer.Deserialize<JsonElement>(transactionJson),
-                        signature = signature.GetString()
-                    };
-
-                    return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedTransaction)));
-                }
-
-                // Fallback to direct Aptos SDK signing
-                return await DirectAptosSDKSigning(transactionJson);
-            }
-            catch (Exception)
-            {
-                // Return a properly signed transaction using Aptos SDK
-                return await DirectAptosSDKSigning(transactionJson);
-            }
-        }
-
-        /// <summary>
-        /// Direct Aptos SDK signing implementation
-        /// </summary>
-        private async Task<string> DirectAptosSDKSigning(string transactionJson)
-        {
-            try
-            {
-                // REAL Aptos SDK signing implementation
-                var transaction = JsonSerializer.Deserialize<JsonElement>(transactionJson);
-
-                // Create Aptos Ed25519 signature using REAL cryptographic signing
-                var messageBytes = Encoding.UTF8.GetBytes(transactionJson);
-                var privateKeyBytes = Convert.FromHexString(_privateKey.Replace("0x", ""));
-
-                // Use REAL Ed25519 signing algorithm
-                var signature = CreateEd25519Signature(messageBytes, privateKeyBytes);
-
-                var signedTransaction = new
-                {
-                    transaction = transaction,
-                    signature = "0x" + Convert.ToHexString(signature)
-                };
-
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedTransaction)));
-            }
-            catch (Exception)
-            {
-                // Return a properly formatted signed transaction
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"transaction\":" + transactionJson + ",\"signature\":\"0x" + Convert.ToHexString(Encoding.UTF8.GetBytes("aptos_signature")) + "\"}"));
-            }
-        }
-
-        /// <summary>
-        /// REAL Ed25519 signature creation for Aptos transactions
-        /// </summary>
-        private byte[] CreateEd25519Signature(byte[] message, byte[] privateKey)
-        {
-            try
-            {
-                // REAL Ed25519 cryptographic signing implementation
-                using (var ed25519 = new System.Security.Cryptography.ECDsaCng(521))
-                {
-                    ed25519.KeySize = 521;
-                    var key = System.Security.Cryptography.ECDsa.Create();
-                    key.ImportPkcs8PrivateKey(privateKey, out _);
-
-                    var signature = key.SignData(message, System.Security.Cryptography.HashAlgorithmName.SHA256);
-                    return signature;
-                }
-            }
-            catch (Exception)
-            {
-                // Return a valid signature format
-                return System.Security.Cryptography.SHA256.Create().ComputeHash(message);
-            }
-        }
-
-        /// <summary>
         /// Get wallet address for avatar by username using WalletHelper with fallback chain
         /// </summary>
         private async Task<string> GetWalletAddressForAvatarByUsername(string username)
@@ -291,47 +144,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 username,
                 _httpClient);
             return result.Result ?? "";
-        }
-
-        /// <summary>
-        /// Generate Aptos seed phrase (BIP39 mnemonic)
-        /// </summary>
-        private string GenerateAptosSeedPhrase()
-        {
-            // BIP39 word list (simplified - in production use full BIP39 word list)
-            var bip39Words = new[]
-            {
-                "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse",
-                "access", "accident", "account", "accuse", "achieve", "acid", "acoustic", "acquire", "across", "act"
-                // In production, use full 2048-word BIP39 list
-            };
-            
-            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-            {
-                var words = new List<string>();
-                for (int i = 0; i < 12; i++) // 12-word mnemonic
-                {
-                    var randomBytes = new byte[2];
-                    rng.GetBytes(randomBytes);
-                    var index = BitConverter.ToUInt16(randomBytes, 0) % bip39Words.Length;
-                    words.Add(bip39Words[index]);
-                }
-                return string.Join(" ", words);
-            }
-        }
-
-        /// <summary>
-        /// Derive seed from BIP39 mnemonic phrase
-        /// </summary>
-        private byte[] DeriveSeedFromMnemonic(string mnemonic)
-        {
-            // In production, use proper BIP39 seed derivation (PBKDF2 with 2048 iterations)
-            // For now, use a simplified hash-based approach
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var mnemonicBytes = Encoding.UTF8.GetBytes(mnemonic);
-                return sha256.ComputeHash(sha256.ComputeHash(mnemonicBytes));
-            }
         }
 
         /// <summary>
