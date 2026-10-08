@@ -1,7 +1,9 @@
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { Transaction } from '@mysten/sui/transactions';
-import { isValidSuiAddress } from '@mysten/sui/utils';
+import { isValidSuiAddress, normalizeSuiAddress } from '@mysten/sui/utils';
+import { bcs } from '@mysten/sui/bcs';
+import { ObjectError } from '@mysten/sui/client';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { generateMnemonic } from '@scure/bip39';
@@ -9,6 +11,30 @@ import { wordlist } from '@scure/bip39/wordlists/english.js';
 
 function wallet(keypair) {
   return { privateKey: keypair.getSecretKey(), publicKey: keypair.getPublicKey().toBase64(), address: keypair.toSuiAddress() };
+}
+
+const Storage = bcs.struct('Storage', {
+  id: bcs.Address, owner: bcs.Address,
+  values: bcs.struct('Table', { id: bcs.Address, size: bcs.u64() }),
+});
+
+async function storageInfo(client, request) {
+  if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.storageObjectId))
+    throw new Error('Published OASIS package and shared storage object IDs are required');
+  const { object } = await client.getObject({ objectId: request.storageObjectId, include: { content: true } });
+  if (object.type !== `${normalizeSuiAddress(request.packageAddress)}::storage::Storage`)
+    throw new Error('Storage object does not belong to the configured OASIS package ABI');
+  if (!object.content) throw new Error('Sui returned no BCS storage content');
+  return Storage.parse(object.content);
+}
+
+async function execute(client, tx, signer, include = {}) {
+  tx.setSender(signer.toSuiAddress());
+  const response = await client.signAndExecuteTransaction({ transaction: tx, signer, include: { effects: true, ...include } });
+  if (response.FailedTransaction) throw new Error(JSON.stringify(response.FailedTransaction.status));
+  if (!response.Transaction?.digest) throw new Error('Sui SDK returned no successful transaction digest');
+  await client.waitForTransaction({ digest: response.Transaction.digest });
+  return response.Transaction;
 }
 
 export async function invoke(request) {
@@ -36,6 +62,64 @@ export async function invoke(request) {
   if (!chainIdentifier) throw new Error('Sui node returned no genesis chain identifier');
   if (request.chainId && request.chainId !== chainIdentifier) throw new Error('Sui chain identifier mismatch');
   if (request.operation === 'probe') return { chainIdentifier };
+  if (request.operation === 'publish') {
+    if (!Array.isArray(request.modules) || request.modules.length === 0 || !Array.isArray(request.dependencies))
+      throw new Error('Compiled Move modules and dependencies are required');
+    const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
+    const tx = new Transaction();
+    const [cap] = tx.publish({ modules: request.modules, dependencies: request.dependencies });
+    tx.transferObjects([cap], tx.pure.address(signer.toSuiAddress()));
+    const committed = await execute(client, tx, signer, { objectTypes: true });
+    const packageId = committed.effects.changedObjects.find(object => object.outputState === 'PackageWrite' && object.idOperation === 'Created')?.objectId;
+    const storageId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::storage::Storage`)?.[0];
+    if (!packageId || !storageId) throw new Error(`Publication ${committed.digest} committed but no OASIS storage object was returned`);
+    return { transactionHash: committed.digest, packageAddress: packageId, storageObjectId: storageId };
+  }
+  if (['storageProbe', 'get', 'put', 'delete', 'putMany', 'deleteMany', 'list'].includes(request.operation)) {
+    const storage = await storageInfo(client, request);
+    if (request.operation === 'storageProbe') return { owner: storage.owner, tableId: storage.values.id, chainIdentifier };
+    if (request.operation === 'get') {
+      if (typeof request.key !== 'string') throw new Error('Storage key is required');
+      try {
+        const { dynamicField } = await client.core.getDynamicField({ parentId: storage.values.id,
+          name: { type: '0x1::string::String', bcs: bcs.string().serialize(request.key).toBytes() } });
+        return bcs.string().parse(dynamicField.value.bcs);
+      } catch (error) {
+        if (error instanceof ObjectError && error.reason === 'notFound') return null;
+        throw error;
+      }
+    }
+    if (request.operation === 'list') {
+      const keys = [];
+      const seen = new Set();
+      let cursor = null;
+      do {
+        const page = await client.listDynamicFields({ parentId: storage.values.id, limit: 100, cursor });
+        for (const field of page.dynamicFields) {
+          const key = bcs.string().parse(field.name.bcs);
+          if (key.startsWith(request.prefix ?? '')) keys.push(key);
+        }
+        if (!page.hasNextPage) return keys.sort();
+        if (!page.cursor || seen.has(page.cursor)) throw new Error('Sui returned a non-advancing storage cursor');
+        seen.add(page.cursor);
+        cursor = page.cursor;
+      } while (true);
+    }
+    const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
+    const tx = new Transaction();
+    const putting = request.operation === 'put' || request.operation === 'putMany';
+    const entries = request.operation.endsWith('Many') ? request.entries : [{ key: request.key, value: request.value }];
+    if (!Array.isArray(entries) || entries.length === 0) throw new Error('Nonempty storage mutations are required');
+    for (const entry of entries) {
+      if (typeof entry.key !== 'string' || (putting && typeof entry.value !== 'string'))
+        throw new Error('Storage key and serialized value are required');
+      const args = [tx.object(request.storageObjectId), tx.pure.string(entry.key)];
+      if (putting) args.push(tx.pure.string(entry.value));
+      tx.moveCall({ target: `${request.packageAddress}::storage::${putting ? 'put' : 'remove'}`, arguments: args });
+    }
+    const committed = await execute(client, tx, signer);
+    return { transactionHash: committed.digest };
+  }
   if (request.operation === 'transaction') {
     if (!request.transactionHash) throw new Error('Transaction digest is required');
     const response = await client.getTransaction({ digest: request.transactionHash, include: { effects: true } });
@@ -52,11 +136,7 @@ export async function invoke(request) {
     tx.setSender(signer.toSuiAddress());
     const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(amount)]);
     tx.transferObjects([coin], tx.pure.address(request.toWalletAddress));
-    const executed = await client.signAndExecuteTransaction({ transaction: tx, signer, include: { effects: true } });
-    if (executed.FailedTransaction) throw new Error(JSON.stringify(executed.FailedTransaction.status));
-    const committed = executed.Transaction;
-    if (!committed?.digest) throw new Error('Sui SDK returned no successful transaction digest');
-    await client.waitForTransaction({ digest: committed.digest });
+    const committed = await execute(client, tx, signer);
     return { transactionHash: committed.digest };
   }
   throw new Error(`Unsupported Sui SDK operation: ${request.operation}`);

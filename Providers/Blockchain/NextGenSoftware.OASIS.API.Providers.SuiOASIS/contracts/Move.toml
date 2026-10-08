@@ -1,0 +1,10 @@
+[package]
+name = "oasis"
+edition = "2024"
+implicit-dependencies = false
+
+[dependencies]
+Sui = { local = "deps/sui-framework" }
+
+[addresses]
+oasis = "0x0"
