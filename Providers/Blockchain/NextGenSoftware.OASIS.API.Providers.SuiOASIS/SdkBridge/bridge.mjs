@@ -1,7 +1,7 @@
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { Transaction } from '@mysten/sui/transactions';
-import { isValidSuiAddress, normalizeSuiAddress } from '@mysten/sui/utils';
+import { isValidSuiAddress, normalizeSuiAddress, normalizeStructTag } from '@mysten/sui/utils';
 import { bcs } from '@mysten/sui/bcs';
 import { ObjectError } from '@mysten/sui/client';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +18,30 @@ const Storage = bcs.struct('Storage', {
   values: bcs.struct('Table', { id: bcs.Address, size: bcs.u64() }),
 });
 const NFT = bcs.struct('NFT', { id: bcs.Address, creator: bcs.Address, metadata: bcs.string() });
+const Currency = bcs.struct('Currency', { id: bcs.Address, issuer: bcs.Address,
+  treasury: bcs.struct('TreasuryCap', { id: bcs.Address, supply: bcs.u64() }) });
+const LockedCoin = bcs.struct('LockedCoin', { id: bcs.Address, owner: bcs.Address,
+  coin: bcs.struct('Coin', { id: bcs.Address, balance: bcs.u64() }) });
+
+async function pages(fetch) {
+  const objects = [];
+  const seen = new Set();
+  let cursor = null;
+  do {
+    const page = await fetch(cursor);
+    objects.push(...page.objects);
+    if (!page.hasNextPage) return objects;
+    if (!page.cursor || seen.has(page.cursor)) throw new Error('Sui returned a non-advancing object cursor');
+    seen.add(page.cursor);
+    cursor = page.cursor;
+  } while (true);
+}
+
+function positiveUnits(value) {
+  if (typeof value !== 'string' || !/^[1-9][0-9]*$/.test(value) || BigInt(value) > 18446744073709551615n)
+    throw new Error('Positive exact u64 token units are required');
+  return BigInt(value);
+}
 
 async function storageInfo(client, request) {
   if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.storageObjectId))
@@ -109,7 +133,70 @@ export async function invoke(request) {
     const packageId = committed.effects.changedObjects.find(object => object.outputState === 'PackageWrite' && object.idOperation === 'Created')?.objectId;
     const storageId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::storage::Storage`)?.[0];
     if (!packageId || !storageId) throw new Error(`Publication ${committed.digest} committed but no OASIS storage object was returned`);
-    return { transactionHash: committed.digest, packageAddress: packageId, storageObjectId: storageId };
+    const coinType = `${packageId}::token::TOKEN`;
+    const currencyObjectId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::token::Currency`)?.[0];
+    const registrationId = Object.entries(committed.objectTypes).find(([, type]) => normalizeStructTag(type) === normalizeStructTag(`0x2::coin_registry::Currency<${coinType}>`))?.[0];
+    if (!currencyObjectId || !registrationId) throw new Error(`Publication ${committed.digest} committed but returned no currency registration objects`);
+    const { object: registration } = await client.getObject({ objectId: registrationId });
+    const registrationTx = new Transaction();
+    registrationTx.moveCall({ target: '0x2::coin_registry::finalize_registration', typeArguments: [coinType],
+      arguments: [registrationTx.object('0xc'), registrationTx.receivingRef(registration)] });
+    const registered = await execute(client, registrationTx, signer);
+    return { transactionHash: committed.digest, registrationHash: registered.digest,
+      packageAddress: packageId, storageObjectId: storageId, currencyObjectId, coinType };
+  }
+  if (['tokenProbe', 'tokenMetadata', 'tokenBalance', 'tokenLockedBalance', 'tokenMint', 'tokenSend', 'tokenBurn', 'tokenLock', 'tokenUnlock'].includes(request.operation)) {
+    if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.currencyObjectId))
+      throw new Error('Published OASIS package and currency object IDs are required');
+    const coinType = `${normalizeSuiAddress(request.packageAddress)}::token::TOKEN`;
+    const { object } = await client.getObject({ objectId: request.currencyObjectId, include: { content: true } });
+    if (object.type !== `${normalizeSuiAddress(request.packageAddress)}::token::Currency` || !object.content)
+      throw new Error('Currency object does not match the configured package ABI');
+    const currency = Currency.parse(object.content);
+    if (request.operation === 'tokenProbe') return { ...currency, coinType };
+    if (request.operation === 'tokenMetadata') return (await client.getCoinMetadata({ coinType })).coinMetadata;
+    if (request.operation === 'tokenLockedBalance') {
+      if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui wallet is required');
+      const objects = await pages(cursor => client.listOwnedObjects({ owner: request.walletAddress,
+        type: `${request.packageAddress}::token::LockedCoin`, include: { content: true }, limit: 100, cursor }));
+      return objects.reduce((sum, object) => sum + BigInt(LockedCoin.parse(object.content).coin.balance), 0n).toString();
+    }
+    if (request.operation === 'tokenBalance') {
+      if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui wallet is required');
+      return (await client.getBalance({ owner: request.walletAddress, coinType })).balance.balance;
+    }
+    const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
+    const owner = signer.toSuiAddress();
+    if (request.fromWalletAddress && normalizeSuiAddress(request.fromWalletAddress) !== owner)
+      throw new Error('Signing key does not own sender wallet');
+    const tx = new Transaction();
+    if (request.operation === 'tokenMint') {
+      if (!isValidSuiAddress(request.recipient)) throw new Error('Valid token recipient is required');
+      const [coin] = tx.moveCall({ target: `${request.packageAddress}::token::mint`,
+        arguments: [tx.object(request.currencyObjectId), tx.pure.u64(positiveUnits(request.amountUnits))] });
+      tx.transferObjects([coin], tx.pure.address(request.recipient));
+    } else if (request.operation === 'tokenUnlock') {
+      const locked = await pages(cursor => client.listOwnedObjects({ owner, type: `${request.packageAddress}::token::LockedCoin`, limit: 100, cursor }));
+      if (!locked.length) throw new Error('No owned locked tokens exist');
+      for (const object of locked) {
+        const [coin] = tx.moveCall({ target: `${request.packageAddress}::token::unlock`, arguments: [tx.object(object.objectId)] });
+        tx.transferObjects([coin], tx.pure.address(owner));
+      }
+    } else {
+      const coins = await pages(cursor => client.listCoins({ owner, coinType, limit: 100, cursor }));
+      if (!coins.length) throw new Error('No spendable token coins exist');
+      const coin = tx.object(coins[0].objectId);
+      if (coins.length > 1) tx.mergeCoins(coin, coins.slice(1).map(item => tx.object(item.objectId)));
+      if (request.operation === 'tokenSend') {
+        if (!isValidSuiAddress(request.recipient)) throw new Error('Valid token recipient is required');
+        const [sent] = tx.splitCoins(coin, [tx.pure.u64(positiveUnits(request.amountUnits))]);
+        tx.transferObjects([sent], tx.pure.address(request.recipient));
+      } else if (request.operation === 'tokenBurn')
+        tx.moveCall({ target: `${request.packageAddress}::token::burn`, arguments: [tx.object(request.currencyObjectId), coin] });
+      else tx.moveCall({ target: `${request.packageAddress}::token::lock`, arguments: [coin] });
+    }
+    const committed = await execute(client, tx, signer);
+    return { transactionHash: committed.digest };
   }
   if (['storageProbe', 'get', 'put', 'delete', 'putMany', 'deleteMany', 'list'].includes(request.operation)) {
     const storage = await storageInfo(client, request);
