@@ -318,6 +318,7 @@ public partial class SolanaOASIS
 
         try
         {
+            holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
             string transactionHash;
             // Update if avatar if transaction hash exist
             if (holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
@@ -335,7 +336,7 @@ public partial class SolanaOASIS
                 transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
             }
 
-            if (string.IsNullOrEmpty(transactionHash))
+            if (!string.IsNullOrEmpty(transactionHash))
             {
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 

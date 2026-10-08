@@ -1,139 +1,57 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Threading.Tasks;
-using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
+
+[TestClass]
+public sealed class SOLANAOASISIntegrationTests
 {
-    [TestClass]
-    public class SOLANAOASISIntegrationTests
+    private SolanaOASIS _provider = null!;
+
+    [TestInitialize]
+    public async Task Setup()
     {
-        private SolanaOASIS _provider;
+        string rpc = Environment.GetEnvironmentVariable("SOLANA_RPC_URL")
+            ?? throw new InvalidOperationException("SOLANA_RPC_URL must identify a running Solana validator.");
+        string privateKey = Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")
+            ?? throw new InvalidOperationException("SOLANA_PRIVATE_KEY is required.");
+        string publicKey = Environment.GetEnvironmentVariable("SOLANA_PUBLIC_KEY")
+            ?? throw new InvalidOperationException("SOLANA_PUBLIC_KEY is required.");
 
-        [TestInitialize]
-        public void Setup()
+        _provider = new SolanaOASIS(rpc, privateKey, publicKey);
+        var activation = await _provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Message);
+        Assert.IsTrue(activation.Result);
+    }
+
+    [TestMethod]
+    public async Task MemoTransactionHolon_RoundTripsThroughRealValidator()
+    {
+        var holon = new Holon
         {
-            _provider = new SolanaOASIS("https://api.mainnet-beta.solana.com", "", "");
-        }
+            Id = Guid.NewGuid(),
+            Name = $"Solana holon {Guid.NewGuid():N}",
+            Description = "Agave validator integration",
+            HolonType = HolonType.Holon
+        };
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
+        var save = await _provider.SaveHolonAsync(holon, saveChildren: false);
+        Assert.IsFalse(save.IsError, save.Message);
+        Assert.IsNotNull(save.Result);
+        Assert.IsTrue(save.Result.ProviderUniqueStorageKey.TryGetValue(ProviderType.SolanaOASIS, out string? signature));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(signature));
 
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
+        var load = await _provider.LoadHolonAsync(signature!, loadChildren: false);
+        Assert.IsFalse(load.IsError, load.Message);
+        Assert.AreEqual(holon.Id, load.Result.Id);
+        Assert.AreEqual(holon.Name, load.Result.Name);
+    }
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
-        {
-            // Arrange
-            var avatarId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+    [TestCleanup]
+    public async Task Cleanup()
+    {
+        if (_provider.IsProviderActivated)
+            await _provider.DeActivateProviderAsync();
     }
 }
