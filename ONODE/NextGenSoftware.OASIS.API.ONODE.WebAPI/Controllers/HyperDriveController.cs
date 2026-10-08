@@ -41,6 +41,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     /// </summary>
     public class HyperDriveStatus
     {
+        public string Mode { get; set; }
+        public string EffectiveConfigurationSource { get; set; }
+        public DateTime EffectiveConfigurationAppliedUtc { get; set; }
         public bool IsEnabled { get; set; }
         public bool AutoFailoverEnabled { get; set; }
         public bool AutoReplicationEnabled { get; set; }
@@ -48,6 +51,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public LoadBalancingStrategy DefaultStrategy { get; set; }
         public List<ProviderType> EnabledProviders { get; set; }
         public List<ProviderType> LoadBalancingProviders { get; set; }
+        public List<ProviderType> FailoverProviders { get; set; }
+        public List<ProviderType> ReplicationProviders { get; set; }
         public int TotalProviders { get; set; }
         public int ActiveProviders { get; set; }
         public DateTime LastHealthCheck { get; set; }
