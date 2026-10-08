@@ -284,11 +284,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("LocalFileOASIS", e);
         }
 
-        private static void ActivityPubOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("ActivityPubOASIS", e);
-        }
-
         private static void ThreeFoldOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("ThreeFoldOASI", e);
@@ -357,11 +352,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void NEAROASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("NEAROASIS", e);
-        }
-
-        private static void MoralisOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("MoralisOASIS", e);
         }
 
         private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
