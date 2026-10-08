@@ -11,18 +11,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 {
     public class ONODEGrpcService : ONODEService.ONODEServiceBase
     {
-        private static ONODEManager CreateONODEManager()
-        {
-            var result = System.Threading.Tasks.Task.Run(
-                OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
         public override async Task<JsonResponse> GetNodeStatus(ONODEEmptyRequest request, ServerCallContext context)
         {
             try
             {
-                var result = await CreateONODEManager().GetNodeStatusAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeStatusAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -34,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().GetNodeInfoAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeInfoAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -46,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().GetNodeMetricsAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeMetricsAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -58,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().GetNodeLogsAsync(request.Lines);
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeLogsAsync(request.Lines);
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -70,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().GetNodeConfigAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeConfigAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -82,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().GetConnectedPeersAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetConnectedPeersAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -94,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().GetNodeStatsAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeStatsAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -106,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().StartNodeAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).StartNodeAsync();
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -116,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().StopNodeAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).StopNodeAsync();
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -126,7 +119,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONODEManager().RestartNodeAsync();
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).RestartNodeAsync();
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -137,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             try
             {
                 var config = JsonSerializer.Deserialize<Dictionary<string, object>>(request.ConfigJson) ?? new Dictionary<string, object>();
-                var result = await CreateONODEManager().UpdateNodeConfigAsync(config);
+                var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).UpdateNodeConfigAsync(config);
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }

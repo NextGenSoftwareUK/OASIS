@@ -532,45 +532,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         // ── ONET ──────────────────────────────────────────────────────────────────
 
-        private static ONETManager CreateONETManager()
-        {
-            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
-        private static ONODEManager CreateONODEManager()
-        {
-            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
         public async Task<bool> ConnectToNode(string nodeId, string nodeAddress)
         {
-            var result = await CreateONETManager().ConnectToNodeAsync(nodeId, nodeAddress);
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).ConnectToNodeAsync(nodeId, nodeAddress);
             return !result.IsError;
         }
 
         public async Task<bool> DisconnectFromNode(string nodeId)
         {
-            var result = await CreateONETManager().DisconnectFromNodeAsync(nodeId);
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).DisconnectFromNodeAsync(nodeId);
             return !result.IsError;
         }
 
         public async Task<bool> StartNetwork()
         {
-            var result = await CreateONETManager().StartNetworkAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).StartNetworkAsync();
             return !result.IsError;
         }
 
         public async Task<bool> StopNetwork()
         {
-            var result = await CreateONETManager().StopNetworkAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).StopNetworkAsync();
             return !result.IsError;
         }
 
         public async Task<bool> BroadcastNetworkMessage(string message, string messageType = "general")
         {
-            var result = await CreateONETManager().BroadcastMessageAsync(message, messageType);
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).BroadcastMessageAsync(message, messageType);
             return !result.IsError;
         }
 
@@ -578,25 +566,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         public async Task<bool> StartNode()
         {
-            var result = await CreateONODEManager().StartNodeAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).StartNodeAsync();
             return !result.IsError;
         }
 
         public async Task<bool> StopNode()
         {
-            var result = await CreateONODEManager().StopNodeAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).StopNodeAsync();
             return !result.IsError;
         }
 
         public async Task<bool> RestartNode()
         {
-            var result = await CreateONODEManager().RestartNodeAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).RestartNodeAsync();
             return !result.IsError;
         }
 
         public async Task<bool> UpdateNodeConfig(Dictionary<string, object> config)
         {
-            var result = await CreateONODEManager().UpdateNodeConfigAsync(config);
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).UpdateNodeConfigAsync(config);
             return !result.IsError;
         }
 

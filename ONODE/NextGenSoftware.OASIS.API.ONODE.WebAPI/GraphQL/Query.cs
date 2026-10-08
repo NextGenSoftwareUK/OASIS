@@ -623,33 +623,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         // ── ONET ──────────────────────────────────────────────────────────────────
 
-        private static ONETManager CreateONETManager()
-        {
-            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
-        private static ONODEManager CreateONODEManager()
-        {
-            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
         public async Task<NetworkStatus?> GetNetworkStatus()
         {
-            var result = await CreateONETManager().GetNetworkStatusAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).GetNetworkStatusAsync();
             return result.IsError ? null : result.Result;
         }
 
         public async Task<IEnumerable<ONETNode>> GetNetworkNodes()
         {
-            var result = await CreateONETManager().GetConnectedNodesAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).GetConnectedNodesAsync();
             return result.IsError || result.Result == null ? Enumerable.Empty<ONETNode>() : result.Result;
         }
 
         public async Task<Dictionary<string, object>> GetNetworkStats()
         {
-            var result = await CreateONETManager().GetNetworkStatsAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).GetNetworkStatsAsync();
             return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
         }
 
@@ -657,43 +645,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         public async Task<NodeStatus?> GetNodeStatus()
         {
-            var result = await CreateONODEManager().GetNodeStatusAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeStatusAsync();
             return result.IsError ? null : result.Result;
         }
 
         public async Task<NextGenSoftware.OASIS.API.ONODE.Core.Managers.NodeInfo?> GetNodeInfo()
         {
-            var result = await CreateONODEManager().GetNodeInfoAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeInfoAsync();
             return result.IsError ? null : result.Result;
         }
 
         public async Task<NodeMetrics?> GetNodeMetrics()
         {
-            var result = await CreateONODEManager().GetNodeMetricsAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeMetricsAsync();
             return result.IsError ? null : result.Result;
         }
 
         public async Task<IEnumerable<string>> GetNodeLogs(int lines = 100)
         {
-            var result = await CreateONODEManager().GetNodeLogsAsync(lines);
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeLogsAsync(lines);
             return result.IsError || result.Result == null ? Enumerable.Empty<string>() : result.Result;
         }
 
         public async Task<Dictionary<string, object>> GetNodeConfig()
         {
-            var result = await CreateONODEManager().GetNodeConfigAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeConfigAsync();
             return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
         }
 
         public async Task<IEnumerable<PeerNode>> GetNodePeers()
         {
-            var result = await CreateONODEManager().GetConnectedPeersAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetConnectedPeersAsync();
             return result.IsError || result.Result == null ? Enumerable.Empty<PeerNode>() : result.Result;
         }
 
         public async Task<Dictionary<string, object>> GetNodeStats()
         {
-            var result = await CreateONODEManager().GetNodeStatsAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).GetNodeStatsAsync();
             return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
         }
 

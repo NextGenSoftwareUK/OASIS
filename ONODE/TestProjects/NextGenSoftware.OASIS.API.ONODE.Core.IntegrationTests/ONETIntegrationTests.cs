@@ -166,11 +166,15 @@ public class ONETIntegrationTests
             await Task.Delay(300);
             (await mgr.ConnectToNodeAsync("peer-1", $"127.0.0.1:{peer.ListenPort}")).IsError.Should().BeFalse();
 
-            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(1);
+            var connected = (await mgr.GetNetworkStatsAsync()).Result;
+            connected["totalNodes"].Should().Be(1);
+            connected["consensusActiveMembers"].Should().Be(1, "connected peers become consensus members");
             (await mgr.GetConnectedNodesAsync()).Result.Should().ContainSingle(n => n.Id == "peer-1");
 
             (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeFalse();
-            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(0);
+            var disconnected = (await mgr.GetNetworkStatsAsync()).Result;
+            disconnected["totalNodes"].Should().Be(0);
+            disconnected["consensusActiveMembers"].Should().Be(0);
             (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeTrue("the peer is no longer connected");
         }
         finally

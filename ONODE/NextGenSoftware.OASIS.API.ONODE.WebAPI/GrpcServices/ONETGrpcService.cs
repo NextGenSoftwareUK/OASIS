@@ -12,13 +12,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 {
     public class ONETGrpcService : ONETService.ONETServiceBase
     {
-        private static ONETManager CreateONETManager()
-        {
-            var result = System.Threading.Tasks.Task.Run(
-                OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
         // The DNA carries every provider secret and the node private key, and this service has no caller
         // authentication; DNA/ONET configuration is only served by the Wizard-only REST api/v1/onet/config.
         private const string DnaOverGrpcRemoved = "OASISDNA is not available over gRPC. Use the Wizard-authenticated REST endpoint api/v1/onet/config.";
@@ -30,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().GetNetworkStatusAsync();
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).GetNetworkStatusAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -42,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().GetConnectedNodesAsync();
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).GetConnectedNodesAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -54,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().GetNetworkStatsAsync();
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).GetNetworkStatsAsync();
                 return result.IsError
                     ? new JsonResponse { IsError = true, Message = result.Message }
                     : new JsonResponse { Json = JsonSerializer.Serialize(result.Result) };
@@ -69,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().ConnectToNodeAsync(request.NodeId, request.NodeAddress);
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).ConnectToNodeAsync(request.NodeId, request.NodeAddress);
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -79,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().DisconnectFromNodeAsync(request.NodeId);
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).DisconnectFromNodeAsync(request.NodeId);
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -89,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().StartNetworkAsync();
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).StartNetworkAsync();
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -99,7 +92,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().StopNetworkAsync();
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).StopNetworkAsync();
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
@@ -109,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var result = await CreateONETManager().BroadcastMessageAsync(request.Message, request.MessageType);
+                var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).BroadcastMessageAsync(request.Message, request.MessageType);
                 return result.IsError ? new OASISGrpcResponse { IsError = true, Message = result.Message } : new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }
