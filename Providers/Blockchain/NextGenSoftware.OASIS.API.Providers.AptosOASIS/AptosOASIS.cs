@@ -34,8 +34,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
+using Aptos;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -49,19 +48,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         public bool Success { get; set; }
         public string TransactionResult { get; set; }
     }
-    public partial class AptosOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public partial class AptosOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
         private readonly string _network;
         private readonly string _privateKey;
         private readonly string _contractAddress;
+        private readonly AptosClient _aptosClient;
+        private readonly Ed25519Account _account;
         private bool _isActivated;
 
-        // Aptos blockchain constants
-        private const string APTOS_CONTRACT_ADDRESS = "0x1::oasis";
-        private const string APTOS_API_BASE_URL = "https://fullnode.mainnet.aptoslabs.com/v1";
-        private const string APTOS_ACCOUNT_ADDRESS = "0x1";
         private WalletManager _walletManager;
 
         public WalletManager WalletManager
@@ -84,6 +81,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             _walletManager = walletManager;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_rpcEndpoint);
+            var normalizedEndpoint = _rpcEndpoint.TrimEnd('/');
+            var networkConfig = new NetworkConfig(
+                _network,
+                normalizedEndpoint,
+                $"{normalizedEndpoint}/graphql",
+                chainId: -1);
+            _aptosClient = new AptosClient(new AptosConfig(networkConfig));
+            if (!string.IsNullOrWhiteSpace(_privateKey))
+                _account = new Ed25519Account(new Ed25519PrivateKey(_privateKey, strict: false));
 
             this.ProviderName = "AptosOASIS";
             this.ProviderDescription = "Aptos blockchain provider for OASIS";

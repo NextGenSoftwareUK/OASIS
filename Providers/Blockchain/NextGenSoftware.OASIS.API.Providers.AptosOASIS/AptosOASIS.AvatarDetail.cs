@@ -34,8 +34,6 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -567,7 +565,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var json = System.Text.Json.JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/transactions/simulate", content);
+                var response = await _httpClient.PostAsync("transactions/simulate", content);
                 if (response.IsSuccessStatusCode)
                 {
                     result.Result = true;
