@@ -2,7 +2,22 @@
 
 **Audit date:** 2026-10-06  
 **Repository/branch inspected:** `C:\Source\OASIS`, `Development`  
-**Purpose:** Give a new engineering agent enough verified context to close the auto-failover, auto-load-balancing, and auto-replication gaps without relying on chat history.
+**Purpose:** Record the original gap audit and the verified implementation that closed it.
+
+**Implementation status (2026-10-07):** Completed on `codex/hyperdrive-v2-gaps`. The checked-in coverage and evidence record is `Docs/Devs/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md`.
+
+**Exhaustive WEB4 follow-up (2026-10-07):** Work continues on
+`codex/hyperdrive-dual-mode-route-matrix`. The HTTP action inventory is now a checked-in,
+executable manifest rather than an estimate: 691 controller actions are classified in
+`Docs/Devs/HYPERDRIVE_WEB4_ROUTE_MANIFEST.csv` and guarded by
+`Scripts/verify_web4_hyperdrive_route_manifest.ps1`. Behavioral proof remains intentionally
+layered at the shared manager/router boundary because hundreds of thin controller overloads
+delegate to the same operations; route existence is not represented as storage-behavior proof.
+
+**Implementation priority:** V2 is the only gap-closing target. Legacy behavior is retained
+for compatibility and receives characterization tests/documentation only; newly discovered
+Legacy limitations are recorded rather than repaired unless they prevent safe V2 operation or
+mode isolation.
 
 ## Handoff prompt
 
@@ -19,6 +34,19 @@ Use this prompt in a new agent/session:
 | Auto-load-balancing | Partial, concentrated in selected Avatar/Holon save paths; frequently performs an additional write after the primary save | Central provider selection with multiple strategies | V2 contains the intended design, but configuration authority and real metric feedback are incomplete |
 
 The inspected WEB4 operational DNA is configured with `HyperDriveMode: Legacy`. Therefore enabling individual V2-looking configuration fields does not make V2 the active routing path.
+
+## Implemented resolution
+
+- `OASIS.StorageProviders` is the sole effective Legacy authority; `OASIS.OASISHyperDriveConfig` is the sole effective V2 authority. Boot and mode changes atomically map the selected authority into `ProviderManager`.
+- V2 configuration updates persist first, apply the runtime policy, and roll persistence back when runtime application is rejected.
+- WEB4 `/mode`, `/config` and `/status` expose the effective source and actual runtime flags/lists; status counts registered and active providers.
+- The unused duplicate `ProviderManagerNew`/`ProviderConfigurator` control plane was removed.
+- Every routed provider outcome records latency/success/failure in the same `PerformanceMonitor` consumed by load-balancing selection.
+- Failover distinguishes unavailable providers from authoritative misses: a null result wrapper or `IsError` fails over; a non-error null payload or empty collection is terminal.
+- Ordinary WEB4 V2 mutations always replicate inline. They are never marked durably deferred without enrollment. Hosted Edge sync remains a separate transactionally enrolled path.
+- Core tests: 307 discovered, 307 passed, zero skipped. Hosted sync/fan-out subset: 16/16. The real three-member Mongo replica-set gate passed 42/42 transaction tests plus 1/1 abrupt-primary/idempotency test. WEB4 build: zero errors.
+- The checked-in public-manager manifest catalogs 815 public methods and intentionally classifies 655 provider-backed/delegating methods; its verifier fails on unreviewed source drift.
+- WEB5 `STARNETHolonId` loading code was not changed.
 
 ## Important architecture invariants
 
@@ -68,7 +96,21 @@ GET /api/hyperdrive/config
 GET /api/hyperdrive/status
 ```
 
-On 2026-10-06 all three routes resolved and returned HTTP `401` without a JWT, with the expected message requiring `api/avatar/authenticate`. This proves the WEB4 development routes are deployed. It does not reveal their authenticated results.
+On 2026-10-07 all three routes first returned HTTP `401` without a JWT, proving the expected authentication boundary. After the corrected Railway dependency pins deployed, an authorized development account captured and validated all three read-only responses at `2026-10-07T21:45:25Z` using `Scripts/verify_hyperdrive_web4_endpoints.ps1`. The token was neither printed nor persisted.
+
+Authenticated development evidence:
+
+| Runtime value | Captured value |
+|---|---|
+| Mode | `Legacy` |
+| Effective source | `OASIS.StorageProviders` |
+| Effective policy applied | `2026-10-07T21:45:07.4979993Z` |
+| Auto-failover | `true` |
+| Auto-replication | `false` |
+| Auto-load-balancing | `true` |
+| Registered / active providers | `14 / 1` |
+
+The mode, config metadata and status response agreed on the effective mode/source and exposed the ordered failover, replication and load-balancing provider lists. The raw response artifact was captured locally at `artifacts/hyperdrive-v2-gap-evidence/web4-development-endpoints.json`.
 
 Live verification procedure:
 
@@ -78,6 +120,11 @@ Live verification procedure:
 4. Capture `mode`, effective flags, provider lists, selected strategy, hosted-sync state and status/metrics.
 5. Compare reported settings with the `ProviderManager` runtime state, not only `OASISHyperDriveConfigManager` output.
 6. Perform controlled provider-failure tests using disposable test providers or an isolated environment. Do not intentionally break the shared development MongoDB service.
+
+The read-only capture is automated by `Scripts/verify_hyperdrive_web4_endpoints.ps1`.
+Set a short-lived JWT in `ONODE_JWT_TOKEN`; the script does not print or persist the token,
+validates agreement between the effective mode/config/status responses, and writes the three
+responses beneath `artifacts/hyperdrive-v2-gap-evidence/`.
 
 Production base URL is documented elsewhere as:
 
@@ -174,8 +221,8 @@ The central V2 sequence is:
 1. Check subscription quota.
 2. Select an allowed provider.
 3. Route the typed request to that provider.
-4. If the result is an error and failover is enabled, try the ordered failover providers.
-5. If the request is a successful mutation and replication is enabled, replicate inline or defer to hosted durable sync.
+4. If the provider returned no result wrapper or an error and failover is enabled, try the ordered failover providers.
+5. If an ordinary WEB4 mutation succeeds and replication is enabled, replicate inline. Hosted Edge synchronization owns its separate durable transaction/fan-out path.
 6. Record usage and attach structured diagnostics.
 
 ### V2 auto-failover
@@ -188,11 +235,11 @@ Implemented:
 - Quota enforcement and diagnostic attempt records.
 - Predictive failover overrides without changing the global current provider.
 
-Gaps:
+Resolved semantics:
 
-- Automatic failover begins only when `result.IsError` is true.
-- Empty/not-found success semantics are not operation-aware. Define explicitly which reads should fail over on authoritative misses and which must not.
-- Retry policy fields such as `MaxRetryAttempts` are not visibly applied by the main failover loop; verify and implement only if the contract requires retries.
+- A missing result wrapper or explicit provider error triggers failover.
+- A non-error null payload is an authoritative not-found result; a non-error empty collection is an authoritative empty query. Neither fails over.
+- `MaxRetryAttempts` does not retry ordinary non-idempotent WEB4 mutations. Durable hosted fan-out owns bounded retry/backoff after transactional enrollment.
 
 ### V2 auto-load-balancing
 
@@ -205,12 +252,10 @@ Implemented:
 - ProviderManager supplies RoundRobin, WeightedRoundRobin, LeastConnections, Geographic, CostBased and Performance strategies.
 - Deterministic tie-breaking is present in several selectors.
 
-Gaps:
+Resolved behavior:
 
-- The router contains the comment `Optionally update performance metrics (not available in current PerformanceMonitor API)` after execution.
-- Therefore request execution does not yet clearly feed every latency/success/failure measurement back into selection.
-- Default metrics can make an apparently intelligent selection behave like a static deterministic choice.
-- Active connection accounting and geographic/cost data require end-to-end verification.
+- Every synchronous and asynchronous provider execution records success/failure and latency in `ProviderManager.PerformanceMonitor`, the same instance used by load-balancing selectors.
+- Cost and geographic values remain explicitly declared operator inputs; latency, error rate, uptime and overall score are live measured inputs.
 
 ### V2 auto-replication
 
@@ -225,15 +270,9 @@ Implemented:
 
 Hosted-sync behavior:
 
-- With `EnableHostedSync == false`, the V2 router replicates inline.
-- With `EnableHostedSync == true`, the router does not perform the fan-out. It marks replication as deferred to the durable hosted pipeline.
-
-Gaps:
-
-- Prove that every relevant primary mutation creates a durable command/outbox entry before relying on deferred replication.
-- Prove restart recovery, idempotency, retry/backoff, poison-message handling and eventual completion.
-- Prove that a successful primary response cannot be returned while the mutation was never enrolled in the hosted pipeline.
-- Confirm provider support for all `StorageOperationRequest` mutation types.
+- Ordinary WEB4 V2 mutations replicate inline regardless of `EnableHostedSync`; no unenrolled operation claims durable deferral.
+- Edge sync calls use the hosted provider contract. MongoDB atomically writes the mutation, change feed, terminal operation/device sequence and fan-out record.
+- Dispatcher tests verify leases, renewal, ordered batches and bounded retry/backoff; coordinator tests verify atomic acknowledgement/checkpoint commits and unchanged durable state on transport failure.
 
 ## Highest-priority defect: conflicting configuration authorities
 
@@ -342,7 +381,7 @@ They include coverage for:
 - ReplicatorManager delegation
 - Explicit-operation quota checks
 
-At audit time, tests could not be executed reliably. `dotnet test` exited without discovering output, and a direct build revealed missing NuGet artifacts including:
+At original audit time, tests could not be executed reliably. `dotnet test` exited without discovering output, and a direct build revealed missing NuGet artifacts including:
 
 ```text
 xunit.analyzers.dll
@@ -350,9 +389,9 @@ xunit.analyzers.fixes.dll
 Microsoft.TestPlatform test-host assemblies
 ```
 
-The build ended with `CS0006` for missing xUnit analyzer assemblies. Existing tests are therefore evidence of intended behavior, not evidence that the current branch passes.
+The build ended with `CS0006` for missing xUnit analyzer assemblies. This restore/cache problem was repaired in the isolated implementation worktree; the current Core suite discovers and passes 307/307 tests.
 
-Required repair:
+Completed repair:
 
 1. Repair/restore the NuGet dependency cache or lock-file inputs without committing machine-specific paths.
 2. Run the focused HyperDrive tests and record discovered/passed/failed counts.
@@ -412,6 +451,8 @@ The gaps are closed only when all of the following are true:
 - Restart, retry and idempotency behavior are tested for hosted replication.
 - Unit tests execute with non-zero discovery and pass.
 - Authenticated WEB4 development endpoint results are captured as release evidence.
+- Authenticated WEB4 staging V2 evidence was captured on 2026-10-07 from deployment `7519f239-6954-4125-b50c-8415f1673214`: mode/config/status contracts passed, MongoDBOASIS activated, all three routing policies were effective, and 20/20 concurrent authentication requests succeeded. See `HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md` for the exact evidence and scope.
+- Production master merge `8c44e3d67` and Railway deployment `23b7ac3d-4665-4624-9e2f-cde58cf2644c` passed the same authenticated V2 contract and 20/20 concurrent authentication run. Production reported failover, replication, and load balancing enabled with two active providers.
 - WEB5 version-aware `STARNETHolonId` behavior remains unchanged.
 - No unrelated user worktree changes are overwritten.
 
@@ -435,10 +476,9 @@ The gaps are closed only when all of the following are true:
 | Main behavioral tests | `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/HyperDriveProviderExecutionTests.cs` |
 | Config-manager tests | `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/HyperDrive/OASISHyperDriveConfigManagerTests.cs` |
 
-## Audit limitations
+## Final verification notes
 
-- No authenticated WEB4 JWT was available during this audit, so deployed effective mode/config/status values were not read.
+- Authenticated WEB4 development mode/config/status evidence was captured successfully on 2026-10-07 after deployment commit `2a0da2228` repaired the Railway dependency pins.
 - No provider was deliberately disabled on the shared development environment.
-- Unit tests did not execute because required NuGet test/analyzer artifacts were missing locally.
 - The ignored local operational DNA cannot prove Railway environment-variable or mounted-file values.
 - This audit made no production configuration changes.
