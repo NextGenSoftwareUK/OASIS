@@ -220,23 +220,24 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 var docRef = _firestoreDb.Collection("holons").Document(id.ToString());
-                
-                if (true) // Soft delete by default (OASIS standard)
+                var snapshot = await docRef.GetSnapshotAsync();
+                if (!snapshot.Exists)
                 {
-                    // Soft delete - mark as deleted
-                    await docRef.UpdateAsync("IsDeleted", true);
-                    await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
-                    await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
+                    OASISErrorHandling.HandleError(ref result, $"Holon '{id}' was not found in Google Cloud Firestore");
+                    return result;
                 }
-                else
+
+                var loadResult = await LoadHolonAsync(id);
+                if (loadResult.IsError || loadResult.Result == null)
                 {
-                    // Hard delete - remove document
-                    await docRef.DeleteAsync();
+                    OASISErrorHandling.HandleError(ref result, loadResult.Message ?? $"Holon '{id}' could not be loaded before deletion");
+                    return result;
                 }
-                
-                result.Result = null; // Return null for deleted holon
+
+                await docRef.DeleteAsync();
+                result.Result = loadResult.Result;
                 result.IsError = false;
-                result.Message = "Holon soft deleted successfully from Google Cloud Firestore";
+                result.Message = "Holon deleted successfully from Google Cloud Firestore";
             }
             catch (Exception ex)
             {

@@ -140,14 +140,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 // Delete avatar from Firestore
                 var docRef = _firestoreDb.Collection("avatars").Document(id.ToString());
                 
-                if (true) // Soft delete by default (OASIS standard)
+                if (softDelete)
                 {
                     // Soft delete - mark as deleted
                     var updateData = new Dictionary<string, object>
                     {
                         ["IsDeleted"] = true,
                         ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
-                        ["DeletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty
+                        ["DeletedByAvatarId"] = Guid.Empty
                     };
                     await docRef.UpdateAsync(updateData);
                 }
@@ -279,6 +279,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     return result;
                 }
 
+                if (holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS] = holon.Id.ToString();
+
                 // Save holon to Firestore with FULL property mapping
                 var docRef = _firestoreDb.Collection("holons").Document(holon.Id.ToString());
                 var holonData = new Dictionary<string, object>
@@ -287,8 +292,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["name"] = holon.Name,
                     ["description"] = holon.Description,
                     ["holonType"] = holon.HolonType.ToString(),
-                    ["createdDate"] = Timestamp.FromDateTime(holon.CreatedDate),
-                    ["modifiedDate"] = Timestamp.FromDateTime(holon.ModifiedDate),
+                    ["createdDate"] = ToFirestoreTimestamp(holon.CreatedDate),
+                    ["modifiedDate"] = ToFirestoreTimestamp(holon.ModifiedDate),
                     ["version"] = holon.Version,
                     ["isActive"] = holon.IsActive,
                     // Map ALL Holon properties to Google Cloud fields
@@ -300,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["isNew"] = holon.IsNewHolon,
                     ["isDeleted"] = !holon.IsActive,
                     ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
-                    ["deletedDate"] = Timestamp.FromDateTime(holon.DeletedDate),
+                    ["deletedDate"] = ToFirestoreTimestamp(holon.DeletedDate),
                     ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
                     ["modifiedByAvatarId"] = holon.ModifiedByAvatarId.ToString(),
                     // Map Google Cloud specific metadata
@@ -308,7 +313,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["googleCloudBucketName"] = _bucketName,
                     ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
                     ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                    ["savedAt"] = Timestamp.FromDateTime(DateTime.Now)
+                    ["savedAt"] = Timestamp.GetCurrentTimestamp()
                 };
                 
                 await docRef.SetAsync(holonData);

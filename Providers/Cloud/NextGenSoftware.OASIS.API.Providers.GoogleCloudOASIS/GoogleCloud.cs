@@ -62,5 +62,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         }
 
         public string GetProviderVersion() => "1.0.0";
+
+        private static Timestamp ToFirestoreTimestamp(DateTime value)
+        {
+            if (value == default)
+                value = DateTime.UnixEpoch;
+            else if (value.Kind == DateTimeKind.Local)
+                value = value.ToUniversalTime();
+            else if (value.Kind == DateTimeKind.Unspecified)
+                value = DateTime.SpecifyKind(value, DateTimeKind.Utc);
+
+            return Timestamp.FromDateTime(value);
+        }
     }
 }
