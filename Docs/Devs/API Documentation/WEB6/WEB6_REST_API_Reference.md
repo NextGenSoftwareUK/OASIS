@@ -493,7 +493,7 @@ For `TimeLimited`, also pass `"expiresUtc": "2026-12-31T00:00:00Z"`.
 
 ### POST `/v1/holonic-memory/holons/{holonId}/documents`
 
-Bulk document ingestion with semantic deduplication. Chunks the document, embeds each chunk, compares against existing holon items (cosine similarity ≥ 0.98 = duplicate), and stores only genuinely new chunks in a single holon save. Use this instead of looping `POST /memory` yourself.
+Bulk document ingestion with semantic deduplication. Chunks the document, embeds each chunk, compares against existing holon items (cosine similarity ≥ 0.98 = duplicate), and stores only genuinely new chunks in a single holon save. Every chunk is embedded, so ingestion is billed as metered embedding calls; if any chunk cannot be embedded the request fails and nothing is stored. Use this instead of looping `POST /memory` yourself.
 
 **Request body:**
 ```json
@@ -556,9 +556,16 @@ Multi-hop upward propagation.
 
 ### GET `/v1/holonic-memory/holons/{holonId}/memory/search`
 
-Semantic search over all memory items in a holon.
+Keyword search over all memory items in a holon, ranked by word overlap with the query. Makes no AI provider call and is billed as one API request.
 
-**Query params:**
+| Param | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | required | Search query |
+| `topK` | int | 5 | Max results to return |
+
+### GET `/v1/holonic-memory/holons/{holonId}/memory/semantic-search`
+
+Semantic search over all memory items in a holon. The query is embedded once with `provider` and items are ranked by cosine similarity to their stored embeddings (items stored without an embedding are ranked by keyword overlap). Billed as one metered embedding call; if the query cannot be embedded the request fails rather than falling back to keyword search.
 
 | Param | Type | Default | Description |
 |---|---|---|---|
@@ -566,7 +573,7 @@ Semantic search over all memory items in a holon.
 | `topK` | int | 5 | Max results to return |
 | `provider` | string | `auto` | Embedding provider (`auto`/`openai`/`cohere`/`huggingface`) |
 
-Items with stored embeddings are ranked by cosine similarity. Items without embeddings fall back to keyword-overlap scoring.
+Both endpoints return the same shape.
 
 **Response:**
 ```json
@@ -770,7 +777,7 @@ WEB6 exposes a full gRPC surface alongside the REST API. The Protobuf definition
 |---|---|---|
 | `AiService` | `ai.proto` | `Complete`, `Embed`, `GenerateImage`, `ClassifyTask`, `AnalyseSentiment`, `TrainTaskClassifier`, `ListOpenServModels`, `ListMLModels` |
 | `AgentsService` | `agents.proto` | `SendA2ATask`, `GetA2ATask`, `CancelA2ATask`, `RegisterOrchestrator`, `InvokeOrchestrator`, `RegisterReasoningAgent`, `Dispatch`, `GetSkill`, `EvolveSkill`, `GetBraidGraph`, `SaveBraidGraph` |
-| `MemoryService` | `memory.proto` | `GetEarthHolon`, `GetOrCreateHolon`, `SetMembraneRule`, `RecordMemory`, `PropagateUp`, `Propagate`, `SearchMemory`, `SearchExternalMemory`, `AddExternalMemory`, `DeleteExternalMemory`, `GetAvatarContext` |
+| `MemoryService` | `memory.proto` | `GetEarthHolon`, `GetOrCreateHolon`, `SetMembraneRule`, `RecordMemory`, `PropagateUp`, `Propagate`, `SearchMemory`, `SemanticSearchMemory`, `SearchExternalMemory`, `AddExternalMemory`, `DeleteExternalMemory`, `GetAvatarContext` |
 | `NetworkService` | `network.proto` | `FahrnSolve`, `FahrnBudgetEstimate`, `GetProviderStatus`, `GetMcpDiscovery`, `GetA2AAgentCard` |
 | `TelemetryService` | `telemetry.proto` | `GetTelemetryHistory`, `GetUsage` |
 | `IdentityService` | `identity.proto` | `CreateDid`, `ResolveDid`, `IssueVc`, `VerifyVc`, `UpsertKey`, `ListKeyProviders`, `DeleteKey` |
@@ -819,7 +826,8 @@ WEB6 exposes a HotChocolate GraphQL endpoint at `POST /graphql`. The schema cove
 | `fahrnBudgetEstimate(taskType, mode, agentCount)` | Cost/token estimate for a dispatch |
 | `holonicBraidGraph(taskType)` | Retrieve a cached Mermaid reasoning graph |
 | `earthHolon` | Get (or create) the root Earth holon |
-| `searchHolonMemory(holonId, query, topK, provider)` | Semantic search within a holon |
+| `searchHolonMemory(holonId, query, topK)` | Keyword search within a holon (no AI provider call) |
+| `semanticSearchHolonMemory(holonId, query, topK, provider)` | Semantic search within a holon (one metered embedding call) |
 | `storedKeyProviders(avatarId)` | List providers that have a stored key |
 | `classifyTask(text)` | ML.NET in-process task classification |
 | `analyseSentiment(text)` | ML.NET sentiment analysis |

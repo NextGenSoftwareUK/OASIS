@@ -22,6 +22,10 @@ on:
       - 'ONODE/**'
       - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
       - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/validate_edge_unity_package.ps1'
+      - 'Scripts/test_edge_unity_batch_lifecycle.ps1'
+      - 'Scripts/UnityValidation/**'
+      - 'Scripts/ensure_unity_windows_runtime.ps1'
       - 'Scripts/validate_dependency_security.ps1'
       - 'Scripts/run_hosted_mongo_release_evidence.ps1'
       - 'Scripts/validate_our_world_device_acceptance.ps1'
@@ -55,6 +59,10 @@ on:
       - 'ONODE/**'
       - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
       - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/validate_edge_unity_package.ps1'
+      - 'Scripts/test_edge_unity_batch_lifecycle.ps1'
+      - 'Scripts/UnityValidation/**'
+      - 'Scripts/ensure_unity_windows_runtime.ps1'
       - 'Scripts/validate_dependency_security.ps1'
       - 'Scripts/run_hosted_mongo_release_evidence.ps1'
       - 'Scripts/validate_our_world_device_acceptance.ps1'
@@ -70,6 +78,82 @@ on:
       - '.github/workflows/edge-runtime-validation.yml'
 
 jobs:
+  validate-desktop-protected-sessions:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      OASIS_TEST_DESKTOP_CREDENTIAL_STORE: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Resolve pinned API Core synchronization revision
+        id: core-revision
+        shell: bash
+        run: |
+          core_sha="$(git rev-parse 'HEAD:OASIS Architecture/NextGenSoftware.OASIS.API.Core')"
+          printf 'sha=%s\n' "$core_sha" >> "$GITHUB_OUTPUT"
+      # Retired standalone submodule update: checkout v7's parent credential does not authenticate that clone.
+      - name: Checkout pinned API Core synchronization sources
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.core-revision.outputs.sha }}
+          path: OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            10.0.x
+            8.0.x
+      - name: Prepare Linux native Secret Service prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v secret-tool >/dev/null || ! command -v gnome-keyring-daemon >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends libsecret-tools gnome-keyring dbus
+          fi
+      - name: Validate Linux protected sessions in an unlocked disposable keyring
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dbus-run-session -- bash -euo pipefail -c '
+            printf "%s" "oasis-ci-disposable-keyring" | gnome-keyring-daemon --daemonize --login
+            gnome-keyring-daemon --start --components=secrets
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter "FullyQualifiedName~UnityDesktopSecureSessionStoreTests|FullyQualifiedName~LinuxSecretServiceProcessTests" --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+          '
+      - name: Validate macOS native Keychain sessions
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter "FullyQualifiedName~UnityDesktopSecureSessionStoreTests|FullyQualifiedName~LinuxSecretServiceProcessTests" --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+      - name: Require all native desktop qualification tests to execute and pass
+        shell: pwsh
+        run: |
+          [xml]$trx = Get-Content -LiteralPath artifacts/desktop-protected-sessions/desktop-protected-sessions.trx -Raw
+          $counters = $trx.SelectSingleNode('//*[local-name()="Counters"]')
+          if ($null -eq $counters -or [int]$counters.total -ne 6 -or
+              [int]$counters.executed -ne 6 -or [int]$counters.passed -ne 6) {
+            throw 'All six native desktop tests must execute and pass; skipped or undiscovered tests are not qualification.'
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: desktop-protected-sessions-${{ runner.os }}
+          path: artifacts/desktop-protected-sessions/*.trx
+          if-no-files-found: error
+
   build-holooasis-happ:
     runs-on: ubuntu-latest
     steps:
@@ -251,8 +335,9 @@ jobs:
           if-no-files-found: error
 
   validate:
-    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync]
+    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync, validate-desktop-protected-sessions]
     runs-on: windows-latest
+    timeout-minutes: 150
     permissions:
       contents: read
       id-token: write
@@ -303,6 +388,25 @@ jobs:
           unity-version: 2022.3.62f3 (e9b2a6e6c3a0)
           build-targets: Android
           cache-installation: true
+      - name: Ensure Unity Windows runtime prerequisites
+        shell: pwsh
+        run: ./OASIS/Scripts/ensure_unity_windows_runtime.ps1
+      - name: Require Unity activation credentials
+        shell: pwsh
+        env:
+          UNITY_USERNAME: ${{ secrets.UNITY_USERNAME }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:UNITY_USERNAME) -or
+              [string]::IsNullOrWhiteSpace($env:UNITY_PASSWORD)) {
+            throw 'Unity editor validation requires the UNITY_USERNAME and UNITY_PASSWORD repository secrets. The editor cannot be launched unattended on a GitHub-hosted runner without an activated Unity seat.'
+          }
+      - name: Activate Unity license
+        uses: RageAgainstThePixel/activate-unity-license@e73ff1f81db81a2595f86642123ce2b73b9a9258 # v2
+        with:
+          license: personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
@@ -331,7 +435,10 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          subject-path: OASIS/artifacts/edge-release-validation/*
+          # Retired: subject-path: OASIS/artifacts/edge-release-validation/*
+          # Globbing directories also attested intermediate build trees (>1024 subjects).
+          # The inspector's checksum catalogue binds every final package and release report.
+          subject-checksums: OASIS/artifacts/edge-release-validation/SHA256SUMS.txt
       - name: Preserve signed provenance bundle
         if: github.event_name != 'pull_request'
         shell: pwsh

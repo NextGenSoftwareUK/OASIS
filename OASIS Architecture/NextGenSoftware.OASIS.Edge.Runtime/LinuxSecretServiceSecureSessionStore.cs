@@ -63,6 +63,7 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
         private static async Task<OASISResult<string>> RunAsync(string[] arguments, string stdin,
             CancellationToken cancellationToken, int notFoundExitCode = -1)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 var start = new ProcessStartInfo("secret-tool")
@@ -79,9 +80,12 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
                     if (process == null) return Error("EDGE_LINUX_SECRET_SERVICE_START_FAILED", "secret-tool did not start.");
                     if (stdin != null) await process.StandardInput.WriteAsync(stdin).ConfigureAwait(false);
                     process.StandardInput.Close();
-                    string output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-                    string error = await process.StandardError.ReadToEndAsync().ConfigureAwait(false);
+                    // Retired sequential reads: a blocked stdout read hid cancellation and could deadlock against stderr.
+                    Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+                    Task<string> errorTask = process.StandardError.ReadToEndAsync();
                     await WaitForExitAsync(process, cancellationToken).ConfigureAwait(false);
+                    string output = await outputTask.ConfigureAwait(false);
+                    string error = await errorTask.ConfigureAwait(false);
                     if (process.ExitCode == 0 || process.ExitCode == notFoundExitCode)
                         return new OASISResult<string>(process.ExitCode == 0 ? output : null) { IsLoaded = true };
                     return Error("EDGE_LINUX_SECRET_SERVICE_FAILED",
@@ -96,14 +100,27 @@ namespace NextGenSoftware.OASIS.Edge.Runtime
             }
         }
 
-        private static Task WaitForExitAsync(Process process, CancellationToken cancellationToken)
+        private static async Task WaitForExitAsync(Process process, CancellationToken cancellationToken)
         {
-            var completion = new TaskCompletionSource<bool>();
+            var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var cancelled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            EventHandler onExited = (sender, args) => completion.TrySetResult(true);
             process.EnableRaisingEvents = true;
-            process.Exited += (sender, args) => completion.TrySetResult(true);
+            process.Exited += onExited;
             if (process.HasExited) completion.TrySetResult(true);
-            cancellationToken.Register(() => completion.TrySetCanceled(cancellationToken));
-            return completion.Task;
+            // Retired undisposed cancellation registration: cancelling only the waiter left secret-tool running.
+            using (cancellationToken.Register(() => cancelled.TrySetResult(true)))
+            {
+                try
+                {
+                    await Task.WhenAny(completion.Task, cancelled.Task).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested && !process.HasExited)
+                        process.Kill();
+                    await completion.Task.ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+                finally { process.Exited -= onExited; }
+            }
         }
 
         private static OASISResult<string> Error(string code, string message) =>

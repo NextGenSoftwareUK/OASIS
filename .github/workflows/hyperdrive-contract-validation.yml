@@ -16,10 +16,46 @@ on:
 jobs:
   manifests-and-contracts:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: OASIS
     steps:
-      - uses: actions/checkout@v4
+      # Retired: checkout@v4 with its default repository token could not read private submodules.
+      # Use the same explicit source-graph credential as the other recursive validation workflows.
+      - uses: actions/checkout@v7
         with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
           submodules: recursive
+
+      # Retired root-only checkout: referenced sibling projects were absent on clean runners.
+      - name: Resolve recorded sibling dependency revisions
+        id: dependencies
+        shell: pwsh
+        run: |
+          $manifest = Get-Content Docker/oasis-dependency-versions.env
+          foreach ($key in @('LIBRARIES_COMMIT', 'HOLOCHAIN_COMMIT')) {
+            $entries = @($manifest | Where-Object { $_ -match "^${key}=" })
+            if ($entries.Count -ne 1) { throw "Expected exactly one $key dependency pin." }
+            $revision = $entries[0].Substring($key.Length + 1)
+            if ($revision -notmatch '^[0-9a-f]{40}$') { throw "Invalid $key dependency revision." }
+            "$key=$revision" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Checkout recorded Libraries dependency
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout recorded Holochain dependency
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -45,3 +81,12 @@ jobs:
           --configuration Release
           --filter 'FullyQualifiedName~HyperDrive'
           --logger 'trx;LogFileName=hyperdrive-contracts.trx'
+          --results-directory artifacts/hyperdrive-contract-validation
+
+      - name: Preserve HyperDrive behavioral evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: hyperdrive-contract-results
+          path: OASIS/artifacts/hyperdrive-contract-validation/*.trx
+          if-no-files-found: error

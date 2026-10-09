@@ -59,13 +59,15 @@ Build validation and publication are separate gates. A successful rehearsal prov
 
 ### Our World Unity licensing blocker
 
-The configured `UNITY_LICENSE` secret contains `UnityEntitlementLicense.xml`. That is the current entitlement file produced by the activated Unity Personal installation. The GameCI builder used by the hosted GitHub runner requires the older `Unity_lic.ulf` license payload, plus `UNITY_EMAIL` and `UNITY_PASSWORD`. Renaming or copying the XML does not convert its format and would only hide the broken licensing invariant, so the workflow validates the payload and fails with a direct diagnostic.
+The Edge release workflow installs its pinned Unity editor on an ephemeral GitHub runner, then activates a Unity Personal seat with the repository secrets `UNITY_USERNAME` and `UNITY_PASSWORD` before launching the editor. The credential preflight deliberately fails before a long editor invocation when either secret is absent. An interactive entitlement on a developer workstation is machine-bound and does not activate a GitHub-hosted runner.
+
+**8 October 2026 diagnostic evidence:** [Edge run 37754300843, attempt 2](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/37754300843/attempts/2) passed the credential preflight but failed in the activation action's initial `Unity.Licensing.Client.exe --showEntitlements` query. The client printed `No licenses were found`, a boot-drive serial warning, and an unhandled `ObjectDisposedException` for `IServiceProvider` (exit code 3762504530). The action never reached its login/activation call, so this is not evidence of invalid credentials. The serial warning alone is not established as the cause. Upstream previously recorded a disposed-object activation issue in [activation action PR 18](https://github.com/RageAgainstThePixel/activate-unity-license/pull/18). A single fresh-runner rerun, [attempt 3](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/37754300843/attempts/3), activated successfully at 21:39:51 UTC and entered the aggregate Edge release gate at 21:39:57 UTC. Thus the startup crash did not reproduce and the supplied credentials work; the underlying Unity client defect is not diagnosed. Activation and all editor validation remain required; this diagnostic does not waive either gate or establish successful publication.
 
 Complete the Our World release through one of Unity's supported execution routes:
 
-1. **Self-hosted GitHub Actions runner (recommended free route):** install the runner on a machine where Unity 2022.3.62f3 is already activated with Unity Personal, apply the appropriate runner labels, and select that runner in the Our World release workflow. Unity then uses the machine's valid activation rather than importing a legacy ULF on an ephemeral hosted runner.
-2. **Unity Build Automation:** connect the Our World repository and build Android, iOS, Windows, Linux, macOS and tvOS through Unity's licensed build service. Store signing credentials in the service, never in Git.
-3. **Unity Pro serial:** configure GameCI serial activation secrets for hosted runners when a Pro seat is available.
+1. **Hosted Unity Personal activation (current Edge gate):** configure `UNITY_USERNAME` and `UNITY_PASSWORD` as repository Actions secrets. The pinned activation action acquires and returns the ephemeral runner's seat as part of its action lifecycle.
+2. **Self-hosted GitHub Actions runner:** use a trusted, access-controlled runner on a machine where Unity 2022.3.62f3 is activated. Never expose a self-hosted workstation runner to untrusted pull-request workflows in this public repository.
+3. **Unity Professional or floating licensing:** configure a dedicated professional serial or licensing-server configuration and change the activation inputs as one explicit licensed deployment profile.
 
 After selecting a route, run the release workflow first with publication disabled. Every supported platform job must succeed and upload its expected package. Then run the same reviewed source commit with publication enabled and verify the permanent release or store artifacts. Android and iOS are the primary Our World targets; Windows is also required for desktop testing. A successful source compile or an Actions artifact alone is not a published game release.
 
@@ -121,7 +123,7 @@ MongoDB backups:
 
 The backup scripts prompt for the MongoDB URI, use the fixed environment database name, produce a gzip archive, and verify that BSON content exists. Keep the verified backup outside the repository before a production migration or destructive maintenance.
 
-Generated `bin`, `obj`, Unity `Library`, Unity `Temp`, test results and intermediate NativeAOT build trees can be removed after release artifacts and reports have been copied. Do not remove `artifacts/our-world-release`, `artifacts/mongodb-backups`, signing secrets, or the final native game build folders until the release is archived.
+Generated `bin`, `obj`, test results and intermediate NativeAOT build trees can be removed only after checking that they are not in use and that required release artifacts and reports have been copied. The disposable Unity validation project under `artifacts` is not the real Our World project. Do not remove Our World's Unity `Library`/cache merely because it is generated; confirm it is unused and obtain explicit cleanup approval. Do not remove `artifacts/our-world-release`, `artifacts/mongodb-backups`, signing secrets, or the final native game build folders until the release is archived.
 
 ## Related documentation
 
