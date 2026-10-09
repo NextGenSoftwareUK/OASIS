@@ -7,7 +7,9 @@ using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Edge.Runtime;
-using UnityEngine;
+#if UNITY_ANDROID && !UNITY_EDITOR
+using UnityEngine; // Android bridge only; desktop adapters have no UnityEngine dependency.
+#endif
 
 namespace NextGenSoftware.OASIS.Edge.Unity
 {
@@ -16,16 +18,18 @@ namespace NextGenSoftware.OASIS.Edge.Unity
     {
         private const int IOSKeychainItemNotFound = -25300;
         private readonly string _key;
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-        private readonly WindowsCredentialSecureSessionStore _windowsStore;
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+        // Retired: WindowsCredentialSecureSessionStore _windowsStore; desktop OS dispatch belongs to Edge Runtime.
+        private readonly DesktopPlatformSecureSessionStore _desktopStore;
 #endif
         public UnityPlatformSecureSessionStore(Guid avatarId, Guid deviceId)
         {
             if (avatarId == Guid.Empty || deviceId == Guid.Empty)
                 throw new ArgumentException("Avatar and device ids are required for secure-session isolation.");
             _key = $"OASIS.Edge.OfflineSession.{avatarId:N}.{deviceId:N}";
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            _windowsStore = new WindowsCredentialSecureSessionStore(avatarId, deviceId);
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            // Retired: new WindowsCredentialSecureSessionStore(avatarId, deviceId); excluded macOS/Linux despite existing protected adapters.
+            _desktopStore = new DesktopPlatformSecureSessionStore(avatarId, deviceId);
 #endif
         }
 
@@ -72,8 +76,8 @@ namespace NextGenSoftware.OASIS.Edge.Unity
 #elif (UNITY_IOS || UNITY_TVOS) && !UNITY_EDITOR
             int code = OasisEdgeKeychainSave(_key, Convert.ToBase64String(value));
             return code == 0 ? Success() : Error<bool>("EDGE_IOS_KEYCHAIN_SAVE_FAILED", $"Keychain returned status {code}.");
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            return _windowsStore.SaveAsync(
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            return _desktopStore.SaveAsync(
                 HyperDriveJson.Deserialize<HyperDriveOfflineSessionGrant>(Encoding.UTF8.GetString(value)),
                 CancellationToken.None).GetAwaiter().GetResult();
 #else
@@ -99,8 +103,8 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             try { return new OASISResult<byte[]>(Convert.FromBase64String(Marshal.PtrToStringAnsi(pointer))) { IsLoaded = true }; }
             catch (Exception ex) { return Error<byte[]>("EDGE_IOS_KEYCHAIN_LOAD_FAILED", ex.Message); }
             finally { OasisEdgeKeychainFree(pointer); }
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            var loaded = _windowsStore.LoadAsync(CancellationToken.None).GetAwaiter().GetResult();
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            var loaded = _desktopStore.LoadAsync(CancellationToken.None).GetAwaiter().GetResult();
             if (loaded.IsError) return Error<byte[]>(loaded.ErrorCode, loaded.Message);
             return new OASISResult<byte[]>(loaded.Result == null
                 ? null
@@ -123,8 +127,8 @@ namespace NextGenSoftware.OASIS.Edge.Unity
 #elif (UNITY_IOS || UNITY_TVOS) && !UNITY_EDITOR
             int code = OasisEdgeKeychainDelete(_key);
             return code == 0 ? Success() : Error<bool>("EDGE_IOS_KEYCHAIN_DELETE_FAILED", $"Keychain returned status {code}.");
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            return _windowsStore.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            return _desktopStore.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 #else
             return Error<bool>("EDGE_SECURE_STORE_UNSUPPORTED", "This Unity platform has no configured protected credential store.");
 #endif
