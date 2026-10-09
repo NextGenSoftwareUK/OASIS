@@ -91,6 +91,11 @@ jobs:
       OASIS_TEST_DESKTOP_CREDENTIAL_STORE: '1'
     steps:
       - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout pinned API Core synchronization sources
+        shell: bash
+        run: git submodule update --init -- "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: |
