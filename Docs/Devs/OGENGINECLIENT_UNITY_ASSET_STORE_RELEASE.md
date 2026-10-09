@@ -18,8 +18,10 @@ same source tree and is not a second Asset Store product.
   the listing and local documentation must disclose remote-only operation on those platforms.
 
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
-exists. The `HoloEnabled` release profile now passes its provenance-verified Unity compile and ARM64 IL2CPP player-build
-gate. Its lightweight Holo Edge repository, authenticated runtime host, managed Holochain 0.7 signing path and
+exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
+it does not certify the current revision. Require the current release candidate's successful provenance-verified
+Unity compile and ARM64 IL2CPP player-build gate before describing that candidate as validated.
+The profile's lightweight Holo Edge repository, authenticated runtime host, managed Holochain 0.7 signing path and
 separately durable SQLite-to-Holo projection outbox are included. HoloOASIS must not be advertised as the mobile
 default until the physical-device lifecycle, resource and two-device convergence gates also pass.
 
