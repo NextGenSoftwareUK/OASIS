@@ -78,6 +78,65 @@ on:
       - '.github/workflows/edge-runtime-validation.yml'
 
 jobs:
+  validate-desktop-protected-sessions:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      OASIS_TEST_DESKTOP_CREDENTIAL_STORE: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            10.0.x
+            8.0.x
+      - name: Prepare Linux native Secret Service prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v secret-tool >/dev/null || ! command -v gnome-keyring-daemon >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends libsecret-tools gnome-keyring dbus
+          fi
+      - name: Validate Linux protected sessions in an unlocked disposable keyring
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dbus-run-session -- bash -euo pipefail -c '
+            printf "%s" "oasis-ci-disposable-keyring" | gnome-keyring-daemon --daemonize --login
+            gnome-keyring-daemon --start --components=secrets
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter FullyQualifiedName~UnityDesktopSecureSessionStoreTests --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+          '
+      - name: Validate macOS native Keychain sessions
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter FullyQualifiedName~UnityDesktopSecureSessionStoreTests --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+      - name: Require all native desktop qualification tests to execute and pass
+        shell: pwsh
+        run: |
+          [xml]$trx = Get-Content -LiteralPath artifacts/desktop-protected-sessions/desktop-protected-sessions.trx -Raw
+          $counters = $trx.SelectSingleNode('//*[local-name()="Counters"]')
+          if ($null -eq $counters -or [int]$counters.total -ne 4 -or
+              [int]$counters.executed -ne 4 -or [int]$counters.passed -ne 4) {
+            throw 'All four native desktop tests must execute and pass; skipped or undiscovered tests are not qualification.'
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: desktop-protected-sessions-${{ runner.os }}
+          path: artifacts/desktop-protected-sessions/*.trx
+          if-no-files-found: error
+
   build-holooasis-happ:
     runs-on: ubuntu-latest
     steps:
@@ -259,7 +318,7 @@ jobs:
           if-no-files-found: error
 
   validate:
-    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync]
+    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync, validate-desktop-protected-sessions]
     runs-on: windows-latest
     timeout-minutes: 150
     permissions:
