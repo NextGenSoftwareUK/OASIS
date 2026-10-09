@@ -20,8 +20,8 @@ same source tree and is not a second Asset Store product.
 Desktop integration follow-up: Unity now selects the shared `DesktopPlatformSecureSessionStore` on Windows,
 macOS and Linux editor/player builds, rather than excluding the existing macOS Keychain and Linux Secret Service
 adapters. Linux requires `secret-tool` and an unlocked Secret Service collection; unavailable native storage returns
-an explicit error and never writes an unprotected grant file. Qualification remains pending on actual macOS/Linux
-hosts. Local Windows evidence: 69/69 Edge Runtime tests passed, including the linked Unity adapter's credential
+an explicit error and never writes an unprotected grant file. Native .NET host qualification passed as recorded
+below; Unity/IL2CPP qualification remains pending on macOS/Linux. Local Windows evidence: 69/69 Edge Runtime tests passed, including the linked Unity adapter's credential
 round trip, device isolation, deletion, identity validation and cancellation. The OSX and Linux conditional branches
 each compiled and passed the four adapter tests **on Windows**; this does not prove native Keychain/Secret Service
 behavior or Unity/IL2CPP execution on those operating systems. The Unity editor validation entry point now requires
@@ -48,8 +48,11 @@ The Edge workflow now includes a required `validate-desktop-protected-sessions` 
 linked Unity adapter against the host's actual credential facility and requires four executed, passing TRX tests;
 skips and zero discovery fail the gate. Linux uses a disposable runner D-Bus/keyring session, with prerequisites
 installed only when absent; setup follows the [GNOME daemon lifecycle](https://wiki.gnome.org/Projects/GnomeKeyring/RunningDaemon).
-This matrix has not yet produced passing hosted evidence. Even when it passes, it proves native adapter behavior
-under .NET, not Unity/IL2CPP execution or physical-device acceptance on those platforms.
+Hosted evidence for Development `1e3489fc0`: [Edge validation run 37871539550](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/37871539550)
+completed both native matrix jobs successfully. macOS job `113630538343` and Linux job `113630538408` each
+executed four tests with four passes, zero failures and zero skips. This proves the linked adapter's credential
+round trip, device isolation, deletion, identity validation and pre-cancellation behavior against the actual
+Keychain/Secret Service facilities under .NET. It does not prove Unity/IL2CPP execution or physical-device acceptance.
 
 Subsequent local Windows regression evidence: 71/71 Edge Runtime tests passed with zero skips, recorded in
 `artifacts/edge-runtime-tests/edge-runtime-tests.trx`. This includes cancellation terminating the owned credential
@@ -61,8 +64,8 @@ initialize the parent's pinned API Core submodule because the portable synchroni
 canonical source files. The first hosted matrix failed at compilation due to that missing checkout; the checkout
 was added in `ec1032cce`, but its standalone submodule command failed authentication. The matrix now resolves
 the API Core gitlink SHA from the parent commit and uses an explicit authenticated repository checkout at that
-exact revision. This avoids both moving branch tips and unrelated submodule clones. Passing native results remain
-required.
+exact revision. This avoids both moving branch tips and unrelated submodule clones. That authenticated checkout
+and the native test gates passed in the run linked above; subsequent candidates must continue to pass them.
 
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
