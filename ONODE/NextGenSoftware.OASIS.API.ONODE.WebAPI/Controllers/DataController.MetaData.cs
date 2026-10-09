@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var holon = (Holon)result.Result;
 
                 if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && holon.CreatedByAvatarId != AvatarId && !holon.IsPublic)
+                    && !HolonAccess.CanRead(holon, AvatarId))
                     return TestDataHelper.CreateErrorResponse<Holon>(
                         "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
 
@@ -258,7 +258,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 // When IncludePublic=true, SearchManager returned all holons — apply visibility filter unless Wizard
                 if (request.IncludePublic && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                    searchHolons = searchHolons.Where(h => h.CreatedByAvatarId == AvatarId || h.IsPublic).ToList();
+                    searchHolons = searchHolons.Where(h => HolonAccess.CanRead(h, AvatarId)).ToList();
 
                 response.Result.Result = searchHolons;
 
