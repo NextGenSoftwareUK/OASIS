@@ -8,10 +8,10 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 
 | Metric | Value |
 |--------|-------|
-| AI providers | **100** (99 real + `Auto`) |
+| AI providers | **98** integrated (+ `Auto` router), **27** billable today. Generated: `WEB6/docs/AI_PROVIDER_COUNTS.md` via `python WEB6/Scripts/generate_provider_counts.py` (CI runs `--check`) |
 | Orchestrator protocols | **22** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, BeeAgent, Temporal, Dapr, NATSJetStream, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook) |
 | External memory adapters | 7 (Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, Weaviate) |
-| MCP tools | **512** (361 WEB4 + 95 WEB5 + 39 WEB6 + 17 WEB7-10) — authoritative list: `WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md` |
+| MCP tools | **508** (356 WEB4 + 95 WEB5 + 40 WEB6 + 17 WEB7-10). Generated: `WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md` via `python WEB6/Scripts/generate_mcp_tool_catalog.py` (CI fails if stale) |
 | REST endpoints | 56 |
 | OASIS storage/network/identity providers | **222** working (see `Docs/Provider-Summary.md`; verified 2026-10-02) |
 
@@ -53,7 +53,7 @@ Run through this list whenever WEB6 capabilities change: new AI providers, orche
 
 | File | What to update |
 |------|---------------|
-| `README.md` | Header stats line, AI Provider Reference section (all 100 providers), Orchestrator Protocol Reference section (all 22 protocols) |
+| `README.md` | Header stats line, AI Provider Reference section (all 98 providers), Orchestrator Protocol Reference section (all 22 protocols) |
 | `NextGenSoftware.OASIS.MCP.Server/README.md` | `web6_complete` row (provider count), `web6_orchestrator_invoke` row (protocol list) |
 | `NextGenSoftware.OASIS.MCP.Tools/Tools/Web6Tools.cs` | `web6_orchestrator_invoke` Description attribute (protocol list) |
 | `NextGenSoftware.OASIS.MCP.Tools/Tools/Web4Tools.cs` (and `Web4ToolsBatch*.cs`) | Add any MCP tools for new REST endpoints (see gap audit) |

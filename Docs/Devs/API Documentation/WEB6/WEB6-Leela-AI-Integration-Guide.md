@@ -264,7 +264,7 @@ If you already have pre-chunked data, use `POST /v1/holonic-memory/holons/{id}/m
 
 ```python
 results = httpx.get(
-    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/memory/search",
+    f"https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{corpus_holon_id}/memory/semantic-search",
     params={
         "q": "How should a therapist respond to a client expressing hopelessness?",
         "topK": 5
