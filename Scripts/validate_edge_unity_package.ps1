@@ -34,6 +34,7 @@ function Invoke-UnityBatchProcess {
 
     $stdoutPath = "$LogPath.stdout.log"
     $stderrPath = "$LogPath.stderr.log"
+    $launchTime = Get-Date
     Write-Host "Starting Unity $Phase validation (timeout: $TimeoutMinutes minutes)."
     $process = Start-Process -FilePath $UnityEditor -ArgumentList $Arguments `
         -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru
@@ -59,6 +60,28 @@ function Invoke-UnityBatchProcess {
         }
     }
     if ($process.ExitCode -ne 0) {
+        # Loader failures can occur before Unity creates any of its own diagnostic streams.
+        # Preserve matching Windows events without replacing the original process failure.
+        if ($IsWindows -and $process.ExitCode -eq -1073741515) {
+            foreach ($eventLog in @('Application', 'System')) {
+                try {
+                    $events = @(Get-WinEvent -FilterHashtable @{
+                        LogName = $eventLog; StartTime = $launchTime
+                    } -ErrorAction Stop | Where-Object {
+                        $_.Message -match 'Unity\.exe' -and $_.Id -in @(26, 1000, 1001)
+                    })
+                    if ($events.Count -gt 0) {
+                        $events | Select-Object TimeCreated, Id, ProviderName, Message |
+                            Format-List | Out-String |
+                            Tee-Object -FilePath "$LogPath.$eventLog.loader.log" | Write-Host
+                    } else {
+                        Write-Warning "No matching Unity loader event was available in $eventLog."
+                    }
+                } catch {
+                    Write-Warning "Could not collect Unity loader events from ${eventLog}: $($_.Exception.Message)"
+                }
+            }
+        }
         foreach ($diagnosticPath in @($stdoutPath, $stderrPath)) {
             if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
                 Write-Host "--- Failed Unity $Phase diagnostic: $diagnosticPath ---"
