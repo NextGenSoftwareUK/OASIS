@@ -101,16 +101,20 @@ The release inspector requires every TRX test to pass and rejects skipped, warni
 not-runnable, disconnected or partially executed results. It also requires the complete package set for the selected
 profile and verifies that `oasis.happ` matches its build manifest.
 
-Current local evidence (2026-10-05):
+Historical local evidence recorded on 2026-10-05 (not a verification of the current commit):
 
 | Profile | Tests | Directory |
 |---|---:|---|
 | SQLite MVP | 555/555 across 19 reports; 7 NuGet packages | `artifacts/current-goal-release-workflow-sqlite` |
 | Holo enabled | 651/651 across 22 reports; 9 NuGet packages plus verified `oasis.happ` | `artifacts/current-goal-release-workflow-holo` |
 
-Each evidence directory contains the TRX reports, NuGet packages, Unity `.tgz`, NativeAOT profiles, hApp evidence
-when applicable, API compatibility report, SPDX SBOM, acceptance report, Unity/Android/Our World logs and
-`SHA256SUMS.txt`. These ignored local outputs must be archived or published before generated-artifact cleanup.
+When generated, each evidence directory contains the TRX reports, NuGet packages, Unity `.tgz`, NativeAOT profiles,
+hApp evidence when applicable, API compatibility report, SPDX SBOM, acceptance report, Unity/Android/Our World logs
+and `SHA256SUMS.txt`. These ignored local outputs must be archived or published before generated-artifact cleanup.
+The two directories above and `artifacts/provider-release-package-audit` were absent from this checkout when
+inspected on 2026-10-08. Their historical counts are not current executable evidence, and no archive location was
+verified in that inspection. Use the current commit's successful Actions evidence artifact (or regenerate the gate)
+for release certification; do not treat these historical paths as available downloads.
 
 Full-provider package audit outputs:
 

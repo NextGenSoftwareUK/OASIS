@@ -20,7 +20,7 @@ The OASIS (Open Advanced Secure Interoperable System) is a revolutionary WEB4–
 │  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
 │  │ • 107 AI Providers Unified (OpenAI, Anthropic, Gemini…)    │ │
 │  │ • DID/Verifiable Credentials (W3C standard)               │ │
-│  │ • 512 MCP tools · 56 REST Endpoints · v2.0                │ │
+│  │ • 508 MCP tools · 56 REST Endpoints · v2.0                │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  WEB5 STAR Web API (Gamification & Business Layer)             │
@@ -239,7 +239,7 @@ The `OrchestratorManager` normalises agent communication across: **MCP** (Stream
 **Standards**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade identity and compliance built into the AI layer.
 
 #### 7. MCP Server & REST API
-- **512 callable typed MCP tools**: WEB4(361) + WEB5(95) + WEB6(39) + WEB7(7) + WEB8(8) + WEB9(1) + WEB10(1)
+- **508 callable typed MCP tools**: WEB4(361) + WEB5(95) + WEB6(39) + WEB7(7) + WEB8(8) + WEB9(1) + WEB10(1)
 - **56 REST endpoints** across 14 controllers (v2.0)
 - **Swagger**: `https://api.web6.oasisomniverse.one/swagger`
 - **npm**: `@oasisomniverse/web6-api` v2.0.0 — 14 modules, 40 operations
@@ -258,7 +258,8 @@ The `OrchestratorManager` normalises agent communication across: **MCP** (Stream
 - `POST /v1/holonic-memory/holons` - Store a memory holon
 - `GET /v1/holonic-memory/holons/{scope}` - Retrieve by scope
 - `POST /v1/holonic-memory/holons/{id}/propagate-up` - Propagate up the tree
-- `POST /v1/holonic-memory/search` - Semantic search across all memories
+- `GET /v1/holonic-memory/holons/{id}/memory/search` - Keyword search within a holon
+- `GET /v1/holonic-memory/holons/{id}/memory/semantic-search` - Semantic (embedding) search within a holon
 
 #### DID / Verifiable Credentials
 - `POST /v1/did/create` - Create a new DID
