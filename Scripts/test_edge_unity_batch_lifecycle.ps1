@@ -35,6 +35,11 @@ foreach ($requiredSupervisorContract in @(
 $credentialGateIndex = $workflowSource.IndexOf('name: Require Unity activation credentials', [StringComparison]::Ordinal)
 $activationIndex = $workflowSource.IndexOf('name: Activate Unity license', [StringComparison]::Ordinal)
 $validationIndex = $workflowSource.IndexOf('name: Validate Edge release', [StringComparison]::Ordinal)
+$runtimeIndex = $workflowSource.IndexOf('name: Ensure Unity Windows runtime prerequisites', [StringComparison]::Ordinal)
+if ($runtimeIndex -lt 0 -or $runtimeIndex -ge $credentialGateIndex -or
+    $workflowSource -notmatch '\./OASIS/Scripts/ensure_unity_windows_runtime\.ps1') {
+    throw 'Edge validation must provision Unity Windows runtime prerequisites before activation and editor launch.'
+}
 if ($credentialGateIndex -lt 0 -or $activationIndex -lt 0 -or $validationIndex -lt 0 -or
     $credentialGateIndex -ge $activationIndex -or $activationIndex -ge $validationIndex) {
     throw 'Edge validation must require credentials and activate Unity before launching the editor.'
@@ -48,7 +53,8 @@ foreach ($requiredActivationContract in @(
 }
 
 Write-Host 'Edge Unity batch lifecycle contract passed: Unity is activated before both supervised validator processes run.'
-foreach ($requiredTrigger in @('Scripts/validate_edge_unity_package.ps1', 'Scripts/test_edge_unity_batch_lifecycle.ps1')) {
+foreach ($requiredTrigger in @('Scripts/validate_edge_unity_package.ps1', 'Scripts/test_edge_unity_batch_lifecycle.ps1',
+        'Scripts/ensure_unity_windows_runtime.ps1')) {
     if ([regex]::Matches($workflowSource, [regex]::Escape("- '$requiredTrigger'")).Count -ne 2) {
         throw "Both push and pull-request path filters must validate changes to '$requiredTrigger'."
     }
