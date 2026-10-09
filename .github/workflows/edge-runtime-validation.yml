@@ -435,7 +435,10 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          subject-path: OASIS/artifacts/edge-release-validation/*
+          # Retired: subject-path: OASIS/artifacts/edge-release-validation/*
+          # Globbing directories also attested intermediate build trees (>1024 subjects).
+          # The inspector's checksum catalogue binds every final package and release report.
+          subject-checksums: OASIS/artifacts/edge-release-validation/SHA256SUMS.txt
       - name: Preserve signed provenance bundle
         if: github.event_name != 'pull_request'
         shell: pwsh

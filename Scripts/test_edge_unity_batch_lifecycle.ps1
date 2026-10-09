@@ -5,6 +5,10 @@ $validatorPath = Join-Path $repoRoot 'Scripts\validate_edge_unity_package.ps1'
 $workflowPath = Join-Path $repoRoot '.github\workflows\edge-runtime-validation.yml'
 $source = Get-Content -LiteralPath $validatorPath -Raw
 $workflowSource = Get-Content -LiteralPath $workflowPath -Raw
+if ($workflowSource -notmatch '(?m)^\s+subject-checksums: OASIS/artifacts/edge-release-validation/SHA256SUMS\.txt\s*$' -or
+    $workflowSource -match '(?m)^\s+subject-path: OASIS/artifacts/edge-release-validation/\*\s*$') {
+    throw 'Edge provenance must attest the final release checksum catalogue, not recursive intermediate build trees.'
+}
 # A local ignored .meta file cannot qualify a clean hosted checkout. Each native SQLite
 # importer must be versioned so packaging never substitutes generic DefaultImporter settings.
 foreach ($metadata in @(
