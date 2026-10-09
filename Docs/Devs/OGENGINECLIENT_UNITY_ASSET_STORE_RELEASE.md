@@ -59,7 +59,10 @@ returns. The runtime also compiled for `netstandard2.1` with zero warnings/error
 the shared process helper on Windows; they do not qualify Linux Secret Service itself. The native matrix must
 initialize the parent's pinned API Core submodule because the portable synchronization project links its four
 canonical source files. The first hosted matrix failed at compilation due to that missing checkout; the checkout
-was corrected in `ec1032cce`, and passing native results remain required.
+was added in `ec1032cce`, but its standalone submodule command failed authentication. The matrix now resolves
+the API Core gitlink SHA from the parent commit and uses an explicit authenticated repository checkout at that
+exact revision. This avoids both moving branch tips and unrelated submodule clones. Passing native results remain
+required.
 
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);

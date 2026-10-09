@@ -93,9 +93,21 @@ jobs:
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - name: Checkout pinned API Core synchronization sources
+      - name: Resolve pinned API Core synchronization revision
+        id: core-revision
         shell: bash
-        run: git submodule update --init -- "OASIS Architecture/NextGenSoftware.OASIS.API.Core"
+        run: |
+          core_sha="$(git rev-parse 'HEAD:OASIS Architecture/NextGenSoftware.OASIS.API.Core')"
+          printf 'sha=%s\n' "$core_sha" >> "$GITHUB_OUTPUT"
+      # Retired standalone submodule update: checkout v7's parent credential does not authenticate that clone.
+      - name: Checkout pinned API Core synchronization sources
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.core-revision.outputs.sha }}
+          path: OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: |
