@@ -1870,6 +1870,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.Provi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests", "Tools\NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests\NextGenSoftware.OASIS.HyperDrive.Migration.UnitTests.csproj", "{3AA137B1-362E-41BF-9F6B-7EDB10B1763F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestProjects", "TestProjects", "{68B502BF-8184-14AC-0B5B-75493096E842}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests", "Providers\Storage\TestProjects\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests\NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests.csproj", "{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -10475,6 +10479,24 @@ Global
 		{3AA137B1-362E-41BF-9F6B-7EDB10B1763F}.Release|x64.Build.0 = Release|Any CPU
 		{3AA137B1-362E-41BF-9F6B-7EDB10B1763F}.Release|x86.ActiveCfg = Release|Any CPU
 		{3AA137B1-362E-41BF-9F6B-7EDB10B1763F}.Release|x86.Build.0 = Release|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Debug|x64.Build.0 = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Debug|x86.Build.0 = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Linux|x64.Build.0 = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Linux|x86.Build.0 = Debug|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Release|x64.ActiveCfg = Release|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Release|x64.Build.0 = Release|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Release|x86.ActiveCfg = Release|Any CPU
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -11331,6 +11353,8 @@ Global
 		{E9D97C89-429F-42B4-AAE2-5C5227ED3CB0} = {76C64794-89AC-62A0-3737-3CA42E9E5635}
 		{AFB6936F-968B-4713-8ED9-1305A9AC0A8E} = {76C64794-89AC-62A0-3737-3CA42E9E5635}
 		{3AA137B1-362E-41BF-9F6B-7EDB10B1763F} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{68B502BF-8184-14AC-0B5B-75493096E842} = {4C7435E1-23F8-4CCF-A3FA-496EA228067F}
+		{3FC6EB19-A56E-4153-AFDA-9AA9A7AA65C9} = {68B502BF-8184-14AC-0B5B-75493096E842}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}

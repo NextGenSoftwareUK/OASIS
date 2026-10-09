@@ -54,13 +54,13 @@ OASIS has achieved significant implementation milestones with 11 blockchain prov
 - **SkillOpt**: Self-evolving agent skills (Microsoft Research arXiv:2605.23904) — +23.5% avg accuracy via rollout → reflect → edit → gate loop; builds proprietary skill corpus asset over time
 - **Holonic Memory**: Session→Agent→User→Group→…→Earth fractal hierarchy with membrane rules, TTL, semantic search (cosine similarity), and multi-hop propagation
 - **External Memory Providers**: Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector — auto-registered from environment variables
-- **AI Provider Unification**: 99 providers unified (OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, Replicate, StabilityAI, and more)
+- **AI Provider Unification**: 98 providers integrated, 27 billable today with reviewed prices (OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, Replicate, StabilityAI, and more)
 - **Karma-Gated AI**: Bronze/Silver/Gold/Diamond tiers gating model access and token budgets — aligned incentives as recurring revenue
 - **BudgetGuard**: Per-dispatch cost and token caps enforced before any agent API call
 - **DID/Verifiable Credentials**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade compliance
 - **Multi-Protocol Orchestration**: ACP, ANP, gRPC, GraphQL, AsyncAPI/Kafka all exposed via OrchestratorManager
 - **ML.NET Integration**: On-device task classification, sentiment analysis, and trainable custom models
-- **MCP Server**: 512 callable typed tools (hosted at WEB6 `/mcp`, caller-bound and WEB4-metered) — WEB4(361), WEB5(95), WEB6(39), WEB7(7), WEB8(8), WEB9(1), WEB10(1)
+- **MCP Server**: 508 callable typed tools (hosted at WEB6 `/mcp`, caller-bound and WEB4-metered) — WEB4(361), WEB5(95), WEB6(39), WEB7(7), WEB8(8), WEB9(1), WEB10(1)
 - **REST API v2**: 56 endpoints across 14 controllers; Swagger UI at `https://api.web6.oasisomniverse.one/swagger`
 
 ### **WEB7 Symbiosis Layer — Bio-Signal & Neural Interface** *(In Development)*

@@ -1,21 +1,21 @@
 # OASIS MCP Tool Catalog
 
-This catalog is generated from the `[McpServerTool]` registrations in the OASIS MCP Server. It is the authoritative inventory for the 512 callable commands shipped across WEB4–WEB10.
+This catalog is generated from the `[McpServerTool]` registrations in the OASIS MCP Server. It is the authoritative inventory for the 508 callable commands shipped across WEB4–WEB10.
 
 | Layer | Tools | Scope |
 |---|---:|---|
-| WEB4 | 361 | Identity, avatars, karma, holons, search, chat, wallets, keys, NFTs, data, providers and HyperDrive |
+| WEB4 | 356 | Identity, avatars, karma, holons, search, chat, wallets, keys, NFTs, data, providers and HyperDrive |
 | WEB5 | 95 | STAR, OAPPs, quests, missions, inventory, NFTs, zomes, templates, libraries, runtimes and games |
-| WEB6 | 39 | AI providers, completion, embeddings, FAHRN agents, BRAID memory, orchestration, DID/VC and external memory |
+| WEB6 | 40 | AI providers, completion, embeddings, FAHRN agents, BRAID memory, orchestration, DID/VC and external memory |
 | WEB7 | 7 | Consent-based symbiosis sessions, bio-signals and collective-consciousness spaces |
 | WEB8 | 8 | Galactic mesh nodes, routing, relay and protocol translation |
 | WEB9 | 1 | Singularity state and convergence |
 | WEB10 | 1 | Source connection and universal state |
-| **Total** | **512** | |
+| **Total** | **508** | |
 
 All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISResult<T>` envelope: successful calls set `isError` to `false` and place data in `result`; failures set `isError` to `true` and explain the cause in `message`.
 
-## WEB4 commands (361)
+## WEB4 commands (356)
 
 | Command | Description |
 |---|---|
@@ -95,12 +95,12 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_chat_send_message` | WEB4: sends a message into an existing chat session. sessionId is the string returned by web4_chat_start_session. |
 | `web4_chat_start_session` | WEB4: creates a new chat session. participantIdsJson is a JSON array of GUID strings. Returns the new session id. |
 | `web4_clan_create` | WEB4: creates a new clan. The ownerAvatarId becomes the owner and first member. Provide name and optional description. |
-| `web4_clan_delete` | WEB4: deletes (soft-deletes by default) a clan by its GUID id. |
+| `web4_clan_delete` | WEB4: deletes (soft-deletes by default) a clan by its GUID id. Only the clan's owner (or a Wizard) can delete it. |
 | `web4_clan_load_all` | WEB4: loads all clans, optionally filtered by ownerAvatarId (pass empty string or omit for all). |
 | `web4_clan_load_by_id` | WEB4: loads a clan by its GUID id. |
 | `web4_clan_load_inventory` | WEB4: loads the inventory (treasury) of items for a given clan. |
 | `web4_clan_load_members` | WEB4: loads the member avatar IDs for a given clan. |
-| `web4_clan_update` | WEB4: updates an existing clan's name and/or description. Provide clanId, new name, and optional description. |
+| `web4_clan_update` | WEB4: updates an existing clan's name and/or description. Only the clan's owner (or a Wizard) can update it. Provide clanId, new name, and optional description. |
 | `web4_competition_leaderboard` | WEB4: gets the leaderboard for a competition type and season. competitionType: Karma, Experience, EggCollection, QuestCompletion, etc. seasonType: Daily, Weekly, Monthly, Yearly, etc. |
 | `web4_competition_leagues` | WEB4: gets available leagues for a competition type and season (Bronze, Silver, Gold, etc.). |
 | `web4_competition_rank` | WEB4: gets a specific avatar's rank in a competition. Returns their leaderboard entry with rank, score and stats. |
@@ -278,11 +278,11 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_onet_broadcast_message` | WEB4/ONET: broadcasts a message to all connected P2P nodes. |
 | `web4_onet_connect_node` | WEB4/ONET: connects to a specific P2P node by nodeId and nodeAddress (host:port). |
 | `web4_onet_disconnect_node` | WEB4/ONET: disconnects from a specific P2P node. |
+| `web4_onet_get_config` | WEB4/ONET: retrieves this node's ONET configuration (Wizard only). NodePrivateKey and ONETApiKey are always returned empty. |
 | `web4_onet_get_network_nodes` | WEB4/ONET: lists nodes currently connected to the P2P network. |
 | `web4_onet_get_network_stats` | WEB4/ONET: retrieves P2P network statistics (bandwidth, message counts, etc.). |
 | `web4_onet_get_network_status` | WEB4/ONET: gets the current P2P network status (online/offline, peer count). |
 | `web4_onet_get_network_topology` | WEB4/ONET: retrieves the P2P network topology graph. |
-| `web4_onet_get_config` | WEB4/ONET: retrieves this node's ONET configuration (Wizard only). NodePrivateKey and ONETApiKey are always returned empty. |
 | `web4_onet_register_node` | WEB4/ONET: registers a community ONODE's public key with the bootstrap server. nodeAddress is optional. |
 | `web4_onet_start_network` | WEB4/ONET: starts the P2P network. |
 | `web4_onet_stop_network` | WEB4/ONET: stops the P2P network. |
@@ -341,7 +341,7 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web4_settings_update_privacy` | WEB4: updates privacy settings for an avatar. privacySettingsJson is a JSON object with privacy key-value pairs. |
 | `web4_settings_update_subscription` | WEB4: updates subscription settings for an avatar. settingsJson is a JSON object with subscription key-value pairs. |
 | `web4_settings_update_system` | WEB4: updates system settings for an avatar. settingsJson is a JSON object with the system key-value pairs to update. |
-| `web4_share_holon` | WEB4: shares a holon with one or more avatars by recording the avatar IDs in the holon's SHARED_AVATAR_IDS metadata key. avatarIds is a comma-separated list of avatar GUIDs. |
+| `web4_share_holon` | WEB4: shares a holon you created with one or more avatars by recording their IDs in the holon's SHARED_AVATAR_IDS metadata key. avatarIds is a comma-separated list of avatar GUIDs. Only the holon's creator (or a Wizard) can share it. |
 | `web4_social_get_feed` | WEB4: retrieves the aggregated social-media feed from all registered providers for an avatar. |
 | `web4_social_get_registered_providers` | WEB4: lists all social-media providers registered for an avatar. |
 | `web4_social_register_provider` | WEB4: registers a social-media provider (e.g. 'Twitter', 'Facebook') for an avatar with an access token. settingsJson is an optional JSON object with extra provider settings. |
@@ -476,14 +476,14 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web5_star_zome_load_all_for_avatar` | WEB5 STARNET: loads every STAR Zome published by or accessible to an avatar. |
 | `web5_star_zome_search` | WEB5 STARNET: searches STAR Zomes on STARNET by a free-text search term. |
 
-## WEB6 commands (39)
+## WEB6 commands (40)
 
 | Command | Description |
 |---|---|
 | `web6_braid_find_graph` | WEB6 Holonic BRAID: looks up the shared reasoning graph already generated for a task type, if any (lookup-or-create pattern - zero generation cost on a hit). |
 | `web6_braid_record_outcome` | WEB6 Holonic BRAID: feeds a real solver outcome back into a graph's quality metadata via EMA (updates avg_solver_accuracy). |
 | `web6_braid_save_graph` | WEB6 Holonic BRAID: stores a newly generated Mermaid reasoning graph in the shared library for a task type (the Generator step of the two-stage BRAID protocol). |
-| `web6_complete` | WEB6: routes a unified chat completion request to whichever AI provider/model best fits (100 providers: OpenAI, Anthropic, Gemini, Groq, Mistral, XAI, Ollama, Cohere, AzureOpenAI, HuggingFace, AWSBedrock, Cerebras, TogetherAI, Perplexity, SambaNova, OpenRouter, DeepSeek, ElevenLabs, RunwayML, Black Forest Labs, Bittensor, GaiaNet, Venice AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, Naver HyperCLOVA X, and 70+ more, or 'auto'). 512 MCP tools total across WEB4–WEB10. |
+| `web6_complete` | WEB6: routes a unified chat completion request to whichever AI provider/model best fits (98 integrated providers, 27 billable today with reviewed prices: OpenAI, Anthropic, Gemini, Groq, Mistral, XAI, Ollama, Cohere, AzureOpenAI, HuggingFace, AWSBedrock, Cerebras, TogetherAI, Perplexity, SambaNova, OpenRouter, DeepSeek, ElevenLabs, RunwayML, Black Forest Labs, Bittensor, GaiaNet, Venice AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, Naver HyperCLOVA X, and 70+ more, or 'auto'). 508 MCP tools total across WEB4–WEB10. |
 | `web6_embed` | WEB6: generates embeddings for one or more texts via the configured provider (OpenAI, Cohere, or HuggingFace). Returns float arrays suitable for semantic search, RAG pipelines, or cosine-similarity comparisons. |
 | `web6_estimate_cost` | WEB6: estimates the USD cost of a completion call before executing it, based on expected token counts and the provider's current pricing. Use this before long or expensive calls. |
 | `web6_fahrn_dispatch` | WEB6 FAHRN: dispatches a problem to the reasoning network. The controller agent scores eligible agents, picks Serial/Parallel/Decomposed execution, runs loop detection, assembles the final Mermaid plan and updates every involved agent's score via EMA. |
@@ -500,7 +500,7 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_health` | WEB6: returns API status, version and UTC timestamp. No authentication required. Use to verify the WEB6 API is reachable before making authenticated calls. |
 | `web6_list_models` | WEB6: returns the full WEB6 model catalogue — all available models with provider, tier, context window, pricing and capabilities. Optionally filter by plan (Free/Bronze/Silver/Gold). |
 | `web6_list_openserv_models` | WEB6: lists every model reachable through the OpenServ provider (provider: "openserv") - the full SERV catalog spanning OpenAI, Anthropic, Google, xAI, Qwen and DeepSeek behind a single SERV_API_KEY. |
-| `web6_list_providers` | WEB6: returns all 100 AI providers registered in WEB6 with their minimum plan requirement, supported endpoint types, and operational status. |
+| `web6_list_providers` | WEB6: returns all 98 AI providers integrated in WEB6 with their minimum plan requirement, supported endpoint types, and operational status. |
 | `web6_memory_external_add` | WEB6 External Memory: adds a memory to the specified external memory provider (Mem0, Zep, Letta, LangMem, Graphiti), scoped to the avatar. |
 | `web6_memory_external_list_providers` | WEB6 External Memory: lists the names of all external memory providers currently registered (auto-detected from environment variables on startup). |
 | `web6_memory_external_search` | WEB6 External Memory: searches one or more configured external memory providers (Mem0, Zep, Letta, LangMem, Graphiti) for memories relevant to the given query, scoped to the avatar. Returns merged, score-ranked results. |
@@ -509,7 +509,8 @@ All commands are exposed over MCP stdio. Most return a JSON-serialized `OASISRes
 | `web6_memory_propagate` | WEB6 Holonic BRAID memory hierarchy: propagates whatever the child holon's membrane rule permits up to its parent holon (a single hop). |
 | `web6_memory_propagate_up` | WEB6 Holonic BRAID memory hierarchy: propagates permitted memory items up the fractal hierarchy for up to N hops (pass int.MaxValue to reach Earth). Priority 16a — multi-hop upward propagation. |
 | `web6_memory_record` | WEB6 Holonic BRAID memory hierarchy: records a new memory item at the given holon. |
-| `web6_memory_search` | WEB6 Holonic BRAID memory hierarchy: semantic search over all memory items in a holon. Returns the top-K items most similar to the query using cosine similarity over stored embedding vectors (falls back to keyword overlap when no embeddings are stored). Priority 16b — semantic search. |
+| `web6_memory_search` | WEB6 Holonic BRAID memory hierarchy: keyword search over all memory items in a holon. Returns the top-K items ranked by word overlap with the query; calls no AI provider. Use web6_memory_semantic_search for embedding-based search. |
+| `web6_memory_semantic_search` | WEB6 Holonic BRAID memory hierarchy: semantic search over all memory items in a holon. Embeds the query with embeddingProvider and returns the top-K items by cosine similarity to their stored embeddings. Metered as one embedding call. |
 | `web6_memory_set_membrane_rule` | WEB6 Holonic BRAID memory hierarchy: sets the membrane rule governing what a holon is allowed to propagate upward to its parent (per-field, consent-governed - default is private). |
 | `web6_ml_classify_task` | WEB6 ML.NET: classifies a problem string into a FAHRN task category in-process (zero latency, no API call) using the trained ML.NET model or heuristic fallback. Returns: code/reasoning/writing/mathematics/legal/architecture/real-time/general. |
 | `web6_ml_sentiment` | WEB6 ML.NET: analyses the sentiment of text in-process (no API call). Returns Positive, Neutral, or Negative. |
