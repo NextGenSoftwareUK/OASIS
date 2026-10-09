@@ -51,6 +51,16 @@ installed only when absent; setup follows the [GNOME daemon lifecycle](https://w
 This matrix has not yet produced passing hosted evidence. Even when it passes, it proves native adapter behavior
 under .NET, not Unity/IL2CPP execution or physical-device acceptance on those platforms.
 
+Subsequent local Windows regression evidence: 71/71 Edge Runtime tests passed with zero skips, recorded in
+`artifacts/edge-runtime-tests/edge-runtime-tests.trx`. This includes cancellation terminating the owned credential
+helper and completion when the helper has already exited. Linux output/error streams are drained concurrently;
+cancellation is observed before awaiting their completion, and the owned process is stopped before cancellation
+returns. The runtime also compiled for `netstandard2.1` with zero warnings/errors. These lifecycle tests exercise
+the shared process helper on Windows; they do not qualify Linux Secret Service itself. The native matrix must
+initialize the parent's pinned API Core submodule because the portable synchronization project links its four
+canonical source files. The first hosted matrix failed at compilation due to that missing checkout; the checkout
+was corrected in `ec1032cce`, and passing native results remain required.
+
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
 it does not certify the current revision. Require the current release candidate's successful provenance-verified
