@@ -71,6 +71,13 @@ the API Core gitlink SHA from the parent commit and uses an explicit authenticat
 exact revision. This avoids both moving branch tips and unrelated submodule clones. That authenticated checkout
 and the native test gates passed in the run linked above; subsequent candidates must continue to pass them.
 
+Hosted diagnostic run [37865131076](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/37865131076)
+passed Windows runtime prerequisite setup and Unity activation, then failed its Android build because six
+SQLite native-plugin `.meta` files existed only as ignored local files. A clean checkout generated generic
+importers, causing the Windows x86/x64 DLLs to collide in Android. These six platform-specific importers
+are now versioned; packaging requires them before generating output, and the lifecycle regression checks
+that they are tracked in Git. Hosted validation of this correction remains required.
+
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
 it does not certify the current revision. Require the current release candidate's successful provenance-verified
