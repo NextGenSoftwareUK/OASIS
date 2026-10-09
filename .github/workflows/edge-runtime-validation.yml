@@ -24,6 +24,7 @@ on:
       - 'Scripts/validate_edge_runtime_release.ps1'
       - 'Scripts/validate_edge_unity_package.ps1'
       - 'Scripts/test_edge_unity_batch_lifecycle.ps1'
+      - 'Scripts/ensure_unity_windows_runtime.ps1'
       - 'Scripts/validate_dependency_security.ps1'
       - 'Scripts/run_hosted_mongo_release_evidence.ps1'
       - 'Scripts/validate_our_world_device_acceptance.ps1'
@@ -59,6 +60,7 @@ on:
       - 'Scripts/validate_edge_runtime_release.ps1'
       - 'Scripts/validate_edge_unity_package.ps1'
       - 'Scripts/test_edge_unity_batch_lifecycle.ps1'
+      - 'Scripts/ensure_unity_windows_runtime.ps1'
       - 'Scripts/validate_dependency_security.ps1'
       - 'Scripts/run_hosted_mongo_release_evidence.ps1'
       - 'Scripts/validate_our_world_device_acceptance.ps1'
@@ -308,6 +310,9 @@ jobs:
           unity-version: 2022.3.62f3 (e9b2a6e6c3a0)
           build-targets: Android
           cache-installation: true
+      - name: Ensure Unity Windows runtime prerequisites
+        shell: pwsh
+        run: ./OASIS/Scripts/ensure_unity_windows_runtime.ps1
       - name: Require Unity activation credentials
         shell: pwsh
         env:
