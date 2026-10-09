@@ -11,6 +11,10 @@ if ($source -match '(?m)^[^#\r\n]*Remove-Item\s+-LiteralPath\s+\$projectRoot') {
 if ($source -notmatch 'reusable Edge validation project is already open in Unity') {
     throw 'Unity validation must reject an active owner before refreshing its project inputs.'
 }
+if ($source -notmatch 'Get-ChildItem -LiteralPath \$sampleSource -Force' -or
+    $source -match '(?m)^Copy-Item -LiteralPath \$sampleSource -Destination') {
+    throw 'Reusable Unity validation must copy sample contents, not nest the source directory on repeat runs.'
+}
 $invocations = [regex]::Matches(
     $source,
     '(?ms)Invoke-UnityBatchProcess\s+-Phase\s+''[^'']+''.*?-Arguments\s+@\((?<arguments>.*?)\)')
