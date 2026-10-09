@@ -13,7 +13,7 @@ WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protoc
 
 ## What is WEB6?
 
-WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 100 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
+WEB6 is a unified AI abstraction and orchestration layer. Instead of integrating 98 AI providers separately, you call one endpoint and WEB6 routes to the right model automatically — by cost, quality or latency — with automatic failover if a provider goes down.
 
 On top of routing, WEB6 adds:
 
@@ -353,7 +353,8 @@ Higher holons accumulate shared intelligence from every session below them. Memb
 | `PUT` | `/v1/holonic-memory/holons/{id}/membrane-rule` | Set the membrane rule governing upward propagation |
 | `POST` | `/v1/holonic-memory/holons/{id}/memory` | Store a single memory item |
 | `POST` | `/v1/holonic-memory/holons/{id}/documents` | **Bulk ingest** — auto-chunk a document and store each chunk |
-| `GET` | `/v1/holonic-memory/holons/{id}/memory/search` | Semantic search across memory items |
+| `GET` | `/v1/holonic-memory/holons/{id}/memory/search` | Keyword search across memory items (no AI call) |
+| `GET` | `/v1/holonic-memory/holons/{id}/memory/semantic-search` | Semantic search (one metered embedding call) |
 | `POST` | `/v1/holonic-memory/holons/{id}/propagate` | Propagate one hop up the hierarchy |
 | `POST` | `/v1/holonic-memory/holons/{id}/propagate-up` | Propagate N hops up (pass `levels=2147483647` for Earth) |
 
@@ -389,7 +390,7 @@ print(f"{result['storedChunks']} new, {result['deduplicatedChunks']} deduplicate
 ### Semantic search
 
 ```bash
-GET https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{holonId}/memory/search?q=How+should+a+therapist+respond+to+hopelessness%3F&topK=5
+GET https://api.web6.oasisomniverse.one/v1/holonic-memory/holons/{holonId}/memory/semantic-search?q=How+should+a+therapist+respond+to+hopelessness%3F&topK=5
 Authorization: Bearer <your-oasis-avatar-key>
 ```
 
@@ -1015,7 +1016,7 @@ See [Section 12](#12-spinning-up-your-own-onode) for the full ONODE configuratio
 | Resource | Description |
 |----------|-------------|
 | [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full endpoint docs — request/response shapes, auth, gRPC and GraphQL |
-| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 512 MCP tools — parameters and return values |
+| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | All 508 MCP tools — parameters and return values |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Common workflows, environment setup, recipes |
 | [WEB6 for Leela AI](WEB6-Leela-AI-Integration-Guide.md) | Cost reduction playbook — Bedrock swap, BRAID/caching, holonic document storage |
 | [Holonic Braid Whitepaper](https://web6.oasisomniverse.one/holonic-braid-whitepaper.html) | Deep technical detail on BRAID, FAHRN, holonic memory |
