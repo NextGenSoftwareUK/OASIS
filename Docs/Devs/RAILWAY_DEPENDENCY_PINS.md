@@ -59,6 +59,31 @@ Never solve a production incompatibility by pointing `master` at a submodule's `
 
 ## Updating a dependency
 
+### Private checkout credentials are environment-specific
+
+Each Railway WEB4-WEB10 service must receive a non-empty `GITHUB_PAT` build variable with read access to the
+private repositories named by the manifest. GitHub Actions' `PRIVATE_SUBMODULE_PAT` secret does not automatically
+configure Railway. A successful dev or production build does not prove that staging has this variable.
+Configure it through Railway's secret-variable controls (or an explicitly approved shared-variable reference);
+never put its value in Git, documentation, logs, or a command-line argument. Keep the pinned clone's fail-fast
+credential requirement; do not replace it with a public clone, moving branch, or cached dependency fallback.
+
+On 2026-10-08, staging WEB5-WEB10 had no non-empty `GITHUB_PAT`. WEB5 deployment
+`c16f92e3-717d-4c77-a6e9-96675403446a` and WEB6 deployment `838bc194-77b5-490d-be38-df98d022e851`
+failed in `clone-pinned-oasis-dependencies.sh` with `GITHUB_PAT: parameter not set`, before .NET compilation.
+After configuring the missing variables, redeploy the reviewed staging commit and inspect every affected service's
+terminal result and hosted endpoint. This is a configuration repair, not evidence that the source pins are wrong.
+
+The missing staging variables were subsequently configured using the existing credential with explicit user approval,
+without writing the credential to files or command-line arguments. Redeployments retained reviewed master commit
+`cfda48d9af175498522d320d39bf70ce9ed8caff`. WEB5, WEB6, WEB7 and WEB8 hosted Swagger endpoints returned HTTP 200
+after their deployments succeeded (WEB6 uses `/swagger/v2/swagger.json`; the others use `/swagger/v1/swagger.json`).
+WEB10 deployment `40927e11-4f69-4767-a0d3-3c0fcf06a7c4` succeeded, but its custom domain initially failed TLS
+validation. Railway reported propagated, verified DNS and `CERTIFICATE_ERROR_TYPE_INTERNAL` during certificate
+issuance. One Railway certificate-issuance retry restored a valid certificate; the HTTPS Swagger endpoint then
+returned HTTP 200. TLS validation was never disabled. WEB9 and subsequently queued replacement deployments still
+require terminal-result and hosted-endpoint verification; this evidence does not certify a new release or promotion.
+
 When a deployed change lands in a submodule:
 
 1. Advance the submodule pointer in the OASIS parent repository to the tested commit.
@@ -77,6 +102,25 @@ When a deployed change lands in a submodule:
 Do not point a Docker build at a moving branch, use `git clone --depth 1` without a checkout SHA, or add a service-specific fallback revision. Those recreate the version-skew failure this policy prevents.
 
 ## Enforcement
+
+### Offline-grant signing recovery (2026-10-08)
+
+Staging and production WEB4 had a valid public key incorrectly stored in
+`OASIS_OFFLINE_GRANT_SIGNING_PRIVATE_KEY`. The corresponding original private key was reported lost.
+The owner approved generating a replacement and explicitly required staging and production to share the
+same pair; dev's existing verified pair was left unchanged. The replacement private key was generated in
+memory and stored directly in Railway, not files, Git, logs or command-line arguments. Both environments'
+`OASIS_DNA_JSON` now contains the matching public key and references
+`OASIS_OFFLINE_GRANT_SIGNING_PUBLIC_KEY`; their scopes and lifetime match. Stored signing configuration
+parity and signing/verification proof were checked. Redeployment and hosted functional acceptance remain
+separate gates; configuration validity alone does not prove healthy deployments.
+
+Client public-pin fragments are `Config/Edge/staging-offline-grant.public.json` and
+`Config/Edge/production-offline-grant.public.json`. Use `Scripts/new_our_world_edge_release_config.ps1`
+with the appropriate fragment and environment HTTPS endpoints when packaging clients. Existing distributed
+clients must receive the new pin; old grants/old client pins do not automatically migrate. Back up both the
+Railway private-key variable and DNA through secure controls: a DNA/public-key backup cannot recover the
+private key. Do not copy any private key into these public fragments.
 
 `Scripts/validate_railway_dependency_manifest.py` checks that:
 

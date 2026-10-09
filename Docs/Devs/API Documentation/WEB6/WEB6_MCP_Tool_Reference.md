@@ -5,7 +5,7 @@
 WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
 
 
-The OASIS MCP Server exposes **512 callable typed tools** covering WEB4 through WEB10. They run in the hosted WEB6 service at `/mcp` as the calling avatar and are metered through the WEB4 subscription ledger. This guide provides detailed examples and parameter guidance for the major tool families. The [generated complete command catalog](MCP_TOOL_CATALOG.md) lists every registered command and its source description.
+The OASIS MCP Server exposes **508 callable typed tools** covering WEB4 through WEB10. They run in the hosted WEB6 service at `/mcp` as the calling avatar and are metered through the WEB4 subscription ledger. This guide provides detailed examples and parameter guidance for the major tool families. The [generated complete command catalog](MCP_TOOL_CATALOG.md) lists every registered command and its source description.
 
 All tools return a JSON-serialised `OASISResult<T>` envelope. On success, `isError` is `false` and the data is in `result`. On failure, `isError` is `true` and `message` describes the problem.
 
@@ -412,7 +412,7 @@ List all installed OAPPs for an avatar.
 ### AI Completion & Embeddings
 
 #### `web6_complete`
-Unified AI completion — routes to 99 providers with auto failover.
+Unified AI completion — routes to 98 providers with auto failover.
 
 **Parameters:**
 | Name | Type | Required | Description |
@@ -603,7 +603,18 @@ Pass `levels=2147483647` to propagate all the way to the Earth holon.
 ---
 
 #### `web6_memory_search`
-Semantic search over all memory items in a holon.
+Keyword search over all memory items in a holon (word overlap; no AI provider call).
+
+**Parameters:**
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `holonId` | string | required | Holon to search |
+| `query` | string | required | Search text |
+| `topK` | int | 5 | Maximum results |
+| `avatarId` | string | — | Optional |
+
+#### `web6_memory_semantic_search`
+Semantic search over all memory items in a holon. Embeds the query once and ranks items by cosine similarity to their stored embeddings; metered as one embedding call. Fails if the query cannot be embedded.
 
 **Parameters:**
 | Name | Type | Default | Description |
