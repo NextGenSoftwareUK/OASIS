@@ -217,8 +217,12 @@ $sampleSource = Join-Path $packageRoot 'Samples~\QuickStart'
 if (-not (Test-Path -LiteralPath $sampleSource -PathType Container)) {
     throw 'The public Quick Start sample is missing from the generated package.'
 }
-Copy-Item -LiteralPath $sampleSource -Destination (Join-Path $projectRoot 'Assets\OASISEdgeQuickStart') `
-    -Recurse -Force
+# Retired directory copy: on a reused destination it nested QuickStart and duplicated assembly definitions.
+$sampleDestination = Join-Path $projectRoot 'Assets\OASISEdgeQuickStart'
+New-Item -ItemType Directory -Path $sampleDestination -Force | Out-Null
+Get-ChildItem -LiteralPath $sampleSource -Force | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $sampleDestination -Recurse -Force
+}
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Assets\Editor') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'Scripts\UnityValidation\OASISEdgePackageValidator.cs') `
     -Destination (Join-Path $projectRoot 'Assets\Editor\OASISEdgePackageValidator.cs') -Force

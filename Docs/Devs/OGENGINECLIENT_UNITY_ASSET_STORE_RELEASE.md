@@ -35,6 +35,11 @@ foreign ABIs and missing Holo conductor libraries. The validation script reuses 
 and refuses to refresh it while a Windows Unity process owns that project. This is not physical-device or
 HoloEnabled current-candidate acceptance.
 
+The complete validator also passed a repeat run in the reused project after fixing sample copying to refresh
+contents rather than nest `QuickStart`. Evidence: `artifacts/unity-edge-validation.log`,
+`artifacts/unity-edge-android-validation.log` and `artifacts/unity-edge-validation-project/Build/OASISEdgeValidation.apk`.
+The inspected APK SHA-256 is `2309FC59D3FDE16A781CF6D8700A873B92E1119C4C5BA23B380805020F0DF0F7`.
+
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
 it does not certify the current revision. Require the current release candidate's successful provenance-verified
