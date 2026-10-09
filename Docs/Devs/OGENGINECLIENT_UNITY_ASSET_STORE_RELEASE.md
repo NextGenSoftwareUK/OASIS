@@ -44,6 +44,13 @@ serialization-duplicating wrapper), the same complete validator passed again. Cu
 `476E262091551AA59A5C4415935DF04A2DC9C44F9EB338F7B215FADE0D498366`; both editor and Android success markers
 record package manifest hash `F6A06411B7D1CBE3F2D93321B8AC4C51C9132B3F6CE959E56DB44812EDDEB6AC`.
 
+The Edge workflow now includes a required `validate-desktop-protected-sessions` Linux/macOS matrix. It tests the
+linked Unity adapter against the host's actual credential facility and requires four executed, passing TRX tests;
+skips and zero discovery fail the gate. Linux uses a disposable runner D-Bus/keyring session, with prerequisites
+installed only when absent; setup follows the [GNOME daemon lifecycle](https://wiki.gnome.org/Projects/GnomeKeyring/RunningDaemon).
+This matrix has not yet produced passing hosted evidence. Even when it passes, it proves native adapter behavior
+under .NET, not Unity/IL2CPP execution or physical-device acceptance on those platforms.
+
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
 it does not certify the current revision. Require the current release candidate's successful provenance-verified
