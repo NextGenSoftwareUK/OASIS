@@ -195,8 +195,10 @@ function Get-LatestGitHubReleaseVersion([string[]]$TagPrefixes, [string]$Reposit
     if ($Offline) { return $null }
     $headers = @{ 'User-Agent' = 'OASIS-global-release' }
     if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
-    $releases = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers) |
-        Where-Object { -not $_.draft -and -not $_.prerelease }
+    # Invoke-RestMethod returns a JSON array as one pipeline object. Enumerate
+    # the response before filtering, otherwise version matching sees an array.
+    $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
+    $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
     $versions = foreach ($release in $releases) {
         foreach ($prefix in $TagPrefixes) {
             if ($release.tag_name -match ('^' + [regex]::Escape($prefix) + '(?<version>\d+\.\d+\.\d+)$')) {
@@ -214,8 +216,8 @@ function Get-NextOptionalReleaseVersion([string]$Repository, [string[]]$TagPrefi
     if (-not $publishedVersion -and -not $Offline -and $AllowAnySemanticTag) {
         $headers = @{ 'User-Agent' = 'OASIS-global-release' }
         if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
-        $releases = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers) |
-            Where-Object { -not $_.draft -and -not $_.prerelease }
+        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
+        $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
         $versions = @($releases | ForEach-Object {
             $match = [regex]::Match($_.tag_name, '\d+\.\d+\.\d+')
             if ($match.Success) { [version]$match.Value }
@@ -226,10 +228,12 @@ function Get-NextOptionalReleaseVersion([string]$Repository, [string[]]$TagPrefi
     if ($VersionMode -eq 'Automatic') {
         $headers = @{ 'User-Agent' = 'OASIS-global-release' }
         if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
-        $releases = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers) | Where-Object { -not $_.draft -and -not $_.prerelease }
+        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
+        $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
         $published = @($releases | Where-Object { $_.tag_name -match [regex]::Escape($publishedVersion) } | Sort-Object published_at -Descending | Select-Object -First 1)
         $since = if ($published.Count) { [uri]::EscapeDataString(([datetime]$published[0].published_at).ToUniversalTime().ToString('o')) } else { $null }
-        $commits = if ($since) { @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/commits?since=$since&per_page=100" -Headers $headers) } else { @() }
+        $response = if ($since) { Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/commits?since=$since&per_page=100" -Headers $headers } else { @() }
+        $commits = @($response | ForEach-Object { $_ })
         $subjects = @($commits | ForEach-Object { $_.commit.message -split "`n" | Select-Object -First 1 })
         if ($subjects.Count -eq 0) {
             $message = "Automatic versioning found no changes in $Repository since its latest public release."
