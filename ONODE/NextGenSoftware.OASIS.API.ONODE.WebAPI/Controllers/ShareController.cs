@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -131,83 +132,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task<OASISResult<bool>> ShareHolonInternalAsync(Guid holonId, IEnumerable<Guid> avatarIds)
+        private Task<OASISResult<bool>> ShareHolonInternalAsync(Guid holonId, IEnumerable<Guid> avatarIds) =>
+            HolonAccess.ShareAsync(HolonManager, holonId, avatarIds, Avatar);
+
+        /// <summary>
+        /// Lists holons other avatars have shared with the signed-in avatar. Uses the per-recipient index
+        /// written when sharing, then re-checks access against the share list itself.
+        /// </summary>
+        [Authorize]
+        [HttpGet("shared-with-me")]
+        public async Task<OASISResult<IEnumerable<Holon>>> SharedWithMe()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            var result = new OASISResult<IEnumerable<Holon>>();
+            if (AvatarId == Guid.Empty)
+            {
+                OASISErrorHandling.HandleError(ref result, "Unauthorized. Sign in to see holons shared with you.");
+                return result;
+            }
 
             try
             {
-                var avatarIdList = avatarIds?.Where(x => x != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
-                if (avatarIdList.Count == 0)
+                // avatarId: Guid.Empty skips the creator-only visibility filter; HolonAccess applies the real rule.
+                var loaded = await HolonManager.LoadHolonsByMetaDataAsync(
+                    HolonAccess.SharedWithIndexKey(AvatarId), HolonAccess.SharedWithIndexValue,
+                    HolonType.All, loadChildren: false, recursive: false, avatarId: Guid.Empty);
+                if (loaded.IsError && loaded.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "At least one valid avatar id must be supplied.");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons shared with you. Reason: {loaded.Message}");
                     return result;
                 }
 
-                var holonResult = await HolonManager.LoadHolonAsync(holonId);
-                if (holonResult == null || holonResult.IsError || holonResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Unable to load holon {holonId}. Reason: {holonResult?.Message}");
-                    return result;
-                }
-
-                if (holonResult.Result.CreatedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Unauthorized. You can only share holons that you created.");
-                    return result;
-                }
-
-                if (holonResult.Result.MetaData == null)
-                    holonResult.Result.MetaData = new Dictionary<string, object>();
-
-                const string sharedAvatarIdsMetaKey = "SHARED_AVATAR_IDS";
-                HashSet<Guid> sharedIds = new HashSet<Guid>(avatarIdList);
-
-                if (holonResult.Result.MetaData.TryGetValue(sharedAvatarIdsMetaKey, out object existingRaw) && existingRaw != null)
-                {
-                    if (existingRaw is IEnumerable<Guid> existingGuidCollection)
-                    {
-                        foreach (var existing in existingGuidCollection.Where(x => x != Guid.Empty))
-                            sharedIds.Add(existing);
-                    }
-                    else
-                    {
-                        var existingText = existingRaw.ToString();
-                        if (!string.IsNullOrWhiteSpace(existingText))
-                        {
-                            if (existingText.StartsWith("[", StringComparison.Ordinal))
-                            {
-                                Guid[] parsed = JsonSerializer.Deserialize<Guid[]>(existingText) ?? Array.Empty<Guid>();
-                                foreach (var existing in parsed.Where(x => x != Guid.Empty))
-                                    sharedIds.Add(existing);
-                            }
-                            else
-                            {
-                                foreach (var token in existingText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                                {
-                                    if (Guid.TryParse(token, out Guid parsedGuid) && parsedGuid != Guid.Empty)
-                                        sharedIds.Add(parsedGuid);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                holonResult.Result.MetaData[sharedAvatarIdsMetaKey] = JsonSerializer.Serialize(sharedIds);
-                var saveResult = await HolonManager.SaveHolonAsync(holonResult.Result, AvatarId == Guid.Empty ? Guid.Empty : AvatarId);
-                if (saveResult == null || saveResult.IsError || saveResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Unable to persist shared metadata for holon {holonId}. Reason: {saveResult?.Message}");
-                    return result;
-                }
-
-                result.Result = true;
-                result.Message = $"Holon {holonId} shared with {avatarIdList.Count} avatar(s).";
+                var shared = (loaded.Result ?? Enumerable.Empty<IHolon>())
+                    .Where(h => h.CreatedByAvatarId != AvatarId && HolonAccess.GetSharedAvatarIds(h).Contains(AvatarId));
+                result.Result = Mapper.Convert<IHolon, Holon>(shared)?.ToList() ?? new List<Holon>();
                 return result;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error sharing holon {holonId}. Reason: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons shared with you. Reason: {ex.Message}", ex);
                 return result;
             }
         }
