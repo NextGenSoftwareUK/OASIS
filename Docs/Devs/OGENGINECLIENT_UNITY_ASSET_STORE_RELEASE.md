@@ -38,7 +38,11 @@ HoloEnabled current-candidate acceptance.
 The complete validator also passed a repeat run in the reused project after fixing sample copying to refresh
 contents rather than nest `QuickStart`. Evidence: `artifacts/unity-edge-validation.log`,
 `artifacts/unity-edge-android-validation.log` and `artifacts/unity-edge-validation-project/Build/OASISEdgeValidation.apk`.
-The inspected APK SHA-256 is `2309FC59D3FDE16A781CF6D8700A873B92E1119C4C5BA23B380805020F0DF0F7`.
+The initial inspected APK SHA-256 was `2309FC59D3FDE16A781CF6D8700A873B92E1119C4C5BA23B380805020F0DF0F7`.
+After desktop calls were changed to delegate their tasks/cancellation directly (retiring the blocking,
+serialization-duplicating wrapper), the same complete validator passed again. Current local APK SHA-256:
+`476E262091551AA59A5C4415935DF04A2DC9C44F9EB338F7B215FADE0D498366`; both editor and Android success markers
+record package manifest hash `F6A06411B7D1CBE3F2D93321B8AC4C51C9132B3F6CE959E56DB44812EDDEB6AC`.
 
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
