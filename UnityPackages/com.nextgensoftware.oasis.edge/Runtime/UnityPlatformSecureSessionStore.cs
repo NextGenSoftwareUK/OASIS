@@ -37,12 +37,20 @@ namespace NextGenSoftware.OASIS.Edge.Unity
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (grant == null) return Task.FromResult(Error<bool>("EDGE_SECURE_SESSION_GRANT_REQUIRED", "A signed offline grant is required."));
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            // Desktop stores own serialization and asynchronous native access; preserve caller cancellation.
+            return _desktopStore.SaveAsync(grant, cancellationToken);
+#else
             return Task.FromResult(SaveProtected(Encoding.UTF8.GetBytes(HyperDriveJson.Serialize(grant))));
+#endif
         }
 
         public Task<OASISResult<HyperDriveOfflineSessionGrant>> LoadAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            return _desktopStore.LoadAsync(cancellationToken);
+#else
             var loaded = LoadProtected();
             if (loaded.IsError) return Task.FromResult(Error<HyperDriveOfflineSessionGrant>(loaded.ErrorCode, loaded.Message));
             if (loaded.Result == null) return Task.FromResult(new OASISResult<HyperDriveOfflineSessionGrant> { IsLoaded = true });
@@ -55,12 +63,17 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             {
                 return Task.FromResult(Error<HyperDriveOfflineSessionGrant>("EDGE_SECURE_SESSION_INVALID", $"The protected offline session is invalid: {ex.Message}"));
             }
+#endif
         }
 
         public Task<OASISResult<bool>> DeleteAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            return _desktopStore.DeleteAsync(cancellationToken);
+#else
             return Task.FromResult(DeleteProtected());
+#endif
         }
 
         private OASISResult<bool> SaveProtected(byte[] value)
@@ -76,7 +89,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
 #elif (UNITY_IOS || UNITY_TVOS) && !UNITY_EDITOR
             int code = OasisEdgeKeychainSave(_key, Convert.ToBase64String(value));
             return code == 0 ? Success() : Error<bool>("EDGE_IOS_KEYCHAIN_SAVE_FAILED", $"Keychain returned status {code}.");
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+#elif false // Retired: desktop public methods delegate directly, avoiding duplicate serialization, blocking and lost cancellation.
             return _desktopStore.SaveAsync(
                 HyperDriveJson.Deserialize<HyperDriveOfflineSessionGrant>(Encoding.UTF8.GetString(value)),
                 CancellationToken.None).GetAwaiter().GetResult();
@@ -103,7 +116,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
             try { return new OASISResult<byte[]>(Convert.FromBase64String(Marshal.PtrToStringAnsi(pointer))) { IsLoaded = true }; }
             catch (Exception ex) { return Error<byte[]>("EDGE_IOS_KEYCHAIN_LOAD_FAILED", ex.Message); }
             finally { OasisEdgeKeychainFree(pointer); }
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+#elif false // Retired: desktop public methods preserve the store's task and caller cancellation.
             var loaded = _desktopStore.LoadAsync(CancellationToken.None).GetAwaiter().GetResult();
             if (loaded.IsError) return Error<byte[]>(loaded.ErrorCode, loaded.Message);
             return new OASISResult<byte[]>(loaded.Result == null
@@ -127,7 +140,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity
 #elif (UNITY_IOS || UNITY_TVOS) && !UNITY_EDITOR
             int code = OasisEdgeKeychainDelete(_key);
             return code == 0 ? Success() : Error<bool>("EDGE_IOS_KEYCHAIN_DELETE_FAILED", $"Keychain returned status {code}.");
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+#elif false // Retired: desktop public methods preserve the store's task and caller cancellation.
             return _desktopStore.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 #else
             return Error<bool>("EDGE_SECURE_STORE_UNSUPPORTED", "This Unity platform has no configured protected credential store.");
