@@ -38,13 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
     public partial class SuiOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _rpcEndpoint;
-        private readonly string _network;
-        private readonly string _chainId;
         private readonly string _privateKey;
         private readonly string _contractAddress;
-        private bool _isActivated => IsProviderActivated;
         private WalletManager _walletManager;
         public WalletManager WalletManager
         {
@@ -66,15 +61,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SuiOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
-            _network = network ?? throw new ArgumentNullException(nameof(network));
-            _chainId = chainId;
             _privateKey = privateKey;
             _contractAddress = contractAddress;
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(_rpcEndpoint)
-            };
 
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -85,7 +73,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         public void Dispose()
         {
             ((SuiStorageBackend)Backend).Client.Dispose();
-            _httpClient.Dispose();
             IsProviderActivated = false;
         }
     }

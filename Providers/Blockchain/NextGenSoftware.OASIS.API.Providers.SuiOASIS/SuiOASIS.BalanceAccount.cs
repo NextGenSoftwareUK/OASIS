@@ -39,86 +39,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
     public partial class SuiOASIS
     {
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
-        {
-            return GetTransactionsAsync(request).Result;
-        }
+            => GetTransactionsAsync(request).GetAwaiter().GetResult();
 
         public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
         {
             var result = new OASISResult<IList<IWalletTransaction>>();
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sui provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
-                    return result;
-                }
-
-                // Get Sui transactions via RPC
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sui_getTransactions",
-                    @params = new object[] { request.WalletAddress, 10 } // Default to 10 transactions
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
+                ArgumentNullException.ThrowIfNull(request);
+                var records = await InvokeSdkAsync("history", new { walletAddress = request.WalletAddress });
                 var transactions = new List<IWalletTransaction>();
-                if (response.IsSuccessStatusCode)
+                foreach (var record in records.EnumerateArray())
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    if (responseData.TryGetProperty("result", out var resultProp) && resultProp.ValueKind == JsonValueKind.Array)
+                    var digest = record.GetProperty("digest").GetString();
+                    var units = System.Numerics.BigInteger.Parse(record.GetProperty("amountUnits").GetString(),
+                        System.Globalization.CultureInfo.InvariantCulture);
+                    var coinType = record.GetProperty("coinType").GetString();
+                    var positive = units.Sign >= 0;
+                    var recipients = record.GetProperty("recipients").EnumerateArray().Select(item => item.GetString()).ToArray();
+                    transactions.Add(new WalletTransaction
                     {
-                        foreach (var tx in resultProp.EnumerateArray())
-                        {
-                            // Extract transaction digest for deterministic GUID
-                            var txDigest = tx.TryGetProperty("digest", out var digestProp) ? digestProp.GetString() : null;
-                            Guid txGuid;
-                            if (!string.IsNullOrWhiteSpace(txDigest))
-                            {
-                                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txDigest));
-                                txGuid = new Guid(hashBytes.Take(16).ToArray());
-                            }
-                            else
-                            {
-                                // Fallback: use deterministic GUID from transaction data
-                                var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
-                                txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
-                            }
-                            
-                            var walletTx = new WalletTransaction
-                            {
-                                TransactionId = txGuid,
-                                FromWalletAddress = tx.TryGetProperty("from", out var from) ? from.GetString() : string.Empty,
-                                ToWalletAddress = tx.TryGetProperty("to", out var to) ? to.GetString() : string.Empty,
-                                Amount = tx.TryGetProperty("amount", out var amt) ? amt.GetString() != null ? double.Parse(amt.GetString()) / 1_000_000_000.0 : 0.0 : 0.0,
-                                Description = txDigest != null ? $"Sui transaction: {txDigest}" : "Sui transaction"
-                            };
-                            transactions.Add(walletTx);
-                        }
-                    }
+                        TransactionId = CreateDeterministicGuid(digest + ":" + coinType),
+                        FromWalletAddress = positive ? record.GetProperty("sender").GetString() : record.GetProperty("walletAddress").GetString(),
+                        ToWalletAddress = positive ? record.GetProperty("walletAddress").GetString() : recipients.Length == 1 ? recipients[0] : null,
+                        Amount = (double)System.Numerics.BigInteger.Abs(units) / Math.Pow(10, record.GetProperty("decimals").GetInt32()),
+                        CreatedDate = DateTimeOffset.FromUnixTimeMilliseconds(record.GetProperty("timestampMs").GetInt64()).UtcDateTime,
+                        TransactionType = positive ? TransactionType.Credit : TransactionType.Debit,
+                        TransactionCategory = TransactionCategory.Other,
+                        Description = $"Sui receipt {digest}; wallet net balance change (includes gas): {units} units of {coinType ?? "non-monetary object change"}; success={record.GetProperty("success").GetBoolean()}; recipients={string.Join(",", recipients)}"
+                    });
                 }
-
                 result.Result = transactions;
-                result.IsError = false;
-                result.Message = $"Retrieved {transactions.Count} Sui transactions";
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
@@ -150,8 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// </summary>
         private static Guid CreateDeterministicGuid(string input)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
+            ArgumentException.ThrowIfNullOrWhiteSpace(input);
 
             using var sha256 = System.Security.Cryptography.SHA256.Create();
             var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
