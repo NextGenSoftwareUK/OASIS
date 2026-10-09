@@ -63,6 +63,23 @@ async function execute(client, tx, signer, include = {}) {
   return response.Transaction;
 }
 
+async function custodyReceipt(client, request) {
+  if (!isValidSuiAddress(request.tokenId) || !isValidSuiAddress(request.custody) || !request.transactionHash)
+    throw new Error('NFT object ID, custody wallet and source digest are required');
+  const response = await client.getTransaction({ digest: request.transactionHash, include: { effects: true } });
+  const transaction = response.Transaction;
+  if (!transaction?.status.success || !transaction.effects) throw new Error('Source transaction did not succeed on Sui');
+  const change = transaction.effects.changedObjects.find(item => item.objectId === normalizeSuiAddress(request.tokenId));
+  if (change?.outputOwner?.AddressOwner !== normalizeSuiAddress(request.custody)
+      || !change.inputOwner?.AddressOwner || change.inputOwner.AddressOwner === normalizeSuiAddress(request.custody)
+      || change.outputState !== 'ObjectWrite' || change.idOperation !== 'None')
+    throw new Error('Source digest does not prove this NFT entered custody');
+  const { object } = await client.getObject({ objectId: request.tokenId });
+  if (object.version !== change.outputVersion || object.owner.AddressOwner !== normalizeSuiAddress(request.custody))
+    throw new Error('Custody receipt is stale or the NFT has already been released');
+  return { objectId: object.objectId, version: object.version, digest: object.digest };
+}
+
 export async function invoke(request) {
   if (request.operation === 'generateKey') return wallet(Ed25519Keypair.generate());
   if (request.operation === 'restoreKey') return wallet(Ed25519Keypair.fromSecretKey(request.privateKey));
@@ -137,7 +154,11 @@ export async function invoke(request) {
       tx.moveCall({ target: `${request.packageAddress}::nft::burn`, arguments: [tx.object(request.tokenId)] });
     else {
       if (!isValidSuiAddress(request.recipient)) throw new Error('Valid NFT recipient is required');
-      tx.transferObjects([tx.object(request.tokenId)], tx.pure.address(request.recipient));
+      const input = request.sourceTransactionHash
+        ? tx.objectRef(await custodyReceipt(client, { tokenId: request.tokenId,
+            custody: signer.toSuiAddress(), transactionHash: request.sourceTransactionHash }))
+        : tx.object(request.tokenId);
+      tx.transferObjects([input], tx.pure.address(request.recipient));
     }
     const committed = await execute(client, tx, signer);
     return { transactionHash: committed.digest };
@@ -262,6 +283,9 @@ export async function invoke(request) {
     }
     const committed = await execute(client, tx, signer);
     return { transactionHash: committed.digest };
+  }
+  if (request.operation === 'nftCustodyReceipt') {
+    return custodyReceipt(client, request);
   }
   if (request.operation === 'transaction') {
     if (!request.transactionHash) throw new Error('Transaction digest is required');
