@@ -69,6 +69,12 @@ jobs:
         if: github.ref_name == 'Development' || github.base_ref == 'Development' || github.ref_name == 'master' || github.base_ref == 'master'
         run: python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 
+      - name: WEB6 generated MCP catalog and provider counts must match the code
+        run: |
+          python3 WEB6/Scripts/generate_mcp_tool_catalog.py
+          python3 WEB6/Scripts/generate_provider_counts.py --check
+          git -C WEB6 diff --exit-code -- NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md npm/MCP_TOOL_CATALOG.md
+
       - name: Solutions must parse
         run: |
           for sln in "The OASIS - NoTests.sln" "The OASIS.sln"; do
