@@ -36,8 +36,8 @@ public sealed class UnityDesktopSecureSessionStoreTests
         await delete.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    [WindowsStoreFact]
-    public async Task UnityAdapterRoundTripsIsolatesAndDeletesWindowsGrant()
+    [DesktopStoreFact]
+    public async Task UnityAdapterRoundTripsIsolatesAndDeletesNativeGrant()
     {
         var avatar = Guid.NewGuid();
         var device = Guid.NewGuid();
@@ -72,10 +72,12 @@ public sealed class UnityDesktopSecureSessionStoreTests
     }
 }
 
-public sealed class WindowsStoreFactAttribute : FactAttribute
+public sealed class DesktopStoreFactAttribute : FactAttribute
 {
-    public WindowsStoreFactAttribute()
+    public DesktopStoreFactAttribute()
     {
-        if (!OperatingSystem.IsWindows()) Skip = "Windows Credential Manager integration requires Windows; not desktop cross-platform qualification.";
+        // Local non-Windows suites need an explicitly prepared native-store session; required CI enables it and cannot skip.
+        if (!OperatingSystem.IsWindows() && Environment.GetEnvironmentVariable("OASIS_TEST_DESKTOP_CREDENTIAL_STORE") != "1")
+            Skip = "Native credential integration requires a prepared Keychain/Secret Service session.";
     }
 }
