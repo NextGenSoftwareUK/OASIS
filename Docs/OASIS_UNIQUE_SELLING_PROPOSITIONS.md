@@ -12,11 +12,11 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ### WEB6-USP-1: FAHRN — The Only Identity-Grounded Multi-Agent Orchestrator
 
-**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **99 AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across **98 AI model providers** in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
 
 **AI Model Providers supported** (20+): OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, Moonshot AI, Together AI, Fireworks AI, Cerebras, HuggingFace, Azure OpenAI, AWS Bedrock, and more — all accessed through a single unified FAHRN interface.
 
-**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 512 MCP tools and 56 REST endpoints natively to any of these frameworks.
+**Agent Orchestration Protocol Adapters** (17): MCP, A2A, ACP (BeeAI/IBM), ANP (DID-based), LangGraph (stateful graph workflows), OpenAI Agents SDK / Swarm (structured agent-handoff), Nostr NIP-90 (decentralised DVMs), LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook — WEB6 exposes all 508 MCP tools and 56 REST endpoints natively to any of these frameworks.
 
 **Protocols**: MCP (512 tools), A2A, REST (56 endpoints), WebSocket (real-time streaming), OpenAPI 3.1.
 
@@ -77,9 +77,9 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ---
 
-### WEB6-USP-5: 512 MCP tools — Largest Production MCP Surface
+### WEB6-USP-5: 508 MCP tools — Largest Production MCP Surface
 
-**What it is**: 512 typed named tools across WEB4 (361), WEB5 (95), WEB6 (39), WEB7 (7), WEB8 (8), WEB9 (1), WEB10 (1) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
+**What it is**: 508 typed named tools across WEB4 (361), WEB5 (95), WEB6 (39), WEB7 (7), WEB8 (8), WEB9 (1), WEB10 (1) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
 
 **Distribution leverage**:
 - Every MCP-compatible IDE (Claude.ai Desktop, Cursor, VS Code, JetBrains) becomes an embedded distribution channel
