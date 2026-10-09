@@ -282,6 +282,58 @@ public class ONETIntegrationTests
         }
     }
 
+    private static (string Id, string Public, string Private) NewNodeIdentity()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var publicKey = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+        return (Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(publicKey))).ToLowerInvariant(),
+            publicKey, Convert.ToBase64String(key.ExportPkcs8PrivateKey()));
+    }
+
+    [Fact]
+    public async Task ONETManager_PeerExchange_OverSignedOnetChannel_ReturnsResponderPeers()
+    {
+        var dna = new OASISDNA();
+        dna.OASIS.ONET = new ONETConfig { TcpPort = GetFreeTcpPort(), BootstrapServers = new List<string>(), AutoRegisterOnBootstrap = false };
+        var responder = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await responder.InitializeAsync();
+        await responder.StartNetworkAsync();
+
+        var requesterId = NewNodeIdentity();
+        var thirdId = NewNodeIdentity();
+        var requester = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var third = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await requester.StartNetworkAsync();
+        await third.StartNetworkAsync();
+        requester.RegisterLocalNodeIdentity(requesterId.Id, requesterId.Public, requesterId.Private);
+        third.RegisterLocalNodeIdentity(thirdId.Id, thirdId.Public, thirdId.Private);
+
+        try
+        {
+            await Task.Delay(300);
+            (await responder.ConnectToNodeAsync(thirdId.Id, $"127.0.0.1:{third.ListenPort}")).IsError.Should().BeFalse();
+            (await requester.ConnectToNodeAsync(dna.OASIS.ONET.NodeId, $"127.0.0.1:{dna.OASIS.ONET.TcpPort}")).IsError.Should().BeFalse();
+
+            using var endpoint = new ONETRequestResponseEndpoint(new ONETTcpApplicationMessageChannel(requester));
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { replyAddress = $"127.0.0.1:{requester.ListenPort}" });
+
+            var response = await endpoint.RequestAsync(dna.OASIS.ONET.NodeId, ONETManager.PeerExchangeOperation, payload, timeout.Token);
+
+            response.IsError.Should().BeFalse(response.Message);
+            var peers = System.Text.Json.JsonSerializer.Deserialize<List<NextGenSoftware.OASIS.API.ONODE.Core.Network.NodeInfo>>(response.Result,
+                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+            peers.Should().Contain(p => p.Id == thirdId.Id);
+            peers.Should().NotContain(p => p.Id == requesterId.Id, "the requester is not returned to itself");
+        }
+        finally
+        {
+            await requester.StopNetworkAsync();
+            await third.StopNetworkAsync();
+            await responder.StopNetworkAsync();
+        }
+    }
+
     [Fact]
     public async Task ONETManager_InitializeAsync_SamePublicKey_ProducesSameNodeId_OnReinit()
     {
