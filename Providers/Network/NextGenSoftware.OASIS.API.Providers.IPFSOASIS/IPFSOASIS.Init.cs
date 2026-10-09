@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.Utilities;
 using Ipfs.CoreApi;
 using System.Xml.Linq;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -30,20 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<bool> ActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
-                result.Result = true;
-                IsProviderActivated = true;
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProvider Method. Reason: {e}");
-            }
-
-            return result;
+            return ActivateProviderAsync().GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -53,11 +41,23 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+                using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                Dictionary<string, string> version = await IPFSClient.VersionAsync(timeout.Token);
+
+                if (version == null || version.Count == 0)
+                    throw new InvalidOperationException("The IPFS daemon returned an empty version response.");
+
                 result.Result = true;
                 IsProviderActivated = true;
             }
             catch (Exception e)
             {
+                IsProviderActivated = false;
+
+                if (IPFSClient != null)
+                    await IPFSClient.ShutdownAsync();
+
+                IPFSClient = null;
                 OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}");
             }
 
@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             try
             {
-                IPFSClient.ShutdownAsync();
+                IPFSClient.ShutdownAsync().GetAwaiter().GetResult();
                 IPFSClient = null;
                 result.Result = true;
                 IsProviderActivated = false;
@@ -90,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 if (IPFSClient != null)
-                    IPFSClient.ShutdownAsync();
+                    await IPFSClient.ShutdownAsync();
 
                 IPFSClient = null;
                 result.Result = true;

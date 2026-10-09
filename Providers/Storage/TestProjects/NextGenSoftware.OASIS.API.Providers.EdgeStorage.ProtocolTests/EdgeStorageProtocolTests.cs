@@ -10,8 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS;
 using NextGenSoftware.OASIS.API.Providers.FastlyOASIS;
 using NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS;
+using NextGenSoftware.OASIS.API.Providers.TigrisOASIS;
 using NextGenSoftware.OASIS.API.Providers.VercelKVOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
@@ -96,6 +98,194 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
             var result = await failing.SaveAvatarAsync(new Avatar { Username = "neo", Email = "neo@m.io" });
             Assert.IsTrue(result.IsError);
             StringAssert.Contains(result.Message, "401");
+        }
+    }
+
+    internal sealed class HandlerHttpClientFactory : Amazon.Runtime.HttpClientFactory
+    {
+        private readonly HttpMessageHandler _handler;
+        public HandlerHttpClientFactory(HttpMessageHandler handler) => _handler = handler;
+        public override HttpClient CreateHttpClient(Amazon.Runtime.IClientConfig clientConfig) => new(_handler, disposeHandler: false);
+    }
+
+    [TestClass]
+    public class TigrisS3ProtocolTests
+    {
+        private const string Bucket = "oasis-test";
+        private readonly ConcurrentDictionary<string, string> _objects = new();
+        private TigrisOASIS.TigrisOASIS _provider;
+        private FakeService _service;
+
+        [TestInitialize]
+        public void Init()
+        {
+            _service = new FakeService((req, body) =>
+            {
+                Assert.IsTrue(req.Headers.Contains("Authorization") && req.Headers.GetValues("Authorization").Single().StartsWith("AWS4-HMAC-SHA256"), "requests must be SigV4 signed");
+                var path = Uri.UnescapeDataString(req.RequestUri.AbsolutePath).TrimStart('/');
+                if (path == Bucket || path == Bucket + "/")
+                {
+                    var query = System.Web.HttpUtility.ParseQueryString(req.RequestUri.Query);
+                    if (req.Method == HttpMethod.Head) return FakeService.Status(HttpStatusCode.OK);
+                    if (query["list-type"] != "2") return FakeService.Status(HttpStatusCode.OK);
+                    var prefix = query["prefix"] ?? string.Empty;
+                    var all = _objects.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList();
+                    var start = int.TryParse(query["continuation-token"], out var s) ? s : 0;
+                    var page = all.Skip(start).Take(2).ToList();
+                    var truncated = start + 2 < all.Count;
+                    var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">"
+                              + $"<Name>{Bucket}</Name><Prefix>{prefix}</Prefix><KeyCount>{page.Count}</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>{truncated.ToString().ToLowerInvariant()}</IsTruncated>"
+                              + string.Concat(page.Select(k => $"<Contents><Key>{k}</Key><Size>1</Size></Contents>"))
+                              + (truncated ? $"<NextContinuationToken>{start + 2}</NextContinuationToken>" : string.Empty) + "</ListBucketResult>";
+                    return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(xml, Encoding.UTF8, "application/xml") };
+                }
+
+                var key = path[(Bucket.Length + 1)..];
+                if (req.Method == HttpMethod.Put) { _objects[key] = DecodeAwsChunked(req, body); return FakeService.Status(HttpStatusCode.OK); }
+                if (req.Method == HttpMethod.Delete) { _objects.TryRemove(key, out _); return FakeService.Status(HttpStatusCode.NoContent); }
+                if (_objects.TryGetValue(key, out var v)) return FakeService.Text(v);
+                return new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message></Error>", Encoding.UTF8, "application/xml")
+                };
+            });
+
+            var s3 = new Amazon.S3.AmazonS3Client(new Amazon.Runtime.BasicAWSCredentials("ak", "sk"), new Amazon.S3.AmazonS3Config
+            {
+                ServiceURL = "https://fly.storage.tigris.dev",
+                ForcePathStyle = true,
+                AuthenticationRegion = "auto",
+                HttpClientFactory = new HandlerHttpClientFactory(_service),
+                MaxErrorRetry = 0
+            });
+            _provider = new TigrisOASIS.TigrisOASIS(new S3ObjectBackend(s3, Bucket));
+        }
+
+        // The SDK streams uploads as aws-chunked ("<hex-size>[;ext]\r\n<data>\r\n ... 0\r\n[trailers]"); S3 servers decode it.
+        private static string DecodeAwsChunked(HttpRequestMessage req, string body)
+        {
+            var encoding = req.Content?.Headers.ContentEncoding;
+            var sha = req.Headers.TryGetValues("x-amz-content-sha256", out var v) ? v.FirstOrDefault() : null;
+            if ((encoding == null || !encoding.Contains("aws-chunked")) && (sha == null || !sha.StartsWith("STREAMING-"))) return body;
+
+            var sb = new StringBuilder();
+            var pos = 0;
+            while (pos < body.Length)
+            {
+                var lineEnd = body.IndexOf("\r\n", pos, StringComparison.Ordinal);
+                var header = body[pos..lineEnd];
+                var size = Convert.ToInt32(header.Split(';')[0], 16);
+                if (size == 0) break;
+                sb.Append(body, lineEnd + 2, size);
+                pos = lineEnd + 2 + size + 2;
+            }
+            return sb.ToString();
+        }
+
+        [TestMethod]
+        public async Task Holons_round_trip_as_s3_objects_with_continuation()
+        {
+            for (var i = 0; i < 5; i++) Assert.IsFalse((await _provider.SaveHolonAsync(new Holon { Name = $"h{i}" })).IsError);
+            var all = await _provider.LoadAllHolonsAsync();
+            Assert.IsFalse(all.IsError, all.Message);
+            Assert.AreEqual(5, all.Result.Count());
+            Assert.IsTrue(_service.Requests.Count(r => r.Request.RequestUri.Query.Contains("continuation-token")) >= 2);
+        }
+
+        [TestMethod]
+        public async Task Missing_object_is_a_not_found_error()
+            => Assert.IsTrue((await _provider.LoadAvatarAsync(Guid.NewGuid())).IsError);
+    }
+
+    [TestClass]
+    public class DenoKvConnectProtocolTests
+    {
+        private sealed class ByteKeyComparer : IComparer<byte[]>
+        {
+            public int Compare(byte[] x, byte[] y) => x.AsSpan().SequenceCompareTo(y);
+        }
+
+        private readonly SortedDictionary<byte[], (byte[] Value, DenoDeployOASIS.Datapath.ValueEncoding Encoding)> _kv = new(new ByteKeyComparer());
+        private FakeService _service;
+        private DenoDeployOASIS.DenoDeployOASIS _provider;
+        private int _metadataCalls;
+
+        [TestInitialize]
+        public void Init()
+        {
+            _service = new FakeService((req, body) =>
+            {
+                if (req.RequestUri.AbsolutePath == "/databases/db-1/connect")
+                {
+                    _metadataCalls++;
+                    Assert.AreEqual("deploy-token", req.Headers.Authorization.Parameter);
+                    StringAssert.Contains(body, "supportedVersions");
+                    return FakeService.Json(new
+                    {
+                        version = 2, uuid = "uuid-1", token = "data-token", expiresAt = DateTimeOffset.UtcNow.AddHours(1),
+                        endpoints = new[] { new { url = "https://kv.example/eventual", consistency = "eventual" }, new { url = "https://kv.example/strong", consistency = "strong" } }
+                    });
+                }
+
+                Assert.AreEqual("kv.example", req.RequestUri.Host);
+                Assert.IsTrue(req.RequestUri.AbsolutePath.StartsWith("/strong/"), "data path must use the strong endpoint");
+                Assert.AreEqual("data-token", req.Headers.Authorization.Parameter);
+                Assert.AreEqual("2", req.Headers.GetValues("x-denokv-version").Single());
+                Assert.AreEqual("uuid-1", req.Headers.GetValues("x-denokv-database-id").Single());
+                Assert.AreEqual("application/x-protobuf", req.Content.Headers.ContentType.MediaType);
+                var bytes = req.Content.ReadAsByteArrayAsync().Result;
+
+                if (req.RequestUri.AbsolutePath == "/strong/atomic_write")
+                {
+                    var write = DenoDeployOASIS.Datapath.AtomicWrite.Parser.ParseFrom(bytes);
+                    foreach (var m in write.Mutations)
+                    {
+                        if (m.MutationType == DenoDeployOASIS.Datapath.MutationType.MSet) _kv[m.Key.ToByteArray()] = (m.Value.Data.ToByteArray(), m.Value.Encoding);
+                        else if (m.MutationType == DenoDeployOASIS.Datapath.MutationType.MDelete) _kv.Remove(m.Key.ToByteArray());
+                    }
+                    return Proto(new DenoDeployOASIS.Datapath.AtomicWriteOutput { Status = DenoDeployOASIS.Datapath.AtomicWriteStatus.AwSuccess });
+                }
+
+                var read = DenoDeployOASIS.Datapath.SnapshotRead.Parser.ParseFrom(bytes);
+                var output = new DenoDeployOASIS.Datapath.SnapshotReadOutput { Status = DenoDeployOASIS.Datapath.SnapshotReadStatus.SrSuccess, ReadIsStronglyConsistent = true };
+                foreach (var range in read.Ranges)
+                {
+                    var comparer = new ByteKeyComparer();
+                    var start = range.Start.ToByteArray();
+                    var end = range.End.ToByteArray();
+                    var rangeOut = new DenoDeployOASIS.Datapath.ReadRangeOutput();
+                    foreach (var kv in _kv.Where(kv => comparer.Compare(kv.Key, start) >= 0 && comparer.Compare(kv.Key, end) < 0).Take(range.Limit))
+                        rangeOut.Values.Add(new DenoDeployOASIS.Datapath.KvEntry { Key = Google.Protobuf.ByteString.CopyFrom(kv.Key), Value = Google.Protobuf.ByteString.CopyFrom(kv.Value.Value), Encoding = kv.Value.Encoding });
+                    output.Ranges.Add(rangeOut);
+                }
+                return Proto(output);
+            });
+            _provider = new DenoDeployOASIS.DenoDeployOASIS(new DenoKvConnectBackend("https://api.deno.com/databases/db-1/connect", "deploy-token", _service));
+        }
+
+        private static HttpResponseMessage Proto(Google.Protobuf.IMessage message)
+            => new(HttpStatusCode.OK) { Content = new ByteArrayContent(Google.Protobuf.MessageExtensions.ToByteArray(message)) };
+
+        [TestMethod]
+        public void Keys_use_the_denokv_tuple_string_encoding()
+        {
+            CollectionAssert.AreEqual(new byte[] { 0x02, (byte)'a', 0x00 }, DenoKvConnectBackend.EncodeKey("a"));
+            CollectionAssert.AreEqual(new byte[] { 0x02, (byte)'a', 0x00, 0xFF, (byte)'b', 0x00 }, DenoKvConnectBackend.EncodeKey("a\0b"));
+            Assert.AreEqual("a\0b", DenoKvConnectBackend.DecodeKey(Google.Protobuf.ByteString.CopyFrom(DenoKvConnectBackend.EncodeKey("a\0b"))));
+        }
+
+        [TestMethod]
+        public async Task Avatars_and_holons_round_trip_over_kv_connect()
+        {
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            var avatar = await _provider.SaveAvatarAsync(new Avatar { Username = "morpheus", Email = "m@m.io" });
+            Assert.IsFalse(avatar.IsError, avatar.Message);
+            Assert.AreEqual(avatar.Result.Id, (await _provider.LoadAvatarByUsernameAsync("morpheus")).Result.Id);
+
+            for (var i = 0; i < 3; i++) await _provider.SaveHolonAsync(new Holon { Name = $"h{i}" });
+            Assert.AreEqual(3, (await _provider.LoadAllHolonsAsync()).Result.Count());
+            Assert.IsTrue(_kv.Values.All(v => v.Encoding == DenoDeployOASIS.Datapath.ValueEncoding.VeBytes));
+            Assert.AreEqual(1, _metadataCalls, "one metadata exchange; later calls reuse the unexpired token");
         }
     }
 

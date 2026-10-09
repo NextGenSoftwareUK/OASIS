@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Editor
     {
         public static void Validate()
         {
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
+            // Previously Windows-only: every desktop editor must prove its selected protected-store round trip.
             Guid avatarId = Guid.NewGuid();
             Guid deviceId = Guid.NewGuid();
             var store = new UnityPlatformSecureSessionStore(avatarId, deviceId);
@@ -31,7 +32,7 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Editor
                 var loaded = store.LoadAsync(default).GetAwaiter().GetResult();
                 if (loaded.IsError || loaded.Result == null || loaded.Result.GrantId != grant.GrantId ||
                     loaded.Result.AvatarId != avatarId || loaded.Result.DeviceId != deviceId)
-                    throw new InvalidOperationException(loaded.Message ?? "Windows secure-session round trip failed.");
+                    throw new InvalidOperationException(loaded.Message ?? "Desktop secure-session round trip failed.");
             }
             finally
             {
@@ -49,16 +50,19 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Editor
                 throw new InvalidOperationException("Unity could not activate the Android build target.");
             string packageManifest = PackageManifestPath();
             string packageManifestJson = File.ReadAllText(packageManifest);
+            // All Edge profiles must prove the shipped Android ARM64 IL2CPP contract, not Unity's Mono/ARMv7 defaults.
+            PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             if (packageManifestJson.IndexOf("\"profile\": \"HoloEnabled\"", StringComparison.Ordinal) >= 0)
             {
                 PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel27;
-                PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
-                PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
-                AssetDatabase.SaveAssets();
+                // Retired Holo-only backend/architecture assignments: the common profile boundary now owns them above.
+                // Retired: AssetDatabase.SaveAssets(); common save below persists settings for every profile.
                 Debug.Log($"OASIS_HOLO_ANDROID_SETTINGS minSdk={PlayerSettings.Android.minSdkVersion} " +
                     $"backend={PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android)} " +
                     $"architectures={PlayerSettings.Android.targetArchitectures}");
             }
+            AssetDatabase.SaveAssets();
             const string scenePath = "Assets/OASISEdgeValidation.unity";
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             if (!EditorSceneManager.SaveScene(scene, scenePath))

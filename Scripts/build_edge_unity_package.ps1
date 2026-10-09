@@ -19,6 +19,24 @@ if (-not $outputRoot.StartsWith($artifactsRoot, [StringComparison]::OrdinalIgnor
 }
 
 $packageName = 'com.nextgensoftware.oasis.edge'
+$packageSource = Join-Path $repoRoot "UnityPackages\$packageName"
+# Native import settings are shipping source, not optional generated metadata. Without these
+# files a clean checkout generated DefaultImporter metadata and included Windows DLLs in Android.
+$nativeMetadata = @(
+    'Runtime/Plugins/x86/e_sqlite3.dll.meta',
+    'Runtime/Plugins/x86_64/e_sqlite3.dll.meta',
+    'Runtime/Plugins/Android/libs/arm64-v8a/libe_sqlite3.so.meta',
+    'Runtime/Plugins/Android/libs/armeabi-v7a/libe_sqlite3.so.meta',
+    'Runtime/Plugins/Android/libs/x86/libe_sqlite3.so.meta',
+    'Runtime/Plugins/Android/libs/x86_64/libe_sqlite3.so.meta'
+)
+foreach ($metadata in $nativeMetadata) {
+    $metadataPath = Join-Path $packageSource $metadata
+    if (-not (Test-Path -LiteralPath $metadataPath -PathType Leaf) -or
+        (Get-Content -LiteralPath $metadataPath -Raw) -notmatch '(?m)^PluginImporter:') {
+        throw "Required native Unity plugin import settings are missing or invalid: $metadataPath"
+    }
+}
 $packageRoot = Join-Path $outputRoot $packageName
 if (Test-Path -LiteralPath $packageRoot) { Remove-Item -LiteralPath $packageRoot -Recurse -Force }
 New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
