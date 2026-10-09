@@ -5,6 +5,23 @@ $validatorPath = Join-Path $repoRoot 'Scripts\validate_edge_unity_package.ps1'
 $workflowPath = Join-Path $repoRoot '.github\workflows\edge-runtime-validation.yml'
 $source = Get-Content -LiteralPath $validatorPath -Raw
 $workflowSource = Get-Content -LiteralPath $workflowPath -Raw
+# A local ignored .meta file cannot qualify a clean hosted checkout. Each native SQLite
+# importer must be versioned so packaging never substitutes generic DefaultImporter settings.
+foreach ($metadata in @(
+        'Runtime/Plugins/x86/e_sqlite3.dll.meta',
+        'Runtime/Plugins/x86_64/e_sqlite3.dll.meta',
+        'Runtime/Plugins/Android/libs/arm64-v8a/libe_sqlite3.so.meta',
+        'Runtime/Plugins/Android/libs/armeabi-v7a/libe_sqlite3.so.meta',
+        'Runtime/Plugins/Android/libs/x86/libe_sqlite3.so.meta',
+        'Runtime/Plugins/Android/libs/x86_64/libe_sqlite3.so.meta')) {
+    $relative = "UnityPackages/com.nextgensoftware.oasis.edge/$metadata"
+    if (-not (& git -C $repoRoot ls-files -- $relative)) {
+        throw "Native Unity plugin metadata must be tracked in Git: $relative"
+    }
+    if ((Get-Content -LiteralPath (Join-Path $repoRoot $relative) -Raw) -notmatch '(?m)^PluginImporter:') {
+        throw "Native Unity plugin metadata must use PluginImporter: $relative"
+    }
+}
 if ($source -match '(?m)^[^#\r\n]*Remove-Item\s+-LiteralPath\s+\$projectRoot') {
     throw 'Unity validation must reuse its owned project/cache rather than recursively delete it on each run.'
 }
