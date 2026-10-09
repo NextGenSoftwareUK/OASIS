@@ -8,6 +8,26 @@ namespace NextGenSoftware.OASIS.Edge.Runtime.UnitTests;
 public sealed class LinuxSecretServiceProcessTests
 {
     [Fact]
+    public async Task AlreadyExitedCredentialProcessCompletesWithoutCancellation()
+    {
+        var start = new ProcessStartInfo(OperatingSystem.IsWindows() ? "ping.exe" : "sleep")
+        {
+            UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true, RedirectStandardError = true
+        };
+        foreach (var argument in OperatingSystem.IsWindows()
+            ? new[] { "-n", "1", "127.0.0.1" } : new[] { "0" })
+            start.ArgumentList.Add(argument);
+        using var process = Process.Start(start)!;
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        var method = typeof(LinuxSecretServiceSecureSessionStore).GetMethod("WaitForExitAsync",
+            BindingFlags.Static | BindingFlags.NonPublic)!;
+        var wait = (Task)method.Invoke(null, new object[] { process, CancellationToken.None })!;
+        await wait.WaitAsync(TimeSpan.FromSeconds(10));
+        process.ExitCode.Should().Be(0);
+    }
+
+    [Fact]
     public async Task CancellationStopsOwnedCredentialProcess()
     {
         var start = new ProcessStartInfo(OperatingSystem.IsWindows() ? "ping.exe" : "sleep")
