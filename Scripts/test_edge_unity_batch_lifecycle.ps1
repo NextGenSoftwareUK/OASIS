@@ -5,6 +5,12 @@ $validatorPath = Join-Path $repoRoot 'Scripts\validate_edge_unity_package.ps1'
 $workflowPath = Join-Path $repoRoot '.github\workflows\edge-runtime-validation.yml'
 $source = Get-Content -LiteralPath $validatorPath -Raw
 $workflowSource = Get-Content -LiteralPath $workflowPath -Raw
+if ($source -match '(?m)^[^#\r\n]*Remove-Item\s+-LiteralPath\s+\$projectRoot') {
+    throw 'Unity validation must reuse its owned project/cache rather than recursively delete it on each run.'
+}
+if ($source -notmatch 'reusable Edge validation project is already open in Unity') {
+    throw 'Unity validation must reject an active owner before refreshing its project inputs.'
+}
 $invocations = [regex]::Matches(
     $source,
     '(?ms)Invoke-UnityBatchProcess\s+-Phase\s+''[^'']+''.*?-Arguments\s+@\((?<arguments>.*?)\)')
@@ -54,7 +60,7 @@ foreach ($requiredActivationContract in @(
 
 Write-Host 'Edge Unity batch lifecycle contract passed: Unity is activated before both supervised validator processes run.'
 foreach ($requiredTrigger in @('Scripts/validate_edge_unity_package.ps1', 'Scripts/test_edge_unity_batch_lifecycle.ps1',
-        'Scripts/ensure_unity_windows_runtime.ps1')) {
+        'Scripts/ensure_unity_windows_runtime.ps1', 'Scripts/UnityValidation/**')) {
     if ([regex]::Matches($workflowSource, [regex]::Escape("- '$requiredTrigger'")).Count -ne 2) {
         throw "Both push and pull-request path filters must validate changes to '$requiredTrigger'."
     }
@@ -71,6 +77,33 @@ $supervisor = $ast.Find({ param($node)
 }, $true)
 if ($null -eq $supervisor) { throw 'Unity batch supervisor function was not found.' }
 Invoke-Expression $supervisor.Extent.Text
+$apkAssertion = $ast.Find({ param($node)
+    $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $node.Name -eq 'Assert-EdgeAndroidApkEntries'
+}, $true)
+if ($null -eq $apkAssertion) { throw 'Android native-payload assertion is missing.' }
+Invoke-Expression $apkAssertion.Extent.Text
+$sqliteEntries = @('lib/arm64-v8a/libil2cpp.so', 'lib/arm64-v8a/libe_sqlite3.so')
+Assert-EdgeAndroidApkEntries -EntryNames $sqliteEntries -HoloEnabled $false
+$holoEntries = $sqliteEntries + @('lib/arm64-v8a/libholochain_conductor_runtime_ffi.so',
+    'lib/arm64-v8a/libholochain_conductor_runtime_types_ffi.so')
+Assert-EdgeAndroidApkEntries -EntryNames $holoEntries -HoloEnabled $true
+foreach ($invalidEntries in @(
+    ,@('lib/armeabi-v7a/libmonobdwgc-2.0.so', 'lib/armeabi-v7a/libe_sqlite3.so'),
+    ,@('lib/arm64-v8a/libe_sqlite3.so'),
+    ,@('lib/arm64-v8a/libil2cpp.so'),
+    ,($sqliteEntries + @('lib/x86_64/libil2cpp.so'))
+)) {
+    $rejected = $false
+    try { Assert-EdgeAndroidApkEntries -EntryNames $invalidEntries -HoloEnabled $false }
+    catch { $rejected = $true }
+    if (-not $rejected) { throw 'Invalid Android backend/ABI/native closure was accepted.' }
+}
+$rejected = $false
+try { Assert-EdgeAndroidApkEntries -EntryNames $sqliteEntries -HoloEnabled $true }
+catch { $rejected = $true }
+if (-not $rejected) { throw 'Holo-enabled APK without conductor libraries was accepted.' }
+Write-Host 'Android payload regression passed: both valid profiles accepted; Mono, missing libraries and foreign ABIs rejected.'
 $UnityEditor = (Get-Command pwsh -ErrorAction Stop).Source
 $fixtureDirectory = Join-Path $repoRoot 'artifacts\unity-supervisor-regression'
 New-Item -ItemType Directory -Path $fixtureDirectory -Force | Out-Null

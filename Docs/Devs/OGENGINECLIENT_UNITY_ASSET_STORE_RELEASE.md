@@ -17,6 +17,24 @@ same source tree and is not a second Asset Store product.
 - Linux/macOS runtime and SQLite binaries are present, but protected offline-session storage is not yet qualified;
   the listing and local documentation must disclose remote-only operation on those platforms.
 
+Desktop integration follow-up: Unity now selects the shared `DesktopPlatformSecureSessionStore` on Windows,
+macOS and Linux editor/player builds, rather than excluding the existing macOS Keychain and Linux Secret Service
+adapters. Linux requires `secret-tool` and an unlocked Secret Service collection; unavailable native storage returns
+an explicit error and never writes an unprotected grant file. Qualification remains pending on actual macOS/Linux
+hosts. Local Windows evidence: 69/69 Edge Runtime tests passed, including the linked Unity adapter's credential
+round trip, device isolation, deletion, identity validation and cancellation. The OSX and Linux conditional branches
+each compiled and passed the four adapter tests **on Windows**; this does not prove native Keychain/Secret Service
+behavior or Unity/IL2CPP execution on those operating systems. The Unity editor validation entry point now requires
+the protected-store round trip on every desktop editor platform.
+
+The same local SQLite-profile package passed Unity 2022.3.62f3 editor compilation/secure-store validation and an
+Android ARM64 IL2CPP build. Its APK was inspected for `lib/arm64-v8a/libil2cpp.so` and `libe_sqlite3.so`, with
+foreign ABIs rejected. An earlier Mono/ARMv7 build is explicitly excluded from this evidence: all profiles now
+set IL2CPP/ARM64 and share APK payload verification. Regression fixtures reject Mono, missing SQLite/IL2CPP,
+foreign ABIs and missing Holo conductor libraries. The validation script reuses its fixed owned project/cache
+and refuses to refresh it while a Windows Unity process owns that project. This is not physical-device or
+HoloEnabled current-candidate acceptance.
+
 Do not claim physical Android flight-mode, battery or performance certification until the device acceptance report
 exists. Historical local `HoloEnabled` validation is recorded in [Edge Runtime releases](./EDGE_RUNTIME_RELEASES.md);
 it does not certify the current revision. Require the current release candidate's successful provenance-verified
