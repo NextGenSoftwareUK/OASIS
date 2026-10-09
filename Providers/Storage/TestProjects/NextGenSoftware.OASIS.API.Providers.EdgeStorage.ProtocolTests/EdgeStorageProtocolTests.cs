@@ -289,6 +289,69 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         }
     }
 
+    internal sealed class FakeDaprStateApi : DaprOASIS.IDaprStateApi
+    {
+        private readonly Dictionary<string, (string Value, int Version)> _state = new();
+        public int ConflictsToInject;
+        public int Conflicts;
+
+        public Task<(string Value, string ETag)> GetAsync(string store, string key, CancellationToken ct)
+        {
+            lock (_state) return Task.FromResult(_state.TryGetValue(key, out var s) ? (s.Value, s.Version.ToString()) : ((string)null, (string)null));
+        }
+
+        public Task SaveAsync(string store, string key, string value, CancellationToken ct)
+        {
+            lock (_state) _state[key] = (value, _state.TryGetValue(key, out var s) ? s.Version + 1 : 1);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> TrySaveAsync(string store, string key, string value, string etag, CancellationToken ct)
+        {
+            lock (_state)
+            {
+                if (ConflictsToInject > 0) { ConflictsToInject--; Conflicts++; return Task.FromResult(false); }
+                var exists = _state.TryGetValue(key, out var s);
+                var matches = string.IsNullOrEmpty(etag) ? !exists : exists && s.Version.ToString() == etag;
+                if (!matches) { Conflicts++; return Task.FromResult(false); }
+                _state[key] = (value, exists ? s.Version + 1 : 1);
+                return Task.FromResult(true);
+            }
+        }
+
+        public Task DeleteAsync(string store, string key, CancellationToken ct) { lock (_state) _state.Remove(key); return Task.CompletedTask; }
+        public Task<bool> HealthyAsync(CancellationToken ct) => Task.FromResult(true);
+        public int Count { get { lock (_state) return _state.Count; } }
+    }
+
+    [TestClass]
+    public class DaprStateProtocolTests
+    {
+        [TestMethod]
+        public async Task Index_updates_retry_on_etag_conflicts_and_listing_stays_complete()
+        {
+            var api = new FakeDaprStateApi { ConflictsToInject = 3 };
+            var provider = new DaprOASIS.DaprOASIS(new DaprOASIS.DaprStateBackend(api, "statestore"));
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+
+            await Task.WhenAll(Enumerable.Range(0, 10).Select(i => provider.SaveHolonAsync(new Holon { Name = $"h{i}" })));
+            var all = await provider.LoadAllHolonsAsync();
+            Assert.IsFalse(all.IsError, all.Message);
+            Assert.AreEqual(10, all.Result.Count(), "concurrent saves must not lose index entries");
+            Assert.IsTrue(api.Conflicts >= 3);
+        }
+
+        [TestMethod]
+        public async Task Deleting_removes_the_key_from_its_index()
+        {
+            var api = new FakeDaprStateApi();
+            var provider = new DaprOASIS.DaprOASIS(new DaprOASIS.DaprStateBackend(api, "statestore"));
+            var avatar = (await provider.SaveAvatarAsync(new Avatar { Username = "seraph", Email = "s@m.io" })).Result;
+            Assert.IsFalse((await provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError);
+            Assert.AreEqual(0, (await provider.LoadAllAvatarsAsync()).Result.Count());
+        }
+    }
+
     [TestClass]
     public class VercelKVProtocolTests
     {
