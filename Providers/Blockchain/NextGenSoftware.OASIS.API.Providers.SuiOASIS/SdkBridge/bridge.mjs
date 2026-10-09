@@ -105,6 +105,64 @@ export async function invoke(request) {
   if (!chainIdentifier) throw new Error('Sui node returned no genesis chain identifier');
   if (request.chainId && request.chainId !== chainIdentifier) throw new Error('Sui chain identifier mismatch');
   if (request.operation === 'probe') return { chainIdentifier };
+  if (request.operation === 'history') {
+    if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui history wallet is required');
+    const walletAddress = normalizeSuiAddress(request.walletAddress);
+    const { response: info } = await client.ledgerService.getServiceInfo({});
+    if (info.checkpointHeight === undefined || info.lowestAvailableCheckpoint === undefined)
+      throw new Error('Sui node returned no history availability bounds');
+    if (info.lowestAvailableCheckpoint > 0n) throw new Error('Complete wallet history requires an unpruned Sui ledger');
+    const filter = { terms: [
+      { literals: [{ negated: false, predicate: { oneofKind: 'sender', sender: { address: walletAddress } } }] },
+      { literals: [{ negated: false, predicate: { oneofKind: 'affectedAddress', affectedAddress: { address: walletAddress } } }] },
+    ] };
+    const records = [];
+    const cursors = new Set();
+    const digests = new Set();
+    const decimals = new Map();
+    let after;
+    do {
+      let cursor;
+      let end;
+      const call = client.ledgerService.listTransactions({ filter, endCheckpoint: info.checkpointHeight + 1n,
+        readMask: { paths: ['digest'] }, options: { limit: 50, ordering: 0, after } });
+      for await (const frame of call.responses) {
+        if (frame.watermark?.cursor) cursor = frame.watermark.cursor;
+        if (frame.end) end = frame.end.reason;
+        if (!frame.transaction) continue;
+        const digest = frame.transaction.digest;
+        if (!digest || digests.has(digest)) throw new Error('Sui returned missing or duplicate history digests');
+        digests.add(digest);
+        const fetched = await client.getTransaction({ digest,
+          include: { effects: true, balanceChanges: true, transaction: true, objectTypes: true } });
+        const tx = fetched.Transaction ?? fetched.FailedTransaction;
+        if (!tx?.transaction?.sender || tx.timestampMs === null || !tx.effects || !Array.isArray(tx.balanceChanges))
+          throw new Error('Sui returned incomplete checkpointed wallet history');
+        const balances = tx.balanceChanges.filter(change => change.address === walletAddress);
+        for (const change of balances) {
+          if (!decimals.has(change.coinType)) {
+            const { coinMetadata } = await client.getCoinMetadata({ coinType: change.coinType });
+            if (!coinMetadata || !Number.isInteger(coinMetadata.decimals)) throw new Error('History asset has no on-chain decimals metadata');
+            decimals.set(change.coinType, coinMetadata.decimals);
+          }
+          const recipients = [...new Set(tx.balanceChanges.filter(item => item.coinType === change.coinType
+            && item.address !== walletAddress && BigInt(item.amount) > 0n).map(item => item.address))];
+          records.push({ digest, sender: tx.transaction.sender, walletAddress, amountUnits: change.amount,
+            decimals: decimals.get(change.coinType), coinType: change.coinType, recipients,
+            timestampMs: tx.timestampMs, success: tx.status.success });
+        }
+        if (!balances.length) records.push({ digest, sender: tx.transaction.sender, walletAddress,
+          amountUnits: '0', decimals: 0, coinType: null, recipients: [], timestampMs: tx.timestampMs,
+          success: tx.status.success, objectChanges: tx.effects.changedObjects.map(item => item.objectId) });
+      }
+      if ([3, 4, 5].includes(end)) return records;
+      if (![1, 2].includes(end) || !cursor) throw new Error('Sui history stream returned no valid terminal cursor');
+      const encoded = Buffer.from(cursor).toString('base64');
+      if (cursors.has(encoded)) throw new Error('Sui returned a non-advancing history cursor');
+      cursors.add(encoded);
+      after = cursor;
+    } while (true);
+  }
   if (request.operation === 'nftMint') {
     if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.recipient)
         || !Array.isArray(request.metadata) || request.metadata.some(value => typeof value !== 'string')
