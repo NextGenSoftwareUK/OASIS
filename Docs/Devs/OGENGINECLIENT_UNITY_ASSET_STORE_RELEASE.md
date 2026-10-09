@@ -45,7 +45,8 @@ serialization-duplicating wrapper), the same complete validator passed again. Cu
 record package manifest hash `F6A06411B7D1CBE3F2D93321B8AC4C51C9132B3F6CE959E56DB44812EDDEB6AC`.
 
 The Edge workflow now includes a required `validate-desktop-protected-sessions` Linux/macOS matrix. It tests the
-linked Unity adapter against the host's actual credential facility and requires four executed, passing TRX tests;
+linked Unity adapter against the host's actual credential facility and now requires six executed, passing TRX tests
+(four credential adapter tests plus two owned-process lifecycle tests);
 skips and zero discovery fail the gate. Linux uses a disposable runner D-Bus/keyring session, with prerequisites
 installed only when absent; setup follows the [GNOME daemon lifecycle](https://wiki.gnome.org/Projects/GnomeKeyring/RunningDaemon).
 Hosted evidence for Development `1e3489fc0`: [Edge validation run 37871539550](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/37871539550)
@@ -53,6 +54,9 @@ completed both native matrix jobs successfully. macOS job `113630538343` and Lin
 executed four tests with four passes, zero failures and zero skips. This proves the linked adapter's credential
 round trip, device isolation, deletion, identity validation and pre-cancellation behavior against the actual
 Keychain/Secret Service facilities under .NET. It does not prove Unity/IL2CPP execution or physical-device acceptance.
+The subsequent six-test gate adds cancellation termination and already-exited process coverage on native hosts.
+Its filter passed locally on Windows (six passes, zero skips); hosted six-test evidence is still pending and must
+not be conflated with the four-test hosted evidence above.
 
 Subsequent local Windows regression evidence: 71/71 Edge Runtime tests passed with zero skips, recorded in
 `artifacts/edge-runtime-tests/edge-runtime-tests.trx`. This includes cancellation terminating the owned credential

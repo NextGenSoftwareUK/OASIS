@@ -130,22 +130,22 @@ jobs:
           dbus-run-session -- bash -euo pipefail -c '
             printf "%s" "oasis-ci-disposable-keyring" | gnome-keyring-daemon --daemonize --login
             gnome-keyring-daemon --start --components=secrets
-            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter FullyQualifiedName~UnityDesktopSecureSessionStoreTests --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter "FullyQualifiedName~UnityDesktopSecureSessionStoreTests|FullyQualifiedName~LinuxSecretServiceProcessTests" --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
           '
       - name: Validate macOS native Keychain sessions
         if: runner.os == 'macOS'
         shell: bash
         run: |
           set -euo pipefail
-          dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter FullyQualifiedName~UnityDesktopSecureSessionStoreTests --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+          dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter "FullyQualifiedName~UnityDesktopSecureSessionStoreTests|FullyQualifiedName~LinuxSecretServiceProcessTests" --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
       - name: Require all native desktop qualification tests to execute and pass
         shell: pwsh
         run: |
           [xml]$trx = Get-Content -LiteralPath artifacts/desktop-protected-sessions/desktop-protected-sessions.trx -Raw
           $counters = $trx.SelectSingleNode('//*[local-name()="Counters"]')
-          if ($null -eq $counters -or [int]$counters.total -ne 4 -or
-              [int]$counters.executed -ne 4 -or [int]$counters.passed -ne 4) {
-            throw 'All four native desktop tests must execute and pass; skipped or undiscovered tests are not qualification.'
+          if ($null -eq $counters -or [int]$counters.total -ne 6 -or
+              [int]$counters.executed -ne 6 -or [int]$counters.passed -ne 6) {
+            throw 'All six native desktop tests must execute and pass; skipped or undiscovered tests are not qualification.'
           }
       - uses: actions/upload-artifact@v7
         if: always()
