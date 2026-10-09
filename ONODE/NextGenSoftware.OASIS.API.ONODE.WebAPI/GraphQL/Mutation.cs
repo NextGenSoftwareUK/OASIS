@@ -644,18 +644,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         }
 
         // Share
-        public async Task<bool> ShareHolonToMany(Guid holonId, string avatarIdsCsv)
+        public async Task<bool> ShareHolonToMany(Guid holonId, string avatarIdsCsv,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
             var ids = avatarIdsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).ToList();
             var r = System.Threading.Tasks.Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
             var mgr = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(r.Result);
-            var holon = await mgr.LoadHolonAsync(holonId);
-            if (holon == null || holon.IsError || holon.Result == null) return false;
-            if (holon.Result.MetaData == null) holon.Result.MetaData = new Dictionary<string, object>();
-            holon.Result.MetaData["SHARED_AVATAR_IDS"] = System.Text.Json.JsonSerializer.Serialize(ids);
-            var save = await mgr.SaveHolonAsync(holon.Result, Guid.Empty);
-            return save != null && !save.IsError;
+            // Sharing grants read access, so it must run as the signed-in avatar with the creator-only check.
+            var caller = httpContextAccessor.HttpContext?.Items["Avatar"] as IAvatar;
+            var result = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.ShareAsync(mgr, holonId, ids, caller);
+            return !result.IsError && result.Result;
         }
 
         // Solana
