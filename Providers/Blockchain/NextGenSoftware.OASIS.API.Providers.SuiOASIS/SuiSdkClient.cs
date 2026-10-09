@@ -19,6 +19,7 @@ internal sealed class SuiSdkClient : IDisposable
         if (!Uri.TryCreate(rpcEndpoint, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https"))
             throw new ArgumentException("HTTP(S) Sui RPC endpoint is required.", nameof(rpcEndpoint));
+        ArgumentException.ThrowIfNullOrWhiteSpace(network);
         _rpcEndpoint = rpcEndpoint;
         _network = network;
         _chainId = chainId;
