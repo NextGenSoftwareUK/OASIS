@@ -15,6 +15,7 @@
     <None Include="Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS\NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj" />
   </ItemGroup>
 </Project>
