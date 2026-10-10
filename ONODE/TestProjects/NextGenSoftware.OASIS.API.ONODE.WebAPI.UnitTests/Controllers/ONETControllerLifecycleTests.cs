@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using NextGenSoftware.OASIS.Common;
 using Xunit;
@@ -73,6 +74,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             var result = await controller.GetNetworkStatus();
 
             result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetNetworkStatus_ManagerError_Returns500()
+        {
+            var controller = BuildController(new StubOnetManager { NetworkStatusFails = true });
+
+            var result = await controller.GetNetworkStatus();
+
+            result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
         }
 
         [Fact]
@@ -183,6 +194,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
                 => Task.FromResult(new OASISResult<bool>(true));
 
             public override bool RegisterNodePublicKey(string nodeId, string publicKey) => true;
+
+            public bool NetworkStatusFails { get; set; }
+
+            public override Task<OASISResult<NetworkStatus>> GetNetworkStatusAsync()
+                => Task.FromResult(NetworkStatusFails
+                    ? new OASISResult<NetworkStatus> { IsError = true, Message = "network down" }
+                    : new OASISResult<NetworkStatus> { Result = new NetworkStatus { IsRunning = true } });
         }
     }
 }
