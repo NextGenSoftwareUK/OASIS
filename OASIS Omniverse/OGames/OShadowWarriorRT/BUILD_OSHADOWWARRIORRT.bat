@@ -35,7 +35,21 @@ for %%F in (oglib_game.h oglib_config.h oglib_edge.h oglib_json.h oglib_str.h) d
 
 echo [OShadowWarriorRT] Building Raze with OASIS_STAR_API=ON...
 if not exist "%RAZE_SRC%\build-vs" mkdir "%RAZE_SRC%\build-vs"
-cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_LIB_DIR=%STAR_PUBLISH%"
+REM RT renderer: build the NRI vendored in the engine (matches its headers). This generates
+REM NRIAgilitySDK.h, fetches the DirectX Agility SDK and produces NRI.dll for Raze to stage.
+set "NRI_SRC=%RAZE_SRC%\libraries\NRIFramework\External\NRI"
+cmake -S "%NRI_SRC%" -B "%NRI_SRC%\_Build" -A x64
+if errorlevel 1 (echo [OShadowWarriorRT] NRI configure failed. & (if not "%~1"=="batch" pause) & exit /b 1)
+cmake --build "%NRI_SRC%\_Build" --config Release
+if errorlevel 1 (echo [OShadowWarriorRT] NRI build failed. & (if not "%~1"=="batch" pause) & exit /b 1)
+REM NRD: Raze compiles NRD's C++ directly but needs NRD's precompiled shader headers
+REM (libraries\NRD\_Shaders). Build them with settings identical to Raze's NRD_* definitions.
+set "NRD_SRC=%RAZE_SRC%\libraries\NRD"
+cmake -S "%NRD_SRC%" -B "%NRD_SRC%\_Build" -A x64 -DNRD_NORMAL_ENCODING=2 -DNRD_ROUGHNESS_ENCODING=1 -DNRD_SUPPORTS_VIEWPORT_OFFSET=OFF -DNRD_SUPPORTS_CHECKERBOARD=OFF -DNRD_SUPPORTS_HISTORY_CONFIDENCE=OFF -DNRD_SUPPORTS_DISOCCLUSION_THRESHOLD_MIX=OFF -DNRD_SUPPORTS_BASECOLOR_METALNESS=ON -DNRD_SUPPORTS_ANTIFIREFLY=OFF -DREBLUR_PERFORMANCE_MODE=OFF
+if errorlevel 1 (echo [OShadowWarriorRT] NRD configure failed. & (if not "%~1"=="batch" pause) & exit /b 1)
+cmake --build "%NRD_SRC%\_Build" --config Release
+if errorlevel 1 (echo [OShadowWarriorRT] NRD build failed. & (if not "%~1"=="batch" pause) & exit /b 1)
+cmake -S "%RAZE_SRC%" -B "%RAZE_SRC%\build-vs" -A x64 -DOASIS_STAR_API=ON "-DOGENGINE_LIB_DIR=%STAR_PUBLISH%" "-DRAZE_NRI_RUNTIME_DIR=%NRI_SRC%\_Bin\Release"
 if errorlevel 1 (echo [OShadowWarriorRT] CMake configure failed. & (if not "%~1"=="batch" pause) & exit /b 1)
 cmake --build "%RAZE_SRC%\build-vs" --config Release
 if errorlevel 1 (echo [OShadowWarriorRT] Build failed. & (if not "%~1"=="batch" pause) & exit /b 1)
