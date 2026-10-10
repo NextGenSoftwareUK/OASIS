@@ -2,15 +2,337 @@ name: OASIS CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, Development ]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [ main, master, Development ]
 
 env:
-  DOTNET_VERSION: '9.0.x'
-  NODE_VERSION: '18.x'
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '24.x'
 
 jobs:
+  # Guards against the failure mode that let ~200 projects accumulate 1000+ compile
+  # errors unnoticed: a .csproj that is in no .sln is never built by anything, so it
+  # rots silently. This job fails the pipeline on both conditions - a project missing
+  # from the solutions, and any error in the full production build.
+  solution-integrity:
+    name: Solution Integrity
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Every project must be in a solution
+        run: python3 Scripts/check_solution_coverage.py
+
+      - name: Submodule pointers must match the branch rule
+        # master pins each submodule at its main; Development pins each at its Development.
+        # Master deploys to Azure, so a pointer off main would ship unreleased code.
+        env:
+          OASIS_TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
+        run: |
+          if [ "$OASIS_TARGET_BRANCH" = "Development" ]; then
+            export OASIS_SUBMODULE_BRANCH=Development
+          else
+            export OASIS_SUBMODULE_BRANCH=main
+          fi
+          git submodule foreach --quiet 'git fetch origin "+refs/heads/$OASIS_SUBMODULE_BRANCH:refs/remotes/origin/$OASIS_SUBMODULE_BRANCH" --quiet'
+          python3 Scripts/check_submodule_branches.py "$(git rev-parse HEAD)" "$OASIS_TARGET_BRANCH"
+
+      - name: Railway Dockerfiles must use the shared dependency manifest
+        run: python3 Scripts/validate_railway_dependency_manifest.py
+
+      - name: Railway dependency manifest must match deployment-branch gitlinks
+        if: github.ref_name == 'Development' || github.base_ref == 'Development' || github.ref_name == 'master' || github.base_ref == 'master'
+        run: python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+
+      - name: WEB6 generated MCP catalog and provider counts must match the code
+        run: |
+          python3 WEB6/Scripts/generate_mcp_tool_catalog.py
+          python3 WEB6/Scripts/generate_provider_counts.py --check
+          git -C WEB6 diff --exit-code -- NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md npm/MCP_TOOL_CATALOG.md
+
+      - name: Solutions must parse
+        run: |
+          for sln in "The OASIS - NoTests.sln" "The OASIS.sln"; do
+            echo "::group::$sln"
+            dotnet sln "$sln" list > /dev/null
+            echo "::endgroup::"
+          done
+
+      - name: Full production build must have zero errors
+        run: dotnet build "The OASIS - NoTests.sln" --configuration Release -warnaserror:none
+
+  # Runs the storage-provider integration tests against REAL backends, in throwaway
+  # containers. Without this the tier-B integration tests compile and "pass" while
+  # touching nothing, because each provider falls back to a localhost default that
+  # is not listening - so a broken provider looks identical to a working one.
+  #
+  # Backends that need a paid account or a cloud endpoint (Algolia, Pinecone,
+  # Zilliz, Snowflake, BigQuery, Redshift, Databricks, MotherDuck, Xata, Upstash,
+  # LanceDB Cloud) are deliberately absent: there is nothing to stand up locally.
+  provider-integration:
+    name: Provider Integration (${{ matrix.backend.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        backend:
+          # Redis-protocol stores - all four speak RESP, so the same client works.
+          - name: Redis
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests
+            image: redis:7-alpine
+            ports: 6379:6379
+            wait: 6379
+          - name: KeyDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests
+            image: eqalpha/keydb:latest
+            ports: 6379:6379
+            wait: 6379
+          - name: Dragonfly
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests
+            image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+            ports: 6379:6379
+            wait: 6379
+            docker_args: --ulimit memlock=-1
+          - name: ValKey
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.IntegrationTests
+            image: valkey/valkey:8-alpine
+            ports: 6379:6379
+            wait: 6379
+          - name: Garnet
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
+            image: ghcr.io/microsoft/garnet:latest
+            ports: 6379:6379
+            wait: 6379
+            test_env: |
+              GARNET_CONN=127.0.0.1:6379
+
+          - name: Memcached
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS.IntegrationTests
+            image: memcached:1.6-alpine
+            ports: 11211:11211
+            wait: 11211
+
+          # Document and graph stores.
+          - name: MongoDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests
+            image: mongo:7
+            ports: 27017:27017
+            wait: 27017
+            test_env: |
+              MONGODBOASIS_CONNECTIONSTRING=mongodb://127.0.0.1:27017
+              MONGODBOASIS_DBNAME=oasis_ci
+          - name: CouchDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.IntegrationTests
+            image: couchdb:3
+            ports: 5984:5984
+            wait: 5984
+            docker_args: -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password
+          - name: ArangoDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests
+            image: arangodb:3.11
+            ports: 8529:8529
+            wait: 8529
+            docker_args: -e ARANGO_ROOT_PASSWORD=password
+          - name: ArcadeDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests
+            image: arcadedata/arcadedb:latest
+            ports: 2480:2480
+            wait: 2480
+            docker_args: -e JAVA_OPTS=-Darcadedb.server.rootPassword=playwithdata
+          - name: SurrealDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
+            image: surrealdb/surrealdb:latest
+            ports: 8000:8000
+            wait: 8000
+            command: start --user root --pass root --bind 0.0.0.0:8000 memory
+
+          # Search engines.
+          - name: OpenSearch
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests
+            image: opensearchproject/opensearch:2
+            ports: 9200:9200
+            wait: 9200
+            docker_args: >-
+              -e discovery.type=single-node
+              -e DISABLE_SECURITY_PLUGIN=true
+              -e OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ngOasis!Pass
+          - name: Elasticsearch
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests
+            image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+            ports: 9200:9200
+            wait: 9200
+            docker_args: >-
+              -e discovery.type=single-node
+              -e xpack.security.enabled=false
+              -e ES_JAVA_OPTS=-Xms512m\ -Xmx512m
+          - name: Solr
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests
+            image: solr:9
+            ports: 8983:8983
+            wait: 8983
+          - name: Meilisearch
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests
+            image: getmeili/meilisearch:v1.7
+            ports: 7700:7700
+            wait: 7700
+            docker_args: -e MEILI_MASTER_KEY=masterKey -e MEILI_ENV=development
+          - name: Typesense
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
+            image: typesense/typesense:0.25.2
+            ports: 8108:8108
+            wait: 8108
+            docker_args: -e TYPESENSE_DATA_DIR=/tmp -e TYPESENSE_API_KEY=xyz
+
+          # Vector stores.
+          - name: Qdrant
+            project: Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests
+            image: qdrant/qdrant:latest
+            ports: 6333:6333
+            wait: 6333
+          - name: Weaviate
+            project: Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
+            image: cr.weaviate.io/semitechnologies/weaviate:1.24.1
+            ports: 8080:8080
+            wait: 8080
+            docker_args: >-
+              -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+              -e PERSISTENCE_DATA_PATH=/var/lib/weaviate
+              -e DEFAULT_VECTORIZER_MODULE=none
+          - name: Chroma
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests
+            image: chromadb/chroma:latest
+            ports: 8000:8000
+            wait: 8000
+          - name: PgVector
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.IntegrationTests
+            image: pgvector/pgvector:pg16
+            ports: 5432:5432
+            wait: 5432
+            docker_args: -e POSTGRES_PASSWORD=password -e POSTGRES_DB=oasis
+            test_env: |
+              PGVECTOR_CONN=Host=127.0.0.1;Port=5432;Database=oasis;Username=postgres;Password=password
+
+          # Analytical and time-series stores.
+          - name: ClickHouse
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.IntegrationTests
+            image: clickhouse/clickhouse-server:24-alpine
+            ports: 8123:8123
+            wait: 8123
+            docker_args: --ulimit nofile=262144:262144 -e CLICKHOUSE_DB=oasis
+            test_env: |
+              CLICKHOUSE_CONN=Host=127.0.0.1;Port=8123;Database=oasis;Username=default;Password=
+          - name: QuestDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests
+            image: questdb/questdb:latest
+            ports: 8812:8812
+            wait: 8812
+          - name: InfluxDB
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests
+            image: influxdb:2.7
+            ports: 8086:8086
+            wait: 8086
+            docker_args: >-
+              -e DOCKER_INFLUXDB_INIT_MODE=setup
+              -e DOCKER_INFLUXDB_INIT_USERNAME=oasis
+              -e DOCKER_INFLUXDB_INIT_PASSWORD=oasispassword
+              -e DOCKER_INFLUXDB_INIT_ORG=oasis
+              -e DOCKER_INFLUXDB_INIT_BUCKET=oasis
+              -e DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=oasis-ci-token
+            test_env: |
+              INFLUXDB_TOKEN=oasis-ci-token
+              INFLUXDB_ORG=oasis
+              INFLUXDB_BUCKET=oasis
+
+          # Object storage.
+          - name: MinIO
+            project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests
+            image: ghcr.io/coollabsio/minio:RELEASE.2025-04-22T22-12-26Z
+            ports: 9000:9000
+            wait: 9000
+            docker_args: -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin
+            command: server /data
+            test_env: |
+              MINIO_ACCESS_KEY=minioadmin
+              MINIO_SECRET_KEY=minioadmin
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Start ${{ matrix.backend.name }}
+        run: |
+          docker run -d --name oasis-backend \
+            -p ${{ matrix.backend.ports }} \
+            ${{ matrix.backend.docker_args }} \
+            ${{ matrix.backend.image }} ${{ matrix.backend.command }}
+
+      - name: Wait for it to accept connections
+        run: |
+          port="${{ matrix.backend.wait }}"
+          for i in $(seq 1 60); do
+            if (echo > /dev/tcp/127.0.0.1/$port) 2>/dev/null; then
+              echo "$port is open after ${i}s."
+              # Give the service a moment past the socket opening to finish booting.
+              sleep 5
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::${{ matrix.backend.name }} never opened port $port."
+          docker logs oasis-backend || true
+          exit 1
+
+      - name: Export test environment
+        if: matrix.backend.test_env != ''
+        run: echo "${{ matrix.backend.test_env }}" >> "$GITHUB_ENV"
+
+      - name: Run the integration tests
+        working-directory: OASIS
+        run: dotnet test "${{ matrix.backend.project }}" --configuration Release --logger "console;verbosity=normal"
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker logs oasis-backend || true
+
   # Build and Test OASIS Architecture Projects
   test-oasis-architecture:
     name: Test OASIS Architecture
@@ -25,21 +347,42 @@ jobs:
         ]
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj"
     
     - name: Build
-      run: dotnet build "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "OASIS Architecture/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      run: dotnet test "OASIS/OASIS Architecture/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Build and Test ONODE Projects
   test-onode:
@@ -47,28 +390,50 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [
-          'NextGenSoftware.OASIS.API.ONODE.Core',
-          'NextGenSoftware.OASIS.API.ONODE.WebAPI',
-          'NextGenSoftware.OASIS.API.ONODE.OPORTAL'
-        ]
+        include:
+          - project: NextGenSoftware.OASIS.API.ONODE.Core
+            test: TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj
+          - project: NextGenSoftware.OASIS.API.ONODE.WebAPI
+            test: TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj"
     
     - name: Build
-      run: dotnet build "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "ONODE/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      if: matrix.test != ''
+      run: dotnet test "OASIS/ONODE/${{ matrix.test }}" --configuration Release --verbosity normal
 
   # Build and Test STAR ODK Projects
   test-star-odk:
@@ -76,31 +441,102 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [
-          'NextGenSoftware.OASIS.STAR',
-          'NextGenSoftware.OASIS.STAR.CLI',
-          'NextGenSoftware.OASIS.STAR.CLI.Lib',
-          'NextGenSoftware.OASIS.STAR.STARDNA',
-          'NextGenSoftware.OASIS.STAR.WebAPI',
-          'NextGenSoftware.OASIS.STAR.WebUI'
-        ]
+        include:
+          - project: NextGenSoftware.OASIS.STAR
+            project_file: NextGenSoftware.OASIS.STAR.csproj
+            test: NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.CLI
+            project_file: NextGenSoftware.OASIS.STAR.CLI.csproj
+            test: NextGenSoftware.OASIS.STAR.CLI.UnitTests/NextGenSoftware.OASIS.STAR.CLI.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.CLI.Lib
+            project_file: NextGenSoftware.OASIS.STAR.CLI.Lib.csproj
+            test: NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.STARDNA
+            project_file: NextGenSoftware.OASIS.STAR.DNA.csproj
+            test: NextGenSoftware.OASIS.STAR.STARDNA.UnitTests/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.WebAPI
+            project_file: NextGenSoftware.OASIS.STAR.WebAPI.csproj
+            test: NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj
+          - project: NextGenSoftware.OASIS.STAR.WebUI
+            project_file: NextGenSoftware.OASIS.STAR.WebUI.csproj
+            test: ''
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project_file }}"
     
     - name: Build
-      run: dotnet build "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project_file }}" --no-restore
     
     - name: Test
-      run: dotnet test "STAR ODK/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      if: matrix.test != ''
+      run: dotnet test "OASIS/STAR ODK/${{ matrix.test }}" --configuration Release --verbosity normal
+
+  # OASIS Omniverse: game-side Hub bridge (OGEngineClient) and Hub runtime logic tests
+  test-omniverse:
+    name: Test OASIS Omniverse
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test:
+          - OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj
+          - OASIS Omniverse/OASIS Hub/Tests/HubRuntime.Tests/HubRuntime.Tests.csproj
+
+    steps:
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # OGEngineClient and OASIS Hub are private submodules; see test-star-odk.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Test
+      # OGEngine's Edge graph reaches several shared projects through both the
+      # native endpoint and the top-level client. MSBuild may therefore create
+      # distinct qualified graph nodes that share an output path. Serialize the
+      # build so those legitimate nodes cannot concurrently replace one deps or
+      # assembly file (the Linux failure was GenerateDepsFile IOException).
+      run: dotnet test "OASIS/${{ matrix.test }}" --configuration Release --verbosity normal --maxcpucount:1
 
   # Integration Tests
   integration-tests:
@@ -109,33 +545,94 @@ jobs:
     needs: [test-oasis-architecture, test-onode, test-star-odk]
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
       run: |
-        dotnet restore "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj"
-        dotnet restore "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj"
-        dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj"
-        dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj"
+        dotnet restore "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj"
+        dotnet restore "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj"
+        dotnet restore "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj"
     
     - name: Build
       run: |
-        dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-restore
-        dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj" --no-restore
-        dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-restore
-        dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-restore
+        dotnet build "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-restore
+        dotnet build "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-restore
+        dotnet build "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-restore
     
     - name: Run Integration Tests
       run: |
-        dotnet test "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
-        dotnet test "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj" --no-build --verbosity normal
-        dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
-        dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
+
+  # STARAPIClient Unit + Integration + Harness
+  test-starapi-client:
+    name: Test OGEngineClient
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        path: OASIS
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Start Linux Secret Service
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes dbus-x11 gnome-keyring libsecret-tools
+
+    - name: Run OGEngineClient test suites
+      run: |
+        dbus-run-session -- bash -euo pipefail -c '
+          eval "$(printf "%s" "oasis-ci-keyring" | gnome-keyring-daemon --unlock --components=secrets)"
+          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
+          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
+        '
+
+    - name: Upload STARAPIClient test artifacts
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: ogengineclient-test-results
+        path: TestResults/
+        retention-days: 30
 
   # Unity Tests (if Unity is available)
   unity-tests:
@@ -144,10 +641,31 @@ jobs:
     if: false  # Disabled for now as Unity requires special setup
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -160,32 +678,55 @@ jobs:
   build-and-package:
     name: Build and Package
     runs-on: ubuntu-latest
-    needs: [test-oasis-architecture, test-onode, test-star-odk, integration-tests]
+    needs: [test-oasis-architecture, test-onode, test-star-odk, integration-tests, test-starapi-client]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore
+      working-directory: OASIS
+      run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Build all projects
-      run: dotnet build --configuration Release --no-restore
+      working-directory: OASIS
+      run: dotnet build "The OASIS - NoTests.sln" --configuration Release --no-restore -warnaserror:none
     
     - name: Pack NuGet packages
       run: |
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" --configuration Release --no-build --output ./packages
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" --configuration Release --no-build --output ./packages
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" --configuration Release --no-build --output ./packages
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" --configuration Release --no-build --output ./packages
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: oasispackages
         path: ./packages/
@@ -197,20 +738,67 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore
+      working-directory: OASIS
+      run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Security scan
+      working-directory: OASIS
       run: |
-        dotnet list package --vulnerable --include-transitive
-        echo "Security scan completed"
+        dotnet list "The OASIS - NoTests.sln" package --vulnerable --include-transitive --format json > vulnerable-packages.json
+        python3 - <<'PY'
+        import json
+        import sys
+
+        with open("vulnerable-packages.json", encoding="utf-8") as stream:
+            report = json.load(stream)
+
+        vulnerable = []
+        for project in report.get("projects", []):
+            for framework in project.get("frameworks", []):
+                for scope in ("topLevelPackages", "transitivePackages"):
+                    for package in framework.get(scope, []):
+                        for advisory in package.get("vulnerabilities", []):
+                            vulnerable.append(
+                                f"{project['path']}: {package['id']} {package['resolvedVersion']} "
+                                f"[{advisory['severity']}] {advisory['advisoryurl']}"
+                            )
+
+        if vulnerable:
+            print("Vulnerable NuGet packages were found:", file=sys.stderr)
+            print("\n".join(vulnerable), file=sys.stderr)
+            sys.exit(1)
+
+        print("Security scan completed with no vulnerable NuGet packages.")
+        PY
 
   # Code Quality
   code-quality:
@@ -218,19 +806,42 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore
+      working-directory: OASIS
+      run: dotnet restore "The OASIS - NoTests.sln"
     
     - name: Code analysis
+      working-directory: OASIS
       run: |
-        dotnet build --configuration Release --no-restore
+        dotnet build "The OASIS - NoTests.sln" --configuration Release --no-restore -warnaserror:none
         echo "Code quality analysis completed"
 
   # Test Coverage Report
@@ -240,10 +851,31 @@ jobs:
     needs: [test-oasis-architecture, test-onode, test-star-odk]
     
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout OASIS
+      uses: actions/checkout@v7
+      with:
+        path: OASIS
+        # All eight submodules are private, so the default GITHUB_TOKEN cannot
+        # fetch them -- it is scoped to this repository alone. Uses the same
+        # PRIVATE_SUBMODULE_PAT that publish-nuget.yml and publish-mcp.yml
+        # already rely on, rather than a second token for the same job.
+        submodules: recursive
+        token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+    - name: Checkout NextGenSoftware-Libraries
+      uses: actions/checkout@v7
+      with:
+        repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
+
+    - name: Checkout holochain-client-csharp
+      uses: actions/checkout@v7
+      with:
+        repository: holochain-open-dev/holochain-client-csharp
+        path: holochain-client-csharp
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
@@ -251,14 +883,35 @@ jobs:
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
     
     - name: Run tests with coverage
+      working-directory: OASIS
       run: |
-        dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
+        test_projects=(
+          "OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.API.DNA.UnitTests/NextGenSoftware.OASIS.API.DNA.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.Common.UnitTests/NextGenSoftware.OASIS.Common.UnitTests.csproj"
+          "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj"
+          "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.Core.UnitTests/NextGenSoftware.OASIS.API.ONODE.Core.Tests/NextGenSoftware.OASIS.API.ONODE.Core.Tests.csproj"
+          "ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.UnitTests/NextGenSoftware.OASIS.STAR.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.UnitTests/NextGenSoftware.OASIS.STAR.CLI.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests/NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests/NextGenSoftware.OASIS.STAR.STARDNA.UnitTests.csproj"
+          "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests/NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj"
+        )
+
+        for project in "${test_projects[@]}"; do
+          dotnet test "$project" \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage
+        done
     
     - name: Generate coverage report
+      working-directory: OASIS
       run: reportgenerator -reports:"./coverage/**/coverage.cobertura.xml" -targetdir:"./coverage/report" -reporttypes:"Html"
     
     - name: Upload coverage reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-report
         path: ./coverage/report/

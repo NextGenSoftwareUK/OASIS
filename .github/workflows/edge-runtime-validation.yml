@@ -1,0 +1,454 @@
+name: Edge Runtime validation
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA.UnitTests/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.Contracts/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime*/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.ONET/**'
+      - 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/**'
+      - 'OASIS Omniverse/OGEngineClient/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS*/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS*/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/**'
+      - 'ONODE/**'
+      - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
+      - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/validate_edge_unity_package.ps1'
+      - 'Scripts/test_edge_unity_batch_lifecycle.ps1'
+      - 'Scripts/UnityValidation/**'
+      - 'Scripts/ensure_unity_windows_runtime.ps1'
+      - 'Scripts/validate_dependency_security.ps1'
+      - 'Scripts/run_hosted_mongo_release_evidence.ps1'
+      - 'Scripts/validate_our_world_device_acceptance.ps1'
+      - 'Scripts/test_our_world_device_acceptance_validator.ps1'
+      - 'Scripts/our-world-device-acceptance-evidence.template.json'
+      - 'Scripts/build_holooasis_happ.ps1'
+      - 'Scripts/build_holochain_android_runtime.ps1'
+      - 'Scripts/build_edge_unity_package.ps1'
+      - 'Scripts/holo_happ_provenance.ps1'
+      - 'Scripts/holo_happ_provenance_paths.txt'
+      - 'UnityPackages/com.nextgensoftware.oasis.edge/**'
+      - 'Scripts/EdgeReleaseInspector/**'
+      - '.github/workflows/edge-runtime-validation.yml'
+  push:
+    branches: [Development, master]
+    paths:
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA.UnitTests/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.Contracts/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime*/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.ONET/**'
+      - 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/**'
+      - 'OASIS Omniverse/OGEngineClient/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS*/**'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS*/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/**'
+      - 'ONODE/**'
+      - 'Tools/NextGenSoftware.OASIS.HyperDrive.Migration/**'
+      - 'Scripts/validate_edge_runtime_release.ps1'
+      - 'Scripts/validate_edge_unity_package.ps1'
+      - 'Scripts/test_edge_unity_batch_lifecycle.ps1'
+      - 'Scripts/UnityValidation/**'
+      - 'Scripts/ensure_unity_windows_runtime.ps1'
+      - 'Scripts/validate_dependency_security.ps1'
+      - 'Scripts/run_hosted_mongo_release_evidence.ps1'
+      - 'Scripts/validate_our_world_device_acceptance.ps1'
+      - 'Scripts/test_our_world_device_acceptance_validator.ps1'
+      - 'Scripts/our-world-device-acceptance-evidence.template.json'
+      - 'Scripts/build_holooasis_happ.ps1'
+      - 'Scripts/build_holochain_android_runtime.ps1'
+      - 'Scripts/build_edge_unity_package.ps1'
+      - 'Scripts/holo_happ_provenance.ps1'
+      - 'Scripts/holo_happ_provenance_paths.txt'
+      - 'UnityPackages/com.nextgensoftware.oasis.edge/**'
+      - 'Scripts/EdgeReleaseInspector/**'
+      - '.github/workflows/edge-runtime-validation.yml'
+
+jobs:
+  validate-desktop-protected-sessions:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      OASIS_TEST_DESKTOP_CREDENTIAL_STORE: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Resolve pinned API Core synchronization revision
+        id: core-revision
+        shell: bash
+        run: |
+          core_sha="$(git rev-parse 'HEAD:OASIS Architecture/NextGenSoftware.OASIS.API.Core')"
+          printf 'sha=%s\n' "$core_sha" >> "$GITHUB_OUTPUT"
+      # Retired standalone submodule update: checkout v7's parent credential does not authenticate that clone.
+      - name: Checkout pinned API Core synchronization sources
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-API-Core
+          ref: ${{ steps.core-revision.outputs.sha }}
+          path: OASIS Architecture/NextGenSoftware.OASIS.API.Core
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            10.0.x
+            8.0.x
+      - name: Prepare Linux native Secret Service prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v secret-tool >/dev/null || ! command -v gnome-keyring-daemon >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends libsecret-tools gnome-keyring dbus
+          fi
+      - name: Validate Linux protected sessions in an unlocked disposable keyring
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dbus-run-session -- bash -euo pipefail -c '
+            printf "%s" "oasis-ci-disposable-keyring" | gnome-keyring-daemon --daemonize --login
+            gnome-keyring-daemon --start --components=secrets
+            dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter "FullyQualifiedName~UnityDesktopSecureSessionStoreTests|FullyQualifiedName~LinuxSecretServiceProcessTests" --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+          '
+      - name: Validate macOS native Keychain sessions
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet test "OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime.UnitTests/NextGenSoftware.OASIS.Edge.Runtime.UnitTests.csproj" -c Release --filter "FullyQualifiedName~UnityDesktopSecureSessionStoreTests|FullyQualifiedName~LinuxSecretServiceProcessTests" --logger "trx;LogFileName=desktop-protected-sessions.trx" --results-directory artifacts/desktop-protected-sessions
+      - name: Require all native desktop qualification tests to execute and pass
+        shell: pwsh
+        run: |
+          [xml]$trx = Get-Content -LiteralPath artifacts/desktop-protected-sessions/desktop-protected-sessions.trx -Raw
+          $counters = $trx.SelectSingleNode('//*[local-name()="Counters"]')
+          if ($null -eq $counters -or [int]$counters.total -ne 6 -or
+              [int]$counters.executed -ne 6 -or [int]$counters.passed -ne 6) {
+            throw 'All six native desktop tests must execute and pass; skipped or undiscovered tests are not qualification.'
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: desktop-protected-sessions-${{ runner.os }}
+          path: artifacts/desktop-protected-sessions/*.trx
+          if-no-files-found: error
+
+  build-holooasis-happ:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout OASIS Holochain hApp source
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-Holochain-hApp
+          path: OASIS-Holochain-hApp
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - name: Build and test pinned HoloOASIS hApp
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/build_holooasis_happ.ps1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: verified-holooasis-happ
+          path: |
+            OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ
+            OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json
+
+  build-holochain-android-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - name: Build pinned Holochain Android runtime
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/build_holochain_android_runtime.ps1 -CleanSource
+      - uses: actions/upload-artifact@v7
+        with:
+          name: verified-holochain-android-runtime
+          path: OASIS/artifacts/holochain-android-runtime/package
+          if-no-files-found: error
+
+  validate-hosted-mongo-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build hosted domain migration tool
+        working-directory: OASIS
+        run: dotnet build Tools/NextGenSoftware.OASIS.HyperDrive.Migration/NextGenSoftware.OASIS.HyperDrive.Migration.csproj --configuration Release --nologo
+      - name: Start transaction-capable MongoDB replica set
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name oasis-mongo-1 --network host mongo:7 --replSet rs0 --bind_ip_all --port 27017
+          docker run --detach --name oasis-mongo-2 --network host mongo:7 --replSet rs0 --bind_ip_all --port 27018
+          docker run --detach --name oasis-mongo-3 --network host mongo:7 --replSet rs0 --bind_ip_all --port 27019
+          for attempt in {1..60}; do
+            if docker exec oasis-mongo-1 mongosh --quiet --port 27017 --eval "db.adminCommand({ ping: 1 }).ok" | grep -q '^1$' &&
+               docker exec oasis-mongo-2 mongosh --quiet --port 27018 --eval "db.adminCommand({ ping: 1 }).ok" | grep -q '^1$' &&
+               docker exec oasis-mongo-3 mongosh --quiet --port 27019 --eval "db.adminCommand({ ping: 1 }).ok" | grep -q '^1$'; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              docker logs oasis-mongo-1
+              docker logs oasis-mongo-2
+              docker logs oasis-mongo-3
+              exit 1
+            fi
+            sleep 1
+          done
+          docker exec oasis-mongo-1 mongosh --quiet --port 27017 --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'},{_id:1,host:'localhost:27018'},{_id:2,host:'localhost:27019'}]})"
+          for attempt in {1..60}; do
+            for container_port in 'oasis-mongo-1 27017' 'oasis-mongo-2 27018' 'oasis-mongo-3 27019'; do
+              read -r container port <<< "$container_port"
+              healthy_members="$(docker exec "$container" mongosh --quiet --port "$port" --eval \
+                "try { const states = rs.status().members.map(m => m.stateStr); print(states.filter(s => s === 'PRIMARY').length === 1 && states.filter(s => s === 'SECONDARY').length === 2 ? 'ready' : 'waiting') } catch (e) { print('waiting') }" 2>/dev/null || true)"
+              if [ "$healthy_members" = 'ready' ]; then
+                echo "Replica set has one primary and two election-ready secondaries."
+                exit 0
+              fi
+            done
+            if [ "$attempt" -eq 60 ]; then
+              docker logs oasis-mongo-1
+              docker logs oasis-mongo-2
+              docker logs oasis-mongo-3
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Prove hosted sync transaction rollback and retry
+        working-directory: OASIS
+        env:
+          OASIS_MONGO_REPLICA_SET_CONNECTION: 'mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0&retryWrites=true&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000'
+        run: >-
+          dotnet test
+          Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj
+          --configuration Release
+          --filter "Category!=ExternalPrimaryTermination"
+          --logger "trx;LogFileName=hosted-mongo-sync.trx"
+          --results-directory artifacts/hosted-mongo-ci
+          --nologo
+      - name: Prove acknowledged replay after abrupt primary process loss
+        working-directory: OASIS
+        shell: bash
+        env:
+          OASIS_MONGO_REPLICA_SET_CONNECTION: 'mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0&retryWrites=true&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000'
+          OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY: ${{ github.workspace }}/OASIS/artifacts/hosted-mongo-kill-coordination
+        run: |
+          set -euo pipefail
+          rm -rf "$OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY"
+          mkdir -p "$OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY"
+          dotnet test \
+            Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj \
+            --configuration Release \
+            --filter "Category=ExternalPrimaryTermination" \
+            --logger "trx;LogFileName=hosted-mongo-process-kill.trx" \
+            --results-directory artifacts/hosted-mongo-ci \
+            --nologo &
+          test_pid=$!
+          trap 'kill "$test_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..120}; do
+            [ -f "$OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY/ready" ] && break
+            if ! kill -0 "$test_pid" 2>/dev/null; then
+              wait "$test_pid"
+            fi
+            [ "$attempt" -eq 120 ] && { echo "Timed out waiting for the primary-kill test checkpoint."; exit 1; }
+            sleep 1
+          done
+          primary=''
+          for node_port in 'oasis-mongo-1:27017' 'oasis-mongo-2:27018' 'oasis-mongo-3:27019'; do
+            node="${node_port%%:*}"
+            port="${node_port##*:}"
+            if docker exec "$node" mongosh --quiet --port "$port" --eval "db.hello().isWritablePrimary" | grep -q '^true$'; then
+              primary="$node"
+              break
+            fi
+          done
+          [ -n "$primary" ] || { echo 'No writable MongoDB primary found to terminate.'; exit 1; }
+          docker kill "$primary"
+          for attempt in {1..60}; do
+            elected=false
+            for node_port in 'oasis-mongo-1:27017' 'oasis-mongo-2:27018' 'oasis-mongo-3:27019'; do
+              node="${node_port%%:*}"
+              port="${node_port##*:}"
+              [ "$node" = "$primary" ] && continue
+              if docker exec "$node" mongosh --quiet --port "$port" --eval "db.hello().isWritablePrimary" 2>/dev/null | grep -q '^true$'; then
+                elected=true
+                break
+              fi
+            done
+            $elected && break
+            [ "$attempt" -eq 60 ] && { echo 'Replica set did not elect a primary after process termination.'; exit 1; }
+            sleep 1
+          done
+          touch "$OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY/continue"
+          wait "$test_pid"
+          trap - EXIT
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: hosted-mongo-sync-evidence
+          path: OASIS/artifacts/hosted-mongo-ci/*.trx
+          if-no-files-found: error
+
+  validate:
+    needs: [build-holooasis-happ, build-holochain-android-runtime, validate-hosted-mongo-sync, validate-desktop-protected-sessions]
+    runs-on: windows-latest
+    timeout-minutes: 150
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Verify clean OASIS source checkout
+        shell: pwsh
+        run: |
+          $status = @(git -C OASIS status --porcelain --untracked-files=all)
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to inspect the OASIS source checkout."
+          }
+          if ($status.Count -ne 0) {
+            $status | ForEach-Object { Write-Error $_ }
+            throw "Release validation must begin from a clean source checkout."
+          }
+      - name: Validate Unity batch lifecycle contract
+        shell: pwsh
+        working-directory: OASIS
+        run: ./Scripts/test_edge_unity_batch_lifecycle.ps1
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+      - name: Checkout OASIS Holochain hApp source
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OASIS-Holochain-hApp
+          path: OASIS-Holochain-hApp
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Install pinned Unity editor and Android modules
+        uses: RageAgainstThePixel/unity-setup@3da1aae07f5635ff478d3ad7f29782b3aea88258 # v2.6.0
+        with:
+          version-file: None
+          unity-version: 2022.3.62f3 (e9b2a6e6c3a0)
+          build-targets: Android
+          cache-installation: true
+      - name: Ensure Unity Windows runtime prerequisites
+        shell: pwsh
+        run: ./OASIS/Scripts/ensure_unity_windows_runtime.ps1
+      - name: Require Unity activation credentials
+        shell: pwsh
+        env:
+          UNITY_USERNAME: ${{ secrets.UNITY_USERNAME }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:UNITY_USERNAME) -or
+              [string]::IsNullOrWhiteSpace($env:UNITY_PASSWORD)) {
+            throw 'Unity editor validation requires the UNITY_USERNAME and UNITY_PASSWORD repository secrets. The editor cannot be launched unattended on a GitHub-hosted runner without an activated Unity seat.'
+          }
+      - name: Activate Unity license
+        uses: RageAgainstThePixel/activate-unity-license@e73ff1f81db81a2595f86642123ce2b73b9a9258 # v2
+        with:
+          license: personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/download-artifact@v7
+        with:
+          name: verified-holooasis-happ
+          path: OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP
+      - uses: actions/download-artifact@v7
+        with:
+          name: verified-holochain-android-runtime
+          path: OASIS/artifacts/holochain-android-runtime/package
+      - uses: actions/download-artifact@v7
+        with:
+          name: hosted-mongo-sync-evidence
+          path: OASIS/artifacts/hosted-mongo-ci
+      - name: Validate Edge release
+        shell: pwsh
+        working-directory: OASIS
+        run: >-
+          ./Scripts/validate_edge_runtime_release.ps1
+          -UnityEditor "${{ env.UNITY_EDITOR_PATH }}"
+          -HostedMongoSyncReport artifacts/hosted-mongo-ci/hosted-mongo-sync.trx
+          -HostedMongoProcessKillReport artifacts/hosted-mongo-ci/hosted-mongo-process-kill.trx
+      - name: Attest Edge release provenance
+        id: attest-edge-release
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          # Retired: subject-path: OASIS/artifacts/edge-release-validation/*
+          # Globbing directories also attested intermediate build trees (>1024 subjects).
+          # The inspector's checksum catalogue binds every final package and release report.
+          subject-checksums: OASIS/artifacts/edge-release-validation/SHA256SUMS.txt
+      - name: Preserve signed provenance bundle
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: >-
+          Copy-Item
+          -LiteralPath '${{ steps.attest-edge-release.outputs.bundle-path }}'
+          -Destination 'OASIS/artifacts/edge-release-validation/github-slsa-provenance.sigstore.json'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: edge-runtime-release-evidence
+          path: OASIS/artifacts/edge-release-validation/*
+          if-no-files-found: warn

@@ -1,5 +1,6 @@
-using NextGenSoftware.OASIS.API.Core.Managers.Oracle.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.DTOs.Oracle;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 using NextGenSoftware.OASIS.Common;
 
@@ -64,8 +65,9 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<ChainStateData>(ref result,
+            OASISErrorHandling.HandleError<ChainStateData>(ref result,
                 $"Error getting chain state: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -100,8 +102,9 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BlockData>(ref result,
+            OASISErrorHandling.HandleError<BlockData>(ref result,
                 $"Error getting latest block: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -143,8 +146,8 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<TransactionData>(ref result,
-                $"Error getting transaction: {ex.Message}", ex);
+            OASISErrorHandling.HandleError<TransactionData>(ref result, $"Error getting transaction: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -184,9 +187,19 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<TransactionVerification>(ref result,
+            OASISErrorHandling.HandleError<TransactionVerification>(ref result,
                 $"Error verifying transaction: {ex.Message}", ex);
+            return result;
         }
+    }
+
+    /// <summary>
+    /// Gets price data for a token symbol
+    /// </summary>
+    public async Task<OASISResult<PriceData>> GetPriceAsync(string symbol, CancellationToken token = default)
+    {
+        // Call GetPriceFeedAsync with default currency
+        return await GetPriceFeedAsync(symbol, "USD", token);
     }
 
     /// <summary>
@@ -232,8 +245,9 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<PriceData>(ref result,
+            OASISErrorHandling.HandleError<PriceData>(ref result,
                 $"Error getting price feed: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -266,8 +280,9 @@ public class RadixChainObserver : IChainObserver
         catch (Exception ex)
         {
             _isMonitoring = false;
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error starting monitoring: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -297,8 +312,9 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error stopping monitoring: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -335,8 +351,9 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<ChainHealthData>(ref result,
+            OASISErrorHandling.HandleError<ChainHealthData>(ref result,
                 $"Error getting chain health: {ex.Message}", ex);
+            return result;
         }
     }
 

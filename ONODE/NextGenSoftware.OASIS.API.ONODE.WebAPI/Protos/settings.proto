@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service SettingsService {
+  rpc GetAllSettings (GetAllSettingsRequest) returns (JsonResponse);
+  rpc GetHyperDriveSettings (GetHyperDriveSettingsRequest) returns (JsonResponse);
+  rpc GetSystemSettings (GetSystemSettingsRequest) returns (JsonResponse);
+  rpc GetSubscriptionSettings (GetSubscriptionSettingsRequest) returns (JsonResponse);
+  rpc GetNotificationSettings (GetNotificationSettingsRequest) returns (JsonResponse);
+  rpc GetPrivacySettings (GetPrivacySettingsRequest) returns (JsonResponse);
+  rpc UpdateHyperDriveSettings (UpdateSettingsRequest) returns (OASISGrpcResponse);
+  rpc UpdateSystemSettings (UpdateSettingsRequest) returns (OASISGrpcResponse);
+  rpc UpdateSubscriptionSettings (UpdateSettingsRequest) returns (OASISGrpcResponse);
+  rpc UpdateNotificationSettings (UpdateSettingsRequest) returns (OASISGrpcResponse);
+  rpc UpdatePrivacySettings (UpdateSettingsRequest) returns (OASISGrpcResponse);
+}
+
+message GetAllSettingsRequest { string avatar_id = 1; }
+message GetHyperDriveSettingsRequest { string avatar_id = 1; }
+message GetSystemSettingsRequest { string avatar_id = 1; }
+message GetSubscriptionSettingsRequest { string avatar_id = 1; }
+message GetNotificationSettingsRequest { string avatar_id = 1; }
+message GetPrivacySettingsRequest { string avatar_id = 1; }
+message UpdateSettingsRequest {
+  string avatar_id = 1;
+  string settings_json = 2;
+}
+

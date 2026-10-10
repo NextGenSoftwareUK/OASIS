@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "NextGenSoftware.OASIS.Web7.WebAPI": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:62797;http://localhost:62798"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+/*QUAKED oasis_portal (0 .8 1) (-8 -8 -8) (8 8 8)
+OASIS cross-game teleporter.
+target_game : Target OGame ID (ODOOM/OQUAKE/OQUAKE2/OQUAKE3/ODOOM3/ODOOM3-BFG/ODUKE3D/OWOLF3D)
+target_map  : Target map name
+spawn_x/y/z : Spawn position in target map
+label       : HUD display label
+*/
+
+/*QUAKED oasis_spawn (1 .55 0) (-16 -16 -16) (16 16 16)
+Cross-game entity spawn point.
+oasset_id   : OGAsset catalog ID (e.g. oasset_quake_shambler)
+spawn_flags : Native spawn flags
+*/

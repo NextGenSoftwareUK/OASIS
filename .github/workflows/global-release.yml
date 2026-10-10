@@ -1,0 +1,530 @@
+name: Global OASIS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish after all builds pass
+        required: true
+        type: boolean
+        default: false
+      nuget_packages:
+        description: Release all first-party NuGet packages
+        required: true
+        type: boolean
+        default: true
+      oasis_runtime:
+        description: Release OASIS Runtime
+        required: true
+        type: boolean
+        default: true
+      star_runtime:
+        description: Release STAR Runtime and CLI
+        required: true
+        type: boolean
+        default: true
+      nuget_package_scope:
+        description: Publish all first-party NuGet packages or only the Edge bundle packages
+        required: true
+        type: choice
+        default: All
+        options: [All, Edge]
+      edge_runtime:
+        description: Release the validated OASIS Edge Runtime bundle
+        required: true
+        type: boolean
+        default: true
+      ogengine_client:
+        description: Release OGEngineClient (formerly STAR API Client)
+        required: true
+        type: boolean
+        default: true
+      native_endpoint:
+        description: Release OASIS Native Endpoint
+        required: true
+        type: boolean
+        default: true
+      mcp_server:
+        description: Release MCP Server to GitHub, NuGet, and npm
+        required: true
+        type: boolean
+        default: true
+      optional_components:
+        description: 'Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client'
+        required: true
+        type: string
+        default: none
+      version_mode:
+        description: Automatic, Patch, Minor, Major, or Manual for selected components
+        required: true
+        type: choice
+        default: Automatic
+        options: [Automatic, Patch, Minor, Major, Manual]
+      manual_version:
+        description: Stable X.Y.Z value required when version_mode is Manual
+        required: false
+        type: string
+        default: ''
+      star_existing_version:
+        description: Existing STAR X.Y.Z release to rebuild in place (STAR-only maintenance)
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  actions: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+concurrency:
+  group: global-oasis-release
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: windows-latest
+    outputs:
+      oasis_version: ${{ steps.versions.outputs.oasis_version }}
+      star_version: ${{ steps.versions.outputs.star_version }}
+      edge_version: ${{ steps.versions.outputs.edge_version }}
+      ogengine_version: ${{ steps.versions.outputs.ogengine_version }}
+      native_version: ${{ steps.versions.outputs.native_version }}
+      mcp_version: ${{ steps.versions.outputs.mcp_version }}
+      our_world_version: ${{ steps.versions.outputs.our_world_version }}
+      odoom_version: ${{ steps.versions.outputs.odoom_version }}
+      oquake_version: ${{ steps.versions.outputs.oquake_version }}
+      oide_version: ${{ steps.versions.outputs.oide_version }}
+      onode_manager_version: ${{ steps.versions.outputs.onode_manager_version }}
+      hyperdrive_client_version: ${{ steps.versions.outputs.hyperdrive_client_version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Generate and validate release plan
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: >-
+          ./Scripts/Invoke-OASISGlobalRelease.ps1
+          -Operation Plan
+          -NuGetPackages $${{ inputs.nuget_packages }}
+          -NuGetPackageScope '${{ inputs.nuget_package_scope }}'
+          -OASISRuntime $${{ inputs.oasis_runtime }}
+          -STARRuntime $${{ inputs.star_runtime }}
+          -EdgeRuntime $${{ inputs.edge_runtime }}
+          -OGEngineClient $${{ inputs.ogengine_client }}
+          -NativeEndpoint $${{ inputs.native_endpoint }}
+          -MCPServer $${{ inputs.mcp_server }}
+          -OurWorld $${{ contains(inputs.optional_components, 'our_world') }}
+          -ODOOM $${{ contains(inputs.optional_components, 'odoom') }}
+          -OQUAKE $${{ contains(inputs.optional_components, 'oquake') }}
+          -OIDE $${{ contains(inputs.optional_components, 'oide') }}
+          -ONODEManager $${{ contains(inputs.optional_components, 'onode_manager') }}
+          -HyperDriveClient $${{ contains(inputs.optional_components, 'hyperdrive_client') }}
+          -VersionMode '${{ inputs.version_mode }}'
+          -ManualVersion '${{ inputs.manual_version }}'
+          -AllowBlockedPlan $${{ !inputs.publish }}
+      - id: versions
+        name: Export planned versions
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
+          "oasis_version=$($plan.releaseVersions.oasisRuntime)" >> $env:GITHUB_OUTPUT
+          $starVersion = '${{ inputs.star_existing_version }}'
+          if ($starVersion) {
+            if ('${{ inputs.star_runtime }}' -ne 'true' -or '${{ inputs.nuget_packages }}' -eq 'true' -or '${{ inputs.oasis_runtime }}' -eq 'true' -or '${{ inputs.edge_runtime }}' -eq 'true' -or '${{ inputs.ogengine_client }}' -eq 'true' -or '${{ inputs.native_endpoint }}' -eq 'true' -or '${{ inputs.mcp_server }}' -eq 'true' -or '${{ inputs.optional_components }}' -ne 'none') { throw 'star_existing_version is valid only for a STAR-only maintenance release.' }
+            if ($starVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'star_existing_version must be X.Y.Z.' }
+            gh release view "STAR-ODK-Runtime-v$starVersion" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "STAR-ODK-Runtime-v$starVersion does not exist." }
+          } else { $starVersion = $plan.releaseVersions.starRuntime }
+          "star_version=$starVersion" >> $env:GITHUB_OUTPUT
+          "edge_version=$($plan.releaseVersions.edgeRuntime)" >> $env:GITHUB_OUTPUT
+          "ogengine_version=$($plan.releaseVersions.ogEngineClient)" >> $env:GITHUB_OUTPUT
+          "native_version=$($plan.releaseVersions.nativeEndpoint)" >> $env:GITHUB_OUTPUT
+          "mcp_version=$($plan.releaseVersions.mcpServer)" >> $env:GITHUB_OUTPUT
+          "our_world_version=$($plan.releaseVersions.ourWorld)" >> $env:GITHUB_OUTPUT
+          "odoom_version=$($plan.releaseVersions.odoom)" >> $env:GITHUB_OUTPUT
+          "oquake_version=$($plan.releaseVersions.oquake)" >> $env:GITHUB_OUTPUT
+          "oide_version=$($plan.releaseVersions.oide)" >> $env:GITHUB_OUTPUT
+          "onode_manager_version=$($plan.releaseVersions.onodeManager)" >> $env:GITHUB_OUTPUT
+          "hyperdrive_client_version=$($plan.releaseVersions.hyperDriveClient)" >> $env:GITHUB_OUTPUT
+      - name: Render preview summary and release notes
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
+          New-Item artifacts/global-release/release-notes -ItemType Directory -Force | Out-Null
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OASISRuntime -Version $plan.releaseVersions.oasisRuntime -OutputPath artifacts/global-release/release-notes/oasis-runtime.md }
+          if ('${{ inputs.star_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version $plan.releaseVersions.starRuntime -OutputPath artifacts/global-release/release-notes/star-runtime.md }
+          if ('${{ inputs.edge_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version $plan.releaseVersions.edgeRuntime -OutputPath artifacts/global-release/release-notes/edge-runtime.md }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version $plan.releaseVersions.ogEngineClient -OutputPath artifacts/global-release/release-notes/ogengine-client.md }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version $plan.releaseVersions.nativeEndpoint -OutputPath artifacts/global-release/release-notes/native-endpoint.md }
+          if ('${{ inputs.mcp_server }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component MCPServer -Version $plan.releaseVersions.mcpServer -OutputPath artifacts/global-release/release-notes/mcp-server.md }
+          if ('${{ contains(inputs.optional_components, 'our_world') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OurWorld -Version $plan.releaseVersions.ourWorld -OutputPath artifacts/global-release/release-notes/our-world.md }
+          if ('${{ contains(inputs.optional_components, 'odoom') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component ODOOM -Version $plan.releaseVersions.odoom -OutputPath artifacts/global-release/release-notes/odoom.md }
+          if ('${{ contains(inputs.optional_components, 'oquake') }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OQUAKE -Version $plan.releaseVersions.oquake -OutputPath artifacts/global-release/release-notes/oquake.md }
+          "## Global release preview" >> $env:GITHUB_STEP_SUMMARY
+          "Source: ``$($plan.sourceCommit)``  " >> $env:GITHUB_STEP_SUMMARY
+          "Version mode: **$($plan.versionSelection.mode)**" >> $env:GITHUB_STEP_SUMMARY
+          "| Component | Selected | Proposed version |" >> $env:GITHUB_STEP_SUMMARY
+          "|---|---:|---:|" >> $env:GITHUB_STEP_SUMMARY
+          foreach ($property in $plan.releaseVersions.PSObject.Properties) { "| $($property.Name) | $($plan.components.($property.Name) -eq $true) | $($property.Value) |" >> $env:GITHUB_STEP_SUMMARY }
+          if (@($plan.versionDecisions).Count) { "`n### Version decisions" >> $env:GITHUB_STEP_SUMMARY; foreach ($decision in $plan.versionDecisions) { "- **$($decision.bump)**: ``$($decision.current)`` → ``$($decision.proposed)`` for $($decision.scope). $($decision.reason)" >> $env:GITHUB_STEP_SUMMARY } }
+          if (@($plan.blockers).Count) { "`n### Publication blockers" >> $env:GITHUB_STEP_SUMMARY; foreach ($blocker in $plan.blockers) { "- $blocker" >> $env:GITHUB_STEP_SUMMARY } }
+          foreach ($note in Get-ChildItem artifacts/global-release/release-notes -Filter '*.md') { "`n---`n" >> $env:GITHUB_STEP_SUMMARY; Get-Content $note.FullName >> $env:GITHUB_STEP_SUMMARY }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: global-release-plan
+          path: |
+            artifacts/global-release/release-plan.json
+            artifacts/global-release/release-notes/*.md
+
+  nuget:
+    if: inputs.nuget_packages
+    needs: plan
+    runs-on: windows-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Pack every selected first-party package
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: ./Scripts/Invoke-OASISGlobalRelease.ps1 -Operation Pack -NuGetPackageScope '${{ inputs.nuget_package_scope }}' -OASISRuntime $false -STARRuntime $false -EdgeRuntime $false -OGEngineClient $false -NativeEndpoint $false -MCPServer $false
+      - uses: actions/upload-artifact@v7
+        with:
+          name: global-release-nuget-packages
+          path: artifacts/global-release/nuget/*.nupkg
+
+  nuget-publish:
+    if: ${{ always() && inputs.publish && inputs.nuget_packages && needs.plan.result == 'success' && needs.nuget.result == 'success' && (inputs.edge_runtime == false || needs.edge-runtime-validation.result == 'success') }}
+    needs: [plan, nuget, edge-runtime-validation]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-plan
+          path: artifacts/global-release-plan
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-nuget-packages
+          path: artifacts/global-release-nuget
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify the reviewed package set and publish it
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required for publication.' }
+          $plan = Get-Content -Raw -LiteralPath 'artifacts/global-release-plan/release-plan.json' | ConvertFrom-Json
+          $packages = @(Get-ChildItem -LiteralPath 'artifacts/global-release-nuget' -Filter '*.nupkg' -File |
+            Where-Object { $_.Name -notlike '*.symbols.nupkg' })
+          if ($packages.Count -ne @($plan.packages).Count) {
+            throw "The packed NuGet count ($($packages.Count)) does not match the reviewed plan ($(@($plan.packages).Count))."
+          }
+          foreach ($planned in @($plan.packages)) {
+            $expectedName = "$($planned.packageId).$($planned.version).nupkg"
+            $package = @($packages | Where-Object Name -eq $expectedName)
+            if ($package.Count -ne 1) { throw "Expected exactly one reviewed package '$expectedName'." }
+            dotnet nuget push $package[0].FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
+            if ($LASTEXITCODE -ne 0) { throw "Publishing '$expectedName' failed." }
+          }
+
+  edge-runtime-validation:
+    if: inputs.edge_runtime
+    needs: plan
+    uses: ./.github/workflows/edge-runtime-validation.yml
+    secrets: inherit
+
+  edge-runtime-assets:
+    if: inputs.edge_runtime
+    needs: [plan, nuget, edge-runtime-validation]
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/download-artifact@v7
+        with:
+          name: edge-runtime-release-evidence
+          path: artifacts/edge-runtime-release
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-nuget-packages
+          path: artifacts/edge-nuget-publish-candidates
+      - name: Generate Edge Runtime release notes and aggregate archive
+        shell: pwsh
+        run: |
+          $publishCandidates = @(Get-ChildItem -LiteralPath 'artifacts/edge-nuget-publish-candidates' -Filter '*.nupkg' -File |
+            Where-Object { $_.Name -notlike '*.symbols.nupkg' })
+          if ($publishCandidates.Count -ne 9) { throw "Expected exactly nine reviewed Edge NuGet candidates, found $($publishCandidates.Count)." }
+          Compress-Archive -Path 'artifacts/edge-nuget-publish-candidates/*' -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
+          ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version '${{ needs.plan.outputs.edge_version }}' -OutputPath 'artifacts/edge-runtime-release/RELEASE_NOTES.md'
+          Compress-Archive -Path 'artifacts/edge-runtime-release/*' -DestinationPath 'artifacts/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: global-release-edge-runtime
+          path: |
+            artifacts/edge-runtime-release/*
+            artifacts/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip
+
+  edge-runtime-publish:
+    if: inputs.publish && inputs.edge_runtime
+    needs: [plan, edge-runtime-assets, nuget-publish]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-edge-runtime
+          path: artifacts/global-release-edge-runtime
+      - name: Publish the validated Edge Runtime GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = 'OASIS-Edge-Runtime-v${{ needs.plan.outputs.edge_version }}'
+          $notes = Resolve-Path -LiteralPath 'artifacts/global-release-edge-runtime/edge-runtime-release/RELEASE_NOTES.md'
+          $assets = @((Get-ChildItem -LiteralPath 'artifacts/global-release-edge-runtime/edge-runtime-release' -File).FullName)
+          $assets += (Resolve-Path -LiteralPath 'artifacts/global-release-edge-runtime/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip').Path
+          gh release create $tag @assets --title 'OASIS Edge Runtime v${{ needs.plan.outputs.edge_version }}' --notes-file $notes --verify-tag=false
+
+  runtime-assets:
+    if: inputs.oasis_runtime || inputs.ogengine_client || inputs.native_endpoint
+    needs: plan
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Build selected runtime artifacts
+        shell: pwsh
+        run: |
+          New-Item artifacts/global-release/assets -ItemType Directory -Force | Out-Null
+          if ('${{ inputs.oasis_runtime }}' -eq 'true' -or '${{ inputs.native_endpoint }}' -eq 'true') {
+            dotnet publish 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj' -c Release -o artifacts/global-release/native -p:Version=${{ needs.plan.outputs.native_version }}
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') {
+            ./Scripts/New-OASISRuntimeArchive.ps1 -PublishDirectory artifacts/global-release/native -OutputPath "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip"
+            ./Scripts/Test-OASISRuntimeArchive.ps1 -ArchivePath "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip"
+          }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') {
+            Compress-Archive artifacts/global-release/native/* "artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip"
+          }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') {
+            ./Scripts/validate_ogengine_profiles.ps1 -Configuration Release
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Compress-Archive artifacts/ogengine-profiles/edge/* "artifacts/global-release/assets/OGEngineClient.Edge.v${{ needs.plan.outputs.ogengine_version }}.zip"
+            Compress-Archive artifacts/ogengine-profiles/remote-only/* "artifacts/global-release/assets/OGEngineClient.RemoteOnly.v${{ needs.plan.outputs.ogengine_version }}.zip"
+          }
+      - name: Generate component and version-specific release notes
+        shell: pwsh
+        run: |
+          New-Item artifacts/global-release/release-notes -ItemType Directory -Force | Out-Null
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OASISRuntime -Version '${{ needs.plan.outputs.oasis_version }}' -OutputPath 'artifacts/global-release/release-notes/oasis-runtime.md' }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version '${{ needs.plan.outputs.ogengine_version }}' -OutputPath 'artifacts/global-release/release-notes/ogengine-client.md' }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version '${{ needs.plan.outputs.native_version }}' -OutputPath 'artifacts/global-release/release-notes/native-endpoint.md' }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: global-release-runtime-assets
+          path: artifacts/global-release/assets/*
+          if-no-files-found: error
+      - name: Create selected GitHub releases
+        if: inputs.publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') { gh release create 'OASIS-Runtime-v${{ needs.plan.outputs.oasis_version }}' 'artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip' --title 'OASIS Runtime v${{ needs.plan.outputs.oasis_version }}' --notes-file 'artifacts/global-release/release-notes/oasis-runtime.md' --verify-tag=false }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') { gh release create 'OGEngineClient-v${{ needs.plan.outputs.ogengine_version }}' 'artifacts/global-release/assets/OGEngineClient.Edge.v${{ needs.plan.outputs.ogengine_version }}.zip' 'artifacts/global-release/assets/OGEngineClient.RemoteOnly.v${{ needs.plan.outputs.ogengine_version }}.zip' --title 'OGEngineClient v${{ needs.plan.outputs.ogengine_version }}' --notes-file 'artifacts/global-release/release-notes/ogengine-client.md' --verify-tag=false }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') { gh release create 'Native-Endpoint-v${{ needs.plan.outputs.native_version }}' 'artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip' --title 'OASIS API Integrated Native Endpoint v${{ needs.plan.outputs.native_version }}' --notes-file 'artifacts/global-release/release-notes/native-endpoint.md' --verify-tag=false }
+
+  star-runtime-assets:
+    if: inputs.star_runtime
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-latest, rid: linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: macos-latest, rid: osx-arm64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish STAR Runtime and CLI
+        shell: pwsh
+        run: |
+          $output = 'artifacts/global-release/star/${{ matrix.rid }}'
+          dotnet publish 'STAR ODK/NextGenSoftware.OASIS.STAR.CLI/NextGenSoftware.OASIS.STAR.CLI.csproj' -c Release -r '${{ matrix.rid }}' --self-contained true -p:PublishSingleFile=true -p:Version='${{ needs.plan.outputs.star_version }}' -o $output
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item artifacts/global-release/assets -ItemType Directory -Force | Out-Null
+          Compress-Archive "$output/*" "artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.${{ matrix.rid }}.zip"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: star-runtime-${{ matrix.rid }}
+          path: artifacts/global-release/assets/*.zip
+          if-no-files-found: error
+
+  star-runtime-release:
+    if: inputs.star_runtime
+    needs: [plan, star-runtime-assets]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: star-runtime-*
+          path: artifacts/global-release/assets
+          merge-multiple: true
+      - name: Verify complete STAR platform set
+        shell: pwsh
+        run: |
+          $expected = @('win-x64', 'linux-x64', 'linux-arm64', 'osx-x64', 'osx-arm64')
+          foreach ($rid in $expected) {
+            $path = "artifacts/global-release/assets/STAR.Runtime.v${{ needs.plan.outputs.star_version }}.$rid.zip"
+            if (-not (Test-Path -LiteralPath $path)) { throw "Missing required STAR archive: $path" }
+          }
+      - name: Publish or preview STAR release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = 'STAR-ODK-Runtime-v${{ needs.plan.outputs.star_version }}'
+          if ('${{ inputs.publish }}' -ne 'true') { Get-ChildItem artifacts/global-release/assets/*.zip | ForEach-Object { "- $($_.Name)" >> $env:GITHUB_STEP_SUMMARY }; exit 0 }
+          $existingVersion = '${{ inputs.star_existing_version }}'
+          if ($existingVersion) {
+            gh release upload $tag artifacts/global-release/assets/*.zip --clobber
+          } else {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component STARRuntime -Version '${{ needs.plan.outputs.star_version }}' -OutputPath 'artifacts/global-release/star-runtime.md'
+            gh release create $tag artifacts/global-release/assets/*.zip --title 'STAR ODK Runtime v${{ needs.plan.outputs.star_version }}' --notes-file 'artifacts/global-release/star-runtime.md' --verify-tag=false
+          }
+
+  mcp:
+    if: inputs.mcp_server
+    needs: plan
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/publish-mcp.yml
+    with:
+      version: ${{ needs.plan.outputs.mcp_version }}
+      publish: ${{ inputs.publish }}
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+  optional-established-release-workflows:
+    if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'onode_manager') || contains(inputs.optional_components, 'hyperdrive_client'))
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch selected established release workflows
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          set -euo pipefail
+          if [[ '${{ contains(inputs.optional_components, 'oide') }}' == 'true' ]]; then
+            sha=$(gh api repos/NextGenSoftwareUK/OIDE/commits/main --jq .sha)
+            gh api --method POST repos/NextGenSoftwareUK/OIDE/git/refs -f ref='refs/tags/v${{ needs.plan.outputs.oide_version }}' -f sha="$sha"
+          fi
+          if [[ '${{ contains(inputs.optional_components, 'onode_manager') }}' == 'true' ]]; then
+            gh workflow run release-onode-manager.yml --repo NextGenSoftwareUK/OASIS --ref master -f version='${{ needs.plan.outputs.onode_manager_version }}'
+          fi
+          if [[ '${{ contains(inputs.optional_components, 'hyperdrive_client') }}' == 'true' ]]; then
+            gh workflow run release.yml --repo NextGenSoftwareUK/OASIS-HyperDrive-Client --ref main -f version='${{ needs.plan.outputs.hyperdrive_client_version }}'
+          fi
+
+  optional-game-release-workflows:
+    if: inputs.publish && (contains(inputs.optional_components, 'our_world') || contains(inputs.optional_components, 'odoom') || contains(inputs.optional_components, 'oquake'))
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Generate version-specific game notes and dispatch canonical builds
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          New-Item artifacts/game-release-notes -ItemType Directory -Force | Out-Null
+          if ('${{ contains(inputs.optional_components, 'our_world') }}' -eq 'true') {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component OurWorld -Version '${{ needs.plan.outputs.our_world_version }}' -OutputPath artifacts/game-release-notes/our-world.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/Our-World --ref main -f version='${{ needs.plan.outputs.our_world_version }}' -F release_notes=@artifacts/game-release-notes/our-world.md -f publish=true
+          }
+          if ('${{ contains(inputs.optional_components, 'odoom') }}' -eq 'true') {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component ODOOM -Version '${{ needs.plan.outputs.odoom_version }}' -OutputPath artifacts/game-release-notes/odoom.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/ODOOM --ref trunk -f version='${{ needs.plan.outputs.odoom_version }}' -F release_notes=@artifacts/game-release-notes/odoom.md -f publish=true
+          }
+          if ('${{ contains(inputs.optional_components, 'oquake') }}' -eq 'true') {
+            ./Scripts/New-OASISReleaseNotes.ps1 -Component OQUAKE -Version '${{ needs.plan.outputs.oquake_version }}' -OutputPath artifacts/game-release-notes/oquake.md
+            gh workflow run release.yml --repo NextGenSoftwareUK/OQUAKE --ref master -f version='${{ needs.plan.outputs.oquake_version }}' -F release_notes=@artifacts/game-release-notes/oquake.md -f publish=true
+          }

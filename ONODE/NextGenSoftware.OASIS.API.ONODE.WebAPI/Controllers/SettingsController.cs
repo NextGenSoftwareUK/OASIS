@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -9,6 +9,9 @@ using NextGenSoftware.OASIS.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -31,16 +34,59 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-settings-for-current-logged-in-avatar")]
         public async Task<OASISResult<Dictionary<string, object>>> GetAllSettingsForCurrentLoggedInAvatar()
         {
-            if (Avatar == null)
+            try
             {
-                return new OASISResult<Dictionary<string, object>> 
-                { 
-                    IsError = true, 
-                    Message = "Avatar not found. Please ensure you are logged in." 
+                if (Avatar == null)
+                {
+                    return new OASISResult<Dictionary<string, object>> 
+                    { 
+                        IsError = true, 
+                        Message = "Avatar not found. Please ensure you are logged in." 
+                    };
+                }
+
+                OASISResult<Dictionary<string, object>> result = null;
+                try
+                {
+                    result = await Program.SettingsManager.GetAllSettingsAsync(Avatar.Id);
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<Dictionary<string, object>>
+                    {
+                        Result = new Dictionary<string, object>(),
+                        IsError = false,
+                        Message = "Settings retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<Dictionary<string, object>>
+                    {
+                        Result = new Dictionary<string, object>(),
+                        IsError = false,
+                        Message = "Settings retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<Dictionary<string, object>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving settings: {ex.Message}",
+                    Exception = ex
                 };
             }
-
-            return await Program.SettingsManager.GetAllSettingsAsync(Avatar.Id);
         }
 
         /// <summary>
@@ -72,6 +118,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("hyperdrive-settings")]
         public async Task<OASISResult<bool>> UpdateHyperDriveSettings([FromBody] Dictionary<string, object> settings)
         {
+            if (settings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with HyperDrive settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -113,6 +161,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("system-settings")]
         public async Task<OASISResult<bool>> UpdateSystemSettings([FromBody] Dictionary<string, object> settings)
         {
+            if (settings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with system settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -123,6 +173,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
 
             return await Program.SettingsManager.UpdateSystemSettingsAsync(Avatar.Id, settings);
+        }
+
+        /// <summary>Gets the portable Our World/OGEngine avatar preferences.</summary>
+        [Authorize]
+        [HttpGet("omniverse-preferences")]
+        public async Task<OASISResult<HyperDriveAvatarPreferences>> GetOmniversePreferences()
+        {
+            if (Avatar == null)
+                return new OASISResult<HyperDriveAvatarPreferences>
+                { IsError = true, Message = "Avatar not found. Please ensure you are logged in." };
+
+            var loaded = await new HolonManager(ProviderManager.Instance.CurrentStorageProvider,
+                _OASISDNA).GetAllSettingsAsync(Avatar.Id, "omniverse");
+            if (loaded.IsError)
+                return new OASISResult<HyperDriveAvatarPreferences>
+                { IsError = true, Message = loaded.Message, Exception = loaded.Exception };
+            try
+            {
+                var json = JsonSerializer.Serialize(loaded.Result ?? new Dictionary<string, object>());
+                var preferences = JsonSerializer.Deserialize<HyperDriveAvatarPreferences>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new HyperDriveAvatarPreferences();
+                return new OASISResult<HyperDriveAvatarPreferences>(preferences) { IsLoaded = true };
+            }
+            catch (JsonException ex)
+            {
+                return new OASISResult<HyperDriveAvatarPreferences>
+                { IsError = true, ErrorCode = "OMNIVERSE_PREFERENCES_INVALID", Message = ex.Message, Exception = ex };
+            }
+        }
+
+        /// <summary>Updates the portable Our World/OGEngine avatar preferences in the authoritative settings holon.</summary>
+        [Authorize]
+        [HttpPut("omniverse-preferences")]
+        public async Task<OASISResult<bool>> UpdateOmniversePreferences([FromBody] HyperDriveAvatarPreferences preferences)
+        {
+            if (Avatar == null)
+                return new OASISResult<bool> { IsError = true, Message = "Avatar not found. Please ensure you are logged in." };
+            if (preferences == null)
+                return new OASISResult<bool> { IsError = true, Message = "Avatar preferences are required." };
+            if (!HyperDriveAvatarPreferencesSettings.TryValidate(preferences, out string code, out string message))
+                return new OASISResult<bool> { IsError = true, ErrorCode = code, Message = message };
+            var values = HyperDriveAvatarPreferencesSettings.ToDictionary(preferences);
+            return await new HolonManager(ProviderManager.Instance.CurrentStorageProvider, _OASISDNA)
+                .SaveSettingsAsync(Avatar.Id, "omniverse", values);
         }
 
         /// <summary>
@@ -154,6 +248,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("subscription-settings")]
         public async Task<OASISResult<bool>> UpdateSubscriptionSettings([FromBody] Dictionary<string, object> settings)
         {
+            if (settings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with subscription settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -176,6 +272,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IAvatar>> UpdateSettings([FromBody] Dictionary<string, object> settings)
         {
             var result = new OASISResult<IAvatar>();
+            if (settings == null)
+            {
+                result.IsError = true;
+                result.Message = "The request body is required. Please provide a valid JSON object with settings (e.g. firstName, lastName, title).";
+                return result;
+            }
             try
             {
                 if (Avatar == null)
@@ -334,6 +436,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("notification-preferences")]
         public async Task<OASISResult<bool>> UpdateNotificationPreferences([FromBody] Dictionary<string, object> preferences)
         {
+            if (preferences == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with notification preferences." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -375,6 +479,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("privacy-settings")]
         public async Task<OASISResult<bool>> UpdatePrivacySettings([FromBody] Dictionary<string, object> privacySettings)
         {
+            if (privacySettings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with privacy settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 

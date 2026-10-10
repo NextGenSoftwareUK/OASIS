@@ -1,0 +1,374 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+{
+    public partial class HyperDriveController
+    {
+
+        /// <summary>
+        /// Gets HyperDrive status and health
+        /// </summary>
+        [HttpGet("status")]
+        public ActionResult<OASISResult<HyperDriveStatus>> GetStatus()
+        {
+            try
+            {
+                var config = _configManager.GetConfiguration();
+                var registeredProviders = _providerManager.GetAllRegisteredProviders();
+                var mode = OASISDNAManager.OASISDNA?.OASIS?.HyperDriveMode ?? HyperDriveModes.Legacy;
+                var status = new HyperDriveStatus
+                {
+                    Mode = mode,
+                    EffectiveConfigurationSource = _providerManager.EffectiveHyperDriveConfigurationSource,
+                    EffectiveConfigurationAppliedUtc = _providerManager.EffectiveHyperDriveConfigurationAppliedUtc,
+                    IsEnabled = mode == HyperDriveModes.Legacy || config.IsEnabled,
+                    AutoFailoverEnabled = _providerManager.IsAutoFailOverEnabled,
+                    AutoReplicationEnabled = _providerManager.IsAutoReplicationEnabled,
+                    AutoLoadBalancingEnabled = _providerManager.IsAutoLoadBalanceEnabled,
+                    DefaultStrategy = Enum.TryParse<LoadBalancingStrategy>(config.DefaultStrategy, out var defaultStrategy) ? defaultStrategy : LoadBalancingStrategy.RoundRobin,
+                    EnabledProviders = registeredProviders.Select(x => x.ProviderType.Value).ToList(),
+                    LoadBalancingProviders = _providerManager.GetProviderAutoLoadBalanceList().Select(x => x.Value).ToList(),
+                    FailoverProviders = _providerManager.GetProviderAutoFailOverList().Select(x => x.Value).ToList(),
+                    ReplicationProviders = _providerManager.GetProvidersThatAreAutoReplicating().Select(x => x.Value).ToList(),
+                    TotalProviders = registeredProviders.Count,
+                    ActiveProviders = registeredProviders.Count(x => x.IsProviderActivated),
+                    LastHealthCheck = DateTime.UtcNow,
+                    LastProviderSelection = _providerManager.LastProviderSelectionDiagnostic,
+                    LastFailover = _providerManager.LastFailoverDiagnostic,
+                    LastReplication = _providerManager.LastReplicationDiagnostic
+                };
+
+                return Ok(new OASISResult<HyperDriveStatus>
+                {
+                    Result = status,
+
+                    Message = "HyperDrive status retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<HyperDriveStatus>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving status: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets AI-powered optimization recommendations
+        /// </summary>
+        [HttpGet("ai/recommendations")]
+        public async Task<ActionResult<OASISResult<List<OptimizationRecommendation>>>> GetAIRecommendations()
+        {
+            try
+            {
+                var recommendations = await _aiEngine.GetSmartRecommendationsAsync();
+                return Ok(new OASISResult<List<OptimizationRecommendation>>
+                {
+                    Result = recommendations,
+                    IsError = false,
+                    Message = "AI optimization recommendations retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<OptimizationRecommendation>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving AI recommendations: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets predictive analytics
+        /// </summary>
+        [HttpGet("analytics/predictive/{providerType}")]
+        public async Task<ActionResult<OASISResult<PredictiveAnalytics>>> GetPredictiveAnalytics(ProviderType providerType, [FromQuery] int forecastDays = 7)
+        {
+            try
+            {
+                var analytics = await _analyticsEngine.GetPredictiveAnalyticsAsync(providerType, forecastDays);
+                return Ok(new OASISResult<PredictiveAnalytics>
+                {
+                    Result = analytics,
+
+                    Message = $"Predictive analytics for {providerType} retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<PredictiveAnalytics>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving predictive analytics: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets comprehensive analytics report
+        /// </summary>
+        [HttpGet("analytics/report")]
+        public async Task<ActionResult<OASISResult<AnalyticsReport>>> GetAnalyticsReport([FromQuery] ProviderType? providerType = null, [FromQuery] TimeRange timeRange = TimeRange.Last24Hours)
+        {
+            try
+            {
+                var report = await _analyticsEngine.GetAnalyticsReportAsync(providerType, timeRange);
+                return Ok(new OASISResult<AnalyticsReport>
+                {
+                    Result = report,
+
+                    Message = "Analytics report generated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<AnalyticsReport>
+                {
+                    IsError = true,
+                    Message = $"Error generating analytics report: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets real-time dashboard data
+        /// </summary>
+        [HttpGet("dashboard")]
+        public async Task<ActionResult<OASISResult<DashboardData>>> GetDashboardData()
+        {
+            try
+            {
+                var dashboard = await _analyticsEngine.GetDashboardDataAsync();
+                return Ok(new OASISResult<DashboardData>
+                {
+                    Result = dashboard,
+
+                    Message = "Dashboard data retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<DashboardData>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving dashboard data: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets failure predictions
+        /// </summary>
+        [HttpGet("failover/predictions")]
+        public async Task<ActionResult<OASISResult<FailoverPrediction>>> GetFailurePredictions()
+        {
+            try
+            {
+                var predictions = await _failoverEngine.PredictAndPreventFailuresAsync();
+                return Ok(new OASISResult<FailoverPrediction>
+                {
+                    Result = predictions,
+
+                    Message = "Failure predictions retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<FailoverPrediction>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving failure predictions: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Records analytics data
+        /// </summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost("analytics/record")]
+        public ActionResult<OASISResult<bool>> RecordAnalyticsData([FromBody] AnalyticsDataPoint dataPoint)
+        {
+            if (dataPoint == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid AnalyticsDataPoint (ProviderType and data)." });
+            try
+            {
+                _analyticsEngine.RecordAnalyticsData(dataPoint.ProviderType, dataPoint);
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Analytics data recorded successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error recording analytics data: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Records performance data for AI training
+        /// </summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost("ai/record-performance")]
+        public ActionResult<OASISResult<bool>> RecordPerformanceData([FromBody] PerformanceDataPoint dataPoint)
+        {
+            if (dataPoint == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid PerformanceDataPoint (ProviderType and data)." });
+            try
+            {
+                var recordResult = _aiEngine.RecordPerformanceData(dataPoint.ProviderType, dataPoint);
+                if (recordResult.IsError)
+                    return BadRequest(recordResult);
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Performance data recorded successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error recording performance data: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Records failure event
+        /// </summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost("failover/record-failure")]
+        public ActionResult<OASISResult<bool>> RecordFailureEvent([FromBody] FailureEvent failureEvent)
+        {
+            if (failureEvent == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid FailureEvent (ProviderType and event details)." });
+            try
+            {
+                _failoverEngine.RecordFailureEvent(failureEvent.ProviderType, failureEvent);
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Failure event recorded successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error recording failure event: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets cost optimization recommendations
+        /// </summary>
+        [HttpGet("analytics/cost-optimization")]
+        public async Task<ActionResult<OASISResult<List<CostOptimizationRecommendation>>>> GetCostOptimizationRecommendations()
+        {
+            try
+            {
+                var recommendations = await _analyticsEngine.GetCostOptimizationRecommendationsAsync();
+                return Ok(new OASISResult<List<CostOptimizationRecommendation>>
+                {
+                    Result = recommendations,
+
+                    Message = "Cost optimization recommendations retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<CostOptimizationRecommendation>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving cost optimization recommendations: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets performance optimization recommendations
+        /// </summary>
+        [HttpGet("analytics/performance-optimization")]
+        public async Task<ActionResult<OASISResult<List<PerformanceOptimizationRecommendation>>>> GetPerformanceOptimizationRecommendations()
+        {
+            try
+            {
+                var recommendations = await _analyticsEngine.GetPerformanceOptimizationRecommendationsAsync();
+                return Ok(new OASISResult<List<PerformanceOptimizationRecommendation>>
+                {
+                    Result = recommendations,
+
+                    Message = "Performance optimization recommendations retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<PerformanceOptimizationRecommendation>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving performance optimization recommendations: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Initiates preventive failover
+        /// </summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost("failover/preventive")]
+        public async Task<ActionResult<OASISResult<bool>>> InitiatePreventiveFailover([FromBody] List<ProviderType> highRiskProviders)
+        {
+            if (highRiskProviders == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of ProviderType (high-risk providers)." });
+            try
+            {
+                var result = await _failoverEngine.InitiatePreventiveFailoverAsync(highRiskProviders);
+                if (result.IsError)
+                    return BadRequest(result);
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = result.Result,
+
+                    Message = result.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error initiating preventive failover: {ex.Message}"
+                });
+            }
+        }
+    }
+}

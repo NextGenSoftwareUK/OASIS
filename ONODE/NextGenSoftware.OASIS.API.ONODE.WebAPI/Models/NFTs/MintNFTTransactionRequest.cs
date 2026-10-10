@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class MintNFTTransactionRequest
     {
+        public string CollectionPublicKey { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public byte[] Image { get; set; }
@@ -24,15 +25,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public string NFTOffChainMetaType { get; set; }
         public string JSONMetaDataURL { get; set; }
         public string NFTStandardType { get; set; }
-        public bool WaitTillNFTMinted { get; set; } = true;
-        public int WaitForNFTToMintInSeconds { get; set; } = 60;
-        public int AttemptToMintEveryXSeconds { get; set; } = 1;
+        public string MintedByAvatarId { get; set; } //Wizards can specify another avatar to mint on behalf of.
         public string SendToAddressAfterMinting { get; set; } //optionally send to this wallet after it has been minted.
         public string SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public bool WaitTillNFTMinted { get; set; } = true;
+        public int WaitForNFTToMintInSeconds { get; set; } = 180;
+        public int AttemptToMintEveryXSeconds { get; set; } = 1;
+        public bool WaitTillNFTVerified { get; set; } = true;
+        public int WaitForNFTToVerifyInSeconds { get; set; } = 180;
+        public int AttemptToVerifyEveryXSeconds { get; set; } = 1;
         public bool WaitTillNFTSent { get; set; } = true;
-        public int WaitForNFTToSendInSeconds { get; set; } = 60;
+        public int WaitForNFTToSendInSeconds { get; set; } = 180;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
+        // DISABLED: see MintWeb3NFTRequest / SolanaService.cs — SPL Token SetAuthority 0x4 OwnerMismatch.
+        // public bool? RevokeTokenAuthorities { get; set; }
+        public bool? FreezeMetadata { get; set; }
     }
 }

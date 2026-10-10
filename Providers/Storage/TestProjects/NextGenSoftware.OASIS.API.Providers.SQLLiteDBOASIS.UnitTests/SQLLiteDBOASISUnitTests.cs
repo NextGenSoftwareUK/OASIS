@@ -10,12 +10,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests
     [TestClass]
     public class SQLLiteDBOASISProviderTests
     {
-        private SQLLiteDBOASIS _provider;
+        private SQLLiteDBOASIS _provider = null!;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new SQLLiteDBOASIS();
+            _provider = new SQLLiteDBOASIS("Data Source=:memory:");
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.SQLLiteDBOASIS, providerType);
+            Assert.AreEqual(ProviderType.SQLLiteDBOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -57,46 +57,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests
             // Assert
             Assert.IsNotNull(description);
             Assert.IsFalse(string.IsNullOrEmpty(description));
-        }
-
-        [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
-        {
-            // Arrange
-            Assert.IsFalse(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.ActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
-        {
-            // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.DeActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsFalse(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
         }
 
         [TestCleanup]

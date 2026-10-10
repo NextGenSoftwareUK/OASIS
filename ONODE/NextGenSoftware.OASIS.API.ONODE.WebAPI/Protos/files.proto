@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service FilesService {
+  rpc GetAllFiles (GetAllFilesRequest) returns (JsonResponse);
+  rpc GetFileMetadata (GetFileMetadataRequest) returns (JsonResponse);
+  rpc DeleteFile (DeleteFileRequest) returns (OASISGrpcResponse);
+}
+
+message GetAllFilesRequest { string avatar_id = 1; }
+message GetFileMetadataRequest { string avatar_id = 1; string file_id = 2; }
+message DeleteFileRequest { string avatar_id = 1; string file_id = 2; }

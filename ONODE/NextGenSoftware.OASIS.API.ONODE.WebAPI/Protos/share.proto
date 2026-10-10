@@ -1,0 +1,12 @@
+syntax = "proto3";
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+import "Protos/common.proto";
+
+service ShareService {
+  rpc ShareHolon(ShareSingleRequest) returns (OASISGrpcResponse);
+  rpc ShareHolonMany(ShareManyRequest) returns (OASISGrpcResponse);
+}
+
+message ShareSingleRequest { string holon_id = 1; string avatar_id = 2; }
+message ShareManyRequest { string holon_id = 1; string avatar_ids_csv = 2; }

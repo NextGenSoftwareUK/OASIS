@@ -1,4 +1,4 @@
-# OASIS Test Harnesses Guide for Alpha Testers
+﻿# OASIS Test Harnesses Guide for Alpha Testers
 
 ## Overview
 
@@ -30,13 +30,13 @@ dotnet run
 NEXTGEN SOFTWARE ONODE CORE TEST HARNESS V1.3
 
 Minting SIMPLEST NFT...
-✅ Transaction ID: 0x1234...
-✅ OASIS NFT ID: your-nft-id
-✅ Hash: your-hash...
-✅ MintedByAddress: 0xYourWalletAddress
-✅ Minted Date: 2024-01-01T00:00:00Z
-✅ Meta Data JSON URL: https://gateway.pinata.cloud/ipfs/...
-✅ Image URL: https://gateway.pinata.cloud/ipfs/...
+âœ… Transaction ID: 0x1234...
+âœ… OASIS NFT ID: your-nft-id
+âœ… Hash: your-hash...
+âœ… MintedByAddress: 0xYourWalletAddress
+âœ… Minted Date: 2024-01-01T00:00:00Z
+âœ… Meta Data JSON URL: https://gateway.pinata.cloud/ipfs/...
+âœ… Image URL: https://gateway.pinata.cloud/ipfs/...
 ```
 
 ### 2. HoloNET Test Harness
@@ -504,7 +504,7 @@ Monitor these metrics during testing:
 - [Full OASIS Documentation](./OASIS_Alpha_Tester_Documentation.md)
 
 ### Community Support
-- [Telegram Chat](https://t.me/ourworldthegamechat)
+- [Telegram Chat](https://t.me/oasisweb4chat)
 - [Discord Server](https://discord.gg/q9gMKU6)
 - [OASIS API Hackalong](https://t.me/oasisapihackalong)
 
@@ -514,6 +514,6 @@ Monitor these metrics during testing:
 
 ---
 
-**Happy Testing! 🧪**
+**Happy Testing! ðŸ§ª**
 
 *This guide provides comprehensive information for using OASIS test harnesses effectively. Start with the basic functionality tests and gradually move to more advanced scenarios.*
