@@ -34,6 +34,7 @@ function Invoke-UnityBatchProcess {
 
     $stdoutPath = "$LogPath.stdout.log"
     $stderrPath = "$LogPath.stderr.log"
+    $launchTime = Get-Date
     Write-Host "Starting Unity $Phase validation (timeout: $TimeoutMinutes minutes)."
     $process = Start-Process -FilePath $UnityEditor -ArgumentList $Arguments `
         -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru
@@ -59,6 +60,28 @@ function Invoke-UnityBatchProcess {
         }
     }
     if ($process.ExitCode -ne 0) {
+        # Loader failures can occur before Unity creates any of its own diagnostic streams.
+        # Preserve matching Windows events without replacing the original process failure.
+        if ($IsWindows -and $process.ExitCode -eq -1073741515) {
+            foreach ($eventLog in @('Application', 'System')) {
+                try {
+                    $events = @(Get-WinEvent -FilterHashtable @{
+                        LogName = $eventLog; StartTime = $launchTime
+                    } -ErrorAction Stop | Where-Object {
+                        $_.Message -match 'Unity\.exe' -and $_.Id -in @(26, 1000, 1001)
+                    })
+                    if ($events.Count -gt 0) {
+                        $events | Select-Object TimeCreated, Id, ProviderName, Message |
+                            Format-List | Out-String |
+                            Tee-Object -FilePath "$LogPath.$eventLog.loader.log" | Write-Host
+                    } else {
+                        Write-Warning "No matching Unity loader event was available in $eventLog."
+                    }
+                } catch {
+                    Write-Warning "Could not collect Unity loader events from ${eventLog}: $($_.Exception.Message)"
+                }
+            }
+        }
         foreach ($diagnosticPath in @($stdoutPath, $stderrPath)) {
             if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
                 Write-Host "--- Failed Unity $Phase diagnostic: $diagnosticPath ---"
@@ -71,6 +94,21 @@ function Invoke-UnityBatchProcess {
 $packageManifestPath = Join-Path $packageRoot 'build-manifest.json'
 $packageManifest = Get-Content -LiteralPath $packageManifestPath -Raw | ConvertFrom-Json
 $isHoloEnabled = $packageManifest.profile -eq 'HoloEnabled'
+# Previously Holo-only: SQLite builds also have to prove their actual ARM64 IL2CPP payload.
+function Assert-EdgeAndroidApkEntries {
+    param([string[]]$EntryNames, [bool]$HoloEnabled)
+    $requiredEntries = @('lib/arm64-v8a/libil2cpp.so', 'lib/arm64-v8a/libe_sqlite3.so')
+    if ($HoloEnabled) {
+        $requiredEntries += @('lib/arm64-v8a/libholochain_conductor_runtime_ffi.so',
+            'lib/arm64-v8a/libholochain_conductor_runtime_types_ffi.so')
+    }
+    foreach ($requiredEntry in $requiredEntries) {
+        if ($requiredEntry -notin $EntryNames) { throw "Validated APK is missing '$requiredEntry'." }
+    }
+    if (@($EntryNames | Where-Object { $_ -match '^lib/(armeabi-v7a|x86|x86_64)/' }).Count -ne 0) {
+        throw 'The Edge validation APK is not ARM64-only.'
+    }
+}
 if ($isHoloEnabled) {
     $holoPluginRoot = Join-Path $packageRoot 'Runtime\Plugins\Android\Holochain'
     foreach ($required in @('holochain-service.aar', 'holochain-client.aar', 'holooasis-unity-bridge.aar',
@@ -165,7 +203,13 @@ foreach ($assemblyName in $requiredRuntimeAssemblies) {
 }
 
 $projectRoot = Join-Path $artifactsRoot 'unity-edge-validation-project'
-if (Test-Path -LiteralPath $projectRoot) { Remove-Item -LiteralPath $projectRoot -Recurse -Force }
+# Retired: recursive deletion of $projectRoot on every run discarded the reusable Unity import/build cache.
+# Refresh owned inputs in place; refuse to change the project while another Unity process owns it.
+if ($IsWindows) {
+    $owners = @(Get-CimInstance Win32_Process -Filter "Name = 'Unity.exe'" -ErrorAction Stop |
+        Where-Object { $_.CommandLine -and $_.CommandLine.IndexOf($projectRoot, [StringComparison]::OrdinalIgnoreCase) -ge 0 })
+    if ($owners.Count -gt 0) { throw 'The reusable Edge validation project is already open in Unity. Wait for its owner to exit.' }
+}
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Assets') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Packages') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'ProjectSettings') -Force | Out-Null
@@ -173,8 +217,12 @@ $sampleSource = Join-Path $packageRoot 'Samples~\QuickStart'
 if (-not (Test-Path -LiteralPath $sampleSource -PathType Container)) {
     throw 'The public Quick Start sample is missing from the generated package.'
 }
-Copy-Item -LiteralPath $sampleSource -Destination (Join-Path $projectRoot 'Assets\OASISEdgeQuickStart') `
-    -Recurse -Force
+# Retired directory copy: on a reused destination it nested QuickStart and duplicated assembly definitions.
+$sampleDestination = Join-Path $projectRoot 'Assets\OASISEdgeQuickStart'
+New-Item -ItemType Directory -Path $sampleDestination -Force | Out-Null
+Get-ChildItem -LiteralPath $sampleSource -Force | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $sampleDestination -Recurse -Force
+}
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Assets\Editor') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'Scripts\UnityValidation\OASISEdgePackageValidator.cs') `
     -Destination (Join-Path $projectRoot 'Assets\Editor\OASISEdgePackageValidator.cs') -Force
@@ -220,18 +268,15 @@ if ($androidExitCode -ne 0 -or
     }
     throw "Unity Android Edge package validation failed. See '$androidLogPath'."
 }
-if ($isHoloEnabled) {
+# Retired: if ($isHoloEnabled) guarded APK inspection; every profile now requires native payload verification.
+& {
     $apkPath = Join-Path $projectRoot 'Build\OASISEdgeValidation.apk'
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $apk = [IO.Compression.ZipFile]::OpenRead($apkPath)
     try {
         $entryNames = @($apk.Entries | ForEach-Object FullName)
-        foreach ($requiredEntry in @('lib/arm64-v8a/libholochain_conductor_runtime_ffi.so',
-                'lib/arm64-v8a/libholochain_conductor_runtime_types_ffi.so', 'lib/arm64-v8a/libil2cpp.so')) {
-            if ($requiredEntry -notin $entryNames) { throw "Validated APK is missing '$requiredEntry'." }
-        }
-        $foreignAbi = @($entryNames | Where-Object { $_ -match '^lib/(armeabi-v7a|x86|x86_64)/' })
-        if ($foreignAbi.Count -ne 0) { throw 'The HoloEnabled validation APK is not ARM64-only.' }
+        # Retired Holo-only entry loop: the shared assertion proves IL2CPP/SQLite for all profiles and Holo libraries when enabled.
+        Assert-EdgeAndroidApkEntries -EntryNames $entryNames -HoloEnabled $isHoloEnabled
     }
     finally { $apk.Dispose() }
 }
