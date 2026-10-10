@@ -57,7 +57,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Chaos.NaCl.Standard" Version="*" />
+    <!-- HoloNET uses this pinned sibling implementation. A second NuGet
+         implementation with the same assembly name breaks full runtime builds. -->
+    <ProjectReference Include="..\..\..\..\holochain-client-csharp\Chaos.NaCl\Chaos.NaCl.Portable.Standard.csproj" />
   </ItemGroup>
 
 </Project>
