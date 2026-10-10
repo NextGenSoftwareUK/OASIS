@@ -165,8 +165,9 @@ static int g_star_beamed_in = 0;
 /** Obsolete: was used to avoid calling ogengine_refresh_avatar_xp() twice; now we only call ogengine_refresh_avatar_profile() on beam-in. */
 static int g_star_refresh_xp_called_this_session = 0;
 /** Set by STAR API callback when profile refresh (XP + active quest/objective) completes. Main thread reads this in OQuake_STAR_PollItems and restores tracker + invalidates quest cache. */
-static atomic_uint32_t g_star_profile_loaded_pending = {0};
-static atomic_uint32_t g_star_profile_error_pending = {0};
+/* Static storage is zero-initialized on both scalar C11 and Windows atomics. */
+static atomic_uint32_t g_star_profile_loaded_pending;
+static atomic_uint32_t g_star_profile_error_pending;
 /** True when async SSO auth was started (star beamin); cleared when OQ_OnAuthDone runs or timeout. Used to show timeout error if callback never fires. */
 static int g_star_async_auth_pending = 0;
 /* Wall-clock start for async beamin; do not use frame counts (high FPS caused ~7s false timeouts). */
@@ -1077,14 +1078,19 @@ static void OQ_SetToastMessage(const char* msg) {
 
 static void oasis_open_url(const char *url)
 {
+    char command[512];
+    int status;
     if (!url || !url[0]) return;
 #ifdef _WIN32
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "start \"\" \"%s\"", url); (void)system(_cmd); }
+    snprintf(command, sizeof(command), "start \"\" \"%s\"", url);
 #elif defined(__APPLE__)
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "open \"%s\"", url); (void)system(_cmd); }
+    snprintf(command, sizeof(command), "open \"%s\"", url);
 #else
-    { char _cmd[512]; snprintf(_cmd, sizeof(_cmd), "xdg-open \"%s\" &", url); (void)system(_cmd); }
+    snprintf(command, sizeof(command), "xdg-open \"%s\" &", url);
 #endif
+    status = system(command);
+    if (status != 0)
+        Con_Printf("OQuake: opening browser failed (status %d).\n", status);
 }
 
 static void OQ_UseHealth_f(void) {
