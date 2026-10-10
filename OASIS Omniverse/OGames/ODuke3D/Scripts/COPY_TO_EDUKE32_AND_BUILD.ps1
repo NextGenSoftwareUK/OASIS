@@ -41,10 +41,24 @@ $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find "MSBui
 if (-not $msbuild) { throw "MSBuild not found." }
 
 Write-Host "[2/2] Building eduke32.sln ($BuildType x64, OasisStarApi=true)..." -ForegroundColor Yellow
-& $msbuild (Join-Path $EDukeSrc "platform\Windows\eduke32.sln") /m /t:eduke32 "/p:Configuration=$BuildType" /p:Platform=x64 /p:OasisStarApi=true "/p:OgengineDir=$StarDir"
+# BUILD_AND_DEPLOY_STAR_CLIENT.bat publishes the native Edge profile here.
+$StarPublish = Join-Path (Split-Path -Parent $Omniverse) "artifacts\native-games\native\Edge\win-x64\publish"
+if (-not (Test-Path (Join-Path $StarPublish "ogengine.lib"))) {
+    throw "ogengine.lib not found in $StarPublish. Run BUILD_AND_DEPLOY_STAR_CLIENT.bat in OASIS Omniverse first."
+}
+# The EDuke32 projects pin an older toolset (v143); build with the newest one this Visual Studio provides.
+$vsRoot = & $vswhere -latest -requires Microsoft.Component.MSBuild -property installationPath
+$toolset = Get-ChildItem (Join-Path $vsRoot "MSBuild\Microsoft\VC\*\Platforms\x64\PlatformToolsets\*") -Directory |
+    Sort-Object Name | Select-Object -Last 1 -ExpandProperty Name
+if (-not $toolset) { throw "No x64 C++ platform toolset found under $vsRoot." }
+Write-Host "  Platform toolset: $toolset"
+& $msbuild (Join-Path $EDukeSrc "platform\Windows\eduke32.sln") /m "/t:Game\eduke32" "/p:Configuration=$BuildType" /p:Platform=x64 `
+    "/p:PlatformToolset=$toolset" /p:OasisStarApi=true "/p:OgengineLibDir=$StarPublish"
 if ($LASTEXITCODE -ne 0) { throw "Build failed." }
 
-$dll = Join-Path $StarDir "build\Release\ogengine.dll"
-if (Test-Path $dll) { Copy-Item $dll $EDukeSrc -Force; Write-Host "  Deployed ogengine.dll" }
+foreach ($name in @("ogengine.dll", "e_sqlite3.dll")) {
+    Copy-Item (Join-Path $StarPublish $name) $EDukeSrc -Force
+    Write-Host "  Deployed $name"
+}
 Write-Host "`n=== Build succeeded: $EDukeSrc\eduke32.exe ===" -ForegroundColor Green
 Write-Host "In the game console (~): star beamin <user> <pass>"

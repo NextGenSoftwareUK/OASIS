@@ -144,23 +144,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
         }
 
         [Fact]
-        public async Task PerformIterativeDHTLookupAsync_ChainOfRealHttpServers_DiscoversTransitivePeerByHopping()
+        public async Task PerformIterativeDHTLookupAsync_BootstrapThenOnetPeerExchange_DiscoversTransitivePeerByHopping()
         {
-            // Three real local HTTP servers: bootstrap node A advertises only B. B (when queried) advertises
-            // only C. A real iterative lookup starting from A must hop A -> B -> C to find node C, proving
-            // this is genuine breadth-first network traversal and not a single-hop fetch.
-            var portB = GetFreeTcpPort();
-            var portC = GetFreeTcpPort();
-            var nodeB = CreateAuthenticatedNode($"127.0.0.1:{portB}");
-            var nodeC = CreateAuthenticatedNode($"127.0.0.1:{portC}");
+            // Bootstrap server A (real HTTP) advertises only B. B, queried over ONET peer exchange, advertises only
+            // C. The iterative lookup must hop A -> B -> C to find C: genuine traversal, not a single-hop fetch.
+            var nodeB = CreateAuthenticatedNode($"127.0.0.1:{GetFreeTcpPort()}");
+            var nodeC = CreateAuthenticatedNode($"127.0.0.1:{GetFreeTcpPort()}");
 
             using var listenerA = StartNodesServer(out var portA, JsonSerializer.Serialize(new[] { nodeB }));
-            using var listenerB = StartNodesServer(portB, JsonSerializer.Serialize(new[] { nodeC }));
-            using var listenerC = StartNodesServer(portC, "[]");
 
             try
             {
-                var discovery = new ONETDiscovery(storageProvider: null) { BootstrapServers = new() { $"http://127.0.0.1:{portA}" } };
+                var discovery = new ONETDiscovery(storageProvider: null)
+                {
+                    BootstrapServers = new() { $"http://127.0.0.1:{portA}" },
+                    QueryPeersOverOnet = (nodeId, _, _) => Task.FromResult<System.Collections.Generic.List<NodeInfo>?>(
+                        nodeId == nodeB.Id ? new() { nodeC } : new())
+                };
                 var query = new DHTQuery { MaxResults = 10, Timeout = TimeSpan.FromSeconds(5) };
 
                 var resultTask = (Task<System.Collections.Generic.List<DHTResult>>)InvokePrivate(discovery, "PerformIterativeDHTLookupAsync", query);
@@ -172,8 +172,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             finally
             {
                 listenerA.Stop();
-                listenerB.Stop();
-                listenerC.Stop();
             }
         }
 

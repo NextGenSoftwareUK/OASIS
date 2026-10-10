@@ -1,0 +1,22 @@
+<Project>
+  <!-- Solnet brings Chaos.NaCl.Standard transitively; HoloNET supplies the
+       pinned source implementation with the same assembly identity. Resolve
+       that identity once, before compilation and runtime file collection. -->
+  <Target Name="SelectCanonicalChaosNaCl" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <_CanonicalChaosNaCl Include="@(ReferencePath)"
+        Condition="'%(ReferencePath.Filename)' == 'Chaos.NaCl' and '%(ReferencePath.NuGetPackageId)' != 'Chaos.NaCl.Standard'" />
+      <_PackagedChaosNaCl Include="@(ReferencePath)"
+        Condition="'%(ReferencePath.NuGetPackageId)' == 'Chaos.NaCl.Standard'" />
+    </ItemGroup>
+    <Error Condition="'@(_CanonicalChaosNaCl)' != '' and '@(_PackagedChaosNaCl)' != '' and '@(_CanonicalChaosNaCl->Count())' != '1'"
+      Text="The crypto dependency graph must contain exactly one pinned HoloNET Chaos.NaCl implementation." />
+    <ItemGroup Condition="'@(_CanonicalChaosNaCl)' != '' and '@(_PackagedChaosNaCl)' != ''">
+      <ReferencePath Remove="@(_PackagedChaosNaCl)" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'Chaos.NaCl.Standard'" />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)"
+        Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Chaos.NaCl.Standard'" />
+    </ItemGroup>
+  </Target>
+</Project>

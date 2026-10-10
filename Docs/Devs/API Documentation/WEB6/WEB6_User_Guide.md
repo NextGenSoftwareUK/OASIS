@@ -18,7 +18,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse. It give
 - **Holonic BRAID shared memory** — agents across sessions share a growing library of Mermaid reasoning graphs. Over time, the network gets better at your specific problem types.
 - **Fractal holonic memory** — structured, hierarchical memory from session level all the way up to a shared planetary Earth holon, with consent-governed membrane rules controlling what propagates upward.
 - **External memory** — plug in Mem0, Zep, Letta, LangMem, Graphiti, Qdrant, or Weaviate as memory backends. WEB6 searches them all and injects the relevant context into your prompts automatically.
-- **512 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
+- **508 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
 
 ---
 
@@ -493,7 +493,7 @@ Ensure the server has `app.UseWebSockets()` enabled (it does by default). Check 
 | Streaming | `POST /v1/complete/stream` |
 | Multi-agent solve | `POST /v1/fahrn/solve` · `web6_fahrn_solve` |
 | Embeddings | `POST /v1/embed` · `web6_embed` |
-| Memory search | `GET /v1/holonic-memory/holons/{id}/memory/search` · `web6_memory_search` |
+| Memory search | Keyword: `GET /v1/holonic-memory/holons/{id}/memory/search` · `web6_memory_search`; semantic: `GET .../memory/semantic-search` · `web6_memory_semantic_search` |
 | External memory | `POST /v1/memory/external/search` · `web6_memory_external_search` |
 | Provider health | `GET /v1/providers/status` |
 | Telemetry | `GET /v1/telemetry/stream` |
@@ -505,7 +505,7 @@ Ensure the server has `app.UseWebSockets()` enabled (it does by default). Check 
 ## See also
 
 - [WEB6 REST API Reference](WEB6_REST_API_Reference.md) — full endpoint docs with request/response shapes
-- [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) — detailed examples plus the complete 512-command catalog
+- [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) — detailed examples plus the complete 508-command catalog
 - [WEB6 GitHub README](../../../../WEB6/README.md)
 - [MCP Server README](../../../../WEB6/NextGenSoftware.OASIS.MCP.Server/README.md)
 - [WEB4 API Docs](../WEB4%20OASIS%20API/README.md)
