@@ -20,7 +20,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     {
         private readonly ILogger<ONETHyperDriveSyncHostedService> _logger;
         private Core.Managers.ONETManager _manager;
-        private IDisposable _endpoint;
         private bool _startedNetwork;
         private ONETCapabilityRegistry _capabilityRegistry;
         private CancellationTokenSource _capabilityRenewalCancellation;
@@ -59,8 +58,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 throw new InvalidOperationException(start?.Message ?? "ONET failed to start for HyperDrive synchronization.");
             _startedNetwork = true;
 
-            var endpoint = new ONETRequestResponseEndpoint(_manager.CreateApplicationMessageChannel());
-            _endpoint = endpoint;
+            // The node's single endpoint (owned by ONETManager): a second endpoint would answer every
+            // HyperDrive request with ONET_OPERATION_NOT_FOUND alongside this one.
+            var endpoint = _manager.ApplicationEndpoint;
             _ = new ONETHyperDriveSyncHost(endpoint, new HostedHyperDriveSyncProcessor(syncStore),
                 new HostedPeerBindingAuthorizationResolver(bindingStore));
             _capabilityRegistry = new ONETCapabilityRegistry(endpoint);
@@ -151,7 +151,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     await _capabilityReconciliationTask.ConfigureAwait(false);
                 _capabilityRenewalCancellation.Dispose();
             }
-            _endpoint?.Dispose();
             if (_startedNetwork && _manager != null)
             {
                 var stop = await _manager.StopNetworkAsync().ConfigureAwait(false);
