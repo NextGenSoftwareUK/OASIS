@@ -1,176 +1,160 @@
-using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;using System.Collections.Generic;using System.Threading.Tasks;using Temporalio.Client;using NextGenSoftware.OASIS.API.Core;using NextGenSoftware.OASIS.API.Core.Enums;using NextGenSoftware.OASIS.API.Core.Helpers;using NextGenSoftware.OASIS.API.Core.Holons;using NextGenSoftware.OASIS.API.Core.Interfaces;using NextGenSoftware.OASIS.API.Core.Interfaces.Search;using NextGenSoftware.OASIS.API.Core.Objects;using NextGenSoftware.OASIS.API.Core.Objects.Search;using NextGenSoftware.OASIS.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using Temporalio.Client;
+using Temporalio.Exceptions;
+
 namespace NextGenSoftware.OASIS.API.Providers.TemporalOASIS
 {
-    public class TemporalOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
+    /// <summary>Snapshot of a workflow execution as reported by the Temporal server.</summary>
+    public sealed class TemporalWorkflowInfo
     {
-        private readonly string _host;
-        private readonly string _namespace;
+        public string WorkflowId { get; init; }
+        public string RunId { get; init; }
+        public string WorkflowType { get; init; }
+        public string Status { get; init; }
+        public string TaskQueue { get; init; }
+        public DateTime StartTime { get; init; }
+        public DateTime? CloseTime { get; init; }
+    }
+
+    /// <summary>
+    /// Temporal workflow orchestration provider using the official Temporal .NET SDK. Temporal is a durable workflow
+    /// engine, not a data store, so this is an <see cref="OASISProvider"/> exposing workflow operations against an
+    /// existing Temporal cluster (self-hosted or Temporal Cloud): start, signal, query, describe, list, cancel,
+    /// terminate and await results. Workflows run on Temporal workers registered on the task queue.
+    /// </summary>
+    public class TemporalOASIS : OASISProvider
+    {
+        private readonly TemporalClientConnectOptions _connectOptions;
         private readonly string _taskQueue;
+        private readonly SemaphoreSlim _connectLock = new(1, 1);
         private ITemporalClient _client;
-        private bool _isActivated;
-        public TemporalOASIS(string host = "localhost:7233", string ns = "default", string taskQueue = "oasis-queue")
+
+        /// <param name="host">Frontend address, e.g. localhost:7233 or {namespace}.{account}.tmprl.cloud:7233.</param>
+        /// <param name="ns">Temporal namespace.</param>
+        /// <param name="taskQueue">Default task queue for workflows started through this provider.</param>
+        /// <param name="apiKey">Temporal Cloud API key; enables TLS when set.</param>
+        public TemporalOASIS(string host = "localhost:7233", string ns = "default", string taskQueue = "oasis-queue", string apiKey = null)
         {
-            _host = host; _namespace = ns; _taskQueue = taskQueue;
-            ProviderName = "TemporalOASIS"; ProviderDescription = "Temporal workflow orchestration platform state store provider.";
+            if (string.IsNullOrWhiteSpace(host)) throw new ArgumentException("A Temporal frontend address is required.", nameof(host));
+            if (string.IsNullOrWhiteSpace(taskQueue)) throw new ArgumentException("A task queue is required.", nameof(taskQueue));
+            _connectOptions = new TemporalClientConnectOptions(host) { Namespace = ns };
+            if (!string.IsNullOrWhiteSpace(apiKey))
+            {
+                _connectOptions.ApiKey = apiKey;
+                _connectOptions.Tls = new TlsOptions();
+            }
+            _taskQueue = taskQueue;
+            ProviderName = "TemporalOASIS";
+            ProviderDescription = "Temporal workflow orchestration provider (official Temporal .NET SDK).";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TemporalOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
         }
+
+        /// <summary>Uses an already connected client (e.g. a test or shared client).</summary>
+        public TemporalOASIS(ITemporalClient client, string taskQueue)
+            : this(client?.Connection?.Options?.TargetHost ?? "injected", client?.Options?.Namespace ?? "default", taskQueue)
+        {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        private async Task<ITemporalClient> ClientAsync()
+        {
+            if (_client != null) return _client;
+            await _connectLock.WaitAsync();
+            try { return _client ??= await TemporalClient.ConnectAsync(_connectOptions); }
+            finally { _connectLock.Release(); }
+        }
+
+        private async Task<OASISResult<T>> RunAsync<T>(string operation, Func<ITemporalClient, Task<T>> action, string message = null)
+        {
+            var result = new OASISResult<T>();
+            try
+            {
+                result.Result = await action(await ClientAsync());
+                result.Message = message;
+            }
+            catch (TemporalException ex) { OASISErrorHandling.HandleError(ref result, $"TemporalOASIS: {operation} failed: {ex.Message}", ex); }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"TemporalOASIS: {operation} failed: {ex.Message}", ex); }
+            return result;
+        }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            var r = new OASISResult<bool>();
-            try
-            {
-                _client = await TemporalClient.ConnectAsync(new TemporalClientConnectOptions(_host) { Namespace = _namespace });
-                _isActivated = true; r.Result = true; r.Message = $"TemporalOASIS activated — {_host}/{_namespace}";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Temporal activation failed: {ex.Message}", ex); }
-            return r;
+            var result = await RunAsync("activation", async c => await c.Connection.CheckHealthAsync(), "TemporalOASIS activated.");
+            if (!result.IsError && !result.Result)
+                OASISErrorHandling.HandleError(ref result, "TemporalOASIS: the Temporal frontend reported unhealthy.");
+            IsProviderActivated = !result.IsError;
+            return result;
         }
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; _client = null; return new OASISResult<bool> { Result = true }; }
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string workflowId, int v = 0)
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            var r = new OASISResult<IAvatar>();
-            try
-            {
-                var handle = _client.GetWorkflowHandle(workflowId);
-                var desc = await handle.DescribeAsync();
-                var avatar = new Avatar { Username = workflowId };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TemporalOASIS] = workflowId;
-                avatar.MetaData["workflow_id"] = workflowId;
-                avatar.MetaData["run_id"] = desc.RunId;
-                avatar.MetaData["status"] = desc.Status.ToString();
-                avatar.MetaData["workflow_type"] = desc.WorkflowType;
-                r.Result = avatar;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Temporal LoadAvatar failed: {ex.Message}", ex); }
-            return r;
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool>(true) { Message = "TemporalOASIS deactivated." });
         }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
+
+        /// <summary>Starts a workflow by type name; returns the run id.</summary>
+        public Task<OASISResult<string>> StartWorkflowAsync(string workflowType, string workflowId, IReadOnlyCollection<object> args = null, string taskQueue = null)
+            => RunAsync("start workflow", async c =>
+            {
+                var handle = await c.StartWorkflowAsync(workflowType, args ?? Array.Empty<object>(), new WorkflowOptions(workflowId, taskQueue ?? _taskQueue));
+                return handle.ResultRunId;
+            }, $"Workflow '{workflowId}' started.");
+
+        public Task<OASISResult<bool>> SignalWorkflowAsync(string workflowId, string signalName, IReadOnlyCollection<object> args = null, string runId = null)
+            => RunAsync("signal workflow", async c => { await c.GetWorkflowHandle(workflowId, runId).SignalAsync(signalName, args ?? Array.Empty<object>()); return true; },
+                $"Signal '{signalName}' sent to '{workflowId}'.");
+
+        public Task<OASISResult<TResult>> QueryWorkflowAsync<TResult>(string workflowId, string queryName, IReadOnlyCollection<object> args = null, string runId = null)
+            => RunAsync("query workflow", c => c.GetWorkflowHandle(workflowId, runId).QueryAsync<TResult>(queryName, args ?? Array.Empty<object>()));
+
+        public Task<OASISResult<TemporalWorkflowInfo>> DescribeWorkflowAsync(string workflowId, string runId = null)
+            => RunAsync("describe workflow", async c => ToInfo(await c.GetWorkflowHandle(workflowId, runId).DescribeAsync()));
+
+        /// <summary>Lists executions matching a Temporal visibility query, e.g. "WorkflowType='OasisQuest' AND ExecutionStatus='Running'".</summary>
+        public Task<OASISResult<IReadOnlyList<TemporalWorkflowInfo>>> ListWorkflowsAsync(string query, int maxResults = 100)
+            => RunAsync<IReadOnlyList<TemporalWorkflowInfo>>("list workflows", async c =>
+            {
+                var list = new List<TemporalWorkflowInfo>();
+                await foreach (var execution in c.ListWorkflowsAsync(query))
+                {
+                    list.Add(ToInfo(execution));
+                    if (list.Count >= maxResults) break;
+                }
+                return list;
+            });
+
+        public Task<OASISResult<TResult>> GetWorkflowResultAsync<TResult>(string workflowId, string runId = null)
+            => RunAsync("get workflow result", c => c.GetWorkflowHandle(workflowId, runId).GetResultAsync<TResult>());
+
+        public Task<OASISResult<bool>> CancelWorkflowAsync(string workflowId, string runId = null)
+            => RunAsync("cancel workflow", async c => { await c.GetWorkflowHandle(workflowId, runId).CancelAsync(); return true; }, $"Cancellation requested for '{workflowId}'.");
+
+        public Task<OASISResult<bool>> TerminateWorkflowAsync(string workflowId, string reason, string runId = null)
+            => RunAsync("terminate workflow", async c => { await c.GetWorkflowHandle(workflowId, runId).TerminateAsync(reason); return true; }, $"Workflow '{workflowId}' terminated.");
+
+        private static TemporalWorkflowInfo ToInfo(WorkflowExecution e) => new()
         {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                var handle = _client.GetWorkflowHandle(key);
-                var desc = await handle.DescribeAsync();
-                var holon = new Holon { Name = $"Temporal Workflow {key}" };
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.TemporalOASIS] = key;
-                holon.MetaData["workflow_id"] = key;
-                holon.MetaData["run_id"] = desc.RunId;
-                holon.MetaData["status"] = desc.Status.ToString();
-                holon.MetaData["task_queue"] = desc.TaskQueue;
-                holon.MetaData["start_time"] = desc.StartTime.ToString("O");
-                r.Result = holon;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Temporal LoadHolon failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
-                var workflowType = h.MetaData.ContainsKey("workflow_type") ? h.MetaData["workflow_type"]?.ToString() ?? "OASISWorkflow" : "OASISWorkflow";
-                var workflowId = h.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.TemporalOASIS)
-                    ? h.ProviderUniqueStorageKey[Core.Enums.ProviderType.TemporalOASIS]
-                    : h.Id.ToString();
-                var handle = await _client.StartWorkflowAsync(
-                    workflowType,
-                    new[] { h.Name?.ToString() },
-                    new WorkflowOptions { Id = workflowId, TaskQueue = _taskQueue });
-                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.TemporalOASIS] = handle.Id;
-                r.Result = h;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Temporal SaveHolon failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatar>(); r.Result = new Avatar { Id = id }; return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => await LoadAvatarByProviderKeyAsync(u, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); return new OASISResult<IAvatar> { Result = a }; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) => new OASISResult<IEnumerable<IAvatar>> { Result = new List<IAvatar>() };
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) => new OASISResult<IAvatarDetail> { Result = ad };
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) => new OASISResult<IEnumerable<IAvatarDetail>> { Result = new List<IAvatarDetail>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var l = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h); if (sr.Result != null) l.Add(sr.Result); } return new OASISResult<IEnumerable<IHolon>> { Result = l }; }
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => new OASISResult<ISearchResults> { Result = new SearchResults() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => new OASISResult<IHolon> { Result = new Holon { Id = id } };
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar a) => SaveAvatarAsync(a).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool s = true) => DeleteAvatarAsync(id, s).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int v = 0) => LoadAllAvatarsAsync(v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int v = 0) => LoadAvatarDetailAsync(id, v).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail ad) => SaveAvatarDetailAsync(ad).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int v = 0) => LoadAllAvatarDetailsAsync(v).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(id, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> LoadHolon(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(k, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> h, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(h, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(ht, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => SearchAsync(sp, lc, rec, md, coe, v).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string e, int v = 0) => LoadAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int v = 0) => LoadAvatarDetailByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int v = 0) => LoadAvatarDetailByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(id, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(k, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(mk, mv, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(m, mm, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int v = 0) => ExportAllDataForAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int v = 0) => ExportAllDataForAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int v = 0) => ExportAllAsync(v).Result;
-        public override OASISResult<bool> DeleteAvatar(string k, bool s = true) => DeleteAvatarAsync(k, s).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool s = true) => DeleteAvatarByEmailAsync(e, s).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool s = true) => DeleteAvatarByUsernameAsync(u, s).Result;
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lng, int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long lat, long lng, int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lng, int v = 0, HolonType t = HolonType.All) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long lat, long lng, HolonType t, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); r.Result = new List<IWalletTransaction>(); return r; }
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); r.Result = new List<IWalletTransaction>(); return r; }
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) { var r = new OASISResult<(string, string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) { var r = new OASISResult<(string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAddr, string senderKey) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAddr) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string txHash, CancellationToken token = default) { var r = new OASISResult<BridgeTransactionStatus>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
+            WorkflowId = e.Id,
+            RunId = e.RunId,
+            WorkflowType = e.WorkflowType,
+            Status = e.Status.ToString(),
+            TaskQueue = e.TaskQueue,
+            StartTime = e.StartTime,
+            CloseTime = e.CloseTime
+        };
     }
 }
