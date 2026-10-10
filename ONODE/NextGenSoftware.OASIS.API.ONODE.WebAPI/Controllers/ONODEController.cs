@@ -72,32 +72,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var result = await (await GetOnodeManagerAsync()).GetNodeStatusAsync();
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return Ok(new OASISResult<object>
-                    {
-                        Result = new { status = "online", version = "1.0.0" },
-                        IsError = false,
-                        Message = "Node status retrieved successfully (using test data)"
-                    });
-                }
-
-                return Ok(result);
+                return result.IsError ? StatusCode(500, result) : Ok(result);
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return Ok(new OASISResult<object>
-                    {
-                        Result = new { status = "online", version = "1.0.0" },
-                        IsError = false,
-                        Message = "Node status retrieved successfully (using test data)"
-                    });
-                }
                 _logger.LogError(ex, "Error getting node status");
                 return StatusCode(500, new { message = "Error getting node status", error = ex.Message });
             }
