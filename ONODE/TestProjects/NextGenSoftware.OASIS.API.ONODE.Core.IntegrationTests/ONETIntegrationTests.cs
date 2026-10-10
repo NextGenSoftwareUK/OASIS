@@ -291,6 +291,67 @@ public class ONETIntegrationTests
     }
 
     [Fact]
+    public async Task ONETProtocol_SendMessage_DeliversOverSignedChannel_AndRaisesMessageReceived()
+    {
+        var a = NewNodeIdentity();
+        var b = NewNodeIdentity();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await nodeA.StartNetworkAsync();
+        await nodeB.StartNetworkAsync();
+        nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+        nodeB.RegisterLocalNodeIdentity(b.Id, b.Public, b.Private);
+        _ = nodeB.ApplicationEndpoint;
+        var received = new TaskCompletionSource<MessageReceivedEventArgs>();
+        nodeB.MessageReceived += (_, e) => received.TrySetResult(e);
+
+        try
+        {
+            await Task.Delay(300);
+            (await nodeA.ConnectToNodeAsync(b.Id, $"127.0.0.1:{nodeB.ListenPort}")).IsError.Should().BeFalse();
+            (await nodeB.ConnectToNodeAsync(a.Id, $"127.0.0.1:{nodeA.ListenPort}")).IsError.Should().BeFalse();
+
+            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = b.Id, Content = "hello", MessageType = "test" });
+
+            send.IsError.Should().BeFalse(send.Message);
+            var delivered = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            delivered.FromNodeId.Should().Be(a.Id);
+            delivered.Message.Should().Be("hello");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETProtocol_SendMessage_ToPeerWithoutEndpoint_ReportsFailure()
+    {
+        var a = NewNodeIdentity();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var silent = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await nodeA.StartNetworkAsync();
+        await silent.StartNetworkAsync();
+        nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+
+        try
+        {
+            await Task.Delay(300);
+            (await nodeA.ConnectToNodeAsync("silent", $"127.0.0.1:{silent.ListenPort}")).IsError.Should().BeFalse();
+
+            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = "silent", Content = "x" });
+
+            send.IsError.Should().BeTrue("a peer that never acknowledges must not be reported as delivered");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await silent.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
     public async Task ONETManager_PeerExchange_OverSignedOnetChannel_ReturnsResponderPeers()
     {
         var dna = new OASISDNA();
