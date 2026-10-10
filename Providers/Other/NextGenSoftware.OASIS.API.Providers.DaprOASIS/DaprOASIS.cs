@@ -1,199 +1,151 @@
-using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;using System.Collections.Generic;using System.Text.Json;using System.Threading.Tasks;using Dapr.Client;using NextGenSoftware.OASIS.API.Core;using NextGenSoftware.OASIS.API.Core.Enums;using NextGenSoftware.OASIS.API.Core.Helpers;using NextGenSoftware.OASIS.API.Core.Holons;using NextGenSoftware.OASIS.API.Core.Interfaces;using NextGenSoftware.OASIS.API.Core.Interfaces.Search;using NextGenSoftware.OASIS.API.Core.Objects;using NextGenSoftware.OASIS.API.Core.Objects.Search;using NextGenSoftware.OASIS.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Dapr;
+using Dapr.Client;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.Utilities;
+
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests")]
+
 namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
 {
-    public class DaprOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
+    /// <summary>
+    /// Stores OASIS avatars and holons in a Dapr state store (any Dapr state component: Redis, Cosmos DB, Postgres, ...)
+    /// through the Dapr sidecar using the official Dapr .NET SDK.
+    /// </summary>
+    public class DaprOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
     {
-        private readonly DaprClient _dapr;
-        private readonly string _storeName;
-        private bool _isActivated;
-        public DaprOASIS(string storeName = "statestore", int daprPort = 50001)
+        /// <param name="storeName">Name of the Dapr state store component.</param>
+        /// <param name="daprGrpcEndpoint">Sidecar gRPC endpoint; null uses DAPR_GRPC_ENDPOINT / DAPR_GRPC_PORT.</param>
+        /// <param name="daprApiToken">Sidecar API token if the sidecar requires one; null uses DAPR_API_TOKEN.</param>
+        public DaprOASIS(string storeName = "statestore", string daprGrpcEndpoint = null, string daprApiToken = null)
+            : this(new DaprStateBackend(new DaprClientStateApi(BuildClient(daprGrpcEndpoint, daprApiToken)), storeName))
         {
-            _storeName = storeName;
-            _dapr = new DaprClientBuilder().UseGrpcEndpoint($"http://localhost:{daprPort}").Build();
-            ProviderName = "DaprOASIS"; ProviderDescription = "Dapr distributed application runtime state store provider.";
+        }
+
+        internal DaprOASIS(DaprStateBackend backend) : base(backend)
+        {
+            ProviderName = "DaprOASIS";
+            ProviderDescription = "Dapr provider: OASIS avatars and holons in any Dapr state store component.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DaprOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network));
         }
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+
+        private static DaprClient BuildClient(string grpcEndpoint, string apiToken)
         {
-            var r = new OASISResult<bool>();
-            try
+            var builder = new DaprClientBuilder();
+            if (!string.IsNullOrWhiteSpace(grpcEndpoint)) builder.UseGrpcEndpoint(grpcEndpoint);
+            if (!string.IsNullOrWhiteSpace(apiToken)) builder.UseDaprApiToken(apiToken);
+            return builder.Build();
+        }
+    }
+
+    /// <summary>The Dapr state operations the backend needs; implemented over DaprClient.</summary>
+    internal interface IDaprStateApi
+    {
+        Task<(string Value, string ETag)> GetAsync(string store, string key, CancellationToken ct);
+        Task SaveAsync(string store, string key, string value, CancellationToken ct);
+        Task<bool> TrySaveAsync(string store, string key, string value, string etag, CancellationToken ct);
+        Task DeleteAsync(string store, string key, CancellationToken ct);
+        Task<bool> HealthyAsync(CancellationToken ct);
+    }
+
+    internal sealed class DaprClientStateApi : IDaprStateApi
+    {
+        private static readonly StateOptions Strong = new() { Consistency = ConsistencyMode.Strong, Concurrency = ConcurrencyMode.FirstWrite };
+        private readonly DaprClient _client;
+
+        public DaprClientStateApi(DaprClient client) => _client = client;
+
+        public async Task<(string Value, string ETag)> GetAsync(string store, string key, CancellationToken ct)
+        {
+            var (value, etag) = await _client.GetStateAndETagAsync<string>(store, key, ConsistencyMode.Strong, cancellationToken: ct);
+            return (value, etag);
+        }
+
+        public Task SaveAsync(string store, string key, string value, CancellationToken ct)
+            => _client.SaveStateAsync(store, key, value, new StateOptions { Consistency = ConsistencyMode.Strong }, cancellationToken: ct);
+
+        // An empty etag means "only if the key does not exist yet" under first-write concurrency.
+        public Task<bool> TrySaveAsync(string store, string key, string value, string etag, CancellationToken ct)
+            => _client.TrySaveStateAsync(store, key, value, etag ?? string.Empty, Strong, cancellationToken: ct);
+
+        public Task DeleteAsync(string store, string key, CancellationToken ct)
+            => _client.DeleteStateAsync(store, key, new StateOptions { Consistency = ConsistencyMode.Strong }, cancellationToken: ct);
+
+        public Task<bool> HealthyAsync(CancellationToken ct) => _client.CheckHealthAsync(ct);
+    }
+
+    /// <summary>
+    /// Dapr state stores cannot list keys, so each "directory" (key up to its last '/') keeps an index document of
+    /// its keys, updated with ETag first-write concurrency and retried on conflict.
+    /// </summary>
+    internal sealed class DaprStateBackend : IKeyValueBackend
+    {
+        private const string IndexPrefix = "__oasis_index__/";
+        private const int MaxConflictRetries = 20;
+        private readonly IDaprStateApi _api;
+        private readonly string _store;
+
+        public DaprStateBackend(IDaprStateApi api, string store)
+        {
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+            if (string.IsNullOrWhiteSpace(store)) throw new ArgumentException("A Dapr state store name is required.", nameof(store));
+            _store = store;
+        }
+
+        private static string Directory(string key) => key[..(key.LastIndexOf('/') + 1)];
+        private static string IndexKey(string directory) => IndexPrefix + directory;
+
+        public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
+            => (await _api.GetAsync(_store, key, cancellationToken)).Value;
+
+        public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
+        {
+            await _api.SaveAsync(_store, key, value, cancellationToken);
+            await UpdateIndexAsync(Directory(key), keys => keys.Add(key), cancellationToken);
+        }
+
+        public async Task DeleteAsync(string key, CancellationToken cancellationToken = default)
+        {
+            await _api.DeleteAsync(_store, key, cancellationToken);
+            await UpdateIndexAsync(Directory(key), keys => keys.Remove(key), cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
+        {
+            if (!prefix.EndsWith("/", StringComparison.Ordinal))
+                throw new NotSupportedException("Dapr key listing is by directory; prefixes must end with '/'.");
+            var (json, _) = await _api.GetAsync(_store, IndexKey(prefix), cancellationToken);
+            return json == null ? Array.Empty<string>() : JsonSerializer.Deserialize<List<string>>(json);
+        }
+
+        public async Task VerifyAsync(CancellationToken cancellationToken = default)
+        {
+            if (!await _api.HealthyAsync(cancellationToken))
+                throw new InvalidOperationException("The Dapr sidecar is not healthy.");
+            await _api.GetAsync(_store, IndexKey("__oasis_verify__/"), cancellationToken);
+        }
+
+        private async Task UpdateIndexAsync(string directory, Func<SortedSet<string>, bool> change, CancellationToken ct)
+        {
+            for (var attempt = 0; attempt < MaxConflictRetries; attempt++)
             {
-                await _dapr.GetStateAsync<string>(_storeName, "__health__");
-                _isActivated = true; r.Result = true; r.Message = $"DaprOASIS activated — store '{_storeName}'";
+                var (json, etag) = await _api.GetAsync(_store, IndexKey(directory), ct);
+                var keys = json == null ? new SortedSet<string>(StringComparer.Ordinal) : new SortedSet<string>(JsonSerializer.Deserialize<List<string>>(json), StringComparer.Ordinal);
+                if (!change(keys)) return;
+                if (await _api.TrySaveAsync(_store, IndexKey(directory), JsonSerializer.Serialize(keys.ToList()), json == null ? null : etag, ct)) return;
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr activation failed: {ex.Message}", ex); }
-            return r;
+            throw new DaprException($"Could not update the Dapr key index for '{directory}' after {MaxConflictRetries} concurrent attempts.");
         }
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; _dapr.Dispose(); return new OASISResult<bool> { Result = true }; }
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string key, int v = 0)
-        {
-            var r = new OASISResult<IAvatar>();
-            try
-            {
-                var json = await _dapr.GetStateAsync<string>(_storeName, $"avatar:{key}");
-                if (json == null) { OASISErrorHandling.HandleError(ref r, $"Avatar '{key}' not found in Dapr store."); return r; }
-                var doc = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-                var avatar = new Avatar { Username = key };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.DaprOASIS] = key;
-                if (doc != null) foreach (var kv in doc) avatar.MetaData[kv.Key] = kv.Value?.ToString() ?? "";
-                r.Result = avatar;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr LoadAvatar failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                var json = await _dapr.GetStateAsync<string>(_storeName, $"holon:{key}");
-                if (json == null) { OASISErrorHandling.HandleError(ref r, $"Holon '{key}' not found in Dapr store."); return r; }
-                var doc = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-                var holon = new Holon { Name = doc?.ContainsKey("Name") == true ? doc["Name"]?.ToString() : key };
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.DaprOASIS] = key;
-                if (doc != null) foreach (var kv in doc) holon.MetaData[kv.Key] = kv.Value?.ToString() ?? "";
-                r.Result = holon;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr LoadHolon failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
-                var key = h.Id.ToString();
-                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.DaprOASIS] = key;
-                var doc = new Dictionary<string, object> { ["Id"] = h.Id.ToString(), ["Name"] = h.Name ?? "" };
-                foreach (var kv in h.MetaData) doc[kv.Key] = kv.Value;
-                await _dapr.SaveStateAsync(_storeName, $"holon:{key}", JsonSerializer.Serialize(doc));
-                r.Result = h;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr SaveHolon failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) => await LoadAvatarByProviderKeyAsync(id.ToString(), v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => await LoadAvatarByProviderKeyAsync(u, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a)
-        {
-            var r = new OASISResult<IAvatar>();
-            try
-            {
-                if (a.Id == Guid.Empty) a.Id = Guid.NewGuid();
-                var key = a.Id.ToString();
-                a.ProviderUniqueStorageKey[Core.Enums.ProviderType.DaprOASIS] = key;
-                var doc = new Dictionary<string, object> { ["Id"] = a.Id.ToString(), ["Username"] = a.Username ?? "", ["Email"] = a.Email ?? "" };
-                foreach (var kv in a.MetaData) doc[kv.Key] = kv.Value;
-                await _dapr.SaveStateAsync(_storeName, $"avatar:{key}", JsonSerializer.Serialize(doc));
-                r.Result = a;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr SaveAvatar failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true)
-        {
-            var r = new OASISResult<bool>();
-            try { await _dapr.DeleteStateAsync(_storeName, $"avatar:{id}"); r.Result = true; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr DeleteAvatar failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true)
-        {
-            var r = new OASISResult<bool>();
-            try { await _dapr.DeleteStateAsync(_storeName, $"avatar:{k}"); r.Result = true; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr DeleteAvatar failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) => new OASISResult<IEnumerable<IAvatar>> { Result = new List<IAvatar>() };
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => await LoadHolonAsync(id.ToString(), lc, rec, md, coe, lcfp, v);
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) => new OASISResult<IAvatarDetail> { Result = ad };
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) => new OASISResult<IEnumerable<IAvatarDetail>> { Result = new List<IAvatarDetail>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var l = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h); if (sr.Result != null) l.Add(sr.Result); } return new OASISResult<IEnumerable<IHolon>> { Result = l }; }
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => new OASISResult<ISearchResults> { Result = new SearchResults() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var r = new OASISResult<IHolon>();
-            try { await _dapr.DeleteStateAsync(_storeName, $"holon:{id}"); r.Result = new Holon { Id = id }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"Dapr DeleteHolon failed: {ex.Message}", ex); }
-            return r;
-        }
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar a) => SaveAvatarAsync(a).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool s = true) => DeleteAvatarAsync(id, s).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int v = 0) => LoadAllAvatarsAsync(v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int v = 0) => LoadAvatarDetailAsync(id, v).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail ad) => SaveAvatarDetailAsync(ad).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int v = 0) => LoadAllAvatarDetailsAsync(v).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(id, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> LoadHolon(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(k, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> h, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(h, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(ht, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => SearchAsync(sp, lc, rec, md, coe, v).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string e, int v = 0) => LoadAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int v = 0) => LoadAvatarDetailByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int v = 0) => LoadAvatarDetailByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(id, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(k, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(mk, mv, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(m, mm, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int v = 0) => ExportAllDataForAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int v = 0) => ExportAllDataForAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int v = 0) => ExportAllAsync(v).Result;
-        public override OASISResult<bool> DeleteAvatar(string k, bool s = true) => DeleteAvatarAsync(k, s).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool s = true) => DeleteAvatarByEmailAsync(e, s).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool s = true) => DeleteAvatarByUsernameAsync(u, s).Result;
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lng, int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long lat, long lng, int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lng, int v = 0, HolonType t = HolonType.All) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long lat, long lng, HolonType t, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); r.Result = new List<IWalletTransaction>(); return r; }
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); r.Result = new List<IWalletTransaction>(); return r; }
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) { var r = new OASISResult<(string, string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) { var r = new OASISResult<(string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAddr, string senderKey) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAddr) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string txHash, CancellationToken token = default) { var r = new OASISResult<BridgeTransactionStatus>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
     }
 }
