@@ -9,7 +9,7 @@ try {
     foreach ($entry in $zip.Entries) {
         if ($entry.Name -like 'NextGenSoftware.OASIS.STAR.*' -or $entry.Name -like 'STAR.*' -or
             $entry.Name -like 'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint*') { throw "Non-runtime binary leaked: $($entry.FullName)" }
-        if ($entry.Name -like '*OASISDNA*.json' -and $entry.FullName -ne 'OASISDNA.json') { throw 'Configured DNA leaked into archive.' }
+        if ($entry.Name -match '(?i)OASIS[_-]?DNA.*\.json$' -and $entry.FullName -ne 'OASISDNA.json') { throw 'Configured DNA leaked into archive.' }
     }
     $reader = [IO.StreamReader]::new($zip.GetEntry('OASISDNA.json').Open())
     try { if ($reader.ReadToEnd() -ne '{}') { throw 'Runtime DNA must be an empty JSON object.' } } finally { $reader.Dispose() }
