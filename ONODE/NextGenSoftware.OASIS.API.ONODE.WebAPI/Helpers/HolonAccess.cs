@@ -135,6 +135,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             return result;
         }
 
+        /// <summary>True when a holon has recipients whose "shared with me" index flag is missing (shares made before the index existed).</summary>
+        public static bool NeedsShareIndex(IHolon holon)
+        {
+            var ids = GetSharedAvatarIds(holon);
+            return ids.Count > 0 && ids.Any(id =>
+                !holon.MetaData.TryGetValue(SharedWithIndexKey(id), out var flag) ||
+                !string.Equals(flag?.ToString(), SharedWithIndexValue, StringComparison.OrdinalIgnoreCase));
+        }
+
         /// <summary>Records the share list and the per-recipient index flags on the holon's metadata.</summary>
         public static void RecordShares(IHolon holon, IEnumerable<Guid> sharedIds)
         {

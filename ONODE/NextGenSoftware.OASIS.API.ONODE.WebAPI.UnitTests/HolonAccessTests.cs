@@ -83,6 +83,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
         }
 
         [Fact]
+        public void NeedsShareIndex_TrueOnlyForSharesMissingIndexFlags()
+        {
+            var legacy = HolonSharedWith(JsonSerializer.Serialize(new[] { Friend }));
+            HolonAccess.NeedsShareIndex(legacy).Should().BeTrue();
+
+            HolonAccess.RecordShares(legacy, HolonAccess.GetSharedAvatarIds(legacy));
+            HolonAccess.NeedsShareIndex(legacy).Should().BeFalse();
+
+            HolonAccess.NeedsShareIndex(new Holon { CreatedByAvatarId = Owner }).Should().BeFalse();
+        }
+
+        [Fact]
         public async Task ShareAsync_RejectsAnonymousCaller_BeforeTouchingStorage()
         {
             var result = await HolonAccess.ShareAsync(null, Guid.NewGuid(), new[] { Friend }, caller: null);

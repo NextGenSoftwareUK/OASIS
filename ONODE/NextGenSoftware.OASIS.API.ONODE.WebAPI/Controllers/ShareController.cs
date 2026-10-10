@@ -132,6 +132,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// One-off maintenance (Wizard only): writes the per-recipient index flags for holons shared before the
+        /// index existed, so they appear in "shared with me". Safe to run more than once.
+        /// </summary>
+        [Authorize]
+        [HttpPost("backfill-share-index")]
+        public async Task<OASISResult<int>> BackfillShareIndex()
+        {
+            var result = new OASISResult<int>();
+            if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
+            {
+                OASISErrorHandling.HandleError(ref result, "Unauthorized. Only Wizards can run the share index backfill.");
+                return result;
+            }
+
+            try
+            {
+                var all = await HolonManager.LoadAllHolonsAsync(HolonType.All, loadChildren: false, recursive: false);
+                if (all.IsError && all.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Unable to load holons. Reason: {all.Message}");
+                    return result;
+                }
+
+                var updated = 0;
+                var failed = new List<Guid>();
+                foreach (var holon in (all.Result ?? Enumerable.Empty<IHolon>()).Where(HolonAccess.NeedsShareIndex))
+                {
+                    HolonAccess.RecordShares(holon, HolonAccess.GetSharedAvatarIds(holon));
+                    var save = await HolonManager.SaveHolonAsync(holon, AvatarId);
+                    if (save == null || save.IsError) failed.Add(holon.Id);
+                    else updated++;
+                }
+
+                result.Result = updated;
+                result.Message = failed.Count == 0
+                    ? $"Indexed {updated} shared holon(s)."
+                    : $"Indexed {updated} shared holon(s); {failed.Count} failed: {string.Join(", ", failed)}";
+                result.IsError = failed.Count > 0;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Share index backfill failed. Reason: {ex.Message}", ex);
+                return result;
+            }
+        }
+
         private Task<OASISResult<bool>> ShareHolonInternalAsync(Guid holonId, IEnumerable<Guid> avatarIds) =>
             HolonAccess.ShareAsync(HolonManager, holonId, avatarIds, Avatar);
 
