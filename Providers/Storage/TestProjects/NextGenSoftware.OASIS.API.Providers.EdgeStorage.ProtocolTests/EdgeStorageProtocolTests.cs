@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS;
 using NextGenSoftware.OASIS.API.Providers.FastlyOASIS;
 using NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS;
 using NextGenSoftware.OASIS.API.Providers.TigrisOASIS;
@@ -194,6 +195,161 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests
         [TestMethod]
         public async Task Missing_object_is_a_not_found_error()
             => Assert.IsTrue((await _provider.LoadAvatarAsync(Guid.NewGuid())).IsError);
+    }
+
+    [TestClass]
+    public class DenoKvConnectProtocolTests
+    {
+        private sealed class ByteKeyComparer : IComparer<byte[]>
+        {
+            public int Compare(byte[] x, byte[] y) => x.AsSpan().SequenceCompareTo(y);
+        }
+
+        private readonly SortedDictionary<byte[], (byte[] Value, DenoDeployOASIS.Datapath.ValueEncoding Encoding)> _kv = new(new ByteKeyComparer());
+        private FakeService _service;
+        private DenoDeployOASIS.DenoDeployOASIS _provider;
+        private int _metadataCalls;
+
+        [TestInitialize]
+        public void Init()
+        {
+            _service = new FakeService((req, body) =>
+            {
+                if (req.RequestUri.AbsolutePath == "/databases/db-1/connect")
+                {
+                    _metadataCalls++;
+                    Assert.AreEqual("deploy-token", req.Headers.Authorization.Parameter);
+                    StringAssert.Contains(body, "supportedVersions");
+                    return FakeService.Json(new
+                    {
+                        version = 2, uuid = "uuid-1", token = "data-token", expiresAt = DateTimeOffset.UtcNow.AddHours(1),
+                        endpoints = new[] { new { url = "https://kv.example/eventual", consistency = "eventual" }, new { url = "https://kv.example/strong", consistency = "strong" } }
+                    });
+                }
+
+                Assert.AreEqual("kv.example", req.RequestUri.Host);
+                Assert.IsTrue(req.RequestUri.AbsolutePath.StartsWith("/strong/"), "data path must use the strong endpoint");
+                Assert.AreEqual("data-token", req.Headers.Authorization.Parameter);
+                Assert.AreEqual("2", req.Headers.GetValues("x-denokv-version").Single());
+                Assert.AreEqual("uuid-1", req.Headers.GetValues("x-denokv-database-id").Single());
+                Assert.AreEqual("application/x-protobuf", req.Content.Headers.ContentType.MediaType);
+                var bytes = req.Content.ReadAsByteArrayAsync().Result;
+
+                if (req.RequestUri.AbsolutePath == "/strong/atomic_write")
+                {
+                    var write = DenoDeployOASIS.Datapath.AtomicWrite.Parser.ParseFrom(bytes);
+                    foreach (var m in write.Mutations)
+                    {
+                        if (m.MutationType == DenoDeployOASIS.Datapath.MutationType.MSet) _kv[m.Key.ToByteArray()] = (m.Value.Data.ToByteArray(), m.Value.Encoding);
+                        else if (m.MutationType == DenoDeployOASIS.Datapath.MutationType.MDelete) _kv.Remove(m.Key.ToByteArray());
+                    }
+                    return Proto(new DenoDeployOASIS.Datapath.AtomicWriteOutput { Status = DenoDeployOASIS.Datapath.AtomicWriteStatus.AwSuccess });
+                }
+
+                var read = DenoDeployOASIS.Datapath.SnapshotRead.Parser.ParseFrom(bytes);
+                var output = new DenoDeployOASIS.Datapath.SnapshotReadOutput { Status = DenoDeployOASIS.Datapath.SnapshotReadStatus.SrSuccess, ReadIsStronglyConsistent = true };
+                foreach (var range in read.Ranges)
+                {
+                    var comparer = new ByteKeyComparer();
+                    var start = range.Start.ToByteArray();
+                    var end = range.End.ToByteArray();
+                    var rangeOut = new DenoDeployOASIS.Datapath.ReadRangeOutput();
+                    foreach (var kv in _kv.Where(kv => comparer.Compare(kv.Key, start) >= 0 && comparer.Compare(kv.Key, end) < 0).Take(range.Limit))
+                        rangeOut.Values.Add(new DenoDeployOASIS.Datapath.KvEntry { Key = Google.Protobuf.ByteString.CopyFrom(kv.Key), Value = Google.Protobuf.ByteString.CopyFrom(kv.Value.Value), Encoding = kv.Value.Encoding });
+                    output.Ranges.Add(rangeOut);
+                }
+                return Proto(output);
+            });
+            _provider = new DenoDeployOASIS.DenoDeployOASIS(new DenoKvConnectBackend("https://api.deno.com/databases/db-1/connect", "deploy-token", _service));
+        }
+
+        private static HttpResponseMessage Proto(Google.Protobuf.IMessage message)
+            => new(HttpStatusCode.OK) { Content = new ByteArrayContent(Google.Protobuf.MessageExtensions.ToByteArray(message)) };
+
+        [TestMethod]
+        public void Keys_use_the_denokv_tuple_string_encoding()
+        {
+            CollectionAssert.AreEqual(new byte[] { 0x02, (byte)'a', 0x00 }, DenoKvConnectBackend.EncodeKey("a"));
+            CollectionAssert.AreEqual(new byte[] { 0x02, (byte)'a', 0x00, 0xFF, (byte)'b', 0x00 }, DenoKvConnectBackend.EncodeKey("a\0b"));
+            Assert.AreEqual("a\0b", DenoKvConnectBackend.DecodeKey(Google.Protobuf.ByteString.CopyFrom(DenoKvConnectBackend.EncodeKey("a\0b"))));
+        }
+
+        [TestMethod]
+        public async Task Avatars_and_holons_round_trip_over_kv_connect()
+        {
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            var avatar = await _provider.SaveAvatarAsync(new Avatar { Username = "morpheus", Email = "m@m.io" });
+            Assert.IsFalse(avatar.IsError, avatar.Message);
+            Assert.AreEqual(avatar.Result.Id, (await _provider.LoadAvatarByUsernameAsync("morpheus")).Result.Id);
+
+            for (var i = 0; i < 3; i++) await _provider.SaveHolonAsync(new Holon { Name = $"h{i}" });
+            Assert.AreEqual(3, (await _provider.LoadAllHolonsAsync()).Result.Count());
+            Assert.IsTrue(_kv.Values.All(v => v.Encoding == DenoDeployOASIS.Datapath.ValueEncoding.VeBytes));
+            Assert.AreEqual(1, _metadataCalls, "one metadata exchange; later calls reuse the unexpired token");
+        }
+    }
+
+    internal sealed class FakeDaprStateApi : DaprOASIS.IDaprStateApi
+    {
+        private readonly Dictionary<string, (string Value, int Version)> _state = new();
+        public int ConflictsToInject;
+        public int Conflicts;
+
+        public Task<(string Value, string ETag)> GetAsync(string store, string key, CancellationToken ct)
+        {
+            lock (_state) return Task.FromResult(_state.TryGetValue(key, out var s) ? (s.Value, s.Version.ToString()) : ((string)null, (string)null));
+        }
+
+        public Task SaveAsync(string store, string key, string value, CancellationToken ct)
+        {
+            lock (_state) _state[key] = (value, _state.TryGetValue(key, out var s) ? s.Version + 1 : 1);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> TrySaveAsync(string store, string key, string value, string etag, CancellationToken ct)
+        {
+            lock (_state)
+            {
+                if (ConflictsToInject > 0) { ConflictsToInject--; Conflicts++; return Task.FromResult(false); }
+                var exists = _state.TryGetValue(key, out var s);
+                var matches = string.IsNullOrEmpty(etag) ? !exists : exists && s.Version.ToString() == etag;
+                if (!matches) { Conflicts++; return Task.FromResult(false); }
+                _state[key] = (value, exists ? s.Version + 1 : 1);
+                return Task.FromResult(true);
+            }
+        }
+
+        public Task DeleteAsync(string store, string key, CancellationToken ct) { lock (_state) _state.Remove(key); return Task.CompletedTask; }
+        public Task<bool> HealthyAsync(CancellationToken ct) => Task.FromResult(true);
+        public int Count { get { lock (_state) return _state.Count; } }
+    }
+
+    [TestClass]
+    public class DaprStateProtocolTests
+    {
+        [TestMethod]
+        public async Task Index_updates_retry_on_etag_conflicts_and_listing_stays_complete()
+        {
+            var api = new FakeDaprStateApi { ConflictsToInject = 3 };
+            var provider = new DaprOASIS.DaprOASIS(new DaprOASIS.DaprStateBackend(api, "statestore"));
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+
+            await Task.WhenAll(Enumerable.Range(0, 10).Select(i => provider.SaveHolonAsync(new Holon { Name = $"h{i}" })));
+            var all = await provider.LoadAllHolonsAsync();
+            Assert.IsFalse(all.IsError, all.Message);
+            Assert.AreEqual(10, all.Result.Count(), "concurrent saves must not lose index entries");
+            Assert.IsTrue(api.Conflicts >= 3);
+        }
+
+        [TestMethod]
+        public async Task Deleting_removes_the_key_from_its_index()
+        {
+            var api = new FakeDaprStateApi();
+            var provider = new DaprOASIS.DaprOASIS(new DaprOASIS.DaprStateBackend(api, "statestore"));
+            var avatar = (await provider.SaveAvatarAsync(new Avatar { Username = "seraph", Email = "s@m.io" })).Result;
+            Assert.IsFalse((await provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError);
+            Assert.AreEqual(0, (await provider.LoadAllAvatarsAsync()).Result.Count());
+        }
     }
 
     [TestClass]

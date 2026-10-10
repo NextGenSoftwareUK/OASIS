@@ -1,176 +1,206 @@
-using System.Threading;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;using NextGenSoftware.Utilities;using System;using System.Collections.Generic;using System.Net.Http;using System.Text;using System.Threading.Tasks;using Newtonsoft.Json;using Newtonsoft.Json.Linq;using NextGenSoftware.OASIS.API.Core;using NextGenSoftware.OASIS.API.Core.Enums;using NextGenSoftware.OASIS.API.Core.Helpers;using NextGenSoftware.OASIS.API.Core.Holons;using NextGenSoftware.OASIS.API.Core.Interfaces;using NextGenSoftware.OASIS.API.Core.Interfaces.Search;using NextGenSoftware.OASIS.API.Core.Objects;using NextGenSoftware.OASIS.API.Core.Objects.Search;using NextGenSoftware.OASIS.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.UnitTests")]
+
 namespace NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS
 {
-    public class IntelOpenVINOOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
+    /// <summary>A KServe v2 tensor (request input or response output).</summary>
+    public sealed class OpenVinoTensor
     {
+        [JsonPropertyName("name")] public string Name { get; set; }
+        [JsonPropertyName("shape")] public long[] Shape { get; set; }
+        [JsonPropertyName("datatype")] public string Datatype { get; set; }
+        [JsonPropertyName("data")] public JsonElement Data { get; set; }
+
+        public static OpenVinoTensor Fp32(string name, long[] shape, IEnumerable<float> values)
+            => new() { Name = name, Shape = shape, Datatype = "FP32", Data = JsonSerializer.SerializeToElement(values.ToArray()) };
+    }
+
+    public sealed class OpenVinoInferResult
+    {
+        [JsonPropertyName("model_name")] public string ModelName { get; set; }
+        [JsonPropertyName("model_version")] public string ModelVersion { get; set; }
+        [JsonPropertyName("id")] public string Id { get; set; }
+        [JsonPropertyName("outputs")] public List<OpenVinoTensor> Outputs { get; set; } = new();
+    }
+
+    public sealed record OpenVinoChatMessage(string Role, string Content);
+
+    public sealed class OpenVinoChatResult
+    {
+        public string Model { get; init; }
+        public string Content { get; init; }
+        public string FinishReason { get; init; }
+        public int PromptTokens { get; init; }
+        public int CompletionTokens { get; init; }
+    }
+
+    /// <summary>
+    /// Intel OpenVINO Model Server (OVMS) provider. OVMS is an inference server, not a data store, so this is an
+    /// <see cref="OASISProvider"/> exposing OVMS's KServe v2 API (health, model metadata, tensor inference) and its
+    /// OpenAI-compatible endpoints (chat completions, embeddings).
+    /// </summary>
+    public class IntelOpenVINOOASIS : OASISProvider
+    {
+        private static readonly JsonSerializerOptions Json = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         private readonly HttpClient _http;
-        private readonly string _defaultModel;
-        private bool _isActivated;
-        public IntelOpenVINOOASIS(string baseUrl = "http://localhost:9000", string defaultModel = "oasis_model")
+
+        public IntelOpenVINOOASIS(string baseUrl = "http://localhost:8000") : this(baseUrl, null) { }
+
+        internal IntelOpenVINOOASIS(string baseUrl, HttpMessageHandler handler)
         {
-            _defaultModel = defaultModel;
-            _http = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/") };
-            ProviderName = "IntelOpenVINOOASIS"; ProviderDescription = "Intel OpenVINO Model Server REST API provider for AI inference.";
+            if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentException("The OVMS REST URL is required.", nameof(baseUrl));
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+            ProviderName = "IntelOpenVINOOASIS";
+            ProviderDescription = "Intel OpenVINO Model Server provider: KServe v2 inference and OpenAI-compatible chat/embeddings.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.IntelOpenVINOOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.AI);
         }
-        private async Task<JObject> GetAsync(string path) { var r = await _http.GetAsync(path); r.EnsureSuccessStatusCode(); return JObject.Parse(await r.Content.ReadAsStringAsync()); }
-        private async Task<JObject> PostAsync(string path, object body) { var resp = await _http.PostAsync(path, new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")); resp.EnsureSuccessStatusCode(); return JObject.Parse(await resp.Content.ReadAsStringAsync()); }
+
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            var r = new OASISResult<bool>();
+            var result = new OASISResult<bool>();
             try
             {
-                var json = await GetAsync($"v1/models/{_defaultModel}");
-                _isActivated = true; r.Result = true; r.Message = $"IntelOpenVINOOASIS activated — model {json["model_version_status"]?[0]?["version"]}";
+                using var response = await _http.GetAsync("v2/health/ready");
+                if (!response.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: OVMS is not ready ({(int)response.StatusCode} {response.ReasonPhrase}).");
+                    return result;
+                }
+                IsProviderActivated = true;
+                result.Result = true;
+                result.Message = "IntelOpenVINOOASIS activated: OVMS is ready.";
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"OpenVINO activation failed: {ex.Message}", ex); }
-            return r;
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: cannot reach OVMS: {ex.Message}", ex); }
+            return result;
         }
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; _http.Dispose(); return new OASISResult<bool> { Result = true }; }
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string modelName, int v = 0)
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            var r = new OASISResult<IAvatar>();
-            try
-            {
-                var json = await GetAsync($"v1/models/{Uri.EscapeDataString(modelName)}");
-                var status = json["model_version_status"]?[0];
-                var avatar = new Avatar { Username = modelName };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.IntelOpenVINOOASIS] = modelName;
-                avatar.MetaData["model_name"] = modelName;
-                avatar.MetaData["version"] = status?["version"]?.ToString() ?? "1";
-                avatar.MetaData["state"] = status?["state"]?.ToString() ?? "UNKNOWN";
-                r.Result = avatar;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"OpenVINO LoadAvatar failed: {ex.Message}", ex); }
-            return r;
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool>(true) { Message = "IntelOpenVINOOASIS deactivated." });
         }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
+
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
+
+        private static string ModelPath(string model, string version)
         {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                // key = model name, optionally model_name:version
-                var parts = key.Split(':');
-                var model = parts[0];
-                var version = parts.Length > 1 ? parts[1] : "1";
-                var json = await GetAsync($"v1/models/{Uri.EscapeDataString(model)}/versions/{version}/metadata");
-                var holon = new Holon { Name = $"OpenVINO Model {key}" };
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IntelOpenVINOOASIS] = key;
-                holon.MetaData["model_name"] = model;
-                holon.MetaData["version"] = version;
-                holon.MetaData["inputs"] = json["metadata"]?["inputs"]?.ToString(Formatting.None) ?? "{}";
-                holon.MetaData["outputs"] = json["metadata"]?["outputs"]?.ToString(Formatting.None) ?? "{}";
-                r.Result = holon;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"OpenVINO LoadHolon failed: {ex.Message}", ex); }
-            return r;
+            if (string.IsNullOrWhiteSpace(model)) throw new ArgumentException("A model name is required.", nameof(model));
+            return $"v2/models/{Uri.EscapeDataString(model)}" + (string.IsNullOrWhiteSpace(version) ? string.Empty : $"/versions/{Uri.EscapeDataString(version)}");
         }
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
+
+        private async Task<OASISResult<T>> SendAsync<T>(HttpMethod method, string path, object body, Func<string, T> parse, CancellationToken ct)
         {
-            var r = new OASISResult<IHolon>();
+            var result = new OASISResult<T>();
             try
             {
-                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
-                var model = h.MetaData.ContainsKey("model_name") ? h.MetaData["model_name"] : _defaultModel;
-                var version = h.MetaData.ContainsKey("version") ? h.MetaData["version"] : "1";
-                var inputData = h.MetaData.ContainsKey("inputs") ? JsonConvert.DeserializeObject(h.MetaData["inputs"]?.ToString() ?? "{}") : new { };
-                var body = new { inputs = inputData };
-                var json = await PostAsync($"v1/models/{model}/versions/{version}:predict", body);
-                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.IntelOpenVINOOASIS] = h.Id.ToString();
-                h.MetaData["outputs"] = json["outputs"]?.ToString(Formatting.None) ?? json.ToString(Formatting.None);
-                r.Result = h;
+                using var request = new HttpRequestMessage(method, path);
+                if (body != null) request.Content = JsonContent.Create(body, body.GetType(), options: Json);
+                using var response = await _http.SendAsync(request, ct);
+                var text = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: {method} {path} failed: {(int)response.StatusCode} {response.ReasonPhrase} {text}");
+                    return result;
+                }
+                result.Result = parse(text);
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"OpenVINO SaveHolon (predict) failed: {ex.Message}", ex); }
-            return r;
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: {method} {path} failed: {ex.Message}", ex); }
+            return result;
         }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatar>(); r.Result = new Avatar { Id = id }; return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) => await LoadAvatarByProviderKeyAsync(u, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); return new OASISResult<IAvatar> { Result = a }; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) => new OASISResult<IEnumerable<IAvatar>> { Result = new List<IAvatar>() };
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) => new OASISResult<IAvatarDetail> { Result = ad };
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) => new OASISResult<IEnumerable<IAvatarDetail>> { Result = new List<IAvatarDetail>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var l = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h); if (sr.Result != null) l.Add(sr.Result); } return new OASISResult<IEnumerable<IHolon>> { Result = l }; }
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => new OASISResult<ISearchResults> { Result = new SearchResults() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>() };
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => new OASISResult<IHolon> { Result = new Holon { Id = id } };
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar a) => SaveAvatarAsync(a).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool s = true) => DeleteAvatarAsync(id, s).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int v = 0) => LoadAllAvatarsAsync(v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int v = 0) => LoadAvatarDetailAsync(id, v).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail ad) => SaveAvatarDetailAsync(ad).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int v = 0) => LoadAllAvatarDetailsAsync(v).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(id, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> LoadHolon(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(k, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> h, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(h, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(ht, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => SearchAsync(sp, lc, rec, md, coe, v).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string e, int v = 0) => LoadAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int v = 0) => LoadAvatarDetailByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int v = 0) => LoadAvatarDetailByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(id, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(k, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(mk, mv, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(m, mm, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int v = 0) => ExportAllDataForAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int v = 0) => ExportAllDataForAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int v = 0) => ExportAllAsync(v).Result;
-        public override OASISResult<bool> DeleteAvatar(string k, bool s = true) => DeleteAvatarAsync(k, s).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool s = true) => DeleteAvatarByEmailAsync(e, s).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool s = true) => DeleteAvatarByUsernameAsync(u, s).Result;
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lng, int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long lat, long lng, int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lng, int v = 0, HolonType t = HolonType.All) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long lat, long lng, HolonType t, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); r.Result = new List<IWalletTransaction>(); return r; }
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); r.Result = new List<IWalletTransaction>(); return r; }
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) { var r = new OASISResult<(string, string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) { var r = new OASISResult<(string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAddr, string senderKey) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAddr) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string txHash, CancellationToken token = default) { var r = new OASISResult<BridgeTransactionStatus>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
+
+        /// <summary>Server metadata (name, version, extensions) from GET /v2.</summary>
+        public Task<OASISResult<JsonElement>> GetServerMetadataAsync(CancellationToken ct = default)
+            => SendAsync(HttpMethod.Get, "v2", null, t => JsonDocument.Parse(t).RootElement.Clone(), ct);
+
+        /// <summary>True when the model (and optional version) is loaded and ready.</summary>
+        public async Task<OASISResult<bool>> IsModelReadyAsync(string model, string version = null, CancellationToken ct = default)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                using var response = await _http.GetAsync($"{ModelPath(model, version)}/ready", ct);
+                result.Result = response.IsSuccessStatusCode;
+                result.Message = result.Result ? $"Model '{model}' is ready." : $"Model '{model}' is not ready ({(int)response.StatusCode}).";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"IntelOpenVINOOASIS: model readiness check failed: {ex.Message}", ex); }
+            return result;
+        }
+
+        /// <summary>Model metadata (inputs/outputs with names, shapes and datatypes).</summary>
+        public Task<OASISResult<JsonElement>> GetModelMetadataAsync(string model, string version = null, CancellationToken ct = default)
+            => SendAsync(HttpMethod.Get, ModelPath(model, version), null, t => JsonDocument.Parse(t).RootElement.Clone(), ct);
+
+        /// <summary>Runs KServe v2 inference: POST /v2/models/{model}[/versions/{v}]/infer.</summary>
+        public Task<OASISResult<OpenVinoInferResult>> InferAsync(string model, IEnumerable<OpenVinoTensor> inputs, string version = null, IEnumerable<string> requestedOutputs = null, CancellationToken ct = default)
+        {
+            var inputList = inputs?.ToList();
+            if (inputList == null || inputList.Count == 0)
+                return Task.FromResult(new OASISResult<OpenVinoInferResult> { IsError = true, Message = "IntelOpenVINOOASIS: at least one input tensor is required." });
+            var body = new
+            {
+                id = Guid.NewGuid().ToString("N"),
+                inputs = inputList,
+                outputs = requestedOutputs?.Select(n => new { name = n }).ToList()
+            };
+            return SendAsync(HttpMethod.Post, $"{ModelPath(model, version)}/infer", body, t => JsonSerializer.Deserialize<OpenVinoInferResult>(t), ct);
+        }
+
+        /// <summary>OpenAI-compatible chat completion served by OVMS: POST /v3/chat/completions.</summary>
+        public Task<OASISResult<OpenVinoChatResult>> ChatCompletionAsync(string model, IEnumerable<OpenVinoChatMessage> messages, int? maxTokens = null, double? temperature = null, CancellationToken ct = default)
+        {
+            var body = new
+            {
+                model,
+                messages = messages.Select(m => new { role = m.Role, content = m.Content }).ToList(),
+                max_tokens = maxTokens,
+                temperature,
+                stream = false
+            };
+            return SendAsync(HttpMethod.Post, "v3/chat/completions", body, t =>
+            {
+                using var doc = JsonDocument.Parse(t);
+                var root = doc.RootElement;
+                var choice = root.GetProperty("choices")[0];
+                root.TryGetProperty("usage", out var usage);
+                return new OpenVinoChatResult
+                {
+                    Model = root.TryGetProperty("model", out var m) ? m.GetString() : model,
+                    Content = choice.GetProperty("message").GetProperty("content").GetString(),
+                    FinishReason = choice.TryGetProperty("finish_reason", out var f) ? f.GetString() : null,
+                    PromptTokens = usage.ValueKind == JsonValueKind.Object ? usage.GetProperty("prompt_tokens").GetInt32() : 0,
+                    CompletionTokens = usage.ValueKind == JsonValueKind.Object ? usage.GetProperty("completion_tokens").GetInt32() : 0
+                };
+            }, ct);
+        }
+
+        /// <summary>OpenAI-compatible embeddings served by OVMS: POST /v3/embeddings.</summary>
+        public Task<OASISResult<IReadOnlyList<float[]>>> EmbeddingsAsync(string model, IEnumerable<string> inputs, CancellationToken ct = default)
+            => SendAsync(HttpMethod.Post, "v3/embeddings", new { model, input = inputs.ToList() }, t =>
+            {
+                using var doc = JsonDocument.Parse(t);
+                return (IReadOnlyList<float[]>)doc.RootElement.GetProperty("data").EnumerateArray()
+                    .OrderBy(d => d.GetProperty("index").GetInt32())
+                    .Select(d => d.GetProperty("embedding").EnumerateArray().Select(v => v.GetSingle()).ToArray())
+                    .ToList();
+            }, ct);
     }
 }

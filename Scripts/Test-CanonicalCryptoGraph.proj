@@ -1,0 +1,18 @@
+<Project>
+  <ItemGroup>
+    <ReferencePath Include="pinned/Chaos.NaCl.dll" />
+    <ReferencePath Include="nuget/Chaos.NaCl.dll"><NuGetPackageId>Chaos.NaCl.Standard</NuGetPackageId></ReferencePath>
+    <ReferenceCopyLocalPaths Include="pinned/Chaos.NaCl.dll" />
+    <ReferenceCopyLocalPaths Include="nuget/Chaos.NaCl.dll"><NuGetPackageId>Chaos.NaCl.Standard</NuGetPackageId></ReferenceCopyLocalPaths>
+    <RuntimeCopyLocalItems Include="nuget/Chaos.NaCl.dll"><NuGetPackageId>Chaos.NaCl.Standard</NuGetPackageId></RuntimeCopyLocalItems>
+  </ItemGroup>
+  <Import Project="../Directory.Build.targets" />
+  <Target Name="ResolveAssemblyReferences" />
+  <Target Name="Test" DependsOnTargets="ResolveAssemblyReferences;SelectCanonicalChaosNaCl">
+    <Error Condition="'@(ReferencePath->Count())' != '1'" Text="Duplicate compile crypto assembly." />
+    <Error Condition="'@(ReferencePath)' != 'pinned/Chaos.NaCl.dll'" Text="Wrong crypto implementation selected." />
+    <Error Condition="'@(ReferenceCopyLocalPaths->Count())' != '1'" Text="Duplicate runtime crypto assembly." />
+    <Error Condition="'@(RuntimeCopyLocalItems)' != ''" Text="NuGet crypto runtime asset leaked." />
+    <Message Importance="High" Text="Canonical crypto graph contract passed." />
+  </Target>
+</Project>
