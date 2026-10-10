@@ -12,7 +12,7 @@ $files = @(Get-ChildItem -LiteralPath $source -Recurse -File | Where-Object {
     $_.Name -notlike 'NextGenSoftware.OASIS.STAR.*' -and
     $_.Name -notlike 'STAR.*' -and
     $_.Name -notlike 'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint*' -and
-    $_.Name -notlike '*OASISDNA*.json'
+    $_.Name -notmatch '(?i)OASIS[_-]?DNA.*\.json$'
 })
 foreach ($required in @('NextGenSoftware.OASIS.API.Core.dll', 'NextGenSoftware.OASIS.OASISBootLoader.dll')) {
     if (-not @($files | Where-Object Name -eq $required).Count) { throw "Runtime dependency missing: $required" }
