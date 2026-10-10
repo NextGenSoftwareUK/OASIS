@@ -351,7 +351,8 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           if ('${{ inputs.oasis_runtime }}' -eq 'true') {
-            Compress-Archive artifacts/global-release/native/* "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip"
+            ./Scripts/New-OASISRuntimeArchive.ps1 -PublishDirectory artifacts/global-release/native -OutputPath "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip"
+            ./Scripts/Test-OASISRuntimeArchive.ps1 -ArchivePath "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip"
           }
           if ('${{ inputs.native_endpoint }}' -eq 'true') {
             Compress-Archive artifacts/global-release/native/* "artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip"
