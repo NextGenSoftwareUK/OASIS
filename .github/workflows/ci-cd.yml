@@ -622,8 +622,10 @@ jobs:
       run: |
         dbus-run-session -- bash -euo pipefail -c '
           eval "$(printf "%s" "oasis-ci-keyring" | gnome-keyring-daemon --unlock --components=secrets)"
-          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
-          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
+          # The mixed target-framework graph shares dependency output paths: one MSBuild
+          # worker owns those files rather than racing GenerateDepsFile writers.
+          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Shared.Tests/OGEngine.Shared.Tests.csproj" --configuration Release --maxcpucount:1 --logger "trx;LogFileName=ogengine-shared.trx" --results-directory TestResults
+          dotnet test "OASIS/OASIS Omniverse/OGEngineClient/TestProjects/OGEngine.Client.Tests/OGEngine.Client.Tests.csproj" --configuration Release --maxcpucount:1 --logger "trx;LogFileName=ogengine-client.trx" --results-directory TestResults
         '
 
     - name: Upload STARAPIClient test artifacts
