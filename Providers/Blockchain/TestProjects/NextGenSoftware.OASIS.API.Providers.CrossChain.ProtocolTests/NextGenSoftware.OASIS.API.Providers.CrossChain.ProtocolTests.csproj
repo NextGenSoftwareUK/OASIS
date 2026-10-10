@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS\NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AxelarOASIS\NextGenSoftware.OASIS.API.Providers.AxelarOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.deBridgeOASIS\NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.StargateOASIS\NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.WormholeOASIS\NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj" />
   </ItemGroup>
