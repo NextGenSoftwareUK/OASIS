@@ -107,7 +107,8 @@ The OASIS DNA package is the central configuration backbone of the entire OASIS 
 	</ItemGroup>
 
   <ItemGroup>
-    <None Update="README.md">
+    <None Remove="README.md" />
+    <None Include="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
     </None>
