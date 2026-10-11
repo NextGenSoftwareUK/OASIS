@@ -17,8 +17,18 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Holochain
         public IHyperDriveLocalReplicationTarget ReplicationTarget => _host.Repository;
 
         public HoloEdgeUnityLocalProvider(HolochainAndroidRuntimeOptions options)
-            : this(new UnityHolochainAndroidServiceBridge(), options)
+            : this(CreatePlatformBridge(), options)
         {
+        }
+
+        /// <summary>The conductor bridge for this player: in-process on iOS, the Android service elsewhere.</summary>
+        private static IHolochainAndroidServiceBridge CreatePlatformBridge()
+        {
+#if UNITY_IOS && !UNITY_EDITOR
+            return new UnityHolochainIosBridge();
+#else
+            return new UnityHolochainAndroidServiceBridge();
+#endif
         }
 
         internal HoloEdgeUnityLocalProvider(IHolochainAndroidServiceBridge bridge,
