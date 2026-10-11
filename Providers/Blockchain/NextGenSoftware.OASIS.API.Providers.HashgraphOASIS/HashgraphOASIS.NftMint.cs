@@ -24,7 +24,7 @@ public partial class HashgraphOASIS
         {
             ArgumentNullException.ThrowIfNull(request);
             var tokenId = request.CollectionPublicKey;
-            if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+            if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                 throw new ArgumentException("CollectionPublicKey must identify an existing HTS NFT token.");
             if (request.OnChainProvider.HasValue && request.OnChainProvider.Value != ChainProvider.HashgraphOASIS)
                 throw new ArgumentException("The requested on-chain provider must be HashgraphOASIS.");
@@ -32,13 +32,17 @@ public partial class HashgraphOASIS
                 throw new ArgumentException("The shared NFT standard enum does not yet expose native HTS; do not request another chain's standard.");
             if (request.FreezeMetadata == true || request.RoyaltyPercentage.GetValueOrDefault() != 0)
                 throw new ArgumentException("Metadata authority and royalty changes require an HTS collection operation, not an NFT mint.");
+            if (request.Price < 0 || request.Discount < 0)
+                throw new ArgumentException("NFT price and discount must be nonnegative.");
+            if (request.SaleStartDate.HasValue && request.SaleEndDate.HasValue && request.SaleStartDate > request.SaleEndDate)
+                throw new ArgumentException("NFT sale start must not follow sale end.");
             var count = request.NumberToMint ?? 1;
             if (count < 1 || count > 10)
                 throw new ArgumentException("This HTS mint transaction supports 1 to 10 NFT serials; larger batches require separate transactions.");
             if (request.Amount != 0 && request.Amount != count)
                 throw new ArgumentException("Amount must agree with NumberToMint when supplied for an NFT mint.");
             var metadata = request.StoreNFTMetaDataOnChain == true ? request.JSONMetaData : request.JSONMetaDataURL;
-            if (string.IsNullOrWhiteSpace(metadata) || Encoding.UTF8.GetByteCount(metadata) > 100)
+            if (string.IsNullOrWhiteSpace(metadata) || CollectionUtf8.GetByteCount(metadata) > 100)
                 throw new ArgumentException("HTS NFT metadata requires 1 to 100 UTF-8 bytes; supply a metadata URL or explicit short on-chain JSON.");
             if (request.StoreNFTMetaDataOnChain == true)
                 using (System.Text.Json.JsonDocument.Parse(metadata)) { }
@@ -65,7 +69,7 @@ public partial class HashgraphOASIS
                 if (target.IsError || target.Result == null) throw new InvalidOperationException("Recipient email wallet lookup failed.");
                 targets.Add(target.Result.WalletAddress);
             }
-            if (targets.Any(target => !System.Text.RegularExpressions.Regex.IsMatch(target ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+            if (targets.Any(target => !System.Text.RegularExpressions.Regex.IsMatch(target ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                 || targets.Distinct(StringComparer.Ordinal).Count() > 1)
                 throw new ArgumentException("All recipient selectors must resolve to the same numeric Hedera account.");
             var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId, ChainProvider.HashgraphOASIS, showPrivateKeys: true);

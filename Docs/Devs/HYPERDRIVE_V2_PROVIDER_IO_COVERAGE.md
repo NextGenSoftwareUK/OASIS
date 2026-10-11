@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera mint preflight integrity (2026-10-11)
+
+Mint preflight rejects zero collection/recipient IDs, negative price/discount and reversed sale dates, and uses the same throwing UTF-8 encoder as collection metadata updates. Invalid metadata cannot be replaced silently before wallet resolution/SDK submission. Five added validation cases plus existing mint boundaries pass **14/14**, zero skips (`hedera-nft-mint-validation.trx`); provider build succeeds. Positive authenticated mint/delivery and native economic behavior remain live gates; preflight evidence is not consensus proof. No installation or ledger spending.
+
 ### Hedera mint receipt serial integrity/retention (2026-10-11)
 
 Mint verifies exact requested transaction identity and SUCCESS before serial processing, retains that ID immediately in the response, then validates serial count, uniqueness and positive int64 range. Invalid serial payload no longer discards a confirmed mint's reconciliation identity; no automatic remint is introduced. Five pure receipt-contract tests pass **5/5**, zero skips (`hedera-mint-receipt.trx`), covering empty/duplicate/zero/overflow serials and exact values above 2^53/up to int64 max; provider build succeeds. These tests do not prove live mint/recipient delivery or authenticated wallet resolution. Funded lifecycle/API gates remain open; no ledger mutation or installation.
