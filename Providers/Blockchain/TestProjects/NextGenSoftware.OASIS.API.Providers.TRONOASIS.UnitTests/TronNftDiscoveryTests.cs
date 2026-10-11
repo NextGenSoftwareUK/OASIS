@@ -41,6 +41,31 @@ public sealed class TronNftDiscoveryTests
         Assert.Empty(Collections(receipt));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TransferDiscoveryPreservesExactIdsPartiesAndReceiptOrder(bool maximumId)
+    {
+        var log = Transfer();
+        if (!maximumId) log.Topics[3] = ByteString.CopyFrom(new byte[32]);
+        var receipt = new TransactionInfo();
+        receipt.Log.Add(Transfer(3)); receipt.Log.Add(log); receipt.Log.Add(log.Clone());
+        var method = typeof(TronNativeTransferClient).GetMethod("NftTransfersFromReceipt", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var transfers = ((System.Collections.IEnumerable)method.Invoke(null, new object[] { receipt, Owner() })!).Cast<object>().ToArray();
+        Assert.Equal(2, transfers.Length); // Repeated transfers must not be collapsed by collection discovery.
+        for (var index = 0; index < transfers.Length; index++)
+        {
+            var transfer = transfers[index]; var type = transfer.GetType();
+            Assert.Equal(maximumId ? (System.Numerics.BigInteger.One << 256) - 1 : System.Numerics.BigInteger.Zero,
+                type.GetProperty("TokenId")!.GetValue(transfer));
+            Assert.Equal(index + 1, type.GetProperty("LogIndex")!.GetValue(transfer));
+            Assert.Equal(NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(Owner().ToByteArray()),
+                type.GetProperty("To")!.GetValue(transfer));
+            var zero = new byte[21]; zero[0] = 0x41;
+            Assert.Equal(NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(zero), type.GetProperty("From")!.GetValue(transfer));
+        }
+    }
+
     [Fact]
     public void UnrelatedOwnerIsNotIncluded()
     {
