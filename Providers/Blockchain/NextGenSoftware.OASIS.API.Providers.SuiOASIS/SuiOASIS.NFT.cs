@@ -63,29 +63,31 @@ public partial class SuiOASIS
 
     private async Task<string> MintRecipientAsync(IMintWeb3NFTRequest request, string signer)
     {
-        if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) return request.SendToAddressAfterMinting;
-        Core.Interfaces.IProviderWallet recipient = null;
+        var addresses = new List<string>();
+        if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) addresses.Add(request.SendToAddressAfterMinting);
         if (request.SendToAvatarAfterMintingId != Guid.Empty)
         {
             var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.SendToAvatarAfterMintingId, Core.Enums.ProviderType.SuiOASIS);
             if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            recipient = wallet.Result;
+            addresses.Add(wallet.Result.WalletAddress);
         }
-        else if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
+        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
         {
             var wallet = await WalletManager.GetAvatarDefaultWalletByUsernameAsync(request.SendToAvatarAfterMintingUsername, providerType: Core.Enums.ProviderType.SuiOASIS);
             if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            recipient = wallet.Result;
+            addresses.Add(wallet.Result.WalletAddress);
         }
-        else if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
+        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
         {
             var wallet = await WalletManager.GetAvatarDefaultWalletByEmailAsync(request.SendToAvatarAfterMintingEmail, Core.Enums.ProviderType.SuiOASIS);
             if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            recipient = wallet.Result;
+            addresses.Add(wallet.Result.WalletAddress);
         }
-        else return signer;
-        if (string.IsNullOrWhiteSpace(recipient.WalletAddress)) throw new InvalidOperationException("Recipient Sui wallet has no address.");
-        return recipient.WalletAddress;
+        if (addresses.Any(string.IsNullOrWhiteSpace))
+            throw new InvalidOperationException("Recipient Sui wallet has no address.");
+        if (addresses.Distinct(StringComparer.Ordinal).Count() > 1)
+            throw new ArgumentException("Recipient address and avatar identifiers resolve to different Sui wallets.");
+        return addresses.Count == 0 ? signer : addresses[0];
     }
 
     public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
@@ -97,24 +99,38 @@ public partial class SuiOASIS
         try
         {
             ArgumentNullException.ThrowIfNull(request);
-            if (request.NFTStandardType.HasValue)
+            if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.SuiObject)
                 throw new ArgumentException("Sui address-owned objects are not ERC721/ERC1155/SPL assets.");
-            if (!string.IsNullOrEmpty(request.MemoText)) throw new ArgumentException("Sui NFT transactions have no memo field.");
-            var signer = await InvokeSdkAsync("restoreKey");
+            if (request.OnChainProvider.HasValue && request.OnChainProvider != Core.Enums.ProviderType.SuiOASIS
+                && request.OnChainProvider != Core.Enums.ProviderType.Default)
+                throw new ArgumentException("OnChainProvider must select SuiOASIS for this provider.");
+            if (request.Price < 0 || request.Discount < 0 || request.RoyaltyPercentage < 0 || request.RoyaltyPercentage > 100)
+                throw new ArgumentException("Price/discount must be nonnegative and royalty percentage must be between 0 and 100.");
+            if (request.SaleStartDate.HasValue && request.SaleEndDate.HasValue && request.SaleStartDate > request.SaleEndDate)
+                throw new ArgumentException("Sale start must not follow sale end.");
+            var signingKey = await TokenSigningKeyAsync(request.MintedByAvatarId);
+            var signer = await InvokeSdkAsync("restoreKey", new { privateKey = signingKey });
             var creator = signer.GetProperty("address").GetString();
             var recipient = await MintRecipientAsync(request, creator);
             var metadata = new Web3NFT
             {
-                Title = request.Title, Description = request.Description, Symbol = request.Symbol,
+                Title = request.Title, Description = request.Description, Symbol = request.Symbol, MemoText = request.MemoText,
                 JSONMetaData = request.JSONMetaData, JSONMetaDataURL = request.JSONMetaDataURL,
                 ImageUrl = request.ImageUrl, ThumbnailUrl = request.ThumbnailUrl,
                 Image = request.Image, Thumbnail = request.Thumbnail, Tags = request.Tags?.ToList() ?? new List<string>(),
                 MetaData = request.MetaData == null ? new Dictionary<string, string>() : new Dictionary<string, string>(request.MetaData),
                 NFTMintedUsingWalletAddress = creator, OASISMintWalletAddress = creator,
                 MintedByAvatarId = request.MintedByAvatarId, MintedOn = DateTime.UtcNow,
+                Price = request.Price ?? 0, Discount = request.Discount ?? 0,
+                RoyaltyPercentage = request.RoyaltyPercentage ?? 0,
+                SellerFeeBasisPoints = checked((uint)(request.RoyaltyPercentage ?? 0) * 100),
+                IsForSale = request.IsForSale ?? false, SaleStartDate = request.SaleStartDate, SaleEndDate = request.SaleEndDate,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 CollectionPublicKey = string.IsNullOrWhiteSpace(request.CollectionPublicKey) ? _contractAddress : request.CollectionPublicKey,
                 SendToAddressAfterMinting = recipient, StoreNFTMetaDataOnChain = true,
-                OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SuiOASIS)
+                OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SuiOASIS),
+                NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.SuiObject)
             };
             var count = request.NumberToMint ?? 1;
             if (count < 1) throw new ArgumentException("Positive NFT mint count is required.");
@@ -127,7 +143,7 @@ public partial class SuiOASIS
             }
             var committed = await InvokeSdkAsync("nftMint", new
             {
-                packageAddress = metadata.CollectionPublicKey, recipient, count,
+                packageAddress = metadata.CollectionPublicKey, privateKey = signingKey, recipient, count,
                 metadata = records.Select(OasisJson.Serialize).ToArray()
             });
             var hash = committed.GetProperty("transactionHash").GetString();
@@ -198,10 +214,15 @@ public partial class SuiOASIS
         try
         {
             ArgumentNullException.ThrowIfNull(request);
+            var loaded = await LoadOnChainNFTDataAsync(request.NFTTokenAddress);
+            if (loaded.IsError) throw new InvalidOperationException(loaded.Message);
+            if (request.Web3NFTId != Guid.Empty && request.Web3NFTId != loaded.Result.Id)
+                throw new ArgumentException("OASIS NFT ID does not match the on-chain metadata.");
+            var key = await TokenSigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
             var committed = await InvokeSdkAsync("nftBurn", new
             {
                 tokenId = request.NFTTokenAddress,
-                privateKey = string.IsNullOrWhiteSpace(request.OwnerPrivateKey) ? _privateKey : request.OwnerPrivateKey
+                privateKey = key
             });
             result.Result = new Web3NFTTransactionResponse { TransactionResult = committed.GetProperty("transactionHash").GetString() };
         }

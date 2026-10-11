@@ -6,6 +6,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiSdkWalletTests
 {
     [TestMethod]
+    public async Task NftEconomicAndProviderOptionsAreValidatedBeforeNetworkOrSigning()
+    {
+        using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet");
+        foreach (var request in new[]
+        {
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Price = -1 },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Discount = -1 },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { RoyaltyPercentage = 101 },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { RoyaltyPercentage = -1 },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { SaleStartDate = DateTime.UnixEpoch.AddDays(1), SaleEndDate = DateTime.UnixEpoch },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { OnChainProvider = Core.Enums.ProviderType.EthereumOASIS },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { NFTStandardType = Core.Enums.NFTStandardType.ERC721 },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { NFTStandardType = Core.Enums.NFTStandardType.ERC1155 },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { NFTStandardType = Core.Enums.NFTStandardType.SPL },
+            new Core.Objects.NFT.Requests.MintWeb3NFTRequest { NFTStandardType = (Core.Enums.NFTStandardType)999 }
+        })
+        {
+            var rejected = await provider.MintNFTAsync(request);
+            Assert.IsTrue(rejected.IsError);
+            Assert.IsInstanceOfType<ArgumentException>(rejected.Exception);
+            Assert.IsNull(rejected.Result);
+        }
+    }
+
+    [TestMethod]
     public async Task CanonicalWalletCanBeRecoveredByOfficialSdkWithoutNodeActivation()
     {
         var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", chainId: "genesis-id-is-not-a-key");
