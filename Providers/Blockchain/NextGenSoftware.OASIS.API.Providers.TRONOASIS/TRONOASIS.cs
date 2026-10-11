@@ -46,7 +46,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
     public partial class TRONOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
-        private readonly TRONClient _tronClient;
         private const string TRON_API_BASE_URL = "https://api.trongrid.io";
         private readonly string _contractAddress;
         private readonly string _escrowContractAddress;
@@ -123,7 +122,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(rpcEndpoint);
-            _tronClient = new TRONClient(rpcEndpoint);
         }
 
 
