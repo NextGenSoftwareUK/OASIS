@@ -1,5 +1,6 @@
 import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery, FileId, FileCreateTransaction, FileUpdateTransaction, FileDeleteTransaction, FileContentsQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
+import { Mnemonic } from '@hiero-ledger/sdk';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
 
@@ -211,6 +212,14 @@ async function executeFile(action, request) {
 }
 
 export async function execute(action, request) {
+  if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
+    if (request.keyType !== 'ed25519') throw new Error('Mnemonic derivation requires the explicit standard Ed25519 algorithm.');
+    if (action === 'restoreMnemonic' && (typeof request.seedPhrase !== 'string' || !request.seedPhrase.trim()))
+      throw new Error('A validated Hedera SDK mnemonic is required.');
+    const mnemonic = action === 'generateMnemonic' ? await Mnemonic.generate12() : await Mnemonic.fromString(request.seedPhrase);
+    const key = await mnemonic.toStandardEd25519PrivateKey('', 0);
+    return { privateKey: key.toStringDer(), publicKey: key.publicKey.toStringDer(), seedPhrase: mnemonic.toString() };
+  }
   if (['storagePut', 'storageDelete'].includes(action)) return storageWrite(action, request);
   if (['storageGet', 'storageList'].includes(action)) return storageRead(action, request);
   if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request);
