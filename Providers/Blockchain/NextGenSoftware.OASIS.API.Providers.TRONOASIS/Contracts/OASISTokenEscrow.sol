@@ -32,6 +32,7 @@ contract OASISTokenEscrow {
         uint256 beforeBalance = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "Token deposit failed");
         require(token.balanceOf(address(this)) == beforeBalance + amount, "Inexact token deposit");
+        require(token.balanceOf(msg.sender) == 0, "Inexact depositor debit");
         locked[tokenAddress][msg.sender] += amount;
         emit Locked(tokenAddress, msg.sender, amount);
     }
@@ -42,8 +43,10 @@ contract OASISTokenEscrow {
         locked[tokenAddress][msg.sender] = 0;
         ITRC20EscrowToken token = ITRC20EscrowToken(tokenAddress);
         uint256 beforeBalance = token.balanceOf(msg.sender);
+        uint256 beforeEscrow = token.balanceOf(address(this));
         require(token.transfer(msg.sender, amount), "Token withdrawal failed");
         require(token.balanceOf(msg.sender) == beforeBalance + amount, "Inexact token withdrawal");
+        require(beforeEscrow >= amount && token.balanceOf(address(this)) == beforeEscrow - amount, "Inexact escrow debit");
         emit Unlocked(tokenAddress, msg.sender, amount);
     }
 }

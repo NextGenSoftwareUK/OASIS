@@ -16,15 +16,17 @@ contract TestToken {
  mapping(address=>uint256) public balanceOf;
  mapping(address=>mapping(address=>uint256)) public allowance;
  bool public fail;
+ bool public taxed;
  constructor(){balanceOf[msg.sender]=100;}
  function setFail(bool value) external {fail=value;}
+ function setTaxed(bool value) external {taxed=value;}
  function approve(address spender,uint256 amount) external returns(bool){allowance[msg.sender][spender]=amount;return true;}
  function transferFrom(address from,address to,uint256 amount) external returns(bool){
   if(fail)return false;require(allowance[from][msg.sender]>=amount);allowance[from][msg.sender]-=amount;
-  require(balanceOf[from]>=amount);balanceOf[from]-=amount;balanceOf[to]+=amount;return true;
+  require(balanceOf[from]>=amount);balanceOf[from]-=amount;balanceOf[to]+=taxed?amount-1:amount;return true;
  }
  function transfer(address to,uint256 amount) external returns(bool){
-  if(fail)return false;require(balanceOf[msg.sender]>=amount);balanceOf[msg.sender]-=amount;balanceOf[to]+=amount;return true;
+  if(fail)return false;require(balanceOf[msg.sender]>=amount);balanceOf[msg.sender]-=amount;balanceOf[to]+=taxed?amount-1:amount;return true;
  }
 }`;
 
@@ -49,6 +51,12 @@ async function main() {
  await rejects(async()=>{await (await escrow.lockAll(t,{gasLimit:300000})).wait();});
  assert.equal(await escrow.locked(t,o),0n);assertions++;
  await (await token.setFail(false)).wait();
+ await (await token.setTaxed(true)).wait();
+ await rejects(async()=>{await (await escrow.lockAll(t,{gasLimit:300000})).wait();});
+ assert.equal(await escrow.locked(t,o),0n);assertions++;
+ assert.equal(await token.balanceOf(o),100n);assertions++;
+ assert.equal(await token.allowance(o,e),100n);assertions++;
+ await (await token.setTaxed(false)).wait();
  await (await escrow.lockAll(t)).wait();
  assert.equal(await escrow.locked(t,o),100n);assertions++;
  assert.equal(await token.balanceOf(o),0n);assertions++;
@@ -57,10 +65,30 @@ async function main() {
  await rejects(async()=>{await (await escrow.unlock(t,{gasLimit:300000})).wait();});
  assert.equal(await escrow.locked(t,o),100n);assertions++;
  await (await token.setFail(false)).wait();
+ await (await token.setTaxed(true)).wait();
+ await rejects(async()=>{await (await escrow.unlock(t,{gasLimit:300000})).wait();});
+ assert.equal(await escrow.locked(t,o),100n);assertions++;
+ assert.equal(await token.balanceOf(e),100n);assertions++;
+ assert.equal(await token.balanceOf(o),0n);assertions++;
+ await (await token.setTaxed(false)).wait();
  await (await escrow.unlock(t)).wait();
  assert.equal(await token.balanceOf(o),100n);assertions++;
  assert.equal(await escrow.locked(t,o),0n);assertions++;
  await rejects(()=>escrow.unlock.staticCall(t));
+ const x=await outsider.getAddress();
+ await (await token.transfer(x,25n)).wait();
+ await (await token.approve(e,75n)).wait();
+ await (await token.connect(outsider).approve(e,25n)).wait();
+ await (await escrow.lockAll(t)).wait();
+ await (await escrow.connect(outsider).lockAll(t)).wait();
+ assert.equal(await escrow.locked(t,o),75n);assertions++;
+ assert.equal(await escrow.locked(t,x),25n);assertions++;
+ await (await escrow.connect(outsider).unlock(t)).wait();
+ assert.equal(await token.balanceOf(x),25n);assertions++;
+ assert.equal(await escrow.locked(t,o),75n);assertions++;
+ await (await escrow.unlock(t)).wait();
+ assert.equal(await token.balanceOf(o),75n);assertions++;
+ assert.equal(await token.balanceOf(e),0n);assertions++;
  console.log(JSON.stringify({compiler:solc.version(),runtime:'existing Hardhat in-process EVM',assertions,
   result:'PASS',scope:'EVM escrow contract execution; not TRON TVM deployment or provider API integration'}));
 }
