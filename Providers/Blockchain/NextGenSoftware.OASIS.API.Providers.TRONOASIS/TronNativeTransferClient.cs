@@ -364,7 +364,7 @@ public sealed class TronNativeTransferClient
         if (response.Result == null || !response.Result.Result || response.ConstantResult.Count != 1)
             throw new InvalidOperationException("TRON constant query failed or returned an ambiguous ABI result.");
         if (response.Transaction != null && response.Transaction.Ret.Any(ret =>
-            (int)ret.ContractRet != 1)) // Protocol contract SUCCESS, matching solidified-receipt validation.
+            (int)ret.ContractRet != 0 && (int)ret.ContractRet != 1)) // Constant calls may omit contractRet; committed receipts still require SUCCESS.
             throw new InvalidOperationException("TRON constant contract execution failed.");
         return response.ConstantResult[0].ToByteArray();
     }
@@ -389,10 +389,50 @@ public sealed class TronNativeTransferClient
 
     private static void ValidateAbiCall(byte[] abiData)
     {
-        if (abiData == null || abiData.Length < 4 || (abiData.Length - 4) % 32 != 0)
-            throw new ArgumentException("A four-byte selector and complete 32-byte ABI argument words are required.");
-        if (abiData.Length > 1024 * 1024)
-            throw new ArgumentException("ABI call exceeds the one MiB input limit.");
+        if (abiData == null || abiData.Length < 4 || (abiData.Length - 4) % 32 != 0 || abiData.Length > 1024 * 1024)
+            throw new ArgumentException("A bounded canonical ABI selector and encoded argument words are required.");
+    }
+
+    /// <summary>Deploys caller-supplied creation bytecode with no ABI registry or implicit constructor arguments.</summary>
+    public async Task<(string TransactionId, string ContractAddress)> DeployBytecodeAsync(string ownerAddress,
+        byte[] creationBytecode, string privateKey, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (creationBytecode == null || creationBytecode.Length == 0 || creationBytecode.Length > 1024 * 1024)
+            throw new ArgumentException("Bounded creation bytecode is required.");
+        if (!System.Text.RegularExpressions.Regex.IsMatch(privateKey ?? "", "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var owner = _wallet.ParseAddress(ownerAddress);
+        if (!owner.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
+            throw new ArgumentException("Deployment signer does not own the requested address.");
+        var requested = new CreateSmartContract
+        {
+            OwnerAddress = owner,
+            NewContract = new SmartContract
+            {
+                OriginAddress = owner, Bytecode = ByteString.CopyFrom(creationBytecode), Name = "OASIS",
+                ConsumeUserResourcePercent = 100, OriginEnergyLimit = 10000000
+            }
+        };
+        await VerifyNetworkAsync(cancellationToken);
+        var unsigned = await _wallet.GetProtocol().DeployContractAsync(requested, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (unsigned.Result?.Result != true || unsigned.Transaction?.RawData == null)
+            throw new InvalidOperationException("TRON node rejected contract deployment construction.");
+        var raw = unsigned.Transaction.RawData;
+        if (raw.Contract.Count != 1 || raw.Contract[0].Type != Transaction.Types.Contract.Types.ContractType.CreateSmartContract
+            || !raw.Contract[0].Parameter.Unpack<CreateSmartContract>().Equals(requested))
+            throw new InvalidOperationException("TRON node changed the requested deployment.");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
+            throw new InvalidOperationException("TRON deployment timestamps are invalid.");
+        raw.FeeLimit = 100000000;
+        var hash = await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, "", cancellationToken, requireContractSuccess: true);
+        var receipt = await _wallet.GetSolidityProtocol().GetTransactionInfoByIdAsync(
+            new BytesMessage { Value = ByteString.CopyFrom(Convert.FromHexString(hash)) }, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        ValidateSolidifiedReceipt(receipt, ByteString.CopyFrom(Convert.FromHexString(hash)), true, false, false);
+        if (receipt.ContractAddress.Length != 21 || receipt.ContractAddress[0] != 0x41)
+            throw new InvalidOperationException("Deployment receipt lacks a native TRON contract address.");
+        return (hash, NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(receipt.ContractAddress.ToByteArray()));
     }
 
     public async Task<string> UnlockEscrowAsync(string owner, string escrowAddress, string tokenAddress,
