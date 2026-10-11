@@ -349,6 +349,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 var visited = new HashSet<string>(StringComparer.Ordinal);
                 var identities = new HashSet<string>(StringComparer.Ordinal);
                 var transactions = new List<IWalletTransaction>();
+                  decimal? previousConsensusTimestamp = null;
+                  var exactCutoff = decimal.Parse(cutoff, System.Globalization.CultureInfo.InvariantCulture);
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                 while (next != null)
                 {
@@ -368,8 +370,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     foreach (var tx in txArray.EnumerateArray())
                     {
                         var walletTx = MapMirrorWalletTransaction(tx, accountId);
-                        if (walletTx.CreatedDate.Ticks - DateTime.UnixEpoch.Ticks > cutoffTicks)
+                          var consensusTimestamp = decimal.Parse(tx.GetProperty("consensus_timestamp").GetString(),
+                              System.Globalization.CultureInfo.InvariantCulture);
+                          if (consensusTimestamp > exactCutoff)
                             throw new InvalidOperationException("Hedera history record exceeds the fixed scan timestamp.");
+                          if (previousConsensusTimestamp.HasValue && consensusTimestamp <= previousConsensusTimestamp.Value)
+                              throw new InvalidOperationException("Hedera history did not preserve strictly ascending consensus timestamps.");
+                          previousConsensusTimestamp = consensusTimestamp;
                         var identity = walletTx.NativeTransactionId + ":" + tx.GetProperty("consensus_timestamp").GetString();
                         if (!identities.Add(identity)) throw new InvalidOperationException("Hedera history returned a duplicate consensus record.");
                         transactions.Add(walletTx);
