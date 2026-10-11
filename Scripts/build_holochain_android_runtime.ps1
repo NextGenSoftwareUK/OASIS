@@ -8,10 +8,15 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $versionFile = Join-Path $PSScriptRoot 'holochain_android_runtime.version.json'
-$compatibilityPatches = @(
-    (Join-Path $PSScriptRoot 'patches/holochain-android-runtime-0.3.0-client-parcelers.patch'),
-    (Join-Path $PSScriptRoot 'patches/holochain-android-runtime-0.3.0-unity-kotlin.patch')
-)
+# The runtime source now comes from the NextGenSoftwareUK fork (branch oasis/holochain-0.7), where
+# both compatibility changes are committed, so no patches are applied at build time. The fork commit
+# was verified byte-identical to upstream a7b5bb1 + these patches (see reviewedFiles hashes).
+# Kept for reference / falling back to upstream:
+#$compatibilityPatches = @(
+#    (Join-Path $PSScriptRoot 'patches/holochain-android-runtime-0.3.0-client-parcelers.patch'),
+#    (Join-Path $PSScriptRoot 'patches/holochain-android-runtime-0.3.0-unity-kotlin.patch')
+#)
+$compatibilityPatches = @()
 $pin = Get-Content -LiteralPath $versionFile -Raw | ConvertFrom-Json
 $outputRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot $OutputDirectory))
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot 'artifacts'))
@@ -59,11 +64,13 @@ $expectedPatchedPaths = @($pin.patchedFiles.PSObject.Properties.Name | Sort-Obje
 if (Compare-Object $expectedPatchedPaths $actualDirtyPaths) {
     throw 'The pinned runtime source contains modifications outside the reviewed patch set. Use -CleanSource.'
 }
-foreach ($property in $pin.patchedFiles.PSObject.Properties) {
+# patchedFiles: files changed by build-time patches (none when building from the fork).
+# reviewedFiles: OASIS-modified files committed in the fork; their hashes pin the reviewed content.
+foreach ($property in @($pin.patchedFiles.PSObject.Properties) + @($pin.reviewedFiles.PSObject.Properties)) {
     $patchedPath = Join-Path $sourceRoot $property.Name
     $actualHash = (Get-FileHash -LiteralPath $patchedPath -Algorithm SHA256).Hash
     if ($actualHash -ne $property.Value) {
-        throw "Patched runtime file does not match its reviewed hash: '$($property.Name)'. Use -CleanSource."
+        throw "Runtime file does not match its reviewed hash: '$($property.Name)'. Use -CleanSource."
     }
 }
 
@@ -150,7 +157,10 @@ $dependencyArtifacts = @(Get-ChildItem -LiteralPath $dependencyPackageRoot -File
 $manifest = [ordered]@{
     schemaVersion = 1
     repository = $pin.repository
+    sourceBranch = $pin.branch
     sourceCommit = $actualCommit
+    upstreamRepository = $pin.upstreamRepository
+    upstreamCommit = $pin.upstreamCommit
     compatibilityPatches = @($compatibilityPatches | ForEach-Object {
         [ordered]@{ name = Split-Path $_ -Leaf; sha256 = (Get-FileHash $_ -Algorithm SHA256).Hash }
     })
