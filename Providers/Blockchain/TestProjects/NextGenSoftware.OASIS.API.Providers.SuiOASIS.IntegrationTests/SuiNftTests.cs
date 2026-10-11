@@ -39,10 +39,30 @@ public class SuiNftTests
         });
         Assert.IsFalse(minted.IsError, minted.Message);
         Assert.AreEqual(2, minted.Result.Web3NFTs.Count);
+        Assert.AreEqual(minted.Result.TransactionResult, minted.Result.SendNFTTransactionResult);
+        foreach (var nft in minted.Result.Web3NFTs)
+        {
+            Assert.AreEqual(minted.Result.TransactionResult, nft.SendNFTTransactionHash);
+            Assert.AreEqual(owner.Result.WalletAddressLegacy, nft.SendToAddressAfterMinting);
+        }
         var keys = minted.Result.Web3NFTs.ToDictionary(item => item.NFTTokenAddress, _ => settings.GetProperty("privateKey").GetString()!);
         var escrows = new HashSet<string>();
         try
         {
+            var direct = await provider.MintNFTAsync(new MintWeb3NFTRequest
+            {
+                Title = "Direct recipient mint", NumberToMint = 1,
+                NFTStandardType = Core.Enums.NFTStandardType.SuiObject,
+                SendToAddressAfterMinting = recipient.Result.WalletAddressLegacy
+            });
+            Assert.IsFalse(direct.IsError, direct.Message);
+            var directToken = direct.Result.Web3NFT.NFTTokenAddress;
+            keys.Add(directToken, recipient.Result.PrivateKey);
+            Assert.AreEqual(direct.Result.TransactionResult, direct.Result.SendNFTTransactionResult);
+            Assert.AreEqual(direct.Result.TransactionResult, direct.Result.Web3NFT.SendNFTTransactionHash);
+            var directOwner = await provider.LoadOnChainNFTDataAsync(directToken);
+            Assert.IsFalse(directOwner.IsError, directOwner.Message);
+            Assert.AreEqual(recipient.Result.WalletAddressLegacy, directOwner.Result.SendToAddressAfterMinting);
             var id = minted.Result.Web3NFT.NFTTokenAddress;
             var loaded = await provider.LoadOnChainNFTDataAsync(id);
             Assert.IsFalse(loaded.IsError, loaded.Message);

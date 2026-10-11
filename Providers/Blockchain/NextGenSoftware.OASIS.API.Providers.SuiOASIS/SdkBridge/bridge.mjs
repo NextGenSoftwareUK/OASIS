@@ -175,7 +175,7 @@ export async function invoke(request) {
     const committed = await execute(client, tx, signer, { objectTypes: true });
     const tokenIds = Object.entries(committed.objectTypes).filter(([, type]) => type === `${normalizeSuiAddress(request.packageAddress)}::nft::NFT`).map(([id]) => id);
     if (tokenIds.length !== request.count) throw new Error(`Mint ${committed.digest} committed but returned an unexpected NFT object count`);
-    return { transactionHash: committed.digest, tokenIds };
+    return { transactionHash: committed.digest, tokenIds, recipient: normalizeSuiAddress(request.recipient) };
   }
   if (['nftEscrowGet', 'nftUnlock'].includes(request.operation)) {
     if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.tokenId))
