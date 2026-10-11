@@ -276,13 +276,15 @@ public class AptosOASISIntegrationTests
 
         var burned = await provider.BurnTokenAsync(new BurnWeb3TokenRequest
         {
+            Amount = 0.25m,
             TokenAddress = symbol,
             OwnerPublicKey = "",
             OwnerPrivateKey = "",
             OwnerSeedPhrase = ""
         });
         Assert.IsFalse(burned.IsError, burned.Message);
-        Assert.IsTrue((await provider.GetCustomTokenBalanceAsync(symbol, owner)).IsError);
+        Assert.AreEqual(88.75m, (await provider.GetCustomTokenBalanceAsync(symbol, owner)).Result);
+        Assert.AreEqual(11m, (await provider.GetCustomTokenBalanceAsync(symbol, recipient.Result.WalletAddressLegacy)).Result);
     }
 
     [TestMethod]
