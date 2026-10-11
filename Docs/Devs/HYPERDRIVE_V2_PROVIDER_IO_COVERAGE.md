@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current Core TRON live V2 recheck (2026-10-11)
+
+`TronRealProviderRoutingTests.V2ReplicatesBalancesAndFailsOverDuringOwnedNodePause` passes **1/1**, zero skips, 51 seconds under Core `c21485ace9a5c75536514b74b0cc3199df19a741` (`TestResults/HyperDriveTron/tron-v2-routing.trx`). It reuses the immutable `oasis-tron-tre` runtime and existing storage contract/ledger: real avatar/detail and holon replication, update/delete, measured read selection, actual pause failover, failed-replica warning, explicit repair after recovery, and failed replica deletion warning. Explicit repair is not automatic durable replay. The same container was paused after completion; no download, installation, clone or ledger reset. Full all-operation and authenticated API coverage remain open, and Hedera deployment still requires funding.
+
 ### Expanded current Sui live storage coverage (2026-10-11)
 
 Real retained-node `SuiStorageTests` pass **3/3**, zero skips, 63 seconds (`TestResults/SuiRuntime/sui-storage-current.trx`). Added synchronous avatar ID/username/email and detail ID/username/email reads, plus async detail username resolution; existing cases exercise versions, avatar/detail indexes, parent/metadata filters, provider-key lookup, child loading, import/export, text search, proximity and deletion cleanup. This is direct-provider live evidence, not V2 routing of every operation or authenticated API coverage. Existing Sui 1.81.1 ledger/package was reused, owned PID 31926 stopped with validated SIGTERM after completion, no downloads/installs/reset/new environment. Complete operation-by-operation router and HTTP gates remain outstanding.
