@@ -405,7 +405,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             var hashgraphProvider = new HashgraphOASIS(
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint ?? "https://mainnet-public.mirrornode.hedera.com",
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295");
+                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295",
+                                consensusNodes: OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ConsensusNodes);
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
                             result.Result = hashgraphProvider;
                         }

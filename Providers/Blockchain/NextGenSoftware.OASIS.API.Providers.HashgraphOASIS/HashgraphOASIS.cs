@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private HttpClient _httpClient;
         private string _contractAddress;
         private readonly string _hederaNetwork;
+        private readonly Dictionary<string, string> _consensusNodes;
 
         public WalletManager WalletManager
         {
@@ -55,8 +56,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null)
         {
+            if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
+                throw new ArgumentException("An explicit supported Hedera network is required.", nameof(network));
+            if (network == "local" && (consensusNodes == null || consensusNodes.Count == 0))
+                throw new ArgumentException("Local Hedera requires configured consensus nodes.", nameof(consensusNodes));
+            if (network != "local" && consensusNodes != null && consensusNodes.Count != 0)
+                throw new ArgumentException("Custom consensus nodes are restricted to the local network.", nameof(consensusNodes));
+            _consensusNodes = consensusNodes == null ? null : new Dictionary<string, string>(consensusNodes);
+            if (_consensusNodes != null)
+                foreach (var node in _consensusNodes)
+                {
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(node.Key, @"\A127\.0\.0\.1:[0-9]+\z")
+                        || !Uri.TryCreate("http://" + node.Key, UriKind.Absolute, out var endpoint) || endpoint.Port <= 0
+                        || !System.Text.RegularExpressions.Regex.IsMatch(node.Value ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                        throw new ArgumentException("Local consensus nodes require loopback endpoints and numeric account IDs.", nameof(consensusNodes));
+                }
             _walletManager = walletManager;
             _hederaNetwork = network;
             this.ProviderName = "HashgraphOASIS";

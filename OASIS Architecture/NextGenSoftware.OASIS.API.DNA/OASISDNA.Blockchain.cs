@@ -83,6 +83,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class HashgraphOASISProviderSettings : ProviderSettingsBase
     {
+        public System.Collections.Generic.Dictionary<string, string> ConsensusNodes { get; set; } = new();
         public string RpcEndpoint { get; set; } = "https://mainnet-public.mirrornode.hedera.com/api/v1";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "295";
