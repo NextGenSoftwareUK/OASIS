@@ -2,11 +2,38 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using Moq;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests;
 
-public sealed class NFTStandardValidationTests
+[Collection("NFT provider registry")]
+public sealed class NFTStandardValidationTests : IDisposable
 {
+    private readonly IOASISBlockchainStorageProvider? _ownedProvider;
+
+    public NFTStandardValidationTests()
+    {
+        if (ProviderManager.Instance.GetProvider(ProviderType.EthereumOASIS) != null)
+            return;
+
+        var provider = new Mock<IOASISBlockchainStorageProvider>();
+        provider.SetupGet(x => x.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.EthereumOASIS));
+        provider.SetupGet(x => x.ProviderCategory).Returns(new EnumValue<ProviderCategory>(ProviderCategory.EVMBlockchain));
+        provider.SetupGet(x => x.ProviderCapabilities).Returns(new List<EnumValue<ProviderCategory>>());
+        provider.Setup(x => x.DeActivateProvider()).Returns(new OASISResult<bool> { Result = true });
+        _ownedProvider = provider.Object;
+        Assert.True(ProviderManager.Instance.RegisterProvider(_ownedProvider));
+    }
+
+    public void Dispose()
+    {
+        if (_ownedProvider != null)
+            ProviderManager.Instance.UnRegisterProvider(_ownedProvider);
+    }
+
     [Theory]
     [InlineData(NFTStandardType.SuiObject, ProviderType.SuiOASIS, true)]
     [InlineData(NFTStandardType.SuiObject, ProviderType.EthereumOASIS, false)]
@@ -40,3 +67,6 @@ public sealed class NFTStandardValidationTests
         Assert.Equal(3, (int)NFTStandardType.SuiObject);
     }
 }
+
+[CollectionDefinition("NFT provider registry", DisableParallelization = true)]
+public sealed class NFTProviderRegistryCollection;
