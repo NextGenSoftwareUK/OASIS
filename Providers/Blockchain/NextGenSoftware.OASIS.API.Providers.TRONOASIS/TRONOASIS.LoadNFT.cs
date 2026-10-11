@@ -236,55 +236,31 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         // }
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
-        {
-            var response = new OASISResult<IWeb3NFT>();
-            try
-            {
-                // Load NFT data from TRON blockchain using TronWeb API
-                // This would query TRON smart contracts for NFT metadata
-                var nft = new Web3NFT
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    JSONMetaDataURL = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
-                    Title = "TRON NFT",
-                    Description = "NFT from TRON blockchain",
-                    ImageUrl = "https://tronscan.org/images/logo.png"
-                };
-
-                response.Result = nft;
-                response.Message = "NFT data loaded from TRON blockchain successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from TRON: {ex.Message}");
-            }
-            return response;
-        }
+            => LoadOnChainNFTDataAsync(nftTokenAddress).GetAwaiter().GetResult();
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
             var response = new OASISResult<IWeb3NFT>();
             try
             {
-                // Load NFT data from TRON blockchain using TronWeb API
-                // This would query TRON smart contracts for NFT metadata
-                var nft = new Web3NFT
+                var asset = TronNativeTransferClient.ParseNftAddress(nftTokenAddress);
+                if (!IsProviderActivated)
+                {
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
+                }
+                var uri = await ExecuteRuntimeAsync(client => client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId));
+                response.Result = new Web3NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    JSONMetaDataURL = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
-                    Title = "TRON NFT",
-                    Description = "NFT from TRON blockchain",
-                    ImageUrl = "https://tronscan.org/images/logo.png"
+                    JSONMetaDataURL = uri,
+                    OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
                 };
-
-                response.Result = nft;
-                response.Message = "NFT data loaded from TRON blockchain successfully";
+                response.Message = "TRC721 existence and metadata URI queried through the verified SDK node; off-chain metadata is not fetched.";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from TRON: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from TRON: {ex.Message}", ex);
             }
             return response;
         }

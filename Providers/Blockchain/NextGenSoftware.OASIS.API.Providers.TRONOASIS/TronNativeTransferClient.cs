@@ -399,6 +399,21 @@ public sealed class TronNativeTransferClient
         return data;
     }
 
+    public async Task<string> GetNftMetadataUriAsync(string contractAddress, System.Numerics.BigInteger tokenId,
+        CancellationToken cancellationToken = default)
+    {
+        var ownerCall = EncodeNftBurn(tokenId);
+        Convert.FromHexString("6352211e").CopyTo(ownerCall, 0); // ownerOf(uint256)
+        var ownerBytes = await QueryContractAsync(contractAddress, contractAddress, ownerCall, cancellationToken);
+        var owner = (System.Numerics.BigInteger)TronStorageBackend.Decode(ownerBytes, "uint256")[0].Result;
+        if (owner <= 0 || owner >= (System.Numerics.BigInteger.One << 160))
+            throw new InvalidOperationException("NFT ownerOf did not return a nonzero ABI address.");
+        var uriCall = EncodeNftBurn(tokenId);
+        Convert.FromHexString("c87b56dd").CopyTo(uriCall, 0); // tokenURI(uint256)
+        var uriBytes = await QueryContractAsync(contractAddress, contractAddress, uriCall, cancellationToken);
+        return (string)TronStorageBackend.Decode(uriBytes, "string")[0].Result;
+    }
+
     internal static (string Contract, System.Numerics.BigInteger TokenId) ParseNftAddress(string address)
     {
         var parts = address?.Split('/');

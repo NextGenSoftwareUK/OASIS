@@ -5,6 +5,23 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronNftCustodyTests
 {
     [Theory]
+    [InlineData("")]
+    [InlineData("contract")]
+    [InlineData("contract/-1")]
+    [InlineData("contract/00000000-0000-0000-0000-000000000000")]
+    public async Task MetadataReadCannotFabricateSuccessForMissingNativeIdentity(string address)
+    {
+        var provider = new TRONOASIS();
+        var asyncResult = await provider.LoadOnChainNFTDataAsync(address);
+        var syncResult = provider.LoadOnChainNFTData(address);
+        Assert.True(asyncResult.IsError);
+        Assert.True(syncResult.IsError);
+        Assert.Null(asyncResult.Result);
+        Assert.Null(syncResult.Result);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    [Theory]
     [InlineData("-1")]
     [InlineData("1.5")]
     [InlineData("00000000-0000-0000-0000-000000000000")]
