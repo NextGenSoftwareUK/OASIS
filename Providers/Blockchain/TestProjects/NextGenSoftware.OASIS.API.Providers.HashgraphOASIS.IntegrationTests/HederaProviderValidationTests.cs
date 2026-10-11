@@ -7,6 +7,31 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaProviderValidationTests
 {
     [TestMethod]
+    public void LocalNetworkRequiresExplicitConsensusNodes()
+    {
+        Assert.ThrowsException<ArgumentException>(() => new HashgraphOASIS(network: "local"));
+        Assert.ThrowsException<ArgumentException>(() => new HashgraphOASIS(network: "typo"));
+    }
+
+    [DataTestMethod]
+    [DataRow("remote.example:50211", "0.0.3")]
+    [DataRow("127.0.0.1:0", "0.0.3")]
+    [DataRow("127.0.0.1:70000", "0.0.3")]
+    [DataRow("127.0.0.1:50211", "invalid")]
+    public void LocalConsensusConfigurationRejectsInvalidTargets(string endpoint, string account)
+    {
+        Assert.ThrowsException<ArgumentException>(() => new HashgraphOASIS(network: "local",
+            consensusNodes: new Dictionary<string, string> { [endpoint] = account }));
+    }
+
+    [TestMethod]
+    public void PublicNetworkCannotSilentlyUseCustomNodes()
+    {
+        Assert.ThrowsException<ArgumentException>(() => new HashgraphOASIS(network: "testnet",
+            consensusNodes: new Dictionary<string, string> { ["127.0.0.1:50211"] = "0.0.3" }));
+    }
+
+    [TestMethod]
     public async Task NativeAmountPrecisionIsRejectedBeforeSdkSubmission()
     {
         var provider = new HashgraphOASIS(network: "testnet");
