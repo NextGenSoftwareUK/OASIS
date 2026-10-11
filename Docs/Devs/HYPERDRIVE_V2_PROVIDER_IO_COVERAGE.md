@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### WEB4 HyperDrive HTTP pipeline checkpoint (2026-10-11)
+
+Existing WebApplicationFactory test host now exercises actual HTTP `GET /api/hyperdrive/{mode,config,status}`. Six cases pass **6/6**, zero skips (`TestResults/Web4Current/web4-hyperdrive-http-auth.trx`): no authenticated avatar yields HTTP 401; the existing test authentication handler yields HTTP 200, non-error OASIS envelopes and non-null results. Host disables background services and uses retained host DLL; this is not real JWT authentication, current full rebuild/deployment parity, live-provider execution or all-route coverage. The test project lacked restored metadata and its ASP.NET testing package was absent from the inspected cache; only that project was restored with `--no-dependencies`, then reused with bounded no-restore builds. No duplicate checkout/provider runtime or ledger was created. JWT, provider operations and remaining release gates stay open.
+
 ### Reused WEB4 command-test checkpoint (2026-10-11)
 
 The WEB4 host's existing build/restore artifacts were present; its unit project lacked `project.assets.json`. Restored only that project with `--no-dependencies`, then used bounded `--no-restore` tests with `BuildProjectReferences=false`, preserving the existing host build/environment. HyperDrive-filtered WEB4 unit tests pass **4/4**, zero skips (`TestResults/Web4Current/web4-hyperdrive-current.trx`). These command/configuration tests use the retained host DLL and controlled providers; they do not establish freshly rebuilt API/source parity, authenticated HTTP, DTO binding, authorization or live provider behavior. Separate HTTP and full current publish gates remain required. No new checkout/runtime/service/ledger was created, and no deployment/merge occurred.
