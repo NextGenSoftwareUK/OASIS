@@ -11,6 +11,35 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class EncryptedKeyValueBackendTests
 {
     [TestMethod]
+    public async Task AuthenticatedCompressedRecordsRejectExpansionBombAndInvalidGzip()
+    {
+        var store = new InMemoryBackend();
+        var key = RandomNumberGenerator.GetBytes(32);
+        using var backend = new EncryptedKeyValueBackend(store, key, compress: true);
+        byte[] compressed;
+        using (var stream = new System.IO.MemoryStream())
+        {
+            using (var gzip = new System.IO.Compression.GZipStream(stream,
+                System.IO.Compression.CompressionLevel.SmallestSize, leaveOpen: true))
+                gzip.Write(new byte[4 * 1024 * 1024 + 1]);
+            compressed = stream.ToArray();
+        }
+        foreach (var invalid in new[] { compressed, new byte[] { 1, 2, 3, 4, 5 } })
+        {
+            const string format = "oasis-aes256gcm-gzip-v2:";
+            var payload = new byte[28 + invalid.Length];
+            RandomNumberGenerator.Fill(payload.AsSpan(0, 12));
+            using (var aes = new AesGcm(key, 16))
+                aes.Encrypt(payload.AsSpan(0, 12), invalid, payload.AsSpan(28), payload.AsSpan(12, 16),
+                    System.Text.Encoding.UTF8.GetBytes(format + "invalid"));
+            store.Items["invalid"] = format + Convert.ToBase64String(payload);
+            var original = store.Items["invalid"];
+            await Assert.ThrowsExceptionAsync<System.IO.InvalidDataException>(() => backend.GetAsync("invalid"));
+            Assert.AreEqual(original, store.Items["invalid"]);
+        }
+    }
+
+    [TestMethod]
     public async Task CompressedRecordsPreserveFullUnicodeAndReadExistingVersionOne()
     {
         var store = new InMemoryBackend();

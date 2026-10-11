@@ -91,11 +91,18 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
                 if (plaintext.Length > MaximumExpandedBytes)
                     throw new InvalidDataException("Encrypted record exceeds its compression input limit.");
                 using var compressed = new MemoryStream();
-                using (var gzip = new GZipStream(compressed, CompressionLevel.SmallestSize, leaveOpen: true))
-                    gzip.Write(plaintext);
-                var original = plaintext;
-                plaintext = compressed.ToArray();
-                CryptographicOperations.ZeroMemory(original);
+                try
+                {
+                    using (var gzip = new GZipStream(compressed, CompressionLevel.SmallestSize, leaveOpen: true))
+                        gzip.Write(plaintext);
+                    var original = plaintext;
+                    plaintext = compressed.ToArray();
+                    CryptographicOperations.ZeroMemory(original);
+                }
+                finally
+                {
+                    if (compressed.TryGetBuffer(out var bytes)) CryptographicOperations.ZeroMemory(bytes.AsSpan());
+                }
             }
             catch { CryptographicOperations.ZeroMemory(plaintext); throw; }
         }
