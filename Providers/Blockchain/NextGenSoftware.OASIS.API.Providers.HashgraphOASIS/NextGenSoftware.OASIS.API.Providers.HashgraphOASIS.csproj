@@ -57,7 +57,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Chaos.NaCl.Standard" Version="*" />
+    <PackageReference Include="Chaos.NaCl.Standard" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

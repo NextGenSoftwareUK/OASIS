@@ -3,6 +3,9 @@ using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
@@ -94,12 +97,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
+                SearchOnlyForCurrentAvatar = false,
+                FilterByMetaData = new Dictionary<string, string> { ["Username"] = "TestUser" }
             };
 
             // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
+            var result = await _provider.SearchAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);
@@ -113,12 +116,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests
             // Arrange
             var searchParams = new SearchParams
             {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
+                SearchOnlyForCurrentAvatar = false,
+                FilterByMetaData = new Dictionary<string, string> { ["Name"] = "TestHolon" }
             };
 
             // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
+            var result = await _provider.SearchAsync(searchParams);
 
             // Assert
             Assert.IsNotNull(result);

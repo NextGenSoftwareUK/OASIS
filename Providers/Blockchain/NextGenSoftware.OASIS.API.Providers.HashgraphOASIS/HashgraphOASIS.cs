@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private bool _isActivated;
         private HttpClient _httpClient;
         private string _contractAddress;
+        private readonly string _hederaNetwork;
 
         public WalletManager WalletManager
         {
@@ -57,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null)
         {
             _walletManager = walletManager;
+            _hederaNetwork = network;
             this.ProviderName = "HashgraphOASIS";
             this.ProviderDescription = "Hashgraph Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS);
@@ -68,8 +70,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri(rpcEndpoint)
+                BaseAddress = NormalizeMirrorEndpoint(rpcEndpoint)
             };
+        }
+
+        internal static Uri NormalizeMirrorEndpoint(string endpoint)
+        {
+            var uri = new Uri(endpoint, UriKind.Absolute);
+            if (uri.UserInfo.Length != 0 || uri.Query.Length != 0 || uri.Fragment.Length != 0
+                || (uri.Scheme != "https" && !(uri.Scheme == "http" && uri.IsLoopback)))
+                throw new ArgumentException("Hedera mirror endpoint requires HTTPS or loopback HTTP, without credentials or query.");
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (path != "" && path != "/api/v1")
+                throw new ArgumentException("Hedera mirror endpoint must be a host root or /api/v1.");
+            return new UriBuilder(uri) { Path = "/api/v1/" }.Uri;
         }
 
 
