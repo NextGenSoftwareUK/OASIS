@@ -11,6 +11,30 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronTokenTransferSafetyTests
 {
     [Theory]
+    [InlineData("0")]
+    [InlineData("9007199254740993")]
+    public void ApprovalAbiSupportsExactAllowanceAndExplicitRevocation(string amount)
+    {
+        var address = new byte[21]; address[0] = 0x41; address[20] = 7;
+        var units = BigInteger.Parse(amount);
+        var data = (byte[])typeof(TronNativeTransferClient).GetMethod("EncodeApproval", BindingFlags.Static | BindingFlags.NonPublic)!
+            .Invoke(null, new object[] { ByteString.CopyFrom(address), units })!;
+        Assert.Equal("095EA7B3", Convert.ToHexString(data.AsSpan(0, 4)));
+        Assert.Equal(address.Skip(1), data.Skip(16).Take(20));
+        Assert.Equal(units, new BigInteger(data.AsSpan(36), isUnsigned: true, isBigEndian: true));
+    }
+
+    [Fact]
+    public async Task ApprovalCannotUseAnotherHoldersSigningKey()
+    {
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
+            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        var other = new TronECKey(new string('2', 64), TronNetwork.MainNet).GetPublicAddress();
+        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.ApproveTokenAsync(
+            other, other, other, BigInteger.One, new string('1', 64)));
+    }
+
+    [Theory]
     [InlineData(false, 0, "token")]
     [InlineData(true, -1, "token")]
     [InlineData(false, 1, "")]

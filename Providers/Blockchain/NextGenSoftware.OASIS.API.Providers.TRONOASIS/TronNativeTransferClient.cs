@@ -164,6 +164,16 @@ public sealed class TronNativeTransferClient
         if (precision > 255) throw new InvalidOperationException("TRC20 decimals exceed uint8.");
         var units = TokenUnits(amount, (int)precision);
         var data = EncodeTrc20Call(recipient, units, mint);
+        return await ExecuteContractAsync(source, contract, data, privateKey, memo, cancellationToken,
+            requireTransferReturn: recipient != null, allowVoidContractReturn: mint);
+    }
+
+    private async Task<string> ExecuteContractAsync(ByteString source, ByteString contract, byte[] data,
+        string privateKey, string memo, CancellationToken cancellationToken,
+        bool requireTransferReturn = false, bool allowVoidContractReturn = false)
+    {
+        var node = _wallet.GetProtocol();
+        var headers = _wallet.GetHeaders();
         var requested = new TriggerSmartContract { OwnerAddress = source, ContractAddress = contract, Data = ByteString.CopyFrom(data) };
         var unsigned = await node.TriggerContractAsync(requested, headers, DateTime.UtcNow.AddSeconds(15), cancellationToken);
         if (unsigned.Result == null || !unsigned.Result.Result || unsigned.Transaction?.RawData == null)
@@ -177,7 +187,40 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON node returned stale TRC20 transaction timestamps.");
         raw.FeeLimit = 100000000; // Maximum transaction fee, not an asset amount.
         return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo ?? "", cancellationToken,
-            requireContractSuccess: true, requireTransferReturn: recipient != null, allowVoidContractReturn: mint);
+            requireContractSuccess: true, requireTransferReturn: requireTransferReturn, allowVoidContractReturn: allowVoidContractReturn);
+    }
+
+    public async Task<string> ApproveTokenAsync(string owner, string tokenAddress, string spender,
+        System.Numerics.BigInteger rawUnits, string privateKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var signer = new TronECKey(privateKey, TronNetwork.MainNet);
+        var source = _wallet.ParseAddress(owner);
+        if (!source.Equals(_wallet.ParseAddress(signer.GetPublicAddress())))
+            throw new ArgumentException("Approval signing key does not own the requested token holder.");
+        var contract = _wallet.ParseAddress(tokenAddress);
+        if (contract.Length != 21 || contract[0] != 0x41)
+            throw new ArgumentException("A current TRON token contract is required.");
+        var data = EncodeApproval(_wallet.ParseAddress(spender), rawUnits);
+        await VerifyNetworkAsync(cancellationToken);
+        return await ExecuteContractAsync(source, contract, data, privateKey, "", cancellationToken,
+            requireTransferReturn: true);
+    }
+
+    internal static byte[] EncodeApproval(ByteString spender, System.Numerics.BigInteger rawUnits)
+    {
+        if (rawUnits < 0 || rawUnits >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentOutOfRangeException(nameof(rawUnits));
+        if (spender == null || spender.Length != 21 || spender[0] != 0x41)
+            throw new ArgumentException("A current TRON spender address is required.");
+        var data = new byte[68];
+        Convert.FromHexString("095ea7b3").CopyTo(data, 0);
+        spender.ToByteArray().AsSpan(1).CopyTo(data.AsSpan(16, 20));
+        var units = rawUnits.ToByteArray(isUnsigned: true, isBigEndian: true);
+        units.CopyTo(data, data.Length - units.Length);
+        return data;
     }
 
     internal static byte[] EncodeTrc20Call(ByteString recipient, System.Numerics.BigInteger units, bool mint = false)
