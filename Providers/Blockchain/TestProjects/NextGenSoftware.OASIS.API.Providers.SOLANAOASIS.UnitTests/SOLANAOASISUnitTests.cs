@@ -88,16 +88,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests
             Assert.IsFalse(_provider.IsProviderActivated);
         }
 
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
-        }
+        // Commented out: SolanaOASIS no longer has GetProviderVersion(), so this stopped the whole test project
+        // compiling. Restore it if a provider-version API comes back.
+        //[TestMethod]
+        //public void GetProviderVersion_ShouldReturnValidVersion()
+        //{
+        //    // Arrange & Act
+        //    var version = _provider.GetProviderVersion();
+        //
+        //    // Assert
+        //    Assert.IsNotNull(version);
+        //    Assert.IsFalse(string.IsNullOrEmpty(version));
+        //}
 
         [TestCleanup]
         public void Cleanup()
