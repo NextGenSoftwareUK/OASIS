@@ -7,6 +7,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaProviderValidationTests
 {
     [TestMethod]
+    public async Task InvalidReceiptIdentifierReturnsErrorRatherThanNotFound()
+    {
+        var result = await new HashgraphOASIS(network: "testnet").GetTransactionStatusAsync("not-a-transaction-id");
+        Assert.IsTrue(result.IsError, "SDK parsing failures must not be disguised as authoritative NotFound.");
+    }
+    [TestMethod]
     public void LocalNetworkRequiresExplicitConsensusNodes()
     {
         Assert.ThrowsException<ArgumentException>(() => new HashgraphOASIS(network: "local"));

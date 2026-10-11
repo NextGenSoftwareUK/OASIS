@@ -197,18 +197,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!IsProviderActivated)
+                var receipt = await HederaSdkClient.InvokeAsync("receipt", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var hashgraphClient = new HashgraphClient();
-                var status = await hashgraphClient.GetTransactionStatusAsync(transactionHash);
-
-                result.Result = status;
+                    network = _hederaNetwork, nodes = _consensusNodes, transactionId = transactionHash
+                }, token);
+                var status = receipt.GetProperty("status").GetString();
+                result.Result = status switch
+                {
+                    "SUCCESS" => BridgeTransactionStatus.Completed,
+                    "UNKNOWN" => BridgeTransactionStatus.Pending,
+                    "RECEIPT_NOT_FOUND" => BridgeTransactionStatus.NotFound,
+                    "TRANSACTION_EXPIRED" => BridgeTransactionStatus.Expired,
+                    "INSUFFICIENT_ACCOUNT_BALANCE" or "INSUFFICIENT_PAYER_BALANCE" => BridgeTransactionStatus.InsufficientFunds,
+                    "INSUFFICIENT_TX_FEE" => BridgeTransactionStatus.InsufficientFundsForFee,
+                    _ => throw new InvalidOperationException($"Hedera consensus receipt reports {status}.")
+                };
                 result.IsError = false;
-                result.Message = "Transaction status retrieved successfully";
+                result.Message = "Transaction status retrieved from the configured Hedera consensus network.";
             }
             catch (Exception ex)
             {

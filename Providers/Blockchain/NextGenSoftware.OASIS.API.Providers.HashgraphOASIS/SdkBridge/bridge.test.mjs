@@ -2,6 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execute, tokenUnits } from './bridge.mjs';
 
+test('invalid receipt ID is rejected before opening a consensus client', async () => {
+  await assert.rejects(execute('receipt', { network: 'testnet', transactionId: 'not-a-transaction-id' }));
+});
+
 for (const keyType of ['ed25519', 'ecdsa']) {
   test(`official SDK ${keyType} key generation and DER recovery`, async () => {
     const generated = await execute('generateKey', { keyType });
