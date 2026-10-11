@@ -16,6 +16,42 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class WalletTokenSubmissionTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LockPreservesAvatarAndSignerWithoutResubmittingReadbackFailure(bool asynchronous)
+    {
+        var provider = new Mock<IOASISBlockchainStorageProvider>();
+        provider.SetupGet(p => p.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.HashgraphOASIS));
+        var request = new LockWeb4TokenRequest
+        {
+            ProviderType = new EnumValue<ProviderType>(ProviderType.HashgraphOASIS), LockedByAvatarId = Guid.NewGuid(),
+            Web3TokenId = Guid.NewGuid(), TokenAddress = "0.0.3001", FromWalletAddress = "0.0.1001",
+            FromWalletPrivateKey = "test-only-key", WaitTillTokenLocked = true, AttemptToLockEveryXSeconds = 0
+        };
+        var expected = new OASISResult<ITransactionResponse>(new TransactionResponse { TransactionResult = "original-lock-id" })
+        { IsError = true, Message = "confirmed approval; mutation readback failed" };
+        var count = 0;
+        OASISResult<ITransactionResponse> Submit(ILockWeb3TokenRequest projected)
+        {
+            count++;
+            Assert.Equal(request.LockedByAvatarId, projected.LockedByAvatarId);
+            Assert.Equal(request.FromWalletAddress, projected.FromWalletAddress);
+            Assert.Equal(request.FromWalletPrivateKey, projected.FromWalletPrivateKey);
+            Assert.Equal(request.Web3TokenId, projected.Web3TokenId);
+            Assert.Equal(request.TokenAddress, projected.TokenAddress);
+            return expected;
+        }
+        provider.Setup(p => p.LockToken(It.IsAny<ILockWeb3TokenRequest>())).Returns((ILockWeb3TokenRequest r) => Submit(r));
+        provider.Setup(p => p.LockTokenAsync(It.IsAny<ILockWeb3TokenRequest>())).Returns((ILockWeb3TokenRequest r) => Task.FromResult(Submit(r)));
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA(); dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+        var providers = new ProviderManager(null, dna); Assert.True(providers.RegisterProvider(provider.Object));
+        var manager = new WalletManager(null, dna, providers);
+        var actual = asynchronous ? await manager.LockTokenAsync(request) : manager.LockToken(request);
+        Assert.Equal(1, count); Assert.Same(expected, actual);
+        Assert.Equal("confirmed approval; mutation readback failed", actual.Message);
+    }
+
+    [Theory]
     [InlineData(false, "readback")]
     [InlineData(true, "readback")]
     [InlineData(false, "success")]
