@@ -6,6 +6,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaCollectionTests
 {
     [DataTestMethod]
+    [DataRow("0.0.2001",false)]
+    [DataRow("0.0.2002",true)]
+    [DataRow("0.0.2003",true)]
+    public async Task DeletionProcessBoundaryRetainsTargetAndOriginalIdentity(string tokenId,bool error)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","hedera-collection.mjs"));
+        try
+        {
+            var provider=new HashgraphOASIS(network:"testnet");
+            var result=await provider.DeleteTokenCollectionAsync("0.0.1001","test-only-collection-key",tokenId,100000000);
+            Assert.AreEqual(error,result.IsError,result.Message);Assert.IsNotNull(result.Result);
+            Assert.AreEqual(tokenId,result.Result.TokenId);
+            StringAssert.StartsWith(result.Result.TransactionId,"0.0.1001@");
+            Assert.AreEqual(!error,result.Result.ConsensusVerified);
+            Assert.IsFalse((result.Message??"").Contains("test-only-collection-key"));
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
+
+    [DataTestMethod]
     [DataRow("0.0.0")]
     [DataRow("0.0.2001/1")]
     [DataRow(null)]
