@@ -51,11 +51,11 @@ public class LocalFileLatestVersionTests
         {
             (await provider.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
             (await provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
+            (await provider.LoadAvatarDetailAsync(detail.Id)).Result.Should().BeNull();
             await provider.DeActivateProviderAsync();
-            // No detail-delete API exists on this provider. Remove only this owned fixture file.
             var detailFile = Path.GetFullPath(Path.Combine(root, "files", "AvatarDetails", detail.Id + ".json"));
             detailFile.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
-            File.Delete(detailFile);
+            File.Exists(detailFile).Should().BeFalse("explicit permanent avatar deletion removes the associated detail");
         }
     }
 }
