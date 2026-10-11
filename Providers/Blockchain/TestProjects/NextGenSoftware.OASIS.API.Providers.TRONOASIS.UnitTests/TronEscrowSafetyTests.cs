@@ -9,6 +9,23 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronEscrowSafetyTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ProviderUnlockCannotInventPoolOrDepositor(bool avatarProvided)
+    {
+        var provider = new TRONOASIS(contractAddress: "not-an-escrow");
+        var result = await provider.UnlockTokenAsync(new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest
+        {
+            UnlockedByAvatarId = avatarProvided ? Guid.NewGuid() : Guid.Empty,
+            TokenAddress = "token"
+        });
+        Assert.True(result.IsError);
+        Assert.Null(result.Result);
+        Assert.False(provider.IsProviderActivated);
+        Assert.Contains(avatarProvided ? "EscrowContractAddress" : "UnlockedByAvatarId", result.Message);
+    }
+
+    [Theory]
     [InlineData(0, false)]
     [InlineData(1, true)]
     [InlineData(2, false)]

@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private readonly TRONClient _tronClient;
         private const string TRON_API_BASE_URL = "https://api.trongrid.io";
         private readonly string _contractAddress;
+        private readonly string _escrowContractAddress;
         private WalletManager _walletManager;
         private TronNativeTransferClient _nativeTransfers;
         private Func<string, Task<string>> _nativeSigningKeyResolver;
@@ -71,7 +72,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public TRONOASIS(string rpcEndpoint = "https://api.trongrid.io", string network = "mainnet", string chainId = "0x2b6653dc", string contractAddress = "", WalletManager walletManager = null,
             TronNativeTransferClient nativeTransfers = null, Func<string, Task<string>> nativeSigningKeyResolver = null,
             string fullNodeGrpcEndpoint = "", string solidityNodeGrpcEndpoint = "", string genesisBlockId = "",
-            string signingKeyEnvironmentVariable = "OASIS_TRON_PRIVATE_KEY", string apiKeyEnvironmentVariable = "OASIS_TRON_API_KEY")
+            string signingKeyEnvironmentVariable = "OASIS_TRON_PRIVATE_KEY", string apiKeyEnvironmentVariable = "OASIS_TRON_API_KEY",
+            string escrowContractAddress = "")
         {
             _nativeTransfers = nativeTransfers;
             _nativeSigningKeyResolver = nativeSigningKeyResolver;
@@ -82,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             _apiKeyEnvironmentVariable = apiKeyEnvironmentVariable;
             _walletManager = walletManager;
             _contractAddress = contractAddress ?? "";
+            _escrowContractAddress = escrowContractAddress ?? "";
             this.ProviderName = "TRONOASIS";
             this.ProviderDescription = "TRON Provider";
             this.ProviderType = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS);
