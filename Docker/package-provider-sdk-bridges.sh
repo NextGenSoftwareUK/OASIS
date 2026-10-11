@@ -15,16 +15,5 @@ for task_bridge in CosmosSdkBridge HederaSdkBridge NearSdkBridge SuiSdkBridge; d
   test -f "$task_path/package.json"
   test -f "$task_path/package-lock.json"
   npm ci --prefix "$task_path" --omit=dev --no-audit --no-fund
-  (cd "$task_path" && node --input-type=module -e '
-    import fs from "node:fs";
-    const manifest = JSON.parse(fs.readFileSync("package.json", "utf8"));
-    const source = fs.readFileSync("bridge.mjs", "utf8");
-    const modules = [...source.matchAll(/\bfrom\s+["\x27]([^"\x27]+)["\x27]/g)].map(match => match[1]);
-    for (const name of new Set(modules)) await import(name);
-    for (const dependency of Object.keys(manifest.dependencies ?? {})) {
-      if (!modules.some(name => name === dependency || name.startsWith(`${dependency}/`)))
-        throw new Error(`Declared SDK ${dependency} has no verified bridge import`);
-    }
-    console.log(`${manifest.name}: SDK imports verified`);
-  ')
+  node "$(dirname "$0")/verify-provider-sdk-bridge.mjs" "$task_path"
 done
