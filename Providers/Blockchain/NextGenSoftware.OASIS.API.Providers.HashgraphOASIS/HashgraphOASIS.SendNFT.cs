@@ -148,11 +148,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     throw new InvalidOperationException("The requested Hedera NFT is deleted.");
                 var metadata = data.GetProperty("metadata").GetString();
                 var bytes = Convert.FromBase64String(metadata ?? "");
+                if (bytes.Length > 100)
+                    throw new InvalidOperationException("Hedera mirror NFT metadata exceeds the HTS 100-byte limit.");
                 // HTS metadata is arbitrary bytes, not necessarily a JSON document or UTF-8 URL.
                 var text = Encoding.UTF8.GetString(bytes);
                 if (!Encoding.UTF8.GetBytes(text).SequenceEqual(bytes)) text = null;
                 var owner = data.GetProperty("account_id").GetString();
-                if (!System.Text.RegularExpressions.Regex.IsMatch(owner ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                if (!System.Text.RegularExpressions.Regex.IsMatch(owner ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                     throw new InvalidOperationException("Hedera mirror returned no valid owner account.");
                 {
                     var nft = new Web3NFT
@@ -162,6 +164,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         Description = "NFT metadata loaded from Hedera mirror node.",
                         NFTTokenAddress = nftTokenAddress,
                         CollectionPublicKey = asset.TokenId,
+                        SendToAddressAfterMinting = owner,
                         JSONMetaDataURL = Uri.TryCreate(text, UriKind.Absolute, out _) ? text : null,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
                         MetaData = new Dictionary<string, string>
