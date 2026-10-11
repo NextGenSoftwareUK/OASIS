@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Direct HTS NFT mint integrity/batch validation (2026-10-11)
+
+The direct SDK mint builder now rejects unpaired UTF-16 surrogates before Buffer encoding and requires one to ten metadata entries, matching the existing C# mint batch contract. A regression verifies invalid high/low surrogates and eleven-item batches reject before network access; an actual SDK wire roundtrip preserves a valid ten-item Unicode batch. Full SDK suite **79/79**, zero skips. This extends the prior collection/update Unicode fix to mint and does not claim live HTS minting, large-batch orchestration, authenticated API or overall completion. No ledger mutation, installation or download occurred.
+
 ### Broader current Hedera non-funded regression audit (2026-10-11)
 
 Full test-project selection excluding only funded storage and transfer classes passes **181/181**, zero skips (`hedera-current-nonfunded.trx`), including current collection/metadata tests. Initial run was **177/181**: four historical tests constructed the provider with no storage config but expected successful saves/searches. The class now explicitly tests unconfigured-storage failure; save/read/search cases require the missing-contract configuration error, not fake persistence. Two search fixtures also lacked required text groups and initially hit input-validation errors; valid groups now exercise the intended storage boundary. Production code was unchanged for this correction. Positive funded encrypted CRUD/restart remains separately defined in `HederaTestnetStorageTests` and unverified because no storage contract is deployed; this green non-funded selection must not be called live storage or all-provider completion. No installation or ledger mutation.
