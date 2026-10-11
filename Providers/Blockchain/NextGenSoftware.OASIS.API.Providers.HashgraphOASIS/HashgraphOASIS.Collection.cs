@@ -19,6 +19,7 @@ public sealed class HederaNftCollectionResponse
 
 public partial class HashgraphOASIS
 {
+    private static readonly UTF8Encoding CollectionUtf8 = new UTF8Encoding(false, true);
     public async Task<OASISResult<HederaNftCollectionResponse>> UpdateNftMetadataAsync(
         string senderAccountId, string privateKeyDer, string tokenId, long[] serials, string metadata,
         long maxFeeTinybars, CancellationToken cancellationToken = default)
@@ -32,7 +33,7 @@ public partial class HashgraphOASIS
             if (serials == null || serials.Length < 1 || serials.Length > 10 || serials.Any(value => value <= 0)
                 || serials.Distinct().Count() != serials.Length)
                 throw new ArgumentException("One to ten unique positive int64 NFT serials are required.");
-            if (metadata == null || Encoding.UTF8.GetByteCount(metadata) > 100)
+            if (metadata == null || CollectionUtf8.GetByteCount(metadata) > 100)
                 throw new ArgumentException("Explicit NFT metadata of at most 100 UTF-8 bytes is required.");
             if (maxFeeTinybars <= 0 || string.IsNullOrWhiteSpace(privateKeyDer))
                 throw new ArgumentException("An explicit DER metadata signing key and positive fee ceiling are required.");
@@ -96,7 +97,7 @@ public partial class HashgraphOASIS
             if (!Regex.IsMatch(senderAccountId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                 throw new ArgumentException("An explicit nonzero numeric collection payer is required.");
             foreach (var value in new[] { name, symbol })
-                if (string.IsNullOrWhiteSpace(value) || Encoding.UTF8.GetByteCount(value) > 100)
+                if (string.IsNullOrWhiteSpace(value) || CollectionUtf8.GetByteCount(value) > 100)
                     throw new ArgumentException("Collection name and symbol require 1 to 100 UTF-8 bytes.");
             if (maxSupply <= 0 || maxFeeTinybars <= 0)
                 throw new ArgumentException("Collection supply and fee ceiling must be positive int64 values.");

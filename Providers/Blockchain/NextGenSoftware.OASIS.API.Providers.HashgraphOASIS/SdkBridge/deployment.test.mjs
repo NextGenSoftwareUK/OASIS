@@ -1,6 +1,13 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId} from '@hiero-ledger/sdk';
 import {deploymentTransaction} from './deployment.mjs';
+test('collection and NFT metadata reject malformed Unicode rather than replace it',()=>{
+ const key=PrivateKey.generateECDSA().publicKey;
+ for(const malformed of ['\ud800','\udfff']){
+  assert.throws(()=>deploymentTransaction('nftCollectionCreate',{...request,name:malformed,symbol:'OAK',maxSupply:'10'},key));
+  assert.throws(()=>deploymentTransaction('nftMetadataUpdate',{...request,tokenId:'0.0.2001',serials:['1'],metadata:malformed},key));
+ }
+});
 test('NFT metadata update uses native SDK wire fields with exact serials and UTF-8',()=>{
  const key=PrivateKey.generateECDSA().publicKey;
  const input={...request,tokenId:'0.0.2001',serials:['9007199254740993'],metadata:'Oak 🌳'};
