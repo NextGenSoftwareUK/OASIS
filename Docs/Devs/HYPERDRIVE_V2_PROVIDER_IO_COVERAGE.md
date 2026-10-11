@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Collection C#→Node boundary proof (2026-10-11)
+
+Collection tests now pass **9/9**, zero skips (`hedera-collection-validation.trx`): five input-validation cases plus four actual Node-process controlled transport cases. The fixture checks native action/network/payer, DER credential projection, exact supply `9007199254740993`, fee string and original transaction identity. Exact SUCCESS/native token ID marks consensus verified only in the controlled response scenario; failed process/native fee status, mismatched receipt identity and missing token ID retain the original requested ID but never claim verified collection creation. No key appears in returned errors. The fixture performs no SDK/consensus operations, and it is explicitly not live collection proof. Full funded lifecycle and public authenticated API integration remain gates.
+
 ### C# native collection boundary (2026-10-11)
 
 Concrete `HashgraphOASIS.CreateNftCollectionAsync` exposes the signed native SDK collection operation with explicit payer, DER key, name/symbol, finite int64 supply and fee ceiling. It allocates/retains the original transaction ID before SDK submission, requires exact SUCCESS receipt identity and a nonzero native token ID before setting `ConsensusVerified=true`, and preserves unverified transaction identity on failure. Credentials stay on stdin. Provider build passes; five pre-SDK validation cases pass **5/5**, zero skips (`hedera-collection-validation.trx`) in the existing restored integration project. Initial old unit-project invocation found missing assets and performed no restore; tests were moved to the existing reusable project. A test incorrectly assumed provider IDisposable and was corrected before successful execution. These tests do not verify real collection creation, shared interface/HTTP exposure, authenticated avatar signer resolution, or funded NFT lifecycle. Those gates remain open; no testnet transaction was submitted.
