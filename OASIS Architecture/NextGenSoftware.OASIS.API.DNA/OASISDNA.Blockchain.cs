@@ -75,6 +75,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string StorageOwnerAddress { get; set; } = "";
         public string StorageSigningKeyEnvironmentVariable { get; set; } = "OASIS_TRON_STORAGE_PRIVATE_KEY";
         public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_TRON_STORAGE_ENCRYPTION_KEY";
+        public long ContractFeeLimitSun { get; set; } = 100000000;
         public string ContractAddress { get; set; } = "";
         public string BridgePoolWalletAddress { get; set; } = "";
         public string EscrowContractAddress { get; set; } = "";

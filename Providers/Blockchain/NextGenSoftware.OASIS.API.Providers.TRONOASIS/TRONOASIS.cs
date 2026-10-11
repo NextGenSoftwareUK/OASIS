@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private TronSdkRuntime _ownedRuntime;
         private readonly string _fullNodeGrpcEndpoint, _solidityNodeGrpcEndpoint, _genesisBlockId;
         private readonly string _signingKeyEnvironmentVariable, _apiKeyEnvironmentVariable;
+        private readonly long _contractFeeLimitSun;
         private readonly SemaphoreSlim _runtimeLifecycle = new SemaphoreSlim(1, 1);
 
         public WalletManager WalletManager
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             string escrowContractAddress = "", string bridgePoolWalletAddress = "", TronPrivateStorageBackend storageBackend = null,
             string storageContractAddress = "", string storageOwnerAddress = "",
             string storageSigningKeyEnvironmentVariable = "OASIS_TRON_STORAGE_PRIVATE_KEY",
-            string storageEncryptionKeyEnvironmentVariable = "OASIS_TRON_STORAGE_ENCRYPTION_KEY")
+            string storageEncryptionKeyEnvironmentVariable = "OASIS_TRON_STORAGE_ENCRYPTION_KEY", long contractFeeLimitSun = 100000000)
             : base(new TronProviderStorageBackend(storageBackend))
         {
             ((TronProviderStorageBackend)Backend).Lifecycle = _runtimeLifecycle;
@@ -105,6 +106,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             _solidityNodeGrpcEndpoint = solidityNodeGrpcEndpoint;
             _genesisBlockId = genesisBlockId;
             _signingKeyEnvironmentVariable = signingKeyEnvironmentVariable;
+            if (contractFeeLimitSun <= 0) throw new ArgumentOutOfRangeException(nameof(contractFeeLimitSun));
+            _contractFeeLimitSun = contractFeeLimitSun;
             _apiKeyEnvironmentVariable = apiKeyEnvironmentVariable;
             _walletManager = walletManager;
             _contractAddress = contractAddress ?? "";
