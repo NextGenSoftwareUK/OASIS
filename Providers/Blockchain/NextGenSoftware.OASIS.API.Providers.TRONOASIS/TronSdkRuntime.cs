@@ -15,7 +15,7 @@ public sealed class TronSdkRuntime : IAsyncDisposable
 
     public TronNativeTransferClient NativeTransfers { get; }
 
-    public TronSdkRuntime(Uri fullNode, Uri solidityNode, string genesisBlockId, string apiKey = null)
+    public TronSdkRuntime(Uri fullNode, Uri solidityNode, string genesisBlockId, string apiKey = null, long contractFeeLimitSun = 100000000)
     {
         ValidateEndpoint(fullNode);
         ValidateEndpoint(solidityNode);
@@ -35,7 +35,7 @@ public sealed class TronSdkRuntime : IAsyncDisposable
             services.AddSingleton<IGrpcChannelClient>(new SharedChannels(_fullNode, _solidityNode));
             _services = services.BuildServiceProvider();
             NativeTransfers = new TronNativeTransferClient(_services.GetRequiredService<IWalletClient>(),
-                _services.GetRequiredService<ITransactionClient>(), genesisBlockId);
+                _services.GetRequiredService<ITransactionClient>(), genesisBlockId, contractFeeLimitSun);
         }
         catch
         {
