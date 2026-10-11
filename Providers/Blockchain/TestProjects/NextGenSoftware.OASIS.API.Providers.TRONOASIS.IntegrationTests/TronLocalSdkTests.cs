@@ -197,6 +197,11 @@ public sealed class TronLocalSdkTests
         Assert.True(before > 1m);
         var hash = await runtime.NativeTransfers.SendAsync(sender, recipient, 1m, SenderKey, "OASIS reusable local SDK test", bounded.Token);
         Assert.Matches("\\A[0-9a-fA-F]{64}\\z", hash);
+        var history = Assert.Single(await runtime.NativeTransfers.ReadWalletTransactionsAsync(sender, new[] { hash }, bounded.Token));
+        Assert.Equal(hash, history.NativeTransactionId);
+        Assert.Equal("1000000", history.RawAmount);
+        Assert.Equal("SUN", history.AmountUnit);
+        Assert.Equal(Guid.Empty, history.TransactionId);
         Assert.Equal(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,
             await runtime.NativeTransfers.GetTransactionStatusAsync(hash, bounded.Token));
         Assert.True(await runtime.NativeTransfers.GetNativeBalanceAsync(sender, bounded.Token) <= before - 1m);

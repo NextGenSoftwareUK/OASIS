@@ -207,6 +207,56 @@ public sealed class TronNativeTransferClient
         return true;
     }
 
+    public async Task<System.Collections.Generic.IReadOnlyList<Core.Interfaces.Wallet.Responses.IWalletTransaction>> ReadWalletTransactionsAsync(
+        string ownerAddress, System.Collections.Generic.IEnumerable<string> transactionIds, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var owner = _wallet.ParseAddress(ownerAddress);
+        await VerifyNetworkAsync(cancellationToken);
+        var items = new System.Collections.Generic.List<Core.Interfaces.Wallet.Responses.IWalletTransaction>();
+        foreach (var hash in transactionIds.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(hash ?? "", "\\A[0-9a-fA-F]{64}\\z")) throw new ArgumentException("Valid native transaction IDs are required.");
+            var id = new BytesMessage { Value = ByteString.CopyFrom(Convert.FromHexString(hash)) };
+            var transaction = await _wallet.GetSolidityProtocol().GetTransactionByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            if (!ValidateTransactionIdentity(transaction, id.Value)) throw new InvalidOperationException("Indexed transaction is not available from the solidified node.");
+            var receipt = await _wallet.GetSolidityProtocol().GetTransactionInfoByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            var contract = transaction.RawData.Contract.Single();
+            ValidateSolidifiedReceipt(receipt, id.Value, contract.Type == Transaction.Types.Contract.Types.ContractType.TriggerSmartContract
+                || contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract, false, false);
+            items.Add(MapWalletTransaction(transaction, receipt, owner));
+        }
+        return items;
+    }
+
+    internal static Core.Interfaces.Wallet.Responses.IWalletTransaction MapWalletTransaction(Transaction transaction, TransactionInfo receipt, ByteString wallet)
+    {
+        var contract = transaction.RawData.Contract.Single();
+        ByteString from, to; long amount;
+        switch (contract.Type)
+        {
+            case Transaction.Types.Contract.Types.ContractType.TransferContract:
+                var transfer = contract.Parameter.Unpack<TransferContract>(); from = transfer.OwnerAddress; to = transfer.ToAddress; amount = transfer.Amount; break;
+            case Transaction.Types.Contract.Types.ContractType.TriggerSmartContract:
+                var call = contract.Parameter.Unpack<TriggerSmartContract>(); from = call.OwnerAddress; to = call.ContractAddress; amount = call.CallValue; break;
+            case Transaction.Types.Contract.Types.ContractType.CreateSmartContract:
+                var create = contract.Parameter.Unpack<CreateSmartContract>(); from = create.OwnerAddress; to = receipt.ContractAddress; amount = create.NewContract.CallValue; break;
+            default: throw new InvalidOperationException("Native wallet mapping for " + contract.Type + " is not implemented; no fabricated transaction is returned.");
+        }
+        string Address(ByteString value) => value.Length == 21 && value[0] == 0x41
+            ? NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(value.ToByteArray()) : throw new InvalidOperationException("Invalid native transaction address.");
+        if (amount < 0) throw new InvalidOperationException("Negative native transaction amount.");
+        return new Core.Interfaces.Wallet.Response.WalletTransaction
+        {
+            NativeTransactionId = Convert.ToHexString(receipt.Id.Span).ToLowerInvariant(),
+            RawAmount = amount.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = "SUN", NativeOperation = contract.Type.ToString(),
+            FromWalletAddress = Address(from), ToWalletAddress = Address(to), Amount = (double)(amount / 1000000m),
+            CreatedDate = DateTimeOffset.FromUnixTimeMilliseconds(transaction.RawData.Timestamp).UtcDateTime,
+            TransactionType = from.Equals(wallet) ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
+            Description = "TRON " + contract.Type + ": " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
+        };
+    }
+
     internal static decimal NativeBalance(Account account, ByteString requested)
     {
         if (account == null || requested == null || requested.Length != 21 || requested[0] != 0x41
