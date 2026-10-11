@@ -279,38 +279,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                var transactionRequest = new
+                await _runtimeLifecycle.WaitAsync();
+                try
                 {
-                    to_address = toWalletAddress,
-                    owner_address = fromWalletAddress,
-                    amount = (long)(amount * 1000000)
-                };
-
-                var json = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
-                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
-                               tronResponse.TryGetProperty("transaction_id", out var txIdProp) ? txIdProp.GetString() : 
-                               "Transaction created successfully";
-
+                    if (!IsProviderActivated || _nativeTransfers == null || _nativeSigningKeyResolver == null)
+                        throw new InvalidOperationException("TRON signed transfer runtime is not active or signing credentials are not configured.");
+                    var privateKey = await _nativeSigningKeyResolver(fromWalletAddress);
+                    var transactionId = await _nativeTransfers.SendAsync(fromWalletAddress, toWalletAddress, amount, privateKey, memoText);
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TransactionResult = txId
+                        TransactionResult = transactionId
                     };
                     response.IsError = false;
-                    response.Message = "TRON transaction sent successfully";
+                    response.Message = "TRON transfer confirmed by a solidified receipt.";
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to send TRON transaction: {httpResponse.StatusCode}");
-                }
+                finally { _runtimeLifecycle.Release(); }
             }
             catch (Exception ex)
             {
@@ -356,40 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return response;
                 }
 
-                var transactionRequest = new
-                {
-                    to_address = toAddress.Result,
-                    owner_address = fromAddress.Result,
-                    amount = (long)(amount * 1000000) // Convert to SUN (TRON's smallest unit)
-                };
-
-                var json = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (transactionData.TryGetProperty("txID", out var txId))
-                    {
-                        response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                        {
-                            TransactionResult = txId.GetString()
-                        };
-                        response.IsError = false;
-                        response.Message = "Transaction sent to TRON blockchain successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to create transaction on TRON blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to send transaction to TRON: {httpResponse.StatusCode}");
-                }
+                return await SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, string.Empty);
             }
             catch (Exception ex)
             {
@@ -533,41 +483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return response;
                 }
 
-                // Send TRX transaction using TRON Grid API
-                var amountInSun = (long)(amount * 1_000_000m); // Convert to sun (smallest unit)
-                
-                var transferData = new
-                {
-                    owner_address = fromWalletAddress,
-                    to_address = toWalletAddress,
-                    amount = amountInSun
-                };
-
-                var json = JsonSerializer.Serialize(transferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-                    
-                    // TRON response data stored in TransactionResult
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txid
-                    };
-                    response.IsError = false;
-                    response.Message = "TRX transaction sent successfully on TRON blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to send TRX transaction on TRON blockchain");
-                }
+                return await SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, string.Empty);
             }
             catch (Exception ex)
             {
