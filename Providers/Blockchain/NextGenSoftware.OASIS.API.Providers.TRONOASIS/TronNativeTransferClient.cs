@@ -275,6 +275,45 @@ public sealed class TronNativeTransferClient
         return ExecuteNftAsync(owner, null, tokenAddress, tokenId, privateKey, null, cancellationToken);
     }
 
+    /// <summary>Calls the explicitly selected mint(address,uint256,string) collection extension.</summary>
+    public async Task<string> MintNftAsync(string owner, string recipient, string contractAddress,
+        System.Numerics.BigInteger tokenId, string metadataUri, string privateKey, string memo,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var source = _wallet.ParseAddress(owner);
+        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
+            throw new ArgumentException("NFT signing key does not own the requested minter.");
+        var contract = _wallet.ParseAddress(contractAddress);
+        EncodeAddressCall("ownerOf(uint256)", contract);
+        var data = EncodeNftMint(_wallet.ParseAddress(recipient), tokenId, metadataUri);
+        await VerifyNetworkAsync(cancellationToken);
+        return await ExecuteContractAsync(source, contract, data, privateKey, memo, cancellationToken);
+    }
+
+    internal static byte[] EncodeNftMint(ByteString recipient, System.Numerics.BigInteger tokenId, string metadataUri)
+    {
+        if (tokenId < 0 || tokenId >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentOutOfRangeException(nameof(tokenId));
+        if (string.IsNullOrWhiteSpace(metadataUri)) throw new ArgumentException("Metadata URI is required.");
+        var uri = new System.Text.UTF8Encoding(false, true).GetBytes(metadataUri);
+        if (uri.Length > 8192) throw new ArgumentException("Metadata URI exceeds the 8192-byte limit.");
+        var address = EncodeAddressCall("mint(address,uint256,string)", recipient);
+        if (recipient.ToByteArray().AsSpan(1).IndexOfAnyExcept((byte)0) < 0)
+            throw new ArgumentException("NFT mint recipient must not be the zero address.");
+        var data = new byte[132 + ((uri.Length + 31) / 32) * 32];
+        address.CopyTo(data, 0);
+        var id = tokenId.ToByteArray(isUnsigned: true, isBigEndian: true);
+        id.CopyTo(data, 68 - id.Length);
+        data[99] = 96; // Dynamic string offset from the start of ABI arguments.
+        var length = new System.Numerics.BigInteger(uri.Length).ToByteArray(isUnsigned: true, isBigEndian: true);
+        length.CopyTo(data, 132 - length.Length);
+        uri.CopyTo(data, 132);
+        return data;
+    }
+
     private async Task<string> ExecuteNftAsync(string from, string to, string tokenAddress,
         System.Numerics.BigInteger tokenId, string privateKey, string memo, CancellationToken cancellationToken)
     {

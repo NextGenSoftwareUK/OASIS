@@ -226,9 +226,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transaction)
         {
             var response = new OASISResult<IWeb3NFTTransactionResponse>();
-
             try
             {
+                ArgumentNullException.ThrowIfNull(transaction);
+                if (transaction.Amount != 1 || (transaction.NumberToMint.HasValue && transaction.NumberToMint != 1))
+                    throw new ArgumentException("This TRC721 collection extension mints exactly one explicit token ID per transaction.");
+                if (transaction.MintedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("MintedByAvatarId is required for minter signing-wallet resolution.");
+                if (transaction.MetaData == null
+                    || !transaction.MetaData.TryGetValue("MintFunctionSignature", out var signature)
+                    || signature != "mint(address,uint256,string)"
+                    || !transaction.MetaData.TryGetValue("TokenAddress", out var contract)
+                    || string.IsNullOrWhiteSpace(contract)
+                    || !transaction.MetaData.TryGetValue("TokenId", out var id)
+                    || !System.Text.RegularExpressions.Regex.IsMatch(id ?? "", "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(id, out var tokenId)
+                    || tokenId >= (System.Numerics.BigInteger.One << 256))
+                    throw new ArgumentException("Explicit mint(address,uint256,string) extension, TokenAddress and uint256 TokenId are required in MetaData.");
+                if (string.IsNullOrWhiteSpace(transaction.JSONMetaDataURL))
+                    throw new ArgumentException("JSONMetaDataURL must identify the NFT metadata; no URI is generated implicitly.");
+                if (transaction.StoreNFTMetaDataOnChain == true || transaction.FreezeMetadata == true
+                    || (transaction.RoyaltyPercentage.HasValue && transaction.RoyaltyPercentage != 0)
+                    || transaction.SendToAvatarAfterMintingId != Guid.Empty
+                    || !string.IsNullOrWhiteSpace(transaction.SendToAvatarAfterMintingUsername)
+                    || !string.IsNullOrWhiteSpace(transaction.SendToAvatarAfterMintingEmail))
+                    throw new ArgumentException("On-chain metadata, freeze, royalties and avatar-recipient resolution require explicit collection support.");
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(transaction.MintedByAvatarId,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the avatar's TRON minter signing wallet.");
+                var recipient = string.IsNullOrWhiteSpace(transaction.SendToAddressAfterMinting)
+                    ? wallet.Result.WalletAddress : transaction.SendToAddressAfterMinting;
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -239,38 +267,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                // Create TRON NFT mint transaction
-                var mintData = new
-                {
-                    to = "0x0", // Default to zero address for minting
-                    tokenId = Guid.NewGuid().ToString(),
-                    tokenURI = "https://api.trongrid.io/nft/metadata/" + Guid.NewGuid().ToString(),
-                    contractAddress = "TRC721_CONTRACT_ADDRESS"
-                };
-
-                var json = JsonSerializer.Serialize(mintData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
-                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
-                               "NFT minted successfully";
-
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txId
-                    };
-                    response.IsError = false;
-                    response.Message = "TRON NFT minted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to mint TRON NFT: {httpResponse.StatusCode}");
-                }
+                var hash = await ExecuteRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
+                    recipient, contract, tokenId, transaction.JSONMetaDataURL, wallet.Result.PrivateKey, transaction.MemoText));
+                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
+                response.Message = "TRC721 mint extension confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
