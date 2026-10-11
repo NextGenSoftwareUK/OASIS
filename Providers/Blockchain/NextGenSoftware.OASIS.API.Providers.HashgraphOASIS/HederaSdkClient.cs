@@ -62,14 +62,21 @@ internal static class HederaSdkClient
             if (process.ExitCode != 0)
             {
                 string transactionId = originalId;
+                string approvalId = null, mutationId = null, stage = null;
                 try
                 {
                     using var parsed = JsonDocument.Parse(failure);
                     if (parsed.RootElement.TryGetProperty("transactionId", out var id)) transactionId = id.GetString();
+                    if (parsed.RootElement.TryGetProperty("approvalTransactionId", out var approval)) approvalId = approval.GetString();
+                    if (parsed.RootElement.TryGetProperty("mutationTransactionId", out var mutation)) mutationId = mutation.GetString();
+                    if (parsed.RootElement.TryGetProperty("stage", out var phase)) stage = phase.GetString();
                 }
                 catch (JsonException) { }
-                throw new InvalidOperationException(transactionId == null ? "Hedera SDK operation failed."
-                    : $"Hedera consensus success was not established for {transactionId}. Track the original transaction before retrying.");
+                var reconciliation = (approvalId == null ? "" : $" Confirmed approval: {approvalId}.")
+                    + (mutationId == null ? "" : $" Original escrow mutation: {mutationId}.")
+                    + (stage == null ? "" : $" Failure stage: {stage}.");
+                throw new InvalidOperationException((transactionId == null ? "Hedera SDK operation failed."
+                    : $"Hedera verified success was not established for {transactionId}. Track the original transaction before retrying.") + reconciliation);
             }
             using var document = JsonDocument.Parse(response);
             return document.RootElement.Clone();
