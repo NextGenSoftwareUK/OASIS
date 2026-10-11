@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
+    <None Update="Fixtures\hedera-process-boundary.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
