@@ -313,64 +313,28 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
+                ArgumentNullException.ThrowIfNull(request);
+                if (string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.FromWalletAddress)
+                    || string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
+                    throw new ArgumentException("Token contract, depositor address and private signing key are required.");
+                if (string.IsNullOrWhiteSpace(_escrowContractAddress))
+                    throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrEmpty(request.TokenAddress) || string.IsNullOrEmpty(request.FromWalletPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
-                    return result;
-                }
-
-                // Lock token by transferring to bridge pool
-                var bridgePoolAddress = _contractAddress ?? "" ?? "T..."; // Bridge pool address
-                var senderAddress = bridgePoolAddress; // Would derive from private key in production
-                
-                var transferPayload = new
-                {
-                    owner_address = senderAddress,
-                    contract_address = request.TokenAddress,
-                    function_selector = "transfer(address,uint256)",
-                    parameter = $"{bridgePoolAddress.Substring(1).PadLeft(64, '0')}{1000000.ToString("X").PadLeft(64, '0')}",
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transferPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
-                    result.IsError = false;
-                    result.Message = "Token locked successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
+                var hash = await ExecuteRuntimeAsync(client => client.LockEscrowAsync(request.FromWalletAddress,
+                    _escrowContractAddress, request.TokenAddress, request.FromWalletPrivateKey));
+                result.Result = new TransactionResponse { TransactionResult = hash };
+                result.Message = "Spendable TRC20 balance deposited into owned escrow and confirmed by solidified receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error locking token: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error locking TRON escrow: {ex.Message}", ex);
             }
             return result;
         }

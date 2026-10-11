@@ -8,6 +8,30 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronEscrowSafetyTests
 {
+    [Fact]
+    public async Task LockRequiresSeparateEscrowConfigurationBeforeActivation()
+    {
+        var provider = new TRONOASIS(contractAddress: "not-an-escrow");
+        var result = await provider.LockTokenAsync(new Core.Objects.Wallet.Requests.LockWeb3TokenRequest
+        {
+            TokenAddress = "token", FromWalletAddress = "owner", FromWalletPrivateKey = "key"
+        });
+        Assert.True(result.IsError);
+        Assert.Null(result.Result);
+        Assert.False(provider.IsProviderActivated);
+        Assert.Contains("EscrowContractAddress", result.Message);
+    }
+
+    [Fact]
+    public async Task LockCannotSignAsAnotherDepositor()
+    {
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
+            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        var other = new TronNet.TronECKey(new string('2', 64), TronNet.TronNetwork.MainNet).GetPublicAddress();
+        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.LockEscrowAsync(
+            other, other, other, new string('1', 64)));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
