@@ -221,7 +221,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var jsonContent = await File.ReadAllTextAsync(file);
                             var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
                             
-                            if (avatar != null && avatar.Version == version)
+                            if (avatar != null && (version == 0 || avatar.Version == version))
                             {
                                 avatars.Add(avatar);
                             }
@@ -272,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     var jsonContent = await File.ReadAllTextAsync(avatarDetailFilePath);
                     var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent);
                     
-                    if (avatarDetail != null && avatarDetail.Version == version)
+                    if (avatarDetail != null && (version == 0 || avatarDetail.Version == version))
                     {
                         result.Result = avatarDetail;
                         result.IsError = false;
@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             
                             if (avatarDetail != null && avatarDetail.Email != null && 
                                 avatarDetail.Email.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) &&
-                                avatarDetail.Version == version)
+                                (version == 0 || avatarDetail.Version == version))
                             {
                                 result.Result = avatarDetail;
                                 result.IsError = false;
@@ -393,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             
                             if (avatarDetail != null && avatarDetail.Username != null && 
                                 avatarDetail.Username.Equals(avatarUsername, StringComparison.OrdinalIgnoreCase) &&
-                                avatarDetail.Version == version)
+                                (version == 0 || avatarDetail.Version == version))
                             {
                                 result.Result = avatarDetail;
                                 result.IsError = false;
@@ -452,7 +452,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var jsonContent = await File.ReadAllTextAsync(file);
                             var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent);
                             
-                            if (avatarDetail != null && avatarDetail.Version == version)
+                            if (avatarDetail != null && (version == 0 || avatarDetail.Version == version))
                             {
                                 avatarDetails.Add(avatarDetail);
                             }
