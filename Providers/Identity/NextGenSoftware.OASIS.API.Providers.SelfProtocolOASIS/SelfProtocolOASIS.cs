@@ -1,294 +1,447 @@
+extern alias BouncyCastleCryptography;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Globalization;
+using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Nethereum.ABI.FunctionEncoding;
+using Nethereum.ABI.FunctionEncoding.Attributes;
+using Nethereum.Contracts;
+using Nethereum.JsonRpc.Client;
+using Nethereum.Util;
+using Nethereum.Web3;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using RipeMD160Digest = BouncyCastleCryptography::Org.BouncyCastle.Crypto.Digests.RipeMD160Digest;
+
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.UnitTests")]
 
 namespace NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS
 {
-    /// <summary>Self Protocol — ZK identity verification using passport/NFC data.</summary>
-    public class SelfProtocolOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
+    [Function("registry", "address")]
+    internal sealed class RegistryFunction : FunctionMessage
     {
-        private readonly HttpClient _http;
-        private readonly string _apiUrl;
-        private readonly string _apiKey;
-        private readonly string _appId;
-        private bool _isActivated;
+        [Parameter("bytes32", "attestationId", 1)] public byte[] AttestationId { get; set; }
+    }
 
-        public SelfProtocolOASIS(string apiKey, string appId, string apiUrl = "https://self.xyz/api")
+    [Function("discloseVerifier", "address")]
+    internal sealed class DiscloseVerifierFunction : FunctionMessage
+    {
+        [Parameter("bytes32", "attestationId", 1)] public byte[] AttestationId { get; set; }
+    }
+
+    [Function("checkIdentityCommitmentRoot", "bool")]
+    internal sealed class CheckIdentityCommitmentRootFunction : FunctionMessage
+    {
+        [Parameter("uint256", "root", 1)] public BigInteger Root { get; set; }
+    }
+
+    [Function("verifyProof", "bool")]
+    internal sealed class VerifyProofFunction : FunctionMessage
+    {
+        [Parameter("uint256[2]", "a", 1)] public List<BigInteger> A { get; set; }
+        [Parameter("uint256[2][2]", "b", 2)] public List<List<BigInteger>> B { get; set; }
+        [Parameter("uint256[2]", "c", 3)] public List<BigInteger> C { get; set; }
+        [Parameter("uint256[21]", "pubSignals", 4)] public List<BigInteger> PubSignals { get; set; }
+    }
+
+    /// <summary>Self attestation document types (attestation ids in the Identity Verification Hub).</summary>
+    public enum SelfAttestation { Passport = 1, EuIdCard = 2 }
+
+    public enum SelfUserIdentifierType { Hex, Uuid }
+
+    /// <summary>The disclosure rules the app requested (the SDK's VerificationConfig).</summary>
+    public sealed class SelfVerificationConfig
+    {
+        public int? MinimumAge { get; init; }
+        /// <summary>ISO 3166-1 alpha-3 codes the proof must exclude.</summary>
+        public IReadOnlyList<string> ExcludedCountries { get; init; } = Array.Empty<string>();
+        public bool Ofac { get; init; }
+    }
+
+    /// <summary>The body Self posts to the app's verification endpoint.</summary>
+    public sealed class SelfVerificationRequest
+    {
+        public int AttestationId { get; init; }
+        public string[] A { get; init; }
+        public string[][] B { get; init; }
+        public string[] C { get; init; }
+        public string[] PublicSignals { get; init; }
+        public string UserContextData { get; init; }
+
+        public static SelfVerificationRequest FromJson(string json)
         {
-            _apiKey = apiKey;
-            _appId = appId;
-            _apiUrl = apiUrl?.TrimEnd('/') ?? "https://self.xyz/api";
-            _http = new HttpClient { BaseAddress = new Uri(_apiUrl + "/") };
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-            _http.DefaultRequestHeaders.Add("X-App-Id", _appId);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var proof = root.GetProperty("proof");
+            static string S(JsonElement e) => e.ValueKind == JsonValueKind.Number ? e.GetRawText() : e.GetString();
+            return new SelfVerificationRequest
+            {
+                AttestationId = root.GetProperty("attestationId").GetInt32(),
+                A = proof.GetProperty("a").EnumerateArray().Select(S).ToArray(),
+                B = proof.GetProperty("b").EnumerateArray().Select(r => r.EnumerateArray().Select(S).ToArray()).ToArray(),
+                C = proof.GetProperty("c").EnumerateArray().Select(S).ToArray(),
+                PublicSignals = root.GetProperty("publicSignals").EnumerateArray().Select(S).ToArray(),
+                UserContextData = root.GetProperty("userContextData").GetString()
+            };
+        }
+    }
+
+    public sealed class SelfDisclosure
+    {
+        public string Nullifier { get; init; }
+        public string IssuingState { get; init; }
+        public string Name { get; init; }
+        public string IdNumber { get; init; }
+        public string Nationality { get; init; }
+        public string DateOfBirth { get; init; }
+        public string Gender { get; init; }
+        public string ExpiryDate { get; init; }
+        public string MinimumAge { get; init; }
+        public bool[] Ofac { get; init; }
+    }
+
+    public sealed class SelfVerificationResult
+    {
+        public SelfAttestation Attestation { get; init; }
+        /// <summary>Whether the Groth16 proof verified on-chain.</summary>
+        public bool IsValid { get; init; }
+        public bool IsMinimumAgeValid { get; init; }
+        public bool IsOfacValid { get; init; }
+        public IReadOnlyList<string> ForbiddenCountries { get; init; }
+        public SelfDisclosure Disclosure { get; init; }
+        public string UserIdentifier { get; init; }
+        public string UserDefinedData { get; init; }
+    }
+
+    /// <summary>
+    /// Self Protocol provider. A port of the official @selfxyz/core SelfBackendVerifier: checks the user-context hash,
+    /// scope (Poseidon hash of endpoint host and scope), attestation id, identity-commitment Merkle root (Registry on
+    /// Celo), forbidden countries, minimum age, circuit date and OFAC flags, then verifies the Groth16 proof with the
+    /// disclose verifier the Identity Verification Hub designates. Proof generation happens in the Self app, so this is the
+    /// verifier side. Self is not a data store, so this is an <see cref="OASISProvider"/>.
+    /// </summary>
+    public class SelfProtocolOASIS : OASISProvider
+    {
+        public const string CeloMainnetRpcUrl = "https://forno.celo.org";
+        public const string CeloTestnetRpcUrl = "https://alfajores-forno.celo-testnet.org";
+        public const string HubAddress = "0xe57F4773bd9c9d8b6Cd70431117d353298B9f5BF";
+        public const string StagingHubAddress = "0x68c931C9a534D37aa78094877F46fE46a49F1A51";
+
+        private static readonly Dictionary<int, DiscloseIndices> Indices = new()
+        {
+            [1] = new DiscloseIndices(0, 3, 7, 8, 9, 10, 19, 20),
+            [2] = new DiscloseIndices(0, 4, 8, 9, 10, 11, 19, 20)
+        };
+
+        private static readonly Dictionary<int, int[]> RevealedBytesPerSignal = new() { [1] = new[] { 31, 31, 31 }, [2] = new[] { 31, 31, 31, 1 } };
+
+        private static readonly Dictionary<int, RevealedIndices> Revealed = new()
+        {
+            [1] = new RevealedIndices((2, 4), (5, 43), (44, 52), (54, 56), (57, 62), (64, 64), (65, 70), (88, 89), (90, 92)),
+            [2] = new RevealedIndices((2, 4), (60, 89), (5, 13), (45, 47), (30, 35), (37, 37), (38, 43), (90, 91), (92, 93))
+        };
+
+        private readonly IWeb3 _web3;
+        private readonly string _hub;
+        private readonly BigInteger _scope;
+        private readonly SelfUserIdentifierType _userIdentifierType;
+        private readonly Func<DateTimeOffset> _now;
+
+        /// <param name="scope">The app scope configured in the Self QR code.</param>
+        /// <param name="endpoint">The app's verification endpoint (its host is hashed into the scope).</param>
+        /// <param name="mockPassport">True for Self's staging hub on Celo Alfajores (mock passports).</param>
+        public SelfProtocolOASIS(string scope, string endpoint, bool mockPassport = false, SelfUserIdentifierType userIdentifierType = SelfUserIdentifierType.Uuid)
+            : this(new Web3(mockPassport ? CeloTestnetRpcUrl : CeloMainnetRpcUrl), mockPassport ? StagingHubAddress : HubAddress,
+                   HashEndpointWithScope(endpoint, scope), userIdentifierType, () => DateTimeOffset.UtcNow) { }
+
+        internal SelfProtocolOASIS(IWeb3 web3, string hub, BigInteger scope, SelfUserIdentifierType userIdentifierType, Func<DateTimeOffset> now)
+        {
+            _web3 = web3;
+            _hub = hub;
+            _scope = scope;
+            _userIdentifierType = userIdentifierType;
+            _now = now;
             ProviderName = "SelfProtocolOASIS";
-            ProviderDescription = "Self Protocol ZK Identity Verification Provider";
+            ProviderDescription = "Self Protocol passport/ID zero-knowledge proof verifier (Celo Identity Verification Hub).";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SelfProtocolOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Identity);
         }
 
-        // Convenience constructor for testing without credentials
-        public SelfProtocolOASIS(string apiUrl = "https://self.xyz/api")
-            : this("", "", apiUrl) { }
-
-        private async Task<string> GetJsonAsync(string path)
-        {
-            var resp = await _http.GetAsync(path);
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadAsStringAsync();
-        }
-
-        private async Task<string> PostJsonAsync(string path, object body)
-        {
-            var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
-            var resp = await _http.PostAsync(path, content);
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadAsStringAsync();
-        }
-
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            var r = new OASISResult<bool>();
+            var result = new OASISResult<bool>();
             try
             {
-                if (_isActivated) { r.Result = true; r.Message = "SelfProtocolOASIS already activated"; return r; }
-                var json = await GetJsonAsync("v1/status");
-                var obj = JObject.Parse(json);
-                _isActivated = true;
-                r.Result = true;
-                r.Message = $"SelfProtocolOASIS activated. Status: {obj["status"]?.ToString() ?? "ok"}";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS activation failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            var r = new OASISResult<bool>();
-            try { _isActivated = false; r.Result = true; r.Message = "SelfProtocolOASIS deactivated"; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS deactivation failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var r = new OASISResult<IAvatar>();
-            try
-            {
-                // The stored ProviderUniqueStorageKey for Self Protocol is the sessionId
-                // Load by sessionId which is stored as the avatar's provider key
-                var json = await GetJsonAsync($"v1/verify/session/{id}");
-                var obj = JObject.Parse(json);
-                var avatar = new Avatar { Id = id };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = id.ToString();
-                if (obj["verified"]?.Value<bool>() == true)
+                var code = await _web3.Eth.GetCode.SendRequestAsync(_hub);
+                if (string.IsNullOrEmpty(code) || code == "0x")
                 {
-                    var disclosures = obj["disclosures"];
-                    if (disclosures != null)
-                    {
-                        avatar.Username = disclosures["name"]?.ToString() ?? id.ToString();
-                        if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
-                        avatar.MetaData["SelfVerified"] = true;
-                        avatar.MetaData["Disclosures"] = disclosures.ToString();
-                    }
+                    OASISErrorHandling.HandleError(ref result, $"SelfProtocolOASIS: no Identity Verification Hub at {_hub}.");
+                    return result;
                 }
-                r.Result = avatar;
-                r.Message = $"SelfProtocol session {id} loaded";
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadAvatarAsync({id}): {ex.Message}", ex); }
-            return r;
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"SelfProtocolOASIS: cannot reach Celo RPC: {ex.Message}", ex);
+                return result;
+            }
+            IsProviderActivated = true;
+            result.Result = true;
+            result.Message = "SelfProtocolOASIS activated.";
+            return result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0)
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            // For Self Protocol, username is the sessionId; re-route to LoadAvatarByProviderKeyAsync
-            return await LoadAvatarByProviderKeyAsync(u, v);
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool>(true) { Message = "SelfProtocolOASIS deactivated." });
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int v = 0)
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
+
+        public async Task<OASISResult<SelfVerificationResult>> VerifyAsync(string requestJson, SelfVerificationConfig config)
         {
-            var r = new OASISResult<IAvatar>();
+            SelfVerificationRequest request;
+            try { request = SelfVerificationRequest.FromJson(requestJson); }
+            catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
+            {
+                return Error<SelfVerificationResult>($"malformed verification request: {ex.Message}", ex);
+            }
+            return await VerifyAsync(request, config);
+        }
+
+        public async Task<OASISResult<SelfVerificationResult>> VerifyAsync(SelfVerificationRequest request, SelfVerificationConfig config)
+        {
+            if (config == null) return Error<SelfVerificationResult>("a verification config is required.");
+            if (!Indices.TryGetValue(request.AttestationId, out var ix))
+                return Error<SelfVerificationResult>($"[InvalidId]: Attestation ID is not allowed, received: {request.AttestationId}");
+
+            BigInteger[] signals;
+            byte[] context;
             try
             {
-                var json = await GetJsonAsync($"v1/verify/session/{providerKey}");
-                var obj = JObject.Parse(json);
-                var avatar = new Avatar { Username = providerKey };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = providerKey;
-                if (obj["verified"]?.Value<bool>() == true)
-                {
-                    var disclosures = obj["disclosures"];
-                    if (disclosures != null)
-                    {
-                        if (avatar.MetaData == null) avatar.MetaData = new System.Collections.Generic.Dictionary<string, object>();
-                        avatar.MetaData["SelfVerified"] = true;
-                        avatar.MetaData["Disclosures"] = disclosures.ToString();
-                    }
-                }
-                r.Result = avatar;
+                signals = request.PublicSignals.Select(ParseSignal).ToArray();
+                context = Convert.FromHexString(request.UserContextData.StartsWith("0x") ? request.UserContextData[2..] : request.UserContextData);
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadAvatarByProviderKeyAsync: {ex.Message}", ex); }
-            return r;
-        }
+            catch (FormatException ex) { return Error<SelfVerificationResult>($"malformed public signals or user context: {ex.Message}", ex); }
+            if (signals.Length != 21) return Error<SelfVerificationResult>($"expected 21 public signals, received {signals.Length}.");
+            if (context.Length < 64) return Error<SelfVerificationResult>("user context data must be at least 64 bytes.");
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a)
-        {
-            var r = new OASISResult<IAvatar>();
+            var issues = new List<string>();
+            if (signals[ix.UserIdentifier] != CalculateUserIdentifierHash(context))
+                issues.Add("[InvalidUserContextHash]: User context hash does not match with the one in the circuit");
+            if (signals[ix.Scope] != _scope)
+                issues.Add($"[InvalidScope]: Scope does not match with the one in the circuit\nCircuit: {signals[ix.Scope]}\nScope: {_scope}");
+
+            var attestationKey = new byte[32];
+            attestationKey[31] = (byte)request.AttestationId;
             try
             {
-                if (a.Id == Guid.Empty) a.Id = Guid.NewGuid();
-                // Initiate a Self Protocol verification request
-                var body = new { appId = _appId, userId = a.Id.ToString(), name = a.Username };
-                var json = await PostJsonAsync("v1/verify/request", body);
-                var obj = JObject.Parse(json);
-                var sessionId = obj["sessionId"]?.ToString();
-                if (!string.IsNullOrEmpty(sessionId))
-                {
-                    a.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = sessionId;
-                    if (a.MetaData == null) a.MetaData = new System.Collections.Generic.Dictionary<string, object>();
-                    a.MetaData["SelfSessionId"] = sessionId;
-                    a.MetaData["SelfQRUrl"] = obj["qrUrl"]?.ToString();
-                }
-                r.Result = a;
-                r.Message = $"SelfProtocol verification request initiated. SessionId: {sessionId}";
+                var registry = await _web3.Eth.GetContractQueryHandler<RegistryFunction>()
+                    .QueryAsync<string>(_hub, new RegistryFunction { AttestationId = attestationKey });
+                if (IsZeroAddress(registry)) return Error<SelfVerificationResult>("Registry contract not found");
+                var rootKnown = await _web3.Eth.GetContractQueryHandler<CheckIdentityCommitmentRootFunction>()
+                    .QueryAsync<bool>(registry, new CheckIdentityCommitmentRootFunction { Root = signals[ix.MerkleRoot] });
+                if (!rootKnown) issues.Add($"[InvalidRoot]: Onchain root does not exist, received: {signals[ix.MerkleRoot]}");
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS SaveAvatarAsync: {ex.Message}", ex); }
-            return r;
-        }
+            catch (Exception ex) { return Error<SelfVerificationResult>($"registry lookup failed: {RpcMessage(ex)}", ex); }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
+            if (signals[ix.AttestationId] != request.AttestationId)
+                issues.Add("[InvalidAttestationId]: Attestation ID does not match with the one in the circuit");
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IHolon>();
+            var userIdentifier = CastToUserIdentifier(new BigInteger(context.AsSpan(32, 32), isUnsigned: true, isBigEndian: true), _userIdentifierType);
+            var userDefinedData = Convert.ToHexString(context.AsSpan(64)).ToLowerInvariant();
+
+            var forbidden = UnpackForbiddenCountries(Enumerable.Range(0, 4).Select(i => signals[ix.ForbiddenCountriesPacked + i]));
+            var excluded = config.ExcludedCountries ?? Array.Empty<string>();
+            if (!excluded.All(forbidden.Contains))
+                issues.Add($"[InvalidForbiddenCountriesList]: Forbidden countries list in config does not match with the one in the circuit\nCircuit: {string.Join(", ", forbidden)}\nConfig: {string.Join(", ", excluded)}");
+
+            var disclosure = FormatRevealedData(request.AttestationId, signals, ix);
+            if (config.MinimumAge != null && !(int.TryParse(disclosure.MinimumAge, NumberStyles.None, CultureInfo.InvariantCulture, out var age) && age == config.MinimumAge) && disclosure.MinimumAge != "00")
+                issues.Add($"[InvalidMinimumAge]: Minimum age in config does not match with the one in the circuit\nCircuit: {disclosure.MinimumAge}\nConfig: {config.MinimumAge}");
+
+            var date = CircuitDate(signals, ix.CurrentDate);
+            var now = _now();
+            if (date == null) issues.Add("[InvalidTimestamp]: Circuit timestamp is not a valid date");
+            else if (date > now.AddDays(1)) issues.Add("[InvalidTimestamp]: Circuit timestamp is in the future");
+            else if (date < now.AddDays(-1)) issues.Add("[InvalidTimestamp]: Circuit timestamp is too old");
+
+            if (!config.Ofac)
+            {
+                if (disclosure.Ofac.ElementAtOrDefault(0)) issues.Add("[InvalidOfac]: Passport number OFAC check is not allowed");
+                if (disclosure.Ofac.ElementAtOrDefault(1)) issues.Add("[InvalidOfac]: Name and DOB OFAC check is not allowed");
+                if (disclosure.Ofac.ElementAtOrDefault(2)) issues.Add("[InvalidOfac]: Name and YOB OFAC check is not allowed");
+            }
+
+            if (issues.Count > 0) return Error<SelfVerificationResult>(string.Join("\n", issues));
+
+            string verifier;
             try
             {
-                // Load attestation for a session
-                var json = await GetJsonAsync($"v1/attestation/{id}");
-                var obj = JObject.Parse(json);
-                var holon = new Holon { Id = id };
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SelfProtocolOASIS] = id.ToString();
-                if (holon.MetaData == null) holon.MetaData = new System.Collections.Generic.Dictionary<string, object>();
-                holon.MetaData["Attestation"] = json;
-                r.Result = holon;
+                verifier = await _web3.Eth.GetContractQueryHandler<DiscloseVerifierFunction>()
+                    .QueryAsync<string>(_hub, new DiscloseVerifierFunction { AttestationId = attestationKey });
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS LoadHolonAsync: {ex.Message}", ex); }
-            return r;
-        }
+            catch (Exception ex) { return Error<SelfVerificationResult>($"verifier lookup failed: {RpcMessage(ex)}", ex); }
+            if (IsZeroAddress(verifier)) return Error<SelfVerificationResult>("Verifier contract not found");
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
-        {
-            var r = new OASISResult<IHolon>();
+            bool isValid;
             try
             {
-                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
-                r.Result = h;
-                r.Message = "SelfProtocolOASIS holon data recorded";
+                var a = request.A.Take(2).Select(ParseSignal).ToList();
+                var b = request.B.Take(2).Select(r => new List<BigInteger> { ParseSignal(r[1]), ParseSignal(r[0]) }).ToList();
+                var c = request.C.Take(2).Select(ParseSignal).ToList();
+                isValid = await _web3.Eth.GetContractQueryHandler<VerifyProofFunction>()
+                    .QueryAsync<bool>(verifier, new VerifyProofFunction { A = a, B = b, C = c, PubSignals = signals.ToList() });
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"SelfProtocolOASIS SaveHolonAsync: {ex.Message}", ex); }
-            return r;
+            catch (SmartContractRevertException) { isValid = false; }
+            catch (RpcResponseException ex) when (ex.RpcError?.Message?.Contains("revert", StringComparison.OrdinalIgnoreCase) == true) { isValid = false; }
+            catch (FormatException ex) { return Error<SelfVerificationResult>($"malformed proof: {ex.Message}", ex); }
+            catch (Exception ex) { return Error<SelfVerificationResult>($"verifyProof call failed: {RpcMessage(ex)}", ex); }
+
+            return new OASISResult<SelfVerificationResult>(new SelfVerificationResult
+            {
+                Attestation = (SelfAttestation)request.AttestationId,
+                IsValid = isValid,
+                IsMinimumAgeValid = config.MinimumAge == null ||
+                    (int.TryParse(disclosure.MinimumAge, NumberStyles.None, CultureInfo.InvariantCulture, out var revealedAge) && config.MinimumAge <= revealedAge),
+                IsOfacValid = true,
+                ForbiddenCountries = forbidden,
+                Disclosure = disclosure,
+                UserIdentifier = userIdentifier,
+                UserDefinedData = userDefinedData
+            });
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "SelfProtocolOASIS does not support avatar detail storage"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "SelfProtocolOASIS does not support avatar detail storage"); return r; }
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        // ── Ported helpers (@selfxyz/core, @selfxyz/common) ─────────────────────
 
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string e, int v = 0) => LoadAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int v = 0) => LoadAllAvatarsAsync(v).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar a) => SaveAvatarAsync(a).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool s = true) => DeleteAvatarAsync(id, s).Result;
-        public override OASISResult<bool> DeleteAvatar(string k, bool s = true) => DeleteAvatarAsync(k, s).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool s = true) => DeleteAvatarByEmailAsync(e, s).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool s = true) => DeleteAvatarByUsernameAsync(u, s).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int v = 0) => LoadAvatarDetailAsync(id, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int v = 0) => LoadAvatarDetailByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int v = 0) => LoadAvatarDetailByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int v = 0) => LoadAllAvatarDetailsAsync(v).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail ad) => SaveAvatarDetailAsync(ad).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => SearchAsync(sp, lc, rec, md, coe, v).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(id, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> LoadHolon(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(k, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(id, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(k, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(mk, mv, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(m, mm, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(holons, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int v = 0) => ExportAllDataForAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int v = 0) => ExportAllDataForAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int v = 0) => ExportAllAsync(v).Result;
+        /// <summary>poseidon2([poseidonN(31-char chunks of endpoint host), ascii(scope)]) as in @selfxyz/common hashEndpointWithScope.</summary>
+        internal static BigInteger HashEndpointWithScope(string endpoint, string scope)
+        {
+            var host = Regex.Replace(endpoint, "^https?://", "").Split('/')[0];
+            var chunks = Enumerable.Range(0, (host.Length + 30) / 31).Select(i => host.Substring(i * 31, Math.Min(31, host.Length - i * 31))).ToArray();
+            if (chunks.Length > 16) throw new ArgumentException("Endpoint must be less than 496 characters");
+            var preset = chunks.Length switch
+            {
+                1 => PoseidonParameterPreset.CircomT1,
+                2 => PoseidonParameterPreset.CircomT2,
+                3 => PoseidonParameterPreset.CircomT3,
+                6 => PoseidonParameterPreset.CircomT6,
+                14 => PoseidonParameterPreset.CircomT14,
+                16 => PoseidonParameterPreset.CircomT16,
+                _ => throw new ArgumentException($"Endpoint host '{host}' needs {chunks.Length} Poseidon inputs; Nethereum ships circom parameters for 1, 2, 3, 6, 14 and 16 inputs only.")
+            };
+            var endpointHash = new PoseidonHasher(preset).Hash(chunks.Select(AsciiToBigInt).ToArray());
+            return new PoseidonHasher(PoseidonParameterPreset.CircomT2).Hash(new[] { endpointHash, AsciiToBigInt(scope) });
+        }
 
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lon, int radius) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lon, int radius, HolonType t) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
+        private static BigInteger AsciiToBigInt(string s)
+        {
+            if (s.Any(ch => ch > 0x7F)) throw new ArgumentException("Input must contain only ASCII characters (0-127)");
+            var result = BigInteger.Zero;
+            foreach (var ch in s) result = (result << 8) | ch;
+            return result;
+        }
 
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(System.Threading.CancellationToken token = default) { var r = new OASISResult<(string, string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seed, System.Threading.CancellationToken token = default) { var r = new OASISResult<(string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amt, string addr, string key) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amt, string addr) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string hash, System.Threading.CancellationToken token = default) { var r = new OASISResult<BridgeTransactionStatus>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
+        /// <summary>ripemd160(sha256(userContextData)) as an integer.</summary>
+        internal static BigInteger CalculateUserIdentifierHash(byte[] userContextData)
+        {
+            var sha = SHA256.HashData(userContextData);
+            var ripemd = new RipeMD160Digest();
+            ripemd.BlockUpdate(sha, 0, sha.Length);
+            var digest = new byte[ripemd.GetDigestSize()];
+            ripemd.DoFinal(digest, 0);
+            return new BigInteger(digest, isUnsigned: true, isBigEndian: true);
+        }
+
+        internal static string CastToUserIdentifier(BigInteger value, SelfUserIdentifierType type)
+        {
+            var hex = value.ToString("x").TrimStart('0');
+            if (type == SelfUserIdentifierType.Hex) return "0x" + hex.PadLeft(40, '0');
+            hex = hex.PadLeft(32, '0');
+            return $"{hex[..8]}-{hex[8..12]}-{hex[12..16]}-{hex[16..20]}-{hex[20..]}";
+        }
+
+        internal static IReadOnlyList<string> UnpackForbiddenCountries(IEnumerable<BigInteger> packed)
+        {
+            var chars = packed.SelectMany(e => Enumerable.Range(0, 31).Select(i => (char)(byte)((e >> (8 * i)) & 0xFF))).Where(ch => ch != '\0').ToArray();
+            var countries = new List<string>();
+            for (var i = 0; i + 3 <= chars.Length; i += 3) countries.Add(new string(chars, i, 3));
+            return countries;
+        }
+
+        private static SelfDisclosure FormatRevealedData(int attestationId, BigInteger[] signals, DiscloseIndices ix)
+        {
+            var bytes = new List<byte>();
+            var counts = RevealedBytesPerSignal[attestationId];
+            for (var i = 0; i < counts.Length; i++)
+            {
+                var signal = signals[ix.RevealedDataPacked + i];
+                for (var j = 0; j < counts[i]; j++) { bytes.Add((byte)(signal & 0xFF)); signal >>= 8; }
+            }
+            var data = bytes.ToArray();
+            var r = Revealed[attestationId];
+            string Text((int Start, int End) range) => Encoding.UTF8.GetString(data, range.Start, range.End - range.Start + 1);
+            var name = Regex.Replace(Text(r.Name), "([A-Z])<+([A-Z])", "$1 $2").Replace("<", "").Trim();
+            return new SelfDisclosure
+            {
+                Nullifier = signals[ix.Nullifier].ToString(),
+                IssuingState = Text(r.IssuingState),
+                Name = name,
+                IdNumber = Text(r.IdNumber),
+                Nationality = Text(r.Nationality),
+                DateOfBirth = Text(r.DateOfBirth),
+                Gender = Text(r.Gender),
+                ExpiryDate = Text(r.ExpiryDate),
+                MinimumAge = Text(r.OlderThan),
+                Ofac = data.Skip(r.Ofac.Start).Take(r.Ofac.End - r.Ofac.Start + 1).Select(b => b != 0).ToArray()
+            };
+        }
+
+        private static DateTimeOffset? CircuitDate(BigInteger[] signals, int start)
+        {
+            var d = Enumerable.Range(0, 6).Select(i => signals[start + i]).ToArray();
+            if (d.Any(x => x < 0 || x > 9)) return null;
+            int year = 2000 + (int)(d[0] * 10 + d[1]), month = (int)(d[2] * 10 + d[3]), day = (int)(d[4] * 10 + d[5]);
+            if (month < 1 || month > 12 || day < 1 || day > DateTime.DaysInMonth(year, month)) return null;
+            return new DateTimeOffset(year, month, day, 0, 0, 0, TimeSpan.Zero);
+        }
+
+        /// <summary>Signals are decimal strings; the SDK treats any containing a-f as hex.</summary>
+        private static BigInteger ParseSignal(string s)
+        {
+            if (string.IsNullOrEmpty(s)) throw new FormatException("empty signal");
+            if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) s = s[2..];
+            else if (!Regex.IsMatch(s, "[a-f]")) return BigInteger.Parse(s, NumberStyles.None, CultureInfo.InvariantCulture);
+            return BigInteger.Parse("0" + s, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+        }
+
+        private static bool IsZeroAddress(string address) => string.IsNullOrEmpty(address) || new BigInteger(Convert.FromHexString(address[2..]), true, true).IsZero;
+
+        private static string RpcMessage(Exception ex) => ex is RpcResponseException rpc ? rpc.RpcError?.Message ?? rpc.Message : ex.Message;
+
+        private static OASISResult<T> Error<T>(string message, Exception ex = null)
+        {
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, $"SelfProtocolOASIS: {message}", ex);
+            return result;
+        }
+
+        private sealed record DiscloseIndices(int RevealedDataPacked, int ForbiddenCountriesPacked, int Nullifier, int AttestationId, int MerkleRoot, int CurrentDate, int Scope, int UserIdentifier);
+
+        private sealed record RevealedIndices((int Start, int End) IssuingState, (int Start, int End) Name, (int Start, int End) IdNumber,
+            (int Start, int End) Nationality, (int Start, int End) DateOfBirth, (int Start, int End) Gender, (int Start, int End) ExpiryDate,
+            (int Start, int End) OlderThan, (int Start, int End) Ofac);
     }
 }
