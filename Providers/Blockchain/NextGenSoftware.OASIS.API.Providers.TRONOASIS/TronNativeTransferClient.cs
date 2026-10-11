@@ -221,9 +221,7 @@ public sealed class TronNativeTransferClient
             var transaction = await _wallet.GetSolidityProtocol().GetTransactionByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
             if (!ValidateTransactionIdentity(transaction, id.Value)) throw new InvalidOperationException("Indexed transaction is not available from the solidified node.");
             var receipt = await _wallet.GetSolidityProtocol().GetTransactionInfoByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
-            var contract = transaction.RawData.Contract.Single();
-            ValidateSolidifiedReceipt(receipt, id.Value, contract.Type == Transaction.Types.Contract.Types.ContractType.TriggerSmartContract
-                || contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract, false, false);
+            ValidateSolidifiedReceiptIdentity(receipt, id.Value);
             items.Add(MapWalletTransaction(transaction, receipt, owner));
         }
         return items;
@@ -248,14 +246,25 @@ public sealed class TronNativeTransferClient
         if (amount < 0) throw new InvalidOperationException("Negative native transaction amount.");
         if (!from.Equals(wallet) && !to.Equals(wallet))
             throw new InvalidOperationException("Indexed native transaction does not involve the requested wallet.");
+        var contractExecution = contract.Type == Transaction.Types.Contract.Types.ContractType.TriggerSmartContract
+            || contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract;
+        if (!Enum.IsDefined(receipt.Result) || (contractExecution && receipt.Receipt != null && !Enum.IsDefined(receipt.Receipt.Result)))
+            throw new InvalidOperationException("Unknown native receipt execution result.");
+        // Preserve DEFAULT/missing VM results as unknown, never infer successful execution from them.
+        var execution = (int)receipt.Result != 0 ? receipt.Result.ToString()
+            : contractExecution ? receipt.Receipt?.Result.ToString() ?? "Unknown" : "Success";
         return new Core.Interfaces.Wallet.Response.WalletTransaction
         {
             NativeTransactionId = Convert.ToHexString(receipt.Id.Span).ToLowerInvariant(),
             RawAmount = amount.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = "SUN", NativeOperation = contract.Type.ToString(),
-            FromWalletAddress = Address(from), ToWalletAddress = Address(to), Amount = (double)(amount / 1000000m),
+            NativeExecutionResult = execution, NativeError = receipt.ResMessage.IsEmpty ? null : receipt.ResMessage.ToStringUtf8(),
+            FromWalletAddress = Address(from),
+            ToWalletAddress = contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract
+                && to.IsEmpty && execution != "Success" ? null : Address(to),
+            Amount = (double)(amount / 1000000m),
             CreatedDate = DateTimeOffset.FromUnixTimeMilliseconds(transaction.RawData.Timestamp).UtcDateTime,
             TransactionType = from.Equals(wallet) ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
-            Description = "TRON " + contract.Type + ": " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
+            Description = "TRON " + contract.Type + " (" + execution + "; amount is requested value): " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
         };
     }
 
@@ -915,14 +924,19 @@ public sealed class TronNativeTransferClient
     internal static void ValidateSolidifiedReceipt(TransactionInfo receipt, ByteString expectedId,
         bool requireContractSuccess, bool requireTransferReturn, bool allowVoidContractReturn)
     {
-        if (receipt == null || expectedId == null || expectedId.Length != 32
-            || !receipt.Id.Equals(expectedId) || receipt.BlockNumber <= 0)
-            throw new InvalidOperationException("TRON returned an inconsistent solidified receipt.");
+        ValidateSolidifiedReceiptIdentity(receipt, expectedId);
         if ((int)receipt.Result != 0)
             throw new InvalidOperationException("TRON transaction failed in the solidified chain.");
         if (requireContractSuccess && (receipt.Receipt == null || (int)receipt.Receipt.Result != 1))
             throw new InvalidOperationException("TRON contract execution did not report SUCCESS.");
         if (requireTransferReturn && (!allowVoidContractReturn || receipt.ContractResult.Count != 0))
             ValidateTrc20TransferReturn(receipt);
+    }
+
+    internal static void ValidateSolidifiedReceiptIdentity(TransactionInfo receipt, ByteString expectedId)
+    {
+        if (receipt == null || expectedId == null || expectedId.Length != 32
+            || !receipt.Id.Equals(expectedId) || receipt.BlockNumber <= 0)
+            throw new InvalidOperationException("TRON returned an inconsistent solidified receipt.");
     }
 }
