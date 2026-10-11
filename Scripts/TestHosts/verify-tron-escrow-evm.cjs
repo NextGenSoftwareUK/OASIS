@@ -1,0 +1,67 @@
+// Reuses installed Web3Core solc/Hardhat/ethers. No downloads, public chain or filesystem ledger.
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { createRequire } = require('node:module');
+const root = path.resolve(__dirname, '../..');
+const requireRuntime = createRequire(path.join(root, 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/package.json'));
+const solc = requireRuntime('solc');
+const { ethers } = requireRuntime('ethers');
+process.env.HARDHAT_CONFIG = path.join(root, 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/hardhat.config.cjs');
+process.env.HARDHAT_NETWORK = 'hardhat'; // Never select a configured public network for this test.
+const hardhat = requireRuntime('hardhat');
+const source = fs.readFileSync(path.join(root, 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/Contracts/OASISTokenEscrow.sol'), 'utf8');
+const fixture = `pragma solidity ^0.8.0;
+contract TestToken {
+ mapping(address=>uint256) public balanceOf;
+ mapping(address=>mapping(address=>uint256)) public allowance;
+ bool public fail;
+ constructor(){balanceOf[msg.sender]=100;}
+ function setFail(bool value) external {fail=value;}
+ function approve(address spender,uint256 amount) external returns(bool){allowance[msg.sender][spender]=amount;return true;}
+ function transferFrom(address from,address to,uint256 amount) external returns(bool){
+  if(fail)return false;require(allowance[from][msg.sender]>=amount);allowance[from][msg.sender]-=amount;
+  require(balanceOf[from]>=amount);balanceOf[from]-=amount;balanceOf[to]+=amount;return true;
+ }
+ function transfer(address to,uint256 amount) external returns(bool){
+  if(fail)return false;require(balanceOf[msg.sender]>=amount);balanceOf[msg.sender]-=amount;balanceOf[to]+=amount;return true;
+ }
+}`;
+
+async function main() {
+ const compiled = JSON.parse(solc.compile(JSON.stringify({language:'Solidity', sources:{
+  'Escrow.sol':{content:source}, 'Fixture.sol':{content:fixture}}, settings:{evmVersion:'paris',
+  outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}})));
+ const errors = (compiled.errors || []).filter(e=>e.severity==='error');
+ assert.equal(errors.length,0,errors.map(e=>e.formattedMessage).join('\n'));
+ const provider = new ethers.BrowserProvider(hardhat.network.provider);
+ provider.pollingInterval = 50;
+ const owner = await provider.getSigner(0), outsider = await provider.getSigner(1);
+ async function deploy(file,name){const c=compiled.contracts[file][name];const result=await new ethers.ContractFactory(c.abi,c.evm.bytecode.object,owner).deploy();await result.waitForDeployment();return result;}
+ const escrow=await deploy('Escrow.sol','OASISTokenEscrow'), token=await deploy('Fixture.sol','TestToken');
+ const t=await token.getAddress(), e=await escrow.getAddress(), o=await owner.getAddress();
+ let assertions=0;
+ async function rejects(action){await assert.rejects(action);assertions++;}
+ await rejects(()=>escrow.unlock.staticCall(t));
+ await rejects(()=>escrow.lockAll.staticCall(t)); // Missing allowance cannot create a deposit.
+ await (await token.approve(e,100n)).wait();
+ await (await token.setFail(true)).wait();
+ await rejects(async()=>{await (await escrow.lockAll(t,{gasLimit:300000})).wait();});
+ assert.equal(await escrow.locked(t,o),0n);assertions++;
+ await (await token.setFail(false)).wait();
+ await (await escrow.lockAll(t)).wait();
+ assert.equal(await escrow.locked(t,o),100n);assertions++;
+ assert.equal(await token.balanceOf(o),0n);assertions++;
+ await rejects(()=>escrow.connect(outsider).unlock.staticCall(t));
+ await (await token.setFail(true)).wait();
+ await rejects(async()=>{await (await escrow.unlock(t,{gasLimit:300000})).wait();});
+ assert.equal(await escrow.locked(t,o),100n);assertions++;
+ await (await token.setFail(false)).wait();
+ await (await escrow.unlock(t)).wait();
+ assert.equal(await token.balanceOf(o),100n);assertions++;
+ assert.equal(await escrow.locked(t,o),0n);assertions++;
+ await rejects(()=>escrow.unlock.staticCall(t));
+ console.log(JSON.stringify({compiler:solc.version(),runtime:'existing Hardhat in-process EVM',assertions,
+  result:'PASS',scope:'EVM escrow contract execution; not TRON TVM deployment or provider API integration'}));
+}
+main().catch(error=>{console.error(error.message);process.exitCode=1;});
