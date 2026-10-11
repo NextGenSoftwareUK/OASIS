@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AccountId, Transaction, ContractExecuteTransaction, AccountAllowanceApproveTransaction } from '@hiero-ledger/sdk';
 import { escrowAbi, escrowTransaction, escrowApprovalTransaction } from './escrow.mjs';
+import { execute } from './bridge.mjs';
+import { PrivateKey } from '@hiero-ledger/sdk';
 const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'9007199254740993',
  gas:400000,maxFeeTinybars:'100000000',transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
@@ -38,4 +40,12 @@ for (const [field,value] of [['sender','0.0.0'],['contractId',''],['tokenId','ba
 test('approval cannot reuse the deposit transaction ID or a different payer',()=>{
  for(const approvalTransactionId of [request.transactionId,'0.0.2002@1700000000.000000001'])
   assert.throws(()=>escrowApprovalTransaction({...request,approvalTransactionId}),/distinct transaction ID/);
+});
+for(const action of ['nftEscrowLock','nftEscrowUnlock']) test(`${action} dispatcher rejects mismatched signer before funded queries`,async()=>{
+ const signer=PrivateKey.generateED25519(), other=PrivateKey.generateED25519();
+ await assert.rejects(()=>execute(action,{...request,network:'testnet',privateKey:signer.toStringDer(),keyType:'der',
+  publicKey:other.publicKey.toStringDer()}),/signing key mismatch/);
+});
+test('lock dispatcher rejects reused approval ID before opening a funded client',async()=>{
+ await assert.rejects(()=>execute('nftEscrowLock',{...request,approvalTransactionId:request.transactionId}),/distinct transaction ID/);
 });
