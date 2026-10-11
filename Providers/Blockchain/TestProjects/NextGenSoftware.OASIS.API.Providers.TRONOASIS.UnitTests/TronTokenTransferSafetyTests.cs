@@ -3,12 +3,47 @@ using System.Reflection;
 using Google.Protobuf;
 using TronNet;
 using TronNet.Crypto;
+using TronNet.Protocol;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronTokenTransferSafetyTests
 {
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    public void OnlyCanonicalTrueProvesTransferSuccess(int returnedValue, bool expected)
+    {
+        var receipt = new TransactionInfo();
+        var encoded = new byte[32];
+        encoded[31] = (byte)returnedValue;
+        receipt.ContractResult.Add(ByteString.CopyFrom(encoded));
+        var method = typeof(TronNativeTransferClient).GetMethod("ValidateTrc20TransferReturn", BindingFlags.Static | BindingFlags.NonPublic)!;
+        if (expected)
+            method.Invoke(null, new object[] { receipt });
+        else
+            Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { receipt })).InnerException);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void MissingMalformedOrMultipleReturnValuesAreNotSuccess(int mode)
+    {
+        var receipt = new TransactionInfo();
+        if (mode == 1) receipt.ContractResult.Add(ByteString.CopyFrom(new byte[] { 1 }));
+        if (mode == 2)
+        {
+            receipt.ContractResult.Add(ByteString.CopyFrom(new byte[32]));
+            receipt.ContractResult.Add(ByteString.CopyFrom(new byte[32]));
+        }
+        var method = typeof(TronNativeTransferClient).GetMethod("ValidateTrc20TransferReturn", BindingFlags.Static | BindingFlags.NonPublic)!;
+        Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { receipt })).InnerException);
+    }
+
     [Fact]
     public void TransferAbiUsesTwentyByteAddressAndExactUint256()
     {
