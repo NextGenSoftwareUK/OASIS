@@ -7,9 +7,12 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Base64
+import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -95,8 +98,8 @@ object HolochainUnityBridge {
 
     /**
      * Prefers the shared runtime when [preferShared] is set and it is installed, waiting up to
-     * [approvalTimeoutMs] for the player to approve access. Embedded mode is selected only when
-     * shared mode is disabled or the runtime is absent; a selected shared runtime's errors are terminal.
+     * [approvalTimeoutMs] for the player to approve access. Shared setup failures are logged and
+     * reported through [status], then automatically recover using the built-in conductor.
      */
     @JvmStatic
     fun startAndSetup(
@@ -126,9 +129,13 @@ object HolochainUnityBridge {
                     status?.onStatus("shared", "Using the shared Holochain runtime.")
                     callback.onSuccess(shared.port.toInt(), Base64.encodeToString(shared.authentication.token, Base64.NO_WRAP))
                 } catch (error: Exception) {
+                    if (error is CancellationException && error !is TimeoutCancellationException) throw error
                     mode = null
-                    setupPayload = null
-                    callback.onError("HOLO_ANDROID_SHARED_SETUP_FAILED", error.message ?: error.javaClass.name)
+                    val message = "HOLO_ANDROID_SHARED_SETUP_FAILED: ${error.message ?: error.javaClass.name}"
+                    Log.w("HolochainUnityBridge", message, error)
+                    status?.onStatus("shared_unavailable", message)
+                    status?.onStatus("fallback", "Switching automatically to the built-in Holochain conductor.")
+                    startEmbedded(context, payload, bootstrapUrl, relayUrl, callback)
                 }
                 return@launch
             }
@@ -167,8 +174,7 @@ object HolochainUnityBridge {
                 error("Shared runtime setup did not return an authenticated session.")
             }
         } catch (error: Throwable) {
-            // Never replace a selected conductor (and its source chain) after an approval/IPC failure.
-            status?.onStatus("shared_unavailable", error.message ?: error.javaClass.name)
+            // The caller reports the failure and performs the specified embedded recovery.
             throw error
         }
     }
