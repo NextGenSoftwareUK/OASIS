@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 		}
 
 		[Fact]
-		public async Task SaveHolon_ShouldReturnNotSupported()
+		public async Task SaveHolon_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
@@ -37,37 +37,35 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 
 			var result = await provider.SaveHolonAsync(holon);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
+			result.Message.Should().Contain("not configured");
 		}
 
 		[Fact]
-		public async Task LoadAllHolons_ShouldReturnNotSupported()
+		public async Task LoadAllHolons_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
 			var result = await provider.LoadAllHolonsAsync();
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Message.Should().Contain("not configured");
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public async Task LoadHolonsByMetaData_ShouldReturnNotSupported()
+		public async Task LoadHolonsByMetaData_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
 			var result = await provider.LoadHolonsByMetaDataAsync("env", "test");
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Message.Should().Contain("not configured");
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public async Task Import_ShouldReturnNotSupported()
+		public async Task Import_WithoutEncryptedStorage_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
@@ -80,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 
 			var result = await provider.ImportAsync(holons);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
+			result.Message.Should().Contain("not configured");
 			result.Result.Should().BeFalse();
 		}
 
