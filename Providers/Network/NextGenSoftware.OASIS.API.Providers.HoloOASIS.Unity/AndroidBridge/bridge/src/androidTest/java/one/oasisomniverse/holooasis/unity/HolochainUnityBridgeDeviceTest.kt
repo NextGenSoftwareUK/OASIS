@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Runs the real bridge and Holochain conductor on a device/emulator:
- * start (prefer shared → falls back to embedded when no shared runtime) → authenticate →
+ * start (prefer shared → falls back to embedded when it is absent, incompatible or unapproved) → authenticate →
  * app_info → sign a zome call through the bridge (conductor-held key) → call_zome → zome_called.
  */
 @RunWith(AndroidJUnit4::class)
@@ -72,8 +72,14 @@ class HolochainUnityBridgeDeviceTest {
         port = portHolder[0]; token = tokenHolder[0]
         assertTrue(port in 1..65535)
         assertTrue(token.isNotEmpty())
-        assertEquals(HolochainUnityBridge.MODE_EMBEDDED, HolochainUnityBridge.mode)
-        assertTrue("no shared runtime should be detected", !HolochainUnityBridge.isSharedRuntimeInstalled(context))
+        android.util.Log.i("HoloBridgeTest", "mode=${HolochainUnityBridge.mode} statuses=$statuses")
+        if (HolochainUnityBridge.isSharedRuntimeInstalled(context)) {
+            // An installed runtime is either used, or (incompatible / not approved) reported and skipped.
+            assertTrue("statuses=$statuses", HolochainUnityBridge.mode == HolochainUnityBridge.MODE_SHARED ||
+                (statuses.contains("fallback") && HolochainUnityBridge.mode == HolochainUnityBridge.MODE_EMBEDDED))
+        } else {
+            assertEquals(HolochainUnityBridge.MODE_EMBEDDED, HolochainUnityBridge.mode)
+        }
 
         // 2. Connect to the app interface and authenticate (token is a Vec<u8> → msgpack int array).
         val ws = AppSocket(port)
