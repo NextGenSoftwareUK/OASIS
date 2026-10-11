@@ -247,6 +247,9 @@ public sealed class TronNativeTransferClient
         ByteString from, to; long amount;
         switch (contract.Type)
         {
+            case Transaction.Types.Contract.Types.ContractType.AccountCreateContract:
+                var accountCreation = contract.Parameter.Unpack<AccountCreateContract>();
+                from = accountCreation.OwnerAddress; to = accountCreation.AccountAddress; amount = 0; break;
             case Transaction.Types.Contract.Types.ContractType.TransferContract:
                 var transfer = contract.Parameter.Unpack<TransferContract>(); from = transfer.OwnerAddress; to = transfer.ToAddress; amount = transfer.Amount; break;
             case Transaction.Types.Contract.Types.ContractType.TriggerSmartContract:
