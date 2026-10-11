@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui NFT selector agreement (2026-10-11)
+
+Sui send now requires at least one nonblank object selector and exact agreement among supplied `TokenId`, `FromNFTTokenAddress` and `TokenAddress`, before signing or SDK invocation. It no longer silently ignores conflicting selectors or chooses an empty field ahead of a usable one. Five pre-SDK rejection cases and controlled send cases for single/all-agreeing selectors pass; full unit suite **27/27**, zero skips (`sui-current-unit.trx`), bounded provider build succeeds. This boundary evidence does not replace current live lifecycle verification; the prior live checkpoint precedes this selector change. Official Hedera mirror recheck still shows 391,606,260 tinybars, below deployment funding requirements; no new Hedera mutation was attempted. No download/install or runtime duplication occurred.
+
 ### Cosmos mint recipient agreement (2026-10-11)
 
 Mint recipient resolution no longer silently prioritizes a literal address, avatar ID, username or email. Every supplied avatar selector uses the existing wallet lookup; all resulting addresses must be nonblank and agree exactly with one another and any explicit address before `nft_mint` executes. Only an entirely unspecified recipient selects the signer. Four pure resolver tests cover unspecified recipient, consistent selectors, conflicts and missing wallet addresses. Full unit suite passes **23/23**, zero skips (`cosmos-current-unit.trx`); bounded provider build succeeds. These pure tests do not prove real wallet lookup or ledger execution; live avatar-selector success/conflict tests remain required. No install, download or new environment was created.

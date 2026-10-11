@@ -217,7 +217,11 @@ public partial class SuiOASIS
             ArgumentNullException.ThrowIfNull(request);
             if (request.Amount != 0m && request.Amount != 1m) throw new ArgumentException("A unique NFT transfer amount must be one.");
             if (!string.IsNullOrEmpty(request.MemoText)) throw new ArgumentException("Sui NFT transfers have no memo field.");
-            var tokenId = request.TokenId ?? request.FromNFTTokenAddress ?? request.TokenAddress;
+            var tokenIds = new[] { request.TokenId, request.FromNFTTokenAddress, request.TokenAddress }
+                .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal).ToArray();
+            if (tokenIds.Length == 0) throw new ArgumentException("Sui NFT object ID is required.");
+            if (tokenIds.Length != 1) throw new ArgumentException("Sui NFT token selectors identify different objects.");
+            var tokenId = tokenIds[0];
             var key = await TokenSigningKeyAsync(key: request.OwnerPrivateKey, seed: request.OwnerSeedPhrase, publicKey: request.OwnerPublicKey);
             var committed = await InvokeSdkAsync("nftSend", new { tokenId, privateKey = key, fromWalletAddress = request.FromWalletAddress, recipient = request.ToWalletAddress });
             var hash = committed.GetProperty("transactionHash").GetString();
