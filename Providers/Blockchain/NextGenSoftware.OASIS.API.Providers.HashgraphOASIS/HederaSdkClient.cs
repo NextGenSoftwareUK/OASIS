@@ -1,0 +1,94 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+
+internal static class HederaSdkClient
+{
+    private static long _lastTransactionTicks;
+
+    internal static string CreateTransactionId(string sender)
+    {
+        if (!System.Text.RegularExpressions.Regex.IsMatch(sender ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+            throw new ArgumentException("A numeric Hedera sender account ID is required.");
+        long prior, next;
+        do
+        {
+            prior = Interlocked.Read(ref _lastTransactionTicks);
+            next = Math.Max(DateTime.UtcNow.Ticks, checked(prior + 1));
+        } while (Interlocked.CompareExchange(ref _lastTransactionTicks, next, prior) != prior);
+        var epochTicks = next - DateTime.UnixEpoch.Ticks;
+        return sender + "@" + (epochTicks / TimeSpan.TicksPerSecond).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + "." + ((epochTicks % TimeSpan.TicksPerSecond) * 100).ToString("D9", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    internal static async Task<JsonElement> InvokeAsync(string action, object request, CancellationToken cancellationToken = default)
+    {
+        var script = Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")
+            ?? Path.Combine(AppContext.BaseDirectory, "SdkBridge", "bridge.mjs");
+        if (!Path.IsPathFullyQualified(script) || !File.Exists(script))
+            throw new InvalidOperationException("The installed Hedera SDK bridge path is missing or not absolute.");
+        var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("OASIS_NODE_PATH") ?? "node")
+        {
+            UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
+            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8, WorkingDirectory = Path.GetDirectoryName(script)
+        };
+        start.ArgumentList.Add(script);
+        var requestJson = JsonSerializer.Serialize(new { action, request });
+        using var requestDocument = JsonDocument.Parse(requestJson);
+        var originalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("transactionId", out var requestedId)
+            ? requestedId.GetString() : null;
+        using var process = new Process { StartInfo = start };
+        if (!process.Start()) throw new InvalidOperationException("Hedera SDK process could not start.");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        var error = process.StandardError.ReadToEndAsync(timeout.Token);
+        try
+        {
+            // Signing credentials travel through stdin, never command arguments or logs.
+            await process.StandardInput.WriteAsync(requestJson.AsMemory(), timeout.Token);
+            process.StandardInput.Close();
+            await process.WaitForExitAsync(timeout.Token);
+            var response = await output;
+            var failure = await error;
+            if (process.ExitCode != 0)
+            {
+                string transactionId = originalId;
+                try
+                {
+                    using var parsed = JsonDocument.Parse(failure);
+                    if (parsed.RootElement.TryGetProperty("transactionId", out var id)) transactionId = id.GetString();
+                }
+                catch (JsonException) { }
+                throw new InvalidOperationException(transactionId == null ? "Hedera SDK operation failed."
+                    : $"Hedera consensus success was not established for {transactionId}. Track the original transaction before retrying.");
+            }
+            using var document = JsonDocument.Parse(response);
+            return document.RootElement.Clone();
+        }
+        catch (OperationCanceledException errorException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException(originalId == null ? "Hedera SDK operation timed out."
+                : $"Hedera operation timed out for {originalId}. Track the original transaction before retrying.", errorException);
+        }
+        finally
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+            // Observe reader completion even when cancellation terminates the child.
+            try { await Task.WhenAll(output, error); }
+            catch (OperationCanceledException) { }
+        }
+    }
+}

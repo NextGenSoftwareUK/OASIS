@@ -43,40 +43,30 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (request == null || string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                    throw new ArgumentException("A real Hedera sender signing key is required.");
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Use an explicitly recovered Hedera key, not an ambiguous seed-and-key request.");
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                var native = string.IsNullOrWhiteSpace(request.FromTokenAddress) || request.FromTokenAddress == "HBAR";
+                var tinybars = checked(request.Amount * 100000000m);
+                if (native && (tinybars != decimal.Truncate(tinybars) || tinybars > long.MaxValue))
+                    throw new ArgumentOutOfRangeException(nameof(request.Amount), "HBAR amount must fit exact int64 tinybars.");
+                var committed = await HederaSdkClient.InvokeAsync(native ? "transfer" : "tokenTransfer", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Hedera Token Service (HTS) transfer using Mirror Node API
-                var tokenTransferUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.FromTokenAddress}/transfers";
-                var transferData = new
+                    network = _hederaNetwork, sender = request.FromWalletAddress, recipient = request.ToWalletAddress,
+                    privateKey = request.OwnerPrivateKey, keyType = "der", memo = request.MemoText,
+                    publicKey = request.OwnerPublicKey, transactionId = HederaSdkClient.CreateTransactionId(request.FromWalletAddress),
+                    tinybars = native ? ((long)tinybars).ToString(System.Globalization.CultureInfo.InvariantCulture) : null,
+                    tokenId = request.FromTokenAddress, amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("Hedera SDK did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                 {
-                    account_id = request.ToWalletAddress,
-                    amount = (long)(request.Amount * 100000000), // Convert to tinybars (8 decimals)
-                    token_id = request.FromTokenAddress
+                    TransactionResult = committed.GetProperty("transactionId").GetString()
                 };
-
-                var content = new StringContent(JsonSerializer.Serialize(transferData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(tokenTransferUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
-                    };
-                    result.IsError = false;
-                    result.Message = "Token sent successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph token transfer failed: {response.StatusCode}");
-                }
+                result.Message = "Hedera transfer confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
@@ -326,19 +316,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Get account balance from Hedera Mirror Node API
                 var accountId = request.WalletAddress;
-                var balanceUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}";
-                var response = await _httpClient.GetAsync(balanceUrl);
+                if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("A numeric Hedera account ID is required for this balance query.");
+                using var response = await _httpClient.GetAsync("accounts/" + accountId);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var accountData = JsonSerializer.Deserialize<JsonElement>(content);
 
-                    if (accountData.TryGetProperty("account", out var account) &&
-                        account.TryGetProperty("balance", out var balance))
+                    if (accountData.TryGetProperty("balance", out var balances) && balances.ValueKind == JsonValueKind.Object
+                        && balances.TryGetProperty("balance", out var balance) && balance.TryGetInt64(out var tinybars)
+                        && tinybars >= 0)
                     {
                         // Hedera balances are in tinybars (1 HBAR = 100,000,000 tinybars)
-                        result.Result = balance.GetInt64() / 100000000.0;
+                        result.Result = tinybars / 100000000.0;
                         result.IsError = false;
                         result.Message = "Balance retrieved successfully from Hashgraph";
                     }
@@ -431,32 +423,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
-                if (!IsProviderActivated)
+                var generated = await HederaSdkClient.InvokeAsync("generateKey", new { keyType = "ed25519" });
+                result.Result = new NextGenSoftware.Utilities.KeyHelper.KeyPairAndWallet
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Generate Hedera key pair using Ed25519
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    var privateKeyBytes = new byte[32];
-                    rng.GetBytes(privateKeyBytes);
-
-                    // Create Hedera account from private key
-                    var publicKey = System.Convert.ToBase64String(privateKeyBytes);
-                    var accountId = $"0.0.{Guid.NewGuid().GetHashCode()}";
-
-                    var keyPair = new KeyPair
-                    {
-                        PublicKey = publicKey,
-                        PrivateKey = System.Convert.ToBase64String(privateKeyBytes)
-                    };
-                    // KeyPair doesn't have WalletAddress, but we can store it in a custom property or use a wrapper
-                    result.Result = keyPair as IKeyPairAndWallet;
-                    result.IsError = false;
-                    result.Message = "Key pair generated successfully for Hashgraph";
-                }
+                    PrivateKey = generated.GetProperty("privateKey").GetString(),
+                    PublicKey = generated.GetProperty("publicKey").GetString(),
+                    WalletAddressLegacy = null
+                };
+                result.Message = "Hedera SDK key pair generated. A ledger account must be created or linked separately.";
             }
             catch (Exception ex)
             {
