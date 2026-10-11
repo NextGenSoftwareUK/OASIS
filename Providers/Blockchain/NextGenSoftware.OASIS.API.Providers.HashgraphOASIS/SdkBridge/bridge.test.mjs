@@ -10,6 +10,10 @@ test('mint rejects an invalid HTS asset ID before opening a consensus client', a
   await assert.rejects(execute('tokenMint', { network: 'testnet', tokenId: 'not-an-hts-id' }));
 });
 
+test('burn rejects an invalid HTS asset ID before opening a consensus client', async () => {
+  await assert.rejects(execute('tokenBurn', { network: 'testnet', tokenId: 'not-an-hts-id' }));
+});
+
 for (const keyType of ['ed25519', 'ecdsa']) {
   test(`official SDK ${keyType} key generation and DER recovery`, async () => {
     const generated = await execute('generateKey', { keyType });

@@ -1,4 +1,4 @@
-import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenId, Hbar, TokenInfoQuery } from '@hiero-ledger/sdk';
+import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
 
 export function restoreKey(request) {
@@ -59,7 +59,7 @@ export async function execute(action, request) {
       return { transactionId: id.toString(), status: receipt.status.toString() };
     } finally { client.close(); }
   }
-  if (!['transfer', 'tokenTransfer', 'tokenMint'].includes(action)) throw new Error('Unknown Hedera SDK operation.');
+  if (!['transfer', 'tokenTransfer', 'tokenMint', 'tokenBurn'].includes(action)) throw new Error('Unknown Hedera SDK operation.');
   if (action !== 'transfer') TokenId.fromString(request.tokenId);
   if (action === 'transfer' && (!/^[1-9][0-9]*$/.test(request.tinybars ?? '') || BigInt(request.tinybars) > 9223372036854775807n))
     throw new Error('Transfer requires positive exact int64 tinybars.');
@@ -67,7 +67,7 @@ export async function execute(action, request) {
     throw new Error('Hedera transaction memo exceeds 100 UTF-8 bytes.');
   const sender = AccountId.fromString(request.sender);
   const recipient = AccountId.fromString(request.recipient);
-  if (action !== 'tokenMint' && sender.toString() === recipient.toString()) throw new Error('Sender and recipient must differ.');
+  if (['transfer', 'tokenTransfer'].includes(action) && sender.toString() === recipient.toString()) throw new Error('Sender and recipient must differ.');
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('Signing key does not match the supplied public key.');
@@ -77,7 +77,8 @@ export async function execute(action, request) {
   const client = createClient(request);
   try {
     client.setOperator(sender, key);
-    const transfer = (action === 'tokenMint' ? new TokenMintTransaction() : new TransferTransaction())
+    const transfer = (action === 'tokenMint' ? new TokenMintTransaction()
+      : action === 'tokenBurn' ? new TokenBurnTransaction() : new TransferTransaction())
       .setTransactionId(transactionId).setTransactionMemo(request.memo ?? '');
     if (action === 'transfer') {
       transfer.addHbarTransfer(sender, Hbar.fromTinybars('-' + request.tinybars))
@@ -86,9 +87,9 @@ export async function execute(action, request) {
       const info = await new TokenInfoQuery().setTokenId(request.tokenId).execute(client);
       if (info.tokenType.toString() !== 'FUNGIBLE_COMMON') throw new Error('Fungible token operation requires a fungible HTS asset.');
       const units = tokenUnits(request.amount, info.decimals);
-      if (action === 'tokenMint') {
+      if (action === 'tokenMint' || action === 'tokenBurn') {
         if (info.treasuryAccountId.toString() !== recipient.toString())
-          throw new Error('HTS mint credits the actual treasury; the requested recipient must match it.');
+          throw new Error('HTS mint/burn affects the actual treasury; the requested account must match it.');
         transfer.setTokenId(request.tokenId).setAmount(units);
       } else transfer.addTokenTransfer(request.tokenId, sender, -units).addTokenTransfer(request.tokenId, recipient, units);
     }
