@@ -73,8 +73,12 @@ class HolochainUnityBridgeDeviceTest {
         assertTrue(port in 1..65535)
         assertTrue(token.isNotEmpty())
         android.util.Log.i("HoloBridgeTest", "mode=${HolochainUnityBridge.mode} statuses=$statuses")
-        if (HolochainUnityBridge.isSharedRuntimeInstalled(context)) {
-            // A selected shared runtime must not silently switch to another conductor.
+        if (HolochainUnityBridge.isSharedRuntimeInstalled(context) &&
+            HolochainUnityBridge.mode == HolochainUnityBridge.MODE_EMBEDDED) {
+            assertTrue("shared failure must be reported before recovery",
+                statuses.indexOf("shared_unavailable") >= 0 &&
+                    statuses.indexOf("fallback") > statuses.indexOf("shared_unavailable"))
+        } else if (HolochainUnityBridge.isSharedRuntimeInstalled(context)) {
             assertEquals(HolochainUnityBridge.MODE_SHARED, HolochainUnityBridge.mode)
         } else {
             assertEquals(HolochainUnityBridge.MODE_EMBEDDED, HolochainUnityBridge.mode)
