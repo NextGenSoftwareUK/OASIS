@@ -254,61 +254,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        /// <summary>
-        /// Derives TRON public key from private key using secp256k1
-        /// Note: This is a simplified implementation. In production, use proper TRON SDK for key derivation.
-        /// </summary>
-        private string DeriveTRONPublicKey(byte[] privateKeyBytes)
+        private static (string PublicKey, string PrivateKey) DeriveTronMnemonic(string phrase)
         {
-            // TRON uses secp256k1 elliptic curve (same as Bitcoin/Ethereum)
-            // In production, use TRON SDK for proper key derivation
-            try
-            {
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    var hash = sha256.ComputeHash(privateKeyBytes);
-                    // TRON public keys are typically 64 characters (32 bytes hex)
-                    var publicKey = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                    return publicKey.Length >= 64 ? publicKey.Substring(0, 64) : publicKey.PadRight(64, '0');
-                }
-            }
-            catch
-            {
-                var hash = System.Security.Cryptography.SHA256.HashData(privateKeyBytes);
-                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant().PadRight(64, '0');
-            }
-        }
-
-        /// <summary>
-        /// Generates a TRON seed phrase (BIP39 mnemonic)
-        /// </summary>
-        private string GenerateTRONSeedPhrase()
-        {
-            // Generate 12-word BIP39 mnemonic
-            // In production, use a proper BIP39 library
-            var words = new[] { "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse", "access", "accident" };
-            var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-            var indices = new int[12];
-            for (int i = 0; i < 12; i++)
-            {
-                var bytes = new byte[4];
-                rng.GetBytes(bytes);
-                indices[i] = Math.Abs(BitConverter.ToInt32(bytes, 0)) % words.Length;
-            }
-            return string.Join(" ", indices.Select(i => words[i]));
-        }
-
-        /// <summary>
-        /// Derives seed from BIP39 mnemonic
-        /// </summary>
-        private byte[] DeriveSeedFromMnemonic(string mnemonic)
-        {
-            // In production, use proper BIP39 derivation
-            // For now, use SHA256 of mnemonic as seed
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                return sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(mnemonic));
-            }
+            var mnemonic = new NBitcoin.Mnemonic(phrase, NBitcoin.Wordlist.English);
+            if (!mnemonic.IsValidChecksum)
+                throw new ArgumentException("Invalid BIP39 mnemonic checksum.", nameof(phrase));
+            var privateKey = mnemonic.DeriveExtKey().Derive(new NBitcoin.KeyPath("m/44'/195'/0'/0/0")).PrivateKey.ToBytes();
+            var keyHex = Convert.ToHexString(privateKey).ToLowerInvariant();
+            return (Convert.ToHexString(new Nethereum.Signer.EthECKey(keyHex).GetPubKey()).ToLowerInvariant(), keyHex);
         }
 
         /// <summary>
@@ -321,29 +274,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return transaction;
         }
 
-        /// <summary>
-        /// Derives TRON address from public key
-        /// </summary>
-        private string DeriveTRONAddress(string publicKey)
-        {
-            // TRON addresses are derived from public keys
-            try
-            {
-                var publicKeyBytes = System.Text.Encoding.UTF8.GetBytes(publicKey);
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
-                    var hash = sha256.ComputeHash(publicKeyBytes);
-                    // Take portion for address (TRON addresses are typically 20 bytes)
-                    var addressBytes = new byte[20];
-                    Array.Copy(hash, addressBytes, 20);
-                    return "T" + BitConverter.ToString(addressBytes).Replace("-", "").ToLowerInvariant(); // TRON addresses start with 'T'
-                }
-            }
-            catch
-            {
-                return publicKey.Length >= 40 ? "T" + publicKey.Substring(0, 40) : "T" + publicKey.PadRight(40, '0');
-            }
-        }
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
@@ -368,93 +298,40 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
         {
             var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Generate TRON key pair (secp256k1)
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    var privateKeyBytes = new byte[32];
-                    rng.GetBytes(privateKeyBytes);
-                    
-                    // Generate seed phrase (BIP39)
-                    var seedPhrase = GenerateTRONSeedPhrase();
-                    
-                    // Derive public key from private key (secp256k1)
-                    var publicKey = DeriveTRONPublicKey(privateKeyBytes);
-                    var tronAddress = DeriveTRONAddress(publicKey);
-                    
-                    result.Result = (publicKey, Convert.ToHexString(privateKeyBytes).ToLower(), seedPhrase);
-                    result.IsError = false;
-                    result.Message = "TRON account key pair created successfully";
-                }
+                token.ThrowIfCancellationRequested();
+                var phrase = new NBitcoin.Mnemonic(NBitcoin.Wordlist.English, NBitcoin.WordCount.Twelve).ToString();
+                var key = DeriveTronMnemonic(phrase);
+                result.Result = (key.PublicKey, key.PrivateKey, phrase);
+                result.Message = "TRON key pair generated locally; the on-chain account is not activated.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
             }
-            return result;
+            return Task.FromResult(result);
         }
 
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
         {
             var result = new OASISResult<(string PublicKey, string PrivateKey)>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
+                token.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(seedPhrase))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Seed phrase is required");
-                    return result;
-                }
-
-                // Restore TRON account from seed phrase
-                byte[] privateKeyBytes;
-                
-                if (seedPhrase.Length == 64 && System.Text.RegularExpressions.Regex.IsMatch(seedPhrase, "^[0-9a-fA-F]+$"))
-                {
-                    // Treat as hex private key
-                    privateKeyBytes = Convert.FromHexString(seedPhrase);
-                }
-                else
-                {
-                    // Derive from BIP39 seed phrase
-                    var seed = DeriveSeedFromMnemonic(seedPhrase);
-                    privateKeyBytes = seed.Take(32).ToArray();
-                }
-                
-                var publicKey = DeriveTRONPublicKey(privateKeyBytes);
-                
-                result.Result = (publicKey, Convert.ToHexString(privateKeyBytes).ToLower());
-                result.IsError = false;
-                result.Message = "TRON account restored successfully from seed phrase";
+                    throw new ArgumentException("A valid BIP39 mnemonic is required.", nameof(seedPhrase));
+                result.Result = DeriveTronMnemonic(seedPhrase);
+                result.Message = "TRON key pair restored locally using m/44'/195'/0'/0/0.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
             }
-            return result;
+            return Task.FromResult(result);
         }
 
     }
