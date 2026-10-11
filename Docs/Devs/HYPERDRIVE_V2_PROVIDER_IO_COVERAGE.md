@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### C# native collection boundary (2026-10-11)
+
+Concrete `HashgraphOASIS.CreateNftCollectionAsync` exposes the signed native SDK collection operation with explicit payer, DER key, name/symbol, finite int64 supply and fee ceiling. It allocates/retains the original transaction ID before SDK submission, requires exact SUCCESS receipt identity and a nonzero native token ID before setting `ConsensusVerified=true`, and preserves unverified transaction identity on failure. Credentials stay on stdin. Provider build passes; five pre-SDK validation cases pass **5/5**, zero skips (`hedera-collection-validation.trx`) in the existing restored integration project. Initial old unit-project invocation found missing assets and performed no restore; tests were moved to the existing reusable project. A test incorrectly assumed provider IDisposable and was corrected before successful execution. These tests do not verify real collection creation, shared interface/HTTP exposure, authenticated avatar signer resolution, or funded NFT lifecycle. Those gates remain open; no testnet transaction was submitted.
+
 ### Native HTS NFT collection creation SDK operation (2026-10-11)
 
 Hedera bridge action `nftCollectionCreate` now builds a real `TokenCreateTransaction`: unique NFT type, zero decimals/initial supply, explicit positive int64 finite maximum supply, payer as treasury/auto-renew account, and signer public key as admin/supply authority. It reuses the explicit original transaction ID, positive fee ceiling, single-attempt/no-regeneration signed execution and SUCCESS receipt handling; returned native receipt includes `tokenId`. No fabricated collection ID or mirror mutation endpoint. Name/symbol require 1–100 UTF-8 bytes. Actual SDK serialization tests verify treasury/keys/type and maximum supply `9007199254740993`, plus invalid supply/UTF-8 rejection; full installed SDK suite **74/74**, zero skips. This SDK action does not yet implement C# API collection creation, royalty configuration, metadata authority changes or live consensus creation; those remain required lifecycle gates. No testnet mutation or installation/download occurred.
