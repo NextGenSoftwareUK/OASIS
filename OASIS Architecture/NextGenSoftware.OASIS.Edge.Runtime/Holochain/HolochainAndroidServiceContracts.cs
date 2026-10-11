@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.Edge.Runtime.Holochain
         /// <summary>
         /// Use the phone's shared Holochain Service Runtime app when it is installed (one conductor for
         /// every hApp). The player approves access once via a notification; if they don't within
-        /// <see cref="SharedRuntimeApprovalTimeoutMs"/>, or the runtime is missing or incompatible, the
-        /// embedded conductor is used instead.
+        /// <see cref="SharedRuntimeApprovalTimeoutMs"/>, setup returns an error. Embedded mode is used
+        /// only when the runtime is missing or this preference is disabled, never after shared setup fails.
         /// </summary>
         public bool PreferSharedRuntime { get; set; } = true;
         public long SharedRuntimeApprovalTimeoutMs { get; set; } = 60_000;
