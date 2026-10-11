@@ -8,6 +8,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 [TestClass]
 public class SuiNativeTransferTests
 {
+    [TestMethod]
+    public async Task ConfirmedMoveAbortIsFailedNotLookupError()
+    {
+        var rpc = Required("OASIS_SUI_TEST_RPC");
+        Assert.IsTrue(new Uri(rpc).IsLoopback, "Never submit or query this fixture against a public chain.");
+        using var provider = new SuiOASIS(rpc, "localnet");
+        var result = await provider.GetTransactionStatusAsync(Required("OASIS_SUI_TEST_FAILED_DIGEST"));
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(BridgeTransactionStatus.Failed, result.Result);
+        StringAssert.Contains(result.Message, "false");
+    }
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real Sui test setting {name} is required; no skipped or mocked evidence.");
 
