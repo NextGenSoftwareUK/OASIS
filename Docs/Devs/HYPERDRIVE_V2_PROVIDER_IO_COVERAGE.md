@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Expanded current Sui live storage coverage (2026-10-11)
+
+Real retained-node `SuiStorageTests` pass **3/3**, zero skips, 63 seconds (`TestResults/SuiRuntime/sui-storage-current.trx`). Added synchronous avatar ID/username/email and detail ID/username/email reads, plus async detail username resolution; existing cases exercise versions, avatar/detail indexes, parent/metadata filters, provider-key lookup, child loading, import/export, text search, proximity and deletion cleanup. This is direct-provider live evidence, not V2 routing of every operation or authenticated API coverage. Existing Sui 1.81.1 ledger/package was reused, owned PID 31926 stopped with validated SIGTERM after completion, no downloads/installs/reset/new environment. Complete operation-by-operation router and HTTP gates remain outstanding.
+
 ### Current Core Sui V2 routing recheck (2026-10-11)
 
 Core pin `c21485ace9a5c75536514b74b0cc3199df19a741` and current provider binaries passed real Sui V2 routing on the retained 1.81.1 ledger/package: healthy replication/update/delete and measured provider-read selection **1/1**, zero skips, 24 seconds (`TestResults/HyperDriveSui/sui-v2-routing.trx`); closed-transport and actual owned-node-stop failover **2/2**, zero skips, 16 seconds (`sui-v2-failover.trx`). Node PID 30145 was validated and stopped by the test's exact-runtime/config SIGTERM helper, and process inventory confirmed no Sui node remains. This is genuine selected-operation provider execution, not all 42 operations, automatic durable replay or authenticated HTTP coverage. No download, installation, contract deployment, genesis reset or new environment was performed.
