@@ -8,6 +8,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronStorageBackendTests
 {
+    [Theory]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(true, "秘密🌱")]
+    public void StorageReadDecodingRetainsExistenceSeparatelyFromValue(bool exists, string value)
+    {
+        var encode = typeof(TronStorageBackend).GetMethod("Encode", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var data = (byte[])encode.Invoke(null, new object[] { "result(bool,string)", new[] { "bool", "string" }, new object[] { exists, value } })!;
+        var decode = typeof(TronStorageBackend).GetMethod("Decode", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var result = (List<ParameterOutput>)decode.Invoke(null, new object[] { data.AsSpan(4).ToArray(), new[] { "bool", "string" } })!;
+        Assert.Equal(exists, result[0].Result);
+        Assert.Equal(value, result[1].Result);
+        var error = Assert.Throws<TargetInvocationException>(() => decode.Invoke(null, new object[] { new byte[31], new[] { "bool", "string" } }));
+        Assert.IsType<InvalidOperationException>(error.InnerException);
+    }
+
+    [Fact]
+    public void StoragePageDecodingPreservesUnicodeKeysAndExactLargeCounters()
+    {
+        var keys = new[] { "key/🌳", "key/秘密" };
+        var next = System.Numerics.BigInteger.Parse("9007199254740993");
+        var encode = typeof(TronStorageBackend).GetMethod("Encode", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var types = new[] { "string[]", "uint256", "uint256" };
+        var data = (byte[])encode.Invoke(null, new object[] { "result(string[],uint256,uint256)", types, new object[] { keys, next, next + 1 } })!;
+        var decode = typeof(TronStorageBackend).GetMethod("Decode", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var result = (List<ParameterOutput>)decode.Invoke(null, new object[] { data.AsSpan(4).ToArray(), types })!;
+        Assert.Equal(keys, Assert.IsType<List<string>>(result[0].Result));
+        Assert.Equal(next, result[1].Result);
+        Assert.Equal(next + 1, result[2].Result);
+    }
+
     [Fact]
     public void StorageAbiPreservesLongUnicodeKeysAndValuesWithoutTruncation()
     {
