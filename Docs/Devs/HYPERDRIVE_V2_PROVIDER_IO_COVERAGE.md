@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current Core Sui V2 routing recheck (2026-10-11)
+
+Core pin `c21485ace9a5c75536514b74b0cc3199df19a741` and current provider binaries passed real Sui V2 routing on the retained 1.81.1 ledger/package: healthy replication/update/delete and measured provider-read selection **1/1**, zero skips, 24 seconds (`TestResults/HyperDriveSui/sui-v2-routing.trx`); closed-transport and actual owned-node-stop failover **2/2**, zero skips, 16 seconds (`sui-v2-failover.trx`). Node PID 30145 was validated and stopped by the test's exact-runtime/config SIGTERM helper, and process inventory confirmed no Sui node remains. This is genuine selected-operation provider execution, not all 42 operations, automatic durable replay or authenticated HTTP coverage. No download, installation, contract deployment, genesis reset or new environment was performed.
+
 ### Packaging verifier ESM-resolution correction (2026-10-11)
 
 The companion verifier now uses bounded Node ESM subprocess imports from the bridge directory, matching production import conditions rather than `createRequire.resolve` CommonJS conditions. A conditional-export regression fixture has a valid ESM entry and intentionally missing CommonJS entry; it passes, proving the correct package branch is selected. Verifier tests pass **5/5**, and existing Cosmos/Hedera/Sui/Near source SDK directories validate without installation. Source contract audit still finds **42** V2 operations with sync/async handler parity and provider-boundary test declarations; that static audit is **not** live execution of all operations or HTTP routes. Published image and complete operation matrix gates remain open.
