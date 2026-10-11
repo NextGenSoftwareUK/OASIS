@@ -293,6 +293,44 @@ public sealed class TronNativeTransferClient
         return account.Balance / 1000000m;
     }
 
+    public async Task<string> CreateLedgerAccountAsync(string ownerAddress, string newAddress, string privateKey,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(privateKey ?? "", "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("Account creation requires an explicit 32-byte owner signing key.");
+        var owner = _wallet.ParseAddress(ownerAddress); var created = _wallet.ParseAddress(newAddress);
+        if (owner.Length != 21 || created.Length != 21 || owner[0] != 0x41 || created[0] != 0x41 || owner.Equals(created))
+            throw new ArgumentException("Account creation requires distinct current TRON addresses.");
+        if (!_wallet.ParseAddress(new TronECKey(privateKey,TronNetwork.MainNet).GetPublicAddress()).Equals(owner))
+            throw new ArgumentException("Account creation signing key does not own the creator.");
+        await VerifyNetworkAsync(cancellationToken);
+        var node = _wallet.GetProtocol();
+        var unsigned = await node.CreateAccount2Async(new AccountCreateContract { OwnerAddress=owner, AccountAddress=created },
+            _wallet.GetHeaders(),DateTime.UtcNow.AddSeconds(15),cancellationToken);
+        if (unsigned.Result == null || !unsigned.Result.Result || unsigned.Transaction?.RawData == null)
+            throw new InvalidOperationException("TRON rejected account creation construction.");
+        var contracts = unsigned.Transaction.RawData.Contract;
+        if (contracts.Count != 1 || contracts[0].Type != Transaction.Types.Contract.Types.ContractType.AccountCreateContract)
+            throw new InvalidOperationException("TRON node changed account creation contract type.");
+        var requested = contracts[0].Parameter.Unpack<AccountCreateContract>();
+        if (!requested.OwnerAddress.Equals(owner) || !requested.AccountAddress.Equals(created) || (int)requested.Type != 0)
+            throw new InvalidOperationException("TRON node changed account creation participants or type.");
+        var hash = await SignBroadcastConfirmAsync(unsigned.Transaction,privateKey,"",cancellationToken);
+        try
+        {
+            var account = await _wallet.GetSolidityProtocol().GetAccountAsync(new Account { Address=created },
+                _wallet.GetHeaders(),DateTime.UtcNow.AddSeconds(15),cancellationToken);
+            if (account == null || !account.Address.Equals(created))
+                throw new InvalidOperationException("Created account identity was not established by solidified readback.");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("TRON account creation " + hash + " committed but readback failed; reconcile before retrying.",ex);
+        }
+        return hash;
+    }
+
     public async Task<string> SendAsync(string from, string to, decimal amount, string privateKey,
         string memo, CancellationToken cancellationToken = default)
     {
