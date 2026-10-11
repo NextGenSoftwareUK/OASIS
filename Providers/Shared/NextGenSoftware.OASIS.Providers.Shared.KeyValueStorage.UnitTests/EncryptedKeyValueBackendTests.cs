@@ -11,10 +11,41 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class EncryptedKeyValueBackendTests
 {
     [TestMethod]
+    public async Task ActivationWithWrongPersistentKeyFailsBeforeWritingNewRecords()
+    {
+        var store = new InMemoryBackend();
+        using var backend = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+        await backend.PutAsync("existing", "preserve me");
+        var physicalKey = store.Items.Keys.Single();
+        var ciphertext = store.Items[physicalKey];
+        using var wrongKey = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => wrongKey.VerifyAsync());
+        Assert.AreEqual(1, store.Items.Count);
+        Assert.AreEqual(ciphertext, store.Items[physicalKey]);
+        Assert.AreEqual("preserve me", await backend.GetAsync("existing"));
+    }
+
+    [TestMethod]
+    public async Task PrivateActivationProbeUsesEncryptedCrudAndRemovesItsOwnedRecord()
+    {
+        var store = new InMemoryBackend();
+        using var backend = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+        await backend.PutAsync("existing", "preserve me");
+        var physicalKey = store.Items.Keys.Single();
+        var ciphertext = store.Items[physicalKey];
+        await backend.VerifyAsync();
+        Assert.AreEqual(1, store.Items.Count);
+        Assert.AreEqual(ciphertext, store.Items[physicalKey]);
+        Assert.AreEqual("preserve me", await backend.GetAsync("existing"));
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => backend.VerifyAsync(new System.Threading.CancellationToken(true)));
+        Assert.AreEqual(1, store.Items.Count);
+    }
+
+    [TestMethod]
     public async Task ProviderCrudPreservesAvatarSecretsDetailsAndHolonVersionsThroughEncryption()
     {
         var store = new InMemoryBackend();
-        using var encrypted = new EncryptedKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+        using var encrypted = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
         var provider = new TestProvider(encrypted);
         provider.IsVersionControlEnabled = true;
         Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -36,6 +67,40 @@ public class EncryptedKeyValueBackendTests
         Assert.AreEqual("updated private holon", (await provider.LoadHolonAsync(holon.Id, loadChildren: false)).Result.Name);
         Assert.IsTrue(store.Items.Values.All(v => v.StartsWith("oasis-aes256gcm-v1:", StringComparison.Ordinal)));
         Assert.IsTrue(store.Items.Values.All(v => !v.Contains(avatar.Password)));
+        Assert.IsTrue(store.Items.Keys.All(k => k.StartsWith("oasis/private/v1/", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public async Task PrivateIndexesHideLogicalKeysAndRecoverThemForOrderedPrefixEnumeration()
+    {
+        var store = new InMemoryBackend();
+        var key = RandomNumberGenerator.GetBytes(32);
+        using (var backend = new PrivateKeyValueBackend(store, key))
+        {
+            await backend.PutAsync("email/private@example.test", "secret");
+            await backend.PutAsync("email/é", "");
+            await backend.PutAsync("other/key", "other");
+            Assert.IsTrue(store.Items.Keys.All(k => k.Length == 81 && !k.Contains("email")));
+            CollectionAssert.AreEqual(new[] { "email/private@example.test", "email/é" },
+                (await backend.ListKeysAsync("email/")).ToArray());
+            Assert.AreEqual("", await backend.GetAsync("email/é"));
+            await backend.DeleteAsync("other/key");
+            Assert.IsNull(await backend.GetAsync("other/key"));
+        }
+        using var restarted = new PrivateKeyValueBackend(store, key);
+        Assert.AreEqual("secret", await restarted.GetAsync("email/private@example.test"));
+        CollectionAssert.AreEqual(new[] { "email/private@example.test", "email/é" },
+            (await restarted.ListKeysAsync("email/")).ToArray());
+    }
+
+    [TestMethod]
+    public async Task PrivateIndexEnumerationRejectsCiphertextMovedToAnotherPhysicalKey()
+    {
+        var store = new InMemoryBackend();
+        using var backend = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+        await backend.PutAsync("logical", "secret");
+        store.Items["oasis/private/v1/" + new string('0', 64)] = store.Items.Values.Single();
+        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => backend.ListKeysAsync(""));
     }
 
     [TestMethod]

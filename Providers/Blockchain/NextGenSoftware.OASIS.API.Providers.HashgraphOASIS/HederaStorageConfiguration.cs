@@ -24,25 +24,25 @@ public sealed class HederaStorageConfiguration
 // require a deployed storage contract, but storage never succeeds without one.
 internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDisposable
 {
-    private readonly Lazy<EncryptedKeyValueBackend> _backend;
+    private readonly Lazy<PrivateKeyValueBackend> _backend;
     private bool _disposed;
 
     internal ConfiguredHederaStorageBackend(string network, IDictionary<string, string> nodes, HederaStorageConfiguration configuration)
     {
         var copiedNodes = nodes == null ? null : new Dictionary<string, string>(nodes);
-        _backend = new Lazy<EncryptedKeyValueBackend>(() => {
+        _backend = new Lazy<PrivateKeyValueBackend>(() => {
             if (configuration == null)
                 throw new InvalidOperationException("Hedera storage requires an explicit contract, operator, signing key, encryption key and fee configuration.");
             var inner = new HederaStorageBackend(network, configuration.ContractId, configuration.OperatorAccountId,
                 configuration.SigningKeyType, configuration.SigningKeyResolver, configuration.GasLimit,
                 configuration.MaxFeeTinybars, copiedNodes);
             var key = configuration.EncryptionKeyResolver?.Invoke();
-            try { return new EncryptedKeyValueBackend(inner, key); }
+            try { return new PrivateKeyValueBackend(inner, key); }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
         });
     }
 
-    private EncryptedKeyValueBackend Resolve(CancellationToken cancellationToken)
+    private PrivateKeyValueBackend Resolve(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
