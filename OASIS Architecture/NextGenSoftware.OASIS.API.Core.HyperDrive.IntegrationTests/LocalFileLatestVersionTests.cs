@@ -20,6 +20,7 @@ public class LocalFileLatestVersionTests
             ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "latest-version-regression" } };
         var avatar = new Avatar { Id = Guid.Parse("451d94b6-2fda-4a76-b5da-7a37457b4f8b"), Version = 7,
             Username = "latest-version-regression", Email = "latest-version-regression@example.invalid" };
+        var detail = new AvatarDetail { Id = avatar.Id, Version = 7, Username = avatar.Username, Email = avatar.Email };
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         try
         {
@@ -36,12 +37,25 @@ public class LocalFileLatestVersionTests
             (await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Version.Should().Be(7);
             (await provider.LoadAvatarAsync(avatar.Id, version: 7)).Result.Version.Should().Be(7);
             (await provider.LoadAvatarAsync(avatar.Id, version: 6)).Result.Should().BeNull();
+            (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+            (await provider.LoadAvatarDetailAsync(detail.Id)).Result.Version.Should().Be(7);
+            provider.LoadAvatarDetail(detail.Id).Result.Version.Should().Be(7);
+            (await provider.LoadAvatarDetailByUsernameAsync(detail.Username)).Result.Version.Should().Be(7);
+            (await provider.LoadAvatarDetailByEmailAsync(detail.Email)).Result.Version.Should().Be(7);
+            (await provider.LoadAvatarDetailAsync(detail.Id, version: 7)).Result.Version.Should().Be(7);
+            (await provider.LoadAvatarDetailAsync(detail.Id, version: 6)).Result.Should().BeNull();
+            (await provider.LoadAvatarDetailByUsernameAsync(detail.Username, version: 6)).Result.Should().BeNull();
+            (await provider.LoadAvatarDetailByEmailAsync(detail.Email, version: 6)).Result.Should().BeNull();
         }
         finally
         {
             (await provider.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
             (await provider.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
             await provider.DeActivateProviderAsync();
+            // No detail-delete API exists on this provider. Remove only this owned fixture file.
+            var detailFile = Path.GetFullPath(Path.Combine(root, "files", "AvatarDetails", detail.Id + ".json"));
+            detailFile.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            File.Delete(detailFile);
         }
     }
 }
