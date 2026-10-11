@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera NFT mirror read integrity (2026-10-11)
+
+NFT metadata reads continue using the configured mirror's real `tokens/{token}/nfts/{serial}` endpoint and preserve binary Base64 metadata. They now reject metadata over the HTS 100-byte limit and zero owner account IDs, and project the validated native owner into `SendToAddressAfterMinting` as well as native metadata. Controlled HTTP contract suite **8/8**, zero skips (`hedera-nft-read-contract.trx`), checks identity/deletion/encoding/owner/size and binary preservation; provider build succeeds. These are HTTP transport fixtures, not live mirror NFT evidence. Live lifecycle/API gates remain incomplete. No installation/download or ledger mutation.
+
 ### Direct HTS NFT mint integrity/batch validation (2026-10-11)
 
 The direct SDK mint builder now rejects unpaired UTF-16 surrogates before Buffer encoding and requires one to ten metadata entries, matching the existing C# mint batch contract. A regression verifies invalid high/low surrogates and eleven-item batches reject before network access; an actual SDK wire roundtrip preserves a valid ten-item Unicode batch. Full SDK suite **79/79**, zero skips. This extends the prior collection/update Unicode fix to mint and does not claim live HTS minting, large-batch orchestration, authenticated API or overall completion. No ledger mutation, installation or download occurred.
