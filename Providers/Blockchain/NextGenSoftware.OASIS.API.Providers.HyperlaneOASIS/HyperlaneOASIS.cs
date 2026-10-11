@@ -1,223 +1,182 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.CrossChain;
 using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests")]
 
 namespace NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS
 {
-    /// <summary>Hyperlane — permissionless cross-chain messaging protocol with sovereign security.</summary>
-    public class HyperlaneOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
+    /// <summary>
+    /// Hyperlane interchain messaging provider. Tracks messages through the Hyperlane Explorer GraphQL API
+    /// (https://explorer4.hasura.app/v1/graphql, the API behind explorer.hyperlane.xyz). Hyperlane is a messaging
+    /// protocol, not a data store, so this is an <see cref="OASISProvider"/> implementing <see cref="ICrossChainTracker"/>.
+    /// </summary>
+    public class HyperlaneOASIS : OASISProvider, ICrossChainTracker
     {
+        private const string Fields = "msg_id is_delivered origin_tx_hash destination_tx_hash sender recipient origin_tx_sender origin_chain_id destination_chain_id origin_domain_id destination_domain_id send_occurred_at";
+
+        private static readonly Dictionary<long, string> ChainNames = new()
+        {
+            [1] = "ethereum", [10] = "optimism", [56] = "bsc", [100] = "gnosis", [137] = "polygon", [8453] = "base",
+            [42161] = "arbitrum", [43114] = "avalanche", [59144] = "linea"
+        };
+
         private readonly HttpClient _http;
-        private readonly string _explorerApiUrl;
-        private bool _isActivated;
+        private readonly string _graphQlPath;
 
-        public HyperlaneOASIS(string explorerApiUrl = "https://explorer.hyperlane.xyz/api")
+        public HyperlaneOASIS(string graphQlUrl = "https://explorer4.hasura.app/v1/graphql") : this(graphQlUrl, null) { }
+
+        internal HyperlaneOASIS(string graphQlUrl, HttpMessageHandler handler)
         {
-            _explorerApiUrl = explorerApiUrl?.TrimEnd('/') ?? "https://explorer.hyperlane.xyz/api";
-            _http = new HttpClient { BaseAddress = new Uri(_explorerApiUrl + "/") };
-            _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var uri = new Uri(graphQlUrl);
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri(uri.GetLeftPart(UriPartial.Authority) + "/");
+            _graphQlPath = uri.AbsolutePath.TrimStart('/');
             ProviderName = "HyperlaneOASIS";
-            ProviderDescription = "Hyperlane Permissionless Cross-Chain Messaging Provider";
+            ProviderDescription = "Hyperlane interchain messaging provider (Hyperlane Explorer API).";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HyperlaneOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
-        }
-
-        private async Task<T> GetAsync<T>(string path)
-        {
-            var response = await _http.GetAsync(path);
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<T>(json);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            var r = new OASISResult<bool>();
+            var probe = await QueryAsync("{ message_view(limit: 1) { msg_id } }", null, CancellationToken.None);
+            var result = new OASISResult<bool>();
+            if (probe.IsError) { OASISErrorHandling.HandleError(ref result, probe.Message); return result; }
+            IsProviderActivated = true;
+            result.Result = true;
+            result.Message = "HyperlaneOASIS activated.";
+            return result;
+        }
+
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool>(true) { Message = "HyperlaneOASIS deactivated." });
+        }
+
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
+
+        public Task<OASISResult<IReadOnlyList<CrossChainTransfer>>> GetTransfersBySourceTxAsync(string sourceTxHash, CancellationToken cancellationToken = default)
+            => FilterAsync("origin_tx_hash", sourceTxHash, 50, cancellationToken);
+
+        public Task<OASISResult<IReadOnlyList<CrossChainTransfer>>> GetTransfersByAddressAsync(string address, int limit = 50, CancellationToken cancellationToken = default)
+            => FilterAsync("origin_tx_sender", address, Math.Clamp(limit, 1, 100), cancellationToken);
+
+        /// <summary>Loads a message by its Hyperlane message id.</summary>
+        public async Task<OASISResult<CrossChainTransfer>> GetTransferByMessageIdAsync(string messageId, CancellationToken cancellationToken = default)
+        {
+            var list = await FilterAsync("msg_id", messageId, 1, cancellationToken);
+            if (list.IsError) return Error<CrossChainTransfer>(list.Message);
+            return list.Result.Count == 0 ? Error<CrossChainTransfer>($"No Hyperlane message {messageId}.") : new OASISResult<CrossChainTransfer>(list.Result[0]);
+        }
+
+        /// <summary>Encodes a 0x-hex or base58 (e.g. Solana) value as a Postgres bytea literal, as the explorer expects.</summary>
+        internal static string ToBytea(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("A hash or address is required.");
+            value = value.Trim();
+            if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                var hex = value[2..];
+                if (hex.Length % 2 != 0 || !hex.All(Uri.IsHexDigit)) throw new ArgumentException($"'{value}' is not valid hex.");
+                return "\\x" + hex.ToLowerInvariant();
+            }
+            return "\\x" + Convert.ToHexString(Base58Decode(value)).ToLowerInvariant();
+        }
+
+        private static byte[] Base58Decode(string s)
+        {
+            const string alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+            BigInteger n = 0;
+            foreach (var c in s)
+            {
+                var digit = alphabet.IndexOf(c);
+                if (digit < 0) throw new ArgumentException($"'{s}' is neither 0x-hex nor base58.");
+                n = n * 58 + digit;
+            }
+            var bytes = n.IsZero ? Array.Empty<byte>() : n.ToByteArray(isUnsigned: true, isBigEndian: true);
+            var leadingZeros = s.TakeWhile(c => c == '1').Count();
+            return new byte[leadingZeros].Concat(bytes).ToArray();
+        }
+
+        private static string FromBytea(string value)
+            => value == null ? null : value.StartsWith("\\x", StringComparison.Ordinal) ? "0x" + value[2..] : value;
+
+        private async Task<OASISResult<IReadOnlyList<CrossChainTransfer>>> FilterAsync(string column, string value, int limit, CancellationToken ct)
+        {
+            string bytea;
+            try { bytea = ToBytea(value); }
+            catch (ArgumentException ex) { return Error<IReadOnlyList<CrossChainTransfer>>(ex.Message); }
+
+            var data = await QueryAsync($"query ($v: bytea!) {{ message_view(where: {{{column}: {{_eq: $v}}}}, limit: {limit}) {{ {Fields} }} }}", new { v = bytea }, ct);
+            if (data.IsError) return Error<IReadOnlyList<CrossChainTransfer>>(data.Message);
+            return new OASISResult<IReadOnlyList<CrossChainTransfer>>(data.Result.GetProperty("message_view").EnumerateArray().Select(Map).ToList());
+        }
+
+        private static CrossChainTransfer Map(JsonElement m)
+        {
+            static string Str(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+            static long? Num(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt64() : null;
+            static string Chain(long? id) => id == null ? null : ChainNames.TryGetValue(id.Value, out var n) ? n : $"chain-{id}";
+
+            var delivered = m.TryGetProperty("is_delivered", out var d) && d.ValueKind == JsonValueKind.True;
+            var sent = Str(m, "send_occurred_at");
+            return new CrossChainTransfer
+            {
+                Id = FromBytea(Str(m, "msg_id")),
+                Protocol = "hyperlane",
+                Status = delivered ? CrossChainTransferStatus.Completed : CrossChainTransferStatus.Pending,
+                RawStatus = delivered ? "delivered" : "pending",
+                SourceChain = Chain(Num(m, "origin_chain_id") ?? Num(m, "origin_domain_id")),
+                SourceTxHash = FromBytea(Str(m, "origin_tx_hash")),
+                DestinationChain = Chain(Num(m, "destination_chain_id") ?? Num(m, "destination_domain_id")),
+                DestinationTxHash = FromBytea(Str(m, "destination_tx_hash")),
+                Sender = FromBytea(Str(m, "origin_tx_sender")) ?? FromBytea(Str(m, "sender")),
+                Recipient = FromBytea(Str(m, "recipient")),
+                // The explorer returns UTC timestamps without an offset.
+                Timestamp = DateTime.TryParse(sent, null, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out var ts) ? new DateTimeOffset(ts, TimeSpan.Zero) : null
+            };
+        }
+
+        private async Task<OASISResult<JsonElement>> QueryAsync(string query, object variables, CancellationToken ct)
+        {
             try
             {
-                if (_isActivated) { r.Result = true; r.Message = "HyperlaneOASIS already activated"; return r; }
-                // Health check: attempt to list messages with limit=1
-                var response = await _http.GetAsync("messages?limit=1");
-                response.EnsureSuccessStatusCode();
-                _isActivated = true;
-                r.Result = true;
-                r.Message = "HyperlaneOASIS activated successfully — explorer API reachable";
+                using var content = new StringContent(JsonSerializer.Serialize(new { query, variables }), Encoding.UTF8, "application/json");
+                using var response = await _http.PostAsync(_graphQlPath, content, ct);
+                var body = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode)
+                    return Error<JsonElement>($"Hyperlane Explorer query failed: {(int)response.StatusCode} {response.ReasonPhrase} {body}");
+                using var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("errors", out var errors))
+                    return Error<JsonElement>($"Hyperlane Explorer query failed: {errors[0].GetProperty("message").GetString()}");
+                return new OASISResult<JsonElement>(doc.RootElement.GetProperty("data").Clone());
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS activation failed: {ex.Message}", ex); }
-            return r;
+            catch (Exception ex) { return Error<JsonElement>($"Hyperlane Explorer query failed: {ex.Message}", ex); }
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        private static OASISResult<T> Error<T>(string message, Exception ex = null)
         {
-            var r = new OASISResult<bool>();
-            try { _isActivated = false; _http.Dispose(); r.Result = true; r.Message = "HyperlaneOASIS deactivated"; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS deactivation failed: {ex.Message}", ex); }
-            return r;
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, $"HyperlaneOASIS: {message}", ex);
+            return result;
         }
-
-        // LoadHolonAsync(string key): treat key as message ID → GET /messages?id={key}
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string key, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                var json = await GetAsync<JObject>($"messages?id={Uri.EscapeDataString(key)}");
-                var holon = new Holon();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.HyperlaneOASIS] = key;
-                if (json != null)
-                {
-                    // Explorer returns { messages: [...] } or direct object depending on API version
-                    JToken msgToken = json["messages"] is JArray arr && arr.Count > 0 ? arr[0] : json;
-                    holon.Name = msgToken["id"]?.ToString() ?? key;
-                    if (holon.MetaData == null) holon.MetaData = new Dictionary<string, object>();
-                    holon.MetaData["hyperlane_id"] = msgToken["id"]?.ToString() ?? key;
-                    holon.MetaData["hyperlane_status"] = msgToken["status"]?.ToString() ?? "";
-                    holon.MetaData["hyperlane_origin"] = msgToken["origin"]?.ToString() ?? "";
-                    holon.MetaData["hyperlane_destination"] = msgToken["destination"]?.ToString() ?? "";
-                    holon.MetaData["hyperlane_sender"] = msgToken["sender"]?.ToString() ?? "";
-                    holon.MetaData["hyperlane_recipient"] = msgToken["recipient"]?.ToString() ?? "";
-                    holon.MetaData["hyperlane_raw"] = msgToken.ToString();
-                }
-                r.Result = holon;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS LoadHolonAsync(key) failed for key={key}: {ex.Message}", ex); }
-            return r;
-        }
-
-        // SaveHolonAsync: create interchain message payload; store message metadata as Holon
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false)
-        {
-            var r = new OASISResult<IHolon>();
-            try
-            {
-                if (h.Id == Guid.Empty) h.Id = Guid.NewGuid();
-                // Build an interchain message payload (actual dispatch needs on-chain call via Mailbox contract)
-                var payload = JsonConvert.SerializeObject(new
-                {
-                    holonId = h.Id.ToString(),
-                    holonName = h.Name,
-                    holonType = h.HolonType.ToString(),
-                    createdAt = DateTime.UtcNow,
-                    data = h.MetaData
-                });
-                var pendingKey = $"pending-hyperlane-{h.Id}";
-                h.ProviderUniqueStorageKey[Core.Enums.ProviderType.HyperlaneOASIS] = pendingKey;
-                if (h.MetaData == null) h.MetaData = new Dictionary<string, object>();
-                h.MetaData["hyperlane_pending_payload"] = payload;
-                h.MetaData["hyperlane_note"] = "Stored as Hyperlane interchain message payload — actual dispatch() requires Mailbox contract call";
-                r.Result = h;
-                r.Message = "Stored as Hyperlane interchain message payload";
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS SaveHolonAsync failed: {ex.Message}", ex); }
-            return r;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS LoadAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatar>(); try { r.Result = new Avatar { Username = u }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS LoadAvatarByUsernameAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar a) { var r = new OASISResult<IAvatar>(); try { if (a.Id == Guid.Empty) a.Id = Guid.NewGuid(); r.Result = a; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS SaveAvatarAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool soft = true) => new OASISResult<bool> { Result = true };
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IHolon>(); try { r.Result = new Holon { Id = id }; } catch (Exception ex) { OASISErrorHandling.HandleError(ref r, $"HyperlaneOASIS LoadHolonAsync: {ex.Message}", ex); } return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType ht = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) { var r = new OASISResult<IEnumerable<IHolon>>(); var s = new List<IHolon>(); foreach (var h in holons) { var sr = await SaveHolonAsync(h, sc, rec, md, coe, scop); if (!sr.IsError && sr.Result != null) s.Add(sr.Result); } r.Result = s; return r; }
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) { var r = new OASISResult<ISearchResults>(); r.Result = new SearchResults(); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "HyperlaneOASIS does not support avatar detail storage"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail ad) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "HyperlaneOASIS does not support avatar detail storage"); return r; }
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int v = 0) { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); r.Result = new List<IAvatarDetail>(); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string k, int v = 0) => await LoadAvatarByUsernameAsync(k, v);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string k, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool s = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string k) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> h) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int v = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int v = 0) => LoadAvatarAsync(id, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string k, int v = 0) => LoadAvatarByProviderKeyAsync(k, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string u, int v = 0) => LoadAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string e, int v = 0) => LoadAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int v = 0) => LoadAllAvatarsAsync(v).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar a) => SaveAvatarAsync(a).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool s = true) => DeleteAvatarAsync(id, s).Result;
-        public override OASISResult<bool> DeleteAvatar(string k, bool s = true) => DeleteAvatarAsync(k, s).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool s = true) => DeleteAvatarByEmailAsync(e, s).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool s = true) => DeleteAvatarByUsernameAsync(u, s).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int v = 0) => LoadAvatarDetailAsync(id, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int v = 0) => LoadAvatarDetailByEmailAsync(e, v).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int v = 0) => LoadAvatarDetailByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int v = 0) => LoadAllAvatarDetailsAsync(v).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail ad) => SaveAvatarDetailAsync(ad).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams sp, bool lc = true, bool rec = true, int md = 0, bool coe = true, int v = 0) => SearchAsync(sp, lc, rec, md, coe, v).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(id, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> LoadHolon(string k, bool lc = true, bool rec = true, int md = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonAsync(k, lc, rec, md, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(id, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string k, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsForParentAsync(k, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string mk, string mv, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(mk, mv, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> m, MetaKeyValuePairMatchMode mm, HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadHolonsByMetaDataAsync(m, mm, t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType t = HolonType.All, bool lc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool lcfp = false, int v = 0) => LoadAllHolonsAsync(t, lc, rec, md, cd, coe, lcfp, v).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon h, bool sc = true, bool rec = true, int md = 0, bool coe = true, bool scop = false) => SaveHolonAsync(h, sc, rec, md, coe, scop).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool sc = true, bool rec = true, int md = 0, int cd = 0, bool coe = true, bool scop = false) => SaveHolonsAsync(holons, sc, rec, md, cd, coe, scop).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<IHolon> DeleteHolon(string k) { var r = DeleteHolonAsync(k).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> h) => ImportAsync(h).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int v = 0) => ExportAllDataForAvatarByIdAsync(id, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int v = 0) => ExportAllDataForAvatarByUsernameAsync(u, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int v = 0) => ExportAllDataForAvatarByEmailAsync(e, v).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int v = 0) => ExportAllAsync(v).Result;
-
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lon, int radius) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new List<IAvatar>(); return r; }
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lon, int radius, HolonType t) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest req) { var r = new OASISResult<ITransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest req) { var r = new OASISResult<double>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest req) { var r = new OASISResult<IList<IWalletTransaction>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() { var r = new OASISResult<IKeyPairAndWallet>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(System.Threading.CancellationToken token = default) { var r = new OASISResult<(string, string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seed, System.Threading.CancellationToken token = default) { var r = new OASISResult<(string, string)>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amt, string addr, string key) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amt, string addr) { var r = new OASISResult<BridgeTransactionResponse>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string hash, System.Threading.CancellationToken token = default) { var r = new OASISResult<BridgeTransactionStatus>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
     }
 }
