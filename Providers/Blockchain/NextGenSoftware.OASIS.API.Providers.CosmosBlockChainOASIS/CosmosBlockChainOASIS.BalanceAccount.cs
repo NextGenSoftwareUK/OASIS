@@ -190,8 +190,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     result.Result = BridgeTransactionStatus.NotFound;
                     result.Message = "Transaction is not indexed on the configured chain.";
                 }
-                else result.Result = tx.GetProperty("code").GetInt32() == 0
-                    ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled;
+                else result.Result = MapExecutionCode(tx.GetProperty("code").GetInt32());
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
@@ -201,6 +200,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         {
             if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Deterministic identity input is required.");
             return new Guid(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(input)).Take(16).ToArray());
+        }
+        internal static BridgeTransactionStatus MapExecutionCode(int code)
+        {
+            if (code < 0) throw new ArgumentOutOfRangeException(nameof(code), "Native execution codes must be nonnegative.");
+            return code == 0 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
         }
     }
 }
