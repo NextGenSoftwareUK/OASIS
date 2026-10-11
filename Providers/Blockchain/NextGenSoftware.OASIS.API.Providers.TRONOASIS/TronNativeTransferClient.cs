@@ -100,12 +100,24 @@ public sealed class TronNativeTransferClient
     }
 
     internal static System.Collections.Generic.IReadOnlyList<string> NftCollectionsFromReceipt(TransactionInfo receipt, ByteString owner)
+        => NftTransfersFromReceipt(receipt, owner).Select(transfer => transfer.Contract).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
+
+    internal sealed record NativeNftTransfer(string Contract, System.Numerics.BigInteger TokenId, string From, string To, int LogIndex);
+
+    internal static System.Collections.Generic.IReadOnlyList<NativeNftTransfer> NftTransfersFromReceipt(TransactionInfo receipt, ByteString owner)
     {
+        ArgumentNullException.ThrowIfNull(receipt);
         if (owner == null || owner.Length != 21 || owner[0] != 0x41) throw new ArgumentException("A TRON owner address is required.");
         var transferTopic = Convert.FromHexString(new Nethereum.Util.Sha3Keccack().CalculateHash("Transfer(address,address,uint256)"));
-        var collections = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
-        foreach (var log in receipt.Log)
+        var transfers = new System.Collections.Generic.List<NativeNftTransfer>();
+        string Address(ReadOnlySpan<byte> evmAddress)
         {
+            var address = new byte[21]; address[0] = 0x41; evmAddress.CopyTo(address.AsSpan(1));
+            return NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(address);
+        }
+        for (var index = 0; index < receipt.Log.Count; index++)
+        {
+            var log = receipt.Log[index];
             // TRC20 Transfer has three topics and a data amount. Never classify it as an NFT.
             if (log.Topics.Count != 4 || !log.Topics[0].Span.SequenceEqual(transferTopic)) continue;
             if (log.Address.Length != 20 || log.Data.Length != 0 || log.Topics.Any(topic => topic.Length != 32)
@@ -114,10 +126,11 @@ public sealed class TronNativeTransferClient
                 throw new InvalidOperationException("Malformed TRC721 Transfer log in solidified receipt.");
             if (!log.Topics[1].Span[12..].SequenceEqual(owner.Span[1..])
                 && !log.Topics[2].Span[12..].SequenceEqual(owner.Span[1..])) continue;
-            var address = new byte[21]; address[0] = 0x41; log.Address.CopyTo(address, 1);
-            collections.Add(NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(address));
+            transfers.Add(new NativeNftTransfer(Address(log.Address.Span),
+                new System.Numerics.BigInteger(log.Topics[3].Span, true, true),
+                Address(log.Topics[1].Span[12..]), Address(log.Topics[2].Span[12..]), index));
         }
-        return collections.ToArray();
+        return transfers;
     }
 
     internal static bool ValidateTransactionIdentity(Transaction transaction, ByteString expectedId)
