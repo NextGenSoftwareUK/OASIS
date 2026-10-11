@@ -418,36 +418,36 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                ArgumentNullException.ThrowIfNull(request);
+                var asset = ParseHederaNftAddress(request.NFTTokenAddress);
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover an explicit Hedera signing key before burning an NFT.");
+                if (request.BurntByAvatarId == Guid.Empty)
+                    throw new ArgumentException("The burning avatar's real Hedera treasury wallet is required.");
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId,
+                    Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if (walletResult.IsError || walletResult.Result == null)
+                    throw new InvalidOperationException("Could not retrieve the burning avatar's Hedera wallet.");
+                var wallet = walletResult.Result;
+                if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey)
+                    && !string.Equals(request.OwnerPrivateKey, wallet.PrivateKey, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Supplied signing key does not match the avatar's treasury wallet.");
+                var committed = await HederaSdkClient.InvokeAsync("nftBurn", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Burn NFT on Hedera using HTS
-                var burnUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.NFTTokenAddress}/nfts/{request.Web3NFTId}/burn";
-                var response = await _httpClient.PostAsync(burnUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
-
-                if (response.IsSuccessStatusCode)
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
+                    recipient = wallet.WalletAddress, tokenId = asset.TokenId, serials = new[] { asset.Serial },
+                    privateKey = wallet.PrivateKey,
+                    publicKey = string.IsNullOrWhiteSpace(request.OwnerPublicKey) ? wallet.PublicKey : request.OwnerPublicKey,
+                    keyType = "der", transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("HTS NFT burn did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(content);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : "",
-                        Web3NFT = new Web3NFT
-                        {
-                            NFTTokenAddress = request.NFTTokenAddress
-                        }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT burned successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph NFT burn failed: {response.StatusCode}");
-                }
+                    TransactionResult = committed.GetProperty("transactionId").GetString(),
+                    Web3NFT = new Web3NFT { Id = request.Web3NFTId, NFTTokenAddress = request.NFTTokenAddress }
+                };
+                result.Message = "HTS NFT burn confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
@@ -459,6 +459,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
             return BurnNFTAsync(request).Result;
+        }
+
+        private static (string TokenId, string Serial) ParseHederaNftAddress(string address)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(address ?? "",
+                @"\A([0-9]+\.[0-9]+\.[0-9]+)/([1-9][0-9]*)\z");
+            if (!match.Success || !long.TryParse(match.Groups[2].Value,
+                System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _))
+                throw new ArgumentException("A Hedera NFT address must identify token/serial, for example 0.0.1234/1; an OASIS GUID is not an HTS serial.");
+            return (match.Groups[1].Value, match.Groups[2].Value);
         }
 
 
