@@ -1,6 +1,51 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execute, tokenUnits } from './bridge.mjs';
+import { execute, tokenUnits, nftTransaction } from './bridge.mjs';
+import { AccountId, Transaction, TransactionId, TokenMintTransaction, TokenBurnTransaction, TransferTransaction } from '@hiero-ledger/sdk';
+
+function roundTrip(transaction) {
+  transaction.setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001')).setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();
+  return Transaction.fromBytes(transaction.toBytes());
+}
+
+test('NFT mint encodes metadata, not a fungible amount', () => {
+  const transaction = roundTrip(nftTransaction('nftMint', { tokenId: '0.0.1234', metadata: ['ipfs://first', 'ipfs://second'] }));
+  assert.ok(transaction instanceof TokenMintTransaction);
+  assert.equal(transaction.amount.toString(), '0');
+  assert.deepEqual(transaction.metadata.map(value => Buffer.from(value).toString('utf8')), ['ipfs://first', 'ipfs://second']);
+});
+
+test('NFT burn preserves serials above JavaScript safe integer range in SDK wire bytes', () => {
+  const transaction = roundTrip(nftTransaction('nftBurn', { tokenId: '0.0.1234', serials: ['9007199254740993', '9223372036854775807'] }));
+  assert.ok(transaction instanceof TokenBurnTransaction);
+  assert.equal(transaction.amount.toString(), '0');
+  assert.deepEqual(transaction.serials.map(value => value.toString()), ['9007199254740993', '9223372036854775807']);
+});
+
+test('NFT transfer is a real SDK transfer rather than an HBAR payment', () => {
+  const transaction = roundTrip(nftTransaction('nftTransfer', {
+    tokenId: '0.0.1234', serials: ['9007199254740993'], sender: '0.0.1001', recipient: '0.0.1002'
+  }));
+  assert.ok(transaction instanceof TransferTransaction);
+  assert.equal(transaction.hbarTransfers.size, 0);
+  assert.equal(transaction.tokenTransfers.size, 0);
+  assert.equal(transaction.nftTransfers.size, 1);
+  const [transfer] = transaction.nftTransfers.get('0.0.1234');
+  assert.equal(transfer.serial.toString(), '9007199254740993');
+  assert.equal(transfer.sender.toString(), '0.0.1001');
+  assert.equal(transfer.recipient.toString(), '0.0.1002');
+});
+
+for (const serials of [[], ['0'], ['-1'], ['1.5'], [1], ['9223372036854775808'], ['1', '1']]) {
+  test(`invalid NFT serial payload ${JSON.stringify(serials)} is rejected without network use`, async () => {
+    await assert.rejects(execute('nftBurn', { tokenId: '0.0.1234', serials }), /serial/);
+  });
+}
+
+test('NFT metadata limit is measured in UTF-8 bytes without truncation', async () => {
+  await assert.rejects(execute('nftMint', { tokenId: '0.0.1234', metadata: ['é'.repeat(51)] }), /100 UTF-8 bytes/);
+  assert.equal(nftTransaction('nftMint', { tokenId: '0.0.1234', metadata: ['é'.repeat(50)] }).metadata[0].length, 100);
+});
 
 test('invalid receipt ID is rejected before opening a consensus client', async () => {
   await assert.rejects(execute('receipt', { network: 'testnet', transactionId: 'not-a-transaction-id' }));
