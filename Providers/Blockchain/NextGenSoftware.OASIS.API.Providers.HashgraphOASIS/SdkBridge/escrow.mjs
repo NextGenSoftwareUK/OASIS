@@ -107,7 +107,7 @@ export async function executeTokenEscrow(action, request, { createClient, restor
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('Escrow signing key mismatch.');
-  const client = createClient(request);
+  const client = await createClient(request);
   let stage = 'validation', approvalTransactionId = null;
   try {
     client.setOperator(sender, key);
@@ -187,7 +187,7 @@ export async function executeEscrow(action, request, { createClient, restoreKey 
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('Escrow signing key mismatch.');
-  const client = createClient(request);
+  const client = await createClient(request);
   let approvalTransactionId = null;
   let stage = 'validation';
   try {
