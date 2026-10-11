@@ -1,11 +1,13 @@
 // Controlled transport only: no SDK or ledger submission.
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const {action,request}=JSON.parse(input);
-if(!['nftCollectionCreate','tokenCollectionDelete'].includes(action)||request.network!=='testnet'||request.sender!=='0.0.1001'
+if(!['nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)||request.network!=='testnet'||request.sender!=='0.0.1001'
  ||(action==='nftCollectionCreate'&&request.maxSupply!=='9007199254740993')||request.maxFeeTinybars!=='100000000'
  ||request.keyType!=='der'||request.privateKey!=='test-only-collection-key')
  throw new Error('Collection request projection mismatch');
-const mode=action==='tokenCollectionDelete'?({'0.0.2001':'success','0.0.2002':'failure','0.0.2003':'mismatch'})[request.tokenId]:request.name;
+const mode=action!=='nftCollectionCreate'?({'0.0.2001':'success','0.0.2002':'failure','0.0.2003':'mismatch'})[request.tokenId]:request.name;
+if(action==='nftMetadataUpdate'&&(request.serials.length!==1||request.serials[0]!=='9007199254740993'||request.metadata!=='Oak 🌳'))
+ throw new Error('NFT metadata projection mismatch');
 if(!mode)throw new Error('Unexpected collection selector');
 if(action==='nftCollectionCreate'){
  const expected=mode.startsWith('royalty-')?Number(mode.slice(8)):0;
