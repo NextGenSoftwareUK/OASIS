@@ -12,6 +12,40 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task AccountCreationCommitsOnceAndMapsActualHistoryParticipants()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(110));
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),Genesis);
+        var owner = new TronECKey(SenderKey,TronNetwork.MainNet).GetPublicAddress();
+        var created = new TronECKey(new string('0',62)+"14",TronNetwork.MainNet).GetPublicAddress();
+        await Assert.ThrowsAsync<ArgumentException>(()=>runtime.NativeTransfers.CreateLedgerAccountAsync(owner,created,RecipientKey,bounded.Token));
+        using var canceled=new CancellationTokenSource(); canceled.Cancel();
+        await Assert.ThrowsAsync<OperationCanceledException>(()=>runtime.NativeTransfers.CreateLedgerAccountAsync(owner,created,SenderKey,canceled.Token));
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Use-ReusableTronRuntime.ps1"))) directory=directory.Parent;
+        Assert.NotNull(directory);
+        var report=Path.Combine(directory!.FullName,"TestResults/TronRuntime/account-create-id.txt");
+        string hash;
+        if(File.Exists(report)) hash=(await File.ReadAllTextAsync(report,bounded.Token)).Trim();
+        else
+        {
+            hash=await runtime.NativeTransfers.CreateLedgerAccountAsync(owner,created,SenderKey,bounded.Token);
+            await File.WriteAllTextAsync(report,hash,bounded.Token); // Compact public reconciliation evidence, reused on subsequent runs.
+        }
+        Assert.Matches("^[0-9a-f]{64}$",hash);
+        Assert.Equal(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,
+            await runtime.NativeTransfers.GetTransactionStatusAsync(hash,bounded.Token));
+        Assert.Equal(0m,await runtime.NativeTransfers.GetNativeBalanceAsync(created,bounded.Token));
+        foreach(var address in new[] {owner,created})
+        {
+            var item=Assert.Single(await runtime.NativeTransfers.ReadWalletTransactionsAsync(address,new[] {hash},bounded.Token));
+            Assert.Equal(hash,item.NativeTransactionId); Assert.Equal("AccountCreateContract",item.NativeOperation);
+            Assert.Equal(owner,item.FromWalletAddress); Assert.Equal(created,item.ToWalletAddress);
+            Assert.Equal("0",item.RawAmount); Assert.Equal("SUN",item.AmountUnit); Assert.Equal("Success",item.NativeExecutionResult);
+        }
+    }
+
+    [Fact]
     public async Task NftEscrowPreservesDepositorAndRejectsUnauthorizedWithdrawalOnTvm()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(110));
