@@ -3276,7 +3276,8 @@ public sealed class HyperDriveProviderExecutionTests
             providerTypeToLoadFrom: ProviderType.SQLLiteDBOASIS);
 
         result.IsError.Should().BeFalse();
-        result.Result.Should().BeSameAs(wallets);
+        result.Result.Should().NotBeSameAs(wallets);
+        result.Result.Should().BeEquivalentTo(wallets);
         providerManager.CurrentStorageProvider.Should().BeSameAs(current.Object);
         localWallets.Verify(x => x.LoadProviderWalletsForAvatarById(avatarId), Times.Once);
     }
@@ -5271,7 +5272,8 @@ public sealed class HyperDriveProviderExecutionTests
             : await manager.LoadProviderWalletsForAvatarByUsernameUsingHyperDriveAsync(identity);
 
         result.IsError.Should().BeFalse(result.Message);
-        result.Result.Should().BeSameAs(wallets);
+        result.Result.Should().NotBeSameAs(wallets);
+        result.Result.Should().BeEquivalentTo(wallets);
         localWallets.Verify(x => x.LoadProviderWalletsForAvatarByIdAsync(avatarId), Times.Once);
         localWallets.Verify(x => x.LoadProviderWalletsForAvatarById(It.IsAny<Guid>()), Times.Never);
     }
