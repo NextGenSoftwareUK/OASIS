@@ -11,6 +11,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronTokenTransferSafetyTests
 {
     [Theory]
+    [InlineData(false, 0, "token")]
+    [InlineData(true, -1, "token")]
+    [InlineData(false, 1, "")]
+    [InlineData(true, 1, "")]
+    public async Task AvatarTokenRoutesRejectInvalidRequestBeforeWalletOrNodeAccess(bool byEmail, int amount, string token)
+    {
+        var provider = new TRONOASIS();
+        var result = byEmail
+            ? await provider.SendTransactionByEmailAsync("sender@example.org", "recipient@example.org", amount, token)
+            : await provider.SendTransactionByUsernameAsync("sender", "recipient", amount, token);
+        Assert.True(result.IsError);
+        Assert.Null(result.Result);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    [Theory]
     [InlineData(0, false)]
     [InlineData(1, true)]
     [InlineData(2, false)]

@@ -45,91 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
     public partial class TRONOASIS
     {
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Get wallet addresses for both avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, fromAvatarUsername);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, toAvatarUsername);
-                
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to get wallet addresses for avatars by username");
-                    return response;
-                }
-                
-                var fromWalletAddress = fromWalletResult.Result;
-                var toWalletAddress = toWalletResult.Result;
-
-                if (string.IsNullOrEmpty(fromWalletAddress) || string.IsNullOrEmpty(toWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Unable to get wallet addresses for avatars by username");
-                    return response;
-                }
-
-                // Send TRC20 token transaction using TRON Grid API
-                var tokenAddress = _contractAddress ?? "" ?? "";
-                if (string.IsNullOrEmpty(tokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Token address is required");
-                    return response;
-                }
-
-                // Build TRC20 transfer transaction
-                var transferPayload = new
-                {
-                    owner_address = fromWalletAddress,
-                    contract_address = tokenAddress,
-                    function_selector = "transfer(address,uint256)",
-                    parameter = $"{toWalletAddress.Substring(1).PadLeft(64, '0')}{((long)(amount * 1000000)).ToString("X").PadLeft(64, '0')}",
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transferPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txid
-                    };
-                    response.IsError = false;
-                    response.Message = "TRC20 token transaction sent successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref response, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending TRC20 token transaction on TRON: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+            => SendAvatarTokenAsync(fromAvatarUsername, toAvatarUsername, amount, token, byEmail: false);
 
         public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
@@ -188,95 +105,55 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Get wallet addresses for both avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, fromAvatarEmail);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, toAvatarEmail);
-                
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to get wallet addresses for avatars by email");
-                    return response;
-                }
-                
-                var fromWalletAddress = fromWalletResult.Result;
-                var toWalletAddress = toWalletResult.Result;
-
-                if (string.IsNullOrEmpty(fromWalletAddress) || string.IsNullOrEmpty(toWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Unable to get wallet addresses for avatars by email");
-                    return response;
-                }
-
-                // Send TRC20 token transaction using TRON Grid API
-                var tokenAddress = _contractAddress ?? "" ?? "";
-                if (string.IsNullOrEmpty(tokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Token address is required");
-                    return response;
-                }
-
-                // Build TRC20 transfer transaction
-                var transferPayload = new
-                {
-                    owner_address = fromWalletAddress,
-                    contract_address = tokenAddress,
-                    function_selector = "transfer(address,uint256)",
-                    parameter = $"{toWalletAddress.Substring(1).PadLeft(64, '0')}{((long)(amount * 1000000)).ToString("X").PadLeft(64, '0')}",
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transferPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txid
-                    };
-                    response.IsError = false;
-                    response.Message = "TRC20 token transaction sent successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref response, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending TRC20 token transaction on TRON: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+            => SendAvatarTokenAsync(fromAvatarEmail, toAvatarEmail, amount, token, byEmail: true);
 
         public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> SendAvatarTokenAsync(string sender, string recipient,
+            decimal amount, string tokenAddress, bool byEmail)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+                if (string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient))
+                    throw new ArgumentException("Sender and recipient avatar identifiers are required.");
+                if (string.IsNullOrWhiteSpace(tokenAddress))
+                    throw new ArgumentException("An explicit TRC20 token contract address is required.");
+                if (WalletManager == null) throw new InvalidOperationException("Avatar wallet manager is unavailable.");
+                var senderAvatar = byEmail ? await AvatarManager.Instance.LoadAvatarByEmailAsync(sender)
+                    : await AvatarManager.Instance.LoadAvatarAsync(sender);
+                var recipientAvatar = byEmail ? await AvatarManager.Instance.LoadAvatarByEmailAsync(recipient)
+                    : await AvatarManager.Instance.LoadAvatarAsync(recipient);
+                if (senderAvatar.IsError || senderAvatar.Result == null || recipientAvatar.IsError || recipientAvatar.Result == null)
+                    throw new InvalidOperationException("Could not resolve sender and recipient avatar identities.");
+                // The ID lookup decrypts a detached wallet; never filter/decrypt the stored avatar wallet in place.
+                var from = await WalletManager.GetAvatarDefaultWalletByIdAsync(senderAvatar.Result.Id,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                var to = await WalletManager.GetAvatarDefaultWalletByIdAsync(recipientAvatar.Result.Id,
+                    Core.Enums.ProviderType.TRONOASIS);
+                if (from.IsError || from.Result == null || string.IsNullOrWhiteSpace(from.Result.PrivateKey)
+                    || to.IsError || to.Result == null)
+                    throw new InvalidOperationException("Could not resolve the sender signing wallet and recipient TRON wallet.");
+                return await SendTokenAsync(new Core.Objects.Wallet.Requests.SendWeb3TokenRequest
+                {
+                    FromWalletAddress = from.Result.WalletAddress,
+                    ToWalletAddress = to.Result.WalletAddress,
+                    FromTokenAddress = tokenAddress,
+                    Amount = amount,
+                    OwnerPrivateKey = from.Result.PrivateKey,
+                    OwnerPublicKey = from.Result.PublicKey
+                });
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending avatar TRC20 token: {ex.Message}", ex);
+                return result;
+            }
         }
 
         public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
