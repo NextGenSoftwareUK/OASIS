@@ -209,12 +209,16 @@ public partial class SuiOASIS
             if (request.Amount != 0m && request.Amount != 1m) throw new ArgumentException("A unique NFT transfer amount must be one.");
             if (!string.IsNullOrEmpty(request.MemoText)) throw new ArgumentException("Sui NFT transfers have no memo field.");
             var tokenId = request.TokenId ?? request.FromNFTTokenAddress ?? request.TokenAddress;
-            var committed = await InvokeSdkAsync("nftSend", new { tokenId, fromWalletAddress = request.FromWalletAddress, recipient = request.ToWalletAddress });
-            var loaded = await LoadOnChainNFTDataAsync(tokenId);
-            if (loaded.IsError) throw new InvalidOperationException(loaded.Message);
+            var key = await TokenSigningKeyAsync(key: request.OwnerPrivateKey, seed: request.OwnerSeedPhrase, publicKey: request.OwnerPublicKey);
+            var committed = await InvokeSdkAsync("nftSend", new { tokenId, privateKey = key, fromWalletAddress = request.FromWalletAddress, recipient = request.ToWalletAddress });
             var hash = committed.GetProperty("transactionHash").GetString();
+            if (string.IsNullOrWhiteSpace(hash)) throw new InvalidOperationException("Sui NFT transfer returned no committed digest.");
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
+            var loaded = await LoadOnChainNFTDataAsync(tokenId);
+            if (loaded.IsError || loaded.Result == null)
+                throw new InvalidOperationException("NFT transfer committed as " + hash + " but readback failed; reconcile before retrying: " + loaded.Message, loaded.Exception);
             loaded.Result.SendNFTTransactionHash = hash;
-            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash, Web3NFT = loaded.Result };
+            result.Result.Web3NFT = loaded.Result;
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
