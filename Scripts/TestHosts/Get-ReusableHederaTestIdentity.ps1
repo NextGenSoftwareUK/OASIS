@@ -1,4 +1,4 @@
-param()
+param([switch]$CheckLedger)
 $ErrorActionPreference = 'Stop'
 # One current-user DPAPI-protected identity, outside source control. Never print the key.
 $taskRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -34,5 +34,31 @@ if ($identity.network -ne 'testnet' -or $identity.evmAddress -notmatch '^0x[0-9a
     throw 'Reusable test identity has an invalid network or public address.'
 }
 # This is a key alias only. Funding/account creation must be confirmed on the ledger.
-[pscustomobject]@{ Network = 'testnet'; EvmAddress = $identity.evmAddress; CredentialFile = $fixturePath; Funded = 'Not verified' }
+$ledgerState = 'Not checked'
+$accountId = $null
+$balanceTinybars = $null
+if ($CheckLedger) {
+    $endpoint = 'https://testnet.mirrornode.hedera.com/api/v1/accounts/' + $identity.evmAddress
+    try {
+        $response = Invoke-WebRequest -Uri $endpoint -TimeoutSec 20 -MaximumRedirection 0
+        $account = $response.Content | ConvertFrom-Json
+        if ($account.account -notmatch '^\d+\.\d+\.\d+$' -or $account.deleted -ne $false -or
+            $account.evm_address -ine $identity.evmAddress) {
+            throw 'Mirror response does not identify the expected active reusable test account.'
+        }
+        $parsedBalance = 0L
+        if (-not [long]::TryParse([string]$account.balance.balance, [ref]$parsedBalance) -or $parsedBalance -lt 0) {
+            throw 'Mirror response does not contain a valid tinybar balance.'
+        }
+        $accountId = $account.account
+        $balanceTinybars = $parsedBalance
+        $ledgerState = 'Account indexed; mirror balance is not consensus or signing verification'
+    } catch {
+        if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) {
+            $ledgerState = 'Account not indexed (404); funding/account creation unverified'
+        } else { throw }
+    }
+}
+[pscustomobject]@{ Network = 'testnet'; EvmAddress = $identity.evmAddress; CredentialFile = $fixturePath;
+    AccountId = $accountId; BalanceTinybars = $balanceTinybars; LedgerState = $ledgerState; Funded = 'Consensus not verified' }
 $identity = $null
