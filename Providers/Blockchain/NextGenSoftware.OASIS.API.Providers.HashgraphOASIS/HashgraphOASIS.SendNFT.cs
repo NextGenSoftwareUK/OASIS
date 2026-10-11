@@ -253,74 +253,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                // Real Hashgraph implementation: Mint NFT synchronously
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = hashgraphClient.SendTransaction(new HashgraphTransactionData
-                {
-                    FromAddress = transation.SendToAddressAfterMinting,
-                    ToAddress = transation.SendToAddressAfterMinting,
-                    Amount = 0, // Minting doesn't require amount
-                    Memo = $"NFT Mint: {transation.Title}"
-                });
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT minted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to mint Hashgraph NFT");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in MintNFT: {ex.Message}", ex);
-            }
-            return result;
+            return MintHederaNftAsync(transation).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                // Real Hashgraph implementation: Mint NFT asynchronously
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
-                {
-                    FromAddress = transation.SendToAddressAfterMinting,
-                    ToAddress = transation.SendToAddressAfterMinting,
-                    Amount = 0, // Minting doesn't require amount
-                    Memo = $"NFT Mint: {transation.Title}"
-                });
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT minted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to mint Hashgraph NFT");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in MintNFT: {ex.Message}", ex);
-            }
-            return result;
+            return await MintHederaNftAsync(transation);
         }
 
 
