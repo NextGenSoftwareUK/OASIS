@@ -86,8 +86,15 @@ public sealed class TronNativeTransferClient
         return ExecuteTrc20Async(tokenAddress, amount, privateKey, cancellationToken, publicKey, from, to, memo);
     }
 
+    public Task<string> MintTokenAsync(string minter, string tokenAddress, decimal amount, string privateKey,
+        string memo = null, string publicKey = null, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(minter)) throw new ArgumentException("A TRC20 minter address is required.");
+        return ExecuteTrc20Async(tokenAddress, amount, privateKey, cancellationToken, publicKey, minter, minter, memo, mint: true);
+    }
+
     private async Task<string> ExecuteTrc20Async(string tokenAddress, decimal amount, string privateKey,
-        CancellationToken cancellationToken, string publicKey, string from = null, string to = null, string memo = null)
+        CancellationToken cancellationToken, string publicKey, string from = null, string to = null, string memo = null, bool mint = false)
     {
         if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
         if (string.IsNullOrWhiteSpace(privateKey)) throw new ArgumentException("A real token holder signing key is required.");
@@ -128,7 +135,7 @@ public sealed class TronNativeTransferClient
         var precision = new System.Numerics.BigInteger(decimals.ConstantResult[0].ToByteArray(), isUnsigned: true, isBigEndian: true);
         if (precision > 255) throw new InvalidOperationException("TRC20 decimals exceed uint8.");
         var units = TokenUnits(amount, (int)precision);
-        var data = EncodeTrc20Call(recipient, units);
+        var data = EncodeTrc20Call(recipient, units, mint);
         var requested = new TriggerSmartContract { OwnerAddress = source, ContractAddress = contract, Data = ByteString.CopyFrom(data) };
         var unsigned = await node.TriggerContractAsync(requested, headers, DateTime.UtcNow.AddSeconds(15), cancellationToken);
         if (unsigned.Result == null || !unsigned.Result.Result || unsigned.Transaction?.RawData == null)
@@ -142,18 +149,19 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON node returned stale TRC20 transaction timestamps.");
         raw.FeeLimit = 100000000; // Maximum transaction fee, not an asset amount.
         return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo ?? "", cancellationToken,
-            requireContractSuccess: true, requireTransferReturn: recipient != null);
+            requireContractSuccess: true, requireTransferReturn: recipient != null, allowVoidContractReturn: mint);
     }
 
-    internal static byte[] EncodeTrc20Call(ByteString recipient, System.Numerics.BigInteger units)
+    internal static byte[] EncodeTrc20Call(ByteString recipient, System.Numerics.BigInteger units, bool mint = false)
     {
+        if (mint && recipient == null) throw new ArgumentException("Mint requires an explicit recipient.");
         if (units <= 0 || units >= (System.Numerics.BigInteger.One << 256))
             throw new ArgumentOutOfRangeException(nameof(units));
         if (recipient != null && (recipient.Length != 21 || recipient[0] != 0x41))
             throw new ArgumentException("A current TRON recipient address is required.");
         var abiUnits = units.ToByteArray(isUnsigned: true, isBigEndian: true);
         var data = new byte[recipient == null ? 36 : 68];
-        Convert.FromHexString(recipient == null ? "42966c68" : "a9059cbb").CopyTo(data, 0);
+        Convert.FromHexString(recipient == null ? "42966c68" : mint ? "40c10f19" : "a9059cbb").CopyTo(data, 0);
         if (recipient != null)
             recipient.ToByteArray().AsSpan(1).CopyTo(data.AsSpan(16, 20));
         abiUnits.CopyTo(data, data.Length - abiUnits.Length);
@@ -186,7 +194,8 @@ public sealed class TronNativeTransferClient
     }
 
     private async Task<string> SignBroadcastConfirmAsync(Transaction transaction, string privateKey, string memo,
-        CancellationToken cancellationToken, bool requireContractSuccess = false, bool requireTransferReturn = false)
+        CancellationToken cancellationToken, bool requireContractSuccess = false, bool requireTransferReturn = false,
+        bool allowVoidContractReturn = false)
     {
         var raw = transaction.RawData;
         var headers = _wallet.GetHeaders();
@@ -231,7 +240,7 @@ public sealed class TronNativeTransferClient
                     if (requireContractSuccess && (receipt.Receipt == null
                         || (int)receipt.Receipt.Result != 1)) // SDK contractResult SUCCESS=1; DEFAULT=0 is not success.
                         throw new InvalidOperationException($"TRON contract execution {transactionId} did not report SUCCESS.");
-                    if (requireTransferReturn)
+                    if (requireTransferReturn && (!allowVoidContractReturn || receipt.ContractResult.Count != 0))
                         ValidateTrc20TransferReturn(receipt);
                     return transactionId;
                 }

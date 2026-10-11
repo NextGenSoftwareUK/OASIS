@@ -383,6 +383,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
+                if (request == null) throw new ArgumentNullException(nameof(request));
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                if (request.MintedByAvatarId == Guid.Empty) throw new ArgumentException("MintedByAvatarId is required for signing-wallet resolution.");
+                if (string.IsNullOrWhiteSpace(_contractAddress)) throw new ArgumentException("A configured TRC20 mint-capable contract address is required.");
+                if (request.ProviderType != null && request.ProviderType.Value != Core.Enums.ProviderType.TRONOASIS)
+                    throw new ArgumentException("Mint provider must be TRONOASIS.");
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the avatar's TRON minter signing wallet.");
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -393,40 +403,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                // TRON TRC20 token minting (requires admin permissions)
-                var tokenAddress = _contractAddress ?? "" ?? request.MintedByAvatarId.ToString();
-                
-                var mintPayload = new
-                {
-                    owner_address = tokenAddress,
-                    contract_address = tokenAddress,
-                    function_selector = "mint(address,uint256)",
-                    parameter = $"{tokenAddress.Substring(2).PadLeft(64, '0')}{1000000.ToString("X").PadLeft(64, '0')}", // Mint 1 token
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(mintPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
-                    result.IsError = false;
-                    result.Message = "Token minted successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
+                if (_nativeTransfers == null) throw new InvalidOperationException("The configured TRON SDK runtime is unavailable.");
+                var hash = await _nativeTransfers.MintTokenAsync(wallet.Result.WalletAddress, _contractAddress,
+                    request.Amount, wallet.Result.PrivateKey, request.MemoText, wallet.Result.PublicKey);
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
+                result.Message = "TRC20 mint confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {

@@ -97,5 +97,5 @@ public sealed class TronTokenTransferSafetyTests
 
     private static byte[] Encode(ByteString recipient, BigInteger units) => (byte[])
         typeof(TronNativeTransferClient).GetMethod("EncodeTrc20Call", BindingFlags.Static | BindingFlags.NonPublic)!
-            .Invoke(null, new object?[] { recipient, units })!;
+            .Invoke(null, new object?[] { recipient, units, false })!;
 }
