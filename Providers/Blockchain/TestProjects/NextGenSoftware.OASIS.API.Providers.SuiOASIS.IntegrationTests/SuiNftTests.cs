@@ -22,12 +22,18 @@ public class SuiNftTests
             settings.GetProperty("storageObjectId").GetString()!);
         var owner = await provider.RestoreKeyPairAsync(settings.GetProperty("privateKey").GetString()!);
         Assert.IsFalse(owner.IsError, owner.Message);
-        var recipient = await provider.GenerateKeyPairAsync();
+        var recipientAccount = await provider.CreateAccountAsync();
+        Assert.IsFalse(recipientAccount.IsError, recipientAccount.Message);
+        var recipient = await provider.RestoreKeyPairAsync(recipientAccount.Result.PrivateKey);
         Assert.IsFalse(recipient.IsError, recipient.Message);
         await SuiNativeTransferTests.FundAsync(recipient.Result.WalletAddressLegacy);
         var minted = await provider.MintNFTAsync(new MintWeb3NFTRequest
         {
             Title = "Sui oak 🌳", Description = "Real serialized metadata", NumberToMint = 2,
+            NFTStandardType = Core.Enums.NFTStandardType.SuiObject,
+            MemoText = "SuiOASIS NFT minted through the OASIS request pipeline",
+            Price = 12.5m, Discount = 2m, RoyaltyPercentage = 7, IsForSale = true,
+            SaleStartDate = DateTime.UnixEpoch, SaleEndDate = DateTime.UnixEpoch.AddDays(1),
             MetaData = new Dictionary<string, string> { ["park"] = "local-chain" },
             SendToAddressAfterMinting = owner.Result.WalletAddressLegacy
         });
@@ -41,7 +47,22 @@ public class SuiNftTests
             var loaded = await provider.LoadOnChainNFTDataAsync(id);
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual("Sui oak 🌳", loaded.Result.Title);
+            Assert.AreEqual(Core.Enums.NFTStandardType.SuiObject, loaded.Result.NFTStandardType.Value);
             Assert.AreEqual("local-chain", loaded.Result.MetaData["park"]);
+            Assert.AreEqual("SuiOASIS NFT minted through the OASIS request pipeline", loaded.Result.MemoText);
+            Assert.AreEqual(12.5m, loaded.Result.Price);
+            Assert.AreEqual(2m, loaded.Result.Discount);
+            Assert.AreEqual(7, loaded.Result.RoyaltyPercentage);
+            Assert.AreEqual(700u, loaded.Result.SellerFeeBasisPoints);
+            Assert.IsTrue(loaded.Result.IsForSale);
+            Assert.AreEqual(DateTime.UnixEpoch, loaded.Result.SaleStartDate);
+            Assert.AreEqual(DateTime.UnixEpoch.AddDays(1), loaded.Result.SaleEndDate);
+            var invalidId = await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = id, Web3NFTId = Guid.NewGuid(),
+                OwnerPrivateKey = "", OwnerPublicKey = "", OwnerSeedPhrase = "" });
+            Assert.IsTrue(invalidId.IsError, "An incorrect OASIS NFT ID must not burn the object.");
+            var mismatchedKey = await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = id,
+                OwnerPrivateKey = settings.GetProperty("privateKey").GetString()!, OwnerPublicKey = recipient.Result.PublicKey, OwnerSeedPhrase = "" });
+            Assert.IsTrue(mismatchedKey.IsError, "A mismatched public key must not be ignored.");
             var locked = await provider.LockNFTAsync(new LockWeb3NFTRequest { NFTTokenAddress = id, Web3NFTId = loaded.Result.Id });
             Assert.IsFalse(locked.IsError, locked.Message);
             escrows.Add(id);
@@ -79,7 +100,11 @@ public class SuiNftTests
                     var released = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { NFTTokenAddress = id });
                     Assert.IsFalse(released.IsError, released.Message);
                 }
-                var burned = await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = id, OwnerPrivateKey = key, OwnerPublicKey = "", OwnerSeedPhrase = "" });
+                var recipientOwned = key == recipient.Result.PrivateKey;
+                var burned = await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = id,
+                    OwnerPrivateKey = recipientOwned ? "" : key,
+                    OwnerPublicKey = recipientOwned ? recipient.Result.PublicKey : "",
+                    OwnerSeedPhrase = recipientOwned ? recipientAccount.Result.SeedPhrase : "" });
                 Assert.IsFalse(burned.IsError, burned.Message);
                 Assert.IsTrue((await provider.LoadOnChainNFTDataAsync(id)).IsError);
             }
