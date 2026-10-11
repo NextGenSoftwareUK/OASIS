@@ -153,7 +153,14 @@ public partial class SuiOASIS
                 metadata = records.Select(OasisJson.Serialize).ToArray()
             });
             var hash = committed.GetProperty("transactionHash").GetString();
+            if (string.IsNullOrWhiteSpace(hash)) throw new InvalidOperationException("Sui mint returned no committed digest.");
             var nfts = new List<IWeb3NFT>();
+            result.Result = new Web3NFTTransactionResponse
+            {
+                TransactionResult = hash, SendNFTTransactionResult = hash, Web3NFTs = nfts
+            };
+            try
+            {
             foreach (var token in committed.GetProperty("tokenIds").EnumerateArray())
             {
                 var value = await InvokeSdkAsync("nftGet", new { tokenId = token.GetString(), packageAddress = metadata.CollectionPublicKey });
@@ -168,10 +175,12 @@ public partial class SuiOASIS
                 nft.SendNFTTransactionHash = hash;
                 nfts.Add(nft);
             }
-            result.Result = new Web3NFTTransactionResponse
+            result.Result.Web3NFT = nfts.First();
+            }
+            catch (Exception ex)
             {
-                TransactionResult = hash, SendNFTTransactionResult = hash, Web3NFT = nfts.First(), Web3NFTs = nfts
-            };
+                throw new InvalidOperationException("Mint committed as " + hash + " but NFT readback failed; reconcile before retrying: " + ex.Message, ex);
+            }
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;

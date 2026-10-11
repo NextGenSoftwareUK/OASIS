@@ -2,7 +2,8 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
- case 'restoreKey':result={privateKey:request.privateKey,publicKey:'fixture-public'};break;
+ case 'restoreKey':result={privateKey:request.privateKey,publicKey:'fixture-public',address:'fixture-owner'};break;
+ case 'nftMint':result={transactionHash:'fixture-committed-mint-digest',tokenIds:['fixture-nft'],recipient:'fixture-owner'};break;
  case 'nftEscrowGet':result={nft:{metadata:JSON.stringify({Id:'9daf56a1-a66d-4507-a5bc-a31de17e223a'})}};break;
  case 'nftUnlock':result={transactionHash:'fixture-committed-unlock-digest'};break;
  case 'nftSend':
