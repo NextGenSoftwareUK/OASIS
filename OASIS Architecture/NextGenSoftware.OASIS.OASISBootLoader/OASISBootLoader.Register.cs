@@ -386,11 +386,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.TRONOASIS:
                         {
-                            //TODO: Fix TRONOASIS build errors
                              var tronProvider = new TRONOASIS(
                                  OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
                                  OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
+                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428",
+                                 fullNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.FullNodeGrpcEndpoint,
+                                 solidityNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.SolidityNodeGrpcEndpoint,
+                                 genesisBlockId: OASISDNA.OASIS.StorageProviders.TRONOASIS.GenesisBlockId,
+                                 signingKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.SigningKeyEnvironmentVariable,
+                                 apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable);
                                 tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
                                 result.Result = tronProvider;
                                 break;

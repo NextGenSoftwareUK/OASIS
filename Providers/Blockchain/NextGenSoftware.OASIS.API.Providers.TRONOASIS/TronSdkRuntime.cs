@@ -1,0 +1,74 @@
+using System;
+using System.Threading.Tasks;
+using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
+using TronNet;
+
+namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+
+/// <summary>Owns one reusable SDK service container and two reusable node channels.</summary>
+public sealed class TronSdkRuntime : IAsyncDisposable
+{
+    private readonly Channel _fullNode;
+    private readonly Channel _solidityNode;
+    private readonly ServiceProvider _services;
+
+    public TronNativeTransferClient NativeTransfers { get; }
+
+    public TronSdkRuntime(Uri fullNode, Uri solidityNode, string genesisBlockId, string apiKey = null)
+    {
+        ValidateEndpoint(fullNode);
+        ValidateEndpoint(solidityNode);
+        _fullNode = CreateChannel(fullNode);
+        try
+        {
+            _solidityNode = CreateChannel(solidityNode);
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddTronNet(options =>
+            {
+                // Current TRON networks share the 0x41 address encoding. Network identity
+                // is checked using the configured genesis block, not this SDK enum.
+                options.Network = TronNetwork.MainNet;
+                options.ApiKey = apiKey ?? string.Empty;
+            });
+            services.AddSingleton<IGrpcChannelClient>(new SharedChannels(_fullNode, _solidityNode));
+            _services = services.BuildServiceProvider();
+            NativeTransfers = new TronNativeTransferClient(_services.GetRequiredService<IWalletClient>(),
+                _services.GetRequiredService<ITransactionClient>(), genesisBlockId);
+        }
+        catch
+        {
+            _services?.Dispose();
+            _fullNode.ShutdownAsync().GetAwaiter().GetResult();
+            _solidityNode?.ShutdownAsync().GetAwaiter().GetResult();
+            throw;
+        }
+    }
+
+    private static void ValidateEndpoint(Uri endpoint)
+    {
+        if (endpoint == null || !endpoint.IsAbsoluteUri || endpoint.UserInfo.Length != 0
+            || endpoint.AbsolutePath != "/" || endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0
+            || (endpoint.Scheme != "https" && !(endpoint.Scheme == "http" && endpoint.IsLoopback)))
+            throw new ArgumentException("TRON gRPC endpoint must be HTTPS, or HTTP on loopback, without credentials, path or query.");
+    }
+
+    private static Channel CreateChannel(Uri endpoint) => new Channel(endpoint.Host, endpoint.Port,
+        endpoint.Scheme == "https" ? new SslCredentials() : ChannelCredentials.Insecure);
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await _services.DisposeAsync(); }
+        finally { await Task.WhenAll(_fullNode.ShutdownAsync(), _solidityNode.ShutdownAsync()); }
+    }
+
+    private sealed class SharedChannels : IGrpcChannelClient
+    {
+        private readonly Channel _full;
+        private readonly Channel _solidity;
+        public SharedChannels(Channel full, Channel solidity) { _full = full; _solidity = solidity; }
+        public Channel GetProtocol() => _full;
+        public Channel GetSolidityProtocol() => _solidity;
+    }
+}

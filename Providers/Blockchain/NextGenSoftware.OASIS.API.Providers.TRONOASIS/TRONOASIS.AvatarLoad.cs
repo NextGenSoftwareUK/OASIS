@@ -48,17 +48,42 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var response = new OASISResult<bool>();
+            await _runtimeLifecycle.WaitAsync();
             try
             {
-                // Initialize TRON connection
+                if (IsProviderActivated)
+                {
+                    response.Result = true;
+                    return response;
+                }
+                if (_nativeTransfers == null)
+                {
+                    _ownedRuntime = new TronSdkRuntime(new Uri(_fullNodeGrpcEndpoint), new Uri(_solidityNodeGrpcEndpoint),
+                        _genesisBlockId, Environment.GetEnvironmentVariable(_apiKeyEnvironmentVariable));
+                    _nativeTransfers = _ownedRuntime.NativeTransfers;
+                    _nativeSigningKeyResolver = address => Task.FromResult(Environment.GetEnvironmentVariable(_signingKeyEnvironmentVariable));
+                }
+                await _nativeTransfers.VerifyNetworkAsync();
+                IsProviderActivated = true;
                 response.Result = true;
                 response.Message = "TRON provider activated successfully";
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
+                if (_ownedRuntime != null)
+                {
+                    var failedRuntime = _ownedRuntime;
+                    _ownedRuntime = null;
+                    _nativeTransfers = null;
+                    _nativeSigningKeyResolver = null;
+                    try { await failedRuntime.DisposeAsync(); }
+                    catch (Exception cleanupError) { ex = new AggregateException(ex, cleanupError); }
+                }
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error activating TRON provider: {ex.Message}");
             }
+            finally { _runtimeLifecycle.Release(); }
             return response;
         }
 
@@ -70,9 +95,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var response = new OASISResult<bool>();
+            await _runtimeLifecycle.WaitAsync();
             try
             {
-                // Cleanup TRON connection
+                IsProviderActivated = false;
+                if (_ownedRuntime != null)
+                {
+                    var runtime = _ownedRuntime;
+                    _ownedRuntime = null;
+                    _nativeTransfers = null;
+                    _nativeSigningKeyResolver = null;
+                    await runtime.DisposeAsync();
+                }
+                IsProviderActivated = false;
                 response.Result = true;
                 response.Message = "TRON provider deactivated successfully";
             }
@@ -81,6 +116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error deactivating TRON provider: {ex.Message}");
             }
+            finally { _runtimeLifecycle.Release(); }
             return response;
         }
 

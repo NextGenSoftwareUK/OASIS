@@ -50,6 +50,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private const string TRON_API_BASE_URL = "https://api.trongrid.io";
         private readonly string _contractAddress;
         private WalletManager _walletManager;
+        private TronNativeTransferClient _nativeTransfers;
+        private Func<string, Task<string>> _nativeSigningKeyResolver;
+        private TronSdkRuntime _ownedRuntime;
+        private readonly string _fullNodeGrpcEndpoint, _solidityNodeGrpcEndpoint, _genesisBlockId;
+        private readonly string _signingKeyEnvironmentVariable, _apiKeyEnvironmentVariable;
+        private readonly SemaphoreSlim _runtimeLifecycle = new SemaphoreSlim(1, 1);
 
         public WalletManager WalletManager
         {
@@ -62,8 +68,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             set => _walletManager = value;
         }
 
-        public TRONOASIS(string rpcEndpoint = "https://api.trongrid.io", string network = "mainnet", string chainId = "0x2b6653dc", string contractAddress = "", WalletManager walletManager = null)
+        public TRONOASIS(string rpcEndpoint = "https://api.trongrid.io", string network = "mainnet", string chainId = "0x2b6653dc", string contractAddress = "", WalletManager walletManager = null,
+            TronNativeTransferClient nativeTransfers = null, Func<string, Task<string>> nativeSigningKeyResolver = null,
+            string fullNodeGrpcEndpoint = "", string solidityNodeGrpcEndpoint = "", string genesisBlockId = "",
+            string signingKeyEnvironmentVariable = "OASIS_TRON_PRIVATE_KEY", string apiKeyEnvironmentVariable = "OASIS_TRON_API_KEY")
         {
+            _nativeTransfers = nativeTransfers;
+            _nativeSigningKeyResolver = nativeSigningKeyResolver;
+            _fullNodeGrpcEndpoint = fullNodeGrpcEndpoint;
+            _solidityNodeGrpcEndpoint = solidityNodeGrpcEndpoint;
+            _genesisBlockId = genesisBlockId;
+            _signingKeyEnvironmentVariable = signingKeyEnvironmentVariable;
+            _apiKeyEnvironmentVariable = apiKeyEnvironmentVariable;
             _walletManager = walletManager;
             _contractAddress = contractAddress ?? "";
             this.ProviderName = "TRONOASIS";
