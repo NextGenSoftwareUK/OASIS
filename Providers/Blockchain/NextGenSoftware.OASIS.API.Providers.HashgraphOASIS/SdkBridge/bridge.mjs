@@ -35,7 +35,7 @@ async function storageWrite(action, request) {
   if (id.accountId.toString() !== payer.toString()) throw new Error('Storage transaction payer mismatch.');
   if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
     throw new Error('An explicit positive int64 fee ceiling is required.');
-  const client = createClient(request);
+  const client = await createClient(request);
   try {
     client.setOperator(payer, key);
     singleSubmission(mutation, id).setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars)).freezeWith(client);
@@ -77,7 +77,7 @@ async function storageRead(action, request) {
   const payer = AccountId.fromString(request.sender);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('Storage query signing key mismatch.');
-  const client = createClient(request);
+  const client = await createClient(request);
   try {
     client.setOperator(payer, key);
     async function query(name, args) {
@@ -121,7 +121,7 @@ export function restoreKey(request) {
   }
 }
 
-function createClient(request) {
+async function createClient(request) {
   if (request.network === 'local') {
     const nodes = request.nodes;
     if (!nodes || !Object.keys(nodes).length || Object.keys(nodes).some(endpoint => !/^127\.0\.0\.1:[0-9]+$/.test(endpoint)))
@@ -131,7 +131,11 @@ function createClient(request) {
   }
   if (!['mainnet', 'testnet', 'previewnet'].includes(request.network))
     throw new Error('An explicit supported Hedera network is required.');
-  return Client.forName(request.network);
+  const client = Client.forName(request.network);
+  try {
+    await client.updateNetwork();
+    return client;
+  } catch (error) { client.close(); throw error; }
 }
 
 export function tokenUnits(amount, decimals) {
@@ -190,7 +194,7 @@ async function executeFile(action, request) {
   if (id && id.accountId.toString() !== payer.toString()) throw new Error('File transaction payer mismatch.');
   if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
     throw new Error('An explicit positive int64 fee ceiling is required.');
-  const client = createClient(request);
+  const client = await createClient(request);
   try {
     client.setOperator(payer, key);
     const ceiling = Hbar.fromTinybars(request.maxFeeTinybars);
@@ -239,7 +243,7 @@ export async function execute(action, request) {
   }
   if (action === 'receipt') {
     const id = TransactionId.fromString(request.transactionId);
-    const client = createClient(request);
+  const client = await createClient(request);
     try {
       const receipt = await new TransactionReceiptQuery().setTransactionId(id).setValidateStatus(false).execute(client);
       return { transactionId: id.toString(), status: receipt.status.toString() };
@@ -263,7 +267,7 @@ export async function execute(action, request) {
   const transactionId = request.transactionId ? TransactionId.fromString(request.transactionId) : TransactionId.generate(sender);
   if (transactionId.accountId.toString() !== sender.toString())
     throw new Error('Transaction ID payer does not match the sender.');
-  const client = createClient(request);
+  const client = await createClient(request);
   try {
     client.setOperator(sender, key);
     const transfer = (nftOperation ?? (action === 'tokenMint' ? new TokenMintTransaction()
