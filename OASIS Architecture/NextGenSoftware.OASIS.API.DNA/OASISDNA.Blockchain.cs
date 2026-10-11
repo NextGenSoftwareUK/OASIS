@@ -71,6 +71,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class TRONOASISProviderSettings : ProviderSettingsBase
     {
+        public string ContractAddress { get; set; } = "";
+        public string BridgePoolWalletAddress { get; set; } = "";
         public string EscrowContractAddress { get; set; } = "";
         public string FullNodeGrpcEndpoint { get; set; } = "";
         public string SolidityNodeGrpcEndpoint { get; set; } = "";
