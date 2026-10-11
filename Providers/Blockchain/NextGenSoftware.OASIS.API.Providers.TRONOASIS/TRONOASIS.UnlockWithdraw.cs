@@ -47,64 +47,33 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
     {
         public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
+                ArgumentNullException.ThrowIfNull(request);
+                if (request.UnlockedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("UnlockedByAvatarId is required for depositor signing-wallet resolution.");
+                if (string.IsNullOrWhiteSpace(request.TokenAddress))
+                    throw new ArgumentException("A TRC20 token contract address is required.");
+                if (string.IsNullOrWhiteSpace(_escrowContractAddress))
+                    throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.UnlockedByAvatarId,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the depositor's TRON signing wallet.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrEmpty(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address is required");
-                    return result;
-                }
-
-                // Unlock token by transferring from bridge pool to recipient
-                var bridgePoolAddress = _contractAddress ?? "" ?? "T..."; // Bridge pool address
-                var recipientAddress = bridgePoolAddress; // Would get from UnlockedByAvatarId in production
-                
-                var transferPayload = new
-                {
-                    owner_address = bridgePoolAddress,
-                    contract_address = request.TokenAddress,
-                    function_selector = "transfer(address,uint256)",
-                    parameter = $"{recipientAddress.Substring(1).PadLeft(64, '0')}{1000000.ToString("X").PadLeft(64, '0')}",
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transferPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
-                    result.IsError = false;
-                    result.Message = "Token unlocked successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
+                var hash = await ExecuteRuntimeAsync(client => client.UnlockEscrowAsync(wallet.Result.WalletAddress,
+                    _escrowContractAddress, request.TokenAddress, wallet.Result.PrivateKey));
+                result.Result = new TransactionResponse { TransactionResult = hash };
+                result.Message = "Owned TRC20 escrow withdrawal confirmed by solidified receipt and returned amount.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking token: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking TRON escrow: {ex.Message}", ex);
             }
             return result;
         }
