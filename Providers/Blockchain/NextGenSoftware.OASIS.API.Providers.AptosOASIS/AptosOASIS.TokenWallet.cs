@@ -98,7 +98,36 @@ public partial class AptosOASIS
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => BurnTokenAsync(request).Result;
     public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
     {
-        try { var hash = await DeleteRecordWithHashAsync(TokenRecordType, request.TokenAddress); return TxOk(hash, $"Custom OASIS token '{request.TokenAddress}' burned on Aptos."); }
+        try
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+            if (string.IsNullOrWhiteSpace(request.TokenAddress)) throw new ArgumentException("Token identity is required.");
+            if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                throw new ArgumentException("Recover an Aptos signing key explicitly before burning.");
+            EnsureTransactionAccount();
+            if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+            {
+                var supplied = new Ed25519Account(new Ed25519PrivateKey(request.OwnerPrivateKey, strict: false));
+                if (NormalizeAddress(supplied.Address.ToString()) != NormalizeAddress(_account.Address.ToString()))
+                    throw new ArgumentException("Signing key does not match the configured Aptos account.");
+            }
+            if (!string.IsNullOrWhiteSpace(request.OwnerPublicKey)
+                && !string.Equals(request.OwnerPublicKey, _account.PublicKey.ToString(), StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Public key does not match the configured Aptos account.");
+            if (request.BurntByAvatarId != Guid.Empty)
+                throw new ArgumentException("Avatar-addressed Aptos burns require wallet resolution; use the configured holder account explicitly.");
+            var state = await GetRecordAsync<AptosTokenState>(TokenRecordType, request.TokenAddress);
+            if (state == null) return TxError("The requested custom token does not exist.");
+            if (state.Locked) return TxError("The custom token is locked.");
+            var holder = NormalizeAddress(_account.Address.ToString());
+            state.Balances.TryGetValue(holder, out var balance);
+            if (balance < request.Amount || state.Supply < request.Amount) return TxError("Insufficient token balance or supply.");
+            state.Balances[holder] = balance - request.Amount;
+            state.Supply -= request.Amount;
+            var hash = await UpsertRecordWithHashAsync(TokenRecordType, request.TokenAddress, state);
+            return TxOk(hash, "Requested custom-token amount burned; other holder balances retained.");
+        }
         catch (Exception ex) { return TxError($"Error burning Aptos token: {ex.Message}", ex); }
     }
 
