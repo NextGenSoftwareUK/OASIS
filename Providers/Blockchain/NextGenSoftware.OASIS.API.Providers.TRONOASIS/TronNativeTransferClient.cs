@@ -71,9 +71,85 @@ public sealed class TronNativeTransferClient
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
             throw new InvalidOperationException("TRON node returned stale or invalid transaction timestamps.");
+        return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo, cancellationToken);
+    }
+
+    public async Task<string> BurnTokenAsync(string tokenAddress, decimal amount, string privateKey,
+        CancellationToken cancellationToken = default, string publicKey = null)
+    {
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (string.IsNullOrWhiteSpace(privateKey)) throw new ArgumentException("A real token holder signing key is required.");
+        if (!System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        if (!string.IsNullOrWhiteSpace(publicKey))
+        {
+            var actual = Convert.ToHexString(new Nethereum.Signer.EthECKey(privateKey).GetPubKey());
+            if (!string.Equals(actual, publicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? publicKey[2..] : publicKey,
+                StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Signing key does not match the supplied public key.");
+        }
+        var signer = new TronECKey(privateKey, TronNetwork.MainNet);
+        var source = _wallet.ParseAddress(signer.GetPublicAddress());
+        var contract = _wallet.ParseAddress(tokenAddress);
+        if (contract.Length != 21 || contract[0] != 0x41)
+            throw new ArgumentException("A current TRON contract address is required.");
+        await VerifyNetworkAsync(cancellationToken);
+        var node = _wallet.GetProtocol();
+        var headers = _wallet.GetHeaders();
+        var decimals = await node.TriggerConstantContractAsync(new TriggerSmartContract
+        {
+            OwnerAddress = source, ContractAddress = contract,
+            Data = ByteString.CopyFrom(Convert.FromHexString("313ce567")) // decimals()
+        }, headers, DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (decimals.Result == null || !decimals.Result.Result || decimals.ConstantResult.Count != 1
+            || decimals.ConstantResult[0].Length != 32)
+            throw new InvalidOperationException("TRC20 decimals query did not return one ABI uint256.");
+        var precision = new System.Numerics.BigInteger(decimals.ConstantResult[0].ToByteArray(), isUnsigned: true, isBigEndian: true);
+        if (precision > 255) throw new InvalidOperationException("TRC20 decimals exceed uint8.");
+        var units = TokenUnits(amount, (int)precision);
+        var abiUnits = units.ToByteArray(isUnsigned: true, isBigEndian: true);
+        var data = new byte[36];
+        Convert.FromHexString("42966c68").CopyTo(data, 0); // burn(uint256)
+        abiUnits.CopyTo(data, 36 - abiUnits.Length);
+        var requested = new TriggerSmartContract { OwnerAddress = source, ContractAddress = contract, Data = ByteString.CopyFrom(data) };
+        var unsigned = await node.TriggerContractAsync(requested, headers, DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (unsigned.Result == null || !unsigned.Result.Result || unsigned.Transaction?.RawData == null)
+            throw new InvalidOperationException("TRON node rejected burn construction.");
+        var raw = unsigned.Transaction.RawData;
+        if (raw.Contract.Count != 1 || raw.Contract[0].Type != Transaction.Types.Contract.Types.ContractType.TriggerSmartContract
+            || !raw.Contract[0].Parameter.Unpack<TriggerSmartContract>().Equals(requested))
+            throw new InvalidOperationException("TRON node changed the requested burn contract.");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
+            throw new InvalidOperationException("TRON node returned stale burn timestamps.");
+        raw.FeeLimit = 100000000; // Maximum transaction fee, not an asset amount.
+        return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, "", cancellationToken, requireContractSuccess: true);
+    }
+
+    internal static System.Numerics.BigInteger TokenUnits(decimal amount, int decimals)
+    {
+        if (amount <= 0 || decimals < 0 || decimals > 255) throw new ArgumentOutOfRangeException(nameof(amount));
+        var bits = decimal.GetBits(amount);
+        var units = new System.Numerics.BigInteger((uint)bits[0])
+            + (new System.Numerics.BigInteger((uint)bits[1]) << 32) + (new System.Numerics.BigInteger((uint)bits[2]) << 64);
+        var scale = (bits[3] >> 16) & 255;
+        if (scale <= decimals) units *= System.Numerics.BigInteger.Pow(10, decimals - scale);
+        else {
+            units = System.Numerics.BigInteger.DivRem(units, System.Numerics.BigInteger.Pow(10, scale - decimals), out var remainder);
+            if (remainder != 0) throw new ArgumentException("Token amount exceeds ledger decimal precision.", nameof(amount));
+        }
+        if (units >= (System.Numerics.BigInteger.One << 256)) throw new ArgumentOutOfRangeException(nameof(amount));
+        return units;
+    }
+
+    private async Task<string> SignBroadcastConfirmAsync(Transaction transaction, string privateKey, string memo,
+        CancellationToken cancellationToken, bool requireContractSuccess = false)
+    {
+        var raw = transaction.RawData;
+        var headers = _wallet.GetHeaders();
         raw.Data = ByteString.CopyFromUtf8(memo ?? "");
         var requestedRawData = raw.ToByteArray();
-        var signed = _transactions.GetTransactionSign(unsigned.Transaction, privateKey);
+        var signed = _transactions.GetTransactionSign(transaction, privateKey);
         if (signed?.RawData == null || signed.Signature.Count != 1
             || signed.Signature[0].Length != 65
             || !CryptographicOperations.FixedTimeEquals(requestedRawData, signed.RawData.ToByteArray()))
@@ -109,6 +185,9 @@ public sealed class TronNativeTransferClient
                         throw new InvalidOperationException("TRON returned an inconsistent solidified receipt.");
                     if ((int)receipt.Result != 0)
                         throw new InvalidOperationException($"TRON transfer {transactionId} failed in the solidified chain.");
+                    if (requireContractSuccess && (receipt.Receipt == null
+                        || (int)receipt.Receipt.Result != 1)) // SDK contractResult SUCCESS=1; DEFAULT=0 is not success.
+                        throw new InvalidOperationException($"TRON contract execution {transactionId} did not report SUCCESS.");
                     return transactionId;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2), deadline.Token);

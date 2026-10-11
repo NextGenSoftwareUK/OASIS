@@ -463,57 +463,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
+                ArgumentNullException.ThrowIfNull(request);
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                if (string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                    throw new ArgumentException("Token contract and holder signing key are required.");
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover a signing key explicitly before burning; seed/key ambiguity is not supported.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrEmpty(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address is required");
-                    return result;
-                }
-
-                // TRON TRC20 token burning
-                var burnPayload = new
-                {
-                    owner_address = request.OwnerPrivateKey, // Would derive address from private key in production
-                    contract_address = request.TokenAddress,
-                    function_selector = "burn(uint256)",
-                    parameter = $"{1000000.ToString("X").PadLeft(64, '0')}", // Burn 1 token
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(burnPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
-                    result.IsError = false;
-                    result.Message = "Token burned successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
+                if (_nativeTransfers == null) throw new InvalidOperationException("The configured TRON SDK runtime is unavailable.");
+                var hash = await _nativeTransfers.BurnTokenAsync(request.TokenAddress, request.Amount, request.OwnerPrivateKey, publicKey: request.OwnerPublicKey);
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
+                result.Message = "Requested TRC20 burn confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
