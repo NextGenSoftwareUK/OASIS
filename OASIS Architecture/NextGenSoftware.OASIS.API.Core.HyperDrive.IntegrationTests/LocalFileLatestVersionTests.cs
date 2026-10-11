@@ -19,7 +19,7 @@ public class LocalFileLatestVersionTests
         var holon = new Holon { Id = Guid.Parse("4eb1a73f-edc2-4d88-b6c5-0a3c8130726a"), Name = "latest-version-regression", Version = 7,
             ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "latest-version-regression" } };
         var avatar = new Avatar { Id = Guid.Parse("451d94b6-2fda-4a76-b5da-7a37457b4f8b"), Version = 7,
-            Username = "latest-version-regression", Email = "latest-version-regression@example.invalid" };
+            Username = "latest-version-regression", Email = "latest-version-regression@example.invalid", IsActive = true };
         var detail = new AvatarDetail { Id = avatar.Id, Version = 7, Username = avatar.Username, Email = avatar.Email };
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         try
@@ -46,6 +46,15 @@ public class LocalFileLatestVersionTests
             (await provider.LoadAvatarDetailAsync(detail.Id, version: 6)).Result.Should().BeNull();
             (await provider.LoadAvatarDetailByUsernameAsync(detail.Username, version: 6)).Result.Should().BeNull();
             (await provider.LoadAvatarDetailByEmailAsync(detail.Email, version: 6)).Result.Should().BeNull();
+            var softDeleted = await provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
+            softDeleted.IsError.Should().BeFalse(softDeleted.Message);
+            softDeleted.Result.Should().BeTrue();
+            (await provider.LoadAvatarDetailAsync(detail.Id)).Result.Version.Should().Be(7,
+                "soft deletion must preserve avatar detail rather than invoke permanent cleanup");
+            var retained = await provider.LoadAvatarAsync(avatar.Id);
+            retained.Result.Should().NotBeNull();
+            retained.Result.DeletedDate.Should().NotBe(DateTime.MinValue);
+            retained.Result.IsActive.Should().BeFalse("soft-deleted avatars cannot remain active");
         }
         finally
         {
