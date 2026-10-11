@@ -199,8 +199,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             try
             {
                 if (!System.Text.RegularExpressions.Regex.IsMatch(_nftEscrowContractId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z")
+                    || !System.Text.RegularExpressions.Regex.IsMatch(_nftEscrowRuntimeCodeHash ?? "", @"\A0x[0-9a-fA-F]{64}\z")
                     || _nftEscrowGasLimit <= 0 || _nftEscrowGasLimit > 9007199254740991L || _nftEscrowMaxFeeTinybars <= 0)
-                    throw new InvalidOperationException("An explicit Hedera NFT escrow contract, positive gas limit and fee ceiling are required.");
+                    throw new InvalidOperationException("An explicit Hedera NFT escrow contract, verified runtime code hash, positive gas limit and fee ceiling are required.");
                 if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for NFT escrow.");
                 var asset = ParseHederaNftAddress(address);
                 var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
@@ -213,6 +214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
                     privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der",
                     tokenId = asset.TokenId, serial = asset.Serial, contractId = _nftEscrowContractId,
+                    runtimeCodeHash = _nftEscrowRuntimeCodeHash,
                     gas = _nftEscrowGasLimit, maxFeeTinybars = _nftEscrowMaxFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     transactionId = mutationId, approvalTransactionId = action == "nftEscrowLock" ? HederaSdkClient.CreateTransactionId(wallet.WalletAddress) : null
                 });

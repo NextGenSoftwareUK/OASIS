@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private HttpClient _httpClient;
         private string _contractAddress;
         private readonly string _nftEscrowContractId;
+        private readonly string _nftEscrowRuntimeCodeHash;
         private readonly long _nftEscrowGasLimit;
         private readonly long _nftEscrowMaxFeeTinybars;
         private readonly string _hederaNetwork;
@@ -61,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null)
             : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
             if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
@@ -83,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             _bridgePoolAccountId = bridgePoolAccountId;
             _bridgePoolSigningKey = bridgePoolSigningKey;
             _nftEscrowContractId = nftEscrowContractId;
+            _nftEscrowRuntimeCodeHash = nftEscrowRuntimeCodeHash;
             _nftEscrowGasLimit = nftEscrowGasLimit;
             _nftEscrowMaxFeeTinybars = nftEscrowMaxFeeTinybars;
             _hederaNetwork = network;
