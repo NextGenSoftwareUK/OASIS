@@ -1,14 +1,24 @@
-import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction} from '@hiero-ledger/sdk';
+import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType} from '@hiero-ledger/sdk';
 
 export function deploymentTransaction(action,request,publicKey) {
-  if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate'].includes(action)) throw new Error('Unknown deployment mutation.');
+  if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate'].includes(action)) throw new Error('Unknown deployment mutation.');
   if(!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.sender??'')) throw new Error('Deployment requires a nonzero numeric payer.');
   const sender=AccountId.fromString(request.sender),id=TransactionId.fromString(request.transactionId);
   if(id.accountId.toString()!==sender.toString()) throw new Error('Deployment payer identity mismatch.');
   if(typeof request.maxFeeTinybars!=='string'||!/^[1-9][0-9]*$/.test(request.maxFeeTinybars)||BigInt(request.maxFeeTinybars)>9223372036854775807n)
     throw new Error('Deployment requires an explicit positive int64 fee ceiling.');
   let transaction;
-  if(action==='contractCreate') {
+  if(action==='nftCollectionCreate') {
+    for(const field of ['name','symbol'])
+      if(typeof request[field]!=='string'||!request[field].trim()||Buffer.byteLength(request[field],'utf8')>100)
+        throw new Error('NFT collection name and symbol require 1 to 100 UTF-8 bytes.');
+    if(typeof request.maxSupply!=='string'||!/^[1-9][0-9]*$/.test(request.maxSupply)||BigInt(request.maxSupply)>9223372036854775807n)
+      throw new Error('NFT collection requires an explicit positive int64 maximum supply.');
+    transaction=new TokenCreateTransaction().setTokenName(request.name).setTokenSymbol(request.symbol)
+      .setTokenType(TokenType.NonFungibleUnique).setDecimals(0).setInitialSupply(0)
+      .setSupplyType(TokenSupplyType.Finite).setMaxSupply(request.maxSupply)
+      .setTreasuryAccountId(sender).setAutoRenewAccountId(sender).setAdminKey(publicKey).setSupplyKey(publicKey);
+  } else if(action==='contractCreate') {
     if(!Number.isSafeInteger(request.gas)||request.gas<=0) throw new Error('Deployment requires an explicit positive gas limit.');
     FileId.fromString(request.fileId);
     transaction=new ContractCreateTransaction().setBytecodeFileId(request.fileId).setGas(request.gas).setAdminKey(publicKey);
@@ -36,7 +46,7 @@ export async function executeDeployment(action,request,{createClient,restoreKey}
     stage='submission';const submitted=await signed.execute(client);
     stage='receipt';const receipt=await submitted.getReceipt(client);
     if(receipt.status.toString()!=='SUCCESS') throw new Error('Deployment consensus failure.');
-    return {transactionId:submitted.transactionId.toString(),status:'SUCCESS',fileId:receipt.fileId?.toString(),contractId:receipt.contractId?.toString()};
+    return {transactionId:submitted.transactionId.toString(),status:'SUCCESS',fileId:receipt.fileId?.toString(),contractId:receipt.contractId?.toString(),tokenId:receipt.tokenId?.toString()};
   } catch(cause) {
     const error=new Error('Deployment success was not established; reconcile the original transaction before retrying.');
     error.transactionId=request.transactionId;error.stage=stage;error.status=cause.status?.toString();throw error;
