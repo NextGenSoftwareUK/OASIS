@@ -139,6 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         if (!loadResult.IsError && loadResult.Result != null)
                         {
                             loadResult.Result.DeletedDate = DateTime.UtcNow;
+                            loadResult.Result.IsActive = false;
                             var saveResult = await SaveAvatarAsync(loadResult.Result);
                             result.Result = !saveResult.IsError;
                             result.IsError = saveResult.IsError;
