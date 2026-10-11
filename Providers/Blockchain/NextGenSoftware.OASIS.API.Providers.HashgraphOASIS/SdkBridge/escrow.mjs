@@ -1,6 +1,6 @@
 import { AccountId, ContractId, TokenId, TransactionId, ContractExecuteTransaction, AccountAllowanceApproveTransaction, Hbar } from '@hiero-ledger/sdk';
-import { Interface, getBytes } from 'ethers';
-import { AccountInfoQuery, ContractInfoQuery, TokenNftInfoQuery, ContractCallQuery } from '@hiero-ledger/sdk';
+import { Interface, getBytes, keccak256 } from 'ethers';
+import { AccountInfoQuery, ContractInfoQuery, ContractByteCodeQuery, TokenNftInfoQuery, ContractCallQuery } from '@hiero-ledger/sdk';
 
 export const escrowAbi = new Interface([
   'function lockNFT(address token,uint256 serial)',
@@ -9,6 +9,7 @@ export const escrowAbi = new Interface([
 ]);
 
 export function validateEscrowRequest(request) {
+  if (!/^0x[0-9a-f]{64}$/i.test(request.runtimeCodeHash ?? '')) throw new Error('An explicit escrow runtime code hash is required.');
   for (const field of ['sender', 'contractId', 'tokenId'])
     if (!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request[field] ?? ''))
       throw new Error(`Escrow requires explicit nonzero numeric ${field}.`);
@@ -24,6 +25,19 @@ export function validateEscrowRequest(request) {
   const id = TransactionId.fromString(request.transactionId);
   if (id.accountId.toString() !== sender.toString()) throw new Error('Escrow transaction payer mismatch.');
   return { sender, contract, token, id };
+}
+
+export function verifyEscrowRuntime(bytes, expectedHash) {
+  if (!bytes.length || keccak256(bytes).toLowerCase() !== expectedHash.toLowerCase())
+    throw new Error('Escrow runtime code does not match the configured verified deployment.');
+}
+
+export async function verifyDepositorAccount(sender, address, queryAccount) {
+  if (!/^0x[0-9a-f]{40}$/i.test(address) || /^0x0{40}$/i.test(address)) throw new Error('Escrow has no valid EVM depositor.');
+  const alias = AccountId.fromEvmAddress(sender.shard, sender.realm, address);
+  const info = await queryAccount(alias);
+  if (info.isDeleted || info.accountId.toString() !== sender.toString())
+    throw new Error('Escrow EVM depositor does not resolve to the requesting account.');
 }
 
 export function escrowTransaction(action, request) {
@@ -67,6 +81,9 @@ export async function executeEscrow(action, request, { createClient, restoreKey 
     const contractInfo = await new ContractInfoQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
     if (contractInfo.contractId.toString() !== contract.toString() || contractInfo.isDeleted)
       throw new Error('Escrow contract identity mismatch.');
+    const runtimeCode = await new ContractByteCodeQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
+    verifyEscrowRuntime(runtimeCode, request.runtimeCodeHash);
+    const queryAccount = alias => new AccountInfoQuery().setAccountId(alias).setMaxQueryPayment(payment).execute(client);
     const nftId = token.toString() + '/' + request.serial;
     async function nftInfo() {
       const records = await new TokenNftInfoQuery().setNftId(nftId).setMaxQueryPayment(payment).execute(client);
@@ -85,6 +102,7 @@ export async function executeEscrow(action, request, { createClient, restoreKey 
     const locking = action === 'nftEscrowLock';
     if (current.accountId.toString() !== (locking ? sender.toString() : contractInfo.accountId.toString()) ||
         (locking ? recorded !== zero : recorded === zero)) throw new Error('Escrow NFT custody/deposit precondition failed.');
+    if (!locking) await verifyDepositorAccount(sender, recorded, queryAccount);
     if (locking && current.spenderId && current.spenderId.toString() !== contractInfo.accountId.toString())
       throw new Error('An existing different NFT allowance requires explicit revocation.');
     if (locking && !current.spenderId) {
@@ -108,6 +126,7 @@ export async function executeEscrow(action, request, { createClient, restoreKey 
     const recordedAfter = await depositor();
     if (after.accountId.toString() !== (locking ? contractInfo.accountId.toString() : sender.toString()) ||
         (locking ? recordedAfter === zero : recordedAfter !== zero)) throw new Error('Confirmed escrow custody readback mismatch.');
+    if (locking) await verifyDepositorAccount(sender, recordedAfter, queryAccount);
     return { transactionId: submitted.transactionId.toString(), approvalTransactionId, status: 'SUCCESS', depositor: recordedAfter };
   } catch (cause) {
     const error = new Error('Hedera escrow did not establish verified success. Reconcile the original mutation and any approval before retrying.');

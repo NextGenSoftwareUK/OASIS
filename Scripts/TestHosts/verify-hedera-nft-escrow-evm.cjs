@@ -29,7 +29,7 @@ contract FixtureNFT {
  }
 }`;
 async function main() {
- const compiled=JSON.parse(solc.compile(JSON.stringify({language:'Solidity',sources:{'Escrow.sol':{content:source},'Fixture.sol':{content:fixture}},settings:{evmVersion:'paris',outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}})));
+ const compiled=JSON.parse(solc.compile(JSON.stringify({language:'Solidity',sources:{'Escrow.sol':{content:source},'Fixture.sol':{content:fixture}},settings:{evmVersion:'paris',outputSelection:{'*':{'*':['abi','evm.bytecode.object','evm.deployedBytecode.object']}}}})));
  const errors=(compiled.errors||[]).filter(e=>e.severity==='error');
  assert.equal(errors.length,0,errors.map(e=>e.formattedMessage).join('\n'));
  const provider=new ethers.BrowserProvider(hardhat.network.provider);provider.pollingInterval=50;
@@ -70,6 +70,8 @@ async function main() {
  await (await escrow.lockNFT(t,2)).wait();
  await (await escrow.unlockNFT(t,2)).wait();
  assert.equal(await nft.ownerOf(2),o);assertions++;
- console.log(JSON.stringify({compiler:solc.version(),runtime:'existing in-process Hardhat',assertions,liveHedera:false}));
+ const runtimeCodeHash=ethers.keccak256('0x'+compiled.contracts['Escrow.sol'].OASISHederaNftEscrow.evm.deployedBytecode.object);
+ assert.equal(ethers.keccak256(await provider.getCode(e)),runtimeCodeHash);assertions++;
+ console.log(JSON.stringify({compiler:solc.version(),runtime:'existing in-process Hardhat',assertions,runtimeCodeHash,liveHedera:false}));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

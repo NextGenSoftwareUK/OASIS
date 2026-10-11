@@ -439,6 +439,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 bridgePoolSigningKey: () => string.IsNullOrWhiteSpace(settings.BridgePoolSigningKeyEnvironmentVariable)
                                     ? null : Environment.GetEnvironmentVariable(settings.BridgePoolSigningKeyEnvironmentVariable),
                                 nftEscrowContractId: settings.NftEscrowContractId,
+                                nftEscrowRuntimeCodeHash: settings.NftEscrowRuntimeCodeHash,
                                 nftEscrowGasLimit: settings.NftEscrowGasLimit,
                                 nftEscrowMaxFeeTinybars: settings.NftEscrowMaxFeeTinybars);
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;

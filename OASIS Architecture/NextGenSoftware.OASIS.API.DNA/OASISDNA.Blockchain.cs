@@ -94,6 +94,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string BridgePoolAccountId { get; set; } = "";
         public string BridgePoolSigningKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_BRIDGE_POOL_PRIVATE_KEY";
         public string NftEscrowContractId { get; set; } = "";
+        public string NftEscrowRuntimeCodeHash { get; set; } = "";
         public long NftEscrowGasLimit { get; set; }
         public long NftEscrowMaxFeeTinybars { get; set; }
         public string StorageContractId { get; set; } = "";

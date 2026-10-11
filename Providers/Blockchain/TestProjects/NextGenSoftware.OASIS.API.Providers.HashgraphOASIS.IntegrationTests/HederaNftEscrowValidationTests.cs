@@ -15,7 +15,7 @@ public class HederaNftEscrowValidationTests
     public async Task EscrowRequiresExplicitContractGasAndFeeBeforeWalletLookup(string contract, long gas, long fee)
     {
         var provider = new HashgraphOASIS(network: "testnet", nftEscrowContractId: contract,
-            nftEscrowGasLimit: gas, nftEscrowMaxFeeTinybars: fee);
+            nftEscrowGasLimit: gas, nftEscrowMaxFeeTinybars: fee, nftEscrowRuntimeCodeHash: "0x" + new string('1', 64));
         var avatar = Guid.Parse("354f54c3-67d2-44d8-a53d-6a6e616c2da2");
         var locked = await provider.LockNFTAsync(new LockWeb3NFTRequest { LockedByAvatarId = avatar, NFTTokenAddress = "0.0.1234/1" });
         var unlocked = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { UnlockedByAvatarId = avatar, NFTTokenAddress = "0.0.1234/1" });
@@ -52,5 +52,19 @@ public class HederaNftEscrowValidationTests
     }
 
     private static HashgraphOASIS Configured() => new(network: "testnet", nftEscrowContractId: "0.0.2001",
-        nftEscrowGasLimit: 400000, nftEscrowMaxFeeTinybars: 100000000);
+        nftEscrowGasLimit: 400000, nftEscrowMaxFeeTinybars: 100000000, nftEscrowRuntimeCodeHash: "0x" + new string('1', 64));
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("0x1234")]
+    public async Task MissingOrMalformedCodeHashCannotAuthorizeWalletLookup(string? hash)
+    {
+        var provider = new HashgraphOASIS(network: "testnet", nftEscrowContractId: "0.0.2001",
+            nftEscrowGasLimit: 400000, nftEscrowMaxFeeTinybars: 100000000, nftEscrowRuntimeCodeHash: hash);
+        var result = await provider.LockNFTAsync(new LockWeb3NFTRequest
+            { LockedByAvatarId = Guid.NewGuid(), NFTTokenAddress = "0.0.1234/1" });
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+        StringAssert.Contains(result.Message, "runtime code hash");
+    }
 }
