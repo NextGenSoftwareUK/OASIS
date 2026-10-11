@@ -44,6 +44,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
         [Theory]
+        [InlineData("Bearer not-a-jwt")]
+        [InlineData("Basic invalid")]
+        [InlineData("Bearer")]
+        public async Task HyperDriveReadRoutesRejectInvalidAuthorizationHeaders(string authorization)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/hyperdrive/mode");
+            request.Headers.TryAddWithoutValidation("Authorization", authorization);
+            var response = await _client.SendAsync(request);
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Theory]
         [InlineData("mode")]
         [InlineData("config")]
         [InlineData("status")]
