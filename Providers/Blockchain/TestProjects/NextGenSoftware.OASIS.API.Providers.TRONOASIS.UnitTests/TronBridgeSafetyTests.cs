@@ -29,4 +29,14 @@ public sealed class TronBridgeSafetyTests
         Assert.True((await provider.DepositAsync(1, "unused")).IsError);
         Assert.False(provider.IsProviderActivated);
     }
+
+    [Fact]
+    public async Task TokenContractCannotBeUsedAsNativeBridgePool()
+    {
+        var provider = new TRONOASIS(contractAddress: "configured-token-contract");
+        var result = await provider.DepositAsync(1, "unused");
+        Assert.True(result.IsError);
+        Assert.Contains("BridgePoolWalletAddress", result.Message);
+        Assert.False(provider.IsProviderActivated);
+    }
 }
