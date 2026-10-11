@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current Core and retained Sui verification checkpoint (2026-10-11)
+
+Against Core pin `687b6ba3bb542af4bbeee233f25189ba82f6b9c5`, the full Core unit-test project passed **348/348**, zero skips (`TestResults/CoreCurrent/core-current.trx`). This is unit/control-flow evidence, not all HTTP routes or live providers. The existing Sui 1.81.1 binary and retained `/var/tmp/oasis-sui/network` ledger were restarted without genesis regeneration, fixture publication, installation or downloads. `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads` passed **1/1**, zero skips, in 28 seconds (`TestResults/HyperDriveSui/sui-v2-routing.trx`), rechecking real avatar/detail and holon replication/update/delete and measured provider-read selection under the current Core pin. It does not retest outage/failover, avatar transfer overloads or HTTP authorization. Owned PID 6258 was validated against the exact binary/config and stopped with SIGTERM after completion; its session ended and `pgrep sui` returned no process. Retained source/runtime/ledger/credentials were preserved. About 116.9 GB decimal remained free. Other providers and release gates remain incomplete.
+
 ### Shared token submission safety checkpoint (2026-10-11)
 
 Unlock checkpoint: Core `687b6ba3bb542af4bbeee233f25189ba82f6b9c5` preserves `UnlockedByAvatarId` in both provider request projections and removes sync/async unlock resubmission loops. Provider receipt/error messages remain unchanged; absent response or thrown failures are explicit reconciliation errors. **18/18** controlled-provider submission regressions pass, zero skips, including eight unlock success/readback/null/throw cases verifying one invocation and exact owner/asset forwarding with the retry flag enabled. Core dual-framework build passed, zero errors/254 warnings. These supersede the pending unlock control-flow audit, not live custody/HTTP authorization gates. Manifest and parent gitlink advance together; no deploy/merge.
