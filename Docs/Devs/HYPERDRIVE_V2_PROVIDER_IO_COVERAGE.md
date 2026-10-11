@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Reused WEB4 command-test checkpoint (2026-10-11)
+
+The WEB4 host's existing build/restore artifacts were present; its unit project lacked `project.assets.json`. Restored only that project with `--no-dependencies`, then used bounded `--no-restore` tests with `BuildProjectReferences=false`, preserving the existing host build/environment. HyperDrive-filtered WEB4 unit tests pass **4/4**, zero skips (`TestResults/Web4Current/web4-hyperdrive-current.trx`). These command/configuration tests use the retained host DLL and controlled providers; they do not establish freshly rebuilt API/source parity, authenticated HTTP, DTO binding, authorization or live provider behavior. Separate HTTP and full current publish gates remain required. No new checkout/runtime/service/ledger was created, and no deployment/merge occurred.
+
 ### Current release gates — not complete (2026-10-11)
 
 Authoritative audit at parent `aab3b994e`: Core gitlink/checkout `c21485ace9a5c75536514b74b0cc3199df19a741`; ONODE Core gitlink `2b0242a1c4317eb197722531a0e6638a852a2d9f`. Re-executed static manifest checks: 815 public manager methods/655 classified provider-backed methods; 691 WEB4 actions/597 classified non-local actions; 42 V2 operations with sync/async parity and test declarations. These counts do not establish HTTP or ledger execution. Do not merge on their strength.
