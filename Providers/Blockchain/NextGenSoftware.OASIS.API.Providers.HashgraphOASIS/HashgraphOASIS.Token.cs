@@ -49,7 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     throw new ArgumentException("Use an explicitly recovered Hedera key, not an ambiguous seed-and-key request.");
                 if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
                 var native = string.IsNullOrWhiteSpace(request.FromTokenAddress) || request.FromTokenAddress == "HBAR";
-                var tinybars = checked(request.Amount * 100000000m);
+                // HTS precision is obtained from the token ledger, not HBAR's eight decimals.
+                var tinybars = native ? checked(request.Amount * 100000000m) : 0m;
                 if (native && (tinybars != decimal.Truncate(tinybars) || tinybars > long.MaxValue))
                     throw new ArgumentOutOfRangeException(nameof(request.Amount), "HBAR amount must fit exact int64 tinybars.");
                 var committed = await HederaSdkClient.InvokeAsync(native ? "transfer" : "tokenTransfer", new
