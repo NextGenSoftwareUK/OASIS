@@ -12,6 +12,38 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task SignedContractStorageCommitsOnReusableLocalTronNode()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(55));
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis);
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/compile-tron-store.cjs"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var artifacts = Path.Combine(directory!.FullName, "TestResults/TronRuntime");
+        var deployment = Path.Combine(artifacts, "local-store-address.txt");
+        string contract;
+        if (File.Exists(deployment)) contract = (await File.ReadAllTextAsync(deployment, bounded.Token)).Trim();
+        else
+        {
+            var bytecode = Convert.FromHexString((await File.ReadAllTextAsync(Path.Combine(artifacts, "store-bytecode.txt"), bounded.Token)).Trim());
+            var deployed = await runtime.NativeTransfers.DeployBytecodeAsync(new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress(), bytecode, SenderKey, bounded.Token);
+            contract = deployed.ContractAddress;
+            await File.WriteAllTextAsync(deployment, contract, bounded.Token);
+        }
+        var store = new TronStorageBackend(runtime.NativeTransfers, new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress(), contract, () => SenderKey);
+        await store.VerifyAsync(bounded.Token);
+        const string key = "reusable-sdk-storage-test";
+        try
+        {
+            await store.PutAsync(key, "TRON 🌳 exact storage", bounded.Token);
+            Assert.Equal("TRON 🌳 exact storage", await store.GetAsync(key, bounded.Token));
+            Assert.Contains(key, await store.ListKeysAsync("reusable-", bounded.Token));
+        }
+        finally { await store.DeleteAsync(key, bounded.Token); }
+        Assert.Null(await store.GetAsync(key, bounded.Token));
+    }
+
+    [Fact]
     public async Task NativeTransferUsesSdkSigningAndSolidifiedReceiptOnPinnedLocalChain()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(50));
