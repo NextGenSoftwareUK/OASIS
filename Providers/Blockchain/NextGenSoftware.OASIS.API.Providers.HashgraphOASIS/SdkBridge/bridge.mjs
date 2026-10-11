@@ -160,10 +160,10 @@ export function tokenUnits(amount, decimals) {
 export function nftTransaction(action, request) {
   const token = TokenId.fromString(request.tokenId);
   if (action === 'nftMint') {
-    if (!Array.isArray(request.metadata) || !request.metadata.length)
-      throw new Error('NFT mint requires explicit metadata for each serial.');
+    if (!Array.isArray(request.metadata) || !request.metadata.length || request.metadata.length > 10)
+      throw new Error('NFT mint requires explicit metadata for one to ten serials.');
     const metadata = request.metadata.map(value => {
-      if (typeof value !== 'string' || !value || Buffer.byteLength(value, 'utf8') > 100)
+      if (typeof value !== 'string' || !value || /[\uD800-\uDFFF]/u.test(value) || Buffer.byteLength(value, 'utf8') > 100)
         throw new Error('NFT metadata must contain 1 to 100 UTF-8 bytes per serial.');
       return Buffer.from(value, 'utf8');
     });

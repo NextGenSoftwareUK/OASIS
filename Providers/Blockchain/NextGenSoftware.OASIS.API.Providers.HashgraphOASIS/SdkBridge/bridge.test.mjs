@@ -8,6 +8,14 @@ function roundTrip(transaction) {
   return Transaction.fromBytes(transaction.toBytes());
 }
 
+test('direct NFT mint rejects malformed Unicode and oversized serial batches before network use',()=>{
+ for(const metadata of [['\ud800'],['\udfff'],Array(11).fill('oak')])
+  assert.throws(()=>nftTransaction('nftMint',{tokenId:'0.0.2001',metadata}));
+ const decoded=roundTrip(nftTransaction('nftMint',{tokenId:'0.0.2001',metadata:Array(10).fill('Oak 🌳')}));
+ assert.equal(decoded.metadata.length,10);
+ assert.equal(Buffer.from(decoded.metadata[0]).toString('utf8'),'Oak 🌳');
+});
+
 test('native transfer freezes with exactly one payer-ID assignment through actual client construction',()=>{
  const client=Client.forNetwork({'127.0.0.1:50211':'0.0.3'});
  try {
