@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using Xunit;
 
@@ -12,13 +13,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 	public class TRONOASISTests
 	{
 		[Fact]
-		public async Task ActivateProvider_ShouldSucceed()
+		public async Task ActivateProvider_WithoutNodeConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			var result = await provider.ActivateProviderAsync();
 			
-			result.IsError.Should().BeFalse();
-			result.Result.Should().BeTrue();
+			result.IsError.Should().BeTrue();
+			result.Result.Should().BeFalse();
 		}
 
 		[Fact]
@@ -84,40 +85,36 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 		}
 
 		[Fact]
-		public void GetPlayersNearMe_ShouldReturnNotSupported()
+		public void GetAvatarsNearMe_WithoutConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
-			var result = provider.GetPlayersNearMe();
+			var result = provider.GetAvatarsNearMe(0, 0, 100);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public void GetHolonsNearMe_ShouldReturnNotSupported()
+		public void GetHolonsNearMe_WithoutConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
-			var result = provider.GetHolonsNearMe(HolonType.Holon);
+			var result = provider.GetHolonsNearMe(0, 0, 100, HolonType.Holon);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not supported");
-			result.Result.Should().NotBeNull();
-			result.Result.Should().BeEmpty();
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]
-		public void SendTransaction_ShouldReturnNotImplemented()
+		public void SendTransaction_WithoutConfiguration_ShouldFail()
 		{
 			var provider = new TRONOASIS();
 			provider.ActivateProvider();
 
-			var result = provider.SendTransaction(null);
+			var result = provider.SendTransaction("sender", "recipient", 1m, "test");
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not implemented");
+			result.Result.Should().BeNull();
 		}
 
 		[Fact]

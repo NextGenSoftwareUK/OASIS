@@ -71,6 +71,11 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class TRONOASISProviderSettings : ProviderSettingsBase
     {
+        public string FullNodeGrpcEndpoint { get; set; } = "";
+        public string SolidityNodeGrpcEndpoint { get; set; } = "";
+        public string GenesisBlockId { get; set; } = "";
+        public string SigningKeyEnvironmentVariable { get; set; } = "OASIS_TRON_PRIVATE_KEY";
+        public string ApiKeyEnvironmentVariable { get; set; } = "OASIS_TRON_API_KEY";
         public string RpcEndpoint { get; set; } = "https://api.trongrid.io";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "0x2b6653dc";
