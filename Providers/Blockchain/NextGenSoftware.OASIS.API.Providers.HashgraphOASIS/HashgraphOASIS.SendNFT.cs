@@ -43,66 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.HashgraphOASIS, fromAvatarEmail);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.HashgraphOASIS, toAvatarEmail);
-
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for emails");
-                    return result;
-                }
-
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
-
-                if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not find wallet addresses for emails");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = fromAddress,
-                    ToAddress = toAddress,
-                    Amount = amount,
-                    Memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph transaction");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByEmailAsync(token): {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+            => SendNamedAvatarTransferAsync(fromAvatarEmail, toAvatarEmail, amount, token, true);
 
         public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
@@ -114,66 +56,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-                var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to get default wallet addresses for avatars");
-                    return result;
-                }
-
-                var fromAddress = fromWalletResult.Result?.WalletAddress;
-                var toAddress = toWalletResult.Result?.WalletAddress;
-
-                if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not find default wallet addresses for avatars");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = fromAddress,
-                    ToAddress = toAddress,
-                    Amount = amount,
-                    Memo = $"OASIS default wallet transaction from {fromAvatarId} to {toAvatarId}"
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph transaction");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByDefaultWalletAsync: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+            => SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
 
 
 

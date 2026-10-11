@@ -36,8 +36,7 @@ async function storageWrite(action, request) {
   const client = createClient(request);
   try {
     client.setOperator(payer, key);
-    mutation.setTransactionId(id).setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
-      .setMaxAttempts(1).setRegenerateTransactionId(false).freezeWith(client);
+    singleSubmission(mutation, id).setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars)).freezeWith(client);
     const submitted = await (await mutation.sign(key)).execute(client);
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Storage mutation failed consensus.');
@@ -53,6 +52,10 @@ async function storageWrite(action, request) {
 export function storageReadCall(name, args) {
   if (!['get', 'revision', 'keyPage'].includes(name)) throw new Error('Unknown storage read.');
   return getBytes(storageAbi.encodeFunctionData(name, args));
+}
+
+export function singleSubmission(transaction, transactionId) {
+  return transaction.setTransactionId(transactionId).setMaxAttempts(1).setRegenerateTransactionId(false);
 }
 
 export function validateStoragePage(page, cursor, total) {
@@ -193,7 +196,7 @@ async function executeFile(action, request) {
       const bytes = await new FileContentsQuery().setFileId(request.fileId).setMaxQueryPayment(ceiling).execute(client);
       return { fileId: FileId.fromString(request.fileId).toString(), contents: new TextDecoder('utf-8', { fatal: true }).decode(bytes) };
     }
-    mutation.setTransactionId(id).setMaxTransactionFee(ceiling).setMaxAttempts(1).setRegenerateTransactionId(false).freezeWith(client);
+    singleSubmission(mutation, id).setMaxTransactionFee(ceiling).freezeWith(client);
     const submitted = await (await mutation.sign(key)).execute(client);
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('File mutation failed consensus.');
@@ -273,7 +276,7 @@ export async function execute(action, request) {
         } else transfer.addTokenTransfer(request.tokenId, sender, -units).addTokenTransfer(request.tokenId, recipient, units);
       }
     }
-    transfer.freezeWith(client);
+    singleSubmission(transfer, transactionId).freezeWith(client);
     const signed = await transfer.sign(key);
     const submitted = await signed.execute(client);
     const receipt = await submitted.getReceipt(client);
