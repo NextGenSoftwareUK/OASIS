@@ -29,5 +29,11 @@ public class RadixOASISConfig
     /// OASIS blueprint/component address for storage operations (optional - if not set, storage operations will delegate to ProviderManager)
     /// </summary>
     public string? OasisBlueprintAddress { get; set; }
+
+    /// <summary>
+    /// Owner badge resource of the OasisStorage component (returned by its <c>instantiate</c>). Writes prove this badge
+    /// from <see cref="AccountAddress"/>, so the badge must be held by that account. Reads don't need it.
+    /// </summary>
+    public string? OasisStorageOwnerBadgeAddress { get; set; }
 }
 

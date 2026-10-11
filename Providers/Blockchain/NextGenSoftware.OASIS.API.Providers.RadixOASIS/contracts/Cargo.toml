@@ -1,0 +1,24 @@
+[package]
+name = "oasis-storage"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "oasis_storage"
+
+[dependencies]
+scrypto = "1.4.0"
+
+[dev-dependencies]
+scrypto-test = "1.4.0"
+
+[package.metadata.scrypto]
+target = "wasm32-unknown-unknown"
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+lto = true
+codegen-units = 1
+

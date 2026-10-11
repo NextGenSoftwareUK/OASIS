@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -436,6 +436,13 @@ public partial class RadixOASIS
                 return await AvatarManager.Instance.LoadAvatarAsync(id, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await LoadAvatarOnLedgerAsync(Storage.GetAvatarJsonAsync(id));
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
+
             // Query avatar by ID from Radix OASIS blueprint component using Gateway API
             var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";
             var queryData = new
@@ -503,6 +510,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await AvatarManager.Instance.LoadAvatarByEmailAsync(email, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await LoadAvatarOnLedgerAsync(Storage.GetAvatarJsonByEmailAsync(email));
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Query avatar by email from Radix OASIS blueprint component using Gateway API
             var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";
