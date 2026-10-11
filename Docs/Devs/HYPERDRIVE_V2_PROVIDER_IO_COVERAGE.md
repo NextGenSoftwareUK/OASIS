@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Native HTS NFT collection creation SDK operation (2026-10-11)
+
+Hedera bridge action `nftCollectionCreate` now builds a real `TokenCreateTransaction`: unique NFT type, zero decimals/initial supply, explicit positive int64 finite maximum supply, payer as treasury/auto-renew account, and signer public key as admin/supply authority. It reuses the explicit original transaction ID, positive fee ceiling, single-attempt/no-regeneration signed execution and SUCCESS receipt handling; returned native receipt includes `tokenId`. No fabricated collection ID or mirror mutation endpoint. Name/symbol require 1–100 UTF-8 bytes. Actual SDK serialization tests verify treasury/keys/type and maximum supply `9007199254740993`, plus invalid supply/UTF-8 rejection; full installed SDK suite **74/74**, zero skips. This SDK action does not yet implement C# API collection creation, royalty configuration, metadata authority changes or live consensus creation; those remain required lifecycle gates. No testnet mutation or installation/download occurred.
+
 ### Current Core TRON live V2 recheck (2026-10-11)
 
 `TronRealProviderRoutingTests.V2ReplicatesBalancesAndFailsOverDuringOwnedNodePause` passes **1/1**, zero skips, 51 seconds under Core `c21485ace9a5c75536514b74b0cc3199df19a741` (`TestResults/HyperDriveTron/tron-v2-routing.trx`). It reuses the immutable `oasis-tron-tre` runtime and existing storage contract/ledger: real avatar/detail and holon replication, update/delete, measured read selection, actual pause failover, failed-replica warning, explicit repair after recovery, and failed replica deletion warning. Explicit repair is not automatic durable replay. The same container was paused after completion; no download, installation, clone or ledger reset. Full all-operation and authenticated API coverage remain open, and Hedera deployment still requires funding.
