@@ -246,6 +246,8 @@ public sealed class TronNativeTransferClient
         string Address(ByteString value) => value.Length == 21 && value[0] == 0x41
             ? NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(value.ToByteArray()) : throw new InvalidOperationException("Invalid native transaction address.");
         if (amount < 0) throw new InvalidOperationException("Negative native transaction amount.");
+        if (!from.Equals(wallet) && !to.Equals(wallet))
+            throw new InvalidOperationException("Indexed native transaction does not involve the requested wallet.");
         return new Core.Interfaces.Wallet.Response.WalletTransaction
         {
             NativeTransactionId = Convert.ToHexString(receipt.Id.Span).ToLowerInvariant(),

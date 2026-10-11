@@ -31,5 +31,10 @@ public sealed class TronWalletHistoryTests
         Assert.Equal(new string('f', 64), json.RootElement.GetProperty("NativeTransactionId").GetString());
         Assert.Equal("9007199254740993", json.RootElement.GetProperty("RawAmount").GetString());
         Assert.Equal("SUN", json.RootElement.GetProperty("AmountUnit").GetString());
+        address[20] = 9;
+        var unrelated = Assert.Throws<TargetInvocationException>(() => method.Invoke(null,
+            new object[] { transaction, receipt, ByteString.CopyFrom(address) }));
+        Assert.IsType<InvalidOperationException>(unrelated.InnerException);
+        Assert.Contains("does not involve", unrelated.InnerException!.Message);
     }
 }
