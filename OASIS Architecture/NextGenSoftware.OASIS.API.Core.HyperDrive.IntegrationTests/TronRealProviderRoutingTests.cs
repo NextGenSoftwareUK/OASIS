@@ -49,9 +49,43 @@ public sealed class TronRealProviderRoutingTests
         var failedOver = new Holon { Id = Guid.Parse("c8752504-dff2-44c6-99d9-32a601ae9670"), Name = "Real V2 TRON outage" };
         var partial = new Holon { Id = Guid.Parse("f8882565-96ba-40f5-b2ac-a47e78ab8ea9"), Name = "Real V2 partial replication" };
         var paused = false;
+        var avatar = new Avatar { Id = Guid.Parse("b531a581-5627-451c-9de5-95c198646c20"),
+            Username = "tron-real-v2-avatar", Email = "tron-real-v2-avatar@example.invalid" };
+        var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
+        var avatarSaved = false;
         try
         {
             var router = new OASISHyperDrive(manager);
+            var savedAvatar = await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest
+                { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS });
+            avatarSaved = !savedAvatar.IsError;
+            savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
+            savedAvatar.IsWarning.Should().BeFalse(savedAvatar.Message);
+            (await tron.LoadAvatarAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            (await local.LoadAvatarAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            var savedDetail = await router.RouteRequestAsync<IAvatarDetail>(new StorageOperationRequest
+                { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS });
+            savedDetail.IsError.Should().BeFalse(savedDetail.Message);
+            savedDetail.IsWarning.Should().BeFalse(savedDetail.Message);
+            (await tron.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
+                { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+            deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
+            deletedAvatar.IsWarning.Should().BeFalse(deletedAvatar.Message);
+            deletedAvatar.Result.Should().BeTrue();
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await local.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+            (await tron.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+            (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+            (await tron.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+            (await tron.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
+            (await tron.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
+            avatarSaved = false;
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
             saved.IsError.Should().BeFalse(saved.Message);
@@ -124,6 +158,12 @@ public sealed class TronRealProviderRoutingTests
         finally
         {
             if (paused) await ChangeNode("unpause");
+            if (avatarSaved)
+            {
+                if ((await tron.LoadAvatarAsync(avatar.Id)).Result != null)
+                    (await tron.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
+                (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
+            }
             foreach (var id in new[] { holon.Id, failedOver.Id, partial.Id })
             {
                 if (!(await tron.LoadHolonAsync(id)).IsError) (await tron.DeleteHolonAsync(id)).IsError.Should().BeFalse();
