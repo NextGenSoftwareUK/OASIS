@@ -63,6 +63,18 @@ async function execute(client, tx, signer, include = {}) {
   return response.Transaction;
 }
 
+export function publicationArtifacts(committed) {
+  const packageId = committed.effects.changedObjects.find(object => object.outputState === 'PackageWrite' && object.idOperation === 'Created')?.objectId;
+  const storageId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::storage::Storage`)?.[0];
+  const currencyObjectId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::token::Currency`)?.[0];
+  const coinType = `${packageId}::token::TOKEN`;
+  const registrationId = Object.entries(committed.objectTypes).find(([, type]) => type !== 'package'
+    && normalizeStructTag(type) === normalizeStructTag(`0x2::coin_registry::Currency<${coinType}>`))?.[0];
+  if (!packageId || !storageId || !currencyObjectId || !registrationId)
+    throw new Error(`Publication ${committed.digest} committed but required OASIS objects were absent`);
+  return { packageAddress: packageId, storageObjectId: storageId, currencyObjectId, coinType, registrationId };
+}
+
 async function custodyReceipt(client, request) {
   if (!isValidSuiAddress(request.tokenId) || !isValidSuiAddress(request.custody) || !request.transactionHash)
     throw new Error('NFT object ID, custody wallet and source digest are required');
@@ -221,28 +233,37 @@ export async function invoke(request) {
     const committed = await execute(client, tx, signer);
     return { transactionHash: committed.digest };
   }
-  if (request.operation === 'publish') {
-    if (!Array.isArray(request.modules) || request.modules.length === 0 || !Array.isArray(request.dependencies))
-      throw new Error('Compiled Move modules and dependencies are required');
+  if (['publish', 'publicationResume'].includes(request.operation)) {
     const signer = Ed25519Keypair.fromSecretKey(request.privateKey);
-    const tx = new Transaction();
-    const [cap] = tx.publish({ modules: request.modules, dependencies: request.dependencies });
-    tx.transferObjects([cap], tx.pure.address(signer.toSuiAddress()));
-    const committed = await execute(client, tx, signer, { objectTypes: true });
-    const packageId = committed.effects.changedObjects.find(object => object.outputState === 'PackageWrite' && object.idOperation === 'Created')?.objectId;
-    const storageId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::storage::Storage`)?.[0];
-    if (!packageId || !storageId) throw new Error(`Publication ${committed.digest} committed but no OASIS storage object was returned`);
-    const coinType = `${packageId}::token::TOKEN`;
-    const currencyObjectId = Object.entries(committed.objectTypes).find(([, type]) => type === `${packageId}::token::Currency`)?.[0];
-    const registrationId = Object.entries(committed.objectTypes).find(([, type]) => normalizeStructTag(type) === normalizeStructTag(`0x2::coin_registry::Currency<${coinType}>`))?.[0];
-    if (!currencyObjectId || !registrationId) throw new Error(`Publication ${committed.digest} committed but returned no currency registration objects`);
-    const { object: registration } = await client.getObject({ objectId: registrationId });
-    const registrationTx = new Transaction();
-    registrationTx.moveCall({ target: '0x2::coin_registry::finalize_registration', typeArguments: [coinType],
-      arguments: [registrationTx.object('0xc'), registrationTx.receivingRef(registration)] });
-    const registered = await execute(client, registrationTx, signer);
-    return { transactionHash: committed.digest, registrationHash: registered.digest,
-      packageAddress: packageId, storageObjectId: storageId, currencyObjectId, coinType };
+    let committed;
+    if (request.operation === 'publicationResume') {
+      const owned = await pages(cursor => client.listOwnedObjects({ owner: signer.toSuiAddress(), cursor,
+        type: '0x2::package::UpgradeCap', include: { previousTransaction: true } }));
+      if (owned.length !== 1 || !owned[0].previousTransaction)
+        throw new Error('Publication reconciliation requires exactly one retained publisher capability.');
+      const response = await client.getTransaction({ digest: owned[0].previousTransaction,
+        include: { effects: true, objectTypes: true } });
+      committed = response.Transaction;
+      if (!committed?.status.success) throw new Error('Retained publication receipt did not succeed.');
+    } else {
+      if (!Array.isArray(request.modules) || request.modules.length === 0 || !Array.isArray(request.dependencies))
+        throw new Error('Compiled Move modules and dependencies are required');
+      const tx = new Transaction();
+      const [cap] = tx.publish({ modules: request.modules, dependencies: request.dependencies });
+      tx.transferObjects([cap], tx.pure.address(signer.toSuiAddress()));
+      committed = await execute(client, tx, signer, { objectTypes: true });
+    }
+    const artifacts = publicationArtifacts(committed);
+    const { object: registration } = await client.getObject({ objectId: artifacts.registrationId, include: { previousTransaction: true } });
+    let registrationHash;
+    if (registration.owner.AddressOwner === normalizeSuiAddress('0xc')) {
+      const registrationTx = new Transaction();
+      registrationTx.moveCall({ target: '0x2::coin_registry::finalize_registration', typeArguments: [artifacts.coinType],
+        arguments: [registrationTx.object('0xc'), registrationTx.receivingRef(registration)] });
+      registrationHash = (await execute(client, registrationTx, signer)).digest;
+    } else if (registration.owner.Shared) registrationHash = registration.previousTransaction;
+    else throw new Error(`Publication ${committed.digest} has an unexpected currency registration owner.`);
+    return { transactionHash: committed.digest, registrationHash, ...artifacts };
   }
   if (['tokenProbe', 'tokenMetadata', 'tokenBalance', 'tokenLockedBalance', 'tokenMint', 'tokenSend', 'tokenBurn', 'tokenLock', 'tokenUnlock'].includes(request.operation)) {
     if (!isValidSuiAddress(request.packageAddress) || !isValidSuiAddress(request.currencyObjectId))

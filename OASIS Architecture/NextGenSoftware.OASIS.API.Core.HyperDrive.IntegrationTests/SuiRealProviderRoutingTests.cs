@@ -1,0 +1,147 @@
+using System.Diagnostics;
+using System.Text.Json;
+using FluentAssertions;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
+using NextGenSoftware.Utilities;
+using Xunit;
+
+namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
+
+public sealed class SuiRealProviderRoutingTests
+{
+    private static string Required(string name) => Environment.GetEnvironmentVariable(name)
+        ?? throw new InvalidOperationException($"Real provider setting {name} is required; no skipped evidence.");
+
+    [Fact]
+    public async Task V2FailsOverToRealStoreAfterOwnedSuiTransportCloses()
+    {
+        var rpc = Required("OASIS_SUI_TEST_RPC");
+        new Uri(rpc).IsLoopback.Should().BeTrue();
+        var root = Path.GetFullPath(Required("OASIS_HYPERDRIVE_TEST_ROOT"));
+        Path.GetFileName(root).Should().Be("HyperDriveSui");
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+        var settings = fixture.RootElement;
+        using var sui = new SuiOASIS(rpc, "localnet", settings.GetProperty("chainId").GetString()!,
+            settings.GetProperty("packageAddress").GetString()!, settings.GetProperty("privateKey").GetString()!,
+            settings.GetProperty("storageObjectId").GetString()!);
+        var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        var activated = await sui.ActivateProviderAsync();
+        activated.IsError.Should().BeFalse(activated.Message);
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+        var manager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
+        manager.RegisterProvider(sui);
+        manager.RegisterProvider(local);
+        manager.SetAndActivateCurrentStorageProvider(sui).IsError.Should().BeFalse();
+        manager.SetAndReplaceAutoFailOverListForProviders(new[]
+            { new EnumValue<ProviderType>(ProviderType.SuiOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) })
+            .IsError.Should().BeFalse();
+        // Close only this test's genuine SDK transport. No mocked errors or shared node shutdown.
+        sui.Dispose();
+        var failure = await sui.ActivateProviderAsync();
+        failure.IsError.Should().BeTrue("closed transport must not fake successful activation");
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-failover" };
+        try
+        {
+            var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = holon });
+            result.IsError.Should().BeFalse(result.Message);
+            (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+            manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+        }
+        finally
+        {
+            (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            await local.DeActivateProviderAsync();
+        }
+    }
+
+    [Fact]
+    public async Task V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads()
+    {
+        var rpc = Required("OASIS_SUI_TEST_RPC");
+        new Uri(rpc).IsLoopback.Should().BeTrue("tests must not spend public-chain assets");
+        var root = Path.GetFullPath(Required("OASIS_HYPERDRIVE_TEST_ROOT"));
+        Path.GetFileName(root).Should().Be("HyperDriveSui");
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+        var settings = fixture.RootElement;
+        using var sui = new SuiOASIS(rpc, "localnet", settings.GetProperty("chainId").GetString()!,
+            settings.GetProperty("packageAddress").GetString()!, settings.GetProperty("privateKey").GetString()!,
+            settings.GetProperty("storageObjectId").GetString()!);
+        var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-replication" };
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var activated = await sui.ActivateProviderAsync();
+        activated.IsError.Should().BeFalse(activated.Message);
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+        var manager = new ProviderManager(null, dna)
+            { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = true, IsAutoLoadBalanceEnabled = false };
+        manager.RegisterProvider(local);
+        manager.RegisterProvider(sui);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[]
+            { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SuiOASIS) })
+            .IsError.Should().BeFalse();
+        try
+        {
+            var router = new OASISHyperDrive(manager);
+            var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
+            saved.IsError.Should().BeFalse(saved.Message);
+            var replicated = await sui.LoadHolonAsync(holon.Id, loadChildren: false);
+            replicated.IsError.Should().BeFalse(replicated.Message);
+            replicated.Result.Name.Should().Be(holon.Name);
+            (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+
+            manager.IsAutoReplicationEnabled = false;
+            manager.IsAutoLoadBalanceEnabled = true;
+            manager.SetAndReplaceAutoLoadBalanceListForProviders(new[]
+                { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SuiOASIS) })
+                .IsError.Should().BeFalse();
+            async Task<double> Measure(IOASISStorageProvider provider)
+            {
+                var timer = Stopwatch.StartNew();
+                var loaded = await provider.LoadHolonAsync(holon.Id, loadChildren: false);
+                timer.Stop();
+                loaded.IsError.Should().BeFalse(loaded.Message);
+                loaded.Result.Name.Should().Be(holon.Name);
+                return Math.Max(timer.Elapsed.TotalMilliseconds, 0.001);
+            }
+            var localMs = await Measure(local);
+            var suiMs = await Measure(sui);
+            manager.PerformanceMonitor.RecordRequest(ProviderType.LocalFileOASIS, true, localMs);
+            manager.PerformanceMonitor.RecordRequest(ProviderType.SuiOASIS, true, suiMs);
+            var expected = localMs <= suiMs ? ProviderType.LocalFileOASIS : ProviderType.SuiOASIS;
+            var before = manager.PerformanceMonitor.GetMetrics(expected).TotalRequests;
+            var loaded = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "LoadHolon", HolonId = holon.Id }, LoadBalancingStrategy.Performance);
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Name.Should().Be(holon.Name);
+            manager.PerformanceMonitor.GetMetrics(expected).TotalRequests.Should().Be(before + 1);
+        }
+        finally
+        {
+            var deleted = await sui.DeleteHolonAsync(holon.Id);
+            deleted.IsError.Should().BeFalse(deleted.Message);
+            (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            await sui.DeActivateProviderAsync();
+            await local.DeActivateProviderAsync();
+        }
+    }
+}
