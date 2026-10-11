@@ -50,101 +50,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
+                TronNativeTransferClient.NativeUnits(amount);
+                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                    throw new ArgumentException("Sender address and explicit private signing key are required.");
+                if (string.IsNullOrWhiteSpace(_contractAddress))
+                    throw new InvalidOperationException("A native TRX bridge pool wallet address must be configured.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                var hash = await ExecuteRuntimeAsync(client => client.SendAsync(senderAccountAddress, _contractAddress, amount, senderPrivateKey, null));
+                result.Result = new BridgeTransactionResponse
                 {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Bridge pool address
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
-                
-                // Convert amount to sun (smallest unit, 1 TRX = 1,000,000 sun)
-                var amountInSun = (long)(amount * 1_000_000m);
-
-                // Create TRON transfer transaction using TRON Grid API
-                var transferData = new
-                {
-                    owner_address = senderAccountAddress,
-                    to_address = bridgePoolAddress,
-                    amount = amountInSun
+                    TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-
-                var json = JsonSerializer.Serialize(transferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    // Sign and broadcast transaction
-                    var signedTx = await SignTRONTransaction(txResponse, senderPrivateKey);
-                    var broadcastJson = JsonSerializer.Serialize(signedTx);
-                    var broadcastContent = new StringContent(broadcastJson, Encoding.UTF8, "application/json");
-                    var broadcastResponse = await _httpClient.PostAsync("/wallet/broadcasttransaction", broadcastContent);
-
-                    if (broadcastResponse.IsSuccessStatusCode)
-                    {
-                        var broadcastResponseContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResponseContent);
-                        var txHash = broadcastData.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
-
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = txHash ?? "Transaction submitted",
-                            IsSuccessful = true,
-                            Status = BridgeTransactionStatus.Pending
-                        };
-                        result.IsError = false;
-                        result.Message = "TRON withdrawal transaction submitted successfully";
-                    }
-                    else
-                    {
-                        var errorContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        OASISErrorHandling.HandleError(ref result, $"Failed to broadcast transaction: {errorContent}");
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = string.Empty,
-                            IsSuccessful = false,
-                            ErrorMessage = errorContent,
-                            Status = BridgeTransactionStatus.Canceled
-                        };
-                    }
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create transaction: {httpResponse.StatusCode} - {errorContent}");
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = errorContent,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                }
+                result.Message = "Native TRX transfer to bridge pool confirmed; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing TRX to bridge pool: {ex.Message}", ex);
             }
             return result;
         }
@@ -154,101 +79,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
+                TronNativeTransferClient.NativeUnits(amount);
+                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+                    throw new ArgumentException("Receiver address is required.");
+                if (string.IsNullOrWhiteSpace(_contractAddress))
+                    throw new InvalidOperationException("A native TRX bridge pool wallet address must be configured.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+                var hash = await ExecuteRuntimeAsync(async client =>
                 {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
+                    if (_nativeSigningKeyResolver == null)
+                        throw new InvalidOperationException("Bridge pool signing credentials are not configured.");
+                    var key = await _nativeSigningKeyResolver(_contractAddress);
+                    return await client.SendAsync(_contractAddress, receiverAccountAddress, amount, key, null);
+                });
+                result.Result = new BridgeTransactionResponse
                 {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Bridge pool address (sender)
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
-                
-                // Convert amount to sun (smallest unit)
-                var amountInSun = (long)(amount * 1_000_000m);
-
-                // Create TRON transfer transaction from bridge pool to receiver
-                var transferData = new
-                {
-                    owner_address = bridgePoolAddress,
-                    to_address = receiverAccountAddress,
-                    amount = amountInSun
+                    TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-
-                var json = JsonSerializer.Serialize(transferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    // Sign and broadcast transaction (would use bridge pool's private key in production)
-                    var signedTx = await SignTRONTransaction(txResponse, ""); // Would get from config
-                    var broadcastJson = JsonSerializer.Serialize(signedTx);
-                    var broadcastContent = new StringContent(broadcastJson, Encoding.UTF8, "application/json");
-                    var broadcastResponse = await _httpClient.PostAsync("/wallet/broadcasttransaction", broadcastContent);
-
-                    if (broadcastResponse.IsSuccessStatusCode)
-                    {
-                        var broadcastResponseContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResponseContent);
-                        var txHash = broadcastData.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
-
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = txHash ?? "Transaction submitted",
-                            IsSuccessful = true,
-                            Status = BridgeTransactionStatus.Completed
-                        };
-                        result.IsError = false;
-                        result.Message = "TRON deposit transaction submitted successfully";
-                    }
-                    else
-                    {
-                        var errorContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        OASISErrorHandling.HandleError(ref result, $"Failed to broadcast transaction: {errorContent}");
-                        result.Result = new BridgeTransactionResponse
-                        {
-                            TransactionId = string.Empty,
-                            IsSuccessful = false,
-                            ErrorMessage = errorContent,
-                            Status = BridgeTransactionStatus.Canceled
-                        };
-                    }
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create transaction: {httpResponse.StatusCode} - {errorContent}");
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = errorContent,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                }
+                result.Message = "Native TRX transfer from bridge pool confirmed; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error depositing TRX from bridge pool: {ex.Message}", ex);
             }
             return result;
         }
