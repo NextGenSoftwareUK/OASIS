@@ -56,6 +56,13 @@ export function storageReadCall(name, args) {
   return getBytes(storageAbi.encodeFunctionData(name, args));
 }
 
+export function nativeFailureStatus(cause) {
+  const status = cause.status?.toString();
+  if (status) return status;
+  // Executable's attempt-limit Error encodes the native precheck status here.
+  return /^max attempts of [0-9]+ was reached for request with last error being: ([A-Z][A-Z0-9_]{0,100})$/.exec(cause.message ?? '')?.[1];
+}
+
 export function singleSubmission(transaction, transactionId) {
   return transaction.setTransactionId(transactionId).setMaxAttempts(1).setRegenerateTransactionId(false);
 }
@@ -268,6 +275,7 @@ export async function execute(action, request) {
   if (transactionId.accountId.toString() !== sender.toString())
     throw new Error('Transaction ID payer does not match the sender.');
   const client = await createClient(request);
+  let transferStage = 'construction';
   try {
     client.setOperator(sender, key);
     const transfer = (nftOperation ?? (action === 'tokenMint' ? new TokenMintTransaction()
@@ -293,8 +301,11 @@ export async function execute(action, request) {
       }
     }
     singleSubmission(transfer, transactionId).freezeWith(client);
+    transferStage = 'signing';
     const signed = await transfer.sign(key);
+    transferStage = 'submission';
     const submitted = await signed.execute(client);
+    transferStage = 'receipt';
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Consensus receipt reports failure.');
     return { transactionId: submitted.transactionId.toString(), status: receipt.status.toString(),
@@ -302,7 +313,8 @@ export async function execute(action, request) {
   } catch (cause) {
     const error = new Error('Hedera transfer did not establish consensus success. Track the original transaction before retrying.');
     error.transactionId = transactionId.toString();
-    error.status = cause.status?.toString();
+    error.status = nativeFailureStatus(cause);
+    error.stage = transferStage;
     throw error;
   } finally { client.close(); }
 }

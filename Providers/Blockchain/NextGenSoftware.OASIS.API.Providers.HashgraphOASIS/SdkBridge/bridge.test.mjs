@@ -1,12 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execute, tokenUnits, nftTransaction, singleSubmission } from './bridge.mjs';
+import { execute, tokenUnits, nftTransaction, singleSubmission, nativeFailureStatus } from './bridge.mjs';
 import { AccountId, Transaction, TransactionId, TokenMintTransaction, TokenBurnTransaction, TransferTransaction } from '@hiero-ledger/sdk';
 
 function roundTrip(transaction) {
   transaction.setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001')).setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();
   return Transaction.fromBytes(transaction.toBytes());
 }
+
+test('native failure status preserves structured and SDK attempt-limit codes without arbitrary exception text',()=>{
+ assert.equal(nativeFailureStatus({status:{toString:()=> 'INVALID_SIGNATURE'}}),'INVALID_SIGNATURE');
+ assert.equal(nativeFailureStatus(new Error('max attempts of 1 was reached for request with last error being: BUSY')),'BUSY');
+ assert.equal(nativeFailureStatus(new Error('private key input: secret')),undefined);
+ assert.equal(nativeFailureStatus(new Error('max attempts of 1 was reached for request with last error being: SECRET extra text')),undefined);
+});
 
 test('signed transfer and HTS mutations use one attempt without regenerating transaction identity', () => {
   for (const transaction of [new TransferTransaction(), new TokenMintTransaction(), new TokenBurnTransaction()]) {
