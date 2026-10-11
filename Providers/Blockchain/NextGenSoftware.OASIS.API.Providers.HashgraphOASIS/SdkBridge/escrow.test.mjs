@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AccountId, Transaction, ContractExecuteTransaction, AccountAllowanceApproveTransaction } from '@hiero-ledger/sdk';
-import { escrowAbi, escrowTransaction, escrowApprovalTransaction } from './escrow.mjs';
+import { escrowAbi, escrowTransaction, escrowApprovalTransaction, verifyDepositorAccount, verifyEscrowRuntime } from './escrow.mjs';
+import { keccak256 } from 'ethers';
 import { execute } from './bridge.mjs';
 import { PrivateKey } from '@hiero-ledger/sdk';
 const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'9007199254740993',
- gas:400000,maxFeeTinybars:'100000000',transactionId:'0.0.1001@1700000000.000000001',
+ gas:400000,maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
 function roundTrip(tx) {tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();return Transaction.fromBytes(tx.toBytes());}
 for (const action of ['nftEscrowLock','nftEscrowUnlock']) test(`${action} preserves exact serial, contract, fees and single submission in SDK wire bytes`,()=>{
@@ -48,4 +49,22 @@ for(const action of ['nftEscrowLock','nftEscrowUnlock']) test(`${action} dispatc
 });
 test('lock dispatcher rejects reused approval ID before opening a funded client',async()=>{
  await assert.rejects(()=>execute('nftEscrowLock',{...request,approvalTransactionId:request.transactionId}),/distinct transaction ID/);
+});
+test('runtime code identity rejects empty or changed code without approving custody',()=>{
+ const bytes=Uint8Array.from([0x60,0x00,0x60,0x00]);
+ verifyEscrowRuntime(bytes,keccak256(bytes));
+ assert.throws(()=>verifyEscrowRuntime(Uint8Array.from([0x60,0x01]),keccak256(bytes)),/runtime code/);
+ assert.throws(()=>verifyEscrowRuntime(new Uint8Array(),keccak256(new Uint8Array())),/runtime code/);
+});
+test('EVM depositor must resolve through SDK alias query to the exact active numeric account',async()=>{
+ const sender=AccountId.fromString('0.0.1001'), address='0x'+'12'.repeat(20);
+ let queries=0;
+ await verifyDepositorAccount(sender,address,async alias=>{
+  queries++;assert.equal(alias.evmAddress.toString().toLowerCase(),address.slice(2));
+  return {accountId:sender,isDeleted:false};
+ });
+ assert.equal(queries,1);
+ await assert.rejects(()=>verifyDepositorAccount(sender,address,async()=>({accountId:AccountId.fromString('0.0.1002'),isDeleted:false})),/requesting account/);
+ await assert.rejects(()=>verifyDepositorAccount(sender,address,async()=>({accountId:sender,isDeleted:true})),/requesting account/);
+ await assert.rejects(()=>verifyDepositorAccount(sender,'0x'+'0'.repeat(40),async()=>{throw new Error('must not query');}),/valid EVM depositor/);
 });
