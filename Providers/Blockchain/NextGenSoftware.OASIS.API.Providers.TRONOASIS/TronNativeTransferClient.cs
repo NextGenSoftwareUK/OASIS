@@ -221,8 +221,26 @@ public sealed class TronNativeTransferClient
             expectedContractAmount: amount);
     }
 
-    public async Task<string> SendNftAsync(string from, string to, string tokenAddress,
+    public Task<string> SendNftAsync(string from, string to, string tokenAddress,
         System.Numerics.BigInteger tokenId, string privateKey, string memo = null, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(to))
+            throw new ArgumentException("NFT transfers require an explicit recipient.", nameof(to));
+        return ExecuteNftAsync(from, to, tokenAddress, tokenId, privateKey, memo, cancellationToken);
+    }
+
+    public Task<string> BurnNftAsync(string tokenAddress, System.Numerics.BigInteger tokenId,
+        string privateKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var owner = new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress();
+        return ExecuteNftAsync(owner, null, tokenAddress, tokenId, privateKey, null, cancellationToken);
+    }
+
+    private async Task<string> ExecuteNftAsync(string from, string to, string tokenAddress,
+        System.Numerics.BigInteger tokenId, string privateKey, string memo, CancellationToken cancellationToken)
     {
         if (tokenId < 0 || tokenId >= (System.Numerics.BigInteger.One << 256))
             throw new ArgumentOutOfRangeException(nameof(tokenId));
@@ -232,10 +250,10 @@ public sealed class TronNativeTransferClient
         var source = _wallet.ParseAddress(from);
         if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
             throw new ArgumentException("NFT signing key does not own the requested sender.");
-        var recipient = _wallet.ParseAddress(to);
+        var recipient = to == null ? null : _wallet.ParseAddress(to);
         var contract = _wallet.ParseAddress(tokenAddress);
         EncodeAddressCall("ownerOf(uint256)", contract); // Validate contract address before node access.
-        var data = EncodeNftTransfer(source, recipient, tokenId);
+        var data = recipient == null ? EncodeNftBurn(tokenId) : EncodeNftTransfer(source, recipient, tokenId);
         await VerifyNetworkAsync(cancellationToken);
         var query = new byte[36];
         Convert.FromHexString("6352211e").CopyTo(query, 0);
@@ -245,6 +263,27 @@ public sealed class TronNativeTransferClient
         var expected = new System.Numerics.BigInteger(source.ToByteArray().AsSpan(1), isUnsigned: true, isBigEndian: true);
         if (owner != expected) throw new InvalidOperationException("The requested sender does not own the on-chain NFT token ID.");
         return await ExecuteContractAsync(source, contract, data, privateKey, memo, cancellationToken);
+    }
+
+    internal static byte[] EncodeNftBurn(System.Numerics.BigInteger tokenId)
+    {
+        if (tokenId < 0 || tokenId >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentOutOfRangeException(nameof(tokenId));
+        var data = new byte[36];
+        Convert.FromHexString("42966c68").CopyTo(data, 0);
+        var id = tokenId.ToByteArray(isUnsigned: true, isBigEndian: true);
+        id.CopyTo(data, data.Length - id.Length);
+        return data;
+    }
+
+    internal static (string Contract, System.Numerics.BigInteger TokenId) ParseNftAddress(string address)
+    {
+        var parts = address?.Split('/');
+        if (parts == null || parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0])
+            || !System.Text.RegularExpressions.Regex.IsMatch(parts[1], "\\A[0-9]+\\z")
+            || !System.Numerics.BigInteger.TryParse(parts[1], out var id) || id >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentException("TRC721 native NFT address must be contract/unsigned-decimal-token-id.");
+        return (parts[0], id);
     }
 
     internal static byte[] EncodeNftTransfer(ByteString from, ByteString to, System.Numerics.BigInteger tokenId)
