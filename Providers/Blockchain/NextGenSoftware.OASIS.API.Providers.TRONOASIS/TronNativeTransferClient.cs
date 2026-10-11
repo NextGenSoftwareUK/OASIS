@@ -414,6 +414,45 @@ public sealed class TronNativeTransferClient
         return (string)TronStorageBackend.Decode(uriBytes, "string")[0].Result;
     }
 
+    public async Task<System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>> GetNftIdsForOwnerAsync(
+        string contractAddress, string ownerAddress, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var owner = _wallet.ParseAddress(ownerAddress);
+        var balanceCall = EncodeAddressCall("balanceOf(address)", owner);
+        async Task<System.Numerics.BigInteger> Balance() => (System.Numerics.BigInteger)TronStorageBackend.Decode(
+            await QueryContractAsync(ownerAddress, contractAddress, balanceCall, cancellationToken), "uint256")[0].Result;
+        var count = await Balance();
+        if (count > 10000) throw new InvalidOperationException("Collection inventory exceeds the explicit 10000-item query budget; no truncated inventory is returned.");
+        var ids = new System.Collections.Generic.List<System.Numerics.BigInteger>();
+        var unique = new System.Collections.Generic.HashSet<System.Numerics.BigInteger>();
+        for (var index = System.Numerics.BigInteger.Zero; index < count; index++)
+        {
+            var output = await QueryContractAsync(ownerAddress, contractAddress, EncodeNftOwnerIndex(owner, index), cancellationToken);
+            var id = (System.Numerics.BigInteger)TronStorageBackend.Decode(output, "uint256")[0].Result;
+            if (!unique.Add(id)) throw new InvalidOperationException("NFT enumeration returned duplicate native token IDs.");
+            var ownershipCall = EncodeNftBurn(id);
+            Convert.FromHexString("6352211e").CopyTo(ownershipCall, 0);
+            var actualOwner = (System.Numerics.BigInteger)TronStorageBackend.Decode(
+                await QueryContractAsync(ownerAddress, contractAddress, ownershipCall, cancellationToken), "uint256")[0].Result;
+            var expectedOwner = new System.Numerics.BigInteger(owner.ToByteArray().AsSpan(1), true, true);
+            if (actualOwner != expectedOwner) throw new InvalidOperationException("NFT enumeration returned a token not owned by the requested address.");
+            ids.Add(id);
+        }
+        if (await Balance() != count) throw new InvalidOperationException("NFT ownership changed during enumeration.");
+        return ids;
+    }
+
+    internal static byte[] EncodeNftOwnerIndex(ByteString owner, System.Numerics.BigInteger index)
+    {
+        if (index < 0 || index >= (System.Numerics.BigInteger.One << 256)) throw new ArgumentOutOfRangeException(nameof(index));
+        var data = new byte[68];
+        EncodeAddressCall("tokenOfOwnerByIndex(address,uint256)", owner).CopyTo(data, 0);
+        var encoded = index.ToByteArray(true, true);
+        encoded.CopyTo(data, 68 - encoded.Length);
+        return data;
+    }
+
     internal static (string Contract, System.Numerics.BigInteger TokenId) ParseNftAddress(string address)
     {
         var parts = address?.Split('/');
