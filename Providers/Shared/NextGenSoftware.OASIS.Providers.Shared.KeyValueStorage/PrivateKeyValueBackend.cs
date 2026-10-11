@@ -19,9 +19,9 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
     private readonly byte[] _indexKey;
     private bool _disposed;
 
-    public PrivateKeyValueBackend(IKeyValueBackend inner, byte[] encryptionKey)
+    public PrivateKeyValueBackend(IKeyValueBackend inner, byte[] encryptionKey, bool compress = false)
     {
-        _encrypted = new EncryptedKeyValueBackend(inner, encryptionKey);
+        _encrypted = new EncryptedKeyValueBackend(inner, encryptionKey, compress);
         _indexKey = HMACSHA256.HashData(encryptionKey, Encoding.UTF8.GetBytes("OASIS private storage index v1"));
     }
 
