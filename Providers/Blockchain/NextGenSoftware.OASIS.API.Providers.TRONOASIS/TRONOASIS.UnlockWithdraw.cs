@@ -119,61 +119,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<double>();
             try
             {
+                ArgumentNullException.ThrowIfNull(request);
+                if (string.IsNullOrWhiteSpace(request.WalletAddress))
+                    throw new ArgumentException("A TRON wallet address is required.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrEmpty(request.WalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-                    return result;
-                }
-
-                // Query TRON account balance (TRX and TRC20 tokens)
-                var accountResponse = await _httpClient.GetAsync($"/wallet/getaccount?address={request.WalletAddress}");
-                
-                if (accountResponse.IsSuccessStatusCode)
-                {
-                    var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-                    
-                    // Get TRX balance
-                    if (accountData.TryGetProperty("balance", out var balance))
-                    {
-                        var balanceStr = balance.GetString();
-                        if (long.TryParse(balanceStr, out var balanceLong))
-                        {
-                            result.Result = balanceLong / 1000000.0; // Convert from sun (10^6) to TRX
-                            result.IsError = false;
-                            result.Message = "Balance retrieved successfully";
-                        }
-                        else
-                        {
-                            OASISErrorHandling.HandleError(ref result, "Failed to parse balance value");
-                        }
-                    }
-                    else
-                    {
-                        result.Result = 0.0;
-                        result.IsError = false;
-                        result.Message = "Account has no balance";
-                    }
-                }
-                else
-                {
-                    var errorContent = await accountResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {accountResponse.StatusCode} - {errorContent}");
-                }
+                var balance = await ExecuteRuntimeAsync(client => client.GetNativeBalanceAsync(request.WalletAddress));
+                result.Result = (double)balance; // Shared interface exposes double; SDK conversion retains exact decimal SUN.
+                result.Message = "Native TRX balance read from the solidified account.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error getting TRON balance: {ex.Message}", ex);
             }
             return result;
         }
