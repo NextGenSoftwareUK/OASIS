@@ -44,4 +44,22 @@ public sealed class TronNativeBalanceTests
         Assert.True(result.IsError);
         Assert.False(provider.IsProviderActivated);
     }
+
+    [Fact]
+    public async Task AccountBalanceMissingAddressIsErrorBeforeActivation()
+    {
+        var provider = new TRONOASIS();
+        var result = await provider.GetAccountBalanceAsync("");
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    [Fact]
+    public async Task CancelledAccountBalanceDoesNotActivateProvider()
+    {
+        var provider = new TRONOASIS();
+        var result = await provider.GetAccountBalanceAsync("unused", new CancellationToken(true));
+        Assert.True(result.IsError);
+        Assert.False(provider.IsProviderActivated);
+    }
 }
