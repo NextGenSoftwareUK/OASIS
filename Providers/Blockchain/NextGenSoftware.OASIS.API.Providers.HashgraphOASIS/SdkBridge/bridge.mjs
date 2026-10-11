@@ -1,6 +1,7 @@
 import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery, FileId, FileCreateTransaction, FileUpdateTransaction, FileDeleteTransaction, FileContentsQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
 import { Mnemonic } from '@hiero-ledger/sdk';
+import { AccountBalanceQuery } from '@hiero-ledger/sdk';
 import { executeEscrow, executeTokenEscrow } from './escrow.mjs';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
@@ -215,6 +216,19 @@ async function executeFile(action, request) {
 export async function execute(action, request) {
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
   if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
+  if (action === 'accountBalance') {
+    if (!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.accountId ?? ''))
+      throw new Error('Consensus balance requires an explicit nonzero numeric account ID.');
+    const account = AccountId.fromString(request.accountId);
+    const client = createClient(request);
+    try {
+      const balance = await new AccountBalanceQuery().setAccountId(account).execute(client);
+      const tinybars = balance.hbars.toTinybars().toString();
+      if (!/^[0-9]+$/.test(tinybars) || BigInt(tinybars) > 9223372036854775807n)
+        throw new Error('Consensus returned an invalid exact int64 HBAR balance.');
+      return { accountId: account.toString(), balanceTinybars: tinybars };
+    } finally { client.close(); }
+  }
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
     if (request.keyType !== 'ed25519') throw new Error('Mnemonic derivation requires the explicit standard Ed25519 algorithm.');
     if (action === 'restoreMnemonic' && (typeof request.seedPhrase !== 'string' || !request.seedPhrase.trim()))
