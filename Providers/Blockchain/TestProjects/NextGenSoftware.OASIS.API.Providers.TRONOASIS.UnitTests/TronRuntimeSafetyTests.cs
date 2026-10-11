@@ -12,6 +12,22 @@ public class TronRuntimeSafetyTests
     [InlineData("-1")]
     [InlineData("0.0000001")]
     [InlineData("9223372036854.775808")]
+    public async Task EmailNativeTransferRejectsInvalidAmountBeforeActivation(string amount)
+    {
+        var provider = new TRONOASIS();
+        var result = await provider.SendTransactionByEmailAsync("sender@example.org", "recipient@example.org",
+            decimal.Parse(amount, CultureInfo.InvariantCulture));
+        Assert.True(result.IsError);
+        Assert.Null(result.Result);
+        Assert.False(provider.IsProviderActivated);
+        Assert.Contains("SUN units", result.Message);
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("0.0000001")]
+    [InlineData("9223372036854.775808")]
     public async Task NativeTransferRejectsInvalidSunAmountsBeforeContactingNode(string amount)
     {
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),

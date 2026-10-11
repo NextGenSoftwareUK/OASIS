@@ -141,6 +141,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var response = new OASISResult<ITransactionResponse>();
             try
             {
+                TronNativeTransferClient.NativeUnits(amount);
+                if (string.IsNullOrWhiteSpace(fromAvatarEmail) || string.IsNullOrWhiteSpace(toAvatarEmail))
+                    throw new ArgumentException("Sender and recipient email addresses are required.");
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -170,40 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return response;
                 }
 
-                // Send TRX transaction using TRON Grid API
-                var amountInSun = (long)(amount * 1_000_000m); // Convert to sun (smallest unit)
-                
-                var transferData = new
-                {
-                    owner_address = fromWalletAddress,
-                    to_address = toWalletAddress,
-                    amount = amountInSun
-                };
-
-                var json = JsonSerializer.Serialize(transferData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/createtransaction", content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-                    
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txid
-                    };
-                    response.IsError = false;
-                    response.Message = "TRX transaction sent successfully on TRON blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to send TRX transaction on TRON blockchain");
-                }
+                return await SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, string.Empty);
             }
             catch (Exception ex)
             {
