@@ -16,6 +16,49 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class WalletTokenSubmissionTests
 {
     [Theory]
+    [InlineData(false, "readback")]
+    [InlineData(true, "readback")]
+    [InlineData(false, "success")]
+    [InlineData(true, "success")]
+    [InlineData(false, "null")]
+    [InlineData(true, "null")]
+    [InlineData(false, "throw")]
+    [InlineData(true, "throw")]
+    public async Task UnlockPreservesOwnerAndSubmitsOnce(bool asynchronous, string outcome)
+    {
+        var provider = new Mock<IOASISBlockchainStorageProvider>();
+        provider.SetupGet(p => p.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.HashgraphOASIS));
+        var request = new UnlockWeb4TokenRequest
+        {
+            ProviderType = new EnumValue<ProviderType>(ProviderType.HashgraphOASIS), UnlockedByAvatarId = Guid.NewGuid(),
+            Web3TokenId = Guid.NewGuid(), TokenAddress = "0.0.3001", WaitTillTokenUnlocked = true, AttemptToUnlockEveryXSeconds = 0
+        };
+        var expected = new OASISResult<ITransactionResponse>(new TransactionResponse { TransactionResult = "original-unlock-id" })
+        { IsError = outcome == "readback", Message = "original release readback detail" };
+        var count = 0;
+        OASISResult<ITransactionResponse> Submit(IUnlockWeb3TokenRequest projected)
+        {
+            count++;
+            Assert.Equal(request.UnlockedByAvatarId, projected.UnlockedByAvatarId);
+            Assert.Equal(request.Web3TokenId, projected.Web3TokenId); Assert.Equal(request.TokenAddress, projected.TokenAddress);
+            if (outcome == "throw") throw new InvalidOperationException("original-unlock-id needs reconciliation");
+            return outcome == "null" ? null! : expected;
+        }
+        provider.Setup(p => p.UnlockToken(It.IsAny<IUnlockWeb3TokenRequest>())).Returns((IUnlockWeb3TokenRequest r) => Submit(r));
+        provider.Setup(p => p.UnlockTokenAsync(It.IsAny<IUnlockWeb3TokenRequest>())).Returns((IUnlockWeb3TokenRequest r) => Task.FromResult(Submit(r)));
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA(); dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+        var providers = new ProviderManager(null, dna); Assert.True(providers.RegisterProvider(provider.Object));
+        var manager = new WalletManager(null, dna, providers);
+        var actual = asynchronous ? await manager.UnlockTokenAsync(request) : manager.UnlockToken(request);
+        Assert.Equal(1, count);
+        if (outcome is "success" or "readback")
+        {
+            Assert.Same(expected, actual); Assert.Equal("original release readback detail", actual.Message);
+        }
+        else { Assert.True(actual.IsError); Assert.Null(actual.Result); Assert.Contains("Reconcile", actual.Message); }
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task LockPreservesAvatarAndSignerWithoutResubmittingReadbackFailure(bool asynchronous)
