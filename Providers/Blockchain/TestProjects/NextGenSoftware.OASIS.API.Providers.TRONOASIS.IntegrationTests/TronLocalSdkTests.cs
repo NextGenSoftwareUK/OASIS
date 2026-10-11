@@ -12,6 +12,95 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task ProviderHolonSurvivesDeactivateAndReopenOnSameLedger()
+    {
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis, contractFeeLimitSun: 1000000000);
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/compile-tron-store.cjs"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var contract = (await File.ReadAllTextAsync(Path.Combine(directory!.FullName, "TestResults/TronRuntime/local-store-address.txt"))).Trim();
+        var owner = new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress();
+        byte[] Key() => System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture"));
+        using var storage = new TronPrivateStorageBackend(runtime.NativeTransfers, owner, contract, () => SenderKey, Key);
+        var initial = new TRONOASIS(rpcEndpoint: "http://127.0.0.1:9090", nativeTransfers: runtime.NativeTransfers, storageBackend: storage);
+        var activation = await initial.ActivateProviderAsync();
+        Assert.False(activation.IsError, activation.Message);
+        var id = Guid.Parse("f1fa8b24-3219-48fa-9db2-1bcdab720986");
+        var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = id, Name = "Reusable TRON lifecycle 🌳" };
+        try
+        {
+            var saved = await initial.SaveHolonAsync(holon);
+            Assert.False(saved.IsError, saved.Message);
+            Assert.True(saved.IsSaved);
+            Assert.False((await initial.DeActivateProviderAsync()).IsError);
+            using var reopenedStorage = new TronPrivateStorageBackend(runtime.NativeTransfers, owner, contract, () => SenderKey, Key);
+            var reopened = new TRONOASIS(rpcEndpoint: "http://127.0.0.1:9090", nativeTransfers: runtime.NativeTransfers, storageBackend: reopenedStorage);
+            Assert.False((await reopened.ActivateProviderAsync()).IsError);
+            try
+            {
+                var loaded = await reopened.LoadHolonAsync(id);
+                Assert.False(loaded.IsError, loaded.Message);
+                Assert.Equal(id, loaded.Result.Id);
+                Assert.Equal(holon.Name, loaded.Result.Name);
+                var removed = await reopened.DeleteHolonAsync(id);
+                Assert.False(removed.IsError, removed.Message);
+                Assert.True(removed.IsDeleted);
+                Assert.True((await reopened.LoadHolonAsync(id)).IsError);
+            }
+            finally { Assert.False((await reopened.DeActivateProviderAsync()).IsError); }
+        }
+        finally
+        {
+            if (!initial.IsProviderActivated) await initial.ActivateProviderAsync();
+            var remaining = await initial.LoadHolonAsync(id);
+            if (!remaining.IsError) Assert.False((await initial.DeleteHolonAsync(id)).IsError);
+            Assert.False((await initial.DeActivateProviderAsync()).IsError);
+        }
+    }
+
+    [Fact]
+    public async Task EncryptedStorageReopensSameContractWithoutPlaintextKeysOrValues()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(55));
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis);
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/compile-tron-store.cjs"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var contract = (await File.ReadAllTextAsync(Path.Combine(directory!.FullName, "TestResults/TronRuntime/local-store-address.txt"), bounded.Token)).Trim();
+        var owner = new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress();
+        byte[] Key() => System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture"));
+        const string logicalKey = "private-reusable-test";
+        const string value = "encrypted local TRON 🌳 storage";
+        var raw = new TronStorageBackend(runtime.NativeTransfers, owner, contract, () => SenderKey);
+        var indexKey = System.Security.Cryptography.HMACSHA256.HashData(Key(), System.Text.Encoding.UTF8.GetBytes("OASIS private storage index v1"));
+        var physical = "oasis/private/v1/" + Convert.ToHexString(System.Security.Cryptography.HMACSHA256.HashData(indexKey, System.Text.Encoding.UTF8.GetBytes(logicalKey))).ToLowerInvariant();
+        try
+        {
+            using (var initial = new TronPrivateStorageBackend(runtime.NativeTransfers, owner, contract, () => SenderKey, Key))
+            {
+                await initial.VerifyAsync(bounded.Token);
+                await initial.PutAsync(logicalKey, value, bounded.Token);
+                Assert.Equal(value, await initial.GetAsync(logicalKey, bounded.Token));
+            }
+            Assert.Null(await raw.GetAsync(logicalKey, bounded.Token));
+            var ciphertext = await raw.GetAsync(physical, bounded.Token);
+            Assert.NotNull(ciphertext);
+            Assert.DoesNotContain(logicalKey, ciphertext);
+            Assert.DoesNotContain(value, ciphertext);
+            using var reopened = new TronPrivateStorageBackend(runtime.NativeTransfers, owner, contract, () => SenderKey, Key);
+            await reopened.VerifyAsync(bounded.Token);
+            Assert.Equal(value, await reopened.GetAsync(logicalKey, bounded.Token));
+            Assert.Contains(logicalKey, await reopened.ListKeysAsync("private-", bounded.Token));
+        }
+        finally
+        {
+            using var cleanup = new TronPrivateStorageBackend(runtime.NativeTransfers, owner, contract, () => SenderKey, Key);
+            await cleanup.DeleteAsync(logicalKey, bounded.Token);
+        }
+        Assert.Null(await raw.GetAsync(physical, bounded.Token));
+    }
+
+    [Fact]
     public async Task SignedContractStorageCommitsOnReusableLocalTronNode()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(55));

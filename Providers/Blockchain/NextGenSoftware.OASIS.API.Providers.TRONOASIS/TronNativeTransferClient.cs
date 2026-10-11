@@ -15,9 +15,10 @@ public sealed class TronNativeTransferClient
     private readonly IWalletClient _wallet;
     private readonly ITransactionClient _transactions;
     private readonly string _genesisBlockId;
+    private readonly long _contractFeeLimitSun;
     internal string ExpectedGenesisBlockId => _genesisBlockId;
 
-    public TronNativeTransferClient(IWalletClient wallet, ITransactionClient transactions, string genesisBlockId)
+    public TronNativeTransferClient(IWalletClient wallet, ITransactionClient transactions, string genesisBlockId, long contractFeeLimitSun = 100000000)
     {
         _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
         _transactions = transactions ?? throw new ArgumentNullException(nameof(transactions));
@@ -25,6 +26,8 @@ public sealed class TronNativeTransferClient
             || !System.Text.RegularExpressions.Regex.IsMatch(genesisBlockId, "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("The expected 32-byte genesis block ID is required.", nameof(genesisBlockId));
         _genesisBlockId = genesisBlockId;
+        if (contractFeeLimitSun <= 0) throw new ArgumentOutOfRangeException(nameof(contractFeeLimitSun));
+        _contractFeeLimitSun = contractFeeLimitSun;
     }
 
     public async Task VerifyNetworkAsync(CancellationToken cancellationToken = default)
@@ -341,7 +344,7 @@ public sealed class TronNativeTransferClient
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
             throw new InvalidOperationException("TRON node returned stale TRC20 transaction timestamps.");
-        raw.FeeLimit = 100000000; // Maximum transaction fee, not an asset amount.
+        raw.FeeLimit = _contractFeeLimitSun; // Explicit caller-approved ceiling, not an asset amount.
         return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo ?? "", cancellationToken,
             requireContractSuccess: true, requireTransferReturn: requireTransferReturn, allowVoidContractReturn: allowVoidContractReturn,
             expectedContractAmount: expectedContractAmount);
@@ -425,7 +428,7 @@ public sealed class TronNativeTransferClient
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
             throw new InvalidOperationException("TRON deployment timestamps are invalid.");
-        raw.FeeLimit = 100000000;
+        raw.FeeLimit = _contractFeeLimitSun;
         var hash = await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, "", cancellationToken, requireContractSuccess: true);
         var receipt = await _wallet.GetSolidityProtocol().GetTransactionInfoByIdAsync(
             new BytesMessage { Value = ByteString.CopyFrom(Convert.FromHexString(hash)) }, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
