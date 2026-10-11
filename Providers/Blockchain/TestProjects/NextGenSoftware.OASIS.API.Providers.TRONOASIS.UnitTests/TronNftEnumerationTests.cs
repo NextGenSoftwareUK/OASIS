@@ -8,6 +8,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronNftEnumerationTests
 {
     [Theory]
+    [InlineData("", "unused")]
+    [InlineData("unused", "")]
+    public async Task CollectionQueryRequiresExplicitScopeBeforeActivation(string collection, string owner)
+    {
+        var provider = new TRONOASIS();
+        var result = await provider.LoadNFTsForCollectionOwnerAsync(collection, owner);
+        Assert.True(result.IsError);
+        Assert.Null(result.Result);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    [Theory]
     [InlineData("0")]
     [InlineData("9007199254740993")]
     public void EnumerationAbiPreservesOwnerAndExactIndex(string value)
