@@ -28,4 +28,21 @@ public sealed class WalletTokenBurnRequestTests
     [Fact]
     public void MissingBurnRequestIsRejected()
         => Assert.Throws<ArgumentNullException>(() => WalletManager.CreateProviderTokenBurnRequest(null!));
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task InvalidAmountsNeverReachProviderLookup(int amount)
+    {
+        // No provider manager exists: reaching provider lookup would throw.
+        var manager = (WalletManager)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(WalletManager));
+        var request = new BurnWeb4TokenRequest
+        { Amount = amount, OwnerPrivateKey = "", OwnerPublicKey = "", OwnerSeedPhrase = "" };
+        foreach (var result in new[] { manager.BurnToken(request), await manager.BurnTokenAsync(request) })
+        {
+            Assert.True(result.IsError);
+            Assert.Null(result.Result);
+            Assert.Contains("positive burn amount", result.Message);
+        }
+    }
 }
