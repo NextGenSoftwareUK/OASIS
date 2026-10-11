@@ -7,6 +7,8 @@
 
 ### Explicit NFT signer forwarding audit/fix (2026-10-11)
 
+Cosmos full unit selection currently reports **9 passed / 2 failed / 0 skipped** (`cosmos-current-unit.trx`): the failed cases are default-provider activation/deactivation success expectations. They are not signer-send tests and need fixture/configuration auditing before any assertion change; this run is not green Cosmos verification. The other provider build/source and controlled Sui evidence above remain scoped as stated.
+
 Cosmos and Sui NFT send implementations ignored explicit request private/public/seed signer fields. Sui now uses its existing TokenSigningKeyAsync recovery/correspondence checks and passes the recovered key into the single SDK nftSend operation; Cosmos uses its existing SigningKeyAsync supplied key/seed resolution and checks an optional public key through official SDK restoreKey before transfer. Cosmos unique-NFT quantities other than zero/default or one are rejected instead of ignored. Existing configured-signer behavior remains for requests without explicit credentials; shared avatar resolution/HTTP authorization are separate gates. Sui NFT send also retains both committed transaction/delivery IDs before readback and reports digest-bearing errors rather than losing the committed outcome. Both providers build, zero errors/two warnings each. Sui controlled process regression proves the explicit signer overrides a different configured key and retained IDs survive readback failure; full unit suite passes **20/20**, zero skips (`sui-current-unit.trx`). This is not live signer execution; Cosmos targeted/live signer tests remain due. No runtime install/start/download occurred.
 
 ### Sui unlock fault regression and live lifecycle verification (2026-10-11)
