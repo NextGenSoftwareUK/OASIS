@@ -7,6 +7,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaProviderValidationTests
 {
     [TestMethod]
+    public async Task MintRequiresActualAssetAmountAndAvatarBeforeWalletLookup()
+    {
+        var provider = new HashgraphOASIS(network: "testnet");
+        var missingAsset = await provider.MintTokenAsync(new MintWeb3TokenRequest { Amount = 1m });
+        Assert.IsTrue(missingAsset.IsError);
+        Assert.IsNull(missingAsset.Result);
+        StringAssert.Contains(missingAsset.Message, "TokenAddress");
+        var zeroAmount = await provider.MintTokenAsync(new MintWeb3TokenRequest { Amount = 0m });
+        Assert.IsTrue(zeroAmount.IsError);
+        Assert.IsNull(zeroAmount.Result);
+        var missingAvatar = await provider.MintTokenAsync(new MintWeb3TokenRequest
+            { Amount = 1m, MetaData = new Dictionary<string, string> { ["TokenAddress"] = "0.0.1234" } });
+        Assert.IsTrue(missingAvatar.IsError);
+        Assert.IsNull(missingAvatar.Result);
+        StringAssert.Contains(missingAvatar.Message, "avatar");
+    }
+    [TestMethod]
     public async Task InvalidReceiptIdentifierReturnsErrorRatherThanNotFound()
     {
         var result = await new HashgraphOASIS(network: "testnet").GetTransactionStatusAsync("not-a-transaction-id");
