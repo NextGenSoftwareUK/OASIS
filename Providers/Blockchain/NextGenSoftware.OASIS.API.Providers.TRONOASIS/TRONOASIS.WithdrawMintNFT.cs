@@ -114,90 +114,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
+                token.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(transactionHash) || !System.Text.RegularExpressions.Regex.IsMatch(transactionHash, "\\A[0-9a-fA-F]{64}\\z"))
+                    throw new ArgumentException("A 32-byte hexadecimal TRON transaction ID is required.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                // Query TRON transaction status using TRON Grid API
-                var httpResponse = await _httpClient.GetAsync($"/wallet/gettransactionbyid?value={transactionHash}");
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    // Check transaction ret field for status
-                    if (txData.TryGetProperty("ret", out var ret) && ret.ValueKind == JsonValueKind.Array)
-                    {
-                        var retArray = ret.EnumerateArray();
-                        if (retArray.MoveNext())
-                        {
-                            var retObj = retArray.Current;
-                            if (retObj.TryGetProperty("contractRet", out var contractRet))
-                            {
-                                var status = contractRet.GetString();
-                                if (status == "SUCCESS")
-                                {
-                                    result.Result = BridgeTransactionStatus.Completed;
-                                    result.IsError = false;
-                                    result.Message = "Transaction completed successfully";
-                                }
-                                else
-                                {
-                                    result.Result = BridgeTransactionStatus.Canceled;
-                                    result.IsError = true;
-                                    result.Message = $"Transaction failed: {status}";
-                                }
-                            }
-                            else
-                            {
-                                result.Result = BridgeTransactionStatus.Pending;
-                                result.IsError = false;
-                            }
-                        }
-                        else
-                        {
-                            result.Result = BridgeTransactionStatus.Pending;
-                            result.IsError = false;
-                        }
-                    }
-                    else if (txData.TryGetProperty("txID", out var txID))
-                    {
-                        // Transaction exists
-                        result.Result = BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                        result.Message = "Transaction found, status pending";
-                    }
-                    else
-                    {
-                        result.Result = BridgeTransactionStatus.NotFound;
-                        result.IsError = true;
-                        result.Message = "Transaction not found";
-                    }
-                }
-                else if (httpResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    OASISErrorHandling.HandleError(ref result, $"Failed to query transaction status: {httpResponse.StatusCode}");
-                }
+                result.Result = await ExecuteRuntimeAsync(client => client.GetTransactionStatusAsync(transactionHash, token));
+                result.Message = "Native-chain transaction status queried through genesis-verified SDK nodes; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {

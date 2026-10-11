@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,6 +48,41 @@ public sealed class TronNativeTransferClient
         var account = await _wallet.GetSolidityProtocol().GetAccountAsync(new Account { Address = requested },
             _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
         return NativeBalance(account, requested);
+    }
+
+    public async Task<Core.Managers.Bridge.Enums.BridgeTransactionStatus> GetTransactionStatusAsync(string hash, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(hash) || !System.Text.RegularExpressions.Regex.IsMatch(hash, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("A 32-byte hexadecimal TRON transaction ID is required.");
+        var id = new BytesMessage { Value = ByteString.CopyFrom(Convert.FromHexString(hash)) };
+        await VerifyNetworkAsync(cancellationToken);
+        var solidity = _wallet.GetSolidityProtocol();
+        var receipt = await solidity.GetTransactionInfoByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (receipt.Id.Length == 0)
+        {
+            var pending = await _wallet.GetProtocol().GetTransactionByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            if (!ValidateTransactionIdentity(pending, id.Value))
+                return Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+            return Core.Managers.Bridge.Enums.BridgeTransactionStatus.Pending;
+        }
+        var confirmed = await solidity.GetTransactionByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (!ValidateTransactionIdentity(confirmed, id.Value))
+            throw new InvalidOperationException("Solidified transaction identity is missing or inconsistent.");
+        var contract = confirmed.RawData.Contract.Any(x => x.Type == Transaction.Types.Contract.Types.ContractType.TriggerSmartContract
+            || x.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract);
+        ValidateSolidifiedReceipt(receipt, id.Value, contract, false, false);
+        return Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed;
+    }
+
+    internal static bool ValidateTransactionIdentity(Transaction transaction, ByteString expectedId)
+    {
+        if (expectedId == null || expectedId.Length != 32)
+            throw new ArgumentException("A 32-byte transaction ID is required.");
+        if (transaction == null || transaction.RawData == null || transaction.RawData.Contract.Count == 0)
+            return false;
+        if (!expectedId.Equals(ByteString.CopyFrom(SHA256.HashData(transaction.RawData.ToByteArray()))))
+            throw new InvalidOperationException("TRON returned a transaction with a different ID.");
+        return true;
     }
 
     internal static decimal NativeBalance(Account account, ByteString requested)
