@@ -405,64 +405,33 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
+                ArgumentNullException.ThrowIfNull(request);
+                var asset = TronNativeTransferClient.ParseNftAddress(request.NFTTokenAddress);
+                if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey) || !string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("An explicit owner private signing key is required; seed phrases are not accepted.");
+                if (!string.IsNullOrWhiteSpace(request.OwnerPublicKey))
+                {
+                    var actual = Convert.ToHexString(new EthECKey(request.OwnerPrivateKey).GetPubKey());
+                    var supplied = request.OwnerPublicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                        ? request.OwnerPublicKey[2..] : request.OwnerPublicKey;
+                    if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
+                        throw new ArgumentException("NFT signing key does not match the supplied public key.");
+                }
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // TRC-721 burn function - transfer NFT to zero address (burn)
-                var burnData = new
-                {
-                    owner_address = request.OwnerPublicKey ?? "",
-                    contract_address = request.NFTTokenAddress,
-                    function_selector = "burn(uint256)",
-                    parameter = request.Web3NFTId.ToString("X").PadLeft(64, '0'), // Token ID as hex
-                    fee_limit = 100000000,
-                    call_value = 0
-                };
-
-                var json = JsonSerializer.Serialize(burnData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
-                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
-                               "NFT burn transaction created";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txId
-                    };
-                    result.IsError = false;
-                    result.Message = "TRON NFT burned successfully";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to burn TRON NFT: {httpResponse.StatusCode} - {errorContent}");
-                }
+                var hash = await ExecuteRuntimeAsync(client => client.BurnNftAsync(asset.Contract, asset.TokenId, request.OwnerPrivateKey));
+                result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
+                result.Message = "TRC721 burn extension confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error burning NFT: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error burning TRON NFT: {ex.Message}", ex);
             }
             return result;
         }
