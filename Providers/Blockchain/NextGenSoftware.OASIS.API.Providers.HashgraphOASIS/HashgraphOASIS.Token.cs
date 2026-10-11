@@ -336,50 +336,76 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
+                ArgumentNullException.ThrowIfNull(request);
                 var accountId = request.WalletAddress;
-                var transactionsUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}/transactions?limit=100";
-                var response = await _httpClient.GetAsync(transactionsUrl);
-
-                if (response.IsSuccessStatusCode)
+                if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("A numeric Hedera wallet account ID is required.");
+                var endpoint = _httpClient.BaseAddress;
+                var next = new Uri(endpoint, $"transactions?account.id={accountId}&limit=100&order=asc&timestamp=gte:0");
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+                var identities = new HashSet<string>(StringComparer.Ordinal);
+                var transactions = new List<IWalletTransaction>();
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                while (next != null)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(content);
-
-                    var transactions = new List<IWalletTransaction>();
-                    if (txData.TryGetProperty("transactions", out var txArray))
+                    if (next.Scheme != endpoint.Scheme || next.Authority != endpoint.Authority
+                        || next.AbsolutePath != new Uri(endpoint, "transactions").AbsolutePath
+                        || !visited.Add(next.AbsoluteUri) || visited.Count > 5000)
+                        throw new InvalidOperationException("Hedera history pagination is unsafe or exceeds the bounded page budget.");
+                    using var response = await _httpClient.GetAsync(next, timeout.Token);
+                    response.EnsureSuccessStatusCode();
+                    using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
+                    var txData = document.RootElement;
+                    var txArray = txData.GetProperty("transactions");
+                    foreach (var tx in txArray.EnumerateArray())
                     {
-                        foreach (var tx in txArray.EnumerateArray())
-                        {
-                            var txId = tx.TryGetProperty("transaction_id", out var txIdEl) && txIdEl.ValueKind == JsonValueKind.String
-                                ? txIdEl.GetString()
-                                : string.Empty;
-
-                            var walletTx = new WalletTransaction
-                            {
-                                TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txId}"),
-                                FromWalletAddress = accountId,
-                                ToWalletAddress = string.Empty,
-                                Amount = 0,
-                                Description = string.IsNullOrWhiteSpace(txId) ? "Hedera transaction" : $"Hedera transaction: {txId}"
-                            };
-                            transactions.Add(walletTx);
-                        }
+                        var walletTx = MapMirrorWalletTransaction(tx, accountId);
+                        var identity = walletTx.NativeTransactionId + ":" + tx.GetProperty("consensus_timestamp").GetString();
+                        if (!identities.Add(identity)) throw new InvalidOperationException("Hedera history returned a duplicate consensus record.");
+                        transactions.Add(walletTx);
                     }
-
-                    result.Result = transactions;
-                    result.IsError = false;
-                    result.Message = $"Retrieved {transactions.Count} transactions from Hashgraph";
+                    var link = txData.GetProperty("links").GetProperty("next");
+                    next = link.ValueKind == JsonValueKind.Null ? null : new Uri(endpoint, link.GetString());
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph transactions query failed: {response.StatusCode}");
-                }
+                result.Result = transactions;
+                result.IsError = false;
+                result.Message = $"Retrieved {transactions.Count} indexed Hedera records; HBAR amounts are signed wallet deltas including fees. Mirror coverage is not a consensus completeness proof.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error getting transactions from Hashgraph: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private static WalletTransaction MapMirrorWalletTransaction(JsonElement tx, string accountId)
+        {
+            var id = tx.GetProperty("transaction_id").GetString();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(id ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[0-9]+\z"))
+                throw new InvalidOperationException("Hedera mirror record has no valid native transaction identity.");
+            var timestamp = tx.GetProperty("consensus_timestamp").GetString();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(timestamp ?? "", @"\A[0-9]+\.[0-9]{9}\z"))
+                throw new InvalidOperationException("Hedera mirror record has an invalid consensus timestamp.");
+            var nativeResult = tx.GetProperty("result").GetString();
+            var operation = tx.GetProperty("name").GetString();
+            if (string.IsNullOrWhiteSpace(nativeResult) || string.IsNullOrWhiteSpace(operation))
+                throw new InvalidOperationException("Hedera mirror record omits its operation or execution result.");
+            long delta = 0;
+            foreach (var transfer in tx.GetProperty("transfers").EnumerateArray())
+                if (transfer.GetProperty("account").GetString() == accountId)
+                    delta = checked(delta + transfer.GetProperty("amount").GetInt64());
+            var seconds = decimal.Parse(timestamp, System.Globalization.CultureInfo.InvariantCulture);
+            return new WalletTransaction
+            {
+                TransactionId = Guid.Empty, NativeTransactionId = id, NativeOperation = operation,
+                NativeExecutionResult = nativeResult, NativeError = nativeResult == "SUCCESS" ? null : nativeResult,
+                RawAmount = delta.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = "tinybar",
+                Amount = (double)((decimal)delta / 100000000m),
+                CreatedDate = DateTime.UnixEpoch.AddTicks(checked((long)(seconds * TimeSpan.TicksPerSecond))),
+                // A multi-party transaction plus fees cannot be represented as one invented sender/recipient pair.
+                FromWalletAddress = null, ToWalletAddress = null,
+                Description = $"Hedera {operation}: signed HBAR delta for {accountId}, including fees; {nativeResult}."
+            };
         }
 
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
