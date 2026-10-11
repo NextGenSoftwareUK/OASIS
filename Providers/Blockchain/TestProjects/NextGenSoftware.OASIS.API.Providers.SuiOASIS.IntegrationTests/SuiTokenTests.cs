@@ -38,9 +38,9 @@ public class SuiTokenTests
             Assert.IsFalse(result.IsError, result.Message);
             return result.Result;
         }
-        async Task Burn(SuiOASIS provider) {
+        async Task Burn(SuiOASIS provider, string address) {
             var result = await provider.BurnTokenAsync(new BurnWeb3TokenRequest
-            { TokenAddress = coinType, OwnerPrivateKey = "", OwnerPublicKey = "", OwnerSeedPhrase = "" });
+            { Amount = await Balance(provider, address), TokenAddress = coinType, OwnerPrivateKey = "", OwnerPublicKey = "", OwnerSeedPhrase = "" });
             Assert.IsFalse(result.IsError, result.Message);
         }
         // This retained synthetic fixture is exclusively used for token evidence.
@@ -48,7 +48,7 @@ public class SuiTokenTests
         {
             if (await Balance(provider, address, true) > 0)
                 Assert.IsFalse((await provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = coinType })).IsError);
-            if (await Balance(provider, address) > 0) await Burn(provider);
+            if (await Balance(provider, address) > 0) await Burn(provider, address);
         }
         try
         {
@@ -76,7 +76,11 @@ public class SuiTokenTests
             Assert.IsFalse(unlocked.IsError, unlocked.Message);
             Assert.AreEqual(1m, await Balance(holder, recipientAddress));
             Assert.AreEqual(0m, await Balance(holder, recipientAddress, true));
-            await Burn(holder);
+            var partialBurn = await holder.BurnTokenAsync(new BurnWeb3TokenRequest
+            { Amount = 0.25m, TokenAddress = coinType, OwnerPrivateKey = "", OwnerPublicKey = "", OwnerSeedPhrase = "" });
+            Assert.IsFalse(partialBurn.IsError, partialBurn.Message);
+            Assert.AreEqual(0.75m, await Balance(holder, recipientAddress));
+            await Burn(holder, recipientAddress);
             Assert.AreEqual(0m, await Balance(holder, recipientAddress));
             var wrongAsset = await issuer.GetTokenBalanceAsync(issuerAddress, "0x2::sui::SUI");
             Assert.IsTrue(wrongAsset.IsError);
@@ -102,7 +106,7 @@ public class SuiTokenTests
             {
                 if (await Balance(provider, address, true) > 0)
                     Assert.IsFalse((await provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = coinType })).IsError);
-                if (await Balance(provider, address) > 0) await Burn(provider);
+                if (await Balance(provider, address) > 0) await Burn(provider, address);
             }
         }
     }
