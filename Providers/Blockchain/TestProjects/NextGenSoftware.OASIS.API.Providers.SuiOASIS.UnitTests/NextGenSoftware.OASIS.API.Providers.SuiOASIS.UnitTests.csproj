@@ -18,5 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SuiOASIS\NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures\unlock-readback-failure.mjs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>
