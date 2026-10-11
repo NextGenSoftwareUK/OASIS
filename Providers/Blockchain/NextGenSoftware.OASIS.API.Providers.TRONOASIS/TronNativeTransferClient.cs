@@ -228,6 +228,54 @@ public sealed class TronNativeTransferClient
             expectedContractAmount: expectedContractAmount);
     }
 
+    /// <summary>Queries explicitly ABI-encoded data through the verified full node.</summary>
+    public async Task<byte[]> QueryContractAsync(string callerAddress, string contractAddress, byte[] abiData,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateAbiCall(abiData);
+        var data = ByteString.CopyFrom(abiData);
+        var caller = _wallet.ParseAddress(callerAddress);
+        var contract = _wallet.ParseAddress(contractAddress);
+        EncodeAddressCall("validate(address,address)", caller, contract);
+        await VerifyNetworkAsync(cancellationToken);
+        var response = await _wallet.GetProtocol().TriggerConstantContractAsync(new TriggerSmartContract
+        {
+            OwnerAddress = caller, ContractAddress = contract, Data = data
+        }, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (response.Result == null || !response.Result.Result || response.ConstantResult.Count != 1)
+            throw new InvalidOperationException("TRON constant query failed or returned an ambiguous ABI result.");
+        if (response.Transaction != null && response.Transaction.Ret.Any(ret =>
+            (int)ret.ContractRet != 1)) // Protocol contract SUCCESS, matching solidified-receipt validation.
+            throw new InvalidOperationException("TRON constant contract execution failed.");
+        return response.ConstantResult[0].ToByteArray();
+    }
+
+    /// <summary>Signs one explicit ABI call and requires a solidified successful contract receipt.</summary>
+    public async Task<string> ExecuteSignedContractAsync(string ownerAddress, string contractAddress, byte[] abiData,
+        string privateKey, CancellationToken cancellationToken = default)
+    {
+        ValidateAbiCall(abiData);
+        var data = (byte[])abiData.Clone();
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var owner = _wallet.ParseAddress(ownerAddress);
+        var contract = _wallet.ParseAddress(contractAddress);
+        EncodeAddressCall("validate(address,address)", owner, contract);
+        if (!owner.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
+            throw new ArgumentException("Contract signing key does not own the requested caller.");
+        await VerifyNetworkAsync(cancellationToken);
+        return await ExecuteContractAsync(owner, contract, data, privateKey, "", cancellationToken);
+    }
+
+    private static void ValidateAbiCall(byte[] abiData)
+    {
+        if (abiData == null || abiData.Length < 4 || (abiData.Length - 4) % 32 != 0)
+            throw new ArgumentException("A four-byte selector and complete 32-byte ABI argument words are required.");
+        if (abiData.Length > 1024 * 1024)
+            throw new ArgumentException("ABI call exceeds the one MiB input limit.");
+    }
+
     public async Task<string> UnlockEscrowAsync(string owner, string escrowAddress, string tokenAddress,
         string privateKey, CancellationToken cancellationToken = default)
     {
