@@ -264,15 +264,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return (Convert.ToHexString(new Nethereum.Signer.EthECKey(keyHex).GetPubKey()).ToLowerInvariant(), keyHex);
         }
 
-        /// <summary>
-        /// Signs a TRON transaction
-        /// </summary>
-        private async Task<JsonElement> SignTRONTransaction(JsonElement transaction, string privateKey)
-        {
-            // In production, use TRON SDK for proper transaction signing
-            // For now, return the transaction as-is (would need proper signing implementation)
-            return transaction;
-        }
 
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
