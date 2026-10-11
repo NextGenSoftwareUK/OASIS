@@ -7,6 +7,27 @@ and WASM engines).
 
 Related: [Edge-iOS-Holochain-Conductor-Task.md](Edge-iOS-Holochain-Conductor-Task.md) (iOS has no conductor yet).
 
+## Status (2026-10-11)
+
+**Done**
+- Bridge (`HolochainUnityBridge.kt`): prefers the shared runtime, waits for player approval, falls back to
+  embedded; conductor-side `signZomeCall`; creates the service's notification channel; network permissions;
+  waits for conductor readiness; arm64-only packaging.
+- C# Edge: `PreferSharedRuntime` / `SharedRuntimeApprovalTimeoutMs`, session `Mode`,
+  `IHolochainZomeCallSigningBridge` + `BridgeZomeCallSigner` wired into HoloNET's `ZomeCallSigner`.
+  The Unity JNI bridge type-checks against Unity 2022.3's UnityEngine/AndroidJNI DLLs.
+- Device test passes on an x86_64 emulator (ARM translation), with no runtime and with the old v0.1.5 runtime
+  (reports `shared_unavailable`, falls back, signed `call_zome` succeeds).
+- 0.7 shared runtime built from our fork and published as a pre-release:
+  [oasis-runtime-v0.2.0-holochain-0.7](https://github.com/NextGenSoftwareUK/android-service-runtime/releases/tag/oasis-runtime-v0.2.0-holochain-0.7)
+  (debug-signed). Upstream fixes offered: holochain/android-service-runtime#149 (client parcelers) and #150
+  (Tauri service plugin network config).
+
+**Remaining**
+- Physical phone: install the arm64 runtime, run `HolochainUnityBridgeDeviceTest`, approve the notification,
+  confirm `mode == shared` and a signed zome call through the shared conductor.
+- A full Unity Android player build with the HoloEnabled profile.
+
 ---
 
 ## 1. Background: the upstream runtime
