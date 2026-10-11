@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### WEB4 JWT cryptography and malformed-header checks (2026-10-11)
+
+Actual signed JWT validation tests pass **7/7**, zero skips (`web4-jwt-crypto.trx`): valid HS256 avatar claims succeed; expired, foreign issuer/audience, wrong signing key, disallowed HS384 and conflicting avatar IDs fail. Keys/tokens are public test-only fixtures, never real credentials. HTTP HyperDrive read-route suite now passes **9/9**, zero skips, adding malformed bearer, Basic and empty bearer rejection through the actual middleware (`web4-hyperdrive-http-auth.trx`). Retained host DLL/test environment reused without restore/download. These cryptographic and HTTP rejection tests do not prove successful real JWT avatar lookup, live provider/API calls or fresh deployment/source parity; those remain gates.
+
 ### WEB4 HyperDrive HTTP pipeline checkpoint (2026-10-11)
 
 Existing WebApplicationFactory test host now exercises actual HTTP `GET /api/hyperdrive/{mode,config,status}`. Six cases pass **6/6**, zero skips (`TestResults/Web4Current/web4-hyperdrive-http-auth.trx`): no authenticated avatar yields HTTP 401; the existing test authentication handler yields HTTP 200, non-error OASIS envelopes and non-null results. Host disables background services and uses retained host DLL; this is not real JWT authentication, current full rebuild/deployment parity, live-provider execution or all-route coverage. The test project lacked restored metadata and its ASP.NET testing package was absent from the inspected cache; only that project was restored with `--no-dependencies`, then reused with bounded no-restore builds. No duplicate checkout/provider runtime or ledger was created. JWT, provider operations and remaining release gates stay open.
