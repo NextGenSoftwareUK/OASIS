@@ -330,6 +330,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
+                if (request == null) throw new ArgumentNullException(nameof(request));
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("TRC20 transfer requires an explicit private signing key; seed phrases are not accepted.");
+                if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                    throw new ArgumentException("A real sender private signing key is required for TRC20 transfer.");
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -354,38 +360,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                // Build TRC20 transfer transaction
-                var transferPayload = new
-                {
-                    owner_address = request.FromWalletAddress,
-                    contract_address = tokenAddress,
-                    function_selector = "transfer(address,uint256)",
-                    parameter = $"{request.ToWalletAddress.Substring(2).PadLeft(64, '0')}{((long)(request.Amount * 1000000)).ToString("X").PadLeft(64, '0')}",
-                    fee_limit = 100000000
-                };
-
-                var jsonContent = JsonSerializer.Serialize(transferPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/wallet/triggersmartcontract", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txid = transactionResult.TryGetProperty("txID", out var txidProp) 
-                        ? txidProp.GetString() 
-                        : "unknown";
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
-                    result.IsError = false;
-                    result.Message = "Token sent successfully on TRON blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {httpResponse.StatusCode} - {errorContent}");
-                }
+                if (_nativeTransfers == null) throw new InvalidOperationException("The configured TRON SDK runtime is unavailable.");
+                var hash = await _nativeTransfers.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
+                    tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey);
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
+                result.Message = "TRC20 transfer confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
