@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "Docker" / "oasis-dependency-versions.env"
 DOCKERFILES = [ROOT / "Docker" / f"Dockerfile.web{number}" for number in range(4, 11)]
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+PROVIDER_NODE_IMAGE = "node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df"
 GITLINKS = {
     "OASIS_API_CORE_COMMIT": "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "OASIS_ONODE_CORE_COMMIT": "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
@@ -83,6 +84,15 @@ def main() -> int:
 
     for dockerfile in DOCKERFILES:
         text = dockerfile.read_text(encoding="utf-8")
+        for required in (
+            f"FROM {PROVIDER_NODE_IMAGE} AS provider_node",
+            "COPY --from=provider_node /usr/local/ /usr/local/",
+            "RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish",
+            "COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node",
+            "RUN node --version",
+        ):
+            if required not in text:
+                failures.append(f"{dockerfile.name} is missing SDK packaging instruction: {required}")
         if "Docker/oasis-dependency-versions.env" not in text:
             failures.append(f"{dockerfile.name} does not copy the shared manifest")
         if "clone-pinned-oasis-dependencies.sh /tmp/oasis-dependency-versions.env" not in text:
