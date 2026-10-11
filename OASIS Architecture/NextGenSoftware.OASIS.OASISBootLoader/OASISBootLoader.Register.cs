@@ -437,7 +437,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 consensusNodes: settings.ConsensusNodes, storageConfiguration: storage,
                                 bridgePoolAccountId: settings.BridgePoolAccountId,
                                 bridgePoolSigningKey: () => string.IsNullOrWhiteSpace(settings.BridgePoolSigningKeyEnvironmentVariable)
-                                    ? null : Environment.GetEnvironmentVariable(settings.BridgePoolSigningKeyEnvironmentVariable));
+                                    ? null : Environment.GetEnvironmentVariable(settings.BridgePoolSigningKeyEnvironmentVariable),
+                                nftEscrowContractId: settings.NftEscrowContractId,
+                                nftEscrowGasLimit: settings.NftEscrowGasLimit,
+                                nftEscrowMaxFeeTinybars: settings.NftEscrowMaxFeeTinybars);
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
                             result.Result = hashgraphProvider;
                         }
