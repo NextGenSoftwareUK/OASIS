@@ -2,6 +2,7 @@ import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, Tran
 import { pathToFileURL } from 'node:url';
 import { Mnemonic } from '@hiero-ledger/sdk';
 import { executeEscrow, executeTokenEscrow } from './escrow.mjs';
+import {executeDeployment} from './deployment.mjs';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
 
@@ -224,6 +225,7 @@ async function executeFile(action, request) {
 }
 
 export async function execute(action, request) {
+  if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey});
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
   if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {

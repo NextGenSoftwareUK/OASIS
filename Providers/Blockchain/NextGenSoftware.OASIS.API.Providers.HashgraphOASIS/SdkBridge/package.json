@@ -2,6 +2,6 @@
   "name": "oasis-hedera-sdk-bridge",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test bridge.test.mjs file.test.mjs storage.test.mjs escrow.test.mjs" },
+  "scripts": { "test": "node --test bridge.test.mjs file.test.mjs storage.test.mjs escrow.test.mjs deployment.test.mjs" },
   "dependencies": { "@hiero-ledger/sdk": "2.86.2", "ethers": "6.16.0" }
 }
