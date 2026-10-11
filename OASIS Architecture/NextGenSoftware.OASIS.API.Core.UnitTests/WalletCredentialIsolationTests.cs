@@ -14,6 +14,39 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class WalletCredentialIsolationTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WalletListFilteringUsesDetachedCredentialCopies(bool valid)
+    {
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA();
+        dna.OASIS.Security = new SecuritySettings { OASISProviderPrivateKeys = new EncryptionSettings {
+            Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('k', 32)
+        } };
+        var manager = new WalletManager(null, dna, new ProviderManager(null, dna));
+        var encrypted = valid ? Rijndael.Encrypt("local-list-key", new string('k', 32), KeySize.Aes256) : "invalid-ciphertext";
+        var wallet = new ProviderWallet { PrivateKey = encrypted, ProviderType = ProviderType.TRONOASIS };
+        var stored = new Dictionary<ProviderType, List<IProviderWallet>> { [ProviderType.TRONOASIS] = new() { wallet } };
+        var method = typeof(WalletManager).GetMethod("FilterWallets", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        if (valid)
+        {
+            var result = (Dictionary<ProviderType, List<IProviderWallet>>)method.Invoke(manager,
+                new object[] { stored, false, true, false, ProviderType.All })!;
+            Assert.NotSame(wallet, result[ProviderType.TRONOASIS][0]);
+            Assert.Equal("local-list-key", result[ProviderType.TRONOASIS][0].PrivateKey);
+        }
+        else
+        {
+            var error = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(manager,
+                new object[] { stored, false, true, false, ProviderType.All }));
+            Assert.IsType<InvalidOperationException>(error.InnerException);
+        }
+        Assert.Equal(encrypted, wallet.PrivateKey);
+        var missing = (Dictionary<ProviderType, List<IProviderWallet>>)method.Invoke(manager,
+            new object[] { stored, false, false, false, ProviderType.SuiOASIS })!;
+        Assert.Empty(missing);
+        Assert.Single(stored);
+    }
+    [Theory]
     [InlineData(false, "id", false)]
     [InlineData(true, "id", false)]
     [InlineData(false, "username", false)]
