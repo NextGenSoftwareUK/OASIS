@@ -29,7 +29,7 @@ try {
     $tests = Join-Path $RepositoryRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj'
     $results = Join-Path $RepositoryRoot 'artifacts/near-provider'
     New-Item -ItemType Directory -Path $results -Force | Out-Null
-    & dotnet test $tests --configuration Release --nologo --logger "trx;LogFileName=$(Join-Path $results 'near-provider.trx')"
+    & dotnet test $tests --configuration Release --nologo --logger "trx;LogFileName=$(Join-Path $results 'near-provider.trx')" /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
     if ($LASTEXITCODE -ne 0) {
         throw "NEAR provider tests failed with exit code $LASTEXITCODE."
     }

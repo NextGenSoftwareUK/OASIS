@@ -21,8 +21,19 @@ public partial class NEAROASIS
 {
     private const decimal CustomTokenScale = 100_000_000m;
 
-    private static string ToTokenUnits(decimal amount) =>
-        new BigInteger(decimal.Round(amount * CustomTokenScale, 0, MidpointRounding.AwayFromZero)).ToString(CultureInfo.InvariantCulture);
+    private static string ToTokenUnits(decimal amount)
+    {
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        var bits = decimal.GetBits(amount);
+        var units = new BigInteger((uint)bits[0]) + (new BigInteger((uint)bits[1]) << 32) + (new BigInteger((uint)bits[2]) << 64);
+        var scale = (bits[3] >> 16) & 255;
+        if (scale <= 8) units *= BigInteger.Pow(10, 8 - scale);
+        else {
+            units = BigInteger.DivRem(units, BigInteger.Pow(10, scale - 8), out var remainder);
+            if (remainder != 0) throw new ArgumentException("NEAR custom-token amounts require exact eight-decimal units.", nameof(amount));
+        }
+        return units.ToString(CultureInfo.InvariantCulture);
+    }
 
     public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) =>
         MintTokenAsync(request).GetAwaiter().GetResult();
@@ -62,8 +73,9 @@ public partial class NEAROASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 throw new ArgumentException("Token address is required.");
+            var amount = ToTokenUnits(request.Amount);
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var tx = await _sdk.CallAsync("token_burn", new { symbol = request.TokenAddress });
+            var tx = await _sdk.CallAsync("token_burn", new { symbol = request.TokenAddress, amount });
             result.Result = new TransactionResponse { TransactionResult = tx };
             result.Message = "Token burned by the deployed NEAR contract.";
         }

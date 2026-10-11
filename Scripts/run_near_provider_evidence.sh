@@ -16,18 +16,21 @@ if [[ ! -x "${node_root}/bin/node" ]]; then
   echo "${node_sha256}  ${archive_path}" | sha256sum --check --status
   mkdir -p "${node_root}"
   tar -xJ --strip-components=1 -C "${node_root}" -f "${archive_path}"
+  rm -f -- "${archive_path}"
 fi
 
 export PATH="${node_root}/bin:${PATH}"
-build_root="$(mktemp -d /var/tmp/oasis-near-evidence.XXXXXX)"
-settings_path="${OASIS_NEAR_CACHE_ROOT}/near-evidence-settings-$$.json"
+build_root="/var/tmp/oasis-near-evidence"
+mkdir -p "$build_root"
+[[ "$(realpath "$build_root")" == /var/tmp/oasis-near-evidence ]] || exit 1
+exec 9>"$build_root/environment.lock"
+flock -n 9 || { echo 'The reusable NEAR environment is already in use.' >&2; exit 1; }
+settings_path="${OASIS_NEAR_CACHE_ROOT}/near-evidence-settings.json"
 mkdir -p "${build_root}/tmp"
 export TMPDIR="${build_root}/tmp"
 cleanup() {
-  case "${build_root}" in
-    /var/tmp/oasis-near-evidence.*) rm -rf -- "${build_root}" ;;
-    *) echo "Refusing to remove unexpected NEAR evidence directory: ${build_root}" >&2 ;;
-  esac
+  # Retain the single compiler/SDK cache; the runner tears down its owned node.
+  [[ "$settings_path" == "${OASIS_NEAR_CACHE_ROOT}/near-evidence-settings.json" ]] || exit 1
   rm -f -- "${settings_path}"
 }
 trap cleanup EXIT
@@ -39,6 +42,9 @@ cp -a "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/package.json" \
 cp -a "${OASIS_REPO_ROOT_WSL}/Scripts/TestHosts/near-local/contract" "${build_root}/contract"
 
 cd "${build_root}"
-npm ci
+if [[ ! -f node_modules/.oasis-lock-sha256 ]] || ! sha256sum --check --status node_modules/.oasis-lock-sha256; then
+  npm ci
+  sha256sum package-lock.json > node_modules/.oasis-lock-sha256
+fi
 npm run build:contract
 OASIS_NEAR_SETTINGS_PATH_WSL="${settings_path}" node run-evidence.mjs
