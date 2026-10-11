@@ -441,7 +441,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 nftEscrowContractId: settings.NftEscrowContractId,
                                 nftEscrowRuntimeCodeHash: settings.NftEscrowRuntimeCodeHash,
                                 nftEscrowGasLimit: settings.NftEscrowGasLimit,
-                                nftEscrowMaxFeeTinybars: settings.NftEscrowMaxFeeTinybars);
+                                nftEscrowMaxFeeTinybars: settings.NftEscrowMaxFeeTinybars,
+                                tokenEscrowConfiguration: new HederaTokenEscrowConfiguration
+                                {
+                                    ContractId = settings.TokenEscrowContractId,
+                                    RuntimeCodeHash = settings.TokenEscrowRuntimeCodeHash,
+                                    GasLimit = settings.TokenEscrowGasLimit,
+                                    MaxFeeTinybars = settings.TokenEscrowMaxFeeTinybars
+                                });
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
                             result.Result = hashgraphProvider;
                         }
