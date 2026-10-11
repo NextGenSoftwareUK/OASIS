@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                var hash = await ExecuteSignedTokenAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
+                var hash = await ExecuteRuntimeAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
                     tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "TRC20 transfer confirmed by solidified contract receipt.";
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                var hash = await ExecuteSignedTokenAsync(client => client.MintTokenAsync(wallet.Result.WalletAddress, _contractAddress,
+                var hash = await ExecuteRuntimeAsync(client => client.MintTokenAsync(wallet.Result.WalletAddress, _contractAddress,
                     request.Amount, wallet.Result.PrivateKey, request.MemoText, wallet.Result.PublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "TRC20 mint confirmed by solidified contract receipt.";
@@ -282,7 +282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var activation = await ActivateProviderAsync();
                     if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-                var hash = await ExecuteSignedTokenAsync(client => client.BurnTokenAsync(request.TokenAddress,
+                var hash = await ExecuteRuntimeAsync(client => client.BurnTokenAsync(request.TokenAddress,
                     request.Amount, request.OwnerPrivateKey, publicKey: request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "Requested TRC20 burn confirmed by solidified contract receipt.";
@@ -294,7 +294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        private async Task<string> ExecuteSignedTokenAsync(Func<TronNativeTransferClient, Task<string>> operation)
+        private async Task<T> ExecuteRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation)
         {
             await _runtimeLifecycle.WaitAsync();
             try

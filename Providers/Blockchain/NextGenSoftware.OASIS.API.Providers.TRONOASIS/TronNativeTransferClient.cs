@@ -37,6 +37,26 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON solidity node genesis block does not match the configured network.");
     }
 
+    public async Task<decimal> GetNativeBalanceAsync(string address, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(address)) throw new ArgumentException("A TRON wallet address is required.");
+        var requested = _wallet.ParseAddress(address);
+        if (requested.Length != 21 || requested[0] != 0x41)
+            throw new ArgumentException("A current 21-byte TRON wallet address is required.");
+        await VerifyNetworkAsync(cancellationToken);
+        var account = await _wallet.GetSolidityProtocol().GetAccountAsync(new Account { Address = requested },
+            _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        return NativeBalance(account, requested);
+    }
+
+    internal static decimal NativeBalance(Account account, ByteString requested)
+    {
+        if (account == null || requested == null || requested.Length != 21 || requested[0] != 0x41
+            || !account.Address.Equals(requested) || account.Balance < 0)
+            throw new InvalidOperationException("TRON returned a missing, inconsistent or invalid solidified account.");
+        return account.Balance / 1000000m;
+    }
+
     public async Task<string> SendAsync(string from, string to, decimal amount, string privateKey,
         string memo, CancellationToken cancellationToken = default)
     {
