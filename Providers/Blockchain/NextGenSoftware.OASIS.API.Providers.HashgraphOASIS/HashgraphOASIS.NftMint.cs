@@ -71,17 +71,17 @@ public partial class HashgraphOASIS
             var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId, ChainProvider.HashgraphOASIS, showPrivateKeys: true);
             if (walletResult.IsError || walletResult.Result == null) throw new InvalidOperationException("Minting wallet lookup failed.");
             var wallet = walletResult.Result;
+            var requestedMintId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
             var committed = await HederaSdkClient.InvokeAsync("nftMint", new
             {
                 network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient = wallet.WalletAddress,
                 tokenId, metadata = Enumerable.Repeat(metadata, count).ToArray(), privateKey = wallet.PrivateKey,
                 publicKey = wallet.PublicKey, keyType = "der", memo = request.MemoText,
-                transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                transactionId = requestedMintId
             });
-            if (committed.GetProperty("status").GetString() != "SUCCESS") throw new InvalidOperationException("NFT mint has no successful consensus receipt.");
-            var mintId = committed.GetProperty("transactionId").GetString();
-            var serials = committed.GetProperty("serials").EnumerateArray().Select(value => value.GetString()).ToArray();
-            if (serials.Length != count) throw new InvalidOperationException($"Mint {mintId} returned an unexpected serial count; reconcile it before retrying.");
+            result.Result = new Web3NFTTransactionResponse();
+            var serials = ApplyHederaMintReceipt(result.Result, committed, requestedMintId, count);
+            var mintId = result.Result.TransactionResult;
             foreach (var serial in serials) ParseHederaNftAddress(tokenId + "/" + serial);
             var nft = new Web3NFT
             {
@@ -120,6 +120,21 @@ public partial class HashgraphOASIS
             OASISErrorHandling.HandleError(ref result, $"Hedera NFT mint failed: {ex.Message}", ex);
         }
         return result;
+    }
+
+    private static string[] ApplyHederaMintReceipt(IWeb3NFTTransactionResponse response,
+        System.Text.Json.JsonElement receipt, string requestedId, int count)
+    {
+        if (receipt.GetProperty("status").GetString() != "SUCCESS"
+            || receipt.GetProperty("transactionId").GetString() != requestedId)
+            throw new InvalidOperationException("NFT mint receipt identity/status mismatch; reconcile the original transaction " + requestedId);
+        response.TransactionResult = requestedId;
+        var serials = receipt.GetProperty("serials").EnumerateArray().Select(value => value.GetString()).ToArray();
+        if (serials.Length != count || serials.Distinct(StringComparer.Ordinal).Count() != count
+            || serials.Any(value => !long.TryParse(value, System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out var serial) || serial <= 0))
+            throw new InvalidOperationException("Mint " + requestedId + " returned invalid NFT serials; reconcile it before retrying.");
+        return serials;
     }
 
     private static void RecordHederaNftDelivery(IWeb3NFTTransactionResponse response, string transactionId, string recipient)
