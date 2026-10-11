@@ -179,40 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                // Real Hashgraph implementation: Send NFT transaction
-                var hashgraphClient = new HashgraphClient();
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = transation.FromWalletAddress,
-                    ToAddress = transation.ToWalletAddress,
-                    Amount = transation.Amount,
-                    Memo = $"NFT Transfer: {transation.TokenId}"
-                };
-
-                var transactionResult = hashgraphClient.SendTransactionAsync(transactionData).Result;
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph NFT transaction");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in SendNFT: {ex.Message}", ex);
-            }
-            return result;
+            return SendNFTAsync(transation).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transation)
@@ -220,24 +187,35 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                // Real Hashgraph implementation: Send NFT transaction asynchronously
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
+                ArgumentNullException.ThrowIfNull(transation);
+                var address = string.IsNullOrWhiteSpace(transation.FromNFTTokenAddress)
+                    ? transation.TokenAddress + "/" + transation.TokenId : transation.FromNFTTokenAddress;
+                var asset = ParseHederaNftAddress(address);
+                if ((!string.IsNullOrWhiteSpace(transation.TokenAddress) && transation.TokenAddress != asset.TokenId)
+                    || (!string.IsNullOrWhiteSpace(transation.TokenId) && transation.TokenId != asset.Serial))
+                    throw new ArgumentException("NFT asset identifiers must agree.");
+                if (transation.Amount != 1) throw new ArgumentException("An individual HTS serial transfer requires Amount = 1.");
+                if (!string.IsNullOrWhiteSpace(transation.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover an explicit Hedera key before sending an NFT.");
+                if (string.IsNullOrWhiteSpace(transation.OwnerPrivateKey))
+                    throw new ArgumentException("A real Hedera sender signing key is required.");
+                var transactionResult = await HederaSdkClient.InvokeAsync("nftTransfer", new
                 {
-                    FromAddress = transation.FromWalletAddress,
-                    ToAddress = transation.ToWalletAddress,
-                    Amount = transation.Amount,
-                    Memo = $"NFT Transfer: {transation.TokenId}"
+                    network = _hederaNetwork, nodes = _consensusNodes,
+                    sender = transation.FromWalletAddress, recipient = transation.ToWalletAddress,
+                    tokenId = asset.TokenId, serials = new[] { asset.Serial }, memo = transation.MemoText,
+                    privateKey = transation.OwnerPrivateKey, publicKey = transation.OwnerPublicKey, keyType = "der",
+                    transactionId = HederaSdkClient.CreateTransactionId(transation.FromWalletAddress)
                 });
-
-                if (transactionResult != null)
+                if (transactionResult.GetProperty("status").GetString() == "SUCCESS")
                 {
                     result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId
+                        TransactionResult = transactionResult.GetProperty("transactionId").GetString(),
+                        Web3NFT = new Web3NFT { NFTTokenAddress = address, CollectionPublicKey = asset.TokenId }
                     };
                     result.IsError = false;
-                    result.Message = "Hashgraph NFT transaction sent successfully";
+                    result.Message = "HTS NFT transfer confirmed by consensus receipt.";
                 }
                 else
                 {
