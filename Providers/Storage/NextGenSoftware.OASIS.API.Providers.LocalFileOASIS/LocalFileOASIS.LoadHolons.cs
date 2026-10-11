@@ -151,7 +151,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                     else
                     {
-                        // Hard delete - remove file
+                        // Explicit permanent avatar deletion also removes its matching detail,
+                        // consistent with the shared storage provider contract. Soft deletion does not.
+                        var avatarDetailFilePath = Path.Combine(_avatarDetailFolderPath, $"{id}.json");
+                        File.Delete(avatarDetailFilePath);
                         File.Delete(avatarFilePath);
                         result.Result = true;
                         result.IsError = false;
