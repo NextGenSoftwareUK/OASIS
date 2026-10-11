@@ -40,9 +40,7 @@ public sealed class TronNativeTransferClient
     public async Task<string> SendAsync(string from, string to, decimal amount, string privateKey,
         string memo, CancellationToken cancellationToken = default)
     {
-        var units = checked(amount * 1000000m);
-        if (amount <= 0 || units != decimal.Truncate(units) || units > long.MaxValue)
-            throw new ArgumentOutOfRangeException(nameof(amount), "Positive exact int64 SUN units are required (6 decimal places).");
+        var units = NativeUnits(amount);
         if (string.IsNullOrWhiteSpace(privateKey)) throw new ArgumentException("A real sender signing key is required.");
         // Shasta and Nile also use 0x41; the SDK's old TestNet value uses legacy 0xa0.
         var signer = new TronECKey(privateKey, TronNetwork.MainNet);
@@ -72,6 +70,16 @@ public sealed class TronNativeTransferClient
         if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
             throw new InvalidOperationException("TRON node returned stale or invalid transaction timestamps.");
         return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo, cancellationToken);
+    }
+
+    internal static long NativeUnits(decimal amount)
+    {
+        if (amount <= 0 || amount > long.MaxValue / 1000000m)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Positive exact int64 SUN units are required (6 decimal places).");
+        var units = amount * 1000000m;
+        if (units != decimal.Truncate(units))
+            throw new ArgumentOutOfRangeException(nameof(amount), "Positive exact int64 SUN units are required (6 decimal places).");
+        return (long)units;
     }
 
     public Task<string> BurnTokenAsync(string tokenAddress, decimal amount, string privateKey,
