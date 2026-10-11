@@ -280,7 +280,7 @@ export async function execute(action, request) {
     client.setOperator(sender, key);
     const transfer = (nftOperation ?? (action === 'tokenMint' ? new TokenMintTransaction()
       : action === 'tokenBurn' ? new TokenBurnTransaction() : new TransferTransaction()))
-      .setTransactionId(transactionId).setTransactionMemo(request.memo ?? '');
+      .setTransactionMemo(request.memo ?? '');
     if (action === 'transfer') {
       transfer.addHbarTransfer(sender, Hbar.fromTinybars('-' + request.tinybars))
         .addHbarTransfer(recipient, Hbar.fromTinybars(request.tinybars));
