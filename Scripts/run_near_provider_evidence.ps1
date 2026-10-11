@@ -9,8 +9,14 @@ New-Item -ItemType Directory -Force -Path $cacheRoot | Out-Null
 
 Push-Location $bridgeRoot
 try {
-    npm ci --ignore-scripts
-    if ($LASTEXITCODE -ne 0) { throw "Failed to restore the integrity-locked official near-api-js bridge." }
+    if (Test-Path -LiteralPath 'node_modules/near-api-js/package.json') {
+        npm ls --omit=dev --all *> $null
+        if ($LASTEXITCODE -ne 0) { throw "Existing NEAR SDK dependencies are invalid; repair this shared cache before running evidence." }
+    }
+    else {
+        npm ci --ignore-scripts
+        if ($LASTEXITCODE -ne 0) { throw "Failed to restore the integrity-locked official near-api-js bridge." }
+    }
 }
 finally { Pop-Location }
 

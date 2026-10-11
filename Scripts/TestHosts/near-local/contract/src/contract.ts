@@ -86,7 +86,8 @@ export class OasisStorage {
   token_mint({ symbol, owner_id, amount, metadata_json }: { symbol: string; owner_id: string; amount: string; metadata_json: string }): void {
     this.requireContractOwner();
     if (this.tokens.get(symbol) !== null) throw new Error(`Token ${symbol} already exists`);
-    this.tokens.set(symbol, JSON.stringify({ symbol, issuer_id: near.predecessorAccountId(), metadata_json, locked: false, balances: { [owner_id]: amount } }));
+    if (BigInt(amount) <= 0n) throw new Error("Positive mint amount required");
+    this.tokens.set(symbol, JSON.stringify({ symbol, supply: amount, issuer_id: near.predecessorAccountId(), metadata_json, locked: false, balances: { [owner_id]: amount } }));
   }
 
   @view({})
@@ -129,11 +130,17 @@ export class OasisStorage {
   }
 
   @call({})
-  token_burn({ symbol }: { symbol: string }): void {
+  token_burn({ symbol, amount }: { symbol: string; amount: string }): void {
     const value = this.tokens.get(symbol);
     if (value === null) throw new Error(`Token ${symbol} does not exist`);
     const token = JSON.parse(value);
-    if (near.predecessorAccountId() !== token.issuer_id) throw new Error(`Only the issuer may burn token ${symbol}`);
-    this.tokens.remove(symbol);
+    if (token.locked) throw new Error(`Token ${symbol} is locked`);
+    const holder = near.predecessorAccountId();
+    const quantity = BigInt(amount);
+    const balance = BigInt(token.balances[holder] ?? "0");
+    if (quantity <= 0n || quantity > balance) throw new Error("Positive burn amount within holder balance required");
+    token.balances[holder] = (balance - quantity).toString();
+    token.supply = Object.values(token.balances).reduce((sum: bigint, value: string) => sum + BigInt(value), 0n).toString();
+    this.tokens.set(symbol, JSON.stringify(token));
   }
 }
