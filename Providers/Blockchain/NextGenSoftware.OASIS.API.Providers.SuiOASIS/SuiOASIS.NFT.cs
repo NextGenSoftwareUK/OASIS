@@ -154,9 +154,18 @@ public partial class SuiOASIS
                 var nft = OasisJson.Deserialize<Web3NFT>(value.GetProperty("metadata").GetString());
                 nft.NFTTokenAddress = token.GetString();
                 nft.MintTransactionHash = hash;
+                var actualOwner = value.GetProperty("owner").GetProperty("AddressOwner").GetString();
+                if (actualOwner != committed.GetProperty("recipient").GetString())
+                    throw new InvalidOperationException("Mint receipt and on-chain NFT recipient do not match.");
+                nft.SendToAddressAfterMinting = actualOwner;
+                // The signed Move mint transaction also transfers the object to its recipient.
+                nft.SendNFTTransactionHash = hash;
                 nfts.Add(nft);
             }
-            result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nfts.First(), Web3NFTs = nfts };
+            result.Result = new Web3NFTTransactionResponse
+            {
+                TransactionResult = hash, SendNFTTransactionResult = hash, Web3NFT = nfts.First(), Web3NFTs = nfts
+            };
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
