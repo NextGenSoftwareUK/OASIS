@@ -434,7 +434,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint ?? "https://mainnet-public.mirrornode.hedera.com",
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network ?? "mainnet",
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295",
-                                consensusNodes: settings.ConsensusNodes, storageConfiguration: storage);
+                                consensusNodes: settings.ConsensusNodes, storageConfiguration: storage,
+                                bridgePoolAccountId: settings.BridgePoolAccountId,
+                                bridgePoolSigningKey: () => string.IsNullOrWhiteSpace(settings.BridgePoolSigningKeyEnvironmentVariable)
+                                    ? null : Environment.GetEnvironmentVariable(settings.BridgePoolSigningKeyEnvironmentVariable));
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
                             result.Result = hashgraphProvider;
                         }

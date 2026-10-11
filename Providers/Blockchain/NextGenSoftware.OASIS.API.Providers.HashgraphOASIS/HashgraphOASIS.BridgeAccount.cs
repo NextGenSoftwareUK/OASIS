@@ -76,90 +76,50 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
         {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = senderAccountAddress,
-                    ToAddress = _contractAddress ?? "0.0.0",
-                    Amount = amount,
-                    Memo = "Bridge withdrawal"
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = transactionResult.TransactionId ?? "",
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Completed
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph withdrawal completed successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to process Hashgraph withdrawal");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph withdrawal: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteNativeBridgeTransferAsync(amount, senderAccountAddress, _bridgePoolAccountId,
+                () => senderPrivateKey, "Bridge withdrawal");
         }
 
         public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
         {
+            return await ExecuteNativeBridgeTransferAsync(amount, _bridgePoolAccountId, receiverAccountAddress,
+                _bridgePoolSigningKey, "Bridge deposit");
+        }
+
+        private async Task<OASISResult<BridgeTransactionResponse>> ExecuteNativeBridgeTransferAsync(decimal amount,
+            string sender, string recipient, Func<string> signingKey, string memo)
+        {
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (!System.Text.RegularExpressions.Regex.IsMatch(_bridgePoolAccountId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                    throw new InvalidOperationException("An explicit nonzero numeric Hedera bridge pool account is required.");
+                foreach (var account in new[] { sender, recipient })
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(account ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                        throw new ArgumentException("Bridge transfers require explicit nonzero numeric sender and recipient accounts.");
+                if (sender == recipient) throw new ArgumentException("Bridge sender and recipient must differ.");
+                var tinybars = checked(amount * 100000000m);
+                if (tinybars <= 0 || tinybars != decimal.Truncate(tinybars) || tinybars > long.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(amount), "Bridge amount must fit positive exact int64 tinybars.");
+                var key = signingKey?.Invoke();
+                if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("A real sender DER signing key is required for the Hedera bridge transfer.");
+                var transfer = await SendTokenAsync(new SendWeb3TokenRequest
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
+                    FromWalletAddress = sender, ToWalletAddress = recipient, Amount = amount,
+                    FromTokenAddress = "HBAR", OwnerPrivateKey = key, MemoText = memo
+                });
+                if (transfer.IsError || string.IsNullOrWhiteSpace(transfer.Result?.TransactionResult))
+                    throw new InvalidOperationException(transfer.Message ?? "Hedera bridge transfer did not establish consensus success.");
+                result.Result = new BridgeTransactionResponse
                 {
-                    FromAddress = _contractAddress ?? "0.0.0",
-                    ToAddress = receiverAccountAddress,
-                    Amount = amount,
-                    Memo = "Bridge deposit"
+                    TransactionId = transfer.Result.TransactionResult, IsSuccessful = true,
+                    Status = BridgeTransactionStatus.Completed
                 };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = transactionResult.TransactionId ?? "",
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Completed
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph deposit completed successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to process Hashgraph deposit");
-                }
+                result.Message = "Hedera native bridge transfer confirmed by consensus receipt; cross-chain settlement is not established.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph deposit: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph native bridge transfer: {ex.Message}", ex);
             }
             return result;
         }
