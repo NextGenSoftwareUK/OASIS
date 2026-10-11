@@ -15,6 +15,7 @@ public sealed class TronNativeTransferClient
     private readonly IWalletClient _wallet;
     private readonly ITransactionClient _transactions;
     private readonly string _genesisBlockId;
+    internal string ExpectedGenesisBlockId => _genesisBlockId;
 
     public TronNativeTransferClient(IWalletClient wallet, ITransactionClient transactions, string genesisBlockId)
     {
@@ -72,6 +73,51 @@ public sealed class TronNativeTransferClient
             || x.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract);
         ValidateSolidifiedReceipt(receipt, id.Value, contract, false, false);
         return Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed;
+    }
+
+    public async Task<System.Collections.Generic.IReadOnlyList<string>> DiscoverNftCollectionsAsync(
+        string ownerAddress, System.Collections.Generic.IEnumerable<string> transactionIds,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var owner = _wallet.ParseAddress(ownerAddress);
+        var collections = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+        await VerifyNetworkAsync(cancellationToken);
+        foreach (var hash in transactionIds.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(hash ?? "", "\\A[0-9a-fA-F]{64}\\z"))
+                throw new ArgumentException("Indexed history must supply valid transaction IDs.");
+            var id = new BytesMessage { Value = ByteString.CopyFrom(Convert.FromHexString(hash)) };
+            var solidity = _wallet.GetSolidityProtocol();
+            var receipt = await solidity.GetTransactionInfoByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            var transaction = await solidity.GetTransactionByIdAsync(id, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            if (!ValidateTransactionIdentity(transaction, id.Value))
+                throw new InvalidOperationException("Indexed transaction is unavailable from the solidified SDK node.");
+            ValidateSolidifiedReceipt(receipt, id.Value, true, false, false);
+            foreach (var collection in NftCollectionsFromReceipt(receipt, owner)) collections.Add(collection);
+        }
+        return collections.ToArray();
+    }
+
+    internal static System.Collections.Generic.IReadOnlyList<string> NftCollectionsFromReceipt(TransactionInfo receipt, ByteString owner)
+    {
+        if (owner == null || owner.Length != 21 || owner[0] != 0x41) throw new ArgumentException("A TRON owner address is required.");
+        var transferTopic = Convert.FromHexString(new Nethereum.Util.Sha3Keccack().CalculateHash("Transfer(address,address,uint256)"));
+        var collections = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+        foreach (var log in receipt.Log)
+        {
+            // TRC20 Transfer has three topics and a data amount. Never classify it as an NFT.
+            if (log.Topics.Count != 4 || !log.Topics[0].Span.SequenceEqual(transferTopic)) continue;
+            if (log.Address.Length != 20 || log.Data.Length != 0 || log.Topics.Any(topic => topic.Length != 32)
+                || log.Topics[1].Span[..12].IndexOfAnyExcept((byte)0) >= 0
+                || log.Topics[2].Span[..12].IndexOfAnyExcept((byte)0) >= 0)
+                throw new InvalidOperationException("Malformed TRC721 Transfer log in solidified receipt.");
+            if (!log.Topics[1].Span[12..].SequenceEqual(owner.Span[1..])
+                && !log.Topics[2].Span[12..].SequenceEqual(owner.Span[1..])) continue;
+            var address = new byte[21]; address[0] = 0x41; log.Address.CopyTo(address, 1);
+            collections.Add(NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(address));
+        }
+        return collections.ToArray();
     }
 
     internal static bool ValidateTransactionIdentity(Transaction transaction, ByteString expectedId)

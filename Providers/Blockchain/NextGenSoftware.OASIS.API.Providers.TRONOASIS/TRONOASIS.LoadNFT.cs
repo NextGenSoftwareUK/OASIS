@@ -88,133 +88,64 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public async Task<OASISResult<List<IWeb3NFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
         {
             var result = new OASISResult<List<IWeb3NFT>>();
-            string errorMessage = "Error in LoadAllNFTsForAvatarAsync method in TRONOASIS Provider. Reason: ";
-
             try
             {
-                if (avatarId == Guid.Empty)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
-                    return result;
-                }
-
-                // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, avatarId);
-                if (walletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
-                    return result;
-                }
-
-                var nfts = new List<IWeb3NFT>();
-
-                // Query TRON network for NFTs owned by the avatar's wallet
-                var nftQuery = new
-                {
-                    owner_address = walletResult.Result,
-                    limit = 200,
-                    offset = 0
-                };
-
-                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
-                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var nftArray = Newtonsoft.Json.Linq.JArray.Parse(content);
-                    if (nftArray != null)
-                    {
-                        foreach (var nft in nftArray)
-                        {
-                            var oasisNFT = new Web3NFT
-                            {
-                                Id = Guid.NewGuid(),
-                                Title = nft["name"]?.ToString() ?? "TRON NFT",
-                                Description = nft["description"]?.ToString() ?? string.Empty,
-                                ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
-                                NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
-                                OASISMintWalletAddress = walletResult.Result?.ToString(),
-                                OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
-                            };
-                            nfts.Add(oasisNFT);
-                        }
-                    }
-                }
-
-                result.Result = nfts;
-                result.IsError = false;
+                if (avatarId == Guid.Empty) throw new ArgumentException("Avatar ID is required.");
+                var wallet = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager,
+                    Core.Enums.ProviderType.TRONOASIS, avatarId);
+                if (wallet.IsError || string.IsNullOrWhiteSpace(wallet.Result))
+                    throw new InvalidOperationException("Could not resolve the avatar's TRON wallet.");
+                return await LoadAllNFTsForMintAddressAsync(wallet.Result);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading TRON avatar inventory: {ex.Message}", ex);
             }
-
             return result;
         }
 
         public OASISResult<List<IWeb3NFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
         {
-            return LoadAllNFTsForMintAddressAsync(mintWalletAddress).Result;
+            return LoadAllNFTsForMintAddressAsync(mintWalletAddress).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<List<IWeb3NFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
             var result = new OASISResult<List<IWeb3NFT>>();
-            string errorMessage = "Error in LoadAllNFTsForMintAddressAsync method in TRONOASIS Provider. Reason: ";
-
             try
             {
-                if (string.IsNullOrEmpty(mintWalletAddress))
+                if (string.IsNullOrWhiteSpace(mintWalletAddress)) throw new ArgumentException("A TRON owner wallet is required.");
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Mint wallet address cannot be null or empty");
-                    return result;
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                var nfts = new List<IWeb3NFT>();
-
-                // Query TRON network for NFTs owned by the mint address
-                var nftQuery = new
+                result.Result = await ExecuteRuntimeAsync(async client =>
                 {
-                    owner_address = mintWalletAddress,
-                    limit = 200,
-                    offset = 0
-                };
-
-                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
-                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var nftArray = Newtonsoft.Json.Linq.JArray.Parse(content);
-                    if (nftArray != null)
+                    var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
+                        .ReadAsync(mintWalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                    var collections = await client.DiscoverNftCollectionsAsync(mintWalletAddress,
+                        history.Select(record => record.GetProperty("transaction_id").GetString()));
+                    var items = new List<IWeb3NFT>();
+                    foreach (var collection in collections)
                     {
-                        foreach (var nft in nftArray)
-                        {
-                            var oasisNFT = new Web3NFT
+                        var ids = await client.GetNftIdsForOwnerAsync(collection, mintWalletAddress);
+                        foreach (var id in ids)
+                            items.Add(new Web3NFT
                             {
-                                Id = Guid.NewGuid(),
-                                Title = nft["name"]?.ToString() ?? "TRON NFT",
-                                Description = nft["description"]?.ToString() ?? string.Empty,
-                                ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
-                                NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
-                                OASISMintWalletAddress = mintWalletAddress,
-                                OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
-                            };
-                            nfts.Add(oasisNFT);
-                        }
+                                NFTTokenAddress = collection + "/" + id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                JSONMetaDataURL = await client.GetNftMetadataUriAsync(collection, id),
+                                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
+                            });
                     }
-                }
-
-                result.Result = nfts;
-                result.IsError = false;
+                    return items;
+                });
+                result.Message = "Current SDK ownership for enumerable collections discovered from confirmed indexed history; indexer coverage and block-pinned completeness are not guaranteed.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading TRON indexed inventory: {ex.Message}", ex);
             }
-
             return result;
         }
 
