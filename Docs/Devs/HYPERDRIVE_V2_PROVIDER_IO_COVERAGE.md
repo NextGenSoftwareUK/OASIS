@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Actual deployment-preflight and disk attribution check (2026-10-11)
+
+The updated runner was executed against the existing funded identity/journal with the original one-HBAR ceiling. It rejected the ceiling using the real SDK estimate before a mutation: exit 1, successful journal transaction count unchanged **11 -> 11**, no pending marker, same bytecode file **0.0.10994223**. This proves the live preflight prevents another insufficient-ceiling submission, not successful contract deployment. Additional funding remains pending.
+
+Disk check: about **114.5 GB decimal free**. The largest retained test-result folder was only about 1.27 MB; reports/journal across this task are a few MB. Hedera's project packaging copies bridge source/manifests, not duplicate SDK node_modules. Windows pagefile allocation is **20,480 MB** and multiple dotnet processes are present, but their ownership/contribution to the recent disk decrease was not established. No shared caches, unrelated processes, OS settings, source, credentials or reusable ledgers were removed or altered. There was no safe identified multi-GB disposable target in this check; no cleanup amount is claimed. Builds remain bounded with /m:2, /nr:false and existing environments.
+
 ### Deployment fee preflight implementation (2026-10-11)
 
 Before storage contract creation, the reusable runner now asks the installed SDK for a HIP-1261 estimate and reads the official current exchange rate and active payer balance. Exact BigInt ceiling division converts tinycents to tinybars, rejects expired/invalid rate data, rejects a fee ceiling below the estimate and funding below the explicit ceiling, and never raises limits automatically. The estimate/ceiling is journaled before mutation; retained bytecode/file is reused. **2/2 fee-policy tests pass**, zero skips, plus runner syntax check. Initial expected numeric fixture was corrected after the test caught an arithmetic mismatch; ceiling minimality is also asserted independently. At the previously observed rate, $1 converts to 1,059,550,257 tinybars, rounded up. Actual post-change preflight/deployment execution remains due while extra funding is pending. The preflight currently occurs after bytecode upload (file identity needed for the exact transaction estimate), not before all setup costs. No transaction, download or installation was performed in this checkpoint.
