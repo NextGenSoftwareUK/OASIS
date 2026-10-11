@@ -5,6 +5,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass,DoNotParallelize]
 public class HederaCollectionTests
 {
+    [TestMethod]
+    public async Task MalformedUnicodeCannotBeSilentlyReplacedBeforeSubmission()
+    {
+        var provider=new HashgraphOASIS(network:"testnet");
+        foreach(var malformed in new[] {new string((char)0xd800,1),new string((char)0xdfff,1)})
+        {
+            var created=await provider.CreateNftCollectionAsync("0.0.1001","",malformed,"OAK",10,100000000);
+            Assert.IsTrue(created.IsError);Assert.IsNull(created.Result);
+            Assert.IsInstanceOfType<System.Text.EncoderFallbackException>(created.Exception);
+            var updated=await provider.UpdateNftMetadataAsync("0.0.1001","","0.0.2001",new long[] {1},malformed,100000000);
+            Assert.IsTrue(updated.IsError);Assert.IsNull(updated.Result);
+            Assert.IsInstanceOfType<System.Text.EncoderFallbackException>(updated.Exception);
+        }
+    }
+
     [DataTestMethod]
     [DataRow("0.0.2001",false)]
     [DataRow("0.0.2002",true)]

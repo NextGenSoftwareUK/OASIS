@@ -15,7 +15,7 @@ export function deploymentTransaction(action,request,publicKey) {
       ||new Set(request.serials).size!==request.serials.length
       ||request.serials.some(value=>typeof value!=='string'||!/^[1-9][0-9]*$/.test(value)||BigInt(value)>9223372036854775807n))
       throw new Error('One to ten unique positive int64 NFT serial strings required.');
-    if(typeof request.metadata!=='string'||Buffer.byteLength(request.metadata,'utf8')>100)
+    if(typeof request.metadata!=='string'||/[\uD800-\uDFFF]/u.test(request.metadata)||Buffer.byteLength(request.metadata,'utf8')>100)
       throw new Error('Explicit NFT metadata of at most 100 UTF-8 bytes required.');
     transaction=new TokenUpdateNftsTransaction().setTokenId(request.tokenId).setSerialNumbers(request.serials.map(value=>Long.fromString(value))).setMetadata(Buffer.from(request.metadata,'utf8'));
   } else if(action==='tokenCollectionDelete') {
@@ -24,7 +24,7 @@ export function deploymentTransaction(action,request,publicKey) {
     transaction=new TokenDeleteTransaction().setTokenId(TokenId.fromString(request.tokenId));
   } else if(action==='nftCollectionCreate') {
     for(const field of ['name','symbol'])
-      if(typeof request[field]!=='string'||!request[field].trim()||Buffer.byteLength(request[field],'utf8')>100)
+      if(typeof request[field]!=='string'||!request[field].trim()||/[\uD800-\uDFFF]/u.test(request[field])||Buffer.byteLength(request[field],'utf8')>100)
         throw new Error('NFT collection name and symbol require 1 to 100 UTF-8 bytes.');
     if(typeof request.maxSupply!=='string'||!/^[1-9][0-9]*$/.test(request.maxSupply)||BigInt(request.maxSupply)>9223372036854775807n)
       throw new Error('NFT collection requires an explicit positive int64 maximum supply.');
