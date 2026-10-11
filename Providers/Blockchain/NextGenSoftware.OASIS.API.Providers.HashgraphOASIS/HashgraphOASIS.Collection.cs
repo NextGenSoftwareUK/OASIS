@@ -51,7 +51,7 @@ public partial class HashgraphOASIS
     // Explicit native operation; credentials go to the SDK through stdin only.
     public async Task<OASISResult<HederaNftCollectionResponse>> CreateNftCollectionAsync(
         string senderAccountId, string privateKeyDer, string name, string symbol,
-        long maxSupply, long maxFeeTinybars, CancellationToken cancellationToken = default)
+        long maxSupply, long maxFeeTinybars, CancellationToken cancellationToken = default, int royaltyPercentage = 0)
     {
         var result = new OASISResult<HederaNftCollectionResponse>();
         try
@@ -63,6 +63,8 @@ public partial class HashgraphOASIS
                     throw new ArgumentException("Collection name and symbol require 1 to 100 UTF-8 bytes.");
             if (maxSupply <= 0 || maxFeeTinybars <= 0)
                 throw new ArgumentException("Collection supply and fee ceiling must be positive int64 values.");
+            if (royaltyPercentage < 0 || royaltyPercentage > 100)
+                throw new ArgumentException("Collection royalty percentage must be between 0 and 100.");
             if (string.IsNullOrWhiteSpace(privateKeyDer))
                 throw new ArgumentException("An explicit DER collection signing key is required.");
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,7 +73,7 @@ public partial class HashgraphOASIS
             var receipt = await HederaSdkClient.InvokeAsync("nftCollectionCreate", new
             {
                 network = _hederaNetwork, nodes = _consensusNodes, sender = senderAccountId,
-                privateKey = privateKeyDer, keyType = "der", name, symbol,
+                privateKey = privateKeyDer, keyType = "der", name, symbol, royaltyPercentage,
                 maxSupply = maxSupply.ToString(CultureInfo.InvariantCulture),
                 maxFeeTinybars = maxFeeTinybars.ToString(CultureInfo.InvariantCulture), transactionId = id
             }, cancellationToken);

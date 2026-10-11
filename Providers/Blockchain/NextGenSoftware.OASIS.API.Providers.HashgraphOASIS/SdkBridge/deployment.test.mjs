@@ -1,6 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId} from '@hiero-ledger/sdk';
 import {deploymentTransaction} from './deployment.mjs';
+test('collection royalty serializes a real HTS fee with issuer collector and no fallback fee',()=>{
+ const key=PrivateKey.generateECDSA().publicKey;
+ const tx=deploymentTransaction('nftCollectionCreate',{...request,name:'Oak',symbol:'OAK',maxSupply:'10',royaltyPercentage:7},key);
+ tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();const decoded=Transaction.fromBytes(tx.toBytes());
+ assert.equal(decoded.customFees.length,1);
+ const fee=decoded.customFees[0];assert.equal(fee.numerator.toString(),'7');assert.equal(fee.denominator.toString(),'100');
+ assert.equal(fee.feeCollectorAccountId.toString(),request.sender);assert.equal(fee.fallbackFee,null);
+ for(const royaltyPercentage of [-1,101,0.5,'7'])
+  assert.throws(()=>deploymentTransaction('nftCollectionCreate',{...request,name:'Oak',symbol:'OAK',maxSupply:'10',royaltyPercentage},key));
+});
 test('collection deletion encodes only explicit native token ID with original payer and fee',()=>{
  const key=PrivateKey.generateECDSA().publicKey;
  const tx=deploymentTransaction('tokenCollectionDelete',{...request,tokenId:'0.0.2001'},key);
