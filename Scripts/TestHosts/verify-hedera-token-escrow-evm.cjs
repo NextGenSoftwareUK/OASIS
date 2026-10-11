@@ -15,6 +15,7 @@ contract FixtureToken {
  mapping(address=>bool) private associated;
  bool public fail;bool public taxed;bool public associationFailure;
  constructor(){balanceOf[msg.sender]=100;}
+ function mintFixture(address to,uint256 amount) external {balanceOf[to]+=amount;}
  function setFailures(bool f,bool t,bool a) external {fail=f;taxed=t;associationFailure=a;}
  function isAssociated() external view returns(bool){return associated[msg.sender];}
  function associate() external returns(uint256){if(associationFailure)return 1;associated[msg.sender]=true;return 22;}
@@ -62,6 +63,31 @@ async function main(){
  assert.equal(await escrow.locked(t,o),0n);assertions++;
  assert.equal(await token.balanceOf(o),100n);assertions++;
  assert.equal(await token.balanceOf(e),0n);assertions++;
+ // Fixture minting deliberately exercises repeated deposits and independent owners.
+ await(await token.approve(e,100)).wait();await(await escrow.lockAll(t)).wait();
+ await(await token.mintFixture(o,25)).wait();await(await token.approve(e,25)).wait();await(await escrow.lockAll(t)).wait();
+ assert.equal(await escrow.locked(t,o),125n);assertions++;
+ const other=await outsider.getAddress();
+ await(await token.mintFixture(other,40)).wait();await(await token.connect(outsider).approve(e,40)).wait();
+ await(await escrow.connect(outsider).lockAll(t)).wait();
+ assert.equal(await escrow.locked(t,other),40n);assertions++;
+ assert.equal(await token.balanceOf(e),165n);assertions++;
+ await(await escrow.unlock(t)).wait();
+ assert.equal(await token.balanceOf(o),125n);assertions++;
+ assert.equal(await escrow.locked(t,other),40n);assertions++;
+ assert.equal(await token.balanceOf(e),40n);assertions++;
+ await(await escrow.connect(outsider).unlock(t)).wait();
+ assert.equal(await token.balanceOf(other),40n);assertions++;
+ assert.equal(await token.balanceOf(e),0n);assertions++;
+ await(await token.approve(e,125)).wait();await(await escrow.lockAll(t)).wait();
+ const overflow=9223372036854775807n-124n;
+ await(await token.mintFixture(o,overflow)).wait();await(await token.approve(e,overflow)).wait();
+ await rejects(async()=>{await(await escrow.lockAll(t,{gasLimit:400000})).wait();});
+ assert.equal(await escrow.locked(t,o),125n);assertions++;
+ assert.equal(await token.balanceOf(o),overflow);assertions++;
+ assert.equal(await token.allowance(o,e),overflow);assertions++;
+ // Clean the owned deposit; the synthetic oversized fixture balance is not HTS supply evidence.
+ await(await escrow.unlock(t)).wait();
  const runtimeCodeHash=ethers.keccak256('0x'+output.contracts['OASISHederaTokenEscrow.sol'].OASISHederaTokenEscrow.evm.deployedBytecode.object);
  assert.equal(ethers.keccak256(await provider.getCode(e)),runtimeCodeHash);assertions++;
  console.log(JSON.stringify({compiler:solc.version(),runtime:'existing in-process Hardhat',assertions,runtimeCodeHash,liveHedera:false}));
