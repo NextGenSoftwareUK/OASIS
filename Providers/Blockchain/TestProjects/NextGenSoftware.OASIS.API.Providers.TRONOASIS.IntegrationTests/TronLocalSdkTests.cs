@@ -66,6 +66,8 @@ public sealed class TronLocalSdkTests
             var failedHistory = Assert.Single(await client.ReadWalletTransactionsAsync(other, new[] { rejectedId.Value }, bounded.Token));
             Assert.Equal(rejectedId.Value, failedHistory.NativeTransactionId);
             Assert.Equal(((TronNet.Protocol.TransactionInfo.Types.code)1).ToString(), failedHistory.NativeExecutionResult);
+            Assert.Equal(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Failed,
+                await client.GetTransactionStatusAsync(rejectedId.Value, bounded.Token));
             Assert.Equal(escrowValue, await CurrentOwner());
             await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token);
             Assert.Equal(ownerValue, await CurrentOwner());
