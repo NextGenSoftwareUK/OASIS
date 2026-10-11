@@ -232,9 +232,11 @@ OASISDNA `TRONOASIS` settings now include `FullNodeGrpcEndpoint`, `SolidityNodeG
 
 The initial 2026-10-11 bounded build failed with nine CS0006 missing dependency DLL errors after the shared NuGet cache was removed. After the user confirmed cleanup had finished, required dependencies were restored into that same shared cache. TRON, API Core, DNA and bootloader subsequently compiled with zero errors using `/m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false`. Focused TRON safety tests passed **17/17, zero skips**, recorded in `TestResults/TronRuntime/tron-runtime-safety.trx`. They cover configuration, endpoint restrictions, precise SUN amounts, signing requirements, invalid address bytes and sender ownership; they do not prove a real broadcast or solidified receipt. Live transfers, avatar signing and V2 orchestration remain open.
 
-### Hedera SDK implementation and verification
+### Sui native transfer and history verification
 
 The existing Sui 1.81.1 local ledger was reused on 2026-10-11 without regeneration or a new runtime installation. The Sui provider compiled with zero errors. Native transfer and history integration tests passed **2/2, zero skips**, retained in `TestResults/SuiRuntime/sui-native-history.trx`. This run proves signed native transfer confirmation, exact balance changes, signer and chain mismatch rejection, incoming/outgoing history across 53 transfers, and failure propagation for an unavailable RPC. It does not prove NFT, token or storage lifecycle operations. The deleted deployment fixture must be recovered or replaced before those tests run. Two NFT test assertions were corrected to access the existing concrete response field through the actual response type; the full integration test project now compiles.
+
+### Hedera SDK implementation and verification
 
 HashgraphOASIS now uses one pinned official Hiero JavaScript SDK installation, `@hiero-ledger/sdk` 2.86.2, in its existing provider directory. Key generation and restoration return actual SDK private/public DER keys without inventing an account ID. Native HBAR and fungible HTS transfers use signed SDK transactions and require a successful consensus receipt. HBAR amounts use exact integer tinybars; HTS precision comes from a real token-info query. Signing credentials travel through standard input rather than process arguments. Failed or uncertain transfers retain the original transaction ID for reconciliation before retrying.
 
