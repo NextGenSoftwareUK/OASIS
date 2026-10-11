@@ -111,6 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS
                 DestinationChain = Str(Prop(m, "pathway", "receiver", "chain")) ?? Str(Prop(m, "pathway", "dstEid")),
                 DestinationTxHash = Str(Prop(m, "destination", "tx", "txHash")),
                 Sender = Str(Prop(m, "source", "tx", "from")) ?? Str(Prop(m, "pathway", "sender", "address")),
+                SenderApplication = Str(Prop(m, "pathway", "sender", "id")),
                 Recipient = Str(Prop(m, "pathway", "receiver", "address")),
                 Timestamp = DateTimeOffset.TryParse(created, out var ts) ? ts : null
             };
