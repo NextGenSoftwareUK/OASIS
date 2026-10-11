@@ -22,12 +22,14 @@ contract OASISHederaTokenEscrow is OASISHederaNftEscrow {
         IHederaEscrowToken token = IHederaEscrowToken(tokenAddress);
         amount = token.balanceOf(msg.sender);
         require(amount > 0 && amount <= uint256(uint64(type(int64).max)), "Invalid HTS amount");
+        uint256 totalDeposit = locked[tokenAddress][msg.sender] + amount;
+        require(totalDeposit <= uint256(uint64(type(int64).max)), "Owned deposit exceeds HTS amount");
         if (!token.isAssociated()) require(token.associate() == 22, "HTS association failed");
         uint256 beforeEscrow = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "Token deposit failed");
         require(token.balanceOf(address(this)) == beforeEscrow + amount, "Inexact escrow credit");
         require(token.balanceOf(msg.sender) == 0, "Inexact depositor debit");
-        locked[tokenAddress][msg.sender] += amount;
+        locked[tokenAddress][msg.sender] = totalDeposit;
         emit Locked(tokenAddress, msg.sender, amount);
     }
 

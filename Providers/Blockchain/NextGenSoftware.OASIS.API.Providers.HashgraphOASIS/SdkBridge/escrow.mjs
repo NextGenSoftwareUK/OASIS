@@ -140,6 +140,8 @@ export async function executeTokenEscrow(action, request, { createClient, restor
     const beforeBalance = await balance(), beforeDeposit = await deposit();
     const amount = locking ? beforeBalance : beforeDeposit;
     if (amount <= 0n || amount > 9223372036854775807n) throw new Error('Token escrow requires a positive int64 ledger amount.');
+    if (locking && beforeDeposit + amount > 9223372036854775807n)
+      throw new Error('Owned token deposit would exceed the HTS int64 release limit.');
     if (locking) {
       const allowance = await read(tokenContract, fungibleAbi, 'allowance', [owner, spender]);
       if (allowance !== 0n && allowance !== amount) throw new Error('Existing token allowance requires explicit reconciliation.');
