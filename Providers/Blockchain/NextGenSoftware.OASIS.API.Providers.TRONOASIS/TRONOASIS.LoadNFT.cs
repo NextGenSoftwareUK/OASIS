@@ -431,6 +431,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+                    throw new ArgumentException("NFT contract and explicit receiver address are required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(tokenId, out var nativeId)
+                    || nativeId >= (System.Numerics.BigInteger.One << 256))
+                    throw new ArgumentException("NFT token ID must be an explicit unsigned uint256 decimal value.");
+                if (!string.IsNullOrWhiteSpace(sourceTransactionHash))
+                    throw new ArgumentException("Receipt-bound NFT release requires source-chain proof validation; this native custody operation cannot ignore a supplied receipt.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must identify the NFT custody wallet separately from token contracts.");
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -441,49 +451,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+                var hash = await ExecuteRuntimeAsync(async client =>
                 {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                    return result;
-                }
-
-                var mintRequest = new MintWeb3NFTRequest
-                {
-                    SendToAddressAfterMinting = receiverAccountAddress,
-                };
-
-                var mintResult = await MintNFTAsync(mintRequest);
-                if (mintResult.IsError || mintResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = mintResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                    return result;
-                }
+                    if (_nativeSigningKeyResolver == null)
+                        throw new InvalidOperationException("NFT custody signing credentials are not configured.");
+                    var signingKey = await _nativeSigningKeyResolver(_bridgePoolWalletAddress);
+                    return await client.SendNftAsync(_bridgePoolWalletAddress, receiverAccountAddress,
+                        nftTokenAddress, nativeId, signingKey);
+                });
 
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !mintResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
+                    TransactionId = hash,
+                    IsSuccessful = true,
+                    Status = BridgeTransactionStatus.Completed
                 };
-                result.IsError = false;
+                result.Message = "Original TRC721 NFT transfer out of custody confirmed; coordinator authorization and cross-chain settlement are separate.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
             }
             return result;
         }
