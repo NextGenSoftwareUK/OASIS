@@ -602,6 +602,8 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SettingsController.cs","510","SettingsController","GetSystemConfig","GET","system-config","LocalOrNonStorageEndpoint"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ShareController.cs","51","ShareController","ShareHolon","GET","share-holon/{holonId:guid}/{avatarId:guid}","LocalOrNonStorageEndpoint"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ShareController.cs","107","ShareController","ShareHolon","GET","share-holon/{holonId:guid}/many/{avatarIds}","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ShareController.cs","140","ShareController","BackfillShareIndex","POST","backfill-share-index","DirectModeAwareManagerBoundary"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/ShareController.cs","191","ShareController","SharedWithMe","GET","shared-with-me","DirectModeAwareManagerBoundary"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SocialController.cs","35","SocialController","GetSocialFeed","GET","social-feed","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SocialController.cs","93","SocialController","RegisterSocialProvider","POST","register-social-provider","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/SocialController.cs","109","SocialController","ShareHolon","POST","share-holon","CoveredFeatureManagerDelegation"
