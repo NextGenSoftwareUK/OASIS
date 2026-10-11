@@ -197,6 +197,20 @@ public sealed class SuiRealProviderRoutingTests
             var absent = await sui.LoadHolonAsync(holon.Id, loadChildren: false);
             absent.Result.Should().BeNull("successful replicated deletion must remove the Sui copy");
             deletedThroughRouter = true;
+            var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
+                { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+            deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
+            deletedAvatar.IsWarning.Should().BeFalse(deletedAvatar.Message);
+            deletedAvatar.Result.Should().BeTrue();
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await local.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+            (await sui.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+            (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+            (await sui.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+            (await sui.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
+            (await sui.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
+            avatarSaved = false;
         }
         finally
         {
