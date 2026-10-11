@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
 {
     private const string Format = "oasis-aes256gcm-v1:";
+    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private readonly IKeyValueBackend _inner;
     private readonly byte[] _key;
     private bool _disposed;
@@ -27,6 +28,8 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(key);
+        var associatedData = StrictUtf8.GetBytes(Format + key);
         var value = await _inner.GetAsync(key, cancellationToken);
         if (value == null) return null;
         if (!value.StartsWith(Format, StringComparison.Ordinal))
@@ -38,8 +41,8 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
         {
             using var aes = new AesGcm(_key, 16);
             aes.Decrypt(payload.AsSpan(0, 12), payload.AsSpan(28), payload.AsSpan(12, 16), plaintext,
-                Encoding.UTF8.GetBytes(Format + key));
-            return new UTF8Encoding(false, true).GetString(plaintext);
+                associatedData);
+            return StrictUtf8.GetString(plaintext);
         }
         finally { CryptographicOperations.ZeroMemory(plaintext); }
     }
@@ -49,14 +52,15 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(value);
-        var plaintext = Encoding.UTF8.GetBytes(value);
+        var associatedData = StrictUtf8.GetBytes(Format + key);
+        var plaintext = StrictUtf8.GetBytes(value);
         var payload = new byte[28 + plaintext.Length];
         RandomNumberGenerator.Fill(payload.AsSpan(0, 12));
         try
         {
             using var aes = new AesGcm(_key, 16);
             aes.Encrypt(payload.AsSpan(0, 12), plaintext, payload.AsSpan(28), payload.AsSpan(12, 16),
-                Encoding.UTF8.GetBytes(Format + key));
+                associatedData);
             await _inner.PutAsync(key, Format + Convert.ToBase64String(payload), cancellationToken);
         }
         finally { CryptographicOperations.ZeroMemory(plaintext); }
@@ -65,12 +69,16 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
     public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(key);
+        StrictUtf8.GetByteCount(key);
         return _inner.DeleteAsync(key, cancellationToken);
     }
 
     public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(prefix);
+        StrictUtf8.GetByteCount(prefix);
         return _inner.ListKeysAsync(prefix, cancellationToken);
     }
 

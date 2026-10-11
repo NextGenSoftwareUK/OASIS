@@ -11,6 +11,33 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class EncryptedKeyValueBackendTests
 {
     [TestMethod]
+    public async Task MalformedUnicodeIsRejectedWithoutReplacingOrOverwritingRecords()
+    {
+        foreach (var usePrivateIndexes in new[] { false, true })
+        {
+            var store = new InMemoryBackend();
+            using var encrypted = new EncryptedKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+            using var privateBackend = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
+            IKeyValueBackend backend = usePrivateIndexes ? privateBackend : encrypted;
+            await backend.PutAsync("key/\uFFFD", "preserve");
+            var original = store.Items.Single();
+            foreach (var malformed in new[] { "key/\uD800", "key/\uDC00" })
+            {
+                await Assert.ThrowsExceptionAsync<System.Text.EncoderFallbackException>(() => backend.PutAsync(malformed, "bad"));
+                await Assert.ThrowsExceptionAsync<System.Text.EncoderFallbackException>(() => backend.GetAsync(malformed));
+                await Assert.ThrowsExceptionAsync<System.Text.EncoderFallbackException>(() => backend.DeleteAsync(malformed));
+                await Assert.ThrowsExceptionAsync<System.Text.EncoderFallbackException>(() => backend.ListKeysAsync(malformed));
+                await Assert.ThrowsExceptionAsync<System.Text.EncoderFallbackException>(() => backend.PutAsync("key/\uFFFD", malformed));
+            }
+            Assert.AreEqual(1, store.Items.Count);
+            Assert.AreEqual(original.Value, store.Items[original.Key]);
+            Assert.AreEqual("preserve", await backend.GetAsync("key/\uFFFD"));
+            await backend.PutAsync("key/🌳", "valid supplementary Unicode 🌱");
+            Assert.AreEqual("valid supplementary Unicode 🌱", await backend.GetAsync("key/🌳"));
+        }
+    }
+
+    [TestMethod]
     public async Task ActivationWithWrongPersistentKeyFailsBeforeWritingNewRecords()
     {
         var store = new InMemoryBackend();
