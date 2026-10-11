@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +57,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await AvatarManager.Instance.LoadAvatarAsync(username, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await LoadAvatarOnLedgerAsync(Storage.GetAvatarJsonByUsernameAsync(username));
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Query avatar by username from Radix OASIS blueprint component using Gateway API
             var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";
@@ -125,6 +132,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await AvatarManager.Instance.LoadAvatarDetailAsync(id, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await LoadAvatarDetailOnLedgerAsync(id);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Query avatar detail by ID from Radix OASIS blueprint component using Gateway API
             var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";
@@ -204,6 +218,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await AvatarManager.Instance.SaveAvatarAsync(avatar);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await SaveAvatarOnLedgerAsync(avatar);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Serialize avatar to JSON
             string avatarInfo = System.Text.Json.JsonSerializer.Serialize(avatar);
@@ -330,6 +351,13 @@ public partial class RadixOASIS
                 return await AvatarManager.Instance.SaveAvatarDetailAsync(avatarDetail);
             }
 
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await SaveAvatarDetailOnLedgerAsync(avatarDetail);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
+
             // Serialize avatar detail to JSON
             string avatarDetailInfo = System.Text.Json.JsonSerializer.Serialize(avatarDetail);
             string avatarDetailId = avatarDetail.Id.ToString();
@@ -448,6 +476,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await AvatarManager.Instance.DeleteAvatarAsync(id, softDelete);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await DeleteAvatarOnLedgerAsync(id, softDelete);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Get wallet for signing
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(id, ProviderType.Value);
