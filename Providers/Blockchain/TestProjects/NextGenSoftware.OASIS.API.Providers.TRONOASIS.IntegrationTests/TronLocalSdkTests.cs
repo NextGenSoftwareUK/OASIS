@@ -60,7 +60,13 @@ public sealed class TronLocalSdkTests
             await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, false, bounded.Token);
             Assert.Equal(escrowValue, await CurrentOwner());
             await client.SendAsync(owner, other, 50m, SenderKey, "local escrow rejection energy", bounded.Token);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => client.ExecuteNftEscrowAsync(other, escrow, nft + "/42", RecipientKey, true, bounded.Token));
+            var rejected = await Assert.ThrowsAsync<InvalidOperationException>(() => client.ExecuteNftEscrowAsync(other, escrow, nft + "/42", RecipientKey, true, bounded.Token));
+            var rejectedId = System.Text.RegularExpressions.Regex.Match(rejected.Message, "[0-9a-f]{64}");
+            Assert.True(rejectedId.Success, "Failed signed execution must retain its original native transaction ID.");
+            var failedHistory = Assert.Single(await client.ReadWalletTransactionsAsync(other, new[] { rejectedId.Value }, bounded.Token));
+            Assert.Equal(rejectedId.Value, failedHistory.NativeTransactionId);
+            Assert.NotEqual("Success", failedHistory.NativeExecutionResult);
+            Assert.False(string.IsNullOrEmpty(failedHistory.NativeExecutionResult));
             Assert.Equal(escrowValue, await CurrentOwner());
             await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token);
             Assert.Equal(ownerValue, await CurrentOwner());

@@ -31,10 +31,27 @@ public sealed class TronWalletHistoryTests
         Assert.Equal(new string('f', 64), json.RootElement.GetProperty("NativeTransactionId").GetString());
         Assert.Equal("9007199254740993", json.RootElement.GetProperty("RawAmount").GetString());
         Assert.Equal("SUN", json.RootElement.GetProperty("AmountUnit").GetString());
+        Assert.Equal("Success", mapped.NativeExecutionResult);
+        receipt.Result = (TransactionInfo.Types.code)1;
+        receipt.ResMessage = ByteString.CopyFromUtf8("rejected fixture");
+        var failed = (NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null, new object[] { transaction, receipt, owner })!;
+        Assert.NotEqual("Success", failed.NativeExecutionResult);
+        Assert.Equal("rejected fixture", failed.NativeError);
+        Assert.Equal("9007199254740993", failed.RawAmount);
         address[20] = 9;
         var unrelated = Assert.Throws<TargetInvocationException>(() => method.Invoke(null,
             new object[] { transaction, receipt, ByteString.CopyFrom(address) }));
         Assert.IsType<InvalidOperationException>(unrelated.InnerException);
         Assert.Contains("does not involve", unrelated.InnerException!.Message);
+        transaction.RawData.Contract.Clear();
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract
+        {
+            Type = Transaction.Types.Contract.Types.ContractType.CreateSmartContract,
+            Parameter = Any.Pack(new CreateSmartContract { OwnerAddress = owner, NewContract = new SmartContract { CallValue = 12 } })
+        });
+        var failedDeployment = (NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null, new object[] { transaction, receipt, owner })!;
+        Assert.Null(failedDeployment.ToWalletAddress);
+        Assert.Equal("12", failedDeployment.RawAmount);
+        Assert.NotEqual("Success", failedDeployment.NativeExecutionResult);
     }
 }
