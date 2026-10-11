@@ -53,14 +53,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 TronNativeTransferClient.NativeUnits(amount);
                 if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
                     throw new ArgumentException("Sender address and explicit private signing key are required.");
-                if (string.IsNullOrWhiteSpace(_contractAddress))
-                    throw new InvalidOperationException("A native TRX bridge pool wallet address must be configured.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();
                     if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-                var hash = await ExecuteRuntimeAsync(client => client.SendAsync(senderAccountAddress, _contractAddress, amount, senderPrivateKey, null));
+                var hash = await ExecuteRuntimeAsync(client => client.SendAsync(senderAccountAddress, _bridgePoolWalletAddress, amount, senderPrivateKey, null));
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
@@ -82,8 +82,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 TronNativeTransferClient.NativeUnits(amount);
                 if (string.IsNullOrWhiteSpace(receiverAccountAddress))
                     throw new ArgumentException("Receiver address is required.");
-                if (string.IsNullOrWhiteSpace(_contractAddress))
-                    throw new InvalidOperationException("A native TRX bridge pool wallet address must be configured.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();
@@ -93,8 +93,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 {
                     if (_nativeSigningKeyResolver == null)
                         throw new InvalidOperationException("Bridge pool signing credentials are not configured.");
-                    var key = await _nativeSigningKeyResolver(_contractAddress);
-                    return await client.SendAsync(_contractAddress, receiverAccountAddress, amount, key, null);
+                    var key = await _nativeSigningKeyResolver(_bridgePoolWalletAddress);
+                    return await client.SendAsync(_bridgePoolWalletAddress, receiverAccountAddress, amount, key, null);
                 });
                 result.Result = new BridgeTransactionResponse
                 {
