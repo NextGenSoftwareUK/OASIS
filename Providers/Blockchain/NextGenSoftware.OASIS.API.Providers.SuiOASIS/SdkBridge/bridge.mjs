@@ -311,8 +311,10 @@ export async function invoke(request) {
         if (!isValidSuiAddress(request.recipient)) throw new Error('Valid token recipient is required');
         const [sent] = tx.splitCoins(coin, [tx.pure.u64(positiveUnits(request.amountUnits))]);
         tx.transferObjects([sent], tx.pure.address(request.recipient));
-      } else if (request.operation === 'tokenBurn')
-        tx.moveCall({ target: `${request.packageAddress}::token::burn`, arguments: [tx.object(request.currencyObjectId), coin] });
+      } else if (request.operation === 'tokenBurn') {
+        const [burned] = tx.splitCoins(coin, [tx.pure.u64(positiveUnits(request.amountUnits))]);
+        tx.moveCall({ target: `${request.packageAddress}::token::burn`, arguments: [tx.object(request.currencyObjectId), burned] });
+      }
       else tx.moveCall({ target: `${request.packageAddress}::token::lock`, arguments: [coin] });
     }
     const committed = await execute(client, tx, signer);

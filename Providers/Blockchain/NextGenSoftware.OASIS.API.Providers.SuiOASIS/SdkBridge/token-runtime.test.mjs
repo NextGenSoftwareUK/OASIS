@@ -24,14 +24,18 @@ test('standard Sui coin registration, issuer mint, transfer, escrow lock/unlock 
   if (BigInt((await invoke({ ...base, operation: 'balance', walletAddress: recipient.address })).balance) < 100000000n)
     await requestSuiFromFaucetV2({ host: faucet, recipient: recipient.address });
   const owned = { ...base, privateKey: recipient.privateKey, walletAddress: recipient.address };
+  async function burnBalance(wallet) {
+    const amountUnits = await invoke({ ...wallet, operation: 'tokenBalance' });
+    await invoke({ ...wallet, operation: 'tokenBurn', amountUnits });
+  }
   // The fixture issuer is synthetic and exclusively owned by this local test deployment.
   // Remove its leftovers from an interrupted prior run before measuring this run's supply delta.
   if (BigInt(await invoke({ ...base, operation: 'tokenBalance', walletAddress: issuer.address })) > 0n)
-    await invoke({ ...base, operation: 'tokenBurn' });
+    await burnBalance({ ...base, walletAddress: issuer.address });
   if (BigInt(await invoke({ ...owned, operation: 'tokenLockedBalance' })) > 0n)
     await invoke({ ...owned, operation: 'tokenUnlock' });
   if (BigInt(await invoke({ ...owned, operation: 'tokenBalance' })) > 0n)
-    await invoke({ ...owned, operation: 'tokenBurn' });
+    await burnBalance(owned);
   const initial = BigInt((await invoke({ ...base, operation: 'tokenProbe' })).treasury.supply);
   const metadata = await invoke({ ...base, operation: 'tokenMetadata' });
   assert.equal(metadata.symbol, 'OASIS');
@@ -49,7 +53,9 @@ test('standard Sui coin registration, issuer mint, transfer, escrow lock/unlock 
     await invoke({ ...owned, operation: 'tokenUnlock' });
     assert.equal(await invoke({ ...owned, operation: 'tokenBalance' }), '400');
     assert.equal(await invoke({ ...owned, operation: 'tokenLockedBalance' }), '0');
-    await invoke({ ...owned, operation: 'tokenBurn' });
+    await invoke({ ...owned, operation: 'tokenBurn', amountUnits: '100' });
+    assert.equal(await invoke({ ...owned, operation: 'tokenBalance' }), '300');
+    await burnBalance(owned);
     assert.equal(await invoke({ ...owned, operation: 'tokenBalance' }), '0');
     assert.equal(BigInt((await invoke({ ...base, operation: 'tokenProbe' })).treasury.supply), initial + 600n);
   } finally {
@@ -58,7 +64,7 @@ test('standard Sui coin registration, issuer mint, transfer, escrow lock/unlock 
       if (BigInt(await invoke({ ...wallet, operation: 'tokenLockedBalance' })) > 0n)
         await invoke({ ...wallet, operation: 'tokenUnlock' });
       if (BigInt(await invoke({ ...wallet, operation: 'tokenBalance' })) > 0n)
-        await invoke({ ...wallet, operation: 'tokenBurn' });
+        await burnBalance(wallet);
     }
   }
   assert.equal(BigInt((await invoke({ ...base, operation: 'tokenProbe' })).treasury.supply), initial);

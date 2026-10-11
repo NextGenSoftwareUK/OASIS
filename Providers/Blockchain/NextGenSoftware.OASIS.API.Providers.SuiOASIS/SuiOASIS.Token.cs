@@ -112,8 +112,8 @@ public partial class SuiOASIS
         {
             ArgumentNullException.ThrowIfNull(request);
             ValidateCoinType(request.TokenAddress);
-            // The interface has no amount: burn every spendable Coin of this type owned by this signer.
-            return new { privateKey = await TokenSigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey) };
+            var amountUnits = TokenUnits(request.Amount);
+            return new { amountUnits, privateKey = await TokenSigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey) };
         });
 
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
