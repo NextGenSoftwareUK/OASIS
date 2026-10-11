@@ -90,10 +90,11 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 throw new ArgumentException("Token identity is required.");
+            var amount = AssetUnits(request.Amount);
             var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase);
-            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol = request.TokenAddress } }, key, request.OwnerPublicKey);
+            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol = request.TokenAddress, amount } }, key, request.OwnerPublicKey);
             result.Result = new TransactionResponse { TransactionResult = hash };
-            result.Message = "Sender's complete balance burned and on-chain supply reduced.";
+            result.Message = "Requested amount burned and on-chain supply reduced.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
