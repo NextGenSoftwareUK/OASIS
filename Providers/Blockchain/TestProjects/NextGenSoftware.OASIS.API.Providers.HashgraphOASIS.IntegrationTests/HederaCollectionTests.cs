@@ -6,6 +6,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaCollectionTests
 {
     [DataTestMethod]
+    [DataRow("0.0.0")]
+    [DataRow("0.0.2001/1")]
+    [DataRow(null)]
+    public async Task InvalidCollectionDeletionFailsBeforeSdkAccess(string? tokenId)
+    {
+        var provider=new HashgraphOASIS(network:"testnet");
+        var result=await provider.DeleteTokenCollectionAsync("0.0.1001","",tokenId!,100000000);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+    }
+
+    [DataTestMethod]
     [DataRow("success",false)]
     [DataRow("failure",true)]
     [DataRow("mismatch",true)]
