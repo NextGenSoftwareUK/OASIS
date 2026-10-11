@@ -7,18 +7,34 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaMirrorBalanceTests
 {
     [DataTestMethod]
-    [DataRow("https://mainnet-public.mirrornode.hedera.com")]
-    [DataRow("https://mainnet-public.mirrornode.hedera.com/api/v1")]
-    public async Task PublicSystemAccountBalanceUsesRealMirrorResponse(string endpoint)
+    [DataRow("")]
+    [DataRow("bad")]
+    [DataRow("0.0.0")]
+    public async Task InvalidAccountCannotBecomeSuccessfulZeroBalance(string account)
     {
-        // Isolate the read operation; this is not evidence of SDK activation or signing.
-        var provider = new HashgraphOASIS(endpoint) { IsProviderActivated = true };
-        var result = await provider.GetBalanceAsync(new GetWeb3WalletBalanceRequest
-        {
-            WalletAddress = "0.0.98"
-        }).WaitAsync(TimeSpan.FromSeconds(30));
-        Assert.IsFalse(result.IsError, result.Message);
-        Assert.IsTrue(double.IsFinite(result.Result));
-        Assert.IsTrue(result.Result > 0, "The public Hedera system account must have a real positive balance.");
+        var provider = new HashgraphOASIS(network:"testnet");
+        var exact = await provider.GetAccountBalanceAsync(account);
+        var shared = await provider.GetBalanceAsync(new GetWeb3WalletBalanceRequest { WalletAddress=account });
+        Assert.IsTrue(exact.IsError); Assert.IsTrue(shared.IsError);
+    }
+
+    [TestMethod]
+    public async Task CancellationAndNullRequestAreExplicitFailuresBeforeSdkLaunch()
+    {
+        var provider = new HashgraphOASIS(network:"testnet");
+        using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
+        Assert.IsTrue((await provider.GetAccountBalanceAsync("0.0.3",cancellation.Token)).IsError);
+        Assert.IsTrue((await provider.GetBalanceAsync(null!)).IsError);
+    }
+
+    [TestMethod]
+    public async Task HederaTestnetPublicNodeBalanceUsesSupportedMirrorWithoutOperatorFunding()
+    {
+        var provider = new HashgraphOASIS(rpcEndpoint:"https://testnet.mirrornode.hedera.com/api/v1",network:"testnet");
+        var balance = await provider.GetAccountBalanceAsync("0.0.3");
+        Assert.IsFalse(balance.IsError,balance.Message);
+        Assert.IsTrue(balance.Result>0,"Known testnet node account should have a real positive ledger balance.");
+        Assert.AreEqual(decimal.Truncate(balance.Result*100000000m),balance.Result*100000000m);
+        StringAssert.Contains(balance.Message,"mirror");
     }
 }
