@@ -265,54 +265,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var result = new OASISResult<IWeb3NFT>();
-            try
-            {
-                // Real Hashgraph implementation: Load NFT data from Hashgraph network
-                var hashgraphClient = new HashgraphClient();
-                var nftData = hashgraphClient.GetNFTData(nftTokenAddress).Result;
-
-                if (nftData != null)
-                {
-                    string name = "Hashgraph NFT";
-                    string symbol = string.Empty;
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(nftData);
-                        if (doc.RootElement.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
-                            name = nameEl.GetString() ?? name;
-                        if (doc.RootElement.TryGetProperty("symbol", out var symbolEl) && symbolEl.ValueKind == JsonValueKind.String)
-                            symbol = symbolEl.GetString() ?? string.Empty;
-                    }
-                    catch { /* ignore parse errors; keep defaults */ }
-
-                    var nft = new Web3NFT
-                    {
-                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                        Title = string.IsNullOrWhiteSpace(symbol) ? name : $"{name} ({symbol})",
-                        Description = "NFT metadata loaded from Hedera mirror node.",
-                        NFTTokenAddress = nftTokenAddress,
-                        OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
-                        MetaData = new Dictionary<string, string>
-                        {
-                            ["HederaTokenJson"] = nftData
-                        }
-                    };
-
-                    result.Result = nft;
-                    result.IsError = false;
-                    result.Message = "Hashgraph NFT data loaded successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No NFT data found on Hashgraph network");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading Hashgraph NFT data: {ex.Message}", ex);
-            }
-            return result;
+            return LoadOnChainNFTDataAsync(nftTokenAddress).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
@@ -320,44 +273,47 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<IWeb3NFT>();
             try
             {
-                // Real Hashgraph implementation: Load NFT data from Hashgraph network asynchronously
-                var hashgraphClient = new HashgraphClient();
-                var nftData = await hashgraphClient.GetNFTData(nftTokenAddress);
-
-                if (nftData != null)
+                var asset = ParseHederaNftAddress(nftTokenAddress);
+                using var response = await _httpClient.GetAsync($"tokens/{asset.TokenId}/nfts/{asset.Serial}");
+                response.EnsureSuccessStatusCode();
+                var nftData = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(nftData);
+                var data = document.RootElement;
+                if (data.GetProperty("token_id").GetString() != asset.TokenId
+                    || data.GetProperty("serial_number").GetInt64().ToString(System.Globalization.CultureInfo.InvariantCulture) != asset.Serial)
+                    throw new InvalidOperationException("Hedera mirror returned a different NFT identity.");
+                if (data.GetProperty("deleted").GetBoolean())
+                    throw new InvalidOperationException("The requested Hedera NFT is deleted.");
+                var metadata = data.GetProperty("metadata").GetString();
+                var bytes = Convert.FromBase64String(metadata ?? "");
+                // HTS metadata is arbitrary bytes, not necessarily a JSON document or UTF-8 URL.
+                var text = Encoding.UTF8.GetString(bytes);
+                if (!Encoding.UTF8.GetBytes(text).SequenceEqual(bytes)) text = null;
+                var owner = data.GetProperty("account_id").GetString();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(owner ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new InvalidOperationException("Hedera mirror returned no valid owner account.");
                 {
-                    string name = "Hashgraph NFT";
-                    string symbol = string.Empty;
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(nftData);
-                        if (doc.RootElement.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
-                            name = nameEl.GetString() ?? name;
-                        if (doc.RootElement.TryGetProperty("symbol", out var symbolEl) && symbolEl.ValueKind == JsonValueKind.String)
-                            symbol = symbolEl.GetString() ?? string.Empty;
-                    }
-                    catch { /* ignore parse errors; keep defaults */ }
-
                     var nft = new Web3NFT
                     {
                         Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                        Title = string.IsNullOrWhiteSpace(symbol) ? name : $"{name} ({symbol})",
+                        Title = $"HTS NFT {nftTokenAddress}",
                         Description = "NFT metadata loaded from Hedera mirror node.",
                         NFTTokenAddress = nftTokenAddress,
+                        CollectionPublicKey = asset.TokenId,
+                        JSONMetaDataURL = Uri.TryCreate(text, UriKind.Absolute, out _) ? text : null,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
                         MetaData = new Dictionary<string, string>
                         {
-                            ["HederaTokenJson"] = nftData
+                            ["HederaNftJson"] = nftData,
+                            ["HederaMetadataBase64"] = metadata,
+                            ["HederaOwnerAccount"] = owner
                         }
                     };
+                    if (text != null) nft.MetaData["HederaMetadataText"] = text;
 
                     result.Result = nft;
                     result.IsError = false;
                     result.Message = "Hashgraph NFT data loaded successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No NFT data found on Hashgraph network");
                 }
             }
             catch (Exception ex)
