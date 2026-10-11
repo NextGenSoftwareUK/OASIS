@@ -70,13 +70,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             try
             {
                 var receipt = await InvokeSdkAsync("transaction", new { transactionHash }, token);
-                if (!receipt.GetProperty("status").GetProperty("success").GetBoolean())
-                    throw new InvalidOperationException("Sui consensus reports failed execution: " + receipt.GetProperty("status").GetRawText());
-                result.Result = BridgeTransactionStatus.Completed;
+                var status = receipt.GetProperty("status");
+                result.Result = MapExecutionStatus(status);
+                result.Message = "Sui consensus execution status: " + status.GetRawText();
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
+        internal static BridgeTransactionStatus MapExecutionStatus(System.Text.Json.JsonElement status)
+            => status.GetProperty("success").GetBoolean() ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
     }
 }
