@@ -10,6 +10,10 @@ export const escrowAbi = new Interface([
   'function unlock(address token) returns(uint256)',
   'function locked(address token,address depositor) view returns(uint256)'
 ]);
+const fungibleAbi = new Interface([
+  'function balanceOf(address owner) view returns(uint256)',
+  'function allowance(address owner,address spender) view returns(uint256)'
+]);
 
 export function validateEscrowRequest(request) {
   const context = validateEscrowContext(request);
@@ -91,6 +95,87 @@ export function tokenEscrowApprovalTransaction(request) {
     .approveTokenAllowance(token, sender, contract, BigInt(request.amountUnits))
     .setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
     .setTransactionId(validateApprovalId(request, sender, id)).setMaxAttempts(1).setRegenerateTransactionId(false);
+}
+
+export async function executeTokenEscrow(action, request, { createClient, restoreKey }) {
+  const mutation = tokenEscrowTransaction(action, request);
+  const { sender, contract, token } = validateEscrowContext(request);
+  const locking = action === 'tokenEscrowLock';
+  if (!/^0x[0-9a-f]{40}$/i.test(request.senderEvmAddress ?? '') || /^0x0{40}$/i.test(request.senderEvmAddress))
+    throw new Error('Token escrow requires the real sender EVM address.');
+  if (locking) validateApprovalId(request, sender, TransactionId.fromString(request.transactionId));
+  const key = restoreKey(request);
+  if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+    throw new Error('Escrow signing key mismatch.');
+  const client = createClient(request);
+  let stage = 'validation', approvalTransactionId = null;
+  try {
+    client.setOperator(sender, key);
+    const payment = Hbar.fromTinybars(request.maxFeeTinybars);
+    const queryAccount = id => new AccountInfoQuery().setAccountId(id).setMaxQueryPayment(payment).execute(client);
+    const account = await queryAccount(sender);
+    if (account.accountId.toString() !== sender.toString() || account.isDeleted ||
+        typeof account.key?.toStringDer !== 'function' || account.key.toStringDer().toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+      throw new Error('Escrow requires the real active sender account single signing key.');
+    await verifyDepositorAccount(sender, request.senderEvmAddress, queryAccount);
+    const contractInfo = await new ContractInfoQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
+    if (contractInfo.contractId.toString() !== contract.toString() || contractInfo.isDeleted)
+      throw new Error('Escrow contract identity mismatch.');
+    verifyEscrowRuntime(await new ContractByteCodeQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client), request.runtimeCodeHash);
+    const owner = request.senderEvmAddress;
+    if (!/^[0-9a-f]{40}$/i.test(contractInfo.contractAccountId ?? ''))
+      throw new Error('Escrow contract has no valid native EVM address.');
+    const spender = '0x' + contractInfo.contractAccountId;
+    await verifyDepositorAccount(contractInfo.accountId, spender, queryAccount);
+    const tokenAddress = '0x' + token.toSolidityAddress();
+    async function read(target, abi, name, args) {
+      const response = await new ContractCallQuery().setContractId(target).setGas(request.gas).setMaxQueryPayment(payment)
+        .setFunctionParameters(getBytes(abi.encodeFunctionData(name, args))).execute(client);
+      if (response.errorMessage) throw new Error('Token escrow state query reverted.');
+      return abi.decodeFunctionResult(name, response.bytes)[0];
+    }
+    const tokenContract = ContractId.fromString(token.toString());
+    const balance = () => read(tokenContract, fungibleAbi, 'balanceOf', [owner]);
+    const deposit = () => read(contract, escrowAbi, 'locked', [tokenAddress, owner]);
+    const beforeBalance = await balance(), beforeDeposit = await deposit();
+    const amount = locking ? beforeBalance : beforeDeposit;
+    if (amount <= 0n || amount > 9223372036854775807n) throw new Error('Token escrow requires a positive int64 ledger amount.');
+    if (locking) {
+      const allowance = await read(tokenContract, fungibleAbi, 'allowance', [owner, spender]);
+      if (allowance !== 0n && allowance !== amount) throw new Error('Existing token allowance requires explicit reconciliation.');
+      if (allowance === 0n) {
+        stage = 'approval';
+        const approval = tokenEscrowApprovalTransaction({ ...request, amountUnits: amount.toString() });
+        approval.freezeWith(client);
+        const submitted = await (await approval.sign(key)).execute(client);
+        const receipt = await submitted.getReceipt(client);
+        if (receipt.status.toString() !== 'SUCCESS') throw new Error('Token approval consensus failure.');
+        approvalTransactionId = submitted.transactionId.toString();
+        if (await read(tokenContract, fungibleAbi, 'allowance', [owner, spender]) !== amount)
+          throw new Error('Confirmed token allowance readback mismatch.');
+      }
+      if (await balance() !== beforeBalance || await deposit() !== beforeDeposit)
+        throw new Error('Token balances changed before escrow submission.');
+    }
+    stage = 'mutation';
+    mutation.freezeWith(client);
+    const submitted = await (await mutation.sign(key)).execute(client);
+    const receipt = await submitted.getReceipt(client);
+    if (receipt.status.toString() !== 'SUCCESS') throw new Error('Token escrow consensus failure.');
+    stage = 'readback';
+    const afterBalance = await balance(), afterDeposit = await deposit();
+    if (afterBalance !== (locking ? 0n : beforeBalance + amount) || afterDeposit !== (locking ? beforeDeposit + amount : 0n))
+      throw new Error('Confirmed token escrow balance readback mismatch.');
+    return { transactionId: submitted.transactionId.toString(), approvalTransactionId, status: 'SUCCESS', amountUnits: amount.toString() };
+  } catch (cause) {
+    const error = new Error('Hedera token escrow did not establish verified success. Reconcile the original mutation and any approval before retrying.');
+    error.transactionId = stage === 'approval' ? request.approvalTransactionId : request.transactionId;
+    error.mutationTransactionId = request.transactionId;
+    error.approvalTransactionId = approvalTransactionId;
+    error.stage = stage;
+    error.status = cause.status?.toString();
+    throw error;
+  } finally { client.close(); }
 }
 
 export async function executeEscrow(action, request, { createClient, restoreKey }) {
