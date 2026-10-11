@@ -43,6 +43,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
+        [Theory]
+        [InlineData("mode")]
+        [InlineData("config")]
+        [InlineData("status")]
+        public async Task HyperDriveReadRoutesRejectUnauthenticatedHttpRequests(string route)
+        {
+            var response = await _client.GetAsync("/api/hyperdrive/" + route);
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Theory]
+        [InlineData("mode")]
+        [InlineData("config")]
+        [InlineData("status")]
+        public async Task HyperDriveReadRoutesReturnSuccessfulEnvelopeForTestAuthenticatedAvatar(string route)
+        {
+            var response = await _authenticatedClient.GetAsync("/api/hyperdrive/" + route);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var body = JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>>(
+                await response.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            body.Should().NotBeNull();
+            body!.IsError.Should().BeFalse(body.Message);
+            body.Result.ValueKind.Should().NotBe(JsonValueKind.Undefined);
+            body.Result.ValueKind.Should().NotBe(JsonValueKind.Null);
+        }
+
         [Fact]
         public async Task GET_Plans_Returns200()
         {
