@@ -1,7 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke } from './bridge.mjs';
+import { invoke, publicationArtifacts } from './bridge.mjs';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+test('publication parses Move objects without treating package as a struct tag', () => {
+  const packageId = '0x' + 'a'.repeat(64);
+  const receipt = { digest: 'synthetic-parser-receipt', effects: { changedObjects: [
+    { objectId: packageId, outputState: 'PackageWrite', idOperation: 'Created' } ] }, objectTypes: {
+    [packageId]: 'package', storage: `${packageId}::storage::Storage`,
+    currency: `${packageId}::token::Currency`, registry: `0x2::coin_registry::Currency<${packageId}::token::TOKEN>` } };
+  assert.equal(publicationArtifacts(receipt).packageAddress, packageId);
+  assert.equal(publicationArtifacts(receipt).registrationId, 'registry');
+  delete receipt.objectTypes.storage;
+  assert.throws(() => publicationArtifacts(receipt), /required OASIS objects/);
+});
 
 test('official SDK generates a recoverable canonical Sui wallet', async () => {
   const generated = await invoke({ operation: 'generateKey' });
