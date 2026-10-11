@@ -5,6 +5,22 @@
 
 ## Routing contract
 
+### Current release gates — not complete (2026-10-11)
+
+Authoritative audit at parent `aab3b994e`: Core gitlink/checkout `c21485ace9a5c75536514b74b0cc3199df19a741`; ONODE Core gitlink `2b0242a1c4317eb197722531a0e6638a852a2d9f`. Re-executed static manifest checks: 815 public manager methods/655 classified provider-backed methods; 691 WEB4 actions/597 classified non-local actions; 42 V2 operations with sync/async parity and test declarations. These counts do not establish HTTP or ledger execution. Do not merge on their strength.
+
+| Required gate | Evidence now | Work still required |
+|---|---|---|
+| Real four-provider V2 failover, replication, load balancing | Current Core Sui and TRON selected-operation live runs; Cosmos live runs at preceding Core pin | Current Cosmos recheck subject to execution-policy constraints; Hedera deployed storage and real V2 routing; expand selected-operation coverage to the complete required operation matrix |
+| Hedera live storage | Funded native transfer succeeded; retained bytecode file/journal; fee preflight proven | Additional test HBAR, deploy retained file without repeat uploads, verify runtime/owner, encrypted CRUD/restart and real outage/replication routing |
+| Hedera native NFT lifecycle | Real SDK create/delete/royalty/metadata/mint/transfer/burn builders and C# boundaries; controlled tests | Funded collection/NFT lifecycle, native owner/authority rejection, royalty assessment, metadata authority freeze semantics, authenticated avatar wallet resolution and end-to-end responses |
+| Full relevant provider-native interfaces | Implementations and scoped direct-provider live evidence recorded in checkpoints | Close remaining Cosmos/Sui/TRON native operation/interface gaps; prove each applicable path rather than extrapolate from shared SDK or narrow lifecycle tests |
+| Authenticated WEB4 endpoints | Source route classification and authorization inspection | Start/use the intended API runtime, authenticate without credential logging, execute route/authorization/error/DTO checks against configured real providers; explicitly record unsupported non-applicable capabilities |
+| Deployment artifacts | Pinned Node/Docker dependency installation and module verifier; source SDK import checks | Build/verify actual publish/image dependencies and API runtime behavior; exact manifest/gitlinks; no source-path environment override as deployment proof |
+| Release integration | Task commits pushed; no release merge | All preceding gates green, final complete regression/audit, then merge into dev and required release branch and verify deployment |
+
+Legacy gaps are documentation only. Source-directory imports, controlled process responses, HTTP fixtures and pure receipt tests must remain labeled as such. Latest broader Hedera non-funded run predates subsequent mint/read edits and needs rerunning before release. Existing environments must be reused; no duplicate setup is authorized by this table. Free disk at audit: 115,942,838,272 bytes. No new installation, mutation or merge occurred.
+
 ### Hedera mint preflight integrity (2026-10-11)
 
 Mint preflight rejects zero collection/recipient IDs, negative price/discount and reversed sale dates, and uses the same throwing UTF-8 encoder as collection metadata updates. Invalid metadata cannot be replaced silently before wallet resolution/SDK submission. Five added validation cases plus existing mint boundaries pass **14/14**, zero skips (`hedera-nft-mint-validation.trx`); provider build succeeds. Positive authenticated mint/delivery and native economic behavior remain live gates; preflight evidence is not consensus proof. No installation or ledger spending.
