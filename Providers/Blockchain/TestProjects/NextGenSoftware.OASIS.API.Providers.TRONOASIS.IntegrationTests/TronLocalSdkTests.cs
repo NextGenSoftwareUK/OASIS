@@ -12,6 +12,57 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task NonEnumerableNftMintTransferDiscoveryAndBurnExecuteOnTronTvm()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(55));
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis);
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/compile-tron-store.cjs"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var artifacts = Path.Combine(directory!.FullName, "TestResults/TronRuntime");
+        var deployment = Path.Combine(artifacts, "local-nft-address.txt");
+        var owner = new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress();
+        var recipient = new TronECKey(RecipientKey, TronNetwork.MainNet).GetPublicAddress();
+        string contract;
+        if (File.Exists(deployment)) contract = (await File.ReadAllTextAsync(deployment, bounded.Token)).Trim();
+        else
+        {
+            var deployed = await runtime.NativeTransfers.DeployBytecodeAsync(owner,
+                Convert.FromHexString((await File.ReadAllTextAsync(Path.Combine(artifacts, "nft-bytecode.txt"), bounded.Token)).Trim()), SenderKey, bounded.Token);
+            contract = deployed.ContractAddress;
+            await File.WriteAllTextAsync(deployment, contract, bounded.Token);
+        }
+        var id = System.Numerics.BigInteger.Parse("9007199254740993");
+        await runtime.NativeTransfers.SendAsync(owner, recipient, 50m, SenderKey, "local NFT energy budget", bounded.Token);
+        // Reconcile this fixed fixture after an interrupted run rather than redeploying or choosing a new ID.
+        var ownerCall = new byte[36]; Convert.FromHexString("6352211e").CopyTo(ownerCall, 0);
+        var idBytes = id.ToByteArray(true, true); idBytes.CopyTo(ownerCall, ownerCall.Length - idBytes.Length);
+        var existingOwner = new System.Numerics.BigInteger(await runtime.NativeTransfers.QueryContractAsync(owner, contract, ownerCall, bounded.Token), true, true);
+        if (existingOwner != 0)
+        {
+            var senderValue = new System.Numerics.BigInteger(NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(owner).AsSpan(1), true, true);
+            var recipientValue = new System.Numerics.BigInteger(NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(recipient).AsSpan(1), true, true);
+            Assert.True(existingOwner == senderValue || existingOwner == recipientValue, "Preserve NFTs owned by any unrelated account.");
+            await runtime.NativeTransfers.BurnNftAsync(contract, id, existingOwner == senderValue ? SenderKey : RecipientKey, bounded.Token);
+        }
+        var uri = "https://example.invalid/local-tron-fixture.json";
+        var mint = await runtime.NativeTransfers.MintNftAsync(owner, owner, contract, id, uri, SenderKey, "local test", bounded.Token);
+        var currentKey = SenderKey;
+        string burn;
+        try
+        {
+            Assert.Equal(uri, await runtime.NativeTransfers.GetNftMetadataUriAsync(contract, id, bounded.Token));
+            Assert.Equal(contract + "/" + id, Assert.Single(await runtime.NativeTransfers.GetIndexedOwnedNftAddressesAsync(owner, new[] { mint }, bounded.Token)));
+            var transfer = await runtime.NativeTransfers.SendNftAsync(owner, recipient, contract, id, SenderKey, cancellationToken: bounded.Token);
+            currentKey = RecipientKey;
+            Assert.Empty(await runtime.NativeTransfers.GetIndexedOwnedNftAddressesAsync(owner, new[] { transfer, mint }, bounded.Token));
+            Assert.Equal(contract + "/" + id, Assert.Single(await runtime.NativeTransfers.GetIndexedOwnedNftAddressesAsync(recipient, new[] { transfer }, bounded.Token)));
+        }
+        finally { burn = await runtime.NativeTransfers.BurnNftAsync(contract, id, currentKey, bounded.Token); }
+        Assert.Empty(await runtime.NativeTransfers.GetIndexedOwnedNftAddressesAsync(recipient, new[] { burn }, bounded.Token));
+    }
+
+    [Fact]
     public async Task ProviderHolonSurvivesDeactivateAndReopenOnSameLedger()
     {
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis, contractFeeLimitSun: 1000000000);
