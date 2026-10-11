@@ -18,5 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures\nft-signer.mjs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>
