@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Cosmos default-activation test fixture correction (2026-10-11)
+
+The two failing Cosmos unit cases used the default provider with no owner signing key but expected writable activation success. Source `CosmosSdkBackend.VerifyAsync` explicitly rejects that missing key before RPC; genuine configured activation performs signed probe put/read/delete. Unit cases now assert that exact missing-owner error and inactive state, plus safe deactivation after failed activation; production behavior is unchanged. Full suite passes **11/11**, zero skips (`cosmos-current-unit.trx`). Positive activation coverage remains in real configured integration setup, not a mock or relaxed check. A current retained-node activation/storage recheck was attempted but the combined command was blocked by execution policy before process creation; it was not bypassed, and no new live result is claimed. Earlier live evidence is still scoped to its recorded pin/run. Explicit NFT signer live verification remains due.
+
 ### Explicit NFT signer forwarding audit/fix (2026-10-11)
 
 Cosmos full unit selection currently reports **9 passed / 2 failed / 0 skipped** (`cosmos-current-unit.trx`): the failed cases are default-provider activation/deactivation success expectations. They are not signer-send tests and need fixture/configuration auditing before any assertion change; this run is not green Cosmos verification. The other provider build/source and controlled Sui evidence above remain scoped as stated.
