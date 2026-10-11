@@ -6,6 +6,33 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass]
 public class HederaNftMintValidationTests
 {
+    [DataTestMethod]
+    [DataRow("zeroCollection","CollectionPublicKey")]
+    [DataRow("negativePrice","nonnegative")]
+    [DataRow("negativeDiscount","nonnegative")]
+    [DataRow("reversedSale","sale start")]
+    public async Task InvalidMintStateFailsBeforeWalletLookup(string failure,string message)
+    {
+        var request=Valid();
+        switch(failure){
+            case "zeroCollection":request.CollectionPublicKey="0.0.0";break;
+            case "negativePrice":request.Price=-1;break;
+            case "negativeDiscount":request.Discount=-1;break;
+            case "reversedSale":request.SaleStartDate=DateTime.UnixEpoch.AddDays(1);request.SaleEndDate=DateTime.UnixEpoch;break;
+        }
+        var result=await new HashgraphOASIS().MintNFTAsync(request);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);StringAssert.Contains(result.Message,message);
+    }
+
+    [TestMethod]
+    public async Task MalformedMintMetadataRejectsBeforeAvatarLookup()
+    {
+        var request=Valid();request.JSONMetaDataURL=new string((char)0xd800,1);
+        var result=await new HashgraphOASIS().MintNFTAsync(request);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+        Assert.IsInstanceOfType<System.Text.EncoderFallbackException>(result.Exception);
+    }
+
     [TestMethod]
     public async Task CollectionRequiredForBothEntryPoints()
     {
