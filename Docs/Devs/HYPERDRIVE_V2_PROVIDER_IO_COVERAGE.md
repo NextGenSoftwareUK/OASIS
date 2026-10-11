@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera faucet funding and first signed attempt (2026-10-11)
+
+After the user funded the existing public alias, the official mirror verified active account **0.0.10993779**, EVM alias matching the protected reusable key, and **1,000,000,000 tinybars (10 test HBAR)**. This replaces the earlier funding-not-indexed blocker, but is not signed consensus proof. The first real provider test sent one requested tinybar to public testnet node account 0.0.3 and **failed** verified-success assertion; original ID `0.0.10993779@1791757597.596315000` was retained. Mirror transaction lookup returned 404, while a native receipt query also failed without establishing an outcome. No automatic resubmission occurred. The account mirror key is absent (hollow-account state); the exact failure cause is still under investigation, not assumed to be hollow completion. Private key was decrypted only in memory/process environment and cleared afterward, never logged/persisted unencrypted. Native SDK status codes are now preserved by the C# boundary when present and restricted to safe uppercase status syntax; provider build and **2/2** process-boundary tests pass. Deployment/storage/escrow and V2 funded tests remain open. No new environment/install/download.
+
 ### Hedera funded-test dependency and browser revalidation (2026-10-11)
 
 The same existing protected test identity remains the intended funded signer; no new account/key/runtime was allocated. Browser inventory was retried after reading the computer-use instructions and failed before any page/input with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`. UI automation stopped; no custom helper, browser reinstall or security bypass was attempted. A manual funding request was presented for the existing public EVM address `0x3ab524fab17a975d871cb7f7f0f91f507a7dfa33` through the official faucet. This is pending input, not verified funding or a global goal block.
