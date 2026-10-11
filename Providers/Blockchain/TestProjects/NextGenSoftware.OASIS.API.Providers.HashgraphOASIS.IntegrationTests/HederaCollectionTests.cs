@@ -6,6 +6,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaCollectionTests
 {
     [DataTestMethod]
+    [DataRow(-1)]
+    [DataRow(101)]
+    public async Task InvalidCollectionRoyaltyFailsBeforeSdkAccess(int royalty)
+    {
+        var provider=new HashgraphOASIS(network:"testnet");
+        var result=await provider.CreateNftCollectionAsync("0.0.1001","", "Oak","OAK",10,100000000,royaltyPercentage:royalty);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);StringAssert.Contains(result.Message,"royalty percentage");
+    }
+
+    [DataTestMethod]
     [DataRow("0.0.2001",false)]
     [DataRow("0.0.2002",true)]
     [DataRow("0.0.2003",true)]

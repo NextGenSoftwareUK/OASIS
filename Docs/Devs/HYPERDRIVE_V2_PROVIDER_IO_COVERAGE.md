@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Native collection royalty configuration (2026-10-11)
+
+Collection creation accepts integer `royaltyPercentage` 0–100 (default zero). Positive rates serialize real HTS `CustomRoyaltyFee` with numerator percentage, denominator 100 and issuer/payer collector; there is no fixed fallback charge. C# forwards the validated field to the SDK, rather than merely writing royalty metadata. Actual SDK wire roundtrip verifies 7/100 collector/absence of fallback; invalid fractional/string/out-of-range values reject before signing. Full SDK suite **76/76**, zero skips; C# collection suite **17/17**, zero skips, provider build succeeds. Native fee assessment on a sale, collector association, live collection consensus and shared authenticated API exposure remain unverified gates. Funding mirror still reports 3.91606260 test HBAR, and no mutation/download/install occurred.
+
 ### Collection deletion process boundary proof (2026-10-11)
 
 Three controlled C#→Node deletion cases now verify exact success, failed receipt/process and mismatched transaction receipt. Every case retains the requested collection token ID and original payer transaction ID; failure never sets `ConsensusVerified`, and messages contain no fixture signing key. The fixed fixture verifies action/network/payer/fee/DER projection without SDK or ledger execution. Collection suite passes **15/15**, zero skips (`hedera-collection-validation.trx`). This is transport/response evidence only; live deletion/admin authorization, lifecycle and authenticated HTTP exposure remain open. No new runtime, downloads or ledger mutations occurred.

@@ -1,4 +1,4 @@
-import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType,TokenId,TokenDeleteTransaction} from '@hiero-ledger/sdk';
+import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType,TokenId,TokenDeleteTransaction,CustomRoyaltyFee} from '@hiero-ledger/sdk';
 
 export function deploymentTransaction(action,request,publicKey) {
   if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete'].includes(action)) throw new Error('Unknown deployment mutation.');
@@ -18,10 +18,14 @@ export function deploymentTransaction(action,request,publicKey) {
         throw new Error('NFT collection name and symbol require 1 to 100 UTF-8 bytes.');
     if(typeof request.maxSupply!=='string'||!/^[1-9][0-9]*$/.test(request.maxSupply)||BigInt(request.maxSupply)>9223372036854775807n)
       throw new Error('NFT collection requires an explicit positive int64 maximum supply.');
+    const royalty=request.royaltyPercentage??0;
+    if(!Number.isInteger(royalty)||royalty<0||royalty>100)
+      throw new Error('NFT collection royalty percentage must be an integer from 0 to 100.');
     transaction=new TokenCreateTransaction().setTokenName(request.name).setTokenSymbol(request.symbol)
       .setTokenType(TokenType.NonFungibleUnique).setDecimals(0).setInitialSupply(0)
       .setSupplyType(TokenSupplyType.Finite).setMaxSupply(request.maxSupply)
       .setTreasuryAccountId(sender).setAutoRenewAccountId(sender).setAdminKey(publicKey).setSupplyKey(publicKey);
+    if(royalty>0)transaction.setCustomFees([new CustomRoyaltyFee().setNumerator(royalty).setDenominator(100).setFeeCollectorAccountId(sender)]);
   } else if(action==='contractCreate') {
     if(!Number.isSafeInteger(request.gas)||request.gas<=0) throw new Error('Deployment requires an explicit positive gas limit.');
     FileId.fromString(request.fileId);
