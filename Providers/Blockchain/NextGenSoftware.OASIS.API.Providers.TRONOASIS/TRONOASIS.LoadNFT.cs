@@ -392,62 +392,36 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(senderAccountAddress)
+                    || string.IsNullOrWhiteSpace(senderPrivateKey))
+                    throw new ArgumentException("NFT contract, sender and private signing key are required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(tokenId, out var nativeId)
+                    || nativeId >= (System.Numerics.BigInteger.One << 256))
+                    throw new ArgumentException("NFT token ID must be an explicit unsigned uint256 decimal value.");
+                if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
+                    throw new InvalidOperationException("BridgePoolWalletAddress must identify the NFT custody wallet separately from token contracts.");
+                var transfer = await SendNFTAsync(new SendWeb3NFTRequest
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                    TokenAddress = nftTokenAddress, TokenId = tokenId,
+                    FromWalletAddress = senderAccountAddress, ToWalletAddress = _bridgePoolWalletAddress,
+                    OwnerPrivateKey = senderPrivateKey, Amount = 1
+                });
+                if (transfer == null || transfer.IsError || string.IsNullOrWhiteSpace(transfer.Result?.TransactionResult))
                 {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
+                    OASISErrorHandling.HandleError(ref result, transfer?.Message ?? "NFT custody transfer returned no confirmed receipt.", transfer?.Exception);
                     return result;
                 }
-
-                var lockRequest = new LockWeb3NFTRequest
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
-                    LockedByAvatarId = Guid.Empty
-                };
-
-                var lockResult = await LockNFTAsync(lockRequest);
-                if (lockResult.IsError || lockResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = lockResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                    return result;
-                }
-
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !lockResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
+                    TransactionId = transfer.Result.TransactionResult,
+                    IsSuccessful = true, Status = BridgeTransactionStatus.Completed
                 };
-                result.IsError = false;
+                result.Message = "Original TRC721 NFT transfer into custody confirmed; cross-chain settlement is separate.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
             }
             return result;
         }
