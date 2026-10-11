@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Collection royalty projection boundary (2026-10-11)
+
+C#→Node fixture now requires exact forwarded `royaltyPercentage`; three cases verify 0, 7 and 100 rather than accepting a missing/defaulted value. Existing create cases also require explicit zero. Full collection boundary suite passes **20/20**, zero skips (`hedera-collection-validation.trx`). These controlled process responses are not real consensus or live royalty assessment; actual SDK serialization evidence remains the preceding 76-test checkpoint. No mutation, SDK installation or new environment occurred. Authenticated API and funded lifecycle gates remain open.
+
 ### Native collection royalty configuration (2026-10-11)
 
 Collection creation accepts integer `royaltyPercentage` 0–100 (default zero). Positive rates serialize real HTS `CustomRoyaltyFee` with numerator percentage, denominator 100 and issuer/payer collector; there is no fixed fallback charge. C# forwards the validated field to the SDK, rather than merely writing royalty metadata. Actual SDK wire roundtrip verifies 7/100 collector/absence of fallback; invalid fractional/string/out-of-range values reject before signing. Full SDK suite **76/76**, zero skips; C# collection suite **17/17**, zero skips, provider build succeeds. Native fee assessment on a sale, collector association, live collection consensus and shared authenticated API exposure remain unverified gates. Funding mirror still reports 3.91606260 test HBAR, and no mutation/download/install occurred.

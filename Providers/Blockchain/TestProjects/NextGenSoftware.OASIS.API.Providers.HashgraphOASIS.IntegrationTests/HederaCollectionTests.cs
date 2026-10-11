@@ -6,6 +6,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaCollectionTests
 {
     [DataTestMethod]
+    [DataRow(0)]
+    [DataRow(7)]
+    [DataRow(100)]
+    public async Task CollectionRoyaltyIsForwardedExactlyThroughProcessBoundary(int royalty)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","hedera-collection.mjs"));
+        try
+        {
+            var provider=new HashgraphOASIS(network:"testnet");
+            var result=await provider.CreateNftCollectionAsync("0.0.1001","test-only-collection-key","royalty-"+royalty,"OAK",
+                9007199254740993,100000000,royaltyPercentage:royalty);
+            Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.Result.ConsensusVerified);
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
+
+    [DataTestMethod]
     [DataRow(-1)]
     [DataRow(101)]
     public async Task InvalidCollectionRoyaltyFailsBeforeSdkAccess(int royalty)
