@@ -139,11 +139,18 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.FromWalletAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
                 throw new ArgumentException("Sender and recipient NFT wallet addresses are required.");
+            if (request.Amount != 0m && request.Amount != 1m) throw new ArgumentException("A unique NFT transfer amount must be one.");
             var address = request.TokenAddress ?? request.FromNFTTokenAddress;
             var locator = NftLocator(address);
             if (!string.IsNullOrWhiteSpace(request.TokenId) && request.TokenId != locator.TokenId)
                 throw new ArgumentException("NFT token ID conflicts with its address.");
-            var key = await SigningKeyAsync(Guid.Empty);
+            var key = await SigningKeyAsync(Guid.Empty,request.OwnerPrivateKey,request.OwnerSeedPhrase);
+            if (!string.IsNullOrWhiteSpace(request.OwnerPublicKey))
+            {
+                var restored = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey",new { privateKey = key });
+                if (restored.GetProperty("publicKey").GetString() != request.OwnerPublicKey)
+                    throw new ArgumentException("The supplied public key does not match the NFT signing key.");
+            }
             var hash = await TransferNftAsync(locator.Address, request.FromWalletAddress, request.ToWalletAddress, key);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
             var loaded = await LoadOnChainNFTDataAsync(locator.Address);
