@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Cosmos signer boundary tests and Hedera funding recheck (2026-10-11)
+
+Cosmos unit suite now passes **14/14**, zero skips (`TestResults/CosmosRuntime/cosmos-current-unit.trx`). Three controlled Node-process cases verify explicit NFT private-key forwarding instead of the configured key, rejection of a mismatched public key before transfer, and preservation of the committed transfer ID when subsequent NFT readback fails. This fixture performs no SDK or ledger operations; it is not live-chain proof.
+
+After the user's funding confirmation, the official Hedera testnet mirror still reports **391,606,260 tinybars (3.91606260 test HBAR)** for `0.0.10993779`. No new deployment transaction was submitted: this remains below the previously measured approximately 10.60 HBAR creation estimate. The uploaded bytecode file and reconciled deployment journal remain intact for reuse. Free C: space at this checkpoint is 116,107,841,536 bytes; no installation or download was performed.
+
 ### Cosmos default-activation test fixture correction (2026-10-11)
 
 The two failing Cosmos unit cases used the default provider with no owner signing key but expected writable activation success. Source `CosmosSdkBackend.VerifyAsync` explicitly rejects that missing key before RPC; genuine configured activation performs signed probe put/read/delete. Unit cases now assert that exact missing-owner error and inactive state, plus safe deactivation after failed activation; production behavior is unchanged. Full suite passes **11/11**, zero skips (`cosmos-current-unit.trx`). Positive activation coverage remains in real configured integration setup, not a mock or relaxed check. A current retained-node activation/storage recheck was attempted but the combined command was blocked by execution policy before process creation; it was not bypassed, and no new live result is claimed. Earlier live evidence is still scoped to its recorded pin/run. Explicit NFT signer live verification remains due.
