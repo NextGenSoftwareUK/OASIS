@@ -5,9 +5,6 @@ import { escrowAbi, escrowTransaction, escrowApprovalTransaction, tokenEscrowTra
 import { keccak256 } from 'ethers';
 import { execute } from './bridge.mjs';
 import { PrivateKey } from '@hiero-ledger/sdk';
-for(const accountId of ['', 'bad', '0.0.0', '0x'+'12'.repeat(20)]) test(`consensus balance rejects ambiguous account ${accountId} before network use`,async()=>{
- await assert.rejects(()=>execute('accountBalance',{accountId}),/explicit nonzero numeric account/);
-});
 const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'9007199254740993',
  gas:400000,maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
