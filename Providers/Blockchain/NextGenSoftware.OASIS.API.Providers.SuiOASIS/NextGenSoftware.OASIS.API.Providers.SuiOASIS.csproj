@@ -53,9 +53,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" Link="SuiSdkBridge\bridge.mjs" />
-    <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" Link="SuiSdkBridge\package.json" />
-    <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" Link="SuiSdkBridge\package-lock.json" />
+    <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\bridge.mjs" />
+    <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\package.json" />
+    <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\package-lock.json" />
   </ItemGroup>
 
 </Project>
