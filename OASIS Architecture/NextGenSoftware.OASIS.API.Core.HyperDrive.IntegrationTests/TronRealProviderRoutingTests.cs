@@ -36,7 +36,8 @@ public sealed class TronRealProviderRoutingTests
             contract, () => key, () => SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
         var tron = new TRONOASIS(rpcEndpoint: "http://127.0.0.1:9090", nativeTransfers: runtime.NativeTransfers, storageBackend: storage);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
-        (await tron.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var activation = await tron.ActivateProviderAsync();
+        activation.IsError.Should().BeFalse(activation.Message);
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
             { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
@@ -67,7 +68,7 @@ public sealed class TronRealProviderRoutingTests
             var savedDetail = await router.RouteRequestAsync<IAvatarDetail>(new StorageOperationRequest
                 { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS });
             savedDetail.IsError.Should().BeFalse(savedDetail.Message);
-            savedDetail.IsWarning.Should().BeFalse(savedDetail.Message);
+            savedDetail.IsWarning.Should().BeFalse(savedDetail.Message + " " + System.Text.Json.JsonSerializer.Serialize(manager.LastReplicationDiagnostic));
             (await tron.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
