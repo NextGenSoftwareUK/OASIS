@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current Sui live NFT lifecycle recheck (2026-10-11)
+
+At provider revision `382ddd75e`, `SuiNftTests.ProviderMintsBatchReadsMetadataTransfersAndBurnsRealObjects` passes **1/1**, zero skips, 24 seconds (`TestResults/SuiRuntime/sui-nft-lifecycle.trx`). It uses the retained Sui 1.81.1 node, existing ledger/package and real SDK: batch mint, recipient mint, metadata, transfer, escrow ownership checks, owner unlock and burn cleanup. This verifies the current normal NFT lifecycle, including the recent signer and receipt changes; deliberately failed post-commit reads remain controlled-process evidence, not live fault injection. Initial startup under the default WSL user failed because the existing ledger is owned by root; using its existing owner started it without changing permissions. Initial test setup omitted the explicitly required loopback faucet URL and failed before mint; setting `OASIS_SUI_TEST_FAUCET=http://127.0.0.1:9123` corrected setup without restarting the node. Owned node PID 28261 was stopped with the validated SIGTERM helper after tests. No installation, archive, clone or new ledger was created. Free disk after shutdown: 116,107,001,856 bytes. Broader route/routing/provider gates remain open.
+
 ### Sui mint receipt retention (2026-10-11)
 
 Sui mint now assigns its committed digest to the response before separate object readback, retaining both transaction fields and any already-read NFTs if subsequent readback fails. Errors explicitly require reconciliation before retrying. A controlled process fixture proves committed-mint/readback-failure behavior; this is not live SDK evidence. Current full unit suite passes **21/21**, zero skips (`sui-current-unit.trx`). Initial run used the previously built provider DLL and failed the new receipt assertion; rebuilding the provider with bounded workers and rerunning the suite verified the changed implementation. No runtime installation or ledger reset was needed. Current live mint lifecycle verification remains outstanding for this source revision.
