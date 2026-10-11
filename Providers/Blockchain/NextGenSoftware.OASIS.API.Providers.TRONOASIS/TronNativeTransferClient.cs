@@ -221,6 +221,53 @@ public sealed class TronNativeTransferClient
             expectedContractAmount: amount);
     }
 
+    public async Task<string> LockEscrowAsync(string owner, string escrowAddress, string tokenAddress,
+        string privateKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var source = _wallet.ParseAddress(owner);
+        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
+            throw new ArgumentException("Escrow signing key does not own the requested depositor.");
+        var escrow = _wallet.ParseAddress(escrowAddress);
+        var token = _wallet.ParseAddress(tokenAddress);
+        var call = EncodeAddressCall("lockAll(address)", token);
+        EncodeAddressCall("allowance(address,address)", source, escrow); // Validate all addresses before node access.
+        await VerifyNetworkAsync(cancellationToken);
+        var amount = await ReadContractUintAsync(source, token, EncodeAddressCall("balanceOf(address)", source), cancellationToken);
+        if (amount <= 0) throw new InvalidOperationException("The requested signer has no spendable tokens to escrow.");
+        var allowance = await ReadContractUintAsync(source, token,
+            EncodeAddressCall("allowance(address,address)", source, escrow), cancellationToken);
+        if (allowance != 0 && allowance != amount)
+            throw new InvalidOperationException("Revoke the existing escrow allowance explicitly before locking a different amount.");
+        string approvalId = null;
+        if (allowance == 0)
+            approvalId = await ApproveTokenAsync(owner, tokenAddress, escrowAddress, amount, privateKey, cancellationToken);
+        try
+        {
+            return await ExecuteContractAsync(source, escrow, call, privateKey, "", cancellationToken,
+                expectedContractAmount: amount);
+        }
+        catch (Exception error) when (approvalId != null)
+        {
+            throw new InvalidOperationException($"Escrow deposit failed after confirmed approval {approvalId}: {error.Message} Reconcile the original transactions and remaining allowance before retrying.", error);
+        }
+    }
+
+    private async Task<System.Numerics.BigInteger> ReadContractUintAsync(ByteString source, ByteString contract,
+        byte[] data, CancellationToken cancellationToken)
+    {
+        var response = await _wallet.GetProtocol().TriggerConstantContractAsync(new TriggerSmartContract
+        {
+            OwnerAddress = source, ContractAddress = contract, Data = ByteString.CopyFrom(data)
+        }, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (response.Result == null || !response.Result.Result || response.ConstantResult.Count != 1
+            || response.ConstantResult[0].Length != 32)
+            throw new InvalidOperationException("Contract query did not return one ABI uint256.");
+        return new System.Numerics.BigInteger(response.ConstantResult[0].ToByteArray(), isUnsigned: true, isBigEndian: true);
+    }
+
     internal static byte[] EncodeAddressCall(string signature, params ByteString[] addresses)
     {
         var selector = new Nethereum.Util.Sha3Keccack().CalculateHash(signature)[..8];
