@@ -1,0 +1,35 @@
+using System.Numerics;
+using System.Reflection;
+using Google.Protobuf;
+using TronNet.Protocol;
+using Xunit;
+
+namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
+
+public sealed class TronEscrowSafetyTests
+{
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    public void EscrowMustReturnTheExactRecordedDeposit(int returned, bool valid)
+    {
+        var receipt = new TransactionInfo();
+        var bytes = new byte[32]; bytes[31] = (byte)returned;
+        receipt.ContractResult.Add(ByteString.CopyFrom(bytes));
+        var method = typeof(TronNativeTransferClient).GetMethod("ValidateContractAmount", BindingFlags.NonPublic | BindingFlags.Static)!;
+        if (valid) method.Invoke(null, new object[] { receipt, BigInteger.One });
+        else Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() =>
+            method.Invoke(null, new object[] { receipt, BigInteger.One })).InnerException);
+    }
+
+    [Fact]
+    public async Task UnlockCannotSignAsAnotherDepositor()
+    {
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
+            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        var other = new TronNet.TronECKey(new string('2', 64), TronNet.TronNetwork.MainNet).GetPublicAddress();
+        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.UnlockEscrowAsync(
+            other, other, other, new string('1', 64)));
+    }
+}

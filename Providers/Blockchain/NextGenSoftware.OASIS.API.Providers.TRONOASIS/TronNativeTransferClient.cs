@@ -170,7 +170,8 @@ public sealed class TronNativeTransferClient
 
     private async Task<string> ExecuteContractAsync(ByteString source, ByteString contract, byte[] data,
         string privateKey, string memo, CancellationToken cancellationToken,
-        bool requireTransferReturn = false, bool allowVoidContractReturn = false)
+        bool requireTransferReturn = false, bool allowVoidContractReturn = false,
+        System.Numerics.BigInteger? expectedContractAmount = null)
     {
         var node = _wallet.GetProtocol();
         var headers = _wallet.GetHeaders();
@@ -187,7 +188,59 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON node returned stale TRC20 transaction timestamps.");
         raw.FeeLimit = 100000000; // Maximum transaction fee, not an asset amount.
         return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo ?? "", cancellationToken,
-            requireContractSuccess: true, requireTransferReturn: requireTransferReturn, allowVoidContractReturn: allowVoidContractReturn);
+            requireContractSuccess: true, requireTransferReturn: requireTransferReturn, allowVoidContractReturn: allowVoidContractReturn,
+            expectedContractAmount: expectedContractAmount);
+    }
+
+    public async Task<string> UnlockEscrowAsync(string owner, string escrowAddress, string tokenAddress,
+        string privateKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var source = _wallet.ParseAddress(owner);
+        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
+            throw new ArgumentException("Escrow signing key does not own the requested depositor.");
+        var escrow = _wallet.ParseAddress(escrowAddress);
+        var token = _wallet.ParseAddress(tokenAddress);
+        var query = EncodeAddressCall("locked(address,address)", token, source);
+        var call = EncodeAddressCall("unlock(address)", token);
+        if (escrow.Length != 21 || escrow[0] != 0x41)
+            throw new ArgumentException("A current TRON escrow contract is required.");
+        await VerifyNetworkAsync(cancellationToken);
+        var deposit = await _wallet.GetProtocol().TriggerConstantContractAsync(new TriggerSmartContract
+        {
+            OwnerAddress = source, ContractAddress = escrow, Data = ByteString.CopyFrom(query)
+        }, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if (deposit.Result == null || !deposit.Result.Result || deposit.ConstantResult.Count != 1
+            || deposit.ConstantResult[0].Length != 32)
+            throw new InvalidOperationException("Escrow deposit query did not return one ABI uint256.");
+        var amount = new System.Numerics.BigInteger(deposit.ConstantResult[0].ToByteArray(), isUnsigned: true, isBigEndian: true);
+        if (amount <= 0) throw new InvalidOperationException("The requested signer has no owned escrow deposit.");
+        return await ExecuteContractAsync(source, escrow, call, privateKey, "", cancellationToken,
+            expectedContractAmount: amount);
+    }
+
+    internal static byte[] EncodeAddressCall(string signature, params ByteString[] addresses)
+    {
+        var selector = new Nethereum.Util.Sha3Keccack().CalculateHash(signature)[..8];
+        var data = new byte[4 + 32 * addresses.Length];
+        Convert.FromHexString(selector).CopyTo(data, 0);
+        for (var i = 0; i < addresses.Length; i++)
+        {
+            var address = addresses[i];
+            if (address == null || address.Length != 21 || address[0] != 0x41)
+                throw new ArgumentException("A current 21-byte TRON contract argument address is required.");
+            address.ToByteArray().AsSpan(1).CopyTo(data.AsSpan(16 + 32 * i, 20));
+        }
+        return data;
+    }
+
+    internal static void ValidateContractAmount(TransactionInfo receipt, System.Numerics.BigInteger expected)
+    {
+        if (expected <= 0 || receipt.ContractResult.Count != 1 || receipt.ContractResult[0].Length != 32
+            || new System.Numerics.BigInteger(receipt.ContractResult[0].ToByteArray(), isUnsigned: true, isBigEndian: true) != expected)
+            throw new InvalidOperationException("Escrow confirmation did not return the expected deposited amount.");
     }
 
     public async Task<string> ApproveTokenAsync(string owner, string tokenAddress, string spender,
@@ -266,7 +319,7 @@ public sealed class TronNativeTransferClient
 
     private async Task<string> SignBroadcastConfirmAsync(Transaction transaction, string privateKey, string memo,
         CancellationToken cancellationToken, bool requireContractSuccess = false, bool requireTransferReturn = false,
-        bool allowVoidContractReturn = false)
+        bool allowVoidContractReturn = false, System.Numerics.BigInteger? expectedContractAmount = null)
     {
         var raw = transaction.RawData;
         var headers = _wallet.GetHeaders();
@@ -305,6 +358,7 @@ public sealed class TronNativeTransferClient
                 if (receipt.Id.Length != 0)
                 {
                     ValidateSolidifiedReceipt(receipt, id.Value, requireContractSuccess, requireTransferReturn, allowVoidContractReturn);
+                    if (expectedContractAmount.HasValue) ValidateContractAmount(receipt, expectedContractAmount.Value);
                     return transactionId;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2), deadline.Token);
