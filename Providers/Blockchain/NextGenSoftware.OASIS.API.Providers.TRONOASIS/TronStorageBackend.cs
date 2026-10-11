@@ -41,6 +41,13 @@ public sealed class TronStorageBackend : IKeyValueBackend
     {
         token.ThrowIfCancellationRequested();
         var bytes = await _client.QueryContractAsync(_owner, _contract, Encode(signature, inputTypes, values), token);
+        return Decode(bytes, outputTypes);
+    }
+
+    internal static List<ParameterOutput> Decode(byte[] bytes, params string[] outputTypes)
+    {
+        if (bytes == null || bytes.Length == 0 || bytes.Length % 32 != 0)
+            throw new InvalidOperationException("Storage query returned an empty or truncated ABI payload.");
         var outputs = outputTypes.Select((type, index) => new ParameterOutput
         {
             Parameter = new Parameter(type, "output" + index, index + 1)
@@ -53,7 +60,18 @@ public sealed class TronStorageBackend : IKeyValueBackend
                 }
             }
         }).ToArray();
-        return new FunctionCallDecoder().DecodeOutput("0x" + Convert.ToHexString(bytes), outputs);
+        var decoded = new FunctionCallDecoder().DecodeOutput("0x" + Convert.ToHexString(bytes), outputs);
+        foreach (var output in decoded)
+        {
+            if (output.Result is string text) StrictUtf8.GetByteCount(text);
+            if (output.Result is IEnumerable<string> strings)
+                foreach (var entry in strings) StrictUtf8.GetByteCount(entry);
+        }
+        var canonical = Encode("result(" + string.Join(",", outputTypes) + ")", outputTypes,
+            decoded.Select(output => output.Result).ToArray());
+        if (!bytes.AsSpan().SequenceEqual(canonical.AsSpan(4)))
+            throw new InvalidOperationException("Storage query returned noncanonical or lossy ABI data.");
+        return decoded;
     }
 
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
