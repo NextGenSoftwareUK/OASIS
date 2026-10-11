@@ -42,7 +42,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     var jsonContent = await File.ReadAllTextAsync(holonFilePath);
                     var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
                     
-                    if (holon != null && holon.Version == version)
+                    // Version zero requests the latest persisted document, not literal version zero.
+                    if (holon != null && (version == 0 || holon.Version == version))
                     {
                         // Load children if requested
                         if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > 0)

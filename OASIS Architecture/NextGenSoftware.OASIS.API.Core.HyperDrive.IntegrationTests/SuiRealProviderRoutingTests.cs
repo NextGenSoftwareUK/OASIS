@@ -103,6 +103,7 @@ public sealed class SuiRealProviderRoutingTests
             settings.GetProperty("storageObjectId").GetString()!);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-replication" };
+        var deletedThroughRouter = false;
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
         var activated = await sui.ActivateProviderAsync();
         activated.IsError.Should().BeFalse(activated.Message);
@@ -124,6 +125,16 @@ public sealed class SuiRealProviderRoutingTests
             var replicated = await sui.LoadHolonAsync(holon.Id, loadChildren: false);
             replicated.IsError.Should().BeFalse(replicated.Message);
             replicated.Result.Name.Should().Be(holon.Name);
+            (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+
+            holon.Name = "real-v2-sui-replication-updated";
+            var updated = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
+            updated.IsError.Should().BeFalse(updated.Message);
+            updated.IsWarning.Should().BeFalse(updated.Message);
+            (await sui.LoadHolonAsync(holon.Id, loadChildren: false)).Result.Name.Should().Be(holon.Name);
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
@@ -153,12 +164,28 @@ public sealed class SuiRealProviderRoutingTests
             loaded.IsError.Should().BeFalse(loaded.Message);
             loaded.Result.Name.Should().Be(holon.Name);
             manager.PerformanceMonitor.GetMetrics(expected).TotalRequests.Should().Be(before + 1);
+
+            manager.IsAutoLoadBalanceEnabled = false;
+            manager.IsAutoReplicationEnabled = true;
+            var removed = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+            removed.IsError.Should().BeFalse(removed.Message);
+            removed.IsWarning.Should().BeFalse(removed.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await local.LoadHolonAsync(holon.Id)).Result.Should().BeNull();
+            var absent = await sui.LoadHolonAsync(holon.Id, loadChildren: false);
+            absent.Result.Should().BeNull("successful replicated deletion must remove the Sui copy");
+            deletedThroughRouter = true;
         }
         finally
         {
-            var deleted = await sui.DeleteHolonAsync(holon.Id);
-            deleted.IsError.Should().BeFalse(deleted.Message);
-            (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            if (!deletedThroughRouter)
+            {
+                var deleted = await sui.DeleteHolonAsync(holon.Id);
+                deleted.IsError.Should().BeFalse(deleted.Message);
+                (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            }
             await sui.DeActivateProviderAsync();
             await local.DeActivateProviderAsync();
         }
