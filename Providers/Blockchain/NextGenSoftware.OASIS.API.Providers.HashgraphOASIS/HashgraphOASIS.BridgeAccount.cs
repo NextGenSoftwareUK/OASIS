@@ -177,41 +177,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var hashgraphClient = new HashgraphClient();
-                var nftData = await hashgraphClient.GetNFTData(request.NFTTokenAddress);
-                
-                if (nftData != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = "NFT locked on Hashgraph",
-                        Web3NFT = new Web3NFT
-                        {
-                            NFTTokenAddress = request.NFTTokenAddress
-                        }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT locked successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to lock NFT on Hashgraph");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error locking NFT on Hashgraph: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteAvatarNftEscrowAsync("nftEscrowLock", request?.LockedByAvatarId ?? Guid.Empty,
+                request?.Web3NFTId ?? Guid.Empty, request?.NFTTokenAddress);
         }
 
         public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
@@ -221,39 +188,49 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
         {
+            return await ExecuteAvatarNftEscrowAsync("nftEscrowUnlock", request?.UnlockedByAvatarId ?? Guid.Empty,
+                request?.Web3NFTId ?? Guid.Empty, request?.NFTTokenAddress);
+        }
+
+        private async Task<OASISResult<IWeb3NFTTransactionResponse>> ExecuteAvatarNftEscrowAsync(string action,
+            Guid avatarId, Guid web3NftId, string address)
+        {
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (!System.Text.RegularExpressions.Regex.IsMatch(_nftEscrowContractId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z")
+                    || _nftEscrowGasLimit <= 0 || _nftEscrowGasLimit > 9007199254740991L || _nftEscrowMaxFeeTinybars <= 0)
+                    throw new InvalidOperationException("An explicit Hedera NFT escrow contract, positive gas limit and fee ceiling are required.");
+                if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for NFT escrow.");
+                var asset = ParseHederaNftAddress(address);
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if (walletResult.IsError || walletResult.Result == null || string.IsNullOrWhiteSpace(walletResult.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the requesting avatar's real Hedera signing wallet.");
+                var wallet = walletResult.Result;
+                var mutationId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
+                var committed = await HederaSdkClient.InvokeAsync(action, new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var hashgraphClient = new HashgraphClient();
-                var nftData = await hashgraphClient.GetNFTData(request.NFTTokenAddress);
-                
-                if (nftData != null)
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
+                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der",
+                    tokenId = asset.TokenId, serial = asset.Serial, contractId = _nftEscrowContractId,
+                    gas = _nftEscrowGasLimit, maxFeeTinybars = _nftEscrowMaxFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    transactionId = mutationId, approvalTransactionId = action == "nftEscrowLock" ? HederaSdkClient.CreateTransactionId(wallet.WalletAddress) : null
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS"
+                    || committed.GetProperty("transactionId").GetString() != mutationId)
+                    throw new InvalidOperationException("Escrow SDK response does not establish the requested mutation's verified success.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                 {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
-                    {
-                        TransactionResult = "NFT unlocked on Hashgraph",
-                        Web3NFT = new Web3NFT
-                        {
-                            NFTTokenAddress = request.NFTTokenAddress
-                        }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT unlocked successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to unlock NFT on Hashgraph");
-                }
+                    TransactionResult = mutationId,
+                    Web3NFT = new Web3NFT { Id = web3NftId, NFTTokenAddress = address, CollectionPublicKey = asset.TokenId }
+                };
+                result.Message = "Hedera NFT escrow mutation confirmed by consensus receipt and custody readback.";
+                if (committed.TryGetProperty("approvalTransactionId", out var approval) && approval.ValueKind == JsonValueKind.String)
+                    result.Message += " Approval transaction: " + approval.GetString() + ".";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT on Hashgraph: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph NFT escrow: {ex.Message}", ex);
             }
             return result;
         }
