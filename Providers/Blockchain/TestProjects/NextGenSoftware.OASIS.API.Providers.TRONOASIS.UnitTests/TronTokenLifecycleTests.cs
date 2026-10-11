@@ -6,8 +6,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronTokenLifecycleTests
 {
     private static Task<string> Execute(TRONOASIS provider, Func<TronNativeTransferClient, Task<string>> operation)
-        => (Task<string>)typeof(TRONOASIS).GetMethod("ExecuteSignedTokenAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(provider, new object[] { operation })!;
+        => (Task<string>)typeof(TRONOASIS).GetMethod("ExecuteRuntimeAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .MakeGenericMethod(typeof(string)).Invoke(provider, new object[] { operation })!;
 
     private static void SetActive(TRONOASIS provider)
         => typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(provider, true);
