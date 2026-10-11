@@ -78,10 +78,16 @@ public sealed class TronNativeTransferClient
     public async Task<System.Collections.Generic.IReadOnlyList<string>> DiscoverNftCollectionsAsync(
         string ownerAddress, System.Collections.Generic.IEnumerable<string> transactionIds,
         CancellationToken cancellationToken = default)
+        => (await DiscoverOrderedNftTransfersAsync(ownerAddress, transactionIds, cancellationToken))
+            .Select(x => x.Contract).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
+
+    private async Task<System.Collections.Generic.IReadOnlyList<NativeNftTransfer>> DiscoverOrderedNftTransfersAsync(
+        string ownerAddress, System.Collections.Generic.IEnumerable<string> transactionIds, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var owner = _wallet.ParseAddress(ownerAddress);
-        var collections = new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);
+        var ordered = new System.Collections.Generic.List<(long Block, int Transaction, NativeNftTransfer Transfer)>();
+        var blocks = new System.Collections.Generic.Dictionary<long, BlockExtention>();
         await VerifyNetworkAsync(cancellationToken);
         foreach (var hash in transactionIds.Distinct(StringComparer.OrdinalIgnoreCase))
         {
@@ -94,15 +100,69 @@ public sealed class TronNativeTransferClient
             if (!ValidateTransactionIdentity(transaction, id.Value))
                 throw new InvalidOperationException("Indexed transaction is unavailable from the solidified SDK node.");
             ValidateSolidifiedReceipt(receipt, id.Value, true, false, false);
-            foreach (var collection in NftCollectionsFromReceipt(receipt, owner)) collections.Add(collection);
+            var transfers = NftTransfersFromReceipt(receipt, owner);
+            if (transfers.Count == 0) continue;
+            if (!blocks.TryGetValue(receipt.BlockNumber, out var block))
+            {
+                block = await solidity.GetBlockByNum2Async(new NumberMessage { Num = receipt.BlockNumber },
+                    _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+                if (block.BlockHeader?.RawData?.Number != receipt.BlockNumber)
+                    throw new InvalidOperationException("Solidified receipt block is unavailable or mismatched.");
+                blocks.Add(receipt.BlockNumber, block);
+            }
+            var position = -1;
+            for (var index = 0; index < block.Transactions.Count; index++)
+                if (block.Transactions[index].Txid.Equals(id.Value))
+                {
+                    if (!ValidateTransactionIdentity(block.Transactions[index].Transaction, id.Value))
+                        throw new InvalidOperationException("Receipt block transaction identity is missing.");
+                    position = index; break;
+                }
+            if (position < 0) throw new InvalidOperationException("Indexed transaction is absent from its solidified receipt block.");
+            foreach (var transfer in transfers) ordered.Add((receipt.BlockNumber, position, transfer));
         }
-        return collections.ToArray();
+        return ordered.OrderBy(x => x.Block).ThenBy(x => x.Transaction).ThenBy(x => x.Transfer.LogIndex)
+            .Select(x => x.Transfer).ToArray();
+    }
+
+    public async Task<System.Collections.Generic.IReadOnlyList<string>> GetIndexedOwnedNftAddressesAsync(string ownerAddress,
+        System.Collections.Generic.IEnumerable<string> transactionIds, CancellationToken cancellationToken = default)
+    {
+        var transfers = await DiscoverOrderedNftTransfersAsync(ownerAddress, transactionIds, cancellationToken);
+        var owner = _wallet.ParseAddress(ownerAddress);
+        var canonicalOwner = NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(owner.ToByteArray());
+        var finalTransfers = FinalNftTransfers(transfers);
+        var addresses = new System.Collections.Generic.List<string>();
+        foreach (var collection in finalTransfers.GroupBy(x => x.Contract))
+        {
+            var candidates = collection.Where(x => x.To == canonicalOwner).ToArray();
+            var balanceCall = EncodeAddressCall("balanceOf(address)", owner);
+            async Task<System.Numerics.BigInteger> Balance() => (System.Numerics.BigInteger)TronStorageBackend.Decode(
+                await QueryContractAsync(ownerAddress, collection.Key, balanceCall, cancellationToken), "uint256")[0].Result;
+            var balance = await Balance();
+            if (balance != candidates.Length)
+                throw new InvalidOperationException("Indexed NFT identities do not cover the current collection balance; no partial inventory is returned.");
+            foreach (var candidate in candidates)
+            {
+                var call = EncodeNftBurn(candidate.TokenId); Convert.FromHexString("6352211e").CopyTo(call, 0);
+                var actualOwner = (System.Numerics.BigInteger)TronStorageBackend.Decode(
+                    await QueryContractAsync(ownerAddress, collection.Key, call, cancellationToken), "uint256")[0].Result;
+                if (actualOwner != new System.Numerics.BigInteger(owner.Span[1..], true, true))
+                    throw new InvalidOperationException("Indexed NFT identity is no longer owned by the requested wallet.");
+                addresses.Add(candidate.Contract + "/" + candidate.TokenId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            if (await Balance() != balance) throw new InvalidOperationException("NFT collection balance changed while reading inventory.");
+        }
+        return addresses;
     }
 
     internal static System.Collections.Generic.IReadOnlyList<string> NftCollectionsFromReceipt(TransactionInfo receipt, ByteString owner)
         => NftTransfersFromReceipt(receipt, owner).Select(transfer => transfer.Contract).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
 
     internal sealed record NativeNftTransfer(string Contract, System.Numerics.BigInteger TokenId, string From, string To, int LogIndex);
+
+    internal static NativeNftTransfer[] FinalNftTransfers(System.Collections.Generic.IReadOnlyList<NativeNftTransfer> orderedTransfers)
+        => orderedTransfers.GroupBy(x => (x.Contract, x.TokenId)).Select(x => x.Last()).ToArray();
 
     internal static System.Collections.Generic.IReadOnlyList<NativeNftTransfer> NftTransfersFromReceipt(TransactionInfo receipt, ByteString owner)
     {

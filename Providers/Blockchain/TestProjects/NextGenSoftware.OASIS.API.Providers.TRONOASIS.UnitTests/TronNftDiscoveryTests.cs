@@ -91,4 +91,28 @@ public sealed class TronNftDiscoveryTests
         await Assert.ThrowsAsync<OperationCanceledException>(() => runtime.NativeTransfers.DiscoverNftCollectionsAsync(
             "unused", Array.Empty<string>(), new CancellationToken(true)));
     }
+
+    [Fact]
+    public void FinalTransferReplayRetainsBurnInsteadOfEarlierIncomingTransfer()
+    {
+        var incoming = Transfer(); var burned = Transfer();
+        burned.Topics[1] = incoming.Topics[2]; burned.Topics[2] = incoming.Topics[1];
+        var receipt = new TransactionInfo(); receipt.Log.Add(incoming); receipt.Log.Add(burned);
+        var parse = typeof(TronNativeTransferClient).GetMethod("NftTransfersFromReceipt", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var transfers = parse.Invoke(null, new object[] { receipt, Owner() })!;
+        var replay = typeof(TronNativeTransferClient).GetMethod("FinalNftTransfers", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var final = ((System.Collections.IEnumerable)replay.Invoke(null, new[] { transfers })!).Cast<object>().ToArray();
+        var transfer = Assert.Single(final);
+        Assert.Equal(1, transfer.GetType().GetProperty("LogIndex")!.GetValue(transfer));
+        var zero = new byte[21]; zero[0] = 0x41;
+        Assert.Equal(NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(zero), transfer.GetType().GetProperty("To")!.GetValue(transfer));
+    }
+
+    [Fact]
+    public async Task PrecancelledNonEnumerableInventoryDoesNotAccessNetwork()
+    {
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => runtime.NativeTransfers.GetIndexedOwnedNftAddressesAsync(
+            "unused", Array.Empty<string>(), new CancellationToken(true)));
+    }
 }

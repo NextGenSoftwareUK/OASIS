@@ -124,23 +124,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 {
                     var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
                         .ReadAsync(mintWalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-                    var collections = await client.DiscoverNftCollectionsAsync(mintWalletAddress,
+                    var addresses = await client.GetIndexedOwnedNftAddressesAsync(mintWalletAddress,
                         history.Select(record => record.GetProperty("transaction_id").GetString()));
                     var items = new List<IWeb3NFT>();
-                    foreach (var collection in collections)
+                    foreach (var address in addresses)
                     {
-                        var ids = await client.GetNftIdsForOwnerAsync(collection, mintWalletAddress);
-                        foreach (var id in ids)
+                        var asset = TronNativeTransferClient.ParseNftAddress(address);
                             items.Add(new Web3NFT
                             {
-                                NFTTokenAddress = collection + "/" + id.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                                JSONMetaDataURL = await client.GetNftMetadataUriAsync(collection, id),
+                                NFTTokenAddress = address,
+                                JSONMetaDataURL = await client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId),
                                 OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
                             });
                     }
                     return items;
                 });
-                result.Message = "Current SDK ownership for enumerable collections discovered from confirmed indexed history; indexer coverage and block-pinned completeness are not guaranteed.";
+                result.Message = "Native NFT identities replayed from solidified receipt order and checked against current ownership and collection balances; indexer coverage and block-pinned completeness are not guaranteed.";
             }
             catch (Exception ex)
             {
