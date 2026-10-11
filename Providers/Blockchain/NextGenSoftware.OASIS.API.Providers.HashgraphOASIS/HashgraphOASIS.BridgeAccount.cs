@@ -202,18 +202,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     network = _hederaNetwork, nodes = _consensusNodes, transactionId = transactionHash
                 }, token);
                 var status = receipt.GetProperty("status").GetString();
-                result.Result = status switch
-                {
-                    "SUCCESS" => BridgeTransactionStatus.Completed,
-                    "UNKNOWN" => BridgeTransactionStatus.Pending,
-                    "RECEIPT_NOT_FOUND" => BridgeTransactionStatus.NotFound,
-                    "TRANSACTION_EXPIRED" => BridgeTransactionStatus.Expired,
-                    "INSUFFICIENT_ACCOUNT_BALANCE" or "INSUFFICIENT_PAYER_BALANCE" => BridgeTransactionStatus.InsufficientFunds,
-                    "INSUFFICIENT_TX_FEE" => BridgeTransactionStatus.InsufficientFundsForFee,
-                    _ => throw new InvalidOperationException($"Hedera consensus receipt reports {status}.")
-                };
+                result.Result = MapReceiptStatus(status);
                 result.IsError = false;
-                result.Message = "Transaction status retrieved from the configured Hedera consensus network.";
+                result.Message = $"Transaction status retrieved from the configured Hedera consensus network: {status}.";
             }
             catch (Exception ex)
             {
@@ -221,6 +212,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             }
             return result;
         }
+
+        private static BridgeTransactionStatus MapReceiptStatus(string status) => status switch
+        {
+            "SUCCESS" => BridgeTransactionStatus.Completed,
+            "UNKNOWN" => BridgeTransactionStatus.Pending,
+            "RECEIPT_NOT_FOUND" => BridgeTransactionStatus.NotFound,
+            "TRANSACTION_EXPIRED" => BridgeTransactionStatus.Expired,
+            "INSUFFICIENT_ACCOUNT_BALANCE" or "INSUFFICIENT_PAYER_BALANCE" => BridgeTransactionStatus.InsufficientFunds,
+            "INSUFFICIENT_TX_FEE" => BridgeTransactionStatus.InsufficientFundsForFee,
+            // These are terminal statuses from an actual receipt, not transport/precheck exceptions.
+            "CONTRACT_REVERT_EXECUTED" or "CONTRACT_EXECUTION_EXCEPTION" or "INVALID_SIGNATURE"
+                or "INVALID_ACCOUNT_ID" or "INVALID_TOKEN_ID" or "TOKEN_WAS_DELETED"
+                or "TOKEN_IS_PAUSED" or "ACCOUNT_FROZEN_FOR_TOKEN" or "ACCOUNT_KYC_NOT_GRANTED_FOR_TOKEN"
+                or "TOKEN_NOT_ASSOCIATED_TO_ACCOUNT" or "INSUFFICIENT_TOKEN_BALANCE"
+                or "INVALID_NFT_ID" or "SENDER_DOES_NOT_OWN_NFT_SERIAL_NO" => BridgeTransactionStatus.Failed,
+            // Unrecognized/malformed responses cannot establish a ledger outcome.
+            _ => throw new InvalidOperationException($"Hedera consensus receipt reports an unclassified status: {status}.")
+        };
 
 
 
