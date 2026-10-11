@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Broader current Hedera non-funded regression audit (2026-10-11)
+
+Full test-project selection excluding only funded storage and transfer classes passes **181/181**, zero skips (`hedera-current-nonfunded.trx`), including current collection/metadata tests. Initial run was **177/181**: four historical tests constructed the provider with no storage config but expected successful saves/searches. The class now explicitly tests unconfigured-storage failure; save/read/search cases require the missing-contract configuration error, not fake persistence. Two search fixtures also lacked required text groups and initially hit input-validation errors; valid groups now exercise the intended storage boundary. Production code was unchanged for this correction. Positive funded encrypted CRUD/restart remains separately defined in `HederaTestnetStorageTests` and unverified because no storage contract is deployed; this green non-funded selection must not be called live storage or all-provider completion. No installation or ledger mutation.
+
 ### Collection/metadata Unicode integrity (2026-10-11)
 
 C# collection name/symbol and metadata update validation now uses throwing UTF-8 encoding instead of silently replacing unpaired UTF-16 surrogates. Direct SDK entry also rejects unpaired surrogates before byte encoding; valid Unicode/emoji remain supported by existing roundtrip tests. Regression cases prove invalid high/low surrogates produce explicit errors before any transaction identity/submission. C# collection suite **25/25**, SDK suite **78/78**, zero skips; bounded provider build succeeds. This closes an input integrity issue, not live lifecycle/API gates. No installation/download or ledger mutation.
