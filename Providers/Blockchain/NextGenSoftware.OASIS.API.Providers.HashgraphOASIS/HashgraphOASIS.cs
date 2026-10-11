@@ -43,6 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private HttpClient _httpClient;
         private string _contractAddress;
         private readonly string _hederaNetwork;
+        private readonly string _bridgePoolAccountId;
+        private readonly Func<string> _bridgePoolSigningKey;
         private readonly Dictionary<string, string> _consensusNodes;
 
         public WalletManager WalletManager
@@ -56,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null)
             : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
             if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
@@ -75,6 +77,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         throw new ArgumentException("Local consensus nodes require loopback endpoints and numeric account IDs.", nameof(consensusNodes));
                 }
             _walletManager = walletManager;
+            _bridgePoolAccountId = bridgePoolAccountId;
+            _bridgePoolSigningKey = bridgePoolSigningKey;
             _hederaNetwork = network;
             this.ProviderName = "HashgraphOASIS";
             this.ProviderDescription = "Hashgraph Provider";

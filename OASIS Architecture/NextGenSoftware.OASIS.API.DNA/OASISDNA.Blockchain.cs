@@ -91,6 +91,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class HashgraphOASISProviderSettings : ProviderSettingsBase
     {
+        public string BridgePoolAccountId { get; set; } = "";
+        public string BridgePoolSigningKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_BRIDGE_POOL_PRIVATE_KEY";
         public string StorageContractId { get; set; } = "";
         public string StorageOperatorAccountId { get; set; } = "";
         public string StorageSigningKeyType { get; set; } = "der";
