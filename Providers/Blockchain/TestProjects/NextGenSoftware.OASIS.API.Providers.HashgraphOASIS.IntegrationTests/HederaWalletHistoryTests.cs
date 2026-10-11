@@ -1,7 +1,9 @@
 using System.Reflection;
+using System.Net;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 
@@ -53,5 +55,73 @@ public class HederaWalletHistoryTests
         var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Record)!;
         data[field] = JsonSerializer.SerializeToElement(value);
         Assert.ThrowsException<TargetInvocationException>(() => Map(JsonSerializer.Serialize(data)));
+    }
+
+    private static string Page(IEnumerable<string> records, string? next) =>
+        "{\"transactions\":[" + string.Join(",", records) + "],\"links\":{\"next\":" + JsonSerializer.Serialize(next) + "}}";
+
+    private static HashgraphOASIS Provider(HistoryHandler handler)
+    {
+        var provider = new HashgraphOASIS("http://127.0.0.1:12345/api/v1", "testnet") { IsProviderActivated = true };
+        var field = typeof(HashgraphOASIS).GetField("_httpClient", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        ((HttpClient)field.GetValue(provider)!).Dispose();
+        field.SetValue(provider, new HttpClient(handler) { BaseAddress = new Uri("http://127.0.0.1:12345/api/v1/") });
+        return provider;
+    }
+
+    [TestMethod]
+    public async Task PublicHistoryReadsBeyondOnePageAtConfiguredEndpoint()
+    {
+        var first = Enumerable.Range(1, 100).Select(i => Record.Replace("1700000000.123456789", $"1700000000.{i:D9}"));
+        using var handler = new HistoryHandler(new[] {
+            Page(first, "/api/v1/transactions?account.id=0.0.1001&timestamp=gt:1700000000.000000100"),
+            Page(new[] { Record }, null) });
+        var result = await Provider(handler).GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" });
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(101, result.Result.Count);
+        Assert.AreEqual(2, handler.Requests.Count);
+        StringAssert.StartsWith(handler.Requests[0], "http://127.0.0.1:12345/api/v1/transactions?");
+        StringAssert.Contains(handler.Requests[0], "timestamp=gte:0");
+        Assert.AreEqual("-9007199254741000", result.Result[100].RawAmount);
+    }
+
+    [DataTestMethod]
+    [DataRow("https://foreign.example/api/v1/transactions")]
+    [DataRow("/api/v1/accounts")]
+    [DataRow("/api/v1/transactions?account.id=0.0.1001&limit=100&order=asc&timestamp=gte:0")]
+    public async Task UnsafeOrCyclicNextLinkReturnsErrorWithoutPartialHistory(string next)
+    {
+        using var handler = new HistoryHandler(new[] { Page(new[] { Record }, next) });
+        var result = await Provider(handler).GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" });
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+        Assert.AreEqual(1, handler.Requests.Count, "Unsafe next links must be rejected before transmission.");
+    }
+
+    [TestMethod]
+    public async Task SecondPageHttpFailureCannotReturnSuccessfulPartialHistory()
+    {
+        using var handler = new HistoryHandler(new[] { Page(new[] { Record }, "/api/v1/transactions?page=2") }, HttpStatusCode.ServiceUnavailable);
+        var result = await Provider(handler).GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" });
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.AreEqual(2, handler.Requests.Count);
+    }
+
+    [TestMethod]
+    public async Task RepeatedConsensusRecordCannotInflateHistory()
+    {
+        using var handler = new HistoryHandler(new[] { Page(new[] { Record, Record }, null) });
+        var result = await Provider(handler).GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" });
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+    }
+
+    private sealed class HistoryHandler(IEnumerable<string> pages, HttpStatusCode exhausted = HttpStatusCode.BadRequest) : HttpMessageHandler
+    {
+        private readonly Queue<string> _pages = new(pages);
+        public List<string> Requests { get; } = new();
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests.Add(request.RequestUri!.AbsoluteUri);
+            return Task.FromResult(_pages.Count == 0 ? new HttpResponseMessage(exhausted)
+                : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(_pages.Dequeue()) });
+        }
     }
 }
