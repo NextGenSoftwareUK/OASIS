@@ -5,10 +5,20 @@ import { AccountInfoQuery, ContractInfoQuery, ContractByteCodeQuery, TokenNftInf
 export const escrowAbi = new Interface([
   'function lockNFT(address token,uint256 serial)',
   'function unlockNFT(address token,uint256 serial)',
-  'function nftDepositor(address token,uint256 serial) view returns(address)'
+  'function nftDepositor(address token,uint256 serial) view returns(address)',
+  'function lockAll(address token) returns(uint256)',
+  'function unlock(address token) returns(uint256)',
+  'function locked(address token,address depositor) view returns(uint256)'
 ]);
 
 export function validateEscrowRequest(request) {
+  const context = validateEscrowContext(request);
+  if (!/^[1-9][0-9]*$/.test(request.serial ?? '') || BigInt(request.serial) > 9223372036854775807n)
+    throw new Error('Escrow requires one positive exact int64 NFT serial.');
+  return context;
+}
+
+function validateEscrowContext(request) {
   if (!/^0x[0-9a-f]{64}$/i.test(request.runtimeCodeHash ?? '')) throw new Error('An explicit escrow runtime code hash is required.');
   for (const field of ['sender', 'contractId', 'tokenId'])
     if (!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request[field] ?? ''))
@@ -16,8 +26,6 @@ export function validateEscrowRequest(request) {
   const sender = AccountId.fromString(request.sender);
   const contract = ContractId.fromString(request.contractId);
   const token = TokenId.fromString(request.tokenId);
-  if (!/^[1-9][0-9]*$/.test(request.serial ?? '') || BigInt(request.serial) > 9223372036854775807n)
-    throw new Error('Escrow requires one positive exact int64 NFT serial.');
   if (!Number.isSafeInteger(request.gas) || request.gas <= 0)
     throw new Error('Escrow requires an explicit positive safe-integer gas limit.');
   if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
@@ -52,13 +60,37 @@ export function escrowTransaction(action, request) {
 
 export function escrowApprovalTransaction(request) {
   const { sender, contract, token, id } = validateEscrowRequest(request);
-  const approvalId = TransactionId.fromString(request.approvalTransactionId);
-  if (approvalId.accountId.toString() !== sender.toString() || approvalId.toString() === id.toString())
-    throw new Error('Escrow approval requires a distinct transaction ID for the same payer.');
+  const approvalId = validateApprovalId(request, sender, id);
   return new AccountAllowanceApproveTransaction()
     .approveTokenNftAllowance(token.toString() + '/' + request.serial, sender, contract)
     .setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
     .setTransactionId(approvalId).setMaxAttempts(1).setRegenerateTransactionId(false);
+}
+
+function validateApprovalId(request, sender, mutationId) {
+  const approvalId = TransactionId.fromString(request.approvalTransactionId);
+  if (approvalId.accountId.toString() !== sender.toString() || approvalId.toString() === mutationId.toString())
+    throw new Error('Escrow approval requires a distinct transaction ID for the same payer.');
+  return approvalId;
+}
+
+export function tokenEscrowTransaction(action, request) {
+  if (!['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) throw new Error('Unknown token escrow mutation.');
+  const { contract, token, id } = validateEscrowContext(request);
+  return new ContractExecuteTransaction().setContractId(contract).setGas(request.gas)
+    .setFunctionParameters(getBytes(escrowAbi.encodeFunctionData(action === 'tokenEscrowLock' ? 'lockAll' : 'unlock', ['0x' + token.toSolidityAddress()])))
+    .setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
+    .setTransactionId(id).setMaxAttempts(1).setRegenerateTransactionId(false);
+}
+
+export function tokenEscrowApprovalTransaction(request) {
+  const { sender, contract, token, id } = validateEscrowContext(request);
+  if (typeof request.amountUnits !== 'string' || !/^[1-9][0-9]*$/.test(request.amountUnits) || BigInt(request.amountUnits) > 9223372036854775807n)
+    throw new Error('Token escrow approval requires exact positive int64 token units.');
+  return new AccountAllowanceApproveTransaction()
+    .approveTokenAllowance(token, sender, contract, BigInt(request.amountUnits))
+    .setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
+    .setTransactionId(validateApprovalId(request, sender, id)).setMaxAttempts(1).setRegenerateTransactionId(false);
 }
 
 export async function executeEscrow(action, request, { createClient, restoreKey }) {

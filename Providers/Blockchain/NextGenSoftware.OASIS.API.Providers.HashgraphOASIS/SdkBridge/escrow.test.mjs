@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AccountId, Transaction, ContractExecuteTransaction, AccountAllowanceApproveTransaction } from '@hiero-ledger/sdk';
-import { escrowAbi, escrowTransaction, escrowApprovalTransaction, verifyDepositorAccount, verifyEscrowRuntime } from './escrow.mjs';
+import { escrowAbi, escrowTransaction, escrowApprovalTransaction, tokenEscrowTransaction, tokenEscrowApprovalTransaction, verifyDepositorAccount, verifyEscrowRuntime } from './escrow.mjs';
 import { keccak256 } from 'ethers';
 import { execute } from './bridge.mjs';
 import { PrivateKey } from '@hiero-ledger/sdk';
@@ -9,6 +9,30 @@ const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',seri
  gas:400000,maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
 function roundTrip(tx) {tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();return Transaction.fromBytes(tx.toBytes());}
+for (const action of ['tokenEscrowLock','tokenEscrowUnlock']) test(`${action} uses exact contract ABI without an NFT serial`,()=>{
+ const {serial,...tokenRequest}=request;
+ const submission=tokenEscrowTransaction(action,tokenRequest);
+ assert.equal(submission.maxAttempts,1);assert.equal(submission.regenerateTransactionId,false);
+ const tx=roundTrip(submission), decoded=escrowAbi.parseTransaction({data:tx.functionParameters});
+ assert.equal(decoded.name,action==='tokenEscrowLock'?'lockAll':'unlock');
+ assert.equal(decoded.args.length,1);assert.equal(decoded.args[0].toLowerCase(),'0x0000000000000000000000000000000000000bb9');
+ assert.equal(tx.contractId.toString(),request.contractId);assert.equal(tx.gas.toString(),String(request.gas));
+ assert.equal(tx.transactionId.toString(),request.transactionId);assert.equal(tx.maxTransactionFee.toTinybars().toString(),request.maxFeeTinybars);
+});
+test('fungible allowance preserves int64 token units above Number precision in SDK wire bytes',()=>{
+ const submission=tokenEscrowApprovalTransaction({...request,amountUnits:'9007199254740993'});
+ assert.equal(submission.maxAttempts,1);assert.equal(submission.regenerateTransactionId,false);
+ const tx=roundTrip(submission), allowance=tx.tokenApprovals[0];
+ assert.equal(tx.tokenApprovals.length,1);assert.equal(allowance.amount.toString(),'9007199254740993');
+ assert.equal(allowance.tokenId.toString(),request.tokenId);assert.equal(allowance.ownerAccountId.toString(),request.sender);
+ assert.equal(allowance.spenderAccountId.toString(),request.contractId);assert.equal(tx.transactionId.toString(),request.approvalTransactionId);
+});
+test('fungible allowance rejects ambiguous or out-of-range amounts and reused approval IDs',()=>{
+ for(const amountUnits of [undefined,1,'0','-1','1.5','9223372036854775808'])
+  assert.throws(()=>tokenEscrowApprovalTransaction({...request,amountUnits}),/exact positive int64/);
+ assert.throws(()=>tokenEscrowApprovalTransaction({...request,amountUnits:'1',approvalTransactionId:request.transactionId}),/distinct transaction ID/);
+ assert.throws(()=>tokenEscrowTransaction('unknown',request),/Unknown token escrow/);
+});
 for (const action of ['nftEscrowLock','nftEscrowUnlock']) test(`${action} preserves exact serial, contract, fees and single submission in SDK wire bytes`,()=>{
  const submission=escrowTransaction(action,request);
  assert.equal(submission.maxAttempts,1);assert.equal(submission.regenerateTransactionId,false);

@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Hedera fungible escrow SDK construction checkpoint (2026-10-11)
+
+The existing pinned Hiero SDK supports exact `bigint` token allowances; no installation or download was needed. `SdkBridge/escrow.mjs` now constructs the combined escrow contract's `lockAll(address)` and `unlock(address)` calls and native HTS fungible allowances. Common account, runtime-hash, gas, fee and payer validation is shared with NFT escrow; NFT serial validation remains NFT-specific. Approval uses a separate transaction ID for the same payer, and both mutations and approvals disable ID regeneration and use one attempt.
+
+`npm test` in the existing Hashgraph SDK bridge passed **62/62**, zero skips. New SDK protobuf round-trip tests prove exact allowance units `9007199254740993`, token/owner/spender identity, contract ABI, fees and transaction IDs, plus rejection of ambiguous/out-of-range amounts. This is construction evidence only: fungible signed execution, C# configuration/provider wiring, and funded live custody/release are still incomplete. The old C# fungible lock/unlock path must not be represented as implemented escrow. No deployment or merge has occurred at this checkpoint.
+
 Provider-backed public manager APIs use one of two intentional boundaries:
 
 1. Avatar, AvatarDetail, Holon, Search and Wallet persistence enter `OASISHyperDrive` through a typed request when `HyperDriveMode == OASISHyperDrive2`.
