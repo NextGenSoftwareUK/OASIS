@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Packaging verifier ESM-resolution correction (2026-10-11)
+
+The companion verifier now uses bounded Node ESM subprocess imports from the bridge directory, matching production import conditions rather than `createRequire.resolve` CommonJS conditions. A conditional-export regression fixture has a valid ESM entry and intentionally missing CommonJS entry; it passes, proving the correct package branch is selected. Verifier tests pass **5/5**, and existing Cosmos/Hedera/Sui/Near source SDK directories validate without installation. Source contract audit still finds **42** V2 operations with sync/async handler parity and provider-boundary test declarations; that static audit is **not** live execution of all operations or HTTP routes. Published image and complete operation matrix gates remain open.
+
 ### SDK companion-module packaging verification (2026-10-11)
 
 Existing Docker packaging already runs pinned `npm ci` in Docker-owned `/app/publish`, not shared source caches. Its verifier now syntax-checks all packaged top-level `.mjs` files, resolves static and literal dynamic imports, requires referenced local companion files, and imports external SDK modules without executing bridge operations. This covers Hedera escrow/deployment companions previously omitted from the main-file-only scan. Existing source installations pass for Cosmos/Hedera/Sui/Near without downloads; negative verifier tests pass **4/4** for missing dynamic companion, syntax failure, unused declared SDK and non-execution of bridge entry points. Disposable test fixtures are removed in `finally`. This is source-directory verification, not proof of a newly built Docker image or deployed API. Full image publish/runtime verification remains a release gate.
