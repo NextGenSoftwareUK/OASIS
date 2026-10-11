@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera transfer failure isolation checkpoint (2026-10-11)
+
+Original second attempt `0.0.10993779@1791757866.894265500` was rechecked through the current official node and returned native RECEIPT_NOT_FOUND. Transfer errors now identify construction/signing/submission/receipt stage and retain safe status codes, including the installed SDK's exact attempt-limit message encoding; arbitrary exception text is not exposed. Following reconciliation, a third explicit provider test **failed in construction**, before the bridge signing/submission calls (`0.0.10993779@1791757998.104693300`). No claim of network/hollow/signature root cause or successful payment is made. A separate read-only SDK construction probe using a generated ECDSA key succeeds, so actual request/key/client construction differences need investigation next. **67/67 SDK tests pass**, zero skips, including status-text sanitization. No automatic resubmission, new runtime, install/download or credential logging occurred.
+
 ### Hedera current address-book initialization (2026-10-11)
 
 The pinned SDK's static initial testnet network lacks current node 0/1 endpoints shown by the official mirror address book. Read-only native receipt queries through current node `0.testnet.hedera.com:50211` and through SDK `updateNetwork()` both return RECEIPT_NOT_FOUND for original attempt `0.0.10993779@1791757597.596315000`; the earlier SDK default-network query failed without a useful status. Public-network client creation now awaits the installed SDK's `updateNetwork()` before operations; every async consumer, including NFT/token escrow, awaits that initialization. Refresh failure closes the client and errors, with no stale-network fallback. Explicit local nodes remain unchanged. **66/66** SDK tests passed, zero skips. After original-attempt reconciliation, a new explicit funded transfer test still **failed** verified success (ID `0.0.10993779@1791757866.894265500`); no success or exact causal attribution to addresses/hollow state is claimed. The new attempt must be reconciled before further submission. No SDK/runtime install/download or identity change occurred.
