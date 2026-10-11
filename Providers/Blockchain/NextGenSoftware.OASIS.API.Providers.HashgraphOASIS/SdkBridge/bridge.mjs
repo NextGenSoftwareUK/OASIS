@@ -1,7 +1,7 @@
 import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery, FileId, FileCreateTransaction, FileUpdateTransaction, FileDeleteTransaction, FileContentsQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
 import { Mnemonic } from '@hiero-ledger/sdk';
-import { executeEscrow } from './escrow.mjs';
+import { executeEscrow, executeTokenEscrow } from './escrow.mjs';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
 
@@ -214,6 +214,7 @@ async function executeFile(action, request) {
 
 export async function execute(action, request) {
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
+  if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
     if (request.keyType !== 'ed25519') throw new Error('Mnemonic derivation requires the explicit standard Ed25519 algorithm.');
     if (action === 'restoreMnemonic' && (typeof request.seedPhrase !== 'string' || !request.seedPhrase.trim()))

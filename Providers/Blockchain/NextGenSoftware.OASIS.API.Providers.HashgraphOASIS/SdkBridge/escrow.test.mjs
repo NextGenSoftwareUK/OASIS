@@ -8,6 +8,13 @@ import { PrivateKey } from '@hiero-ledger/sdk';
 const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'9007199254740993',
  gas:400000,maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
+for(const action of ['tokenEscrowLock','tokenEscrowUnlock']) test(`${action} dispatcher rejects missing EVM identity before network use`,async()=>{
+ await assert.rejects(()=>execute(action,request),/real sender EVM address/);
+});
+for(const action of ['tokenEscrowLock','tokenEscrowUnlock']) test(`${action} dispatcher rejects signer mismatch before paid queries`,async()=>{
+ const signer=PrivateKey.generateED25519(), other=PrivateKey.generateED25519();
+ await assert.rejects(()=>execute(action,{...request,senderEvmAddress:'0x'+'12'.repeat(20),network:'testnet',privateKey:signer.toStringDer(),keyType:'der',publicKey:other.publicKey.toStringDer()}),/signing key mismatch/);
+});
 function roundTrip(tx) {tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();return Transaction.fromBytes(tx.toBytes());}
 for (const action of ['tokenEscrowLock','tokenEscrowUnlock']) test(`${action} uses exact contract ABI without an NFT serial`,()=>{
  const {serial,...tokenRequest}=request;
