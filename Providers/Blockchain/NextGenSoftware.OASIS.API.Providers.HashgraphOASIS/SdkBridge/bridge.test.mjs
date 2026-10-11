@@ -1,12 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execute, tokenUnits, nftTransaction, singleSubmission, nativeFailureStatus } from './bridge.mjs';
-import { AccountId, Transaction, TransactionId, TokenMintTransaction, TokenBurnTransaction, TransferTransaction } from '@hiero-ledger/sdk';
+import { AccountId, Transaction, TransactionId, TokenMintTransaction, TokenBurnTransaction, TransferTransaction, Hbar, Client, PrivateKey } from '@hiero-ledger/sdk';
 
 function roundTrip(transaction) {
   transaction.setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001')).setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();
   return Transaction.fromBytes(transaction.toBytes());
 }
+
+test('native transfer freezes with exactly one payer-ID assignment through actual client construction',()=>{
+ const client=Client.forNetwork({'127.0.0.1:50211':'0.0.3'});
+ try {
+  const sender=AccountId.fromString('0.0.1001'), id=TransactionId.fromString('0.0.1001@1700000000.000000001');
+  client.setOperator(sender,PrivateKey.generateECDSA());
+  const tx=new TransferTransaction().setTransactionMemo('OASIS test').addHbarTransfer(sender,Hbar.fromTinybars('-1')).addHbarTransfer('0.0.1002',Hbar.fromTinybars('1'));
+  singleSubmission(tx,id).freezeWith(client);
+  assert.equal(tx.transactionId.toString(),id.toString());assert.equal(tx.maxAttempts,1);assert.equal(tx.regenerateTransactionId,false);
+ } finally {client.close();}
+});
 
 test('native failure status preserves structured and SDK attempt-limit codes without arbitrary exception text',()=>{
  assert.equal(nativeFailureStatus({status:{toString:()=> 'INVALID_SIGNATURE'}}),'INVALID_SIGNATURE');

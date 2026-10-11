@@ -20,7 +20,9 @@ internal static class HederaSdkClient
         do
         {
             prior = Interlocked.Read(ref _lastTransactionTicks);
-            next = Math.Max(DateTime.UtcNow.Ticks, checked(prior + 1));
+            // The SDK backdates valid starts by 3-8 seconds for consensus clock skew.
+            // Keep deterministic monotonic IDs within that safety margin; never regenerate on submission.
+            next = Math.Max(DateTime.UtcNow.AddSeconds(-8).Ticks, checked(prior + 1));
         } while (Interlocked.CompareExchange(ref _lastTransactionTicks, next, prior) != prior);
         var epochTicks = next - DateTime.UnixEpoch.Ticks;
         return sender + "@" + (epochTicks / TimeSpan.TicksPerSecond).ToString(System.Globalization.CultureInfo.InvariantCulture)
