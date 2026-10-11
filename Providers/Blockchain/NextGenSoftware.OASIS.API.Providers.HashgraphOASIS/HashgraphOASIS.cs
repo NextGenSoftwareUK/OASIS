@@ -41,7 +41,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
     {
         private WalletManager _walletManager;
         private HttpClient _httpClient;
-        private string _contractAddress;
         private readonly string _nftEscrowContractId;
         private readonly string _nftEscrowRuntimeCodeHash;
         private readonly long _nftEscrowGasLimit;
