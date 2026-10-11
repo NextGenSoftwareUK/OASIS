@@ -74,11 +74,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             TronNativeTransferClient nativeTransfers = null, Func<string, Task<string>> nativeSigningKeyResolver = null,
             string fullNodeGrpcEndpoint = "", string solidityNodeGrpcEndpoint = "", string genesisBlockId = "",
             string signingKeyEnvironmentVariable = "OASIS_TRON_PRIVATE_KEY", string apiKeyEnvironmentVariable = "OASIS_TRON_API_KEY",
-            string escrowContractAddress = "", string bridgePoolWalletAddress = "", TronPrivateStorageBackend storageBackend = null)
+            string escrowContractAddress = "", string bridgePoolWalletAddress = "", TronPrivateStorageBackend storageBackend = null,
+            string storageContractAddress = "", string storageOwnerAddress = "",
+            string storageSigningKeyEnvironmentVariable = "OASIS_TRON_STORAGE_PRIVATE_KEY",
+            string storageEncryptionKeyEnvironmentVariable = "OASIS_TRON_STORAGE_ENCRYPTION_KEY")
             : base(new TronProviderStorageBackend(storageBackend))
         {
             ((TronProviderStorageBackend)Backend).Lifecycle = _runtimeLifecycle;
             ((TronProviderStorageBackend)Backend).IsActive = () => IsProviderActivated;
+            if (storageBackend != null && (!string.IsNullOrWhiteSpace(storageContractAddress) || !string.IsNullOrWhiteSpace(storageOwnerAddress)))
+                throw new ArgumentException("Choose either injected storage or configured storage, not both.");
+            if (storageBackend == null && (!string.IsNullOrWhiteSpace(storageContractAddress) || !string.IsNullOrWhiteSpace(storageOwnerAddress)))
+            {
+                if (string.IsNullOrWhiteSpace(storageContractAddress) || string.IsNullOrWhiteSpace(storageOwnerAddress)
+                    || string.IsNullOrWhiteSpace(storageSigningKeyEnvironmentVariable) || string.IsNullOrWhiteSpace(storageEncryptionKeyEnvironmentVariable))
+                    throw new ArgumentException("Storage contract, owner and credential environment-variable names are required together.");
+                ((TronProviderStorageBackend)Backend).Factory = () => new TronPrivateStorageBackend(_nativeTransfers,
+                    storageOwnerAddress, storageContractAddress,
+                    () => Environment.GetEnvironmentVariable(storageSigningKeyEnvironmentVariable),
+                    () =>
+                    {
+                        var encoded = Environment.GetEnvironmentVariable(storageEncryptionKeyEnvironmentVariable);
+                        if (string.IsNullOrWhiteSpace(encoded)) throw new InvalidOperationException("TRON storage encryption credential is missing.");
+                        try { return Convert.FromBase64String(encoded); }
+                        catch (FormatException) { throw new InvalidOperationException("TRON storage encryption credential must be base64 for a persistent 32-byte key."); }
+                    });
+            }
             _nativeTransfers = nativeTransfers;
             _nativeSigningKeyResolver = nativeSigningKeyResolver;
             _fullNodeGrpcEndpoint = fullNodeGrpcEndpoint;

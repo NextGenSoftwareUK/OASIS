@@ -397,7 +397,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                  apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable,
                                  escrowContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.EscrowContractAddress,
                                  contractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractAddress,
-                                 bridgePoolWalletAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.BridgePoolWalletAddress);
+                                 bridgePoolWalletAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.BridgePoolWalletAddress,
+                                 storageContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageContractAddress,
+                                 storageOwnerAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageOwnerAddress,
+                                 storageSigningKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageSigningKeyEnvironmentVariable,
+                                 storageEncryptionKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageEncryptionKeyEnvironmentVariable);
                                 tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
                                 result.Result = tronProvider;
                                 break;

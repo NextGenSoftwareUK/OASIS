@@ -8,11 +8,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 
 internal sealed class TronProviderStorageBackend : IKeyValueBackend
 {
-    private readonly TronPrivateStorageBackend _storage;
+    private TronPrivateStorageBackend _storage;
+    internal Func<TronPrivateStorageBackend> Factory;
     internal SemaphoreSlim Lifecycle;
     internal Func<bool> IsActive;
     internal TronProviderStorageBackend(TronPrivateStorageBackend storage) => _storage = storage;
-    private TronPrivateStorageBackend Storage => _storage ?? throw new InvalidOperationException("TRON encrypted storage backend is not configured.");
+    private TronPrivateStorageBackend Storage => _storage ??= Factory?.Invoke()
+        ?? throw new InvalidOperationException("TRON encrypted storage backend is not configured.");
+    internal void ResetOwnedStorage()
+    {
+        if (Factory == null) return; // Explicitly injected storage remains caller-owned.
+        _storage?.Dispose();
+        _storage = null;
+    }
     internal Task VerifyForActivationAsync() => Storage.VerifyAsync();
     private async Task<T> Run<T>(Func<TronPrivateStorageBackend, Task<T>> action, CancellationToken token)
     {
@@ -20,8 +28,9 @@ internal sealed class TronProviderStorageBackend : IKeyValueBackend
         await Lifecycle.WaitAsync(token);
         try
         {
-            var storage = Storage;
+            if (_storage == null && Factory == null) throw new InvalidOperationException("TRON encrypted storage backend is not configured.");
             if (!IsActive()) throw new InvalidOperationException("TRON provider must be activated before storage access.");
+            var storage = Storage;
             return await action(storage);
         }
         finally { Lifecycle.Release(); }

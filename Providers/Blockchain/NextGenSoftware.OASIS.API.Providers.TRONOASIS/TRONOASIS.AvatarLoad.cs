@@ -72,6 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             catch (Exception ex)
             {
                 IsProviderActivated = false;
+                ((TronProviderStorageBackend)Backend).ResetOwnedStorage();
                 if (_ownedRuntime != null)
                 {
                     var failedRuntime = _ownedRuntime;
@@ -100,6 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 IsProviderActivated = false;
+                ((TronProviderStorageBackend)Backend).ResetOwnedStorage();
                 if (_ownedRuntime != null)
                 {
                     var runtime = _ownedRuntime;

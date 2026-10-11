@@ -8,6 +8,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronStorageMigrationTests
 {
     [Fact]
+    public async Task ConfiguredStorageDoesNotResolveCredentialsBeforeActivation()
+    {
+        var provider = new TRONOASIS(storageContractAddress: "unused", storageOwnerAddress: "unused",
+            storageSigningKeyEnvironmentVariable: "OASIS_TEST_UNSET_TRON_SIGNING",
+            storageEncryptionKeyEnvironmentVariable: "OASIS_TEST_UNSET_TRON_ENCRYPTION");
+        var result = await provider.LoadAvatarByEmailAsync("test@example.test");
+        Assert.True(result.IsError);
+        Assert.Contains("must be activated", result.Message);
+        Assert.Null(result.Result);
+    }
+
+    [Theory]
+    [InlineData("unused", "")]
+    [InlineData("", "unused")]
+    public void PartialStorageConfigurationIsRejected(string contract, string owner)
+        => Assert.Throws<ArgumentException>(() => new TRONOASIS(storageContractAddress: contract, storageOwnerAddress: owner));
+
+    [Fact]
     public async Task InheritedStorageRejectsMissingConfigurationWithoutInventingAvatarData()
     {
         var provider = new TRONOASIS();
