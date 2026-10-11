@@ -1,5 +1,106 @@
 import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery, FileId, FileCreateTransaction, FileUpdateTransaction, FileDeleteTransaction, FileContentsQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
+import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
+import { Interface, getBytes } from 'ethers';
+
+const storageAbi = new Interface([
+  'function put(string key,string value)',
+  'function remove(string key)',
+  'function get(string key) view returns(bool exists,string value)',
+  'function revision() view returns(uint256)',
+  'function keyPage(uint256 expectedRevision,uint256 cursor,uint256 limit) view returns(string[] page,uint256 next,uint256 total)'
+]);
+
+export function storageTransaction(action, request) {
+  ContractId.fromString(request.contractId);
+  if (!['storagePut', 'storageDelete'].includes(action)) throw new Error('Unknown storage mutation.');
+  if (typeof request.key !== 'string' || !request.key) throw new Error('An explicit nonempty storage key is required.');
+  if (action === 'storagePut' && typeof request.value !== 'string') throw new Error('An explicit storage value is required.');
+  if (!Number.isSafeInteger(request.gas) || request.gas <= 0) throw new Error('An explicit positive transaction gas limit is required.');
+  const name = action === 'storagePut' ? 'put' : 'remove';
+  const args = action === 'storagePut' ? [request.key, request.value] : [request.key];
+  return new ContractExecuteTransaction().setContractId(request.contractId).setGas(request.gas)
+    .setFunctionParameters(getBytes(storageAbi.encodeFunctionData(name, args)));
+}
+
+async function storageWrite(action, request) {
+  const mutation = storageTransaction(action, request);
+  const key = restoreKey(request);
+  if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+    throw new Error('Storage signing key mismatch.');
+  const payer = AccountId.fromString(request.sender);
+  const id = TransactionId.fromString(request.transactionId);
+  if (id.accountId.toString() !== payer.toString()) throw new Error('Storage transaction payer mismatch.');
+  if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
+    throw new Error('An explicit positive int64 fee ceiling is required.');
+  const client = createClient(request);
+  try {
+    client.setOperator(payer, key);
+    mutation.setTransactionId(id).setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
+      .setMaxAttempts(1).setRegenerateTransactionId(false).freezeWith(client);
+    const submitted = await (await mutation.sign(key)).execute(client);
+    const receipt = await submitted.getReceipt(client);
+    if (receipt.status.toString() !== 'SUCCESS') throw new Error('Storage mutation failed consensus.');
+    return { transactionId: submitted.transactionId.toString(), status: 'SUCCESS' };
+  } catch (cause) {
+    const error = new Error('Hedera storage mutation did not establish consensus success. Track the original transaction before retrying.');
+    error.transactionId = id.toString();
+    error.status = cause.status?.toString();
+    throw error;
+  } finally { client.close(); }
+}
+
+export function storageReadCall(name, args) {
+  if (!['get', 'revision', 'keyPage'].includes(name)) throw new Error('Unknown storage read.');
+  return getBytes(storageAbi.encodeFunctionData(name, args));
+}
+
+export function validateStoragePage(page, cursor, total) {
+  if (page[0].length > 256 || page[1] !== cursor + BigInt(page[0].length) || page[1] > page[2]
+      || (total !== null && total !== page[2]) || (page[0].length === 0 && page[1] < page[2]))
+    throw new Error('Storage pagination is inconsistent.');
+}
+
+async function storageRead(action, request) {
+  ContractId.fromString(request.contractId);
+  if (action === 'storageGet' && typeof request.key !== 'string') throw new Error('An explicit storage key is required.');
+  if (action === 'storageList' && typeof request.prefix !== 'string') throw new Error('An explicit prefix is required.');
+  if (!Number.isSafeInteger(request.gas) || request.gas <= 0) throw new Error('An explicit positive query gas limit is required.');
+  if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
+    throw new Error('An explicit positive int64 query fee ceiling is required.');
+  const key = restoreKey(request);
+  const payer = AccountId.fromString(request.sender);
+  if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+    throw new Error('Storage query signing key mismatch.');
+  const client = createClient(request);
+  try {
+    client.setOperator(payer, key);
+    async function query(name, args) {
+      const response = await new ContractCallQuery().setContractId(request.contractId).setGas(request.gas)
+        .setFunctionParameters(storageReadCall(name, args)).setMaxQueryPayment(Hbar.fromTinybars(request.maxFeeTinybars)).execute(client);
+      if (response.errorMessage) throw new Error('Storage contract query reverted.');
+      return storageAbi.decodeFunctionResult(name, response.bytes);
+    }
+    if (action === 'storageGet') {
+      const result = await query('get', [request.key]);
+      return result[0] ? result[1] : null;
+    }
+    const revision = (await query('revision', []))[0];
+    let cursor = 0n;
+    let total = null;
+    const keys = [];
+    do {
+      const page = await query('keyPage', [revision, cursor, 256]);
+      validateStoragePage(page, cursor, total);
+      total = page[2];
+      keys.push(...page[0]);
+      cursor = page[1];
+    } while (cursor < total);
+    if ((await query('revision', []))[0] !== revision) throw new Error('Storage changed during enumeration.');
+    if (new Set(keys).size !== keys.length) throw new Error('Storage returned duplicate keys.');
+    return keys.filter(value => value.startsWith(request.prefix)).sort();
+  } finally { client.close(); }
+}
 
 export function restoreKey(request) {
   if (typeof request.privateKey !== 'string' || !request.privateKey)
@@ -107,6 +208,8 @@ async function executeFile(action, request) {
 }
 
 export async function execute(action, request) {
+  if (['storagePut', 'storageDelete'].includes(action)) return storageWrite(action, request);
+  if (['storageGet', 'storageList'].includes(action)) return storageRead(action, request);
   if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request);
   if (action === 'generateKey') {
     const key = request.keyType === 'ed25519' ? PrivateKey.generateED25519()
