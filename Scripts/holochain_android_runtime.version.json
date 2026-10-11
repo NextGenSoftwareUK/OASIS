@@ -1,12 +1,16 @@
 {
   "schemaVersion": 1,
-  "repository": "https://github.com/holochain/android-service-runtime.git",
-  "commit": "a7b5bb12a64d837694a6939701823d61803654bf",
+  "repository": "https://github.com/NextGenSoftwareUK/android-service-runtime.git",
+  "branch": "oasis/holochain-0.7",
+  "commit": "d4dd6e2b07574ff8d048a3da774318785da2b845",
+  "upstreamRepository": "https://github.com/holochain/android-service-runtime.git",
+  "upstreamCommit": "a7b5bb12a64d837694a6939701823d61803654bf",
   "upstreamRelease": "0.3.0",
   "holochainCompatibility": "0.7",
   "androidAbi": "arm64-v8a",
   "rustTarget": "aarch64-linux-android",
-  "patchedFiles": {
+  "patchedFiles": {},
+  "reviewedFiles": {
     "libraries/client/build.gradle.kts": "BB61EF30BF64CA2D2C77302341BC484177FC9F6D936483206FD1C5551C182C82",
     "libraries/client/settings.gradle": "B4873F357D359BEC502CF7C70A7922D5FFF8008339822E5C6BA140DD442B187D",
     "libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Json.kt": "4FC9128E5CF89B167DE3711B65E7F2D096570D6042A718FE6ED50F54059777AD",

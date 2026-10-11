@@ -11,11 +11,18 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Holochain
     /// Unity JNI implementation of the official Holochain Android foreground-service boundary.
     /// This source is copied into Runtime only for the HoloEnabled deployment profile.
     /// </summary>
-    public sealed class UnityHolochainAndroidServiceBridge : IHolochainAndroidServiceBridge
+    public sealed class UnityHolochainAndroidServiceBridge : IHolochainAndroidServiceBridge,
+        IHolochainZomeCallSigningBridge
     {
         private const string BridgeClass = "one.oasisomniverse.holooasis.unity.HolochainUnityBridge";
         private readonly SemaphoreSlim _operationLock = new SemaphoreSlim(1, 1);
         private bool _disposed;
+
+        /// <summary>
+        /// Shared-runtime progress ("awaiting_approval", "shared", "fallback", "shared_unavailable"), e.g.
+        /// to tell the player to approve Holochain access in the notification shade.
+        /// </summary>
+        public event Action<string, string> StatusChanged;
 
         public Task<OASISResult<HolochainAndroidAppSession>> StartAndSetupAsync(
             HolochainAndroidRuntimeOptions options, CancellationToken cancellationToken) =>
@@ -24,8 +31,42 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Holochain
                 using var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
                 using var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
                 bridge.CallStatic("startAndSetup", activity, options.AppBundle, options.InstalledAppId,
-                    options.NetworkSeed, options.BootstrapUrl, options.RelayUrl, callback);
+                    options.NetworkSeed, options.BootstrapUrl, options.RelayUrl,
+                    options.PreferSharedRuntime, options.SharedRuntimeApprovalTimeoutMs,
+                    new StatusCallback(this), callback);
             });
+
+        public async Task<OASISResult<HolochainSignedZomeCall>> SignZomeCallAsync(
+            HolochainZomeCallToSign call, CancellationToken cancellationToken)
+        {
+            // Not serialized with the lifecycle lock: signing runs alongside normal zome traffic.
+            cancellationToken.ThrowIfCancellationRequested();
+            if (call == null) return Error<HolochainSignedZomeCall>("HOLO_ANDROID_SIGN_INVALID", "No zome call to sign.");
+            try
+            {
+                ThrowIfDisposed();
+#if UNITY_ANDROID && !UNITY_EDITOR
+                using var bridge = new AndroidJavaClass(BridgeClass);
+                var completion = new TaskCompletionSource<OASISResult<HolochainSignedZomeCall>>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                bridge.CallStatic("signZomeCall", B64(call.Provenance), B64(call.DnaHash), B64(call.AgentPubKey),
+                    call.ZomeName, call.FnName, call.CapSecret == null ? "" : B64(call.CapSecret),
+                    B64(call.Payload), B64(call.Nonce), call.ExpiresAt, new SignCallback(completion));
+                return await completion.Task.ConfigureAwait(false);
+#else
+                await Task.CompletedTask.ConfigureAwait(false);
+                return Error<HolochainSignedZomeCall>("HOLO_ANDROID_PLATFORM_REQUIRED",
+                    "Zome-call signing through the Android service requires an Android player.");
+#endif
+            }
+            catch (Exception error) when (!(error is OperationCanceledException))
+            {
+                return Error<HolochainSignedZomeCall>("HOLO_ANDROID_JNI_FAILED",
+                    $"The Android Holochain 'signZomeCall' IPC call failed: {error.Message}");
+            }
+        }
+
+        private static string B64(byte[] value) => Convert.ToBase64String(value ?? Array.Empty<byte>());
 
         public Task<OASISResult<HolochainAndroidAppSession>> ResumeAsync(
             string installedAppId, CancellationToken cancellationToken) =>
@@ -81,7 +122,10 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Holochain
                 invoke(bridge, new SessionCallback(completion));
                 // Once IPC owns the operation, await its terminal callback. Abandoning the task on
                 // cancellation would leak an unowned foreground service or installed application.
-                return await completion.Task.ConfigureAwait(false);
+                var session = await completion.Task.ConfigureAwait(false);
+                if (!session.IsError && session.Result != null)
+                    session.Result.Mode = bridge.CallStatic<string>("getMode");
+                return session;
 #else
                 return Error<HolochainAndroidAppSession>("HOLO_ANDROID_PLATFORM_REQUIRED",
                     $"The Holochain Android '{operation}' operation requires an Android player.");
@@ -163,6 +207,44 @@ namespace NextGenSoftware.OASIS.Edge.Unity.Holochain
 
             public void onError(string errorCode, string message) =>
                 _completion.TrySetResult(Error<HolochainAndroidAppSession>(errorCode, message));
+        }
+
+        private sealed class StatusCallback : AndroidJavaProxy
+        {
+            private readonly UnityHolochainAndroidServiceBridge _owner;
+
+            internal StatusCallback(UnityHolochainAndroidServiceBridge owner)
+                : base("one.oasisomniverse.holooasis.unity.HolochainUnityBridge$StatusCallback") => _owner = owner;
+
+            public void onStatus(string status, string message) => _owner.StatusChanged?.Invoke(status, message);
+        }
+
+        private sealed class SignCallback : AndroidJavaProxy
+        {
+            private readonly TaskCompletionSource<OASISResult<HolochainSignedZomeCall>> _completion;
+
+            internal SignCallback(TaskCompletionSource<OASISResult<HolochainSignedZomeCall>> completion)
+                : base("one.oasisomniverse.holooasis.unity.HolochainUnityBridge$SignCallback") =>
+                _completion = completion;
+
+            public void onSuccess(string bytesBase64, string signatureBase64)
+            {
+                try
+                {
+                    _completion.TrySetResult(new OASISResult<HolochainSignedZomeCall>(new HolochainSignedZomeCall
+                    {
+                        Bytes = Convert.FromBase64String(bytesBase64),
+                        Signature = Convert.FromBase64String(signatureBase64)
+                    }));
+                }
+                catch (FormatException error)
+                {
+                    _completion.TrySetResult(Error<HolochainSignedZomeCall>("HOLO_ANDROID_SIGNATURE_INVALID", error.Message));
+                }
+            }
+
+            public void onError(string errorCode, string message) =>
+                _completion.TrySetResult(Error<HolochainSignedZomeCall>(errorCode, message));
         }
 
         private sealed class OperationCallback : AndroidJavaProxy

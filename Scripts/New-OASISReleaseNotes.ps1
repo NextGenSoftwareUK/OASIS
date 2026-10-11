@@ -12,6 +12,22 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+if ($Component -in @('ODOOM', 'OQUAKE')) {
+    # Game notes must be reviewed against the exact released source, not a moving branch
+    # or a classifier dumping development commit messages into multiple sections.
+    $reviewedPath = Join-Path $repoRoot "Docs/Releases/$Component/$Version.md"
+    if (-not (Test-Path -LiteralPath $reviewedPath)) {
+        throw "Missing reviewed $Component v$Version notes: $reviewedPath. Follow Docs/Releases/README.md."
+    }
+    $notes = Get-Content -LiteralPath $reviewedPath -Raw
+    foreach ($heading in @("# $Component v$Version", '### Features', '### Fixes and hardening', '### Build and packaging', '## Downloads and requirements', '## Source and full changelog')) {
+        if (-not $notes.Contains($heading)) { throw "Reviewed notes missing required heading: $heading" }
+    }
+    $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
+    New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($resolvedOutput)) -Force | Out-Null
+    [IO.File]::WriteAllText($resolvedOutput, $notes.TrimEnd() + "`n", [Text.UTF8Encoding]::new($false))
+    return
+}
 $definitions = @{
     OASISRuntime = @{
         Title = 'OASIS Runtime'; Prefixes = @('OASIS-Runtime-v', 'OASIS-Runtime-')
@@ -111,7 +127,7 @@ $maximumSummarizedCommits = 100
 $commits = @($allCommits | Select-Object -First $maximumSummarizedCommits)
 
 $features = @($commits | Where-Object Subject -match '^(feat|add|implement)|\b(add|introduc|implement|support|expand)' )
-$fixes = @($commits | Where-Object Subject -match '^(fix|repair|restore|harden)|\b(fix|repair|correct|prevent|stabili[sz]|harden)' )
+$fixes = @($commits | Where-Object { $_ -notin $features -and $_.Subject -match '^(fix|repair|restore|harden)|\b(fix|repair|correct|prevent|stabili[sz]|harden)' })
 $other = @($commits | Where-Object { $_ -notin $features -and $_ -notin $fixes })
 function Add-CommitSection([Text.StringBuilder]$Builder, [string]$Heading, $Items) {
     if (@($Items).Count -eq 0) { return }

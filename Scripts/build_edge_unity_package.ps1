@@ -141,6 +141,39 @@ if ($Profile -eq 'HoloEnabled') {
     Copy-Item -LiteralPath $holoAndroidManifestPath `
         -Destination (Join-Path $packageRoot 'Runtime\Plugins\Android\Holochain\build-manifest.json') -Force
 
+    # iOS: in-process conductor (HolochainConductor.xcframework, wasmi interpreter) plus the Swift C-ABI bridge.
+    # Optional so Android-only packages still build; the build guard fails an iOS player build without it.
+    $holoIosPackage = Join-Path $repoRoot 'artifacts\holochain-ios-runtime'
+    $holoIosManifestPath = Join-Path $holoIosPackage 'build-manifest.json'
+    if (Test-Path -LiteralPath $holoIosManifestPath -PathType Leaf) {
+        $holoIosManifest = Get-Content -LiteralPath $holoIosManifestPath -Raw | ConvertFrom-Json
+        if ($holoIosManifest.holochainCompatibility -ne '0.7') {
+            throw 'The HoloEnabled profile requires the Holochain 0.7 iOS conductor.'
+        }
+        $iosPluginRoot = Join-Path $packageRoot 'Runtime\Plugins\iOS\Holochain'
+        New-Item -ItemType Directory -Path $iosPluginRoot -Force | Out-Null
+        foreach ($iosArtifact in @(
+                @{ Name = 'HolochainConductor.xcframework.zip'; Sha = $holoIosManifest.xcframeworkSha256 },
+                @{ Name = 'HolochainConductorSwift.zip'; Sha = $holoIosManifest.swiftBindingsSha256 })) {
+            $source = Join-Path $holoIosPackage $iosArtifact.Name
+            if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+                throw "Holochain iOS artifact is missing: '$source'. Run Scripts/fetch_holochain_ios_runtime.ps1."
+            }
+            if ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne ([string]$iosArtifact.Sha).ToUpperInvariant()) {
+                throw "Holochain iOS artifact does not match its build manifest: '$source'."
+            }
+            Expand-Archive -LiteralPath $source -DestinationPath $iosPluginRoot -Force
+        }
+        Copy-Item -LiteralPath $holoIosManifestPath -Destination (Join-Path $iosPluginRoot 'build-manifest.json') -Force
+        $iosBridgeDestination = Join-Path $packageRoot 'Runtime\Holochain\UnityHolochainIosBridge.cs'
+        New-Item -ItemType Directory -Path (Split-Path $iosBridgeDestination -Parent) -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $packageRoot 'HoloEnabled~\UnityHolochainIosBridge.cs') `
+            -Destination $iosBridgeDestination -Force
+    }
+    else {
+        Write-Warning 'No Holochain iOS conductor in artifacts\holochain-ios-runtime; this package is Android-only for Holo.'
+    }
+
     $unityBridgeSource = Join-Path $packageRoot 'HoloEnabled~\UnityHolochainAndroidServiceBridge.cs'
     $unityBridgeDestination = Join-Path $packageRoot 'Runtime\Holochain\UnityHolochainAndroidServiceBridge.cs'
     New-Item -ItemType Directory -Path (Split-Path $unityBridgeDestination -Parent) -Force | Out-Null
