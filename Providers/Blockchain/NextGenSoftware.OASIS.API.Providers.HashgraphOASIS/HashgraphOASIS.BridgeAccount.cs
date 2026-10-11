@@ -43,25 +43,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var hashgraphClient = new HashgraphClient();
-                var accountInfo = await hashgraphClient.CreateAccountAsync();
-                
-                if (accountInfo != null)
-                {
-                    result.Result = (accountInfo.PublicKey ?? "", accountInfo.PrivateKey ?? "", accountInfo.SeedPhrase ?? "");
-                    result.IsError = false;
-                    result.Message = "Hashgraph account created successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to create Hashgraph account");
-                }
+                token.ThrowIfCancellationRequested();
+                var generated = await HederaSdkClient.InvokeAsync("generateMnemonic", new { keyType = "ed25519" }, token);
+                result.Result = (generated.GetProperty("publicKey").GetString(), generated.GetProperty("privateKey").GetString(),
+                    generated.GetProperty("seedPhrase").GetString());
+                result.Message = "Hedera SDK standard Ed25519 signing identity generated. No ledger account was created; funded account creation or linking is required separately.";
             }
             catch (Exception ex)
             {
@@ -75,25 +61,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<(string PublicKey, string PrivateKey)>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var hashgraphClient = new HashgraphClient();
-                var accountInfo = await hashgraphClient.RestoreAccountAsync(seedPhrase);
-                
-                if (accountInfo != null)
-                {
-                    result.Result = (accountInfo.PublicKey ?? "", accountInfo.PrivateKey ?? "");
-                    result.IsError = false;
-                    result.Message = "Hashgraph account restored successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to restore Hashgraph account");
-                }
+                token.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(seedPhrase)) throw new ArgumentException("A Hedera SDK mnemonic is required.", nameof(seedPhrase));
+                var restored = await HederaSdkClient.InvokeAsync("restoreMnemonic", new { keyType = "ed25519", seedPhrase }, token);
+                result.Result = (restored.GetProperty("publicKey").GetString(), restored.GetProperty("privateKey").GetString());
+                result.Message = "Hedera SDK standard Ed25519 signing identity restored. Ledger account existence and wallet linkage were not verified.";
             }
             catch (Exception ex)
             {
