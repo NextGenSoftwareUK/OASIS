@@ -92,12 +92,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!System.Text.RegularExpressions.Regex.IsMatch(_bridgePoolAccountId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
-                    throw new InvalidOperationException("An explicit nonzero numeric Hedera bridge pool account is required.");
-                foreach (var account in new[] { sender, recipient })
-                    if (!System.Text.RegularExpressions.Regex.IsMatch(account ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
-                        throw new ArgumentException("Bridge transfers require explicit nonzero numeric sender and recipient accounts.");
-                if (sender == recipient) throw new ArgumentException("Bridge sender and recipient must differ.");
+                ValidateBridgeAccounts(sender, recipient);
                 var tinybars = checked(amount * 100000000m);
                 if (tinybars <= 0 || tinybars != decimal.Truncate(tinybars) || tinybars > long.MaxValue)
                     throw new ArgumentOutOfRangeException(nameof(amount), "Bridge amount must fit positive exact int64 tinybars.");
@@ -122,6 +117,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph native bridge transfer: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private void ValidateBridgeAccounts(string sender, string recipient)
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(_bridgePoolAccountId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                throw new InvalidOperationException("An explicit nonzero numeric Hedera bridge pool account is required.");
+            foreach (var account in new[] { sender, recipient })
+                if (!System.Text.RegularExpressions.Regex.IsMatch(account ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                    throw new ArgumentException("Bridge transfers require explicit nonzero numeric sender and recipient accounts.");
+            if (sender == recipient) throw new ArgumentException("Bridge sender and recipient must differ.");
         }
 
         public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
@@ -255,90 +260,47 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
         {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = senderAccountAddress,
-                    ToAddress = _contractAddress ?? "0.0.0",
-                    Amount = 0m,
-                    Memo = $"NFT withdrawal: {nftTokenAddress}:{tokenId}"
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = transactionResult.TransactionId ?? "",
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Completed
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT withdrawn successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to withdraw NFT on Hashgraph");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT on Hashgraph: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteNftBridgeTransferAsync(nftTokenAddress, tokenId, senderAccountAddress,
+                _bridgePoolAccountId, () => senderPrivateKey, "NFT bridge withdrawal");
         }
 
         public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
         {
+            // The source hash is not a proof or release authorization. Settlement must be authorized by the host.
+            return await ExecuteNftBridgeTransferAsync(nftTokenAddress, tokenId, _bridgePoolAccountId,
+                receiverAccountAddress, _bridgePoolSigningKey, "NFT bridge deposit");
+        }
+
+        private async Task<OASISResult<BridgeTransactionResponse>> ExecuteNftBridgeTransferAsync(string tokenAddress,
+            string serial, string sender, string recipient, Func<string> signingKey, string memo)
+        {
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                ValidateBridgeAccounts(sender, recipient);
+                var asset = ParseHederaNftAddress((tokenAddress ?? "").Contains('/') ? tokenAddress : tokenAddress + "/" + serial);
+                if (serial != asset.Serial) throw new ArgumentException("NFT bridge serial must agree with the asset address.");
+                var key = signingKey?.Invoke();
+                if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("A real sender DER signing key is required for the Hedera NFT bridge transfer.");
+                var transfer = await SendNFTAsync(new SendWeb3NFTRequest
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
+                    TokenAddress = asset.TokenId, TokenId = asset.Serial,
+                    FromNFTTokenAddress = asset.TokenId + "/" + asset.Serial,
+                    FromWalletAddress = sender, ToWalletAddress = recipient, Amount = 1,
+                    OwnerPrivateKey = key, MemoText = memo
+                });
+                if (transfer.IsError || string.IsNullOrWhiteSpace(transfer.Result?.TransactionResult))
+                    throw new InvalidOperationException(transfer.Message ?? "HTS NFT bridge transfer did not establish consensus success.");
+                result.Result = new BridgeTransactionResponse
                 {
-                    FromAddress = _contractAddress ?? "0.0.0",
-                    ToAddress = receiverAccountAddress,
-                    Amount = 0m,
-                    Memo = $"NFT deposit: {nftTokenAddress}:{tokenId}"
+                    TransactionId = transfer.Result.TransactionResult, IsSuccessful = true,
+                    Status = BridgeTransactionStatus.Completed
                 };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = transactionResult.TransactionId ?? "",
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Completed
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT deposited successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deposit NFT on Hashgraph");
-                }
+                result.Message = "HTS NFT bridge transfer confirmed by consensus receipt; source settlement and release authorization are not established.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT on Hashgraph: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph NFT bridge transfer: {ex.Message}", ex);
             }
             return result;
         }
