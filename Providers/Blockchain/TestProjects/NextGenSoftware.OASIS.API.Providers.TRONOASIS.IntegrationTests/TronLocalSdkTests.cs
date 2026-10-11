@@ -65,8 +65,7 @@ public sealed class TronLocalSdkTests
             Assert.True(rejectedId.Success, "Failed signed execution must retain its original native transaction ID.");
             var failedHistory = Assert.Single(await client.ReadWalletTransactionsAsync(other, new[] { rejectedId.Value }, bounded.Token));
             Assert.Equal(rejectedId.Value, failedHistory.NativeTransactionId);
-            Assert.NotEqual("Success", failedHistory.NativeExecutionResult);
-            Assert.False(string.IsNullOrEmpty(failedHistory.NativeExecutionResult));
+            Assert.Equal(((TronNet.Protocol.TransactionInfo.Types.code)1).ToString(), failedHistory.NativeExecutionResult);
             Assert.Equal(escrowValue, await CurrentOwner());
             await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token);
             Assert.Equal(ownerValue, await CurrentOwner());
