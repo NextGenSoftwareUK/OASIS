@@ -254,41 +254,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<double>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get account balance from Hedera Mirror Node API
-                var accountId = request.WalletAddress;
-                if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
-                    throw new ArgumentException("A numeric Hedera account ID is required for this balance query.");
-                using var response = await _httpClient.GetAsync("accounts/" + accountId);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(content);
-
-                    if (accountData.TryGetProperty("balance", out var balances) && balances.ValueKind == JsonValueKind.Object
-                        && balances.TryGetProperty("balance", out var balance) && balance.TryGetInt64(out var tinybars)
-                        && tinybars >= 0)
-                    {
-                        // Hedera balances are in tinybars (1 HBAR = 100,000,000 tinybars)
-                        result.Result = tinybars / 100000000.0;
-                        result.IsError = false;
-                        result.Message = "Balance retrieved successfully from Hashgraph";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse balance from Hashgraph response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph balance query failed: {response.StatusCode}");
-                }
+                ArgumentNullException.ThrowIfNull(request);
+                result.Result = (double)((await ReadMirrorBalanceTinybarsAsync(request.WalletAddress, default)) / 100000000m);
+                result.Message = "Native HBAR balance read from the supported Hedera mirror API.";
             }
             catch (Exception ex)
             {
@@ -300,6 +268,35 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
         {
             return GetBalanceAsync(request).Result;
+        }
+
+        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountId, CancellationToken token = default)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                result.Result = (await ReadMirrorBalanceTinybarsAsync(accountId, token)) / 100000000m;
+                result.Message = "Exact native HBAR balance read from the supported Hedera mirror API.";
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, "Hedera mirror balance failed: " + ex.Message, ex); }
+            return result;
+        }
+
+        private async Task<long> ReadMirrorBalanceTinybarsAsync(string accountId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                throw new ArgumentException("A nonzero numeric Hedera account ID is required for mirror balance.");
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+            timeout.CancelAfter(TimeSpan.FromSeconds(20));
+            using var response = await _httpClient.GetAsync("accounts/" + accountId, timeout.Token);
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
+            var account = document.RootElement;
+            if (account.GetProperty("account").GetString() != accountId || account.GetProperty("deleted").GetBoolean()
+                || !account.GetProperty("balance").GetProperty("balance").TryGetInt64(out var balance) || balance < 0)
+                throw new InvalidOperationException("Mirror response does not establish the requested active account's exact HBAR balance.");
+            return balance;
         }
 
         public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
