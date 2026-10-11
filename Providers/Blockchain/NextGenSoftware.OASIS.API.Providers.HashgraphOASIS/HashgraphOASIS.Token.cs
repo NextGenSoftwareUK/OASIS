@@ -341,7 +341,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 if (!System.Text.RegularExpressions.Regex.IsMatch(accountId ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
                     throw new ArgumentException("A numeric Hedera wallet account ID is required.");
                 var endpoint = _httpClient.BaseAddress;
-                var next = new Uri(endpoint, $"transactions?account.id={accountId}&limit=100&order=asc&timestamp=gte:0");
+                var cutoffTicks = DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks;
+                var cutoff = (cutoffTicks / TimeSpan.TicksPerSecond).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    + "." + ((cutoffTicks % TimeSpan.TicksPerSecond) * 100).ToString("D9", System.Globalization.CultureInfo.InvariantCulture);
+                var upperBound = "timestamp=lte:" + cutoff;
+                var next = new Uri(endpoint, $"transactions?account.id={accountId}&limit=100&order=asc&timestamp=gte:0&{upperBound}");
                 var visited = new HashSet<string>(StringComparer.Ordinal);
                 var identities = new HashSet<string>(StringComparer.Ordinal);
                 var transactions = new List<IWalletTransaction>();
@@ -352,6 +356,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         || next.AbsolutePath != new Uri(endpoint, "transactions").AbsolutePath
                         || !visited.Add(next.AbsoluteUri) || visited.Count > 5000)
                         throw new InvalidOperationException("Hedera history pagination is unsafe or exceeds the bounded page budget.");
+                    var query = next.Query.TrimStart('?').Split('&').Select(Uri.UnescapeDataString).ToArray();
+                    if (query.Count(value => value.StartsWith("account.id=", StringComparison.Ordinal)) != 1
+                        || !query.Contains("account.id=" + accountId))
+                        throw new InvalidOperationException("Hedera history pagination changed the requested account.");
                     using var response = await _httpClient.GetAsync(next, timeout.Token);
                     response.EnsureSuccessStatusCode();
                     using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
@@ -360,12 +368,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     foreach (var tx in txArray.EnumerateArray())
                     {
                         var walletTx = MapMirrorWalletTransaction(tx, accountId);
+                        if (walletTx.CreatedDate.Ticks - DateTime.UnixEpoch.Ticks > cutoffTicks)
+                            throw new InvalidOperationException("Hedera history record exceeds the fixed scan timestamp.");
                         var identity = walletTx.NativeTransactionId + ":" + tx.GetProperty("consensus_timestamp").GetString();
                         if (!identities.Add(identity)) throw new InvalidOperationException("Hedera history returned a duplicate consensus record.");
                         transactions.Add(walletTx);
                     }
                     var link = txData.GetProperty("links").GetProperty("next");
                     next = link.ValueKind == JsonValueKind.Null ? null : new Uri(endpoint, link.GetString());
+                    if (next != null)
+                    {
+                        var bounds = next.Query.TrimStart('?').Split('&').Select(Uri.UnescapeDataString)
+                            .Where(value => value.StartsWith("timestamp=lte:", StringComparison.Ordinal)).ToArray();
+                        if (bounds.Length > 1 || (bounds.Length == 1 && bounds[0] != upperBound))
+                            throw new InvalidOperationException("Hedera history pagination changed the fixed scan timestamp.");
+                        if (bounds.Length == 0)
+                            next = new Uri(next.AbsoluteUri + (next.Query.Length == 0 ? "?" : "&") + upperBound);
+                    }
                 }
                 result.Result = transactions;
                 result.IsError = false;

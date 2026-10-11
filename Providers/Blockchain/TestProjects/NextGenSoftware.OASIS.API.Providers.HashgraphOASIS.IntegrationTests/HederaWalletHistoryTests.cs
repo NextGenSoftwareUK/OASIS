@@ -82,12 +82,16 @@ public class HederaWalletHistoryTests
         Assert.AreEqual(2, handler.Requests.Count);
         StringAssert.StartsWith(handler.Requests[0], "http://127.0.0.1:12345/api/v1/transactions?");
         StringAssert.Contains(handler.Requests[0], "timestamp=gte:0");
+        var bound = handler.Requests[0].Split('&').Single(value => value.StartsWith("timestamp=lte:"));
+        StringAssert.Contains(handler.Requests[1], bound);
         Assert.AreEqual("-9007199254741000", result.Result[100].RawAmount);
     }
 
     [DataTestMethod]
     [DataRow("https://foreign.example/api/v1/transactions")]
     [DataRow("/api/v1/accounts")]
+    [DataRow("/api/v1/transactions?account.id=0.0.2002")]
+    [DataRow("/api/v1/transactions?account.id=0.0.1001&timestamp=lte:9999999999.000000000")]
     [DataRow("/api/v1/transactions?account.id=0.0.1001&limit=100&order=asc&timestamp=gte:0")]
     public async Task UnsafeOrCyclicNextLinkReturnsErrorWithoutPartialHistory(string next)
     {
@@ -100,7 +104,7 @@ public class HederaWalletHistoryTests
     [TestMethod]
     public async Task SecondPageHttpFailureCannotReturnSuccessfulPartialHistory()
     {
-        using var handler = new HistoryHandler(new[] { Page(new[] { Record }, "/api/v1/transactions?page=2") }, HttpStatusCode.ServiceUnavailable);
+        using var handler = new HistoryHandler(new[] { Page(new[] { Record }, "/api/v1/transactions?account.id=0.0.1001&page=2") }, HttpStatusCode.ServiceUnavailable);
         var result = await Provider(handler).GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" });
         Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.AreEqual(2, handler.Requests.Count);
     }
