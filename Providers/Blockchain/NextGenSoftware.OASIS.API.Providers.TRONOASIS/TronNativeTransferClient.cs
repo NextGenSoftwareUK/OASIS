@@ -74,7 +74,21 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("Solidified transaction identity is missing or inconsistent.");
         var contract = confirmed.RawData.Contract.Any(x => x.Type == Transaction.Types.Contract.Types.ContractType.TriggerSmartContract
             || x.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract);
-        ValidateSolidifiedReceipt(receipt, id.Value, contract, false, false);
+        return MapConfirmedTransactionStatus(receipt, id.Value, contract);
+    }
+
+    internal static Core.Managers.Bridge.Enums.BridgeTransactionStatus MapConfirmedTransactionStatus(
+        TransactionInfo receipt, ByteString expectedId, bool contract)
+    {
+        ValidateSolidifiedReceiptIdentity(receipt, expectedId);
+        if (!Enum.IsDefined(receipt.Result)) throw new InvalidOperationException("Unknown native execution result.");
+        if ((int)receipt.Result != 0) return Core.Managers.Bridge.Enums.BridgeTransactionStatus.Failed;
+        if (contract)
+        {
+            if (receipt.Receipt == null || !Enum.IsDefined(receipt.Receipt.Result) || (int)receipt.Receipt.Result == 0)
+                throw new InvalidOperationException("Contract receipt does not establish execution status.");
+            if ((int)receipt.Receipt.Result != 1) return Core.Managers.Bridge.Enums.BridgeTransactionStatus.Failed;
+        }
         return Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed;
     }
 
