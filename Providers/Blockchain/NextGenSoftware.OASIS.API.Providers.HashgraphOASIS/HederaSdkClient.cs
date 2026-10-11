@@ -29,6 +29,7 @@ internal static class HederaSdkClient
 
     internal static async Task<JsonElement> InvokeAsync(string action, object request, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var script = Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")
             ?? Path.Combine(AppContext.BaseDirectory, "HederaSdkBridge", "bridge.mjs");
         if (!Path.IsPathFullyQualified(script) || !File.Exists(script))
@@ -45,6 +46,8 @@ internal static class HederaSdkClient
         using var requestDocument = JsonDocument.Parse(requestJson);
         var originalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("transactionId", out var requestedId)
             ? requestedId.GetString() : null;
+        var originalApprovalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("approvalTransactionId", out var requestedApprovalId)
+            ? requestedApprovalId.GetString() : null;
         using var process = new Process { StartInfo = start };
         if (!process.Start()) throw new InvalidOperationException("Hedera SDK process could not start.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -81,10 +84,16 @@ internal static class HederaSdkClient
             using var document = JsonDocument.Parse(response);
             return document.RootElement.Clone();
         }
-        catch (OperationCanceledException errorException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException errorException)
         {
-            throw new TimeoutException(originalId == null ? "Hedera SDK operation timed out."
-                : $"Hedera operation timed out for {originalId}. Track the original transaction before retrying.", errorException);
+            var reason = cancellationToken.IsCancellationRequested ? "canceled" : "timed out";
+            var message = $"Hedera SDK operation {reason}."
+                + (originalId == null ? "" : $" Original transaction: {originalId}.")
+                + (originalApprovalId == null ? "" : $" Possible approval transaction (outcome unverified): {originalApprovalId}.")
+                + " Reconcile original transactions before retrying; process termination does not cancel a ledger submission.";
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException(message, errorException, cancellationToken);
+            throw new TimeoutException(message, errorException);
         }
         finally
         {
