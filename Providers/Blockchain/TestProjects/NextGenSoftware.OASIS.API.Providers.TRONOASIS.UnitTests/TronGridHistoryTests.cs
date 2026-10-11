@@ -52,4 +52,17 @@ public sealed class TronGridHistoryTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => new TronGridTokenHistoryClient(http, new string('a', 64)).ReadAsync("account", 123));
         Assert.Single(handler.Requests);
     }
+
+    [Fact]
+    public async Task NativeHistoryUsesNativeEndpointAndPreservesExactIntegerJson()
+    {
+        var handler = new Handler("{\"blockID\":\"" + new string('a', 64) + "\"}",
+            "{\"success\":true,\"data\":[{\"block_timestamp\":1,\"raw_data\":{\"amount\":9007199254740993}}],\"meta\":{\"fingerprint\":\"native-next\"}}",
+            "{\"success\":true,\"data\":[],\"meta\":{}}");
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test/") };
+        var records = await new TronGridTokenHistoryClient(http, new string('a', 64)).ReadNativeAsync("account", 123);
+        Assert.Equal(9007199254740993L, Assert.Single(records).GetProperty("raw_data").GetProperty("amount").GetInt64());
+        Assert.All(handler.Requests.Skip(1), url => { Assert.Contains("/transactions?", url); Assert.DoesNotContain("/trc20", url); });
+        Assert.Contains("fingerprint=native-next", handler.Requests[2]);
+    }
 }
