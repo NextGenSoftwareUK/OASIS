@@ -20,8 +20,10 @@ public sealed class SuiRealProviderRoutingTests
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real provider setting {name} is required; no skipped evidence.");
 
-    [Fact]
-    public async Task V2FailsOverToRealStoreAfterOwnedSuiTransportCloses()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task V2FailsOverToRealStoreAfterSuiFailure(bool stopOwnedNode)
     {
         var rpc = Required("OASIS_SUI_TEST_RPC");
         new Uri(rpc).IsLoopback.Should().BeTrue();
@@ -48,10 +50,27 @@ public sealed class SuiRealProviderRoutingTests
         manager.SetAndReplaceAutoFailOverListForProviders(new[]
             { new EnumValue<ProviderType>(ProviderType.SuiOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) })
             .IsError.Should().BeFalse();
-        // Close only this test's genuine SDK transport. No mocked errors or shared node shutdown.
-        sui.Dispose();
-        var failure = await sui.ActivateProviderAsync();
-        failure.IsError.Should().BeTrue("closed transport must not fake successful activation");
+        if (stopOwnedNode)
+        {
+            var pid = Required("OASIS_SUI_TEST_OWNED_PID");
+            int.TryParse(pid, out var number).Should().BeTrue();
+            number.Should().BeGreaterThan(1);
+            var script = Required("OASIS_SUI_TEST_STOP_SCRIPT");
+            script.Should().StartWith("/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/");
+            Path.GetFileName(script).Should().Be("stop-owned-sui-test-node.sh");
+            var start = new ProcessStartInfo("wsl.exe") { UseShellExecute = false, CreateNoWindow = true };
+            foreach (var argument in new[] { "-d", "Ubuntu", "-u", "root", "--", "bash", script, pid })
+                start.ArgumentList.Add(argument);
+            using var process = Process.Start(start)!;
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            process.ExitCode.Should().Be(0, "only the explicitly owned local Sui node may be stopped");
+        }
+        else
+        {
+            sui.Dispose();
+            var failure = await sui.ActivateProviderAsync();
+            failure.IsError.Should().BeTrue("closed transport must not fake successful activation");
+        }
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-failover" };
         try
         {
