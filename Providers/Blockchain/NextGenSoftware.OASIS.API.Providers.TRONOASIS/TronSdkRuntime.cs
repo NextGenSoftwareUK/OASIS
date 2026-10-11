@@ -17,6 +17,7 @@ public sealed class TronSdkRuntime : IAsyncDisposable
 
     public TronSdkRuntime(Uri fullNode, Uri solidityNode, string genesisBlockId, string apiKey = null, long contractFeeLimitSun = 100000000)
     {
+        if (contractFeeLimitSun <= 0) throw new ArgumentOutOfRangeException(nameof(contractFeeLimitSun));
         ValidateEndpoint(fullNode);
         ValidateEndpoint(solidityNode);
         _fullNode = CreateChannel(fullNode);

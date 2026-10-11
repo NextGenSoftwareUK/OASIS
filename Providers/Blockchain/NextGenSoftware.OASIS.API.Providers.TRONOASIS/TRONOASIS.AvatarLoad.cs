@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (_nativeTransfers == null)
                 {
                     _ownedRuntime = new TronSdkRuntime(new Uri(_fullNodeGrpcEndpoint), new Uri(_solidityNodeGrpcEndpoint),
-                        _genesisBlockId, Environment.GetEnvironmentVariable(_apiKeyEnvironmentVariable));
+                        _genesisBlockId, Environment.GetEnvironmentVariable(_apiKeyEnvironmentVariable), _contractFeeLimitSun);
                     _nativeTransfers = _ownedRuntime.NativeTransfers;
                     _nativeSigningKeyResolver = address => Task.FromResult(Environment.GetEnvironmentVariable(_signingKeyEnvironmentVariable));
                 }
