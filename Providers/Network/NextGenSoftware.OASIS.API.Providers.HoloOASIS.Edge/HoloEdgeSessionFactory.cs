@@ -16,6 +16,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge
     /// <summary>Creates an authenticated lightweight HoloNET app-interface connection.</summary>
     public sealed class HoloNetEdgeSessionFactory : IHoloEdgeSessionFactory
     {
+        private readonly IHolochainZomeCallSigningBridge _signingBridge;
+
+        /// <param name="signingBridge">
+        /// When set, zome calls are signed by the conductor through the bridge (required on Android,
+        /// where the app has no admin access to authorize its own signing credentials).
+        /// </param>
+        public HoloNetEdgeSessionFactory(IHolochainZomeCallSigningBridge signingBridge = null) =>
+            _signingBridge = signingBridge;
+
         public async Task<OASISResult<IHoloEdgeAppClient>> ConnectAsync(string installedAppId,
             HolochainAndroidAppSession session, CancellationToken cancellationToken)
         {
@@ -37,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge
                 AutoShutdownHolochainConductor = false
             };
             var client = new HoloNETClientAppAgent(installedAppId, null, dna);
+            if (_signingBridge != null) client.ZomeCallSigner = new BridgeZomeCallSigner(_signingBridge);
             try
             {
                 var connected = await client.ConnectAsync(installedAppId, endpoint,

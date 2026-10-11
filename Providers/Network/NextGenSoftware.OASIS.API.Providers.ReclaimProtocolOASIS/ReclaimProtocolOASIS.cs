@@ -1,302 +1,285 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
+using Nethereum.Signer;
+using Nethereum.Util;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.UnitTests")]
+
 namespace NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS
 {
+    public sealed class ReclaimVerification
+    {
+        public string Identifier { get; init; }
+        public string Owner { get; init; }
+        public string Provider { get; init; }
+        public DateTimeOffset Timestamp { get; init; }
+        /// <summary>Recovered attestor addresses (lower-case) whose signatures are valid and registered.</summary>
+        public IReadOnlyList<string> Attestors { get; init; }
+        /// <summary>The signed claim context (JSON), including extractedParameters and providerHash.</summary>
+        public JsonElement Context { get; init; }
+    }
+
     /// <summary>
-    /// Reclaim Protocol ZK Proof of Web2 Data OASIS Provider.
-    /// Enables OASIS avatars to generate and verify zero-knowledge proofs that
-    /// attest to data from any HTTPS website (GitHub, Twitter, bank statements, etc.)
-    /// without revealing the underlying data.
-    ///
-    /// REST base: https://api.reclaimprotocol.org/api/v1
-    /// Create session: POST /session
-    /// Get session:    GET  /session/{sessionId}
-    /// Verify proof:   POST /verify
+    /// Reclaim Protocol provider. Verifies Reclaim zkTLS proofs exactly as the official SDK's verifyProof does: the claim
+    /// identifier is keccak256(provider \n parameters \n canonical(context)), the attestor signs (EIP-191) the lines
+    /// identifier, owner, timestampS and epoch, and at least one recovered signer must be in the registered attestor set
+    /// published at https://api.reclaimprotocol.org/api/attestors. Proof generation happens in the user's Reclaim
+    /// app/extension, so this provider is the verifier side. Reclaim is not a data store, so this is an
+    /// <see cref="OASISProvider"/>.
     /// </summary>
-    public class ReclaimProtocolOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public class ReclaimProtocolOASIS : OASISProvider
     {
         private readonly HttpClient _http;
-        private readonly string _appId;
-        private readonly string _appSecret;
-        private bool _isActivated;
+        private static readonly EthereumMessageSigner Signer = new();
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        public ReclaimProtocolOASIS(string backendUrl = "https://api.reclaimprotocol.org") : this(backendUrl, null) { }
+
+        internal ReclaimProtocolOASIS(string backendUrl, HttpMessageHandler handler)
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
-
-        public ReclaimProtocolOASIS(string appId = "", string appSecret = "")
-        {
-            _appId = appId;
-            _appSecret = appSecret;
-            _http = new HttpClient { BaseAddress = new Uri("https://api.reclaimprotocol.org/api/v1/") };
-            if (!string.IsNullOrEmpty(_appId))
-                _http.DefaultRequestHeaders.Add("X-App-Id", _appId);
-            if (!string.IsNullOrEmpty(_appSecret))
-                _http.DefaultRequestHeaders.Add("X-App-Secret", _appSecret);
-
+            _http = handler == null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
+            _http.BaseAddress = new Uri(backendUrl.TrimEnd('/') + "/");
             ProviderName = "ReclaimProtocolOASIS";
-            ProviderDescription = "Reclaim Protocol — ZK proof of Web2 data for OASIS avatars";
+            ProviderDescription = "Reclaim Protocol zkTLS proof verifier.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ReclaimProtocolOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Identity);
         }
-
-        // ── Lifecycle ─────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            var attestors = await GetAttestorsAsync();
             var result = new OASISResult<bool>();
-            try
-            {
-                if (_isActivated) { result.Result = true; result.Message = "ReclaimProtocolOASIS already activated"; return result; }
-                _isActivated = true;
-                result.Result = true;
-                result.Message = "ReclaimProtocolOASIS activated successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"ReclaimProtocolOASIS activation failed: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                _isActivated = false;
-                _http.Dispose();
-                result.Result = true;
-                result.Message = "ReclaimProtocolOASIS deactivated";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"ReclaimProtocolOASIS deactivation failed: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        // ── Avatar CRUD ───────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var resp = await _http.GetAsync($"session/{id}");
-                if (resp.IsSuccessStatusCode)
-                {
-                    var avatar = new Avatar { Id = id };
-                    result.Result = avatar;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Reclaim session lookup failed ({resp.StatusCode}) for {id}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"ReclaimProtocolOASIS LoadAvatarAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var avatar = new Avatar { Username = avatarUsername };
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"ReclaimProtocolOASIS LoadAvatarAsync(avatarUsername) error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                var payload = new { avatarId = avatar.Id.ToString(), username = avatar.Username };
-                var resp = await _http.PostAsync("session", Json(payload));
-                if (resp.IsSuccessStatusCode)
-                    result.Result = avatar;
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Reclaim session create failed ({resp.StatusCode})");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"ReclaimProtocolOASIS SaveAvatarAsync error: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
+            if (attestors.IsError) { OASISErrorHandling.HandleError(ref result, attestors.Message); return result; }
+            IsProviderActivated = true;
             result.Result = true;
+            result.Message = "ReclaimProtocolOASIS activated.";
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            result.Result = new List<IAvatar>();
-            return result;
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool>(true) { Message = "ReclaimProtocolOASIS deactivated." });
         }
 
-        // ── Holon CRUD ────────────────────────────────────────────────────────
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        /// <summary>The registered attestor addresses (lower-case).</summary>
+        public async Task<OASISResult<IReadOnlyList<string>>> GetAttestorsAsync(CancellationToken ct = default)
         {
-            var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "ReclaimProtocolOASIS does not support holon storage");
-            return result;
+            try
+            {
+                using var response = await _http.GetAsync("api/attestors", ct);
+                var body = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode)
+                    return Error<IReadOnlyList<string>>($"attestor list failed: {(int)response.StatusCode} {response.ReasonPhrase} {body}");
+                using var doc = JsonDocument.Parse(body);
+                var list = doc.RootElement.GetProperty("data").EnumerateArray()
+                    .Select(a => a.GetProperty("address").GetString().ToLowerInvariant()).ToList();
+                return list.Count == 0 ? Error<IReadOnlyList<string>>("attestor list is empty.") : new OASISResult<IReadOnlyList<string>>(list);
+            }
+            catch (Exception ex) { return Error<IReadOnlyList<string>>($"attestor list failed: {ex.Message}", ex); }
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        /// <summary>
+        /// Verifies a Reclaim proof (the JSON object returned by the Reclaim SDK / callback). When
+        /// <paramref name="expectedProviderHash"/> is given, the signed context's providerHash must equal it, binding the
+        /// proof to the provider template the caller asked for.
+        /// </summary>
+        public async Task<OASISResult<ReclaimVerification>> VerifyProofAsync(string proofJson, string expectedProviderHash = null, CancellationToken ct = default)
         {
-            var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "ReclaimProtocolOASIS does not support holon storage");
-            return result;
+            ReclaimVerification verified;
+            List<string> signers;
+            try
+            {
+                using var doc = JsonDocument.Parse(proofJson);
+                var proof = doc.RootElement;
+                var claim = proof.GetProperty("claimData");
+                var provider = claim.GetProperty("provider").GetString();
+                var parameters = claim.GetProperty("parameters").GetString();
+                var contextText = claim.TryGetProperty("context", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : "";
+                var owner = claim.GetProperty("owner").GetString().ToLowerInvariant();
+                var timestampS = claim.GetProperty("timestampS").GetInt64();
+                var epoch = claim.GetProperty("epoch").GetInt64();
+
+                JsonElement context = default;
+                var canonicalContext = "";
+                if (contextText.Length > 0)
+                {
+                    using var ctxDoc = JsonDocument.Parse(contextText);
+                    context = ctxDoc.RootElement.Clone();
+                    canonicalContext = JsonCanonicalizer.Canonicalize(context);
+                }
+
+                var identifier = "0x" + Convert.ToHexString(Sha3Keccack.Current.CalculateHash(
+                    Encoding.UTF8.GetBytes($"{provider}\n{parameters}\n{canonicalContext}"))).ToLowerInvariant();
+                if (claim.TryGetProperty("identifier", out var claimed) && !string.Equals(claimed.GetString(), identifier, StringComparison.OrdinalIgnoreCase))
+                    return Error<ReclaimVerification>("claim identifier does not match its provider/parameters/context.");
+
+                var signData = $"{identifier}\n{owner}\n{timestampS}\n{epoch}";
+                signers = proof.GetProperty("signatures").EnumerateArray()
+                    .Select(s => Signer.EncodeUTF8AndEcRecover(signData, s.GetString()).ToLowerInvariant()).ToList();
+
+                if (expectedProviderHash != null &&
+                    (context.ValueKind != JsonValueKind.Object || !context.TryGetProperty("providerHash", out var ph) ||
+                     !string.Equals(ph.GetString(), expectedProviderHash, StringComparison.OrdinalIgnoreCase)))
+                    return Error<ReclaimVerification>($"proof is not for provider hash {expectedProviderHash}.");
+
+                verified = new ReclaimVerification
+                {
+                    Identifier = identifier,
+                    Owner = owner,
+                    Provider = provider,
+                    Timestamp = DateTimeOffset.FromUnixTimeSeconds(timestampS),
+                    Context = context
+                };
+            }
+            catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException or ArgumentException)
+            {
+                return Error<ReclaimVerification>($"malformed proof: {ex.Message}", ex);
+            }
+
+            var attestors = await GetAttestorsAsync(ct);
+            if (attestors.IsError) return Error<ReclaimVerification>(attestors.Message);
+            var registered = signers.Where(attestors.Result.Contains).Distinct().ToList();
+            if (registered.Count == 0)
+                return Error<ReclaimVerification>("no signature is from a registered Reclaim attestor.");
+
+            return new OASISResult<ReclaimVerification>(new ReclaimVerification
+            {
+                Identifier = verified.Identifier,
+                Owner = verified.Owner,
+                Provider = verified.Provider,
+                Timestamp = verified.Timestamp,
+                Context = verified.Context,
+                Attestors = registered
+            });
         }
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync_Legacy(Guid id, bool softDelete = true)
+        private static OASISResult<T> Error<T>(string message, Exception ex = null)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "ReclaimProtocolOASIS does not support holon deletion");
+            var result = new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result, $"ReclaimProtocolOASIS: {message}", ex);
             return result;
         }
+    }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    /// <summary>RFC 8785 JSON Canonicalization Scheme, matching the npm `canonicalize` package the Reclaim SDK uses.</summary>
+    internal static class JsonCanonicalizer
+    {
+        public static string Canonicalize(JsonElement element)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            result.Result = new List<IHolon>();
-            return result;
+            var sb = new StringBuilder();
+            Write(element, sb);
+            return sb.ToString();
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        private static void Write(JsonElement e, StringBuilder sb)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ReclaimProtocolOASIS does not support holon storage");
-            return result;
+            switch (e.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    sb.Append('{');
+                    var first = true;
+                    foreach (var p in e.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal))
+                    {
+                        if (!first) sb.Append(',');
+                        first = false;
+                        WriteString(p.Name, sb);
+                        sb.Append(':');
+                        Write(p.Value, sb);
+                    }
+                    sb.Append('}');
+                    break;
+                case JsonValueKind.Array:
+                    sb.Append('[');
+                    var i = 0;
+                    foreach (var item in e.EnumerateArray())
+                    {
+                        if (i++ > 0) sb.Append(',');
+                        Write(item, sb);
+                    }
+                    sb.Append(']');
+                    break;
+                case JsonValueKind.String: WriteString(e.GetString(), sb); break;
+                case JsonValueKind.Number: sb.Append(FormatNumber(e.GetDouble())); break;
+                case JsonValueKind.True: sb.Append("true"); break;
+                case JsonValueKind.False: sb.Append("false"); break;
+                default: sb.Append("null"); break;
+            }
         }
 
-        // ── Search ────────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        /// <summary>JSON.stringify string escaping: quote, backslash and C0 controls only.</summary>
+        private static void WriteString(string s, StringBuilder sb)
         {
-            var result = new OASISResult<ISearchResults>();
-            result.Result = new SearchResults();
-            return result;
+            sb.Append('"');
+            foreach (var ch in s)
+            {
+                switch (ch)
+                {
+                    case '"': sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    case '\b': sb.Append("\\b"); break;
+                    case '\f': sb.Append("\\f"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    default:
+                        if (ch < 0x20) sb.Append("\\u").Append(((int)ch).ToString("x4"));
+                        else sb.Append(ch);
+                        break;
+                }
+            }
+            sb.Append('"');
         }
 
-        // ── Avatar Detail ─────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        /// <summary>ECMAScript Number.prototype.toString for finite doubles (shortest round-trip digits).</summary>
+        internal static string FormatNumber(double d)
         {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "ReclaimProtocolOASIS does not support avatar detail storage");
-            return result;
+            if (double.IsNaN(d) || double.IsInfinity(d)) throw new FormatException("JSON numbers must be finite.");
+            if (d == 0) return "0";
+            // Shortest round-trip mantissa digits and decimal exponent.
+            var shortest = d.ToString("R", CultureInfo.InvariantCulture);
+            var neg = shortest.StartsWith('-');
+            if (neg) shortest = shortest[1..];
+
+            var ePos = shortest.IndexOfAny(new[] { 'E', 'e' });
+            var mant = ePos >= 0 ? shortest[..ePos] : shortest;
+            var e10 = ePos >= 0 ? int.Parse(shortest[(ePos + 1)..], CultureInfo.InvariantCulture) : 0;
+            var dot = mant.IndexOf('.');
+            var intPart = dot >= 0 ? mant[..dot] : mant;
+            var frac = dot >= 0 ? mant[(dot + 1)..] : "";
+            var digits = (intPart + frac).TrimStart('0');
+            var leadingZeros = (intPart + frac).Length - (intPart + frac).TrimStart('0').Length;
+            var exp = intPart.Length + e10 - leadingZeros; // position of decimal point relative to digits
+            digits = digits.TrimEnd('0');
+            var k = digits.Length;
+            var n = exp;
+            string body;
+            if (k <= n && n <= 21) body = digits + new string('0', n - k);
+            else if (0 < n && n <= 21) body = digits[..n] + "." + digits[n..];
+            else if (-6 < n && n <= 0) body = "0." + new string('0', -n) + digits;
+            else
+            {
+                var e = n - 1;
+                var m = k == 1 ? digits : digits[..1] + "." + digits[1..];
+                body = m + "e" + (e >= 0 ? "+" : "-") + Math.Abs(e).ToString(CultureInfo.InvariantCulture);
+            }
+            return neg ? "-" + body : body;
         }
-
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "ReclaimProtocolOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            result.Result = new List<IAvatarDetail>();
-            return result;
-        }
-
-        // -- Missing async overrides
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => await LoadAvatarByUsernameAsync(providerKey, version);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); r.Result = new Holon { Id = id }; return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-
-        // -- Sync wrappers
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) { var r = DeleteHolonAsync(providerKey).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-
-
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters) { var r = new OASISResult<IEnumerable<IAvatar>>(); r.Result = new System.Collections.Generic.List<IAvatar>(); return r; }
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new System.Collections.Generic.List<IHolon>(); return r; }
-
     }
 }
