@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
 {
     private const string PhysicalPrefix = "oasis/private/v1/";
+    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private readonly EncryptedKeyValueBackend _encrypted;
     private readonly byte[] _indexKey;
     private bool _disposed;
@@ -28,7 +29,7 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(key);
-        return PhysicalPrefix + Convert.ToHexString(HMACSHA256.HashData(_indexKey, Encoding.UTF8.GetBytes(key))).ToLowerInvariant();
+        return PhysicalPrefix + Convert.ToHexString(HMACSHA256.HashData(_indexKey, StrictUtf8.GetBytes(key))).ToLowerInvariant();
     }
 
     private static (string Key, string Value) Parse(string payload)
@@ -53,6 +54,7 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
     public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(value);
+        StrictUtf8.GetByteCount(value);
         return _encrypted.PutAsync(PhysicalKey(key), JsonSerializer.Serialize(new { key, value }), cancellationToken);
     }
 
@@ -63,6 +65,7 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(prefix);
+        StrictUtf8.GetByteCount(prefix);
         var physicalKeys = await _encrypted.ListKeysAsync(PhysicalPrefix, cancellationToken);
         var keys = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var physicalKey in physicalKeys)
