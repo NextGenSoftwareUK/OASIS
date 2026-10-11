@@ -20,7 +20,7 @@ pub struct Nft { pub token_id: String, pub owner: Addr, pub locked: bool, pub me
 pub enum ExecuteMsg {
     TokenMint { symbol: String, recipient: String, amount: Uint128, metadata_json: String },
     TokenTransfer { symbol: String, recipient: String, amount: Uint128 },
-    TokenBurn { symbol: String },
+    TokenBurn { symbol: String, amount: Uint128 },
     TokenSetLocked { symbol: String, locked: bool },
     NftMint { token_id: String, recipient: String, metadata_json: String },
     NftTransfer { token_id: String, recipient: String },
@@ -87,13 +87,15 @@ pub fn execute(deps: DepsMut, info: MessageInfo, msg: ExecuteMsg) -> StdResult<R
             }
             "token_transfer"
         }
-        ExecuteMsg::TokenBurn { symbol } => {
+        ExecuteMsg::TokenBurn { symbol, amount } => {
             let mut token = unlocked_token(deps.as_ref(), &symbol)?;
             let balance = BALANCES.may_load(deps.storage, (&symbol, &info.sender))?.unwrap_or_default();
-            if balance.is_zero() { return Err(StdError::generic_err("sender has no tokens to burn")); }
-            token.supply = token.supply.checked_sub(balance)?;
+            if amount.is_zero() { return Err(StdError::generic_err("positive burn amount required")); }
+            let remaining = balance.checked_sub(amount)?;
+            token.supply = token.supply.checked_sub(amount)?;
             TOKENS.save(deps.storage, &symbol, &token)?;
-            BALANCES.remove(deps.storage, (&symbol, &info.sender));
+            if remaining.is_zero() { BALANCES.remove(deps.storage, (&symbol, &info.sender)); }
+            else { BALANCES.save(deps.storage, (&symbol, &info.sender), &remaining)?; }
             "token_burn"
         }
         ExecuteMsg::TokenSetLocked { symbol, locked } => {
@@ -167,9 +169,14 @@ mod tests {
         assert_eq!(BALANCES.load(deps.as_ref().storage, ("TREE", &owner)).unwrap(), Uint128::new(70));
         assert!(execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenSetLocked { symbol: "TREE".into(), locked: true }).is_err());
         execute(deps.as_mut(), message_info(&owner, &[]), ExecuteMsg::TokenSetLocked { symbol: "TREE".into(), locked: true }).unwrap();
-        assert!(execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into() }).is_err());
+        assert!(execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into(), amount: Uint128::new(1) }).is_err());
         execute(deps.as_mut(), message_info(&owner, &[]), ExecuteMsg::TokenSetLocked { symbol: "TREE".into(), locked: false }).unwrap();
-        execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into() }).unwrap();
+        execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into(), amount: Uint128::new(1) }).unwrap();
+        assert_eq!(BALANCES.load(deps.as_ref().storage, ("TREE", &other)).unwrap(), Uint128::new(29));
+        assert_eq!(TOKENS.load(deps.as_ref().storage, "TREE").unwrap().supply, Uint128::new(99));
+        assert!(execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into(), amount: Uint128::zero() }).is_err());
+        assert!(execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into(), amount: Uint128::new(30) }).is_err());
+        execute(deps.as_mut(), message_info(&other, &[]), ExecuteMsg::TokenBurn { symbol: "TREE".into(), amount: Uint128::new(29) }).unwrap();
         let balance: Uint128 = from_json(query(deps.as_ref(), QueryMsg::TokenBalance { symbol: "TREE".into(), address: other.to_string() }).unwrap()).unwrap();
         assert_eq!(balance, Uint128::zero());
         assert_eq!(TOKENS.load(deps.as_ref().storage, "TREE").unwrap().supply, Uint128::new(70));
