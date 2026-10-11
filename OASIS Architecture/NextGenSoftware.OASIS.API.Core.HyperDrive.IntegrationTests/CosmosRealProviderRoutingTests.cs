@@ -94,6 +94,7 @@ public sealed class CosmosRealProviderRoutingTests
             "wasm", "0.025stake", "stake");
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-cosmos-replication" };
+        var deletedThroughRouter = false;
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
         var activated = await cosmos.ActivateProviderAsync();
         activated.IsError.Should().BeFalse(activated.Message);
@@ -115,6 +116,16 @@ public sealed class CosmosRealProviderRoutingTests
             var replicated = await cosmos.LoadHolonAsync(holon.Id, loadChildren: false);
             replicated.IsError.Should().BeFalse(replicated.Message);
             replicated.Result.Name.Should().Be(holon.Name);
+            (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+
+            holon.Name = "real-v2-cosmos-replication-updated";
+            var updated = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
+            updated.IsError.Should().BeFalse(updated.Message);
+            updated.IsWarning.Should().BeFalse(updated.Message);
+            (await cosmos.LoadHolonAsync(holon.Id, loadChildren: false)).Result.Name.Should().Be(holon.Name);
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
@@ -144,12 +155,26 @@ public sealed class CosmosRealProviderRoutingTests
             loaded.IsError.Should().BeFalse(loaded.Message);
             loaded.Result.Name.Should().Be(holon.Name);
             manager.PerformanceMonitor.GetMetrics(expected).TotalRequests.Should().Be(before + 1);
+            manager.IsAutoLoadBalanceEnabled = false;
+            manager.IsAutoReplicationEnabled = true;
+            var removed = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+            removed.IsError.Should().BeFalse(removed.Message);
+            removed.IsWarning.Should().BeFalse(removed.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await local.LoadHolonAsync(holon.Id)).Result.Should().BeNull();
+            (await cosmos.LoadHolonAsync(holon.Id, loadChildren: false)).Result.Should().BeNull();
+            deletedThroughRouter = true;
         }
         finally
         {
-            var deleted = await cosmos.DeleteHolonAsync(holon.Id);
-            deleted.IsError.Should().BeFalse(deleted.Message);
-            (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            if (!deletedThroughRouter)
+            {
+                var deleted = await cosmos.DeleteHolonAsync(holon.Id);
+                deleted.IsError.Should().BeFalse(deleted.Message);
+                (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            }
             await cosmos.DeActivateProviderAsync();
             await local.DeActivateProviderAsync();
         }
