@@ -28,7 +28,7 @@ internal sealed class NearSdkService
         _privateKey = privateKey;
         _nodeExecutable = nodeExecutable ?? Environment.GetEnvironmentVariable("OASIS_NEAR_NODE") ?? "node";
         _bridgePath = bridgePath ?? Environment.GetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE")
-            ?? Path.Combine(AppContext.BaseDirectory, "SdkBridge", "bridge.mjs");
+            ?? Path.Combine(AppContext.BaseDirectory, "NearSdkBridge", "bridge.mjs");
     }
 
     public async Task ProbeAsync()

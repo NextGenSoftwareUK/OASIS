@@ -30,7 +30,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         _gasPrice = gasPrice;
         _nodeExecutable = nodeExecutable ?? Environment.GetEnvironmentVariable("OASIS_COSMOS_NODE") ?? "node";
         _bridgePath = bridgePath ?? Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE")
-            ?? Path.Combine(AppContext.BaseDirectory, "SdkBridge", "bridge.mjs");
+            ?? Path.Combine(AppContext.BaseDirectory, "CosmosSdkBridge", "bridge.mjs");
     }
 
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
