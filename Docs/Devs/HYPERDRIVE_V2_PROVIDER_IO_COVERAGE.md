@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera mint receipt serial integrity/retention (2026-10-11)
+
+Mint verifies exact requested transaction identity and SUCCESS before serial processing, retains that ID immediately in the response, then validates serial count, uniqueness and positive int64 range. Invalid serial payload no longer discards a confirmed mint's reconciliation identity; no automatic remint is introduced. Five pure receipt-contract tests pass **5/5**, zero skips (`hedera-mint-receipt.trx`), covering empty/duplicate/zero/overflow serials and exact values above 2^53/up to int64 max; provider build succeeds. These tests do not prove live mint/recipient delivery or authenticated wallet resolution. Funded lifecycle/API gates remain open; no ledger mutation or installation.
+
 ### Hedera NFT mirror read integrity (2026-10-11)
 
 NFT metadata reads continue using the configured mirror's real `tokens/{token}/nfts/{serial}` endpoint and preserve binary Base64 metadata. They now reject metadata over the HTS 100-byte limit and zero owner account IDs, and project the validated native owner into `SendToAddressAfterMinting` as well as native metadata. Controlled HTTP contract suite **8/8**, zero skips (`hedera-nft-read-contract.trx`), checks identity/deletion/encoding/owner/size and binary preservation; provider build succeeds. These are HTTP transport fixtures, not live mirror NFT evidence. Live lifecycle/API gates remain incomplete. No installation/download or ledger mutation.
