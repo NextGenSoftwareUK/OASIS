@@ -60,6 +60,9 @@ public class SuiStorageTests
             Assert.AreEqual("Before", loaded.Result.FirstName);
             Assert.AreEqual(id, (await _provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
             Assert.AreEqual(id, (await _provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatar(id).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarByUsername(avatar.Username).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarByEmail(avatar.Email).Result.Id);
             avatar.FirstName = "After";
             Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
             Assert.AreEqual("After", (await _provider.LoadAvatarAsync(id)).Result.FirstName);
@@ -68,6 +71,10 @@ public class SuiStorageTests
             Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
             Assert.AreEqual(id, (await _provider.LoadAvatarDetailAsync(id)).Result.Id);
             Assert.AreEqual(id, (await _provider.LoadAvatarDetailByEmailAsync(avatar.Email)).Result.Id);
+            Assert.AreEqual(id, (await _provider.LoadAvatarDetailByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarDetail(id).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarDetailByUsername(avatar.Username).Result.Id);
+            Assert.AreEqual(id, _provider.LoadAvatarDetailByEmail(avatar.Email).Result.Id);
         }
         finally
         {
