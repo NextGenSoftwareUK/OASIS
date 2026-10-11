@@ -7,6 +7,17 @@ provider works on iPhone and iPad the same way it already works on Android.
 static library, no Swift/Objective-C bridge). The Edge package's iOS support today is the runtime,
 SQLite and Keychain session storage only. The HoloEnabled profile is Android-only.
 
+**Update (2026-10-11): the conductor builds for iOS.**
+- JIT blocker solved with Holochain 0.7's own `wasmer-wasmi` interpreter. Our fork's runtime crates now have
+  `wasm-jit` (default; Cranelift, Android/desktop) and `wasm-interpreter` (wasmi, iOS) features.
+- macOS CI workflow `ios-conductor.yml` on `NextGenSoftwareUK/android-service-runtime` (`oasis/holochain-0.7`)
+  builds `aarch64-apple-ios` + `aarch64-apple-ios-sim`, generates UniFFI Swift bindings and packages
+  `HolochainConductor.xcframework`. Push a tag `oasis-ios-conductor-vX.Y.Z` to build and publish.
+- First release: [oasis-ios-conductor-v0.1.1](https://github.com/NextGenSoftwareUK/android-service-runtime/releases/tag/oasis-ios-conductor-v0.1.1)
+  (xcframework ~121 MB zipped, Swift bindings, `build-manifest.json`). Minimum iOS 15.
+- Not yet proven: starting a conductor and running an OASIS zome call on the simulator (plan step 1's exit
+  criterion), then steps 3 to 7 below (Swift bridge, Unity C# bridge, lifecycle, build guard, tests).
+
 ---
 
 ## 1. What exists on Android (use it as the reference)
