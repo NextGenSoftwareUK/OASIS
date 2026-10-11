@@ -57,7 +57,10 @@ async function storageInfo(client, request) {
 async function execute(client, tx, signer, include = {}) {
   tx.setSender(signer.toSuiAddress());
   const response = await client.signAndExecuteTransaction({ transaction: tx, signer, include: { effects: true, ...include } });
-  if (response.FailedTransaction) throw new Error(JSON.stringify(response.FailedTransaction.status));
+  if (response.FailedTransaction) {
+    const failed = response.FailedTransaction;
+    throw new Error(`Sui execution failed for original transaction ${failed.digest ?? '(digest unavailable)'}: ${JSON.stringify(failed.status)}. Reconcile this transaction before any retry.`);
+  }
   if (!response.Transaction?.digest) throw new Error('Sui SDK returned no successful transaction digest');
   await client.waitForTransaction({ digest: response.Transaction.digest });
   return response.Transaction;
