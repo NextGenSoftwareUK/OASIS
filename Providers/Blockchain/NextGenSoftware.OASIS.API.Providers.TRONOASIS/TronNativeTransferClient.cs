@@ -221,6 +221,44 @@ public sealed class TronNativeTransferClient
             expectedContractAmount: amount);
     }
 
+    public async Task<string> SendNftAsync(string from, string to, string tokenAddress,
+        System.Numerics.BigInteger tokenId, string privateKey, string memo = null, CancellationToken cancellationToken = default)
+    {
+        if (tokenId < 0 || tokenId >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentOutOfRangeException(nameof(tokenId));
+        if (string.IsNullOrWhiteSpace(privateKey)
+            || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
+        var source = _wallet.ParseAddress(from);
+        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
+            throw new ArgumentException("NFT signing key does not own the requested sender.");
+        var recipient = _wallet.ParseAddress(to);
+        var contract = _wallet.ParseAddress(tokenAddress);
+        EncodeAddressCall("ownerOf(uint256)", contract); // Validate contract address before node access.
+        var data = EncodeNftTransfer(source, recipient, tokenId);
+        await VerifyNetworkAsync(cancellationToken);
+        var query = new byte[36];
+        Convert.FromHexString("6352211e").CopyTo(query, 0);
+        var encodedId = tokenId.ToByteArray(isUnsigned: true, isBigEndian: true);
+        encodedId.CopyTo(query, query.Length - encodedId.Length);
+        var owner = await ReadContractUintAsync(source, contract, query, cancellationToken);
+        var expected = new System.Numerics.BigInteger(source.ToByteArray().AsSpan(1), isUnsigned: true, isBigEndian: true);
+        if (owner != expected) throw new InvalidOperationException("The requested sender does not own the on-chain NFT token ID.");
+        return await ExecuteContractAsync(source, contract, data, privateKey, memo, cancellationToken);
+    }
+
+    internal static byte[] EncodeNftTransfer(ByteString from, ByteString to, System.Numerics.BigInteger tokenId)
+    {
+        if (tokenId < 0 || tokenId >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentOutOfRangeException(nameof(tokenId));
+        var addresses = EncodeAddressCall("safeTransferFrom(address,address,uint256)", from, to);
+        var data = new byte[100];
+        addresses.CopyTo(data, 0);
+        var id = tokenId.ToByteArray(isUnsigned: true, isBigEndian: true);
+        id.CopyTo(data, data.Length - id.Length);
+        return data;
+    }
+
     public async Task<string> LockEscrowAsync(string owner, string escrowAddress, string tokenAddress,
         string privateKey, CancellationToken cancellationToken = default)
     {
