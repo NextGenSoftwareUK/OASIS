@@ -453,6 +453,29 @@ public sealed class TronNativeTransferClient
         return data;
     }
 
+    internal static byte[] EncodeNftEscrow(string signature, ByteString contract, System.Numerics.BigInteger tokenId)
+    {
+        if (signature != "lockNFT(address,uint256)" && signature != "unlockNFT(address,uint256)")
+            throw new ArgumentException("An explicit NFT escrow operation is required.");
+        if (tokenId < 0 || tokenId >= (System.Numerics.BigInteger.One << 256))
+            throw new ArgumentOutOfRangeException(nameof(tokenId));
+        var data = new byte[68];
+        EncodeAddressCall(signature, contract).CopyTo(data, 0);
+        var id = tokenId.ToByteArray(true, true);
+        id.CopyTo(data, data.Length - id.Length);
+        return data;
+    }
+
+    public Task<string> ExecuteNftEscrowAsync(string owner, string escrow, string nftAddress,
+        string privateKey, bool unlock, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var asset = ParseNftAddress(nftAddress);
+        var call = EncodeNftEscrow(unlock ? "unlockNFT(address,uint256)" : "lockNFT(address,uint256)",
+            _wallet.ParseAddress(asset.Contract), asset.TokenId);
+        return ExecuteSignedContractAsync(owner, escrow, call, privateKey, cancellationToken);
+    }
+
     internal static (string Contract, System.Numerics.BigInteger TokenId) ParseNftAddress(string address)
     {
         var parts = address?.Split('/');

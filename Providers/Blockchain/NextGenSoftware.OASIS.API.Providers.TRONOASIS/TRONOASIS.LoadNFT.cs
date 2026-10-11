@@ -308,9 +308,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
         {
+            return await ExecuteOwnedNftEscrowAsync(request?.LockedByAvatarId ?? Guid.Empty, request?.NFTTokenAddress, false);
+        }
+
+        private async Task<OASISResult<IWeb3NFTTransactionResponse>> ExecuteOwnedNftEscrowAsync(Guid avatarId, string nftAddress, bool unlock)
+        {
             var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
             try
             {
+                if (avatarId == Guid.Empty) throw new ArgumentException("An avatar ID is required for NFT depositor signing.");
+                TronNativeTransferClient.ParseNftAddress(nftAddress);
+                if (string.IsNullOrWhiteSpace(_escrowContractAddress))
+                    throw new InvalidOperationException("A separate EscrowContractAddress with NFT escrow support must be configured.");
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId,
+                    Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
+                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the avatar's TRON depositor signing wallet.");
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -321,30 +334,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromNFTTokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = string.Empty,
-                    ToWalletAddress = bridgePoolAddress,
-                    TokenAddress = request.NFTTokenAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                var sendResult = await SendNFTAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.IsError = false;
-                result.Result.TransactionResult = sendResult.Result.TransactionResult;
+                var hash = await ExecuteRuntimeAsync(client => client.ExecuteNftEscrowAsync(wallet.Result.WalletAddress,
+                    _escrowContractAddress, nftAddress, wallet.Result.PrivateKey, unlock));
+                result.Result.TransactionResult = hash;
+                result.Message = "Depositor-owned NFT escrow operation confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error executing owned NFT escrow: {ex.Message}", ex);
             }
             return result;
         }
@@ -356,45 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromNFTTokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = bridgePoolAddress,
-                    ToWalletAddress = string.Empty,
-                    TokenAddress = request.NFTTokenAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                var sendResult = await SendNFTAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.IsError = false;
-                result.Result.TransactionResult = sendResult.Result.TransactionResult;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteOwnedNftEscrowAsync(request?.UnlockedByAvatarId ?? Guid.Empty, request?.NFTTokenAddress, true);
         }
 
         // NFT Bridge Methods
