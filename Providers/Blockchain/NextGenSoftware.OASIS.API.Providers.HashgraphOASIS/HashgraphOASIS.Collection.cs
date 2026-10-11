@@ -18,6 +18,36 @@ public sealed class HederaNftCollectionResponse
 
 public partial class HashgraphOASIS
 {
+    public async Task<OASISResult<HederaNftCollectionResponse>> DeleteTokenCollectionAsync(
+        string senderAccountId, string privateKeyDer, string tokenId, long maxFeeTinybars,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new OASISResult<HederaNftCollectionResponse>();
+        try
+        {
+            foreach (var id in new[] { senderAccountId, tokenId })
+                if (!Regex.IsMatch(id ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                    throw new ArgumentException("Explicit nonzero numeric payer and collection token IDs are required.");
+            if (maxFeeTinybars <= 0 || string.IsNullOrWhiteSpace(privateKeyDer))
+                throw new ArgumentException("An explicit DER admin signing key and positive fee ceiling are required.");
+            cancellationToken.ThrowIfCancellationRequested();
+            var transactionId = HederaSdkClient.CreateTransactionId(senderAccountId);
+            result.Result = new HederaNftCollectionResponse { TransactionId = transactionId, TokenId = tokenId };
+            var receipt = await HederaSdkClient.InvokeAsync("tokenCollectionDelete", new
+            {
+                network = _hederaNetwork, nodes = _consensusNodes, sender = senderAccountId,
+                privateKey = privateKeyDer, keyType = "der", tokenId,
+                maxFeeTinybars = maxFeeTinybars.ToString(CultureInfo.InvariantCulture), transactionId
+            }, cancellationToken);
+            if (receipt.GetProperty("status").GetString() != "SUCCESS"
+                || receipt.GetProperty("transactionId").GetString() != transactionId)
+                throw new InvalidOperationException("Collection deletion receipt identity mismatch; reconcile the original transaction.");
+            result.Result.ConsensusVerified = true;
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
     // Explicit native operation; credentials go to the SDK through stdin only.
     public async Task<OASISResult<HederaNftCollectionResponse>> CreateNftCollectionAsync(
         string senderAccountId, string privateKeyDer, string name, string symbol,

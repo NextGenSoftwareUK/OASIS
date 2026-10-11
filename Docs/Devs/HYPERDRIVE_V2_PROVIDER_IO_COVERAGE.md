@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Native collection deletion lifecycle operation (2026-10-11)
+
+SDK `tokenCollectionDelete` and concrete C# `DeleteTokenCollectionAsync` now use real HTS `TokenDeleteTransaction`, explicit nonzero numeric collection/payer IDs, admin signing key, fee ceiling and original single-attempt transaction identity. Native consensus determines admin authorization; no mirror mutation or fabricated success. C# retains requested collection/transaction IDs on uncertain failure and requires matching SUCCESS receipt before verified deletion. SDK serialization checks exact token/payer/fee and rejects serial-address/zero/missing selectors; full SDK suite **75/75**. Collection C# suite **12/12**, zero skips, including three added pre-SDK deletion rejection cases; provider build succeeds. No live collection was created/deleted, no testnet funds spent. Live admin authorization/deletion and authenticated API wiring remain required; official mirror funding remains 391,606,260 tinybars.
+
 ### Collection C#→Node boundary proof (2026-10-11)
 
 Collection tests now pass **9/9**, zero skips (`hedera-collection-validation.trx`): five input-validation cases plus four actual Node-process controlled transport cases. The fixture checks native action/network/payer, DER credential projection, exact supply `9007199254740993`, fee string and original transaction identity. Exact SUCCESS/native token ID marks consensus verified only in the controlled response scenario; failed process/native fee status, mismatched receipt identity and missing token ID retain the original requested ID but never claim verified collection creation. No key appears in returned errors. The fixture performs no SDK/consensus operations, and it is explicitly not live collection proof. Full funded lifecycle and public authenticated API integration remain gates.

@@ -225,7 +225,7 @@ async function executeFile(action, request) {
 }
 
 export async function execute(action, request) {
-  if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey});
+  if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey});
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
   if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {

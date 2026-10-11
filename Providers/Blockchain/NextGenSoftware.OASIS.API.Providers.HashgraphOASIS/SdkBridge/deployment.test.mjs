@@ -1,6 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId} from '@hiero-ledger/sdk';
 import {deploymentTransaction} from './deployment.mjs';
+test('collection deletion encodes only explicit native token ID with original payer and fee',()=>{
+ const key=PrivateKey.generateECDSA().publicKey;
+ const tx=deploymentTransaction('tokenCollectionDelete',{...request,tokenId:'0.0.2001'},key);
+ assert.equal(tx.maxAttempts,1);assert.equal(tx.regenerateTransactionId,false);
+ tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();const decoded=Transaction.fromBytes(tx.toBytes());
+ assert.equal(decoded.tokenId.toString(),'0.0.2001');assert.equal(decoded.transactionId.toString(),request.transactionId);
+ assert.equal(decoded.maxTransactionFee.toTinybars().toString(),request.maxFeeTinybars);
+ for(const tokenId of [undefined,'0.0.0','0.0.2001/1','fixture'])
+  assert.throws(()=>deploymentTransaction('tokenCollectionDelete',{...request,tokenId},key));
+});
 test('NFT collection creation serializes real HTS type, keys, treasury and exact int64 supply',()=>{
  const key=PrivateKey.generateECDSA().publicKey;
  const tx=deploymentTransaction('nftCollectionCreate',{...request,name:'Oak seeds',symbol:'OAK',maxSupply:'9007199254740993'},key);
