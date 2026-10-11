@@ -241,15 +241,7 @@ public sealed class TronNativeTransferClient
                     DateTime.UtcNow.AddSeconds(15), deadline.Token);
                 if (receipt.Id.Length != 0)
                 {
-                    if (!receipt.Id.Equals(id.Value) || receipt.BlockNumber <= 0)
-                        throw new InvalidOperationException("TRON returned an inconsistent solidified receipt.");
-                    if ((int)receipt.Result != 0)
-                        throw new InvalidOperationException($"TRON transfer {transactionId} failed in the solidified chain.");
-                    if (requireContractSuccess && (receipt.Receipt == null
-                        || (int)receipt.Receipt.Result != 1)) // SDK contractResult SUCCESS=1; DEFAULT=0 is not success.
-                        throw new InvalidOperationException($"TRON contract execution {transactionId} did not report SUCCESS.");
-                    if (requireTransferReturn && (!allowVoidContractReturn || receipt.ContractResult.Count != 0))
-                        ValidateTrc20TransferReturn(receipt);
+                    ValidateSolidifiedReceipt(receipt, id.Value, requireContractSuccess, requireTransferReturn, allowVoidContractReturn);
                     return transactionId;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2), deadline.Token);
@@ -261,7 +253,21 @@ public sealed class TronNativeTransferClient
         }
         catch (Exception error)
         {
-            throw new InvalidOperationException($"TRON confirmation failed for broadcast {transactionId}. Track this original transaction before any retry.", error);
+            throw new InvalidOperationException($"TRON confirmation failed for broadcast {transactionId}: {error.Message} Track this original transaction before any retry.", error);
         }
+    }
+
+    internal static void ValidateSolidifiedReceipt(TransactionInfo receipt, ByteString expectedId,
+        bool requireContractSuccess, bool requireTransferReturn, bool allowVoidContractReturn)
+    {
+        if (receipt == null || expectedId == null || expectedId.Length != 32
+            || !receipt.Id.Equals(expectedId) || receipt.BlockNumber <= 0)
+            throw new InvalidOperationException("TRON returned an inconsistent solidified receipt.");
+        if ((int)receipt.Result != 0)
+            throw new InvalidOperationException("TRON transaction failed in the solidified chain.");
+        if (requireContractSuccess && (receipt.Receipt == null || (int)receipt.Receipt.Result != 1))
+            throw new InvalidOperationException("TRON contract execution did not report SUCCESS.");
+        if (requireTransferReturn && (!allowVoidContractReturn || receipt.ContractResult.Count != 0))
+            ValidateTrc20TransferReturn(receipt);
     }
 }
