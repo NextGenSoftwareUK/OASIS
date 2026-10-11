@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui mint receipt retention (2026-10-11)
+
+Sui mint now assigns its committed digest to the response before separate object readback, retaining both transaction fields and any already-read NFTs if subsequent readback fails. Errors explicitly require reconciliation before retrying. A controlled process fixture proves committed-mint/readback-failure behavior; this is not live SDK evidence. Current full unit suite passes **21/21**, zero skips (`sui-current-unit.trx`). Initial run used the previously built provider DLL and failed the new receipt assertion; rebuilding the provider with bounded workers and rerunning the suite verified the changed implementation. No runtime installation or ledger reset was needed. Current live mint lifecycle verification remains outstanding for this source revision.
+
 ### Cosmos signer boundary tests and Hedera funding recheck (2026-10-11)
 
 Cosmos unit suite now passes **14/14**, zero skips (`TestResults/CosmosRuntime/cosmos-current-unit.trx`). Three controlled Node-process cases verify explicit NFT private-key forwarding instead of the configured key, rejection of a mismatched public key before transfer, and preservation of the committed transfer ID when subsequent NFT readback fails. This fixture performs no SDK or ledger operations; it is not live-chain proof.

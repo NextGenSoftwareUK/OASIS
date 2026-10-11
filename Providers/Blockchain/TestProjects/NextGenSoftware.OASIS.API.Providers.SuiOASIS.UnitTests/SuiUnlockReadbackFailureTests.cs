@@ -7,6 +7,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [TestMethod]
+    public async Task CommittedMintDigestSurvivesSeparateReadbackFailure()
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try
+        {
+            using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
+            var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { Title="Receipt test",NumberToMint=1 });
+            Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
+            Assert.AreEqual("fixture-committed-mint-digest",result.Result.TransactionResult);
+            Assert.AreEqual("fixture-committed-mint-digest",result.Result.SendNFTTransactionResult);
+            StringAssert.Contains(result.Message,"reconcile before retrying");
+            Assert.IsFalse(result.Message.Contains("test-only-secret"));
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+
+    [TestMethod]
     public async Task ExplicitNftSignerAndCommittedSendDigestSurviveReadbackFailure()
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
