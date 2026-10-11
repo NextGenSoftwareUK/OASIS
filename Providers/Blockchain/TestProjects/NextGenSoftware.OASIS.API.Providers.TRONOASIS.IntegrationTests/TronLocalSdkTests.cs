@@ -187,7 +187,7 @@ public sealed class TronLocalSdkTests
     public async Task EncryptedStorageReopensSameContractWithoutPlaintextKeysOrValues()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(55));
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis);
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis, contractFeeLimitSun: 1000000000);
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/compile-tron-store.cjs"))) directory = directory.Parent;
         Assert.NotNull(directory);
