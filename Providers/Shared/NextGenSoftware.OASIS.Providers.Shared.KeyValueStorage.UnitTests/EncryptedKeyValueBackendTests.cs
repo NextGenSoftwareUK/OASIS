@@ -11,6 +11,38 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class EncryptedKeyValueBackendTests
 {
     [TestMethod]
+    public async Task CompressedRecordsPreserveFullUnicodeAndReadExistingVersionOne()
+    {
+        var store = new InMemoryBackend();
+        var key = RandomNumberGenerator.GetBytes(32);
+        using var original = new EncryptedKeyValueBackend(store, key);
+        using var compressed = new EncryptedKeyValueBackend(store, key, compress: true);
+        await original.PutAsync("old", "existing record 🌳");
+        Assert.AreEqual("existing record 🌳", await compressed.GetAsync("old"));
+        var full = string.Concat(Enumerable.Repeat("full avatar detail 🌳🌱", 10000));
+        await compressed.PutAsync("full", full);
+        Assert.IsTrue(store.Items["full"].StartsWith("oasis-aes256gcm-gzip-v2:"));
+        Assert.IsTrue(store.Items["full"].Length < 10000);
+        Assert.AreEqual(full, await original.GetAsync("full"));
+        store.Items["moved"] = store.Items["full"];
+        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => compressed.GetAsync("moved"));
+        store.Items["full"] = store.Items["full"].Replace("oasis-aes256gcm-gzip-v2:", "oasis-aes256gcm-v1:");
+        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => compressed.GetAsync("full"));
+    }
+
+    [TestMethod]
+    public async Task OversizedCompressionInputCannotOverwriteExistingRecord()
+    {
+        var store = new InMemoryBackend();
+        using var backend = new EncryptedKeyValueBackend(store, RandomNumberGenerator.GetBytes(32), compress: true);
+        await backend.PutAsync("key", "preserve");
+        var original = store.Items["key"];
+        await Assert.ThrowsExceptionAsync<System.IO.InvalidDataException>(() => backend.PutAsync("key", new string('x', 4 * 1024 * 1024 + 1)));
+        Assert.AreEqual(original, store.Items["key"]);
+        Assert.AreEqual("preserve", await backend.GetAsync("key"));
+    }
+
+    [TestMethod]
     public async Task MalformedUnicodeIsRejectedWithoutReplacingOrOverwritingRecords()
     {
         foreach (var usePrivateIndexes in new[] { false, true })

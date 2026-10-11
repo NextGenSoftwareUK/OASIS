@@ -28,7 +28,7 @@ public sealed class TronPrivateStorageBackend : IKeyValueBackend, IDisposable
             {
                 if (key == null || key.Length != 32)
                     throw new InvalidOperationException("TRON storage requires an externally persisted 32-byte encryption key.");
-                return new PrivateKeyValueBackend(storage, key);
+                return new PrivateKeyValueBackend(storage, key, compress: true);
             }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
         });

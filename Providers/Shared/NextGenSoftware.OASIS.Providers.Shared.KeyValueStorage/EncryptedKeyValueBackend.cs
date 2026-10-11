@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -12,29 +14,35 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
 {
     private const string Format = "oasis-aes256gcm-v1:";
+    private const string CompressedFormat = "oasis-aes256gcm-gzip-v2:";
+    private const int MaximumExpandedBytes = 4 * 1024 * 1024;
+    private readonly bool _compress;
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private readonly IKeyValueBackend _inner;
     private readonly byte[] _key;
     private bool _disposed;
 
-    public EncryptedKeyValueBackend(IKeyValueBackend inner, byte[] encryptionKey)
+    public EncryptedKeyValueBackend(IKeyValueBackend inner, byte[] encryptionKey, bool compress = false)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         if (encryptionKey == null || encryptionKey.Length != 32)
             throw new ArgumentException("An externally managed 32-byte encryption key is required.", nameof(encryptionKey));
         _key = (byte[])encryptionKey.Clone();
+        _compress = compress;
     }
 
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(key);
-        var associatedData = StrictUtf8.GetBytes(Format + key);
+        StrictUtf8.GetByteCount(key);
         var value = await _inner.GetAsync(key, cancellationToken);
         if (value == null) return null;
-        if (!value.StartsWith(Format, StringComparison.Ordinal))
+        var format = value.StartsWith(CompressedFormat, StringComparison.Ordinal) ? CompressedFormat : Format;
+        if (!value.StartsWith(format, StringComparison.Ordinal))
             throw new CryptographicException("Stored value is not in the required encrypted format.");
-        var payload = Convert.FromBase64String(value.Substring(Format.Length));
+        var associatedData = StrictUtf8.GetBytes(format + key);
+        var payload = Convert.FromBase64String(value.Substring(format.Length));
         if (payload.Length < 28) throw new CryptographicException("Encrypted value is truncated.");
         var plaintext = new byte[payload.Length - 28];
         try
@@ -42,7 +50,28 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
             using var aes = new AesGcm(_key, 16);
             aes.Decrypt(payload.AsSpan(0, 12), payload.AsSpan(28), payload.AsSpan(12, 16), plaintext,
                 associatedData);
-            return StrictUtf8.GetString(plaintext);
+            if (format == Format) return StrictUtf8.GetString(plaintext);
+            using var input = new MemoryStream(plaintext, writable: false);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var expanded = new MemoryStream();
+            var buffer = new byte[8192];
+            try
+            {
+                int count;
+                while ((count = gzip.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (expanded.Length + count > MaximumExpandedBytes)
+                        throw new InvalidDataException("Compressed encrypted record exceeds its expansion limit.");
+                    expanded.Write(buffer, 0, count);
+                }
+                return StrictUtf8.GetString(expanded.GetBuffer(), 0, checked((int)expanded.Length));
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(buffer);
+                if (expanded.TryGetBuffer(out var bytes)) CryptographicOperations.ZeroMemory(bytes.AsSpan());
+            }
         }
         finally { CryptographicOperations.ZeroMemory(plaintext); }
     }
@@ -52,8 +81,24 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(value);
-        var associatedData = StrictUtf8.GetBytes(Format + key);
+        var format = _compress ? CompressedFormat : Format;
+        var associatedData = StrictUtf8.GetBytes(format + key);
         var plaintext = StrictUtf8.GetBytes(value);
+        if (_compress)
+        {
+            try
+            {
+                if (plaintext.Length > MaximumExpandedBytes)
+                    throw new InvalidDataException("Encrypted record exceeds its compression input limit.");
+                using var compressed = new MemoryStream();
+                using (var gzip = new GZipStream(compressed, CompressionLevel.SmallestSize, leaveOpen: true))
+                    gzip.Write(plaintext);
+                var original = plaintext;
+                plaintext = compressed.ToArray();
+                CryptographicOperations.ZeroMemory(original);
+            }
+            catch { CryptographicOperations.ZeroMemory(plaintext); throw; }
+        }
         var payload = new byte[28 + plaintext.Length];
         RandomNumberGenerator.Fill(payload.AsSpan(0, 12));
         try
@@ -61,7 +106,7 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
             using var aes = new AesGcm(_key, 16);
             aes.Encrypt(payload.AsSpan(0, 12), plaintext, payload.AsSpan(28), payload.AsSpan(12, 16),
                 associatedData);
-            await _inner.PutAsync(key, Format + Convert.ToBase64String(payload), cancellationToken);
+            await _inner.PutAsync(key, format + Convert.ToBase64String(payload), cancellationToken);
         }
         finally { CryptographicOperations.ZeroMemory(plaintext); }
     }
