@@ -86,6 +86,13 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class HashgraphOASISProviderSettings : ProviderSettingsBase
     {
+        public string StorageContractId { get; set; } = "";
+        public string StorageOperatorAccountId { get; set; } = "";
+        public string StorageSigningKeyType { get; set; } = "der";
+        public string StorageSigningKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_STORAGE_PRIVATE_KEY";
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_STORAGE_ENCRYPTION_KEY";
+        public long StorageGasLimit { get; set; }
+        public long StorageMaxFeeTinybars { get; set; }
         public System.Collections.Generic.Dictionary<string, string> ConsensusNodes { get; set; } = new();
         public string RpcEndpoint { get; set; } = "https://mainnet-public.mirrornode.hedera.com/api/v1";
         public string Network { get; set; } = "mainnet";

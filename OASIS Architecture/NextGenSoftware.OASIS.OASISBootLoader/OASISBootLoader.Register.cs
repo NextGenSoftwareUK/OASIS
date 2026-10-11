@@ -405,11 +405,31 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.HashgraphOASIS:
                         {
+                            var settings = OASISDNA.OASIS.StorageProviders.HashgraphOASIS;
+                            var signingKeyEnvironmentVariable = settings.StorageSigningKeyEnvironmentVariable;
+                            var encryptionKeyEnvironmentVariable = settings.StorageEncryptionKeyEnvironmentVariable;
+                            var storage = new HederaStorageConfiguration {
+                                ContractId = settings.StorageContractId,
+                                OperatorAccountId = settings.StorageOperatorAccountId,
+                                SigningKeyType = settings.StorageSigningKeyType,
+                                GasLimit = settings.StorageGasLimit,
+                                MaxFeeTinybars = settings.StorageMaxFeeTinybars,
+                                SigningKeyResolver = () => Environment.GetEnvironmentVariable(signingKeyEnvironmentVariable),
+                                EncryptionKeyResolver = () => {
+                                    var encoded = Environment.GetEnvironmentVariable(encryptionKeyEnvironmentVariable);
+                                    if (string.IsNullOrWhiteSpace(encoded))
+                                        throw new InvalidOperationException("Hedera storage encryption key environment variable is missing.");
+                                    try { return Convert.FromBase64String(encoded); }
+                                    catch (FormatException) {
+                                        throw new InvalidOperationException("Hedera storage encryption key must be a base64-encoded 32-byte key.");
+                                    }
+                                }
+                            };
                             var hashgraphProvider = new HashgraphOASIS(
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint ?? "https://mainnet-public.mirrornode.hedera.com",
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network ?? "mainnet",
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295",
-                                consensusNodes: OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ConsensusNodes);
+                                consensusNodes: settings.ConsensusNodes, storageConfiguration: storage);
                             hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
                             result.Result = hashgraphProvider;
                         }

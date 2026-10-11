@@ -33,13 +33,13 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using System.IO;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
-    public partial class HashgraphOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class HashgraphOASIS : KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private WalletManager _walletManager;
-        private bool _isActivated;
         private HttpClient _httpClient;
         private string _contractAddress;
         private readonly string _hederaNetwork;
@@ -56,7 +56,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null)
+            : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
             if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
                 throw new ArgumentException("An explicit supported Hedera network is required.", nameof(network));
