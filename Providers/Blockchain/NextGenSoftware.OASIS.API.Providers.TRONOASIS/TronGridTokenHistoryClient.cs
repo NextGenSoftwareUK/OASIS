@@ -29,6 +29,14 @@ public sealed class TronGridTokenHistoryClient
 
     public async Task<IReadOnlyList<JsonElement>> ReadAsync(string accountAddress, long maximumTimestamp,
         CancellationToken cancellationToken = default)
+        => await ReadHistoryAsync(accountAddress, maximumTimestamp, true, cancellationToken);
+
+    public async Task<IReadOnlyList<JsonElement>> ReadNativeAsync(string accountAddress, long maximumTimestamp,
+        CancellationToken cancellationToken = default)
+        => await ReadHistoryAsync(accountAddress, maximumTimestamp, false, cancellationToken);
+
+    private async Task<IReadOnlyList<JsonElement>> ReadHistoryAsync(string accountAddress, long maximumTimestamp,
+        bool tokenHistory, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(accountAddress) || maximumTimestamp < 0)
@@ -46,7 +54,7 @@ public sealed class TronGridTokenHistoryClient
         var records = new List<JsonElement>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         string fingerprint = null;
-        var path = "v1/accounts/" + Uri.EscapeDataString(accountAddress) + "/transactions/trc20"
+        var path = "v1/accounts/" + Uri.EscapeDataString(accountAddress) + "/transactions" + (tokenHistory ? "/trc20" : "")
             + "?only_confirmed=true&limit=" + _pageSize.ToString(CultureInfo.InvariantCulture)
             + "&order_by=block_timestamp,asc&min_timestamp=0&max_timestamp="
             + maximumTimestamp.ToString(CultureInfo.InvariantCulture);
