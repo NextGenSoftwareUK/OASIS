@@ -19,6 +19,7 @@ public class HederaNftReadContractTests
         Assert.AreEqual("http://127.0.0.1:12345/api/v1/tokens/0.0.1234/nfts/9007199254740993", handler.RequestUri);
         Assert.AreEqual(metadata, result.Result.MetaData["HederaMetadataBase64"]);
         Assert.AreEqual("0.0.1001", result.Result.MetaData["HederaOwnerAccount"]);
+        Assert.AreEqual("0.0.1001", result.Result.SendToAddressAfterMinting);
         Assert.AreEqual(text != null, result.Result.MetaData.ContainsKey("HederaMetadataText"));
         if (text != null) Assert.AreEqual(text, result.Result.JSONMetaDataURL);
     }
@@ -28,6 +29,8 @@ public class HederaNftReadContractTests
     [DataRow("deleted")]
     [DataRow("badMetadata")]
     [DataRow("missingOwner")]
+    [DataRow("zeroOwner")]
+    [DataRow("oversizedMetadata")]
     public async Task InvalidMirrorResponseCannotBecomeSuccessfulNft(string failure)
     {
         var json = Response("aXBmczovL21ldGFkYXRh");
@@ -36,6 +39,8 @@ public class HederaNftReadContractTests
             "wrongIdentity" => json.Replace("0.0.1234", "0.0.9999"),
             "deleted" => json.Replace("false", "true"),
             "badMetadata" => json.Replace("aXBmczovL21ldGFkYXRh", "not base64"),
+            "zeroOwner" => json.Replace("0.0.1001", "0.0.0"),
+            "oversizedMetadata" => Response(Convert.ToBase64String(new byte[101])),
             _ => json.Replace("0.0.1001", "")
         };
         using var handler = new FixtureHandler(json);
