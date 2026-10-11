@@ -6,6 +6,21 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class WalletTokenSendRequestTests
 {
     [Fact]
+    public void AvatarSigningProjectionDoesNotExposePrivateKeyOnCallerOrModifyStoredWallet()
+    {
+        var request = new SendWeb4TokenRequest { FromTokenAddress = "0x2::sui::SUI", ToWalletAddress = "recipient", Amount = 1,
+            ToAvatarEmail = "recipient@example.test", MemoText = "original memo" };
+        var wallet = new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet
+        { WalletAddress = "sender", PrivateKey = "test-only-private", PublicKey = "test-only-public" };
+        var signed = WalletManager.CreateAvatarSignedTokenRequest(request, wallet);
+        Assert.NotSame(request, signed); Assert.Null(request.OwnerPrivateKey); Assert.Null(request.FromWalletAddress);
+        Assert.Equal(wallet.PrivateKey, signed.OwnerPrivateKey); Assert.Equal(wallet.PublicKey, signed.OwnerPublicKey);
+        Assert.Equal(wallet.WalletAddress, signed.FromWalletAddress); Assert.Equal(request.ToAvatarEmail, signed.ToAvatarEmail);
+        Assert.Equal(request.Amount, signed.Amount); Assert.Equal(request.MemoText, signed.MemoText);
+        Assert.Equal("test-only-private", wallet.PrivateKey);
+    }
+
+    [Fact]
     public void ProviderRequestPreservesAssetIdentityAndSigningCredentials()
     {
         var request = new SendWeb4TokenRequest
