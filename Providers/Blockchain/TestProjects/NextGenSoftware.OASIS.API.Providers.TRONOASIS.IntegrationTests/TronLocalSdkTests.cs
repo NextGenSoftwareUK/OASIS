@@ -12,6 +12,67 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task NftEscrowPreservesDepositorAndRejectsUnauthorizedWithdrawalOnTvm()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(110));
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis, contractFeeLimitSun: 1000000000);
+        var client = runtime.NativeTransfers;
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/compile-tron-store.cjs"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var artifacts = Path.Combine(directory!.FullName, "TestResults/TronRuntime");
+        var owner = new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress();
+        var other = new TronECKey(RecipientKey, TronNetwork.MainNet).GetPublicAddress();
+        async Task<string> Deployment(string name, string bytecode)
+        {
+            var file = Path.Combine(artifacts, name);
+            if (File.Exists(file)) return (await File.ReadAllTextAsync(file, bounded.Token)).Trim();
+            var deployed = await client.DeployBytecodeAsync(owner, Convert.FromHexString((await File.ReadAllTextAsync(Path.Combine(artifacts, bytecode), bounded.Token)).Trim()), SenderKey, bounded.Token);
+            await File.WriteAllTextAsync(file, deployed.ContractAddress, bounded.Token);
+            return deployed.ContractAddress;
+        }
+        // A distinct fixed fixture is necessary: the older deployed NFT has no approval/transferFrom ABI.
+        var nft = await Deployment("local-escrow-nft-address.txt", "nft-bytecode.txt");
+        var escrow = await Deployment("local-escrow-address.txt", "escrow-bytecode.txt");
+        var id = new System.Numerics.BigInteger(42);
+        byte[] Call(string selector, params byte[][] words)
+        {
+            var data = new byte[4 + words.Length * 32]; Convert.FromHexString(selector).CopyTo(data, 0);
+            for (int i = 0; i < words.Length; i++) words[i].CopyTo(data, 4 + (i + 1) * 32 - words[i].Length);
+            return data;
+        }
+        byte[] Address(string address) => NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(address).AsSpan(1).ToArray();
+        var token = id.ToByteArray(true, true);
+        async Task<System.Numerics.BigInteger> CurrentOwner() => new(await client.QueryContractAsync(owner, nft, Call("6352211e", token), bounded.Token), true, true);
+        var ownerValue = new System.Numerics.BigInteger(Address(owner), true, true);
+        var escrowValue = new System.Numerics.BigInteger(Address(escrow), true, true);
+        var current = await CurrentOwner();
+        if (current == escrowValue) await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token);
+        else Assert.True(current == 0 || current == ownerValue, "Preserve any unrelated account's NFT.");
+        if (await CurrentOwner() == 0) await client.MintNftAsync(owner, owner, nft, id, "https://example.invalid/escrow.json", SenderKey, "", bounded.Token);
+        try
+        {
+            await client.ExecuteSignedContractAsync(owner, nft, Call("095ea7b3", Address(escrow), token), SenderKey, bounded.Token);
+            await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, false, bounded.Token);
+            Assert.Equal(escrowValue, await CurrentOwner());
+            await client.SendAsync(owner, other, 50m, SenderKey, "local escrow rejection energy", bounded.Token);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => client.ExecuteNftEscrowAsync(other, escrow, nft + "/42", RecipientKey, true, bounded.Token));
+            Assert.Equal(escrowValue, await CurrentOwner());
+            await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token);
+            Assert.Equal(ownerValue, await CurrentOwner());
+        }
+        finally
+        {
+            using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+            var actual = new System.Numerics.BigInteger(await client.QueryContractAsync(owner, nft, Call("6352211e", token), cleanup.Token), true, true);
+            if (actual == escrowValue) await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, cleanup.Token);
+            else Assert.True(actual == ownerValue || actual == 0, "Preserve unrelated ownership during cleanup.");
+            if (actual != 0) await client.BurnNftAsync(nft, id, SenderKey, cleanup.Token);
+        }
+        Assert.Equal(System.Numerics.BigInteger.Zero, await CurrentOwner());
+    }
+
+    [Fact]
     public async Task NonEnumerableNftMintTransferDiscoveryAndBurnExecuteOnTronTvm()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(55));
