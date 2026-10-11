@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 
@@ -39,7 +40,8 @@ public class SuiNftTests
         });
         Assert.IsFalse(minted.IsError, minted.Message);
         Assert.AreEqual(2, minted.Result.Web3NFTs.Count);
-        Assert.AreEqual(minted.Result.TransactionResult, minted.Result.SendNFTTransactionResult);
+        Assert.IsInstanceOfType<Web3NFTTransactionResponse>(minted.Result);
+        Assert.AreEqual(minted.Result.TransactionResult, ((Web3NFTTransactionResponse)minted.Result).SendNFTTransactionResult);
         foreach (var nft in minted.Result.Web3NFTs)
         {
             Assert.AreEqual(minted.Result.TransactionResult, nft.SendNFTTransactionHash);
@@ -58,7 +60,8 @@ public class SuiNftTests
             Assert.IsFalse(direct.IsError, direct.Message);
             var directToken = direct.Result.Web3NFT.NFTTokenAddress;
             keys.Add(directToken, recipient.Result.PrivateKey);
-            Assert.AreEqual(direct.Result.TransactionResult, direct.Result.SendNFTTransactionResult);
+            Assert.IsInstanceOfType<Web3NFTTransactionResponse>(direct.Result);
+            Assert.AreEqual(direct.Result.TransactionResult, ((Web3NFTTransactionResponse)direct.Result).SendNFTTransactionResult);
             Assert.AreEqual(direct.Result.TransactionResult, direct.Result.Web3NFT.SendNFTTransactionHash);
             var directOwner = await provider.LoadOnChainNFTDataAsync(directToken);
             Assert.IsFalse(directOwner.IsError, directOwner.Message);
