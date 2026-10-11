@@ -30,7 +30,7 @@ internal static class HederaSdkClient
     internal static async Task<JsonElement> InvokeAsync(string action, object request, CancellationToken cancellationToken = default)
     {
         var script = Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")
-            ?? Path.Combine(AppContext.BaseDirectory, "SdkBridge", "bridge.mjs");
+            ?? Path.Combine(AppContext.BaseDirectory, "HederaSdkBridge", "bridge.mjs");
         if (!Path.IsPathFullyQualified(script) || !File.Exists(script))
             throw new InvalidOperationException("The installed Hedera SDK bridge path is missing or not absolute.");
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("OASIS_NODE_PATH") ?? "node")
