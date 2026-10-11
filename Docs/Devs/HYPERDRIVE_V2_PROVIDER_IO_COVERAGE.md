@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### SDK companion-module packaging verification (2026-10-11)
+
+Existing Docker packaging already runs pinned `npm ci` in Docker-owned `/app/publish`, not shared source caches. Its verifier now syntax-checks all packaged top-level `.mjs` files, resolves static and literal dynamic imports, requires referenced local companion files, and imports external SDK modules without executing bridge operations. This covers Hedera escrow/deployment companions previously omitted from the main-file-only scan. Existing source installations pass for Cosmos/Hedera/Sui/Near without downloads; negative verifier tests pass **4/4** for missing dynamic companion, syntax failure, unused declared SDK and non-execution of bridge entry points. Disposable test fixtures are removed in `finally`. This is source-directory verification, not proof of a newly built Docker image or deployed API. Full image publish/runtime verification remains a release gate.
+
 ### Sui NFT selector agreement (2026-10-11)
 
 Sui send now requires at least one nonblank object selector and exact agreement among supplied `TokenId`, `FromNFTTokenAddress` and `TokenAddress`, before signing or SDK invocation. It no longer silently ignores conflicting selectors or chooses an empty field ahead of a usable one. Five pre-SDK rejection cases and controlled send cases for single/all-agreeing selectors pass; full unit suite **27/27**, zero skips (`sui-current-unit.trx`), bounded provider build succeeds. This boundary evidence does not replace current live lifecycle verification; the prior live checkpoint precedes this selector change. Official Hedera mirror recheck still shows 391,606,260 tinybars, below deployment funding requirements; no new Hedera mutation was attempted. No download/install or runtime duplication occurred.
