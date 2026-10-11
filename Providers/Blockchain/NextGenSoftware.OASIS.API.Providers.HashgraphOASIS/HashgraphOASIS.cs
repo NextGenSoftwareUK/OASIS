@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
-            _httpClient = new HttpClient
+            _httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
             {
                 BaseAddress = NormalizeMirrorEndpoint(rpcEndpoint)
             };

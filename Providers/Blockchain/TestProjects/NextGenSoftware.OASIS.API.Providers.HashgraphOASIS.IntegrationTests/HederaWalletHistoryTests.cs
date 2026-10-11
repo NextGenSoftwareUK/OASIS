@@ -87,6 +87,41 @@ public class HederaWalletHistoryTests
         Assert.AreEqual("-9007199254741000", result.Result[100].RawAmount);
     }
 
+    [TestMethod]
+    public async Task RealMirrorTransportRejectsRedirectWithoutFollowingForeignEndpoint()
+    {
+        var portLease = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
+        portLease.Start();
+        var port = ((IPEndPoint)portLease.LocalEndpoint).Port;
+        portLease.Stop();
+        using var listener = new HttpListener();
+        listener.Prefixes.Add($"http://127.0.0.1:{port}/");
+        listener.Start();
+        var serve = Task.Run(async () =>
+        {
+            var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            context.Response.StatusCode = 302;
+            // A followed redirect would request a second URL on this owned server.
+            context.Response.RedirectLocation = $"http://127.0.0.1:{port}/foreign/transactions";
+            context.Response.Close();
+        });
+        var provider = new HashgraphOASIS($"http://127.0.0.1:{port}/api/v1", "testnet") { IsProviderActivated = true };
+        try
+        {
+            var result = await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" })
+                .WaitAsync(TimeSpan.FromSeconds(10));
+            await serve;
+            Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+            StringAssert.Contains(result.Message, "302");
+        }
+        finally
+        {
+            listener.Stop();
+            ((HttpClient)typeof(HashgraphOASIS).GetField("_httpClient", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(provider)!).Dispose();
+        }
+    }
+
     [DataTestMethod]
     [DataRow("https://foreign.example/api/v1/transactions")]
     [DataRow("/api/v1/accounts")]
