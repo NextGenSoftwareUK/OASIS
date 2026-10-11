@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Cosmos mint recipient agreement (2026-10-11)
+
+Mint recipient resolution no longer silently prioritizes a literal address, avatar ID, username or email. Every supplied avatar selector uses the existing wallet lookup; all resulting addresses must be nonblank and agree exactly with one another and any explicit address before `nft_mint` executes. Only an entirely unspecified recipient selects the signer. Four pure resolver tests cover unspecified recipient, consistent selectors, conflicts and missing wallet addresses. Full unit suite passes **23/23**, zero skips (`cosmos-current-unit.trx`); bounded provider build succeeds. These pure tests do not prove real wallet lookup or ledger execution; live avatar-selector success/conflict tests remain required. No install, download or new environment was created.
+
 ### Cosmos mint request semantics (2026-10-11)
 
 Cosmos mint now passes `MintedByAvatarId` into the existing signer resolver instead of always selecting the configured issuer. It validates the selected on-chain provider, nonnegative price/discount, royalty range and chronological sale dates before signer/SDK access. Mint metadata preserves memo, binary image/thumbnail, price, discount, royalty/basis points and sale state/dates that were previously dropped. These fields are serialized metadata; this does **not** claim native royalty payment enforcement or a marketplace implementation. Four pre-SDK validation cases and one controlled-process serialized metadata case pass; full Cosmos unit suite **19/19**, zero skips (`cosmos-current-unit.trx`), provider build succeeds. Avatar-backed signer success and current live mint behavior still require ledger-backed verification. Recipient selector conflict resolution also remains an identified gap.

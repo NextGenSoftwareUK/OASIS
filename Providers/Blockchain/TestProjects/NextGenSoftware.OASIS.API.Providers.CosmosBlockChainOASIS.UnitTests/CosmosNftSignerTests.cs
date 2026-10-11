@@ -6,6 +6,26 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosNftSignerTests
 {
+    [DataTestMethod]
+    [DataRow("", "", "fixture-owner", null)]
+    [DataRow("fixture-recipient", "fixture-recipient", "fixture-recipient", null)]
+    [DataRow("fixture-recipient", "another-recipient", null, "different Cosmos wallets")]
+    [DataRow("fixture-recipient", " ", null, "has no address")]
+    public void MintRecipientResolutionRequiresAgreement(string first, string second, string? expected, string? error)
+    {
+        var addresses=first.Length==0 ? new List<string>() : new List<string> { first,second };
+        var method=typeof(CosmosBlockChainOASIS).GetMethod("ResolveMintRecipientAddresses",
+            System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)!;
+        if(error==null)
+            Assert.AreEqual(expected,method.Invoke(null,new object[] { addresses,"fixture-owner" }));
+        else
+        {
+            var failure=Assert.ThrowsException<System.Reflection.TargetInvocationException>(
+                ()=>method.Invoke(null,new object[] { addresses,"fixture-owner" }));
+            StringAssert.Contains(failure.InnerException!.Message,error);
+        }
+    }
+
     [TestMethod]
     public async Task MintPreservesEconomicAndSaleMetadataInSerializedRequest()
     {

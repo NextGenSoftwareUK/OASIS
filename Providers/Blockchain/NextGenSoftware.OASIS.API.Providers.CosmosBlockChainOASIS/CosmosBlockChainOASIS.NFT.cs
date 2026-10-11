@@ -34,29 +34,38 @@ public partial class CosmosBlockChainOASIS
 
     private async Task<string> MintRecipientAsync(IMintWeb3NFTRequest request, string signer)
     {
-        if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) return request.SendToAddressAfterMinting;
-        Core.Interfaces.IProviderWallet recipient = null;
+        var addresses = new List<string>();
+        if (!string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)) addresses.Add(request.SendToAddressAfterMinting);
         if (request.SendToAvatarAfterMintingId != Guid.Empty)
         {
             var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.SendToAvatarAfterMintingId, Core.Enums.ProviderType.CosmosBlockChainOASIS);
             if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            recipient = wallet.Result;
+            addresses.Add(wallet.Result.WalletAddress);
         }
-        else if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
+        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
         {
             var wallet = await WalletManager.GetAvatarDefaultWalletByUsernameAsync(request.SendToAvatarAfterMintingUsername, providerType: Core.Enums.ProviderType.CosmosBlockChainOASIS);
             if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            recipient = wallet.Result;
+            addresses.Add(wallet.Result.WalletAddress);
         }
-        else if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
+        if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
         {
             var wallet = await WalletManager.GetAvatarDefaultWalletByEmailAsync(request.SendToAvatarAfterMintingEmail, Core.Enums.ProviderType.CosmosBlockChainOASIS);
             if (wallet.IsError || wallet.Result == null) throw new InvalidOperationException(wallet.Message);
-            recipient = wallet.Result;
+            addresses.Add(wallet.Result.WalletAddress);
         }
-        else return signer;
-        if (string.IsNullOrWhiteSpace(recipient.WalletAddress)) throw new InvalidOperationException("Recipient Cosmos wallet has no address.");
-        return recipient.WalletAddress;
+        return ResolveMintRecipientAddresses(addresses, signer);
+    }
+
+    private static string ResolveMintRecipientAddresses(IReadOnlyCollection<string> addresses, string signer)
+    {
+        if (addresses.Any(string.IsNullOrWhiteSpace))
+            throw new InvalidOperationException("Recipient Cosmos wallet has no address.");
+        if (addresses.Distinct(StringComparer.Ordinal).Count() > 1)
+            throw new ArgumentException("Recipient address and avatar identifiers resolve to different Cosmos wallets.");
+        var recipient = addresses.Count == 0 ? signer : addresses.First();
+        if (string.IsNullOrWhiteSpace(recipient)) throw new InvalidOperationException("Cosmos signer has no address.");
+        return recipient;
     }
 
     public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
