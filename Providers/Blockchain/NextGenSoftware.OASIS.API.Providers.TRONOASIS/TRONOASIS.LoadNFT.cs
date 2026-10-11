@@ -45,6 +45,41 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
     public partial class TRONOASIS
     {
+        /// <summary>Queries one explicit enumerable TRC721 collection. This is not cross-collection discovery.</summary>
+        public async Task<OASISResult<List<IWeb3NFT>>> LoadNFTsForCollectionOwnerAsync(string collectionAddress, string ownerAddress)
+        {
+            var result = new OASISResult<List<IWeb3NFT>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(collectionAddress) || string.IsNullOrWhiteSpace(ownerAddress))
+                    throw new ArgumentException("Explicit collection and owner addresses are required.");
+                if (!IsProviderActivated)
+                {
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
+                }
+                result.Result = await ExecuteRuntimeAsync(async client =>
+                {
+                    var ids = await client.GetNftIdsForOwnerAsync(collectionAddress, ownerAddress);
+                    var items = new List<IWeb3NFT>();
+                    foreach (var id in ids)
+                        items.Add(new Web3NFT
+                        {
+                            NFTTokenAddress = collectionAddress + "/" + id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            JSONMetaDataURL = await client.GetNftMetadataUriAsync(collectionAddress, id),
+                            OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
+                        });
+                    return items;
+                });
+                result.Message = "Native NFT identities and metadata URIs queried for the explicit collection and owner; no OASIS IDs or off-chain metadata are fabricated.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying TRON collection inventory: {ex.Message}", ex);
+            }
+            return result;
+        }
+
         public OASISResult<List<IWeb3NFT>> LoadAllNFTsForAvatar(Guid avatarId)
         {
             return LoadAllNFTsForAvatarAsync(avatarId).Result;
