@@ -117,82 +117,23 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<IList<IWalletTransaction>>();
             try
             {
+                ArgumentNullException.ThrowIfNull(request);
+                if (string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("Wallet address is required.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrEmpty(request.WalletAddress))
+                result.Result = await ExecuteRuntimeAsync(async client =>
                 {
-                    OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-                    return result;
-                }
-
-                // Query TRON transaction history
-                var transactionsResponse = await _httpClient.GetAsync($"/v1/accounts/{request.WalletAddress}/transactions?limit=100");
-                
-                if (transactionsResponse.IsSuccessStatusCode)
-                {
-                    var transactionsContent = await transactionsResponse.Content.ReadAsStringAsync();
-                    var transactionsData = JsonSerializer.Deserialize<JsonElement>(transactionsContent);
-                    
-                    var transactions = new List<IWalletTransaction>();
-                    
-                    if (transactionsData.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var tx in data.EnumerateArray())
-                        {
-                            var walletTx = new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction
-                            {
-                                TransactionId = Guid.NewGuid(),
-                                FromWalletAddress = tx.TryGetProperty("raw_data", out var rawData) &&
-                                                   rawData.TryGetProperty("contract", out var contract) &&
-                                                   contract.GetArrayLength() > 0 &&
-                                                   contract[0].TryGetProperty("parameter", out var param) &&
-                                                   param.TryGetProperty("value", out var value) &&
-                                                   value.TryGetProperty("owner_address", out var owner)
-                                    ? owner.GetString() : string.Empty,
-                                ToWalletAddress = tx.TryGetProperty("raw_data", out var rawData2) &&
-                                                  rawData2.TryGetProperty("contract", out var contract2) &&
-                                                  contract2.GetArrayLength() > 0 &&
-                                                  contract2[0].TryGetProperty("parameter", out var param2) &&
-                                                  param2.TryGetProperty("value", out var value2) &&
-                                                  value2.TryGetProperty("to_address", out var to)
-                                    ? to.GetString() : string.Empty,
-                                Amount = tx.TryGetProperty("raw_data", out var rawData3) &&
-                                        rawData3.TryGetProperty("contract", out var contract3) &&
-                                        contract3.GetArrayLength() > 0 &&
-                                        contract3[0].TryGetProperty("parameter", out var param3) &&
-                                        param3.TryGetProperty("value", out var value3) &&
-                                        value3.TryGetProperty("amount", out var amt)
-                                    ? (long.TryParse(amt.GetString(), out var amtLong) ? amtLong / 1000000.0 : 0) : 0,
-                                Description = tx.TryGetProperty("txID", out var txid) 
-                                    ? $"TRON transaction: {txid.GetString()}" 
-                                    : "TRON transaction"
-                            };
-                            transactions.Add(walletTx);
-                        }
-                    }
-                    
-                    result.Result = transactions;
-                    result.IsError = false;
-                    result.Message = $"Retrieved {transactions.Count} transactions";
-                }
-                else
-                {
-                    var errorContent = await transactionsResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"TRON API error: {transactionsResponse.StatusCode} - {errorContent}");
-                }
+                    var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
+                        .ReadNativeAsync(request.WalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                    return (IList<IWalletTransaction>)(await client.ReadWalletTransactionsAsync(request.WalletAddress,
+                        history.Select(record => record.GetProperty("txID").GetString()))).ToList();
+                });
+                result.Message = "Indexed confirmed native history verified through SDK receipts; native hashes and exact SUN values are provided separately from OASIS IDs and display amounts.";
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading verified TRON wallet history: {ex.Message}", ex); }
             return result;
         }
 
