@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui NFT unlock reconciliation identity fix (2026-10-11)
+
+Audit found Sui NFT unlock discarded the committed digest when the subsequent separate NFT readback failed. It now validates escrow metadata before mutation, requires a returned digest, retains the committed response before readback, and includes the original digest in any explicit readback error. Error status remains true; retained pre-readback metadata is not proof of refreshed ownership. Successful readback replaces metadata with the loaded record. Provider build passes, zero errors/two warnings. Full Sui unit selection passes **18/18**, zero skips (`sui-current-unit.trx`) using the existing SDK bridge via environment override; initial run had two ERR_MODULE_NOT_FOUND failures from the build output's uninstalled SDK packages. No reinstall/copy of node_modules was performed; deployment dependency packaging remains an explicit gate. These unit tests do not directly inject a failure after committed unlock; targeted readback-fault and live lifecycle verification remain due. No runtime was started, and extra Hedera funding remains pending.
+
 ### Actual deployment-preflight and disk attribution check (2026-10-11)
 
 The updated runner was executed against the existing funded identity/journal with the original one-HBAR ceiling. It rejected the ceiling using the real SDK estimate before a mutation: exit 1, successful journal transaction count unchanged **11 -> 11**, no pending marker, same bytecode file **0.0.10994223**. This proves the live preflight prevents another insufficient-ceiling submission, not successful contract deployment. Additional funding remains pending.

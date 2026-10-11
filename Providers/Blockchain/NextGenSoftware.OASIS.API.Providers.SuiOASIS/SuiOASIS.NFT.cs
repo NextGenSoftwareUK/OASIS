@@ -50,12 +50,18 @@ public partial class SuiOASIS
             var key = await TokenSigningKeyAsync(request.UnlockedByAvatarId);
             var escrow = await InvokeSdkAsync("nftEscrowGet", new { tokenId = request.NFTTokenAddress, privateKey = key });
             var metadata = OasisJson.Deserialize<Web3NFT>(escrow.GetProperty("nft").GetProperty("metadata").GetString());
+            if (metadata == null) throw new InvalidOperationException("Escrow has no valid OASIS NFT metadata.");
             if (request.Web3NFTId != Guid.Empty && request.Web3NFTId != metadata.Id)
                 throw new ArgumentException("OASIS NFT ID does not match the escrow metadata.");
             var committed = await InvokeSdkAsync("nftUnlock", new { tokenId = request.NFTTokenAddress, privateKey = key });
+            var digest = committed.GetProperty("transactionHash").GetString();
+            if (string.IsNullOrWhiteSpace(digest)) throw new InvalidOperationException("Sui unlock returned no committed digest.");
+            // Retain the committed identity even when the subsequent, separate read fails.
+            result.Result = new Web3NFTTransactionResponse { TransactionResult = digest, Web3NFT = metadata };
             var loaded = await LoadOnChainNFTDataAsync(request.NFTTokenAddress);
-            if (loaded.IsError) throw new InvalidOperationException("Unlock committed but NFT readback failed: " + loaded.Message);
-            result.Result = new Web3NFTTransactionResponse { TransactionResult = committed.GetProperty("transactionHash").GetString(), Web3NFT = loaded.Result };
+            if (loaded.IsError || loaded.Result == null)
+                throw new InvalidOperationException("Unlock committed as " + digest + " but NFT readback failed; reconcile before retrying: " + loaded.Message, loaded.Exception);
+            result.Result.Web3NFT = loaded.Result;
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
