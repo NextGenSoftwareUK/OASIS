@@ -26,7 +26,9 @@ Full changelog: <https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtim
 The global release builds the Native Integrated Endpoint dependency graph, then
 `Scripts/New-OASISRuntimeArchive.ps1` packages the OASIS runtime dependencies
 without STAR assemblies/launchers or the Native Endpoint entry assembly. The
-archive includes one empty configuration object, `OASISDNA.json` (`{}`), never
-the publisher's configured DNA. Core and BootLoader assemblies are required;
+archive includes exactly the checked-in `Default/OASIS_DNA.json` template as
+`OASIS_DNA.json`, never the publisher's configured DNA. Its bytes are verified
+against the template. Build DNA and run `Scripts/Sync-OASISDNATemplate.ps1` to
+check configuration schema coverage and blank credential fields. Core and BootLoader assemblies are required;
 missing dependencies fail packaging. Native Endpoint and STAR archives remain
 separate products with their own complete outputs.

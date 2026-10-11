@@ -29,6 +29,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.CrossChain
         public string DestinationChain { get; init; }
         public string DestinationTxHash { get; init; }
         public string Sender { get; init; }
+        /// <summary>The application that sent the message when the protocol identifies it (e.g. "stargate" on LayerZero).</summary>
+        public string SenderApplication { get; init; }
         public string Recipient { get; init; }
         public string Token { get; init; }
         public string Amount { get; init; }
