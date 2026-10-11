@@ -47,6 +47,7 @@ public sealed class TronRealProviderRoutingTests
         manager.SetAndReplaceAutoReplicationListForProviders(Providers()).IsError.Should().BeFalse();
         var holon = new Holon { Id = Guid.Parse("deba869c-8078-4a98-a7e4-cb7c11d59249"), Name = "Real V2 TRON replication" };
         var failedOver = new Holon { Id = Guid.Parse("c8752504-dff2-44c6-99d9-32a601ae9670"), Name = "Real V2 TRON outage" };
+        var partial = new Holon { Id = Guid.Parse("f8882565-96ba-40f5-b2ac-a47e78ab8ea9"), Name = "Real V2 partial replication" };
         var paused = false;
         try
         {
@@ -82,11 +83,31 @@ public sealed class TronRealProviderRoutingTests
             routed.IsError.Should().BeFalse(routed.Message);
             (await local.LoadHolonAsync(failedOver.Id)).Result.Name.Should().Be(failedOver.Name);
             manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+            manager.IsAutoFailOverEnabled = false;
+            manager.IsAutoReplicationEnabled = true;
+            var partiallySaved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = partial, PreferredProvider = ProviderType.LocalFileOASIS }).WaitAsync(TimeSpan.FromSeconds(60));
+            partiallySaved.IsError.Should().BeFalse(partiallySaved.Message);
+            partiallySaved.IsWarning.Should().BeTrue("primary success must not conceal the unavailable replica");
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(0);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.Attempts.Single().Provider.Should().Be(ProviderType.TRONOASIS);
+            (await local.LoadHolonAsync(partial.Id)).Result.Name.Should().Be(partial.Name);
+            await ChangeNode("unpause"); paused = false;
+            (await tron.LoadHolonAsync(partial.Id)).IsError.Should().BeTrue("the failed replica must not be reported as persisted");
+            // A new explicit mutation after recovery repairs this record; no automatic replay is claimed.
+            var repaired = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = partial, PreferredProvider = ProviderType.LocalFileOASIS });
+            repaired.IsError.Should().BeFalse(repaired.Message);
+            repaired.IsWarning.Should().BeFalse(repaired.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await tron.LoadHolonAsync(partial.Id)).Result.Name.Should().Be(partial.Name);
         }
         finally
         {
             if (paused) await ChangeNode("unpause");
-            foreach (var id in new[] { holon.Id, failedOver.Id })
+            foreach (var id in new[] { holon.Id, failedOver.Id, partial.Id })
             {
                 if (!(await tron.LoadHolonAsync(id)).IsError) (await tron.DeleteHolonAsync(id)).IsError.Should().BeFalse();
                 if (!(await local.LoadHolonAsync(id)).IsError) (await local.DeleteHolonAsync(id)).IsError.Should().BeFalse();
