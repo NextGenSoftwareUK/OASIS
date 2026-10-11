@@ -117,6 +117,24 @@ public class HederaWalletHistoryTests
         Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task OutOfOrderNanosecondHistoryCannotReturnPartialSuccess(bool acrossPages)
+    {
+        // Both timestamps map to the same DateTime tick; compare native nanoseconds instead.
+        var later = Record.Replace("1700000000.123456789", "1700000000.123456788");
+        var earlier = Record.Replace("1700000000.123456789", "1700000000.123456787")
+            .Replace("0.0.1001-1700000000-000000001", "0.0.1001-1700000000-000000002");
+        var pages = acrossPages
+            ? new[] { Page(new[] { later }, "/api/v1/transactions?account.id=0.0.1001&page=2"), Page(new[] { earlier }, null) }
+            : new[] { Page(new[] { later, earlier }, null) };
+        using var handler = new HistoryHandler(pages);
+        var result = await Provider(handler).GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = "0.0.1001" });
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+        StringAssert.Contains(result.Message, "ascending consensus timestamps");
+    }
+
     private sealed class HistoryHandler(IEnumerable<string> pages, HttpStatusCode exhausted = HttpStatusCode.BadRequest) : HttpMessageHandler
     {
         private readonly Queue<string> _pages = new(pages);
