@@ -9,6 +9,27 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronWalletHistoryTests
 {
     [Fact]
+    public void AccountCreationMapsActualParticipantsWithoutInventingTransferAmount()
+    {
+        var creatorBytes=new byte[21]; creatorBytes[0]=0x41; creatorBytes[20]=1;
+        var createdBytes=(byte[])creatorBytes.Clone(); createdBytes[20]=2;
+        var creator=ByteString.CopyFrom(creatorBytes); var created=ByteString.CopyFrom(createdBytes);
+        var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000 } };
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract { Type=Transaction.Types.Contract.Types.ContractType.AccountCreateContract,
+            Parameter=Any.Pack(new AccountCreateContract { OwnerAddress=creator,AccountAddress=created }) });
+        var receipt=new TransactionInfo { Id=ByteString.CopyFrom(new byte[32]) };
+        var method=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        foreach(var wallet in new[] {creator,created})
+        {
+            var mapped=(NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null,new object[] {transaction,receipt,wallet})!;
+            Assert.Equal("AccountCreateContract",mapped.NativeOperation); Assert.Equal("0",mapped.RawAmount);
+            Assert.Equal("SUN",mapped.AmountUnit); Assert.Equal(0d,mapped.Amount);
+            Assert.NotEqual(mapped.FromWalletAddress,mapped.ToWalletAddress);
+            Assert.Equal(wallet.Equals(creator)?NextGenSoftware.OASIS.API.Core.Enums.TransactionType.Debit:NextGenSoftware.OASIS.API.Core.Enums.TransactionType.Credit,mapped.TransactionType);
+        }
+    }
+
+    [Fact]
     public void NativeMappingPreservesHashAndExactSunWithoutFabricatingGuid()
     {
         var address = new byte[21]; address[0] = 0x41; address[20] = 7;

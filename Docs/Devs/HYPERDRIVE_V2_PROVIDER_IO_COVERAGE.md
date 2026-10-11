@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### TRON account-creation history mapping checkpoint (2026-10-11)
+
+The shared smart-contract provider interface currently has no executable methods; merely implementing that marker is not broad smart-contract capability proof. Auditing explicit unsupported branches found TRON wallet history rejected native `AccountCreateContract`, which could fail a valid wallet's history scan. Mapping now unpacks the real SDK protobuf owner/created-account addresses and records zero requested SUN transfer (creation fees are not invented as payment amounts), preserving existing receipt/status and wallet-involvement checks. **2/2** history mapping tests passed, zero skips (`tron-wallet-history.trx`), including creator/recipient perspectives; the full TRON unit project passed **175/175**, zero skips (`tron-current-unit.trx`). Provider build passed, zero errors/23 warnings. This is protobuf/control-flow evidence, not a newly submitted live account-creation transaction or support for every TRON contract type. No test runtime was started or installed for this change.
+
 ### Hedera balance protocol correction (2026-10-11)
 
 Expanded balance verification: **17/17** tests pass, zero skips, in the reused `hedera-supported-balance.trx`, including one real official testnet mirror read and controlled HTTP responses covering wrong/deleted account, negative/fractional/overflow/missing/malformed amounts, 404/500 and exact decimal conversion of zero, `9007199254740993` and int64 max tinybars. Controlled response tests are not live provider proof. The broader non-funded Hedera selection passed **148/148**, zero skips (`hedera-nonfunded.trx`), and SDK bridge tests passed **66/66** after removing the retired native balance action/tests. Funded HederaTestnet tests were explicitly excluded from the broader selection; the mirror read remains separately verified. No install/download/new environment occurred.
