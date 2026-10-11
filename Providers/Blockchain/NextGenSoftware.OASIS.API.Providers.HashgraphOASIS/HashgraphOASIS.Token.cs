@@ -137,50 +137,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get wallet address for the avatar
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
+                ArgumentNullException.ThrowIfNull(request);
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount), "An explicit positive burn amount is required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(request.TokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("A numeric HTS token ID is required.");
+                if (request.BurntByAvatarId == Guid.Empty)
+                    throw new ArgumentException("The burning avatar's real treasury wallet is required.");
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId,
+                    Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
                 if (walletResult.IsError || walletResult.Result == null)
+                    throw new InvalidOperationException("Could not retrieve the burning avatar's Hedera wallet.");
+                var wallet = walletResult.Result;
+                var committed = await HederaSdkClient.InvokeAsync("tokenBurn", new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
-                
-                var burnFromAddress = walletResult.Result.WalletAddress;
-                var burnAmount = 1m; // Default amount
-                
-                // Hedera Token Service (HTS) burn using Mirror Node API
-                var tokenBurnUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.TokenAddress}/burn";
-                var burnData = new
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
+                    recipient = wallet.WalletAddress, tokenId = request.TokenAddress,
+                    amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der",
+                    transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("HTS burn did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                 {
-                    account_id = burnFromAddress,
-                    amount = (long)(burnAmount * 100000000) // Convert to tinybars
+                    TransactionResult = committed.GetProperty("transactionId").GetString()
                 };
-
-                var content = new StringContent(JsonSerializer.Serialize(burnData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(tokenBurnUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
-                    };
-                    result.IsError = false;
-                    result.Message = "Token burned successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph token burn failed: {response.StatusCode}");
-                }
+                result.Message = "HTS burn confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
