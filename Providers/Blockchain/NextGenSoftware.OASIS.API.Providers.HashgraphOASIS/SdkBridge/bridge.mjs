@@ -1,4 +1,4 @@
-import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery } from '@hiero-ledger/sdk';
+import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery, FileId, FileCreateTransaction, FileUpdateTransaction, FileDeleteTransaction, FileContentsQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
 
 export function restoreKey(request) {
@@ -63,7 +63,51 @@ export function nftTransaction(action, request) {
   return transfer;
 }
 
+export function fileTransaction(action, request, publicKey) {
+  if (!['fileCreate', 'fileUpdate', 'fileDelete'].includes(action)) throw new Error('Unknown file mutation.');
+  if (action !== 'fileCreate') FileId.fromString(request.fileId);
+  if (action !== 'fileDelete' && (typeof request.contents !== 'string' || Buffer.byteLength(request.contents, 'utf8') > 2048))
+    throw new Error('File mutations require explicit UTF-8 contents of at most 2048 bytes.');
+  if (action === 'fileCreate') return new FileCreateTransaction().setKeys([publicKey]).setContents(Buffer.from(request.contents, 'utf8'));
+  if (action === 'fileUpdate') return new FileUpdateTransaction().setFileId(request.fileId).setContents(Buffer.from(request.contents, 'utf8'));
+  return new FileDeleteTransaction().setFileId(request.fileId);
+}
+
+async function executeFile(action, request) {
+  const key = restoreKey(request);
+  if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+    throw new Error('File signing key does not match the supplied public key.');
+  const payer = AccountId.fromString(request.sender);
+  if (action === 'fileRead') FileId.fromString(request.fileId);
+  const mutation = action === 'fileRead' ? null : fileTransaction(action, request, key.publicKey);
+  const id = mutation ? TransactionId.fromString(request.transactionId) : null;
+  if (id && id.accountId.toString() !== payer.toString()) throw new Error('File transaction payer mismatch.');
+  if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
+    throw new Error('An explicit positive int64 fee ceiling is required.');
+  const client = createClient(request);
+  try {
+    client.setOperator(payer, key);
+    const ceiling = Hbar.fromTinybars(request.maxFeeTinybars);
+    if (!mutation) {
+      const bytes = await new FileContentsQuery().setFileId(request.fileId).setMaxQueryPayment(ceiling).execute(client);
+      return { fileId: FileId.fromString(request.fileId).toString(), contents: new TextDecoder('utf-8', { fatal: true }).decode(bytes) };
+    }
+    mutation.setTransactionId(id).setMaxTransactionFee(ceiling).setMaxAttempts(1).setRegenerateTransactionId(false).freezeWith(client);
+    const submitted = await (await mutation.sign(key)).execute(client);
+    const receipt = await submitted.getReceipt(client);
+    if (receipt.status.toString() !== 'SUCCESS') throw new Error('File mutation failed consensus.');
+    return { transactionId: submitted.transactionId.toString(), status: 'SUCCESS',
+      fileId: action === 'fileCreate' ? receipt.fileId.toString() : FileId.fromString(request.fileId).toString() };
+  } catch (cause) {
+    const error = new Error('Hedera file operation failed.');
+    error.transactionId = id?.toString();
+    error.status = cause.status?.toString();
+    throw error;
+  } finally { client.close(); }
+}
+
 export async function execute(action, request) {
+  if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request);
   if (action === 'generateKey') {
     const key = request.keyType === 'ed25519' ? PrivateKey.generateED25519()
       : request.keyType === 'ecdsa' ? PrivateKey.generateECDSA() : null;
