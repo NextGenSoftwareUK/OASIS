@@ -207,9 +207,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                if (_nativeTransfers == null) throw new InvalidOperationException("The configured TRON SDK runtime is unavailable.");
-                var hash = await _nativeTransfers.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
-                    tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey);
+                var hash = await ExecuteSignedTokenAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
+                    tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "TRC20 transfer confirmed by solidified contract receipt.";
             }
@@ -250,9 +249,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     }
                 }
 
-                if (_nativeTransfers == null) throw new InvalidOperationException("The configured TRON SDK runtime is unavailable.");
-                var hash = await _nativeTransfers.MintTokenAsync(wallet.Result.WalletAddress, _contractAddress,
-                    request.Amount, wallet.Result.PrivateKey, request.MemoText, wallet.Result.PublicKey);
+                var hash = await ExecuteSignedTokenAsync(client => client.MintTokenAsync(wallet.Result.WalletAddress, _contractAddress,
+                    request.Amount, wallet.Result.PrivateKey, request.MemoText, wallet.Result.PublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "TRC20 mint confirmed by solidified contract receipt.";
             }
@@ -284,8 +282,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var activation = await ActivateProviderAsync();
                     if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-                if (_nativeTransfers == null) throw new InvalidOperationException("The configured TRON SDK runtime is unavailable.");
-                var hash = await _nativeTransfers.BurnTokenAsync(request.TokenAddress, request.Amount, request.OwnerPrivateKey, publicKey: request.OwnerPublicKey);
+                var hash = await ExecuteSignedTokenAsync(client => client.BurnTokenAsync(request.TokenAddress,
+                    request.Amount, request.OwnerPrivateKey, publicKey: request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "Requested TRC20 burn confirmed by solidified contract receipt.";
             }
@@ -294,6 +292,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private async Task<string> ExecuteSignedTokenAsync(Func<TronNativeTransferClient, Task<string>> operation)
+        {
+            await _runtimeLifecycle.WaitAsync();
+            try
+            {
+                if (!IsProviderActivated || _nativeTransfers == null)
+                    throw new InvalidOperationException("The configured TRON SDK runtime is no longer active.");
+                return await operation(_nativeTransfers);
+            }
+            finally { _runtimeLifecycle.Release(); }
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
