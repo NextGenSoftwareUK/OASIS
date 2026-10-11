@@ -3,6 +3,10 @@ param(
     [Parameter(Mandatory)][string]$OutputPath
 )
 $ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'Sync-OASISDNATemplate.ps1')
+$templatePath = Join-Path (Split-Path $PSScriptRoot -Parent) 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json'
+$templateBytes = [IO.File]::ReadAllBytes($templatePath)
+[Text.Encoding]::UTF8.GetString($templateBytes) | ConvertFrom-Json | Out-Null
 $source = (Resolve-Path -LiteralPath $PublishDirectory).Path
 $output = [IO.Path]::GetFullPath($OutputPath)
 if ($output.StartsWith($source + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
@@ -12,7 +16,7 @@ $files = @(Get-ChildItem -LiteralPath $source -Recurse -File | Where-Object {
     $_.Name -notlike 'NextGenSoftware.OASIS.STAR.*' -and
     $_.Name -notlike 'STAR.*' -and
     $_.Name -notlike 'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint*' -and
-    $_.Name -notlike '*OASISDNA*.json'
+    $_.Name -notmatch '(?i)OASIS[_-]?DNA.*\.json$'
 })
 foreach ($required in @('NextGenSoftware.OASIS.API.Core.dll', 'NextGenSoftware.OASIS.OASISBootLoader.dll')) {
     if (-not @($files | Where-Object Name -eq $required).Count) { throw "Runtime dependency missing: $required" }
@@ -30,9 +34,9 @@ try {
             $inputFile = $file.OpenRead()
             try { $inputFile.CopyTo($destination) } finally { $inputFile.Dispose(); $destination.Dispose() }
         }
-        $dna = $zip.CreateEntry('OASISDNA.json')
-        $writer = [IO.StreamWriter]::new($dna.Open(), [Text.UTF8Encoding]::new($false))
-        try { $writer.Write('{}') } finally { $writer.Dispose() }
+        $dna = $zip.CreateEntry('OASIS_DNA.json')
+        $dnaStream = $dna.Open()
+        try { $dnaStream.Write($templateBytes, 0, $templateBytes.Length) } finally { $dnaStream.Dispose() }
     } finally { $zip.Dispose() }
 } finally { $stream.Dispose() }
 Write-Output "OASIS Runtime archive created: $output"
