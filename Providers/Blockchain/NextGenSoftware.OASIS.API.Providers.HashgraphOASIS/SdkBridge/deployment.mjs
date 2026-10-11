@@ -1,14 +1,24 @@
-import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType,TokenId,TokenDeleteTransaction,CustomRoyaltyFee} from '@hiero-ledger/sdk';
+import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType,TokenId,TokenDeleteTransaction,CustomRoyaltyFee,TokenUpdateNftsTransaction} from '@hiero-ledger/sdk';
+import {Long} from '@hiero-ledger/sdk';
 
 export function deploymentTransaction(action,request,publicKey) {
-  if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete'].includes(action)) throw new Error('Unknown deployment mutation.');
+  if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) throw new Error('Unknown deployment mutation.');
   if(!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.sender??'')) throw new Error('Deployment requires a nonzero numeric payer.');
   const sender=AccountId.fromString(request.sender),id=TransactionId.fromString(request.transactionId);
   if(id.accountId.toString()!==sender.toString()) throw new Error('Deployment payer identity mismatch.');
   if(typeof request.maxFeeTinybars!=='string'||!/^[1-9][0-9]*$/.test(request.maxFeeTinybars)||BigInt(request.maxFeeTinybars)>9223372036854775807n)
     throw new Error('Deployment requires an explicit positive int64 fee ceiling.');
   let transaction;
-  if(action==='tokenCollectionDelete') {
+  if(action==='nftMetadataUpdate') {
+    if(!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.tokenId??''))throw new Error('Explicit numeric NFT collection ID required.');
+    if(!Array.isArray(request.serials)||!request.serials.length||request.serials.length>10
+      ||new Set(request.serials).size!==request.serials.length
+      ||request.serials.some(value=>typeof value!=='string'||!/^[1-9][0-9]*$/.test(value)||BigInt(value)>9223372036854775807n))
+      throw new Error('One to ten unique positive int64 NFT serial strings required.');
+    if(typeof request.metadata!=='string'||Buffer.byteLength(request.metadata,'utf8')>100)
+      throw new Error('Explicit NFT metadata of at most 100 UTF-8 bytes required.');
+    transaction=new TokenUpdateNftsTransaction().setTokenId(request.tokenId).setSerialNumbers(request.serials.map(value=>Long.fromString(value))).setMetadata(Buffer.from(request.metadata,'utf8'));
+  } else if(action==='tokenCollectionDelete') {
     if(!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.tokenId??''))
       throw new Error('Collection deletion requires an explicit nonzero numeric token ID.');
     transaction=new TokenDeleteTransaction().setTokenId(TokenId.fromString(request.tokenId));
@@ -24,7 +34,7 @@ export function deploymentTransaction(action,request,publicKey) {
     transaction=new TokenCreateTransaction().setTokenName(request.name).setTokenSymbol(request.symbol)
       .setTokenType(TokenType.NonFungibleUnique).setDecimals(0).setInitialSupply(0)
       .setSupplyType(TokenSupplyType.Finite).setMaxSupply(request.maxSupply)
-      .setTreasuryAccountId(sender).setAutoRenewAccountId(sender).setAdminKey(publicKey).setSupplyKey(publicKey);
+      .setTreasuryAccountId(sender).setAutoRenewAccountId(sender).setAdminKey(publicKey).setSupplyKey(publicKey).setMetadataKey(publicKey);
     if(royalty>0)transaction.setCustomFees([new CustomRoyaltyFee().setNumerator(royalty).setDenominator(100).setFeeCollectorAccountId(sender)]);
   } else if(action==='contractCreate') {
     if(!Number.isSafeInteger(request.gas)||request.gas<=0) throw new Error('Deployment requires an explicit positive gas limit.');
