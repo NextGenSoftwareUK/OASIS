@@ -19,8 +19,10 @@ public sealed class CosmosRealProviderRoutingTests
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real provider setting {name} is required; no skipped evidence.");
 
-    [Fact]
-    public async Task V2FailsOverToRealStoreAfterOwnedCosmosTransportCloses()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task V2FailsOverToRealStoreAfterCosmosFailure(bool stopOwnedNode)
     {
         var rpc = Required("OASIS_COSMOS_TEST_RPC");
         new Uri(rpc).IsLoopback.Should().BeTrue();
@@ -45,10 +47,23 @@ public sealed class CosmosRealProviderRoutingTests
         manager.SetAndReplaceAutoFailOverListForProviders(new[]
             { new EnumValue<ProviderType>(ProviderType.CosmosBlockChainOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) })
             .IsError.Should().BeFalse();
-        // Close only this test's genuine SDK transport. No mocked errors or shared node shutdown.
-        cosmos.Dispose();
-        var failure = await cosmos.ActivateProviderAsync();
-        failure.IsError.Should().BeTrue("closed transport must not fake successful activation");
+        if (stopOwnedNode)
+        {
+            var script = Required("OASIS_COSMOS_TEST_STOP_SCRIPT");
+            script.Should().Be("/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh");
+            var start = new ProcessStartInfo("wsl.exe") { UseShellExecute = false, CreateNoWindow = true };
+            foreach (var argument in new[] { "-d", "Ubuntu", "-u", "root", "--", "bash", script })
+                start.ArgumentList.Add(argument);
+            using var process = Process.Start(start)!;
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            process.ExitCode.Should().Be(0, "only the pinned reusable Cosmos test node may be stopped");
+        }
+        else
+        {
+            cosmos.Dispose();
+            var failure = await cosmos.ActivateProviderAsync();
+            failure.IsError.Should().BeTrue("closed transport must not fake successful activation");
+        }
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-cosmos-failover" };
         try
         {
