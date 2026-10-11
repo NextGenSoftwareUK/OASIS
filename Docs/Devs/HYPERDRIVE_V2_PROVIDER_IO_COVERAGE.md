@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Collection/metadata Unicode integrity (2026-10-11)
+
+C# collection name/symbol and metadata update validation now uses throwing UTF-8 encoding instead of silently replacing unpaired UTF-16 surrogates. Direct SDK entry also rejects unpaired surrogates before byte encoding; valid Unicode/emoji remain supported by existing roundtrip tests. Regression cases prove invalid high/low surrogates produce explicit errors before any transaction identity/submission. C# collection suite **25/25**, SDK suite **78/78**, zero skips; bounded provider build succeeds. This closes an input integrity issue, not live lifecycle/API gates. No installation/download or ledger mutation.
+
 ### C# native NFT metadata update boundary (2026-10-11)
 
 Concrete `UpdateNftMetadataAsync` validates numeric payer/collection, one to ten unique positive int64 serials, 100-byte UTF-8 metadata and explicit signer/fee before SDK invocation. It forwards serials as invariant decimal strings, retains original transaction/collection IDs, and accepts only matching SUCCESS receipt identity. Controlled actual Node-process cases verify serial `9007199254740993`, Unicode metadata, success/failure/mismatch and no key leakage. Collection boundary suite **24/24**, zero skips (`hedera-collection-validation.trx`); provider build succeeds. Live metadata-key authorization/update, authority freeze, shared interface and HTTP exposure remain unverified. No download/install, environment duplication or ledger submission occurred.
