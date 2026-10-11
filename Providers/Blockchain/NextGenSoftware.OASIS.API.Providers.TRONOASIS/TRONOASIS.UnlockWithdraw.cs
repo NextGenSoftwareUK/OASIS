@@ -350,58 +350,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<decimal>();
             try
             {
+                token.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(accountAddress))
+                    throw new ArgumentException("Account address is required.", nameof(accountAddress));
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-
-                if (string.IsNullOrWhiteSpace(accountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Account address is required");
-                    return result;
-                }
-
-                // Query TRON account balance using TRON Grid API
-                var accountResponse = await _httpClient.GetAsync($"/wallet/getaccount?address={accountAddress}");
-                
-                if (accountResponse.IsSuccessStatusCode)
-                {
-                    var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                    var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-                    
-                    if (accountData.TryGetProperty("balance", out var balance))
-                    {
-                        var balanceStr = balance.GetString();
-                        if (long.TryParse(balanceStr, out var balanceLong))
-                        {
-                            result.Result = balanceLong / 1_000_000m; // Convert from sun (10^6) to TRX
-                            result.IsError = false;
-                            result.Message = "Account balance retrieved successfully";
-                        }
-                        else
-                        {
-                            result.Result = 0m;
-                            result.IsError = false;
-                        }
-                    }
-                    else
-                    {
-                        result.Result = 0m;
-                        result.IsError = false;
-                        result.Message = "Account balance is zero or account not found";
-                    }
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                    result.Message = "Account balance retrieved (zero or account not found)";
-                }
+                result.Result = await ExecuteRuntimeAsync(client => client.GetNativeBalanceAsync(accountAddress, token));
+                result.Message = "Native TRX account balance retrieved from the solidity node.";
             }
             catch (Exception ex)
             {
