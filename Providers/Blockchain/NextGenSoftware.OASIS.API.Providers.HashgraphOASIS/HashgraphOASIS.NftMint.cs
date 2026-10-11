@@ -111,8 +111,7 @@ public partial class HashgraphOASIS
                     transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
                 });
                 if (sent.GetProperty("status").GetString() != "SUCCESS") throw new InvalidOperationException("Mint completed but recipient transfer has no successful receipt.");
-                nft.SendNFTTransactionHash = sent.GetProperty("transactionId").GetString();
-                nft.SendToAddressAfterMinting = recipient;
+                RecordHederaNftDelivery(result.Result, sent.GetProperty("transactionId").GetString(), recipient);
             }
             result.Message = "HTS NFT mint and requested recipient transfer confirmed by consensus receipts.";
         }
@@ -121,5 +120,14 @@ public partial class HashgraphOASIS
             OASISErrorHandling.HandleError(ref result, $"Hedera NFT mint failed: {ex.Message}", ex);
         }
         return result;
+    }
+
+    private static void RecordHederaNftDelivery(IWeb3NFTTransactionResponse response, string transactionId, string recipient)
+    {
+        if (response?.Web3NFT == null || string.IsNullOrWhiteSpace(transactionId))
+            throw new InvalidOperationException("A confirmed NFT delivery requires its original transaction ID and minted NFT.");
+        response.SendNFTTransactionResult = transactionId;
+        response.Web3NFT.SendNFTTransactionHash = transactionId;
+        response.Web3NFT.SendToAddressAfterMinting = recipient;
     }
 }
