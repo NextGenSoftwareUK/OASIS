@@ -52,6 +52,10 @@ public sealed class TronLocalSdkTests
         if (await CurrentOwner() == 0) await client.MintNftAsync(owner, owner, nft, id, "https://example.invalid/escrow.json", SenderKey, "", bounded.Token);
         try
         {
+            // Revoke any approval left by an interrupted owned run, then prove failed deposit rolls back.
+            await client.ExecuteSignedContractAsync(owner, nft, Call("095ea7b3", new byte[20], token), SenderKey, bounded.Token);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, false, bounded.Token));
+            Assert.Equal(ownerValue, await CurrentOwner());
             await client.ExecuteSignedContractAsync(owner, nft, Call("095ea7b3", Address(escrow), token), SenderKey, bounded.Token);
             await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, false, bounded.Token);
             Assert.Equal(escrowValue, await CurrentOwner());
@@ -59,6 +63,8 @@ public sealed class TronLocalSdkTests
             await Assert.ThrowsAsync<InvalidOperationException>(() => client.ExecuteNftEscrowAsync(other, escrow, nft + "/42", RecipientKey, true, bounded.Token));
             Assert.Equal(escrowValue, await CurrentOwner());
             await client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token);
+            Assert.Equal(ownerValue, await CurrentOwner());
+            await Assert.ThrowsAsync<InvalidOperationException>(() => client.ExecuteNftEscrowAsync(owner, escrow, nft + "/42", SenderKey, true, bounded.Token));
             Assert.Equal(ownerValue, await CurrentOwner());
         }
         finally
