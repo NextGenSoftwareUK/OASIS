@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             if (holon != null && holon.ProviderUniqueStorageKey != null && 
                                 holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) &&
                                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey &&
-                                holon.Version == version)
+                                (version == 0 || holon.Version == version))
                             {
                                 // Load children if requested
                                 if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > 0)
@@ -294,7 +294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var jsonContent = await File.ReadAllTextAsync(file);
                             var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
                             
-                            if (holon != null && holon.Version == version &&
+                            if (holon != null && (version == 0 || holon.Version == version) &&
                                 (type == HolonType.All || holon.HolonType == type) &&
                                 holon.MetaData != null && holon.MetaData.ContainsKey(metaKey) &&
                                 holon.MetaData[metaKey]?.ToString() == metaValue)
@@ -378,7 +378,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var jsonContent = await File.ReadAllTextAsync(file);
                             var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
                             
-                            if (holon != null && holon.Version == version &&
+                            if (holon != null && (version == 0 || holon.Version == version) &&
                                 (type == HolonType.All || holon.HolonType == type) &&
                                 holon.MetaData != null)
                             {
@@ -474,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var jsonContent = await File.ReadAllTextAsync(file);
                             var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
                             
-                            if (holon != null && holon.Version == version &&
+                            if (holon != null && (version == 0 || holon.Version == version) &&
                                 (type == HolonType.All || holon.HolonType == type))
                             {
                                 // Load children if requested
