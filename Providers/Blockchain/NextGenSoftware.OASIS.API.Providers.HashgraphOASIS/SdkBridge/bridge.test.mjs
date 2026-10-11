@@ -6,6 +6,10 @@ test('invalid receipt ID is rejected before opening a consensus client', async (
   await assert.rejects(execute('receipt', { network: 'testnet', transactionId: 'not-a-transaction-id' }));
 });
 
+test('mint rejects an invalid HTS asset ID before opening a consensus client', async () => {
+  await assert.rejects(execute('tokenMint', { network: 'testnet', tokenId: 'not-an-hts-id' }));
+});
+
 for (const keyType of ['ed25519', 'ecdsa']) {
   test(`official SDK ${keyType} key generation and DER recovery`, async () => {
     const generated = await execute('generateKey', { keyType });

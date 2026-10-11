@@ -86,53 +86,39 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get token address from contract address or use default
-                var tokenAddress = _contractAddress ?? "0.0.0";
-                
-                // Get wallet address for the avatar
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
+                ArgumentNullException.ThrowIfNull(request);
+                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                if (request.MetaData == null || !request.MetaData.TryGetValue("TokenAddress", out var tokenAddress)
+                    || !System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new ArgumentException("TokenAddress metadata must identify an existing HTS token.");
+                if (request.MintedByAvatarId == Guid.Empty)
+                    throw new ArgumentException("The minting avatar's real Hedera wallet is required.");
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId,
+                    Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
                 if (walletResult.IsError || walletResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
                     return result;
                 }
                 
-                var mintToAddress = walletResult.Result.WalletAddress;
-                var mintAmount = 1m; // Default amount
-                
-                // Hedera Token Service (HTS) mint using Mirror Node API
-                var tokenMintUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{tokenAddress}/mint";
-                var mintData = new
+                var wallet = walletResult.Result;
+                if (string.IsNullOrWhiteSpace(wallet.PrivateKey))
+                    throw new ArgumentException("The minting wallet has no signing key.");
+                var recipient = request.MetaData.TryGetValue("MintToWalletAddress", out var target) ? target : wallet.WalletAddress;
+                var committed = await HederaSdkClient.InvokeAsync("tokenMint", new
                 {
-                    account_id = mintToAddress,
-                    amount = (long)(mintAmount * 100000000) // Convert to tinybars
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient,
+                    tokenId = tokenAddress, amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der", memo = request.MemoText,
+                    transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS")
+                    throw new InvalidOperationException("HTS mint did not return a successful consensus receipt.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
+                {
+                    TransactionResult = committed.GetProperty("transactionId").GetString()
                 };
-
-                var content = new StringContent(JsonSerializer.Serialize(mintData), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(tokenMintUrl, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
-                    };
-                    result.IsError = false;
-                    result.Message = "Token minted successfully on Hashgraph";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Hashgraph token mint failed: {response.StatusCode}");
-                }
+                result.Message = "HTS mint confirmed by consensus receipt.";
             }
             catch (Exception ex)
             {
