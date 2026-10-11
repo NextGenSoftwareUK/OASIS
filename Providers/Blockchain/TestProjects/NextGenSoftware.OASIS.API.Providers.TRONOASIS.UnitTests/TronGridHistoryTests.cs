@@ -10,6 +10,7 @@ public sealed class TronGridHistoryTests
     [InlineData("{\"success\":false,\"data\":[],\"meta\":{}}")]
     [InlineData("{\"success\":true,\"data\":[{\"block_timestamp\":124}],\"meta\":{}}")]
     [InlineData("{\"success\":true,\"data\":[],\"meta\":{\"fingerprint\":\"stuck\"}}")]
+    [InlineData("{\"success\":true,\"data\":[],\"meta\":{\"links\":{\"next\":\"https://example.test/next\"}}}")]
     public async Task FailedOutOfBoundsOrNonAdvancingPageCannotBecomeSuccessfulEmptyHistory(string page)
     {
         var handler = new Handler("{\"blockID\":\"" + new string('a', 64) + "\"}", page);
@@ -33,11 +34,12 @@ public sealed class TronGridHistoryTests
     {
         var handler = new Handler("{\"blockID\":\"" + new string('a', 64) + "\"}",
             "{\"success\":true,\"data\":[{\"block_timestamp\":1,\"value\":\"9007199254740993\"}],\"meta\":{\"fingerprint\":\"next/value\"}}",
-            "{\"success\":true,\"data\":[{\"block_timestamp\":2}],\"meta\":{}}");
+            "{\"success\":true,\"data\":[{\"block_timestamp\":2,\"token_info\":{}}],\"meta\":{}}");
         using var http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test/") };
         var records = await new TronGridTokenHistoryClient(http, new string('a', 64)).ReadAsync("account", 123);
         Assert.Equal(2, records.Count);
         Assert.Equal("9007199254740993", records[0].GetProperty("value").GetString());
+        Assert.Empty(records[1].GetProperty("token_info").EnumerateObject());
         Assert.All(handler.Requests.Skip(1), url => Assert.Contains("max_timestamp=123", url));
         Assert.Contains("fingerprint=next%2Fvalue", handler.Requests[2]);
     }

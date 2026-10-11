@@ -14,14 +14,17 @@ public sealed class TronGridTokenHistoryClient
 {
     private readonly HttpClient _http;
     private readonly string _genesis;
+    private readonly int _pageSize;
 
-    public TronGridTokenHistoryClient(HttpClient http, string expectedGenesisBlockId)
+    public TronGridTokenHistoryClient(HttpClient http, string expectedGenesisBlockId, int pageSize = 200)
     {
         _http = http ?? throw new ArgumentNullException(nameof(http));
         if (_http.BaseAddress == null) throw new ArgumentException("An explicit TronGrid base URI is required.");
         if (!System.Text.RegularExpressions.Regex.IsMatch(expectedGenesisBlockId ?? "", "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("Expected genesis block ID must contain 32 hexadecimal bytes.");
         _genesis = expectedGenesisBlockId;
+        if (pageSize < 1 || pageSize > 200) throw new ArgumentOutOfRangeException(nameof(pageSize));
+        _pageSize = pageSize;
     }
 
     public async Task<IReadOnlyList<JsonElement>> ReadAsync(string accountAddress, long maximumTimestamp,
@@ -44,7 +47,8 @@ public sealed class TronGridTokenHistoryClient
         var seen = new HashSet<string>(StringComparer.Ordinal);
         string fingerprint = null;
         var path = "v1/accounts/" + Uri.EscapeDataString(accountAddress) + "/transactions/trc20"
-            + "?only_confirmed=true&limit=200&order_by=block_timestamp,asc&min_timestamp=0&max_timestamp="
+            + "?only_confirmed=true&limit=" + _pageSize.ToString(CultureInfo.InvariantCulture)
+            + "&order_by=block_timestamp,asc&min_timestamp=0&max_timestamp="
             + maximumTimestamp.ToString(CultureInfo.InvariantCulture);
         for (var page = 0; page < 5000; page++)
         {
@@ -58,7 +62,7 @@ public sealed class TronGridTokenHistoryClient
                 || !root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array
                 || !root.TryGetProperty("meta", out var meta) || meta.ValueKind != JsonValueKind.Object)
                 throw new InvalidOperationException("TronGrid history returned an invalid or unsuccessful response.");
-            if (data.GetArrayLength() > 200) throw new InvalidOperationException("TronGrid exceeded the requested page size.");
+            if (data.GetArrayLength() > _pageSize) throw new InvalidOperationException("TronGrid exceeded the requested page size.");
             foreach (var record in data.EnumerateArray())
             {
                 if (record.ValueKind != JsonValueKind.Object) throw new InvalidOperationException("TronGrid history returned a non-record item.");
@@ -68,7 +72,13 @@ public sealed class TronGridTokenHistoryClient
                 records.Add(record.Clone());
             }
             fingerprint = meta.TryGetProperty("fingerprint", out var cursor) ? cursor.GetString() : null;
-            if (string.IsNullOrEmpty(fingerprint)) return records;
+            var hasNext = meta.TryGetProperty("links", out var links) && links.ValueKind == JsonValueKind.Object
+                && links.TryGetProperty("next", out var next) && next.ValueKind == JsonValueKind.String && !string.IsNullOrEmpty(next.GetString());
+            if (string.IsNullOrEmpty(fingerprint))
+            {
+                if (hasNext) throw new InvalidOperationException("TronGrid advertised another history page without its fingerprint.");
+                return records;
+            }
             if (data.GetArrayLength() == 0 || !seen.Add(fingerprint))
                 throw new InvalidOperationException("TronGrid history pagination did not advance.");
         }
