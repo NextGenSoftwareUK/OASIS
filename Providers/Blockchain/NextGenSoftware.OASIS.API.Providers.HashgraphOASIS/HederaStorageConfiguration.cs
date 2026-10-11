@@ -1,0 +1,63 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
+namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+
+public sealed class HederaStorageConfiguration
+{
+    public string ContractId { get; init; }
+    public string OperatorAccountId { get; init; }
+    public string SigningKeyType { get; init; }
+    public Func<string> SigningKeyResolver { get; init; }
+    // Must resolve the same persistent 32-byte key for this store across restarts.
+    // Return an owned buffer; it is cleared after the encryption layer copies it.
+    public Func<byte[]> EncryptionKeyResolver { get; init; }
+    public long GasLimit { get; init; }
+    public long MaxFeeTinybars { get; init; }
+}
+
+// Resolve storage secrets only when storage is used. Offline key operations do not
+// require a deployed storage contract, but storage never succeeds without one.
+internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDisposable
+{
+    private readonly Lazy<EncryptedKeyValueBackend> _backend;
+    private bool _disposed;
+
+    internal ConfiguredHederaStorageBackend(string network, IDictionary<string, string> nodes, HederaStorageConfiguration configuration)
+    {
+        var copiedNodes = nodes == null ? null : new Dictionary<string, string>(nodes);
+        _backend = new Lazy<EncryptedKeyValueBackend>(() => {
+            if (configuration == null)
+                throw new InvalidOperationException("Hedera storage requires an explicit contract, operator, signing key, encryption key and fee configuration.");
+            var inner = new HederaStorageBackend(network, configuration.ContractId, configuration.OperatorAccountId,
+                configuration.SigningKeyType, configuration.SigningKeyResolver, configuration.GasLimit,
+                configuration.MaxFeeTinybars, copiedNodes);
+            var key = configuration.EncryptionKeyResolver?.Invoke();
+            try { return new EncryptedKeyValueBackend(inner, key); }
+            finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
+        });
+    }
+
+    private EncryptedKeyValueBackend Resolve(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _backend.Value;
+    }
+
+    public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Resolve(cancellationToken).GetAsync(key, cancellationToken);
+    public Task PutAsync(string key, string value, CancellationToken cancellationToken = default) => Resolve(cancellationToken).PutAsync(key, value, cancellationToken);
+    public Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Resolve(cancellationToken).DeleteAsync(key, cancellationToken);
+    public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default) => Resolve(cancellationToken).ListKeysAsync(prefix, cancellationToken);
+    public Task VerifyAsync(CancellationToken cancellationToken = default) => Resolve(cancellationToken).VerifyAsync(cancellationToken);
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        if (_backend.IsValueCreated) _backend.Value.Dispose();
+    }
+}
