@@ -43,7 +43,7 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
-    public partial class TRONOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class TRONOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
         private readonly TRONClient _tronClient;
@@ -74,8 +74,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             TronNativeTransferClient nativeTransfers = null, Func<string, Task<string>> nativeSigningKeyResolver = null,
             string fullNodeGrpcEndpoint = "", string solidityNodeGrpcEndpoint = "", string genesisBlockId = "",
             string signingKeyEnvironmentVariable = "OASIS_TRON_PRIVATE_KEY", string apiKeyEnvironmentVariable = "OASIS_TRON_API_KEY",
-            string escrowContractAddress = "", string bridgePoolWalletAddress = "")
+            string escrowContractAddress = "", string bridgePoolWalletAddress = "", TronPrivateStorageBackend storageBackend = null)
+            : base(new TronProviderStorageBackend(storageBackend))
         {
+            ((TronProviderStorageBackend)Backend).Lifecycle = _runtimeLifecycle;
+            ((TronProviderStorageBackend)Backend).IsActive = () => IsProviderActivated;
             _nativeTransfers = nativeTransfers;
             _nativeSigningKeyResolver = nativeSigningKeyResolver;
             _fullNodeGrpcEndpoint = fullNodeGrpcEndpoint;
