@@ -141,7 +141,8 @@ public sealed class TronNativeTransferClient
         if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
             throw new InvalidOperationException("TRON node returned stale TRC20 transaction timestamps.");
         raw.FeeLimit = 100000000; // Maximum transaction fee, not an asset amount.
-        return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo ?? "", cancellationToken, requireContractSuccess: true);
+        return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo ?? "", cancellationToken,
+            requireContractSuccess: true, requireTransferReturn: recipient != null);
     }
 
     internal static byte[] EncodeTrc20Call(ByteString recipient, System.Numerics.BigInteger units)
@@ -175,8 +176,17 @@ public sealed class TronNativeTransferClient
         return units;
     }
 
+    internal static void ValidateTrc20TransferReturn(TransactionInfo receipt)
+    {
+        if (receipt.ContractResult.Count != 1 || receipt.ContractResult[0].Length != 32)
+            throw new InvalidOperationException("TRC20 transfer did not return one ABI boolean.");
+        var value = new System.Numerics.BigInteger(receipt.ContractResult[0].ToByteArray(), isUnsigned: true, isBigEndian: true);
+        if (value != System.Numerics.BigInteger.One)
+            throw new InvalidOperationException("TRC20 transfer did not return true; contract execution success alone does not prove transfer success.");
+    }
+
     private async Task<string> SignBroadcastConfirmAsync(Transaction transaction, string privateKey, string memo,
-        CancellationToken cancellationToken, bool requireContractSuccess = false)
+        CancellationToken cancellationToken, bool requireContractSuccess = false, bool requireTransferReturn = false)
     {
         var raw = transaction.RawData;
         var headers = _wallet.GetHeaders();
@@ -221,6 +231,8 @@ public sealed class TronNativeTransferClient
                     if (requireContractSuccess && (receipt.Receipt == null
                         || (int)receipt.Receipt.Result != 1)) // SDK contractResult SUCCESS=1; DEFAULT=0 is not success.
                         throw new InvalidOperationException($"TRON contract execution {transactionId} did not report SUCCESS.");
+                    if (requireTransferReturn)
+                        ValidateTrc20TransferReturn(receipt);
                     return transactionId;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2), deadline.Token);
