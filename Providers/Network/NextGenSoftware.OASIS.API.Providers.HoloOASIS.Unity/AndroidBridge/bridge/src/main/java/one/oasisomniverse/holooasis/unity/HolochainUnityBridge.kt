@@ -95,8 +95,8 @@ object HolochainUnityBridge {
 
     /**
      * Prefers the shared runtime when [preferShared] is set and it is installed, waiting up to
-     * [approvalTimeoutMs] for the player to approve access; otherwise, or on any shared-mode failure,
-     * falls back to the embedded conductor.
+     * [approvalTimeoutMs] for the player to approve access. Embedded mode is selected only when
+     * shared mode is disabled or the runtime is absent; a selected shared runtime's errors are terminal.
      */
     @JvmStatic
     fun startAndSetup(
@@ -120,14 +120,17 @@ object HolochainUnityBridge {
 
         scope.launch {
             if (preferShared && isSharedRuntimeInstalled(context)) {
-                val shared = trySharedSetup(context, payload, approvalTimeoutMs, status)
-                if (shared != null) {
+                try {
+                    val shared = trySharedSetup(context, payload, approvalTimeoutMs, status)
                     mode = MODE_SHARED
                     status?.onStatus("shared", "Using the shared Holochain runtime.")
                     callback.onSuccess(shared.port.toInt(), Base64.encodeToString(shared.authentication.token, Base64.NO_WRAP))
-                    return@launch
+                } catch (error: Exception) {
+                    mode = null
+                    setupPayload = null
+                    callback.onError("HOLO_ANDROID_SHARED_SETUP_FAILED", error.message ?: error.javaClass.name)
                 }
-                status?.onStatus("fallback", "Falling back to the embedded Holochain conductor.")
+                return@launch
             }
             startEmbedded(context, payload, bootstrapUrl, relayUrl, callback)
         }
@@ -138,7 +141,7 @@ object HolochainUnityBridge {
         payload: InstallAppPayloadFfi,
         approvalTimeoutMs: Long,
         status: StatusCallback?,
-    ): AppAuthFfi? {
+    ): AppAuthFfi {
         val client = HolochainServiceAppClient(
             context,
             ComponentName(SHARED_RUNTIME_PACKAGE, HolochainService::class.java.name),
@@ -161,12 +164,12 @@ object HolochainUnityBridge {
                     }
                 }
                 @Suppress("UNREACHABLE_CODE")
-                null
+                error("Shared runtime setup did not return an authenticated session.")
             }
         } catch (error: Throwable) {
-            // Not approved in time, incompatible runtime version (e.g. pre-0.7 hApp format) or IPC failure.
+            // Never replace a selected conductor (and its source chain) after an approval/IPC failure.
             status?.onStatus("shared_unavailable", error.message ?: error.javaClass.name)
-            null
+            throw error
         }
     }
 

@@ -74,9 +74,8 @@ class HolochainUnityBridgeDeviceTest {
         assertTrue(token.isNotEmpty())
         android.util.Log.i("HoloBridgeTest", "mode=${HolochainUnityBridge.mode} statuses=$statuses")
         if (HolochainUnityBridge.isSharedRuntimeInstalled(context)) {
-            // An installed runtime is either used, or (incompatible / not approved) reported and skipped.
-            assertTrue("statuses=$statuses", HolochainUnityBridge.mode == HolochainUnityBridge.MODE_SHARED ||
-                (statuses.contains("fallback") && HolochainUnityBridge.mode == HolochainUnityBridge.MODE_EMBEDDED))
+            // A selected shared runtime must not silently switch to another conductor.
+            assertEquals(HolochainUnityBridge.MODE_SHARED, HolochainUnityBridge.mode)
         } else {
             assertEquals(HolochainUnityBridge.MODE_EMBEDDED, HolochainUnityBridge.mode)
         }
