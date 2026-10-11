@@ -6,6 +6,39 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaCollectionTests
 {
     [DataTestMethod]
+    [DataRow("0.0.2001",false)]
+    [DataRow("0.0.2002",true)]
+    [DataRow("0.0.2003",true)]
+    public async Task MetadataUpdateProcessBoundaryPreservesExactSerialAndReceipt(string tokenId,bool error)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","hedera-collection.mjs"));
+        try
+        {
+            var provider=new HashgraphOASIS(network:"testnet");
+            var result=await provider.UpdateNftMetadataAsync("0.0.1001","test-only-collection-key",tokenId,new long[] {9007199254740993},"Oak 🌳",100000000);
+            Assert.AreEqual(error,result.IsError,result.Message);Assert.IsNotNull(result.Result);
+            Assert.AreEqual(tokenId,result.Result.TokenId);Assert.AreEqual(!error,result.Result.ConsensusVerified);
+            StringAssert.StartsWith(result.Result.TransactionId,"0.0.1001@");
+            Assert.IsFalse((result.Message??"").Contains("test-only-collection-key"));
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
+
+    [TestMethod]
+    public async Task InvalidMetadataUpdateFailsBeforeSdkAccess()
+    {
+        var provider=new HashgraphOASIS(network:"testnet");
+        foreach(var serials in new[] {Array.Empty<long>(),new long[] {0},new long[] {1,1},new long[11]})
+        {
+            var result=await provider.UpdateNftMetadataAsync("0.0.1001","","0.0.2001",serials,"Oak",100000000);
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);StringAssert.Contains(result.Message,"serials");
+        }
+        var tooLarge=await provider.UpdateNftMetadataAsync("0.0.1001","","0.0.2001",new long[] {1},new string('x',101),100000000);
+        Assert.IsTrue(tooLarge.IsError);Assert.IsNull(tooLarge.Result);StringAssert.Contains(tooLarge.Message,"UTF-8");
+    }
+
+    [DataTestMethod]
     [DataRow(0)]
     [DataRow(7)]
     [DataRow(100)]
