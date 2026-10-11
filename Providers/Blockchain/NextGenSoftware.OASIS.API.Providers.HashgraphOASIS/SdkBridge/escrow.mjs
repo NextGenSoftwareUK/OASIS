@@ -1,5 +1,6 @@
 import { AccountId, ContractId, TokenId, TransactionId, ContractExecuteTransaction, AccountAllowanceApproveTransaction, Hbar } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
+import { AccountInfoQuery, ContractInfoQuery, TokenNftInfoQuery, ContractCallQuery } from '@hiero-ledger/sdk';
 
 export const escrowAbi = new Interface([
   'function lockNFT(address token,uint256 serial)',
@@ -44,4 +45,77 @@ export function escrowApprovalTransaction(request) {
     .approveTokenNftAllowance(token.toString() + '/' + request.serial, sender, contract)
     .setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
     .setTransactionId(approvalId).setMaxAttempts(1).setRegenerateTransactionId(false);
+}
+
+export async function executeEscrow(action, request, { createClient, restoreKey }) {
+  const mutation = escrowTransaction(action, request);
+  const approval = action === 'nftEscrowLock' ? escrowApprovalTransaction(request) : null;
+  const { sender, contract, token } = validateEscrowRequest(request);
+  const key = restoreKey(request);
+  if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+    throw new Error('Escrow signing key mismatch.');
+  const client = createClient(request);
+  let approvalTransactionId = null;
+  let stage = 'validation';
+  try {
+    client.setOperator(sender, key);
+    const payment = Hbar.fromTinybars(request.maxFeeTinybars);
+    const account = await new AccountInfoQuery().setAccountId(sender).setMaxQueryPayment(payment).execute(client);
+    if (account.accountId.toString() !== sender.toString() || account.isDeleted ||
+        typeof account.key?.toStringDer !== 'function' || account.key.toStringDer().toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
+      throw new Error('Escrow requires the real active sender account single signing key.');
+    const contractInfo = await new ContractInfoQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
+    if (contractInfo.contractId.toString() !== contract.toString() || contractInfo.isDeleted)
+      throw new Error('Escrow contract identity mismatch.');
+    const nftId = token.toString() + '/' + request.serial;
+    async function nftInfo() {
+      const records = await new TokenNftInfoQuery().setNftId(nftId).setMaxQueryPayment(payment).execute(client);
+      if (records.length !== 1 || records[0].nftId.toString() !== nftId) throw new Error('Escrow NFT identity mismatch.');
+      return records[0];
+    }
+    async function depositor() {
+      const read = await new ContractCallQuery().setContractId(contract).setGas(request.gas).setMaxQueryPayment(payment)
+        .setFunctionParameters(getBytes(escrowAbi.encodeFunctionData('nftDepositor', ['0x' + token.toSolidityAddress(), BigInt(request.serial)]))).execute(client);
+      if (read.errorMessage) throw new Error('Escrow state query reverted.');
+      return escrowAbi.decodeFunctionResult('nftDepositor', read.bytes)[0].toLowerCase();
+    }
+    const zero = '0x' + '0'.repeat(40);
+    const current = await nftInfo();
+    const recorded = await depositor();
+    const locking = action === 'nftEscrowLock';
+    if (current.accountId.toString() !== (locking ? sender.toString() : contractInfo.accountId.toString()) ||
+        (locking ? recorded !== zero : recorded === zero)) throw new Error('Escrow NFT custody/deposit precondition failed.');
+    if (locking && current.spenderId && current.spenderId.toString() !== contractInfo.accountId.toString())
+      throw new Error('An existing different NFT allowance requires explicit revocation.');
+    if (locking && !current.spenderId) {
+      stage = 'approval';
+      approval.freezeWith(client);
+      const submitted = await (await approval.sign(key)).execute(client);
+      const receipt = await submitted.getReceipt(client);
+      if (receipt.status.toString() !== 'SUCCESS') throw new Error('Escrow approval did not establish consensus success.');
+      approvalTransactionId = submitted.transactionId.toString();
+      const approved = await nftInfo();
+      if (approved.accountId.toString() !== sender.toString() || approved.spenderId?.toString() !== contractInfo.accountId.toString())
+        throw new Error('Confirmed NFT allowance readback mismatch.');
+    }
+    stage = 'mutation';
+    mutation.freezeWith(client);
+    const submitted = await (await mutation.sign(key)).execute(client);
+    const receipt = await submitted.getReceipt(client);
+    if (receipt.status.toString() !== 'SUCCESS') throw new Error('Escrow mutation did not establish consensus success.');
+    stage = 'readback';
+    const after = await nftInfo();
+    const recordedAfter = await depositor();
+    if (after.accountId.toString() !== (locking ? contractInfo.accountId.toString() : sender.toString()) ||
+        (locking ? recordedAfter === zero : recordedAfter !== zero)) throw new Error('Confirmed escrow custody readback mismatch.');
+    return { transactionId: submitted.transactionId.toString(), approvalTransactionId, status: 'SUCCESS', depositor: recordedAfter };
+  } catch (cause) {
+    const error = new Error('Hedera escrow did not establish verified success. Reconcile the original mutation and any approval before retrying.');
+    error.transactionId = stage === 'approval' ? request.approvalTransactionId : request.transactionId;
+    error.mutationTransactionId = request.transactionId;
+    error.approvalTransactionId = approvalTransactionId;
+    error.stage = stage;
+    error.status = cause.status?.toString();
+    throw error;
+  } finally { client.close(); }
 }
