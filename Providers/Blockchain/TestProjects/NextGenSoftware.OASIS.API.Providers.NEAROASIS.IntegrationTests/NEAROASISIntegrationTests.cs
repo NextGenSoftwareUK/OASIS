@@ -235,7 +235,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
             })).IsError);
             Assert.IsFalse((await _provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = symbol })).IsError);
             Assert.IsFalse((await _provider.BurnTokenAsync(new BurnWeb3TokenRequest
-                { TokenAddress = symbol, OwnerPublicKey = "", OwnerPrivateKey = "", OwnerSeedPhrase = "" })).IsError);
+                { Amount = 0.25m, TokenAddress = symbol, OwnerPublicKey = "", OwnerPrivateKey = "", OwnerSeedPhrase = "" })).IsError);
+            Assert.AreEqual(89.75m, (await _provider.GetCustomTokenBalanceAsync(symbol, Required("NEAROASIS_ACCOUNTID"))).Result);
+            Assert.AreEqual(10m, (await _provider.GetCustomTokenBalanceAsync(symbol, recipient)).Result);
         }
 
         [TestMethod]
