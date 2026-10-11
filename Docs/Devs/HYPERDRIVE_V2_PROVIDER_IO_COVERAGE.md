@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Native NFT metadata authority/update SDK operation (2026-10-11)
+
+New issuer-owned collections configure the real HTS metadata key. SDK action `nftMetadataUpdate` uses `TokenUpdateNftsTransaction` with explicit collection, one to ten unique positive int64 serials and at most 100 UTF-8 bytes; serials use the installed SDK's `Long` export to preserve exact values. It reuses signed single-submission/fee/receipt handling. Wire roundtrip verifies serial `9007199254740993` and Unicode metadata; invalid serials/oversize metadata reject before signing. Full SDK suite **77/77**, zero skips. Initial test assumed public getters absent in this SDK class and was corrected to inspect decoded SDK fields; its setter also requires `Long[]`, now supplied explicitly. No live update, C# metadata endpoint, irreversible authority freeze or authenticated API proof is claimed; these remain gates. No SDK download/install or ledger mutation occurred.
+
 ### Collection royalty projection boundary (2026-10-11)
 
 C#→Node fixture now requires exact forwarded `royaltyPercentage`; three cases verify 0, 7 and 100 rather than accepting a missing/defaulted value. Existing create cases also require explicit zero. Full collection boundary suite passes **20/20**, zero skips (`hedera-collection-validation.trx`). These controlled process responses are not real consensus or live royalty assessment; actual SDK serialization evidence remains the preceding 76-test checkpoint. No mutation, SDK installation or new environment occurred. Authenticated API and funded lifecycle gates remain open.

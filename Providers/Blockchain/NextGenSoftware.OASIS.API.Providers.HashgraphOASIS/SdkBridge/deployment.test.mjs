@@ -1,6 +1,17 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId} from '@hiero-ledger/sdk';
 import {deploymentTransaction} from './deployment.mjs';
+test('NFT metadata update uses native SDK wire fields with exact serials and UTF-8',()=>{
+ const key=PrivateKey.generateECDSA().publicKey;
+ const input={...request,tokenId:'0.0.2001',serials:['9007199254740993'],metadata:'Oak 🌳'};
+ const tx=deploymentTransaction('nftMetadataUpdate',input,key);
+ tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();const decoded=Transaction.fromBytes(tx.toBytes());
+ assert.equal(decoded._tokenId.toString(),input.tokenId);assert.equal(decoded._serialNumbers[0].toString(),input.serials[0]);
+ assert.equal(Buffer.from(decoded._metadata).toString('utf8'),input.metadata);
+ for(const serials of [[],['0'],['1','1'],['9223372036854775808']])
+  assert.throws(()=>deploymentTransaction('nftMetadataUpdate',{...input,serials},key));
+ assert.throws(()=>deploymentTransaction('nftMetadataUpdate',{...input,metadata:'🌳'.repeat(26)},key));
+});
 test('collection royalty serializes a real HTS fee with issuer collector and no fallback fee',()=>{
  const key=PrivateKey.generateECDSA().publicKey;
  const tx=deploymentTransaction('nftCollectionCreate',{...request,name:'Oak',symbol:'OAK',maxSupply:'10',royaltyPercentage:7},key);
@@ -30,6 +41,7 @@ test('NFT collection creation serializes real HTS type, keys, treasury and exact
  assert.equal(decoded.treasuryAccountId.toString(),request.sender);
  assert.equal(decoded.maxSupply.toString(),'9007199254740993');
  assert.equal(decoded.adminKey.toString(),key.toString());assert.equal(decoded.supplyKey.toString(),key.toString());
+ assert.equal(decoded.metadataKey.toString(),key.toString());
  assert.equal(decoded.transactionId.toString(),request.transactionId);
 });
 test('NFT collection invalid supply and UTF-8 metadata reject before signing',()=>{
