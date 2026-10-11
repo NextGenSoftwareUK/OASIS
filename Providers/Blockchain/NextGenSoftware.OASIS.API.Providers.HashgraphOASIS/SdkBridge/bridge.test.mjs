@@ -1,12 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execute, tokenUnits, nftTransaction } from './bridge.mjs';
+import { execute, tokenUnits, nftTransaction, singleSubmission } from './bridge.mjs';
 import { AccountId, Transaction, TransactionId, TokenMintTransaction, TokenBurnTransaction, TransferTransaction } from '@hiero-ledger/sdk';
 
 function roundTrip(transaction) {
   transaction.setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001')).setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();
   return Transaction.fromBytes(transaction.toBytes());
 }
+
+test('signed transfer and HTS mutations use one attempt without regenerating transaction identity', () => {
+  for (const transaction of [new TransferTransaction(), new TokenMintTransaction(), new TokenBurnTransaction()]) {
+    const id = TransactionId.fromString('0.0.1001@1700000000.000000001');
+    assert.equal(singleSubmission(transaction, id), transaction);
+    assert.equal(transaction.maxAttempts, 1);
+    assert.equal(transaction.regenerateTransactionId, false);
+    assert.equal(transaction.transactionId.toString(), id.toString());
+  }
+});
 
 test('NFT mint encodes metadata, not a fungible amount', () => {
   const transaction = roundTrip(nftTransaction('nftMint', { tokenId: '0.0.1234', metadata: ['ipfs://first', 'ipfs://second'] }));

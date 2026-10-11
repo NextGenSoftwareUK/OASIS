@@ -6,15 +6,24 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Moq;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using Rijndael256;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed class WalletCredentialIsolationTests
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task DefaultWalletLookupDoesNotDecryptStoredWalletInPlace(bool showPrivateKey)
+    [InlineData(false, "id", false)]
+    [InlineData(true, "id", false)]
+    [InlineData(false, "username", false)]
+    [InlineData(true, "username", false)]
+    [InlineData(false, "email", false)]
+    [InlineData(true, "email", false)]
+    [InlineData(true, "id", true)]
+    [InlineData(true, "username", true)]
+    [InlineData(true, "email", true)]
+    public async Task DefaultWalletLookupDoesNotDecryptStoredWalletInPlace(bool showPrivateKey, string route, bool validKey)
     {
         var avatarId = Guid.NewGuid();
         var wallet = new ProviderWallet
@@ -36,7 +45,16 @@ public sealed class WalletCredentialIsolationTests
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         local.Setup(x => x.LoadProviderWalletsForAvatarByIdAsync(avatarId)).ReturnsAsync(
             new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>(stored));
+        provider.Setup(x => x.LoadAvatarByUsernameAsync("isolation-user", 0))
+            .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Username = "isolation-user" }));
+        provider.Setup(x => x.LoadAvatarByEmailAsync("isolation@example.test", 0))
+            .ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = avatarId, Email = "isolation@example.test" }));
         var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA();
+        dna.OASIS.Security = new SecuritySettings { OASISProviderPrivateKeys = new EncryptionSettings {
+            Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('k', 32)
+        } };
+        if (validKey) wallet.PrivateKey = Rijndael.Encrypt("test-only-signing-key", new string('k', 32), KeySize.Aes256);
+        var originalStoredKey = wallet.PrivateKey;
         dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
         dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
         var providers = new ProviderManager(null, dna);
@@ -44,10 +62,13 @@ public sealed class WalletCredentialIsolationTests
         var activation = providers.SetAndActivateCurrentStorageProvider(provider.Object);
         Assert.False(activation.IsError, activation.Message);
         var manager = new WalletManager(null, dna, providers);
-        var result = await manager.GetAvatarDefaultWalletByIdAsync(avatarId, ProviderType.TRONOASIS,
-            showPrivateKeys: showPrivateKey);
-        Assert.Equal("invalid-encrypted-key", wallet.PrivateKey);
-        if (showPrivateKey)
+        var result = route == "username"
+            ? await manager.GetAvatarDefaultWalletByUsernameAsync("isolation-user", showPrivateKeys: showPrivateKey, providerType: ProviderType.TRONOASIS)
+            : route == "email"
+                ? await manager.GetAvatarDefaultWalletByEmailAsync("isolation@example.test", ProviderType.TRONOASIS, showPrivateKeys: showPrivateKey)
+                : await manager.GetAvatarDefaultWalletByIdAsync(avatarId, ProviderType.TRONOASIS, showPrivateKeys: showPrivateKey);
+        Assert.Equal(originalStoredKey, wallet.PrivateKey);
+        if (showPrivateKey && !validKey)
         {
             Assert.True(result.IsError);
             Assert.Null(result.Result);
@@ -58,6 +79,7 @@ public sealed class WalletCredentialIsolationTests
             Assert.NotSame(wallet, result.Result);
             Assert.Equal(wallet.Id, result.Result.Id);
             Assert.Equal(wallet.AvatarId, result.Result.AvatarId);
+            if (validKey) Assert.Equal("test-only-signing-key", result.Result.PrivateKey);
         }
     }
 
