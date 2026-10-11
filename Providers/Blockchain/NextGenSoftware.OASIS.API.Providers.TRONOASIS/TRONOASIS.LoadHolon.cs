@@ -171,21 +171,29 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 var savedHolons = new List<IHolon>();
+                var failures = new List<string>();
+                result.Result = savedHolons;
                 foreach (var holon in holons)
                 {
                     var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!saveResult.IsError && saveResult.Result != null)
+                    if (saveResult != null && !saveResult.IsError && saveResult.Result != null && saveResult.IsSaved)
                     {
                         savedHolons.Add(saveResult.Result);
                     }
-                    else if (!continueOnError)
+                    else
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to save holon {holon.Id}: {saveResult.Message}");
-                        return result;
+                        failures.Add($"Failed to save holon {holon?.Id}: {saveResult?.Message ?? "Missing provider result"}");
+                        if (!continueOnError) break;
                     }
                 }
 
                 result.Result = savedHolons;
+                if (failures.Count > 0)
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        $"TRON batch save failed for {failures.Count} item(s); {savedHolons.Count} confirmed saves retained. {string.Join("; ", failures)}");
+                    return result;
+                }
                 result.IsError = false;
                 result.Message = $"Saved {savedHolons.Count} holons to TRON blockchain";
             }
