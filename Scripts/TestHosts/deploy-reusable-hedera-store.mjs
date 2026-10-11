@@ -1,5 +1,7 @@
 import fs from 'node:fs';import path from 'node:path';import {createRequire} from 'node:module';import {fileURLToPath} from 'node:url';
 import {execute} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs';
+import {deploymentTransaction} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/deployment.mjs';
+import {estimatedTinybars,validateDeploymentBudget} from './hedera-deployment-fee.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const existing=createRequire(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/package.json'));
 const solc=existing('solc');
@@ -39,6 +41,23 @@ try {
    if(!created.fileId)throw new Error('No created bytecode file ID.');state.fileId=created.fileId;state.uploaded=first.length;delete state.pending;save();}
   while(state.uploaded<bytecode.length){const chunk=bytecode.slice(state.uploaded,state.uploaded+1024);
    await mutate('bytecodeFileAppend',{fileId:state.fileId,contents:chunk});state.uploaded+=chunk.length;delete state.pending;save();}
+  const estimateClient=Client.forTestnet();
+  try {
+   await estimateClient.updateNetwork();
+   const key=(await import('../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs')).restoreKey(request);
+   const tx=deploymentTransaction('contractCreate',{...request,fileId:state.fileId,transactionId:TransactionId.generate(request.sender).toString()},key.publicKey);
+   const fee=await tx.estimateFee().execute(estimateClient);
+   async function mirror(route){const response=await fetch('https://testnet.mirrornode.hedera.com/api/v1/'+route,{redirect:'error',signal:AbortSignal.timeout(20000)});
+    if(!response.ok)throw new Error('Deployment budget query failed: HTTP '+response.status);return response.json();}
+   const rates=await mirror('network/exchangerate'),account=await mirror('accounts/'+request.sender);
+   if(account.account!==request.sender||account.deleted!==false||!Number.isSafeInteger(account.balance?.balance)||account.balance.balance<0)
+    throw new Error('Deployment funding response has no exact active account balance.');
+   if(!Number.isSafeInteger(rates.current_rate?.expiration_time)||rates.current_rate.expiration_time<=Math.floor(Date.now()/1000))
+    throw new Error('Network fee exchange rate has expired.');
+   const estimate=estimatedTinybars(fee.total.toString(),rates.current_rate);
+   validateDeploymentBudget(estimate,BigInt(request.maxFeeTinybars),BigInt(account.balance.balance));
+   state.feeEstimate={tinycents:fee.total.toString(),tinybars:estimate.toString(),ceiling:request.maxFeeTinybars};save();
+  } finally {estimateClient.close();}
   const created=await mutate('contractCreate',{fileId:state.fileId,gas:request.gas});
   if(!created.contractId)throw new Error('No created storage contract ID.');state.contractId=created.contractId;delete state.pending;save();
  }
