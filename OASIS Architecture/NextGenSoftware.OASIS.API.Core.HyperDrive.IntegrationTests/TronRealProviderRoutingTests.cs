@@ -103,6 +103,23 @@ public sealed class TronRealProviderRoutingTests
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
             (await tron.LoadHolonAsync(partial.Id)).Result.Name.Should().Be(partial.Name);
+            var deleted = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "DeleteHolon", HolonId = partial.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+            deleted.IsError.Should().BeFalse(deleted.Message);
+            deleted.IsWarning.Should().BeFalse(deleted.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await local.LoadHolonAsync(partial.Id)).Result.Should().BeNull();
+            (await tron.LoadHolonAsync(partial.Id)).IsError.Should().BeTrue();
+            await ChangeNode("pause"); paused = true;
+            var partialDelete = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS }).WaitAsync(TimeSpan.FromSeconds(60));
+            partialDelete.IsError.Should().BeFalse(partialDelete.Message);
+            partialDelete.IsWarning.Should().BeTrue("deletion at the unavailable replica has not occurred");
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+            (await local.LoadHolonAsync(holon.Id)).Result.Should().BeNull();
+            await ChangeNode("unpause"); paused = false;
+            (await tron.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
         }
         finally
         {
