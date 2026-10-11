@@ -7,6 +7,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationT
 [TestClass]
 public class CosmosTransferTests
 {
+    [TestMethod]
+    public async Task ConfirmedBankFailureIsFailedNotCanceled()
+    {
+        using var provider = Provider();
+        var hash = Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_FAILED_HASH")
+            ?? throw new InvalidOperationException("Original confirmed local failure hash is required.");
+        var result = await provider.GetTransactionStatusAsync(hash);
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Failed, result.Result);
+    }
     // Public local-only development mnemonic. No public network or real assets.
     private static readonly string OwnerKey = string.Join(" ", Enumerable.Repeat("abandon", 23)) + " art";
     private const string Rpc = "http://127.0.0.1:26657";
