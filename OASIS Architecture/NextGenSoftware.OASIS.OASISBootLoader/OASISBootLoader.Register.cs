@@ -394,7 +394,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                  solidityNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.SolidityNodeGrpcEndpoint,
                                  genesisBlockId: OASISDNA.OASIS.StorageProviders.TRONOASIS.GenesisBlockId,
                                  signingKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.SigningKeyEnvironmentVariable,
-                                 apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable);
+                                 apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable,
+                                 escrowContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.EscrowContractAddress);
                                 tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
                                 result.Result = tronProvider;
                                 break;
