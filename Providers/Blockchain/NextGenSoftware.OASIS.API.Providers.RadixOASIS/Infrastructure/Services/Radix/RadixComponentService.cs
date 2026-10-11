@@ -4,11 +4,12 @@ using System.Text;
 using System.Text.Json;
 using RadixEngineToolkit;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.Enums;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.DTOs.State;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Helpers;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Extensions;
 using NextGenSoftware.OASIS.Common;
-using TransactionBuilder = RadixEngineToolkit.TransactionBuilder;
+// using TransactionBuilder = RadixEngineToolkit.TransactionBuilder; // not in RadixEngineToolkit 2.2.2 (see CallComponentMethodTransactionAsync)
 
 namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 
@@ -66,8 +67,8 @@ public sealed class RadixComponentService : IRadixComponentService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<StateEntityDetailsResponse>(ref result,
-                $"Error querying component state: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Error querying component state: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -245,8 +246,8 @@ public sealed class RadixComponentService : IRadixComponentService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<string>(ref result,
-                $"Error calling component method {methodName}: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Error calling component method {methodName}: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -260,91 +261,100 @@ public sealed class RadixComponentService : IRadixComponentService
         string senderPrivateKey,
         CancellationToken token = default)
     {
+        // Writes go through RadixOASIS's existing save path (it builds the create_* manifest and submits it).
+        // The original body below targeted an older RadixEngineToolkit (TransactionBuilder / ManifestBuilder), which
+        // isn't in the 2.2.2 toolkit this provider uses. Port it to the V1 API (see RadixService) before relying on it.
+        await Task.CompletedTask;
         var result = new OASISResult<string>();
-        
-        try
-        {
-            if (string.IsNullOrEmpty(componentAddress))
-            {
-                result.IsError = true;
-                result.Message = "Component address is required";
-                return result;
-            }
+        OASISErrorHandling.HandleError(ref result,
+            $"CallComponentMethodTransactionAsync({methodName}) is not available yet; use the provider's save methods.");
+        return result;
 
-            if (string.IsNullOrEmpty(senderPrivateKey))
-            {
-                result.IsError = true;
-                result.Message = "Sender private key is required";
-                return result;
-            }
-
-            // Parse private key
-            using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKeyFromHex(senderPrivateKey);
-            Address senderAddress = Address.VirtualAccountAddressFromPublicKey(
-                privateKey.PublicKey(), _config.NetworkId);
-            Address componentAddr = new(componentAddress);
-
-            // Get current epoch
-            ulong currentEpoch = (await _httpClient.GetConstructionMetadataAsync(_config))?.CurrentEpoch ?? 0;
-
-            // Convert arguments to Scrypto-compatible format
-            object[] scryptoArgs = RadixComponentHelper.ConvertToScryptoArgs(args);
-
-            // Build transaction manifest to call component method
-            using TransactionManifest manifest = new ManifestBuilder()
-                .AccountLockFee(senderAddress, new("10"), _config.NetworkId)
-                .CallMethod(componentAddr, methodName, scryptoArgs)
-                .AccountTryDepositOrAbort(senderAddress, null, null)
-                .Build(_config.NetworkId);
-
-            manifest.StaticallyValidate();
-
-            // Build and sign transaction
-            using NotarizedTransaction transaction = new TransactionBuilder()
-                .Header(new TransactionHeader(
-                    networkId: _config.NetworkId,
-                    startEpochInclusive: currentEpoch,
-                    endEpochExclusive: currentEpoch + 50,
-                    nonce: RadixBridgeHelper.RandomNonce(),
-                    notaryPublicKey: privateKey.PublicKey(),
-                    notaryIsSignatory: true,
-                    tipPercentage: 0
-                ))
-                .Manifest(manifest)
-                .Message(new Message.None())
-                .NotarizeWithPrivateKey(privateKey);
-
-            // Submit transaction
-            var submitData = new
-            {
-                network = _network,
-                notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()),
-                force_recalculate = true
-            };
-
-            var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
-                _httpClient,
-                $"{_config.HostUri}/core/lts/transaction/submit",
-                submitData,
-                token);
-
-            if (response.IsError)
-            {
-                result.IsError = true;
-                result.Message = response.Message ?? "Failed to submit transaction";
-                return result;
-            }
-
-            var transactionHash = transaction.IntentHash().AsStr();
-            result.Result = transactionHash;
-            result.IsError = false;
+        //        var result = new OASISResult<string>();
+        //
+        //        try
+        //        {
+        //            if (string.IsNullOrEmpty(componentAddress))
+        //            {
+        //                result.IsError = true;
+        //                result.Message = "Component address is required";
+        //                return result;
+        //            }
+        //
+        //            if (string.IsNullOrEmpty(senderPrivateKey))
+        //            {
+        //                result.IsError = true;
+        //                result.Message = "Sender private key is required";
+        //                return result;
+        //            }
+        //
+        //            // Parse private key
+        //            using PrivateKey privateKey = RadixBridgeHelper.GetPrivateKeyFromHex(senderPrivateKey);
+        //            Address senderAddress = Address.VirtualAccountAddressFromPublicKey(
+        //                privateKey.PublicKey(), _config.NetworkId);
+        //            Address componentAddr = new(componentAddress);
+        //
+        //            // Get current epoch
+        //            ulong currentEpoch = (await _httpClient.GetConstructionMetadataAsync(_config))?.CurrentEpoch ?? 0;
+        //
+        //            // Convert arguments to Scrypto-compatible format
+        //            object[] scryptoArgs = RadixComponentHelper.ConvertToScryptoArgs(args);
+        //
+        //            // Build transaction manifest to call component method
+        //            using TransactionManifest manifest = new ManifestBuilder()
+        //                .AccountLockFee(senderAddress, new("10"), _config.NetworkId)
+        //                .CallMethod(componentAddr, methodName, scryptoArgs)
+        //                .AccountTryDepositOrAbort(senderAddress, null, null)
+        //                .Build(_config.NetworkId);
+        //
+        //            manifest.StaticallyValidate();
+        //
+        //            // Build and sign transaction
+        //            using NotarizedTransaction transaction = new TransactionBuilder()
+        //                .Header(new TransactionHeader(
+        //                    networkId: _config.NetworkId,
+        //                    startEpochInclusive: currentEpoch,
+        //                    endEpochExclusive: currentEpoch + 50,
+        //                    nonce: RadixBridgeHelper.RandomNonce(),
+        //                    notaryPublicKey: privateKey.PublicKey(),
+        //                    notaryIsSignatory: true,
+        //                    tipPercentage: 0
+        //                ))
+        //                .Manifest(manifest)
+        //                .Message(new Message.None())
+        //                .NotarizeWithPrivateKey(privateKey);
+        //
+        //            // Submit transaction
+        //            var submitData = new
+        //            {
+        //                network = _network,
+        //                notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()),
+        //                force_recalculate = true
+        //            };
+        //
+        //            var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+        //                _httpClient,
+        //                $"{_config.HostUri}/core/lts/transaction/submit",
+        //                submitData,
+        //                token);
+        //
+        //            if (response.IsError)
+        //            {
+        //                result.IsError = true;
+        //                result.Message = response.Message ?? "Failed to submit transaction";
+        //                return result;
+        //            }
+        //
+        //            var transactionHash = transaction.IntentHash().AsStr();
+        //            result.Result = transactionHash;
+        //            result.IsError = false;
+        //            return result;
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            OASISErrorHandling.HandleError(ref result, //                $"Error calling component method {methodName}: {ex.Message}", ex);
             return result;
-        }
-        catch (Exception ex)
-        {
-            return OASISErrorHandling.HandleError<string>(ref result,
-                $"Error calling component method {methodName}: {ex.Message}", ex);
-        }
+        //        }
     }
 }
 
