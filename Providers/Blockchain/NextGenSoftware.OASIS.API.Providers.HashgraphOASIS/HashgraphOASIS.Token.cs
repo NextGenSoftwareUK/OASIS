@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     throw new ArgumentOutOfRangeException(nameof(request.Amount), "HBAR amount must fit exact int64 tinybars.");
                 var committed = await HederaSdkClient.InvokeAsync(native ? "transfer" : "tokenTransfer", new
                 {
-                    network = _hederaNetwork, sender = request.FromWalletAddress, recipient = request.ToWalletAddress,
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = request.FromWalletAddress, recipient = request.ToWalletAddress,
                     privateKey = request.OwnerPrivateKey, keyType = "der", memo = request.MemoText,
                     publicKey = request.OwnerPublicKey, transactionId = HederaSdkClient.CreateTransactionId(request.FromWalletAddress),
                     tinybars = native ? ((long)tinybars).ToString(System.Globalization.CultureInfo.InvariantCulture) : null,
