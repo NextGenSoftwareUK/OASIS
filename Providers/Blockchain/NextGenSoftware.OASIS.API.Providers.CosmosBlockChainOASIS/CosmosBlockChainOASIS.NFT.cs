@@ -72,7 +72,14 @@ public partial class CosmosBlockChainOASIS
                 throw new ArgumentException("This NFT call mints one unique token; use separate calls for multiple tokens.");
             if (request.NFTStandardType.HasValue)
                 throw new ArgumentException("ERC721/ERC1155/SPL are not Cosmos OASIS custom-asset standards.");
-            var key = await SigningKeyAsync(Guid.Empty);
+            if (request.OnChainProvider.HasValue && request.OnChainProvider != Core.Enums.ProviderType.CosmosBlockChainOASIS
+                && request.OnChainProvider != Core.Enums.ProviderType.Default)
+                throw new ArgumentException("OnChainProvider must select CosmosBlockChainOASIS for this provider.");
+            if (request.Price < 0 || request.Discount < 0 || request.RoyaltyPercentage < 0 || request.RoyaltyPercentage > 100)
+                throw new ArgumentException("Price/discount must be nonnegative and royalty percentage must be between 0 and 100.");
+            if (request.SaleStartDate.HasValue && request.SaleEndDate.HasValue && request.SaleStartDate > request.SaleEndDate)
+                throw new ArgumentException("Sale start must not follow sale end.");
+            var key = await SigningKeyAsync(request.MintedByAvatarId);
             var signer = await SignerAddressAsync(key);
             var recipient = await MintRecipientAsync(request, signer);
             var contract = string.IsNullOrWhiteSpace(request.CollectionPublicKey) ? _contractAddress : request.CollectionPublicKey;
@@ -85,6 +92,11 @@ public partial class CosmosBlockChainOASIS
                 NFTMintedUsingWalletAddress = signer, OASISMintWalletAddress = signer,
                 SendToAddressAfterMinting = recipient, Title = request.Title, Description = request.Description,
                 Symbol = request.Symbol, JSONMetaData = request.JSONMetaData, JSONMetaDataURL = request.JSONMetaDataURL,
+                MemoText = request.MemoText, Image = request.Image, Thumbnail = request.Thumbnail,
+                Price = request.Price ?? 0, Discount = request.Discount ?? 0,
+                RoyaltyPercentage = request.RoyaltyPercentage ?? 0,
+                SellerFeeBasisPoints = checked((uint)(request.RoyaltyPercentage ?? 0) * 100),
+                IsForSale = request.IsForSale ?? false, SaleStartDate = request.SaleStartDate, SaleEndDate = request.SaleEndDate,
                 ImageUrl = request.ImageUrl, ThumbnailUrl = request.ThumbnailUrl,
                 MetaData = request.MetaData == null ? new Dictionary<string, string>() : new Dictionary<string, string>(request.MetaData),
                 Tags = request.Tags?.ToList() ?? new List<string>(), MintedByAvatarId = request.MintedByAvatarId,
