@@ -178,41 +178,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Lock token by transferring to a lock account
-                var lockAccount = _contractAddress ?? "0.0.123456";
-                var sendRequest = new SendWeb3TokenRequest
-                {
-                    FromWalletAddress = request.FromWalletAddress,
-                    ToWalletAddress = lockAccount,
-                    FromTokenAddress = request.TokenAddress,
-                    Amount = 1m // Default amount
-                };
-
-                var sendResult = await SendTokenAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock token: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.Result = sendResult.Result;
-                result.IsError = false;
-                result.Message = "Token locked successfully on Hashgraph";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error locking token on Hashgraph: {ex.Message}", ex);
-            }
-            return result;
+            return await ExecuteAvatarTokenEscrowAsync("tokenEscrowLock", request?.LockedByAvatarId ?? Guid.Empty,
+                request?.TokenAddress, request?.FromWalletAddress, request?.FromWalletPrivateKey);
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
@@ -222,48 +189,58 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
+            return await ExecuteAvatarTokenEscrowAsync("tokenEscrowUnlock", request?.UnlockedByAvatarId ?? Guid.Empty,
+                request?.TokenAddress, null, null);
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> ExecuteAvatarTokenEscrowAsync(string action,
+            Guid avatarId, string tokenAddress, string requestedWallet, string requestedKey)
+        {
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
+                if (_tokenEscrow == null) throw new InvalidOperationException("An explicit Hedera fungible escrow contract configuration is required.");
+                _tokenEscrow.Validate();
+                if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for token escrow.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
+                    throw new ArgumentException("Token escrow requires a nonzero numeric HTS token address.");
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                if (walletResult.IsError || walletResult.Result == null || string.IsNullOrWhiteSpace(walletResult.Result.PrivateKey))
+                    throw new InvalidOperationException("Could not resolve the requesting avatar's real Hedera signing wallet.");
+                var wallet = walletResult.Result;
+                if ((!string.IsNullOrEmpty(requestedWallet) && requestedWallet != wallet.WalletAddress)
+                    || (!string.IsNullOrEmpty(requestedKey) && requestedKey != wallet.PrivateKey))
+                    throw new ArgumentException("Requested signing wallet does not match the requesting avatar's wallet.");
+                var mutationId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                using var response = await _httpClient.GetAsync("accounts/" + wallet.WalletAddress, timeout.Token);
+                response.EnsureSuccessStatusCode();
+                using var accountDocument = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var account = accountDocument.RootElement;
+                if (account.GetProperty("account").GetString() != wallet.WalletAddress
+                    || account.GetProperty("deleted").GetBoolean())
+                    throw new InvalidOperationException("Mirror account identity does not match the requesting wallet.");
+                var evmAddress = account.GetProperty("evm_address").GetString();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(evmAddress ?? "", @"\A0x[0-9a-fA-F]{40}\z"))
+                    throw new InvalidOperationException("Mirror account does not expose a valid EVM address.");
+                var committed = await HederaSdkClient.InvokeAsync(action, new
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Get wallet address for the avatar
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.UnlockedByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
-                if (walletResult.IsError || walletResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
-                
-                // Unlock token by transferring from lock account
-                var lockAccount = _contractAddress ?? "0.0.123456";
-                var sendRequest = new SendWeb3TokenRequest
-                {
-                    FromWalletAddress = lockAccount,
-                    ToWalletAddress = walletResult.Result.WalletAddress,
-                    FromTokenAddress = request.TokenAddress,
-                    Amount = 1m // Default amount
-                };
-
-                var sendResult = await SendTokenAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock token: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.Result = sendResult.Result;
-                result.IsError = false;
-                result.Message = "Token unlocked successfully on Hashgraph";
+                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
+                    senderEvmAddress = evmAddress, privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der",
+                    tokenId = tokenAddress, contractId = _tokenEscrow.ContractId, runtimeCodeHash = _tokenEscrow.RuntimeCodeHash,
+                    gas = _tokenEscrow.GasLimit, maxFeeTinybars = _tokenEscrow.MaxFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    transactionId = mutationId, approvalTransactionId = action == "tokenEscrowLock" ? HederaSdkClient.CreateTransactionId(wallet.WalletAddress) : null
+                });
+                if (committed.GetProperty("status").GetString() != "SUCCESS" || committed.GetProperty("transactionId").GetString() != mutationId
+                    || !long.TryParse(committed.GetProperty("amountUnits").GetString(), System.Globalization.NumberStyles.None,
+                        System.Globalization.CultureInfo.InvariantCulture, out var amount) || amount <= 0)
+                    throw new InvalidOperationException("Escrow SDK response does not establish verified mutation success and exact token units.");
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = mutationId };
+                result.Message = "Hedera token escrow confirmed by consensus receipt and exact balance readback. Token units: " + amount + ".";
+                if (committed.TryGetProperty("approvalTransactionId", out var approval) && approval.ValueKind == JsonValueKind.String)
+                    result.Message += " Approval transaction: " + approval.GetString() + ".";
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking token on Hashgraph: {ex.Message}", ex);
-            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph token escrow: {ex.Message}", ex); }
             return result;
         }
 
