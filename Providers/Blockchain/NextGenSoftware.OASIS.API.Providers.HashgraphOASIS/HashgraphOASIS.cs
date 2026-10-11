@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private readonly string _nftEscrowRuntimeCodeHash;
         private readonly long _nftEscrowGasLimit;
         private readonly long _nftEscrowMaxFeeTinybars;
+        private readonly HederaTokenEscrowConfiguration _tokenEscrow;
         private readonly string _hederaNetwork;
         private readonly string _bridgePoolAccountId;
         private readonly Func<string> _bridgePoolSigningKey;
@@ -62,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null, HederaTokenEscrowConfiguration tokenEscrowConfiguration = null)
             : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
             if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
@@ -87,6 +88,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             _nftEscrowRuntimeCodeHash = nftEscrowRuntimeCodeHash;
             _nftEscrowGasLimit = nftEscrowGasLimit;
             _nftEscrowMaxFeeTinybars = nftEscrowMaxFeeTinybars;
+            _tokenEscrow = tokenEscrowConfiguration == null ? null : new HederaTokenEscrowConfiguration
+            {
+                ContractId = tokenEscrowConfiguration.ContractId,
+                RuntimeCodeHash = tokenEscrowConfiguration.RuntimeCodeHash,
+                GasLimit = tokenEscrowConfiguration.GasLimit,
+                MaxFeeTinybars = tokenEscrowConfiguration.MaxFeeTinybars
+            };
             _hederaNetwork = network;
             this.ProviderName = "HashgraphOASIS";
             this.ProviderDescription = "Hashgraph Provider";
