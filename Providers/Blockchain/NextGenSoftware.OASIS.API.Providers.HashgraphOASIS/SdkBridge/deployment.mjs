@@ -1,14 +1,18 @@
-import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType} from '@hiero-ledger/sdk';
+import {AccountId,FileId,TransactionId,Hbar,FileCreateTransaction,FileAppendTransaction,ContractCreateTransaction,TokenCreateTransaction,TokenType,TokenSupplyType,TokenId,TokenDeleteTransaction} from '@hiero-ledger/sdk';
 
 export function deploymentTransaction(action,request,publicKey) {
-  if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate'].includes(action)) throw new Error('Unknown deployment mutation.');
+  if(!['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete'].includes(action)) throw new Error('Unknown deployment mutation.');
   if(!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.sender??'')) throw new Error('Deployment requires a nonzero numeric payer.');
   const sender=AccountId.fromString(request.sender),id=TransactionId.fromString(request.transactionId);
   if(id.accountId.toString()!==sender.toString()) throw new Error('Deployment payer identity mismatch.');
   if(typeof request.maxFeeTinybars!=='string'||!/^[1-9][0-9]*$/.test(request.maxFeeTinybars)||BigInt(request.maxFeeTinybars)>9223372036854775807n)
     throw new Error('Deployment requires an explicit positive int64 fee ceiling.');
   let transaction;
-  if(action==='nftCollectionCreate') {
+  if(action==='tokenCollectionDelete') {
+    if(!/^[0-9]+\.[0-9]+\.[1-9][0-9]*$/.test(request.tokenId??''))
+      throw new Error('Collection deletion requires an explicit nonzero numeric token ID.');
+    transaction=new TokenDeleteTransaction().setTokenId(TokenId.fromString(request.tokenId));
+  } else if(action==='nftCollectionCreate') {
     for(const field of ['name','symbol'])
       if(typeof request[field]!=='string'||!request[field].trim()||Buffer.byteLength(request[field],'utf8')>100)
         throw new Error('NFT collection name and symbol require 1 to 100 UTF-8 bytes.');
