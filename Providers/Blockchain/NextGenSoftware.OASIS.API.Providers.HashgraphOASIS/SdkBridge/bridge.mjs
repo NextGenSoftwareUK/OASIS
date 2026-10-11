@@ -39,6 +39,30 @@ export function tokenUnits(amount, decimals) {
   return units;
 }
 
+export function nftTransaction(action, request) {
+  const token = TokenId.fromString(request.tokenId);
+  if (action === 'nftMint') {
+    if (!Array.isArray(request.metadata) || !request.metadata.length)
+      throw new Error('NFT mint requires explicit metadata for each serial.');
+    const metadata = request.metadata.map(value => {
+      if (typeof value !== 'string' || !value || Buffer.byteLength(value, 'utf8') > 100)
+        throw new Error('NFT metadata must contain 1 to 100 UTF-8 bytes per serial.');
+      return Buffer.from(value, 'utf8');
+    });
+    return new TokenMintTransaction().setTokenId(token).setMetadata(metadata);
+  }
+  if (!['nftTransfer', 'nftBurn'].includes(action)) throw new Error('Unknown NFT operation.');
+  if (!Array.isArray(request.serials) || !request.serials.length
+      || request.serials.some(value => typeof value !== 'string' || !/^[1-9][0-9]*$/.test(value)
+        || BigInt(value) > 9223372036854775807n)
+      || new Set(request.serials).size !== request.serials.length)
+    throw new Error('Unique positive exact int64 NFT serial strings are required.');
+  if (action === 'nftBurn') return new TokenBurnTransaction().setTokenId(token).setSerials(request.serials);
+  const transfer = new TransferTransaction();
+  for (const serial of request.serials) transfer.addNftTransfer(token, serial, request.sender, request.recipient);
+  return transfer;
+}
+
 export async function execute(action, request) {
   if (action === 'generateKey') {
     const key = request.keyType === 'ed25519' ? PrivateKey.generateED25519()
@@ -59,15 +83,18 @@ export async function execute(action, request) {
       return { transactionId: id.toString(), status: receipt.status.toString() };
     } finally { client.close(); }
   }
-  if (!['transfer', 'tokenTransfer', 'tokenMint', 'tokenBurn'].includes(action)) throw new Error('Unknown Hedera SDK operation.');
+  const nft = ['nftTransfer', 'nftMint', 'nftBurn'].includes(action);
+  if (!nft && !['transfer', 'tokenTransfer', 'tokenMint', 'tokenBurn'].includes(action)) throw new Error('Unknown Hedera SDK operation.');
   if (action !== 'transfer') TokenId.fromString(request.tokenId);
+  // Validate NFT payloads before opening a consensus client or paying for a query.
+  const nftOperation = nft ? nftTransaction(action, request) : null;
   if (action === 'transfer' && (!/^[1-9][0-9]*$/.test(request.tinybars ?? '') || BigInt(request.tinybars) > 9223372036854775807n))
     throw new Error('Transfer requires positive exact int64 tinybars.');
   if (Buffer.byteLength(request.memo ?? '', 'utf8') > 100)
     throw new Error('Hedera transaction memo exceeds 100 UTF-8 bytes.');
   const sender = AccountId.fromString(request.sender);
   const recipient = AccountId.fromString(request.recipient);
-  if (['transfer', 'tokenTransfer'].includes(action) && sender.toString() === recipient.toString()) throw new Error('Sender and recipient must differ.');
+  if (['transfer', 'tokenTransfer', 'nftTransfer'].includes(action) && sender.toString() === recipient.toString()) throw new Error('Sender and recipient must differ.');
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('Signing key does not match the supplied public key.');
@@ -77,28 +104,35 @@ export async function execute(action, request) {
   const client = createClient(request);
   try {
     client.setOperator(sender, key);
-    const transfer = (action === 'tokenMint' ? new TokenMintTransaction()
-      : action === 'tokenBurn' ? new TokenBurnTransaction() : new TransferTransaction())
+    const transfer = (nftOperation ?? (action === 'tokenMint' ? new TokenMintTransaction()
+      : action === 'tokenBurn' ? new TokenBurnTransaction() : new TransferTransaction()))
       .setTransactionId(transactionId).setTransactionMemo(request.memo ?? '');
     if (action === 'transfer') {
       transfer.addHbarTransfer(sender, Hbar.fromTinybars('-' + request.tinybars))
         .addHbarTransfer(recipient, Hbar.fromTinybars(request.tinybars));
     } else {
       const info = await new TokenInfoQuery().setTokenId(request.tokenId).execute(client);
-      if (info.tokenType.toString() !== 'FUNGIBLE_COMMON') throw new Error('Fungible token operation requires a fungible HTS asset.');
-      const units = tokenUnits(request.amount, info.decimals);
-      if (action === 'tokenMint' || action === 'tokenBurn') {
+      if (info.tokenType.toString() !== (nft ? 'NON_FUNGIBLE_UNIQUE' : 'FUNGIBLE_COMMON'))
+        throw new Error('HTS token type does not match the requested operation.');
+      if (['nftMint', 'nftBurn'].includes(action)) {
         if (info.treasuryAccountId.toString() !== recipient.toString())
-          throw new Error('HTS mint/burn affects the actual treasury; the requested account must match it.');
-        transfer.setTokenId(request.tokenId).setAmount(units);
-      } else transfer.addTokenTransfer(request.tokenId, sender, -units).addTokenTransfer(request.tokenId, recipient, units);
+          throw new Error('HTS NFT mint/burn affects the actual treasury; the requested account must match it.');
+      } else if (!nft) {
+        const units = tokenUnits(request.amount, info.decimals);
+        if (action === 'tokenMint' || action === 'tokenBurn') {
+          if (info.treasuryAccountId.toString() !== recipient.toString())
+            throw new Error('HTS mint/burn affects the actual treasury; the requested account must match it.');
+          transfer.setTokenId(request.tokenId).setAmount(units);
+        } else transfer.addTokenTransfer(request.tokenId, sender, -units).addTokenTransfer(request.tokenId, recipient, units);
+      }
     }
     transfer.freezeWith(client);
     const signed = await transfer.sign(key);
     const submitted = await signed.execute(client);
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Consensus receipt reports failure.');
-    return { transactionId: submitted.transactionId.toString(), status: receipt.status.toString() };
+    return { transactionId: submitted.transactionId.toString(), status: receipt.status.toString(),
+      ...(action === 'nftMint' ? { serials: receipt.serials.map(serial => serial.toString()) } : {}) };
   } catch (cause) {
     const error = new Error('Hedera transfer did not establish consensus success. Track the original transaction before retrying.');
     error.transactionId = transactionId.toString();
