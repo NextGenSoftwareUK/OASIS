@@ -1,4 +1,4 @@
-import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, Hbar, TokenInfoQuery } from '@hiero-ledger/sdk';
+import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, Hbar, TokenInfoQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
 
 export function restoreKey(request) {
@@ -50,6 +50,14 @@ export async function execute(action, request) {
   if (action === 'restoreKey') {
     const key = restoreKey(request);
     return { privateKey: key.toStringDer(), publicKey: key.publicKey.toStringDer() };
+  }
+  if (action === 'receipt') {
+    const id = TransactionId.fromString(request.transactionId);
+    const client = createClient(request);
+    try {
+      const receipt = await new TransactionReceiptQuery().setTransactionId(id).setValidateStatus(false).execute(client);
+      return { transactionId: id.toString(), status: receipt.status.toString() };
+    } finally { client.close(); }
   }
   if (!['transfer', 'tokenTransfer'].includes(action)) throw new Error('Unknown Hedera SDK operation.');
   if (action === 'transfer' && (!/^[1-9][0-9]*$/.test(request.tinybars ?? '') || BigInt(request.tinybars) > 9223372036854775807n))
