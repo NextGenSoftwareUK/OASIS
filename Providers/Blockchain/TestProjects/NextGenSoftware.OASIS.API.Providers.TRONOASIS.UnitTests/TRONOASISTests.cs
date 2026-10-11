@@ -118,14 +118,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 		}
 
 		[Fact]
-		public void MintNFT_ShouldReturnNotImplemented()
+		public void MintNFT_ShouldRejectMissingRequestBeforeActivation()
 		{
 			var provider = new TRONOASIS();
-			provider.ActivateProvider();
-
 			var result = provider.MintNFT(null);
 			result.IsError.Should().BeTrue();
-			result.Message.Should().Contain("not implemented");
+			result.Message.Should().Contain("transaction");
+			result.Result.Should().BeNull();
+			provider.IsProviderActivated.Should().BeFalse();
 		}
 	}
 }
