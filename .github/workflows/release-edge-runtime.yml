@@ -133,7 +133,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Could not inspect existing releases.' }
           $existing = @($releases | Where-Object tag_name -eq $tag)
           if (-not $existing.Count) {
-            gh release create $tag --draft --target $env:SOURCE_SHA --title "OASIS Edge Unity Integration v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
+            gh release create $tag --draft --target $env:SOURCE_SHA --title "OGEngineClient + Edge + Unity v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
             if ($LASTEXITCODE -ne 0) { throw 'GitHub draft creation failed.' }
           } elseif (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $env:SOURCE_SHA) { throw 'Existing release is not an authorized matching maintenance target.' }
           gh release upload $tag @assets --clobber
