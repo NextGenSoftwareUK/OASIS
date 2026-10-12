@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real Cosmos signed document through C# verifier — 2026-10-12
+
+Added actual retained CosmJS offline wallet/client signing with explicit fixture chain/account number/sequence, no RPC or broadcast. C# provider verifier accepts the original signed TxRaw/SignDoc and rejects changed chain context; provider remains inactive. Owned signing process closed in finally. Preparation suite **3/3**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-preparation.trx`; existing nullable test-field warning remains. This proves the positive SDK/C# verifier boundary, not live network identity, pipe/Mongo factory integration, submission or recovery. Those and full live/deployed gates remain open. No downloads, installs, ledger changes or release merge.
+
 ### Cosmos C# verifier and execution-owned preparation factory — 2026-10-12
 
 Added public offline verification callback through canonical Cosmos backend invocation; requires explicit true acknowledgement matching original hash/sender. Preparation server factory combines this actual SDK verifier with trusted chain/signer and execution-owned persistence adapter. Missing execution rejects before activation; malformed signed evidence rejects through actual installed SDK without provider activation. Focused **2/2**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-preparation.trx`; provider build 0 errors/warnings, existing nullable test-field warning remains.
