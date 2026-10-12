@@ -20,11 +20,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public bool Reachable = true;
         public bool ThrowReads;
         public string FailPutKey;
+        public string FailDeleteKey;
 
         public Task<string> GetAsync(string key, CancellationToken ct = default) => ThrowReads
             ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
         public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw new InvalidOperationException("controlled write failure"); Items[key] = value; return Task.CompletedTask; }
-        public Task DeleteAsync(string key, CancellationToken ct = default) { Items.TryRemove(key, out _); return Task.CompletedTask; }
+        public Task DeleteAsync(string key, CancellationToken ct = default) { if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
             => Task.FromResult<IReadOnlyList<string>>(Items.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList());
         public Task VerifyAsync(CancellationToken ct = default) => Reachable ? Task.CompletedTask : throw new InvalidOperationException("store unreachable");
@@ -43,6 +44,22 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Failed_old_parent_index_retirement_does_not_return_wrong_membership()
+        {
+            var oldParent = Guid.NewGuid(); var newParent = Guid.NewGuid();
+            var holon = new Holon { Id = Guid.NewGuid(), ParentHolonId = oldParent, Name = "before" };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            _backend.FailDeleteKey = _backend.Items.Keys.Single(key => key.Contains(oldParent.ToString("N")));
+            var failed = await _provider.SaveHolonAsync(new Holon { Id = holon.Id, ParentHolonId = newParent, Name = "after" });
+            Assert.IsTrue(failed.IsError); StringAssert.Contains(failed.Message, "controlled delete failure");
+            Assert.IsTrue(_backend.Items.ContainsKey(_backend.FailDeleteKey));
+            var oldRead = await _provider.LoadHolonsForParentAsync(oldParent);
+            Assert.IsFalse(oldRead.IsError); Assert.AreEqual(0, oldRead.Result.Count());
+            var newRead = _provider.LoadHolonsForParent(newParent);
+            Assert.IsFalse(newRead.IsError); Assert.AreEqual("after", newRead.Result.Single().Name);
+        }
+
         [TestMethod]
         public async Task Failed_reparent_record_write_preserves_previous_parent_index()
         {

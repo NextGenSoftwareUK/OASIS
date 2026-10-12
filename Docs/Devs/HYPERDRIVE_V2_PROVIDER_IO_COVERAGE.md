@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Latest parent reads verify indexed record membership (2026-10-11)
+
+Controlled old-parent-index retirement failure after successful record/new-index writes leaves a stale link and correctly returns a save error. Latest parent reads now verify each indexed record's persisted ParentHolonId before returning it, so the old parent no longer claims a moved child; the new parent resolves its actual persisted record. Regression asserts the stale backend key still exists (no hidden cleanup/retry), save failure remains surfaced and sync/async relationship readback is correct. Full shared suite passes **58/58**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). This prevents wrong membership, not atomicity or automatic repair of missing/new indexes; partial writes and concurrent cases remain explicit release audit work. No network mutation/install/download/new environment/merge.
+
 ### Reparent save no longer removes old index before record write (2026-10-11)
 
 Shared holon save previously deleted the former-parent index before writing the replacement record. It now writes the record/new-parent index first, then retires the old index. Controlled backend failure on the replacement record proves the previous record/index snapshot remains unchanged and the old parent still resolves its child. Full shared suite passes **57/57**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). This ordering fixes the demonstrated pre-write relationship loss, not multi-key transactional atomicity: later index/delete failure, concurrent writers and unknown committed ledger outcomes still need explicit auditing/reconciliation. No blind retry/rollback or secondary save pipeline added. No network mutation/install/download/new environment/merge; full release gates remain open.

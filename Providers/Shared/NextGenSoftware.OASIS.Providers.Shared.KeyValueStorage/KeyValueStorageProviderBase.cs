@@ -563,7 +563,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             else
             {
                 var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
-                children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version);
+                children = (await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version)).Where(child => child.ParentHolonId == parentId).ToList();
             }
             var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
             if (recursive && !reachedDepth)
