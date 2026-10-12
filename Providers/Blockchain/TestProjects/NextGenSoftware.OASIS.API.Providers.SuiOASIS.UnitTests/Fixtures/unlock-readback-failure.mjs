@@ -2,6 +2,18 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'put': case 'get': {
+  const mode=request.mode;
+  if(mode==='hold') {setInterval(()=>{},1000);break;}
+  if(mode==='empty') {process.stderr.write('untrusted diagnostic test-only-secret');process.exitCode=1;break;}
+  if(mode==='bad-json') {process.stdout.write('invalid JSON');process.exitCode=1;break;}
+  if(mode==='bad-utf8') {process.stdout.write(Buffer.from([255]));process.exitCode=1;break;}
+  const envelope=mode==='no-ok'?{}:mode==='bad-ok'?{ok:'true'}:mode==='no-result'?{ok:true}
+   :mode==='null-result'?{ok:true,result:null}:mode==='no-hash'?{ok:true,result:{}}
+   :mode==='preflight'?{ok:false,error:'controlled preflight error'}:{ok:true,result:{transactionHash:'controlled-valid-schema-digest'}};
+  process.stdout.write(JSON.stringify(envelope));if(mode==='preflight')process.exitCode=1;
+  break;
+ }
  case 'restoreKey':result={privateKey:request.privateKey,publicKey:'fixture-public',address:'fixture-owner'};break;
  case 'nftMint': {
   const title=JSON.parse(request.metadata[0]).Title;
