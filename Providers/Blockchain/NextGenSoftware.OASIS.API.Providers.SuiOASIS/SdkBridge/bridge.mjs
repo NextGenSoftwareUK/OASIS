@@ -20,6 +20,22 @@ export function verifiedHistoryTransaction(tx, digest) {
   return tx;
 }
 
+export function nativeFeeReceipt(tx, digest) {
+  if (!tx || tx.digest !== digest || typeof tx.status?.success !== 'boolean'
+      || tx.effects?.transactionDigest !== digest || tx.checkpoint == null || tx.timestampMs == null
+      || !isValidSuiAddress(tx.transaction?.gasData?.owner))
+    throw new Error('Sui fee receipt lacks original transaction, outcome, effects or actual gas payer');
+  const gas = tx.effects.gasUsed;
+  const fields = ['computationCost', 'storageCost', 'storageRebate', 'nonRefundableStorageFee'];
+  for (const field of fields)
+    if (typeof gas?.[field] !== 'string' || !/^(?:0|[1-9][0-9]*)$/.test(gas[field]) || BigInt(gas[field]) > 18446744073709551615n)
+      throw new Error('Sui fee receipt lacks exact unsigned gas components');
+  // Protocol net cost: non-refundable storage fee is already included, not added twice.
+  const netUnits = BigInt(gas.computationCost) + BigInt(gas.storageCost) - BigInt(gas.storageRebate);
+  return { transactionHash: digest, success: tx.status.success, payer: normalizeSuiAddress(tx.transaction.gasData.owner),
+    currency: 'SUI', unit: 'MIST', netUnits: netUnits.toString(), components: gas };
+}
+
 const Storage = bcs.struct('Storage', {
   id: bcs.Address, owner: bcs.Address,
   values: bcs.struct('Table', { id: bcs.Address, size: bcs.u64() }),
@@ -127,6 +143,10 @@ export async function invoke(request) {
   if (!chainIdentifier) throw new Error('Sui node returned no genesis chain identifier');
   if (request.chainId && request.chainId !== chainIdentifier) throw new Error('Sui chain identifier mismatch');
   if (request.operation === 'probe') return { chainIdentifier };
+  if (request.operation === 'nativeFeeReceipt') {
+    const fetched = await client.getTransaction({ digest: request.transactionHash, include: { effects: true, transaction: true } });
+    return { ...nativeFeeReceipt(fetched.Transaction ?? fetched.FailedTransaction, request.transactionHash), chainIdentifier };
+  }
   if (request.operation === 'history') {
     if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui history wallet is required');
     const walletAddress = normalizeSuiAddress(request.walletAddress);

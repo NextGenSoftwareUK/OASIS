@@ -38,6 +38,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
     public partial class SuiOASIS
     {
+        /// <summary>Read-only exact native gas evidence; not a quote, USD conversion or billing authorization.</summary>
+        public async Task<OASISResult<JsonElement>> GetNativeFeeReceiptAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<JsonElement>();
+            try
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(transactionHash);
+                var receipt = await InvokeSdkAsync("nativeFeeReceipt", new { transactionHash }, token);
+                if (receipt.GetProperty("transactionHash").GetString() != transactionHash
+                    || receipt.GetProperty("currency").GetString() != "SUI" || receipt.GetProperty("unit").GetString() != "MIST"
+                    || string.IsNullOrWhiteSpace(receipt.GetProperty("payer").GetString())
+                    || string.IsNullOrWhiteSpace(receipt.GetProperty("chainIdentifier").GetString()))
+                    throw new InvalidOperationException("Sui native fee receipt identity, payer or denomination does not match.");
+                _ = receipt.GetProperty("success").GetBoolean();
+                var units = receipt.GetProperty("netUnits").GetString();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(units ?? "", @"\A(?:0|-?[1-9][0-9]*)\z"))
+                    throw new InvalidOperationException("Sui net fee must retain exact signed integral MIST units.");
+                result.Result = receipt;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            return result;
+        }
+
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
             => GetTransactionsAsync(request).GetAwaiter().GetResult();
 

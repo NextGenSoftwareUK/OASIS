@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui exact native fee receipts implemented and read-only live verified (2026-10-12)
+
+Added real SDK `nativeFeeReceipt` and C# provider `GetNativeFeeReceiptAsync`: exact original digest/effects identity, explicit successful/failed status, checkpoint/time presence, actual signed gas owner, observed chain identifier, SUI/MIST denomination, canonical unsigned uint64 components and exact signed net units. Per [official Sui gas documentation](https://www.docs.sui.io/develop/transaction-payment/gas-in-sui), net charge is computation plus storage minus rebate; non-refundable storage is reported, not double-added. Negative net rebates are preserved, not fabricated as zero. Numeric/rounded components, malformed payer/digest or uncheckpointed evidence fail rather than inventing a cost.
+
+SDK **8/8** includes large exact units, charged failure, negative rebate and malformed components. Complete Sui C# unit suite **32/32, zero skips**. New live provider test **1/1, zero skips**, `sui-fee-receipts-current.trx`, reads the original failure and an existing successful mint from completed manager evidence; independently matches exact components, outcome, original failed payer and chain. No signing, new transfer, mint, publication or faucet. Source bridge override used; builds zero errors/two warnings. Exact owned PID 181368 stopped; free C 103,121,780,736 bytes. This is **measured native receipt evidence only**, not a pre-submit quote, USD/GBP exchange rate, subscription reservation, bill, API endpoint or proof of equivalent Cosmos/Hedera/TRON fee handling. Those implementation/release gates remain open; temporary mint block unchanged.
+
 ### Real JWT Sui NFT HTTP mint passes with caller default and encrypted signing (2026-10-12)
 
 After the test-hook change, existing NFT import/body/file/export HTTP authorization/model guards also passed **5/5, zero skips**, `nft-http-guards-current.trx`. These are denial/binding checks, not positive file import/export or subscription proof.

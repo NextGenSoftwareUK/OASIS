@@ -8,6 +8,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public class SuiHistoryTests
 {
     [TestMethod]
+    public async Task RealFeeReceiptsPreserveSuccessfulMintAndOriginalChargedFailure()
+    {
+        var rpc = Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") ?? throw new InvalidOperationException("Retained Sui RPC required.");
+        Assert.IsTrue(new Uri(rpc).IsLoopback);
+        using var journal = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(
+            Environment.GetEnvironmentVariable("OASIS_SUI_FAILED_TRANSACTION_JOURNAL") ?? throw new InvalidOperationException("Original failure journal required.")));
+        using var provider = new SuiOASIS(rpc, "localnet", chainId: journal.RootElement.GetProperty("chainId").GetString()!);
+        var failedHash = journal.RootElement.GetProperty("digest").GetString()!;
+        var successHash = Environment.GetEnvironmentVariable("OASIS_SUI_SUCCESSFUL_FEE_RECEIPT") ?? throw new InvalidOperationException("Existing successful mint receipt required; never submit a new one here.");
+        foreach (var item in new[] { (Hash: failedHash, Success: false), (Hash: successHash, Success: true) })
+        {
+            var receipt = await provider.GetNativeFeeReceiptAsync(item.Hash);
+            Assert.IsFalse(receipt.IsError, receipt.Message);
+            var value = receipt.Result;
+            Assert.AreEqual(item.Hash, value.GetProperty("transactionHash").GetString());
+            Assert.AreEqual(item.Success, value.GetProperty("success").GetBoolean());
+            Assert.AreEqual("MIST", value.GetProperty("unit").GetString());
+            Assert.AreEqual(journal.RootElement.GetProperty("chainId").GetString(), value.GetProperty("chainIdentifier").GetString());
+            var gas = value.GetProperty("components");
+            var exact = System.Numerics.BigInteger.Parse(gas.GetProperty("computationCost").GetString()!)
+                + System.Numerics.BigInteger.Parse(gas.GetProperty("storageCost").GetString()!)
+                - System.Numerics.BigInteger.Parse(gas.GetProperty("storageRebate").GetString()!);
+            Assert.AreEqual(exact.ToString(), value.GetProperty("netUnits").GetString());
+            Assert.IsTrue(exact > 0, "These original mint/failed fixtures actually incurred positive gas.");
+            if (!item.Success) Assert.AreEqual(journal.RootElement.GetProperty("sender").GetString(), value.GetProperty("payer").GetString());
+        }
+    }
+
+    [TestMethod]
     public async Task OriginalFailedSubmissionPreservesSignedGasDebitInProviderHistory()
     {
         var rpc = Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") ?? throw new InvalidOperationException("Real Sui RPC is required.");
