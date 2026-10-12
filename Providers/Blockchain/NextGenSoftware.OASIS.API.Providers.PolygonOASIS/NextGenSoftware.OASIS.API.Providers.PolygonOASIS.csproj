@@ -11,7 +11,8 @@
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
-		<PackageId>NextGenSoftware.OASIS.API.Providers.PolygonOASIS</PackageId>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.PolygonOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 		<Company>NextGen Software Ltd</Company>
 		<Product>WEB4 OASIS API Polygon OASIS Provider</Product>
 		<Title>WEB4 OASIS API Polygon OASIS Provider</Title>
@@ -42,4 +43,7 @@
 		<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
 	</PropertyGroup>
 
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
