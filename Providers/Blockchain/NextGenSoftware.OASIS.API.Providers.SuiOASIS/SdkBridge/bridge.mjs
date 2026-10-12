@@ -4,7 +4,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { isValidSuiAddress, normalizeSuiAddress, normalizeStructTag } from '@mysten/sui/utils';
 import { bcs } from '@mysten/sui/bcs';
 import { ObjectError } from '@mysten/sui/client';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { generateMnemonic } from '@scure/bip39';
@@ -497,7 +497,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   try {
     let input = '';
     for await (const chunk of process.stdin) input += chunk;
-    const result = await invoke(JSON.parse(input));
+    let persistPreparedSubmission;
+    if (process.env.OASIS_NATIVE_PREPARATION_PIPE) {
+      const modulePath=process.env.OASIS_NATIVE_PREPARATION_MODULE;
+      if(!modulePath)throw new Error('Parent preparation transport module is required');
+      const {preparationClient}=await import(pathToFileURL(modulePath).href);
+      persistPreparedSubmission=preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
+    }
+    const result = await invoke(JSON.parse(input), persistPreparedSubmission);
     process.stdout.write(JSON.stringify({ ok: true, result }));
   } catch (error) {
     process.stdout.write(JSON.stringify(sdkErrorEnvelope(error)));

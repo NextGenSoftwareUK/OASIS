@@ -15,6 +15,15 @@ public sealed class PreparedSubmissionServer : IDisposable
     private readonly Func<JsonElement, CancellationToken, Task> _persist;
     private int _started;
     public string Endpoint { get; }
+    public void ConfigureChild(System.Diagnostics.ProcessStartInfo child, string preparationModulePath)
+    {
+        if (child == null) throw new ArgumentNullException(nameof(child));
+        if (!Path.IsPathFullyQualified(preparationModulePath) || !File.Exists(preparationModulePath))
+            throw new ArgumentException("Installed preparation transport module must exist at an absolute path.", nameof(preparationModulePath));
+        if (child.UseShellExecute) throw new ArgumentException("Preparation requires a directly owned child process.", nameof(child));
+        child.Environment["OASIS_NATIVE_PREPARATION_PIPE"] = Endpoint;
+        child.Environment["OASIS_NATIVE_PREPARATION_MODULE"] = preparationModulePath;
+    }
     public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist)
     {
         _persist = persist ?? throw new ArgumentNullException(nameof(persist));
