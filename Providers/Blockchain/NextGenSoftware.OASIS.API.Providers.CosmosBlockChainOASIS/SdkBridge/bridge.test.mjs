@@ -60,3 +60,9 @@ test("unreachable RPC propagates failure, not synthetic activation", () => {
   assert.equal(response.status, 1);
   assert.equal(response.ok, false);
 });
+test('storage activation authority is explicit and fail closed without paid mutation', async()=>{
+ const {verifyStorageAuthority}=await import('./bridge.mjs');
+ assert.doesNotThrow(()=>verifyStorageAuthority({owner:'wasm1owner'},'wasm1owner'));
+ for(const [config,sender] of [[null,'wasm1owner'],[{},'wasm1owner'],[{owner:'other'},'wasm1owner'],[{owner:''},''],[{owner:'wasm1owner'},null]])
+  assert.throws(()=>verifyStorageAuthority(config,sender),/owner does not match/);
+});

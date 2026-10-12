@@ -63,6 +63,7 @@ async function execute(input, persistPreparedSubmission) {
         if (!input.contractAddress) throw new Error("CosmWasm contractAddress is required for OASIS storage");
         const contract = await client.getContract(input.contractAddress);
         const config = await client.queryContractSmart(input.contractAddress, { config: {} });
+        verifyStorageAuthority(config,sender);
         return { chainId, height: await client.getHeight(), contract, config };
       }
       case "get":
@@ -136,6 +137,11 @@ async function execute(input, persistPreparedSubmission) {
       default: throw new Error(`Unsupported Cosmos SDK operation: ${input.operation}`);
     }
   } finally { client.disconnect(); }
+}
+
+export function verifyStorageAuthority(config,sender) {
+  if(typeof sender!=='string'||!sender||typeof config?.owner!=='string'||config.owner!==sender)
+    throw new Error('Cosmos storage owner does not match the configured signing account');
 }
 
 export async function invoke(input, persistPreparedSubmission) {

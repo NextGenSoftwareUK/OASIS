@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos activation no longer submits paid probe writes — 2026-10-12
+
+Removed implicit put/get/delete probe transactions from `CosmosSdkBackend.VerifyAsync`. Activation now requires a configured key and the existing real SDK probe: verified chain, contract query and config owner matched against the actual configured wallet-derived sender. Missing/foreign owner or missing sender fails explicitly. This changes activation to read-only authority/reachability verification, not proof that a future write will succeed; positive writes remain separate admitted integration gates.
+
+SDK suite **52/52** passed, zero skips, including owner/missing/foreign rejection cases; provider build passed with zero warnings/errors. Live Cosmos activation still needs verification once its runtime policy gate is resolved. No node startup, network mutation, installation or deployment. Sui's analogous paid activation probe remains an identified gap for the next change; do not infer both providers are fixed from this result.
+
 ### Current route inventory and executable boundary refresh — 2026-10-12
 
 Read-only repository verification scripts pass on current source: **42** paired sync/async V2 operation labels with declared boundary tests, **693** WEB4 controller actions (**599** provider/external-manager classifications), and **815** public manager methods (**655** provider-backed/delegating classifications). Ran `HyperDriveProviderExecutionTests` separately: **255/255** passed, zero skips (`TestResults/HyperDriveCurrent/provider-boundary-current.trx`), using retained outputs/no restore/bounded workers. Existing test-project warnings remain.
