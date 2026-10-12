@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos configured-network argument boundary — 2026-10-12
+
+The Cosmos SDK request-construction boundary had the same override gap as Sui. It now rejects per-operation `rpcEndpoint`, `chainId` and `addressPrefix` overrides before launching the child, preserving configured network/address identity while retaining existing operation-specific signer/contract arguments. Three negative tests exercise the actual backend invocation. Provider build passed with zero warnings/errors; selected preparation suite **15/15** passed, no skips (`TestResults/PriorityProviderCurrent/cosmos-preparation-current.trx`). This is selected verification, not a complete updated suite count or live ledger proof. No installation, runtime startup, submission, deployment or merge; live Cosmos runtime policy gate remains unresolved.
+
 ### Sui configured-network argument boundary — 2026-10-12
 
 Review of the prepared live entry identified that reflected per-operation arguments could overwrite the client's configured RPC endpoint, network or chain ID before child launch. `SuiSdkClient` now rejects those three overrides at its single request-construction boundary. Explicit per-operation signing keys/collection identifiers remain supported for existing wallet/NFT operations; cryptographic expected-sender checks remain separate. Three negative cases prove rejection through the actual C# SDK invocation method before child execution. Provider build passed with zero warnings/errors; selected real-preparation tests **6/6** passed, zero skips (`TestResults/PriorityProviderCurrent/sui-preparation-current.trx`). This selected suite is not a full regression count. No node startup, submission or installs. Positive prepared submission on the retained ledger and crash recovery remain open gates.

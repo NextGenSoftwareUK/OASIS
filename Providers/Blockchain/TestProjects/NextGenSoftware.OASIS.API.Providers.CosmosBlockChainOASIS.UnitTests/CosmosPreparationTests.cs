@@ -8,6 +8,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [DataTestMethod]
+    [DataRow("rpcEndpoint")] [DataRow("chainId")] [DataRow("addressPrefix")]
+    public async Task OperationArgumentsCannotReplaceConfiguredNetwork(string field)
+    {
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var client=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom",null!,null!})!;
+        object args=field=="rpcEndpoint"?new{rpcEndpoint="https://untrusted.invalid"}:field=="chainId"?new{chainId="replacement"}:(object)new{addressPrefix="other"};
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var operation=(Task<JsonElement>)type.GetMethod("InvokeAsync",flags)!.Invoke(client,new[]{(object)"put",args,CancellationToken.None})!;
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>operation);
+    }
     private sealed class OfflineAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
