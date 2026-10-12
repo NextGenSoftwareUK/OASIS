@@ -42,7 +42,9 @@ export function guardCosmosSigningClient(client, persistPreparedSubmission) {
     const hash = createHash('sha256').update(signedBytes).digest('hex').toUpperCase();
     // Persistence failure is pre-submission: no broadcast or native-outcome claim.
     // The callback must durably bind this identity to its authenticated operation.
-    if (persistPreparedSubmission) await persistPreparedSubmission({ transactionHash: hash });
+    if (persistPreparedSubmission) await persistPreparedSubmission(Object.freeze({
+      transactionHash: hash, signedTransactionBase64: Buffer.from(signedBytes).toString('base64')
+    }));
     const context = nativeContext.getStore();
     if (context) context.evidence = { transactionHash: hash, executionSucceeded: null };
     let receipt;
