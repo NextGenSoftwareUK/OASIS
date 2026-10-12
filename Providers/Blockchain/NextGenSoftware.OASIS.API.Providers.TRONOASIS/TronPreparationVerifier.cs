@@ -29,6 +29,7 @@ public static class TronPreparationVerifier
         if(expectedSender==null||expectedSender.Length!=21||expectedSender[0]!=0x41)throw new ArgumentException("Trusted 21-byte TRON sender required.",nameof(expectedSender));
         if(transaction.RawData.Contract.Count!=1)throw new InvalidDataException("One original TRON operation contract required.");
         var contract=transaction.RawData.Contract[0];
+        if(contract.PermissionId!=0)throw new InvalidDataException("TRON active permission requires independent on-chain permission authority verification.");
         var owner=contract.Type switch{
             Transaction.Types.Contract.Types.ContractType.TransferContract=>contract.Parameter.Unpack<TransferContract>().OwnerAddress,
             Transaction.Types.Contract.Types.ContractType.AccountCreateContract=>contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,

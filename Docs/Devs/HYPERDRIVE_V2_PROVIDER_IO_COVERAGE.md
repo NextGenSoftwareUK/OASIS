@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON prepared permission authority gap is fail-closed — 2026-10-12
+
+Prepared verifier now explicitly rejects nonzero contract permission IDs: current trusted-owner single-key proof must not masquerade as active/multisig on-chain permission authority. Actual signed nonzero-permission case rejects; entire unit project **212/212**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Full active-permission support remains a required gap, not considered completed by rejection.
+
+Read-only retained-node WSL inspection remains pending on the same confirmed Windows WSL process; no second runtime/start was issued and no live outcome inferred. Original transaction fence retained. Actual permission/admission/cost policy, submitted recovery and full deployed gates remain open. No installs, submissions or release merge.
+
 ### TRON prepared signed fee-limit ceiling — 2026-10-12
 
 Verifier overload accepts explicit nonnegative maximum signed fee limit; runtime execution-owned adapter passes existing configured contract fee ceiling. Actual signed excess-fee case rejects. Entire unit project **211/211**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Original three-argument verifier retained for signature-only consumers; it does not provide a finite authorised spending cap.
