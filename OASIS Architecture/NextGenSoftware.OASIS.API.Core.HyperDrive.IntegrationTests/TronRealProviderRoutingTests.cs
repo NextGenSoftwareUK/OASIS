@@ -33,6 +33,11 @@ public sealed class TronRealProviderRoutingTests
         var key=new string('0',63)+"1";
         await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),
             "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f",contractFeeLimitSun:1000000000);
+        var owner=new TronECKey(key,TronNetwork.MainNet).GetPublicAddress();
+        using var authorityDeadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var authority=await runtime.NativeTransfers.LoadPermissionAuthorityAsync(owner,authorityDeadline.Token);
+        TronPermissionVerifier.Verify(authority,authority.Address,0,(int)TronNet.Protocol.Transaction.Types.Contract.Types.ContractType.TransferContract,new[]{authority.Address});
+        Console.WriteLine("Retained real TRON account owner permission accepts its original local fixture signer.");
         using var storage=new TronPrivateStorageBackend(runtime.NativeTransfers,new TronECKey(key,TronNetwork.MainNet).GetPublicAddress(),contract,()=>key,
             ()=>SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
         var tron=new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:storage);
