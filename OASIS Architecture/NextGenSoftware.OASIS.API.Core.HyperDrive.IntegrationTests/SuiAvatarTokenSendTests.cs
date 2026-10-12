@@ -18,6 +18,29 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public class SuiAvatarTokenSendTests
 {
+    private static async Task RunOwnedCleanupAsync(IEnumerable<Func<Task>> actions)
+    {
+        var failures = new List<Exception>();
+        foreach (var action in actions)
+        {
+            try { await action(); }
+            catch (Exception error) { failures.Add(error); }
+        }
+        if (failures.Count != 0) throw new AggregateException("Owned Sui fixture cleanup failed; reconcile reported failures.", failures);
+    }
+
+    [Fact]
+    public async Task OwnedCleanupAttemptsEveryActionAndReportsEveryFailure()
+    {
+        var attempted = new List<int>();
+        var error = await Assert.ThrowsAsync<AggregateException>(() => RunOwnedCleanupAsync(new Func<Task>[] {
+            () => { attempted.Add(1); throw new InvalidOperationException("first"); },
+            () => { attempted.Add(2); return Task.CompletedTask; },
+            () => { attempted.Add(3); throw new InvalidOperationException("third"); }
+        }));
+        attempted.Should().Equal(1,2,3);
+        error.InnerExceptions.Select(value => value.Message).Should().Equal("first","third");
+    }
     [Fact]
     public async Task NftMintAndBurnUseStoredAvatarWalletWithoutConfiguredSigner()
     {
@@ -214,12 +237,12 @@ public class SuiAvatarTokenSendTests
         }
         finally
         {
-            try
-            {
+            var cleanupActions = new List<Func<Task>>();
                 if (tokenFixtureOwned)
                 {
                     foreach (var key in new[] { issuer.Result, recipient.Result })
                     {
+                        cleanupActions.Add(async () => {
                         var tokens = await sui.GetTokenBalanceAsync(key.WalletAddressLegacy, coinType);
                         tokens.IsError.Should().BeFalse(tokens.Message);
                         if (tokens.Result > 0m)
@@ -228,13 +251,14 @@ public class SuiAvatarTokenSendTests
                                 OwnerPrivateKey = key.PrivateKey, OwnerPublicKey = key.PublicKey, OwnerSeedPhrase = null });
                             cleaned.IsError.Should().BeFalse(cleaned.Message);
                         }
+                        });
                     }
                 }
-                if (walletSaved) (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse();
-                if (recipientWalletSaved) (await local.SaveProviderWalletsForAvatarByIdAsync(recipientId,new())).IsError.Should().BeFalse();
-                foreach (var id in ownedAvatars) (await local.DeleteAvatarAsync(id, false)).IsError.Should().BeFalse();
-            }
-            finally { await local.DeActivateProviderAsync(); }
+                if (walletSaved) cleanupActions.Add(async () => (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse());
+                if (recipientWalletSaved) cleanupActions.Add(async () => (await local.SaveProviderWalletsForAvatarByIdAsync(recipientId,new())).IsError.Should().BeFalse());
+                foreach (var id in ownedAvatars) cleanupActions.Add(async () => (await local.DeleteAvatarAsync(id, false)).IsError.Should().BeFalse());
+                cleanupActions.Add(async () => (await local.DeActivateProviderAsync()).IsError.Should().BeFalse());
+                await RunOwnedCleanupAsync(cleanupActions);
         }
     }
 }
