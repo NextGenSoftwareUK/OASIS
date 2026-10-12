@@ -105,6 +105,8 @@ public partial class SuiOASIS
         try
         {
             ArgumentNullException.ThrowIfNull(request);
+            var count = request.NumberToMint ?? 1;
+            if (count < 1) throw new ArgumentException("Positive NFT mint count is required.");
             if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.SuiObject)
                 throw new ArgumentException("Sui address-owned objects are not ERC721/ERC1155/SPL assets.");
             if (request.OnChainProvider.HasValue && request.OnChainProvider != Core.Enums.ProviderType.SuiOASIS
@@ -138,8 +140,6 @@ public partial class SuiOASIS
                 OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SuiOASIS),
                 NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.SuiObject)
             };
-            var count = request.NumberToMint ?? 1;
-            if (count < 1) throw new ArgumentException("Positive NFT mint count is required.");
             var records = new List<Web3NFT>();
             for (var i = 0; i < count; i++)
             {
