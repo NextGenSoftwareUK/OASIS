@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current Hedera actual deadline verification — 2026-10-12
+
+Re-ran `ActualProcessTimeoutRetainsUnverifiedOriginalIdsAndStopsReplay` against the current built provider after strict decoding and identity validation changes. **1/1 passed**, zero skips, with the actual two-minute deadline (not a mocked clock); report `TestResults/HederaCurrent/hedera-process-timeout.trx`. The controlled stalled child performs no SDK/network submission. This verifies current timeout exception classification, preservation of both unverified original IDs, and replay-blocking marker, not consensus or charged-fee outcome. Existing selected regression remains 244/244. The same environment/report directory was reused; no new installation or database was allocated.
+
+Durable journal audit confirms `UsageExecutionHandle.BeginPreparedProviderAttemptAsync` stores a prepared original provider ID before acknowledgement, but SDK preparation/submission is not yet connected to that journal. Process-kill durability, chain/payer binding, authenticated WEB4 native-fee admission and receipt-based settlement are still open gates. Timeout evidence does not close those gates or authorize release.
+
 ### Hedera success approval identity — 2026-10-12
 
 Success replies now validate any non-null `approvalTransactionId` against the original requested approval ID; malformed or foreign identities require reconciliation and cannot become successful provider results. Optional/null approval remains valid because an operation need not perform an approval. Controlled process cases cover malformed and foreign approval fields. Bounded provider build: 0 errors, 2 existing warnings. Selected non-funded C# suite: **244/244**, zero skips, report `TestResults/HederaCurrent/hedera-response-validation.trx`; funded testnet and actual timeout cases excluded. No SDK/runtime installation or deployment. This boundary evidence does not complete live escrow, storage, routing-policy or durable journal gates.
