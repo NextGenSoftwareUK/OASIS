@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live V2 avatar ID/list parity extension (2026-10-11)
+
+Current retained-node TRON scenario also routes `LoadAvatar`, `LoadAvatarDetail`, `LoadAllAvatars` and `LoadAllAvatarDetails` synchronously/asynchronously on both real replicas. ID reads match persisted identity then return non-error null after replicated deletion; lists contain exactly one owned fixture before deletion and none afterward without assuming the shared store is otherwise empty. These four added operations contribute **32 additional routed read assertions**, and the full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`). Actual failover/load balancing/replication checks remain in the same scenario. Manifest/seven Dockerfiles/parent gitlinks validator passes. Retained runtime paused afterward; no install/download/environment duplication/merge. Official Hedera mirror balance remains **391606260 tinybars**; funded storage/NFT and complete operation/deployment/release gates remain open.
+
 ### Live V2 indexed-read handler parity and deleted-index absence (2026-10-11)
 
 The TRON routing scenario now additionally routes `LoadAvatarByUsername`, `LoadAvatarByEmail`, `LoadAvatarDetailByUsername` and `LoadAvatarDetailByEmail` through **both `RouteRequest` and `RouteRequestAsync`**, explicitly selecting each real LocalFile/TRON replica. Sixteen routed reads verify persisted identity before deletion; sixteen verify non-error null after replicated permanent deletion. Thus these four operation handlers have real synchronous/asynchronous provider evidence, including V2 coded-absence normalization. Full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`); this adds to, not replaces, earlier direct projection/failover/balancing/replication assertions. Full 42-operation matrix is not complete. Packaging verifier unit regressions also pass **5/5**. Existing runtime paused after terminal completion; about 114.44 GB decimal free, no install/download/ledger reset/environment duplication or merge.

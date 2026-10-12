@@ -61,7 +61,7 @@ public sealed class TronRealProviderRoutingTests
             {
                 foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
                 {
-                    var request = new StorageOperationRequest { Operation = operation, Username = avatar.Username,
+                    var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id, Username = avatar.Username,
                         Email = avatar.Email, PreferredProvider = providerType };
                     var sync = router.RouteRequest<T>(request);
                     var asyncResult = await router.RouteRequestAsync<T>(request);
@@ -75,10 +75,32 @@ public sealed class TronRealProviderRoutingTests
             }
             async Task AssertAllIndexedRoutes(bool absent)
             {
+                await AssertIndexedRoutes<IAvatar>("LoadAvatar", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetail", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByUsername", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByEmail", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetailByUsername", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetailByEmail", absent, value => value.Id);
+            }
+            async Task AssertListRoutes<T>(string operation, bool absent, Func<T, Guid> identity)
+            {
+                foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, PreferredProvider = providerType };
+                    var sync = router.RouteRequest<IEnumerable<T>>(request);
+                    var asyncResult = await router.RouteRequestAsync<IEnumerable<T>>(request);
+                    foreach (var result in new[] { sync, asyncResult })
+                    {
+                        result.IsError.Should().BeFalse(result.Message);
+                        result.Result.Should().NotBeNull();
+                        result.Result.Count(value => identity(value) == avatar.Id).Should().Be(absent ? 0 : 1);
+                    }
+                }
+            }
+            async Task AssertAvatarLists(bool absent)
+            {
+                await AssertListRoutes<IAvatar>("LoadAllAvatars", absent, value => value.Id);
+                await AssertListRoutes<IAvatarDetail>("LoadAllAvatarDetails", absent, value => value.Id);
             }
             var savedAvatar = await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest
                 { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS });
@@ -109,6 +131,7 @@ public sealed class TronRealProviderRoutingTests
                 provider.LoadAvatarDetailByEmail(avatar.Email).Result.Id.Should().Be(avatar.Id);
             }
             await AssertAllIndexedRoutes(absent: false);
+            await AssertAvatarLists(absent: false);
             var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
                 { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
             deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
@@ -123,6 +146,7 @@ public sealed class TronRealProviderRoutingTests
             (await tron.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
             (await tron.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
             await AssertAllIndexedRoutes(absent: true);
+            await AssertAvatarLists(absent: true);
             avatarSaved = false;
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
