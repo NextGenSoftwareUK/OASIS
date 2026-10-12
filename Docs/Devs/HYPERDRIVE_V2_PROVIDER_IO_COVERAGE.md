@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON prepared structural window/fee validation — 2026-10-12
+
+Verifier rejects nonpositive timestamp, expiration not after timestamp and negative fee limit. Actual signing rejection cases cover all three. Entire unit project **210/210**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Checks are structural, not current-time expiry/clock-skew policy, authorised fee ceiling or live cost quote. Historic signed records are not rejected solely because time has passed.
+
+Actual authorised operation/permission/fee binding, submitted recovery and full live/deployed gates remain open. No RPC, downloads, installs, submissions or release merge.
+
 ### TRON real signed contract rejection matrix — 2026-10-12
 
 Added actual TronNet signing cases for empty contract list, unsupported contract enum and encoded owner differing from trusted sender. Each original signed hash is valid, but verifier rejects at the intended operation-owner boundary. Entire unit project **207/207**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`. SDK channels are constructed/reused and disposed without RPC; no ledger transaction submitted.
