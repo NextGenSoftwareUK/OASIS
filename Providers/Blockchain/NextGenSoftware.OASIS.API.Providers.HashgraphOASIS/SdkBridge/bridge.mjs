@@ -1,12 +1,14 @@
 import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, TransactionReceiptQuery, TokenMintTransaction, TokenBurnTransaction, TokenId, Hbar, TokenInfoQuery, FileId, FileCreateTransaction, FileUpdateTransaction, FileDeleteTransaction, FileContentsQuery } from '@hiero-ledger/sdk';
 import { pathToFileURL } from 'node:url';
 import { Mnemonic } from '@hiero-ledger/sdk';
-import { executeEscrow, executeTokenEscrow } from './escrow.mjs';
+import { executeEscrow, executeTokenEscrow,verifyDepositorAccount } from './escrow.mjs';
+import {AccountInfoQuery} from '@hiero-ledger/sdk';
 import {executeDeployment} from './deployment.mjs';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
 import { Interface, getBytes } from 'ethers';
 
 const storageAbi = new Interface([
+  'function owner() view returns(address)',
   'function put(string key,string value)',
   'function remove(string key)',
   'function get(string key) view returns(bool exists,string value)',
@@ -63,7 +65,7 @@ async function storageWrite(action, request, persist) {
 }
 
 export function storageReadCall(name, args) {
-  if (!['get', 'revision', 'keyPage'].includes(name)) throw new Error('Unknown storage read.');
+  if (!['owner', 'get', 'revision', 'keyPage'].includes(name)) throw new Error('Unknown storage read.');
   return getBytes(storageAbi.encodeFunctionData(name, args));
 }
 
@@ -103,6 +105,16 @@ async function storageRead(action, request) {
         .setFunctionParameters(storageReadCall(name, args)).setMaxQueryPayment(Hbar.fromTinybars(request.maxFeeTinybars)).execute(client);
       if (response.errorMessage) throw new Error('Storage contract query reverted.');
       return storageAbi.decodeFunctionResult(name, response.bytes);
+    }
+    if(action==='storageProbe'){
+      const payment=Hbar.fromTinybars(request.maxFeeTinybars);
+      const account=await new AccountInfoQuery().setAccountId(payer).setMaxQueryPayment(payment).execute(client);
+      if(account.accountId.toString()!==payer.toString()||account.isDeleted||typeof account.key?.toStringDer!=='function'
+          ||account.key.toStringDer().toLowerCase()!==key.publicKey.toStringDer().toLowerCase())
+        throw new Error('Storage activation requires the real active sender single signing key');
+      const owner=(await query('owner',[]))[0];
+      await verifyDepositorAccount(payer,owner,alias=>new AccountInfoQuery().setAccountId(alias).setMaxQueryPayment(payment).execute(client));
+      return {owner,sender:payer.toString(),contractId:request.contractId};
     }
     if (action === 'storageGet') {
       const result = await query('get', [request.key]);
@@ -261,7 +273,7 @@ export async function execute(action, request, persistPreparedSubmission) {
     return { privateKey: key.toStringDer(), publicKey: key.publicKey.toStringDer(), seedPhrase: mnemonic.toString() };
   }
   if (['storagePut', 'storageDelete'].includes(action)) return storageWrite(action, request,persistPreparedSubmission);
-  if (['storageGet', 'storageList'].includes(action)) return storageRead(action, request);
+  if (['storageProbe','storageGet', 'storageList'].includes(action)) return storageRead(action, request);
   if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request,persistPreparedSubmission);
   if (action === 'generateKey') {
     const key = request.keyType === 'ed25519' ? PrivateKey.generateED25519()

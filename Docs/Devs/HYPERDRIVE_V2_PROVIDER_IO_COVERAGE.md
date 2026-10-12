@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera activation replaces implicit writes with authority queries — 2026-10-12
+
+Replaced Hedera's activation put/get/delete probe with `storageProbe`. The real official SDK queries the active payer account, checks its actual single signing key, queries the existing shared storage contract's public immutable `owner()` ABI, and resolves that EVM owner back to the requesting Hedera account using the existing verified account-resolution helper. No new contract ABI implementation or redeployment is required by source: `Providers/Shared/Contracts/OASISKeyValueStore.sol` already exposes that getter. No write transaction IDs are generated for activation.
+
+Important distinction: these Hedera consensus queries **can charge HBAR**, each uses the configured max-query-payment ceiling. This is not free activation or completed native-spending admission; aggregate query-cost authorization remains a release gate. SDK suite **100/100** and C# project **36/36** passed, zero skips (`hedera-current.trx`); build passed with two existing warnings. Tests cover existing SDK/interface behavior, owner ABI encoding and fail-closed query configuration, not funded probe success or deployed runtime identity. Funded Hedera verification remains deferred per user instruction. No network calls, installs, deployment or merge.
+
 ### Cosmos read-only activation sequencing guard — 2026-10-12
 
 Added a test-only child that accepts only `probe` and rejects any put/get/delete operation. The actual C# `CosmosSdkBackend.VerifyAsync` completes through it, locking in removal of implicit activation mutations. Selected preparation suite **16/16** passed, zero skips (`cosmos-preparation-current.trx`), using retained dependencies/no restore. This fixture proves C# operation sequencing, not real contract ownership or live activation; independent SDK owner tests remain separate and the live Cosmos runtime gate remains open. No runtime startup, installation, ledger write, deployment or merge.
