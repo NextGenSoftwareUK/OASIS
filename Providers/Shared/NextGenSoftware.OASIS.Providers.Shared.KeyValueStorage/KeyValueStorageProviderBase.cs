@@ -578,7 +578,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
                 var holons = await ReadAllAsync<IHolon>(keys, version);
-                return Ok<IEnumerable<IHolon>>(holons.Where(h => type == HolonType.All || h.HolonType == type).ToList());
+                var selected = holons.Where(h => type == HolonType.All || h.HolonType == type).ToList();
+                if (loadChildren)
+                    foreach (var holon in selected)
+                    {
+                        var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, version);
+                        holon.Children = children.Result.ToList();
+                    }
+                return Ok<IEnumerable<IHolon>>(selected);
             }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons: {ex.Message}", ex); }
         }
