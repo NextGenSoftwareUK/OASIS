@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui history verifies checkpoint and effects identity (2026-10-12)
+
+Source audit found `verifiedHistoryTransaction` labeled data checkpointed while checking neither checkpoint presence nor effects' original transaction digest. It now requires canonical unsigned-u64 checkpoint string, exact effects digest, valid native sender and positive safe-integer millisecond timestamp, alongside the existing exact receipt digest, explicit boolean outcome and balance-change array. It does not infer success from missing fields or reinterpret a failed transaction as a lookup error. SDK test fixtures now model real checkpointed effects; malformed/missing/overflow checkpoints, invalid timestamp and mismatched effects are rejected. This closes this specific history boundary, not the whole native-interface/API matrix.
+
+Current SDK tests **8/8, zero skips**. Read-only `test-failed-history.mjs` against retained local Sui v1.81.1 passed for original digest `D83kgAWQQbdZdCFbFQivXuRF7MB5YqiqGStZAynz3GGk`: one failed history row with actual signed gas debit, no mutation. Retained `network.yaml` was checked before startup, owned PID **183226** stopped using the validated helper afterward; no genesis reset/download/fresh installation or new signing key. Existing startup metrics/socket/JWK/execution-chunk warnings remain observed and are not claimed fixed. Free C **102954131456 bytes** after shutdown. Cosmos runtime policy blocker and funded Hedera deferral remain unchanged; durable mint billing and final release gates stay open.
+
 ### Hedera duplicate-submission fee reconciliation (2026-10-12)
 
 Supersedes the singleton-only boundary of the checkpoint below: the reader now sums exact `charged_tx_fee` for a unique original parent outcome plus verified `DUPLICATE_TRANSACTION` parent records of the same native transaction ID. Each unique consensus timestamp and charged amount is retained in `records`; duplicate charges cannot replace the original success/failure. Missing originals, two original outcomes, repeated consensus records, child/scheduled records, unsupported payer attribution, negative values and sum overflow fail explicitly. Coverage is named `indexed-native-parent-records`: mirror lag, child execution charges or future indexing cannot be represented as a guaranteed final operation cost. Durable reconciliation must establish appropriate coverage before settlement.
