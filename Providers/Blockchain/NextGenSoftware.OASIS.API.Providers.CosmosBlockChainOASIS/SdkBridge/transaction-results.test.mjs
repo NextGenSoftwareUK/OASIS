@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, indexedHistorySnapshot } from './transaction-results.mjs';
 import { TxRaw, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { wasmTypes } from '@cosmjs/cosmwasm';
 import { Registry } from '@cosmjs/proto-signing';
@@ -8,6 +8,26 @@ import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+test('Cosmos history binds both indexes to one committed height and reconciles overlapping identities', async () => {
+  const address = toBech32('wasm', new Uint8Array(20).fill(1));
+  const tx = {hash:hash.toUpperCase(),height:42,txIndex:0,code:0,tx:new Uint8Array([1,2])};
+  const queries = [];
+  const client = {getHeight:async()=>42,searchTx:async query=>{queries.push(query);return [tx];}};
+  assert.deepEqual(await indexedHistorySnapshot(client,address),[tx]);
+  assert.equal(queries.length,2);
+  assert.ok(queries.every(query=>query.endsWith(' AND tx.height<=42')));
+  assert.ok(queries[0].startsWith('transfer.recipient='));
+  assert.ok(queries[1].startsWith('message.sender='));
+});
+test('Cosmos history rejects out-of-snapshot and conflicting indexed receipts', async () => {
+  const address = toBech32('wasm', new Uint8Array(20).fill(1));
+  const tx = {hash:hash.toUpperCase(),height:42,txIndex:0,code:0,tx:new Uint8Array([1])};
+  for (const changes of [{height:43},{height:0},{hash:'wrong'},{txIndex:-1},{code:-1}])
+    await assert.rejects(indexedHistorySnapshot({getHeight:async()=>42,searchTx:async()=>[{...tx,...changes}]},address),/snapshot/);
+  let count = 0;
+  await assert.rejects(indexedHistorySnapshot({getHeight:async()=>42,
+    searchTx:async()=>[++count===1?tx:{...tx,tx:new Uint8Array([2])}]},address),/disagree/);
+});
 function feeTx({ code = 0, granter = '', payer = '', amount = '9007199254740993', observedAmount = amount } = {}) {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
   const authInfoBytes = AuthInfo.encode(AuthInfo.fromPartial({ fee: { amount: [{ denom: 'stake', amount }], gasLimit: 50n, payer, granter } })).finish();
