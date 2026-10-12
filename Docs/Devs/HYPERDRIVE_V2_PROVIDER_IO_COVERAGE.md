@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cross-provider full C# regression after stage transport — 2026-10-12
+
+Refreshed complete retained Sui and Cosmos unit projects **without filtering out actual process-deadline tests**: Sui **71/71** (2m9s), Cosmos **94/94** (2m7s), both zero failures/skips. TRON **234/234** also passed. Reports: `TestResults/PriorityProviderCurrent/SuiOASIS-current.trx`, `CosmosBlockChainOASIS-current.trx`, `tron-current.trx`. SDK bridge environment variables explicitly select existing source dependencies; no restore/install/node startup or ledger submission was used. Bounded builds/test workers reused existing outputs and reports. These results establish current C# regression coverage including actual owned-process termination deadlines, not published packaging, live native transaction outcomes or complete V2 provider routing certification. Hedera remains most recently **36/36**; these project counts are separate, not overlapping selected-test totals.
+
 ### Second-stage persistence failure reconciliation fence — 2026-10-12
 
 Fixed a multi-stage error classification gap: observing a mutation persistence error after approval preparation previously bypassed the reconciliation wrapper. Approval may already have been broadcast, so the operation must not become retryable merely because the second preparation was rejected. Any non-cancellation failure after at least one durable stage now retains the reconciliation marker, original cause, persisted approval ID and requested mutation ID; existing reconciliation exceptions remain unchanged. First-stage rejection with no persisted stage still returns the original persistence failure.
