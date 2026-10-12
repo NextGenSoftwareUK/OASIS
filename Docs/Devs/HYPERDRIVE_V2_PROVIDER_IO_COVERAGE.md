@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Official Sui original-preparation signature verification — 2026-10-12
+
+Added offline `verifyPreparedIdentity`/`verifyNativePreparation` through the retained official SDK: canonical bounded signed bytes decode as a Sui transaction, its digest matches the prepared original, the serialized signature verifies against exact bytes, and both recovered signer and transaction sender match the descriptor. Actual SDK signing tests accept valid evidence and reject changed digest, sender, signature, bytes and noncanonical encoding. Suite **25/25**, zero skips/todos; no RPC, signing-key installation or native submission.
+
+Chain admission remains a separate trusted runtime/context check. This verifier is not yet connected to the C# execution-owned persistence callback/provider lifecycle. Billing-policy recommendation (shared USD cost budget plus separate sponsored NFT cap) has not been approved/configured; restriction remains. Full recovery/live/deployed gates remain open, no release merge.
+
 ### Execution-owned preparation persistence adapter — 2026-10-12
 
 Added `UsageExecutionHandle.NativePreparationPersistence`: requires expected chain/signer and an explicit original cryptographic-identity verifier, checks descriptor binding/encoding, awaits verification, then atomically stores complete signed evidence under the existing execution owner. No permissive default verifier. Sui preparation now uses canonical `chainId` for its verified genesis identifier, matching the adapter/Cosmos descriptor contract. Real Mongo suite **75/75**, zero skips, including mismatch-before-callback/write and successful descriptor persistence; verifier in that case is controlled, not native crypto proof. Sui SDK **24/24**; net10 Core build 0 errors/129 existing warnings. Core `8e6278a72e7b83c6402139de9ad7240fa25c2a3d` published and parent pin synchronized.
