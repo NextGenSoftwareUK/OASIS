@@ -3,6 +3,19 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { fromBech32 } from "@cosmjs/encoding";
+import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
+
+test("raw signing keys recover exact official SDK identity with the requested prefix", async () => {
+  const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7), "wasm");
+  const [account] = await wallet.getAccounts();
+  for (const privateKey of ["07".repeat(32), "0x" + "07".repeat(32)]) {
+    const restored = invoke({ operation: "restoreKey", privateKey, addressPrefix: "wasm" });
+    assert.equal(restored.ok, true);
+    assert.equal(restored.result.address, account.address);
+    assert.equal(restored.result.publicKey, Buffer.from(account.pubkey).toString("hex"));
+    assert.equal(fromBech32(restored.result.address, 90).prefix, "wasm");
+  }
+});
 
 const bridge = fileURLToPath(new URL("bridge.mjs", import.meta.url));
 function invoke(request) {

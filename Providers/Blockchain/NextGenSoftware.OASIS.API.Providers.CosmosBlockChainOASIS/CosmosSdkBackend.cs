@@ -117,8 +117,29 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
                 throw new InvalidOperationException($"Cosmos SDK exited {process.ExitCode} without a response: {error}");
             using var envelope = JsonDocument.Parse(output);
             if (!envelope.RootElement.GetProperty("ok").GetBoolean() || process.ExitCode != 0)
+            {
+                if (envelope.RootElement.TryGetProperty("nativeMutation", out var mutation))
+                {
+                    if (!envelope.RootElement.TryGetProperty("error", out var errorMessage) || errorMessage.ValueKind != JsonValueKind.String)
+                        throw new CosmosNativeMutationReconciliationException("Malformed Cosmos native mutation error envelope; reconcile submission before retrying.", null, null,
+                            new InvalidDataException("Native mutation error envelope requires a string error message."));
+                    string transactionHash = null;
+                    bool? executionSucceeded = null;
+                    try
+                    {
+                        transactionHash = mutation.GetProperty("transactionHash").GetString();
+                        var status = mutation.GetProperty("executionSucceeded");
+                        executionSucceeded = status.ValueKind == JsonValueKind.Null ? null : status.GetBoolean();
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+                    {
+                        throw new CosmosNativeMutationReconciliationException(errorMessage.GetString(), transactionHash, null, ex);
+                    }
+                    throw new CosmosNativeMutationReconciliationException(errorMessage.GetString(), transactionHash, executionSucceeded);
+                }
                 throw new InvalidOperationException(envelope.RootElement.TryGetProperty("error", out var failure)
                     ? failure.GetString() : $"Cosmos SDK exited {process.ExitCode}.");
+            }
             return envelope.RootElement.GetProperty("result").Clone();
         }
         catch (OperationCanceledException)

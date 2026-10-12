@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, indexedHistorySnapshot } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, cosmosErrorEnvelope, guardCosmosSigningClient, indexedHistorySnapshot } from './transaction-results.mjs';
+import { SigningCosmWasmClient } from '@cosmjs/cosmwasm';
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { TxRaw, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { wasmTypes } from '@cosmjs/cosmwasm';
 import { Registry } from '@cosmjs/proto-signing';
@@ -8,6 +10,52 @@ import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+
+test('official CosmJS contract methods preserve failed delivery before plain error conversion and submit once', async () => {
+  const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7), 'wasm');
+  const [{ address }] = await wallet.getAccounts();
+  const contract = toBech32('wasm', new Uint8Array(32).fill(2));
+  for (const operation of ['execute', 'upload', 'instantiate']) {
+    const client = await SigningCosmWasmClient.offline(wallet);
+    let submissions = 0;
+    client.signAndBroadcast = async function(sender, messages) {
+      assert.equal(this, client);
+      assert.equal(sender, address);
+      assert.equal(messages.length, 1);
+      assert.equal(messages[0].typeUrl, operation === 'execute' ? '/cosmwasm.wasm.v1.MsgExecuteContract'
+        : operation === 'upload' ? '/cosmwasm.wasm.v1.MsgStoreCode' : '/cosmwasm.wasm.v1.MsgInstantiateContract');
+      submissions++;
+      return { transactionHash: hash, height: 42, code: 5, rawLog: 'untrusted sensitive log' };
+    };
+    guardCosmosSigningClient(client);
+    const fee = { amount: [], gas: '1' };
+    const submit = operation === 'execute' ? () => client.execute(address, contract, { put: { key: 'owned', value: 'value' } }, fee)
+      : operation === 'upload' ? () => client.upload(address, new Uint8Array([0,97,115,109,1,0,0,0]), fee)
+      : () => client.instantiate(address, 1, {}, 'controlled', fee);
+    await assert.rejects(submit(), error => {
+      assert.deepEqual(cosmosErrorEnvelope(error).nativeMutation, { transactionHash: hash, executionSucceeded: false });
+      assert.ok(!error.message.includes('sensitive'));
+      return true;
+    });
+    assert.equal(submissions, 1);
+  }
+});
+
+test('signing boundary retains successful real SDK response and ordinary preflight errors unchanged', async () => {
+  const receipt = { transactionHash: hash, height: 42, code: 0 };
+  const client = { async signAndBroadcast(...args) { assert.deepEqual(args, ['sender', [], 'auto', 'memo']); return receipt; } };
+  guardCosmosSigningClient(client);
+  assert.equal(await client.signAndBroadcast('sender', [], 'auto', 'memo'), receipt);
+  assert.deepEqual(cosmosErrorEnvelope(new Error('ordinary validation error')), { ok: false, error: 'ordinary validation error' });
+});
+
+test('native timeout and malformed delivery evidence never manufacture execution status or identity', () => {
+  assert.deepEqual(cosmosErrorEnvelope(new TimeoutError('untrusted text', hash)).nativeMutation, { transactionHash: hash, executionSucceeded: null });
+  assert.deepEqual(cosmosErrorEnvelope(new TimeoutError('untrusted text', 'invalid')).nativeMutation, { transactionHash: null, executionSucceeded: null });
+  assert.ok(!cosmosErrorEnvelope(new TimeoutError('untrusted text', 'invalid')).error.includes('untrusted'));
+  for (const receipt of [{ code: 5, transactionHash: hash }, { code: '0', transactionHash: hash, height: 42 }, { code: 4294967296, transactionHash: hash, height: 42 }])
+    assert.throws(() => verifiedBankTransfer(receipt), error => cosmosErrorEnvelope(error).nativeMutation.executionSucceeded === null);
+});
 test('Cosmos history binds both indexes to one committed height and reconciles overlapping identities', async () => {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
   const tx = {hash:hash.toUpperCase(),height:42,txIndex:0,code:0,tx:new Uint8Array([1,2])};
