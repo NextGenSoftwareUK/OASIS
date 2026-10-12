@@ -7,6 +7,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [TestMethod]
+    public async Task PreparedEntryRejectsMissingExecutionAndPreCancellation()
+    {
+        using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(()=>provider.ExecutePreparedNativeAsync("put",null!,null!,"attempt","chain","sender"));
+        using var cancellation=new CancellationTokenSource();cancellation.Cancel();
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>provider.ExecutePreparedNativeAsync("put",null!,null!,"attempt","chain","sender",cancellation.Token));
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
     [DataTestMethod]
     [DataRow("prepared")] [DataRow("reject")] [DataRow("prepared-wrong")] [DataRow("prepared-hold")] [DataRow("valid")]
     public async Task PreparedProcessRequiresPersistenceAndRetainsOriginal(string mode)

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Explicit Cosmos execution-owned prepared entry — 2026-10-12
+
+Public `ExecutePreparedNativeAsync` now connects a supplied execution/trusted chain/signer to the preparation factory and canonical gated backend invocation. Missing execution and pre-cancellation reject before child launch/activation. This is a library entry, not an HTTP route or automatic replacement of production submissions. Provider build 0 errors/warnings. Broader Cosmos C# regression **90/90**, zero skips, excluding `RealProcessDeadline`, `TestResults/PriorityProviderCurrent/cosmos-preparation-current.trx`; existing nullable test-field warning remains. Retained official SDK used for offline signature cases.
+
+Real signed/pipe/Mongo prepared submission and crash recovery, actual native admission/billing and complete live/deployed provider gates remain open. No installations, ledger changes, spending enablement or release merge.
+
 ### Cosmos prepared SDK process lifecycle — 2026-10-12
 
 Added explicit prepared invocation through the single canonical Cosmos backend process implementation. Child-only preparation configuration, awaited parent callback/error preservation, success acknowledgement/original-hash binding, cleanup observation and interruption ID retention now apply to that opt-in path. Ordinary invocations clear inherited preparation settings. Controlled real-pipe child cases accept, preserve parent rejection, reject foreign success identity, retain prepared ID/caller token on cancellation, and reject success without acknowledgement: **5/5**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-prepared-process.trx`. Provider build 0 errors/warnings; existing nullable test warning remains.
