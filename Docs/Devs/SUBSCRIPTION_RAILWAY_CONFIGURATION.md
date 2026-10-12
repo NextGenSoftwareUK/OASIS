@@ -12,6 +12,12 @@ Do not assume the ledger is still empty from this runbook's original installatio
 
 ## What is already configured
 
+### NFT minting is not yet protected by the usage protocol
+
+Source audit on 2026-10-12: `SubscriptionService.AuthorizeUsageAsync` accepts only WEB5–WEB10 consuming services and `ai.tokens`/`api.request` meter categories. WEB4 `NftController.MintNftAsync` directly invokes `NFTManager.MintNftAsync` after its temporary Wizard check; it does not consult the subscription service or reserve/settle native mint fees. The inspected JWT and OASIS middleware do not supply that missing authorization. Therefore even a successful checkout/webhook/consumer-ledger rollout is insufficient by itself to remove the temporary NFT gate.
+
+Before removal, implement and verify the intended NFT policy using the existing durable authority: authenticated caller ownership versus Wizard delegation; active eligible subscription; bounded provider fee reservation before any charge-bearing activation/mint; stable operation identity and replay prevention; receipt-backed settlement including charged failures and uncertain outcomes. Establish provider-specific fee evidence and who pays rather than inventing a flat cost or treating a paid plan as unlimited sponsored gas. Required tests include unsubscribed/expired/quota denials with zero provider calls, caller defaults, non-Wizard override rejection, Wizard delegation, successful mint/metadata persistence, and duplicate/partial/timeout reconciliation. No unrestricted minting or paid public-chain test is authorized by this checkpoint.
+
 Railway already has `OASIS_DNA_JSON`, the existing `STRIPE_*` variables, and `GITHUB_PAT`. Keep them. Do not create another MongoDB connection or another set of Stripe variables. WEB4-WEB10 write `OASIS_DNA_JSON` to `/app/OASIS_DNA.json` and reuse its MongoDB connection.
 
 The ledger creates dedicated collections in the same MongoDB instance. It does not store accounting records in the shared `holons` collection.
