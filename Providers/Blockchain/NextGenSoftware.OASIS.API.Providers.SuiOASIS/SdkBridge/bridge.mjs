@@ -106,8 +106,10 @@ export function sdkErrorEnvelope(error) {
 }
 
 const nativeMutationContext = new AsyncLocalStorage();
-export async function withNativeMutationEvidence(operation) {
-  return nativeMutationContext.run({ nativeMutation: null }, async () => {
+export async function withNativeMutationEvidence(operation, persistPreparedSubmission) {
+  if (persistPreparedSubmission !== undefined && typeof persistPreparedSubmission !== 'function')
+    throw new TypeError('Prepared Sui persistence must be an awaited callback');
+  return nativeMutationContext.run({ nativeMutation: null, persistPreparedSubmission }, async () => {
     try { return await operation(); }
     catch (error) {
       const evidence = nativeMutationContext.getStore().nativeMutation;
@@ -124,6 +126,9 @@ export async function execute(client, tx, signer, include = {}) {
   const { signature } = await signer.signTransaction(transactionBytes);
   const originalDigest = await Transaction.from(transactionBytes).getDigest();
   const context = nativeMutationContext.getStore();
+  if (context?.persistPreparedSubmission)
+    await context.persistPreparedSubmission(Object.freeze({ transactionHash: originalDigest,
+      signedTransactionBase64: Buffer.from(transactionBytes).toString('base64'), signature, sender: signer.toSuiAddress() }));
   if (context) context.nativeMutation = { transactionHash: originalDigest, executionSucceeded: null };
   let response;
   try {

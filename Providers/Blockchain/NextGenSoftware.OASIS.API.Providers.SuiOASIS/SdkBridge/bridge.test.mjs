@@ -14,6 +14,24 @@ function offlineTransaction(signer) {
   return tx;
 }
 const originalDigest = await offlineTransaction(Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7))).getDigest();
+test('official Sui signing awaits prepared persistence and rejection prevents submission', async () => {
+  const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  for(const reject of [false,true]) {
+    const order=[],failure=new Error('controlled durable persistence failure');
+    const client={async executeTransaction(request){
+      order.push('submit');return {Transaction:{digest:await Transaction.from(request.transaction).getDigest(),status:{success:true}}};
+    },async waitForTransaction(){}};
+    const operation=withNativeMutationEvidence(()=>execute(client,offlineTransaction(signer),signer),async evidence=>{
+      order.push('prepare');assert.equal(Object.isFrozen(evidence),true);
+      const bytes=Buffer.from(evidence.signedTransactionBase64,'base64');
+      assert.equal(await Transaction.from(bytes).getDigest(),evidence.transactionHash);
+      assert.equal((await verifyTransactionSignature(bytes,evidence.signature)).toSuiAddress(),evidence.sender);
+      await Promise.resolve();if(reject)throw failure;order.push('persisted');
+    });
+    if(reject){await assert.rejects(operation,error=>error===failure && !sdkErrorEnvelope(error).nativeMutation);assert.deepEqual(order,['prepare']);}
+    else {await operation;assert.deepEqual(order,['prepare','persisted','submit']);}
+  }
+});
 
 test('post-execution mapping errors retain verified original evidence across the whole operation', async () => {
   const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
