@@ -78,6 +78,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
             var managerField=typeof(Program).GetField("_avatarManager",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
             var priorManager=managerField.GetValue(null);
             var priorDna=NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA;
+            var deleted=false;
             try
             {
                 (await local.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
@@ -101,12 +102,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                         await response.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
                     body.Should().NotBeNull();body!.IsError.Should().BeFalse(body.Message);
                 }
+                (await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
+                deleted=true;
+                using var stale=new HttpRequestMessage(HttpMethod.Get,"/api/hyperdrive/mode");
+                stale.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",encoded);
+                var denied=await _client.SendAsync(stale);
+                denied.StatusCode.Should().Be(HttpStatusCode.Unauthorized,"authoritative absence is not a provider outage");
+                (await denied.Content.ReadAsStringAsync()).Should().Contain("INVALID_AVATAR");
             }
             finally
             {
                 managerField.SetValue(null,priorManager);
                 NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA=priorDna;
-                (await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
+                if(!deleted)(await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
                 await local.DeActivateProviderAsync();
                 if(local is IDisposable disposable)disposable.Dispose();
             }

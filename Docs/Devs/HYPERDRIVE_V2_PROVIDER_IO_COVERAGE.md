@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Authoritative absence regression/live HTTP proof (2026-10-11)
+
+Current Core suite **356/356**, shared storage **29/29**, zero skips (`core-current.trx`, `TestResults/SharedStorageCurrent/shared-current.trx`). Added converter guards prove legacy-coded absence and exception/payload-bearing errors retain `IsError`; terminal V2 absence tests prevent secondary reads. Rebuilt WEB4 host succeeds; real HTTP suite **11/11**, zero skips, 17 seconds verifies the same valid JWT returns HTTP **401/INVALID_AVATAR** after its avatar is hard-deleted from LocalFile and the retained real Sui ledger, not HTTP 503. Existing-avatar requests still perform one measured V2 provider read each. Owned Sui PID 36020 stopped by validated helper; test avatars removed and static DNA/manager restored. This closes the scoped deleted-avatar mismatch for shared/Sui storage, not all provider error-code adoption, complete operation matrix, Hedera or remaining API/deployment gates. No downloads/install/ledger reset/merge.
+
 ### Explicit authoritative-absence contract implementation (2026-10-11)
 
 Common error code `OASIS_RECORD_NOT_FOUND` identifies successful store reads that establish absence. Shared avatar ID/index/detail and holon loads retain direct/legacy `IsError=true` semantics but emit this code, propagating it through detail-index lookup. V2 conversion alone treats coded null record responses without an exception as terminal non-error null; payload-bearing, uncoded or exception-bearing failures are not normalized. No message parsing or mutation retries. Common/Core/shared bounded builds succeed; two router tests pass **2/2**, zero skips (`v2-authoritative-not-found.trx`) proving ordinary/coded null never calls a secondary provider. Core commit `58b7fc7d9f7896a61869a119a90c5039c7585bdd` pushed and parent manifest/gitlink advanced together. Shared full regression, corrupted-response/legacy characterization and deleted-avatar real HTTP verification remain due; this is implementation checkpoint, not completed release gate or deploy/merge.
