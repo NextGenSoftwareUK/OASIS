@@ -1,12 +1,29 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 
 [TestClass,DoNotParallelize]
 public class SuiRealPreparationTests
 {
+    private sealed class OfflineAuthority(string user):HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
+        {
+            var body=await request.Content!.ReadAsStringAsync(token);
+            object response;
+            if(request.RequestUri!.AbsolutePath.EndsWith("authorize")){
+                var input=JsonSerializer.Deserialize<UsageAuthorizationRequest>(body)!;
+                response=new SubscriptionAuthorizationResult{Allowed=true,StatusCode=200,UserId=user,OperationId=input.OperationId,Status="authorized",ExpiresAtUtc=DateTime.UtcNow.AddMinutes(1)};
+            }else if(request.RequestUri.AbsolutePath.EndsWith("start")){
+                var input=JsonSerializer.Deserialize<UsageStartRequest>(body)!;
+                response=new UsageStartResult{Started=true,OperationId=input.OperationId,Status="executing"};
+            }else throw new InvalidOperationException("Unexpected offline authority request.");
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(response),System.Text.Encoding.UTF8,"application/json")};
+        }
+    }
     [TestMethod]
     public void PreparationFactoryCannotInventAnAdmittedExecution()
     {
@@ -47,12 +64,14 @@ public class SuiRealPreparationTests
         var database="usage_sui_signed_test_"+Guid.NewGuid().ToString("N");
         var mongo=new MongoDB.Driver.MongoClient(connection);
         var store=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.MongoUsageOutboxStore(connection,database);
-        var operationId=Guid.NewGuid().ToString("N");var owner=Guid.NewGuid().ToString("N");
         try {
             await store.InitializeAsync(deadline.Token);
-            Assert.IsTrue(await store.TryBeginAsync(new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageOutboxOperation{
-                Id=operationId,UserId="owned-signed-test",Service="test",ExecutionOwner=owner,LeaseUntilUtc=DateTime.UtcNow.AddMinutes(1)
-            },deadline.Token));
+            var user=Guid.NewGuid().ToString("D");
+            using var authorityHttp=new HttpClient(new OfflineAuthority(user));
+            var authority=new Web4SubscriptionAuthorizationClient(authorityHttp,"https://offline-authority.test","WEB6","test-only-service-key");
+            var executor=new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)});
+            var execution=await executor.BeginAsync("test-only-bearer",user,"signed-test-idempotency",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var operationId=execution.OperationId;
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);
             var error=child.StandardError.ReadToEndAsync(deadline.Token);
             await child.WaitForExitAsync(deadline.Token);
@@ -60,28 +79,19 @@ public class SuiRealPreparationTests
             using var signed=JsonDocument.Parse(await output);
             using var provider=new SuiOASIS("http://127.0.0.1:1","localnet");
             await provider.VerifyOriginalSignedPreparationAsync(signed.RootElement,deadline.Token);
-            var verifiedCalls=0;
-            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
-                await provider.VerifyOriginalSignedPreparationAsync(evidence,token);
-                await store.BeginProviderAttemptAsync(operationId,owner,new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProviderAttempt{
-                    ClientRequestId="signed-preparation",Provider="SuiOASIS",ProviderRequestId=evidence.GetProperty("transactionHash").GetString(),StartedAtUtc=DateTime.UtcNow,
-                    NativePreparation=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageNativePreparation{
-                        ChainId="offline-test-chain",Sender=evidence.GetProperty("sender").GetString(),
-                        SignedTransactionBase64=evidence.GetProperty("signedTransactionBase64").GetString(),Signature=evidence.GetProperty("signature").GetString()
-                    }
-                },token);
-                verifiedCalls++;
-            });
+            var bound=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText())!;
+            bound["chainId"]="offline-test-chain";
+            using var boundEvidence=JsonDocument.Parse(JsonSerializer.Serialize(bound));
+            using var server=provider.CreateNativePreparationServer(execution,"signed-preparation","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var serve=server.ServeAsync(deadline.Token);
             using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
                 await pipe.ConnectAsync(deadline.Token);
-                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=signed.RootElement})+"\n");
+                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=boundEvidence.RootElement})+"\n");
                 await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
                 using var reader=new StreamReader(pipe);
                 using var ack=JsonDocument.Parse(await reader.ReadLineAsync(deadline.Token) ?? throw new InvalidOperationException("Verification acknowledgement absent."));
                 Assert.IsTrue(ack.RootElement.GetProperty("persisted").GetBoolean());
                 Assert.AreEqual(signed.RootElement.GetProperty("transactionHash").GetString(),ack.RootElement.GetProperty("transactionHash").GetString());
-                Assert.AreEqual(1,verifiedCalls);
             }
             await serve;
             Assert.AreEqual(signed.RootElement.GetProperty("transactionHash").GetString(),server.PreparedTransactionId);
