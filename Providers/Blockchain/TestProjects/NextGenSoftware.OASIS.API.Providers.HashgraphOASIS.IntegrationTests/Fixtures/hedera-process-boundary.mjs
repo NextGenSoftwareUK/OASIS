@@ -18,9 +18,9 @@ if(envelope.action==='storageDelete') {
 } else {
   const stage=envelope.request.fixtureStage??'readback';
   const beforeSubmission=['construction','signing','validation'].includes(stage);
-  process.stderr.write(JSON.stringify({transactionId:envelope.request.transactionId,
-    mutationTransactionId:beforeSubmission?undefined:envelope.request.transactionId,
-    approvalTransactionId:beforeSubmission?undefined:envelope.request.approvalTransactionId,
+  process.stderr.write(JSON.stringify({transactionId:stage==='null-primary'?null:stage==='wrong-primary'?'untrusted-other-id':envelope.request.transactionId,
+    mutationTransactionId:beforeSubmission?undefined:stage==='wrong-mutation'?'untrusted-other-id':envelope.request.transactionId,
+    approvalTransactionId:beforeSubmission?undefined:stage==='wrong-approval'?'untrusted-other-id':envelope.request.approvalTransactionId,
     stage,status:'CONTRACT_REVERT_EXECUTED'}));
   process.exitCode=1;
 }

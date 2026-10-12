@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera failure identity validation — 2026-10-12
+
+The C# SDK process boundary now rejects failure metadata that substitutes a foreign primary, approval or escrow-mutation transaction ID. Invalid metadata retains the originally requested mutation ID, discards unverified partial approval/status fields, and requires reconciliation rather than enabling HyperDrive replay. A null reported primary ID no longer erases the original ID. Reported identities at unknown stages are treated as uncertain mutations; known construction/signing/validation failures retain their existing pre-submission classification unless a completed approval is reported.
+
+Verification: bounded provider build succeeded (0 errors, 2 existing warnings); the selected non-funded Hedera C# suite passed **241/241**, zero skips, using the retained SDK installation and controlled process fixtures. Report: `TestResults/HederaCurrent/hedera-response-validation.trx` (fixed reusable path). Selection excludes `HederaTestnet` and `ActualProcessTimeout`; this is not a new funded ledger, timeout or full live policy certification. No runtime installation, ledger reset, sponsored spending, deployment or Development merge occurred. Free C: space after verification was approximately 101.14 GB (decimal); the user's 150 GB target remains unmet.
+
 ### Hedera successful-exit mutation reply validation (2026-10-12)
 
 C# previously accepted any JSON after a zero-exit SDK process, leaving missing or mismatched mutation fields to fail later as ordinary mapping errors. Mutating replies now require a matching original requested transaction ID and explicit string `SUCCESS`. Invalid JSON, non-object data, absent/mismatched identity and failed/malformed status return reconciliation-required errors retaining the original requested ID, with no inferred native outcome/status. A syntactically successful process exit is not ledger proof. Read/non-mutation replies retain their existing contract.
