@@ -136,6 +136,7 @@ public class TronUnknownBroadcastEvidenceTests
         public Transaction Signed = null!;
         public int BroadcastCount;
         public int SignCount;
+        public string? ReplacementSigningKey;
         public bool BroadcastAccepted;
         public Action? BeforeBroadcast;
         public Exception Interruption = new TimeoutException("controlled transport interruption");
@@ -144,7 +145,7 @@ public class TronUnknownBroadcastEvidenceTests
             if (method!.Name == nameof(ITransactionClient.GetTransactionSign))
             {
                 SignCount++;
-                return Signer.GetTransactionSign((Transaction)args![0]!, (string)args[1]!);
+                return Signer.GetTransactionSign((Transaction)args![0]!, ReplacementSigningKey ?? (string)args[1]!);
             }
             if (method.Name == nameof(ITransactionClient.BroadcastTransactionAsync))
             {
@@ -168,8 +169,9 @@ public class TronUnknownBroadcastEvidenceTests
         }
     }
     [Theory]
-    [InlineData(false,false,false)] [InlineData(true,false,false)] [InlineData(false,true,false)] [InlineData(false,false,true)]
-    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared)
+    [InlineData(false,false,false,false)] [InlineData(true,false,false,false)] [InlineData(false,true,false,false)] [InlineData(false,false,true,false)]
+    [InlineData(false,false,true,true)]
+    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), genesis);
@@ -179,6 +181,7 @@ public class TronUnknownBroadcastEvidenceTests
         var proxy = DispatchProxy.Create<ITransactionClient, InterruptedTransactionProxy>();
         var controlled = (InterruptedTransactionProxy)(object)proxy;
         controlled.Signer = signer;
+        if(wrongSignature)controlled.ReplacementSigningKey=new string('0',63)+"2";
         controlled.BroadcastAccepted=broadcastAccepted;
         if(broadcastAccepted){
             var confirmationWallet=DispatchProxy.Create<IWalletClient,InterruptedConfirmationWalletProxy>();
@@ -214,7 +217,11 @@ public class TronUnknownBroadcastEvidenceTests
         transaction.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferContract,
             Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TransferContract{OwnerAddress=owner,ToAddress=owner,Amount=1})});
         var submit = (Task<string>)typeof(TronNativeTransferClient).GetMethod("SignBroadcastConfirmAsync", flags)!.Invoke(client,
-            new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null })!;
+            new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null, null })!;
+        if(wrongSignature){
+            await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>submit);
+            Assert.Equal(1,controlled.SignCount);Assert.Equal(0,preparationCalls);Assert.Equal(0,controlled.BroadcastCount);return;
+        }
         if(persistenceRejected){
             Assert.Same(persistenceFailure,await Assert.ThrowsAsync<InvalidOperationException>(()=>submit));
             Assert.Equal(1,preparationCalls);Assert.Equal(1,controlled.SignCount);Assert.Equal(0,controlled.BroadcastCount);return;

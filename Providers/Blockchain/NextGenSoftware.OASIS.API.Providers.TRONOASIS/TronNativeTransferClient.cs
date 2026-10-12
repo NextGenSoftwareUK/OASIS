@@ -447,7 +447,7 @@ public sealed class TronNativeTransferClient
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         if (raw.Timestamp < now - 60000 || raw.Timestamp > now + 60000 || raw.Expiration <= now)
             throw new InvalidOperationException("TRON node returned stale or invalid transaction timestamps.");
-        return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo, cancellationToken);
+        return await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, memo, cancellationToken, verifiedAuthority: authority);
     }
 
     internal static long NativeUnits(decimal amount)
@@ -1005,7 +1005,8 @@ public sealed class TronNativeTransferClient
 
     private async Task<string> SignBroadcastConfirmAsync(Transaction transaction, string privateKey, string memo,
         CancellationToken cancellationToken, bool requireContractSuccess = false, bool requireTransferReturn = false,
-        bool allowVoidContractReturn = false, System.Numerics.BigInteger? expectedContractAmount = null)
+        bool allowVoidContractReturn = false, System.Numerics.BigInteger? expectedContractAmount = null,
+        Account verifiedAuthority = null)
     {
         var raw = transaction.RawData;
         if (raw.Contract.Count != 1 || raw.Contract[0].PermissionId != 0)
@@ -1020,8 +1021,14 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON signer returned an unsigned or altered transaction.");
         var digest = SHA256.HashData(signed.RawData.ToByteArray());
         var transactionId = Convert.ToHexString(digest).ToLowerInvariant();
+        var encoded = Convert.ToBase64String(signed.ToByteArray());
+        var owner = OriginalOperationOwner(raw.Contract[0]).ToByteArray();
+        if (verifiedAuthority == null)
+            TronPreparationVerifier.VerifyOriginal(encoded, transactionId, owner, _contractFeeLimitSun);
+        else
+            TronPreparationVerifier.VerifyWithAccountAuthority(encoded, transactionId, owner, _contractFeeLimitSun, verifiedAuthority);
         if(_persistPreparedSubmission!=null)
-            await _persistPreparedSubmission(transactionId,_genesisBlockId,Convert.ToBase64String(signed.ToByteArray()),cancellationToken);
+            await _persistPreparedSubmission(transactionId,_genesisBlockId,encoded,cancellationToken);
         // Broadcast exactly once; receipt polling never constructs or submits a replacement.
         Return broadcast;
         try
