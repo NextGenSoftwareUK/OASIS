@@ -13,7 +13,7 @@ public class TronPermissionRpcTests
     private static Method<TRequest,TResponse> Rpc<TRequest,TResponse>(string service,string name,MessageParser<TRequest> request,MessageParser<TResponse> response)
         where TRequest:class,IMessage<TRequest> where TResponse:class,IMessage<TResponse>
         =>new(MethodType.Unary,service,name,Marshallers.Create<TRequest>(value=>value.ToByteArray(),bytes=>request.ParseFrom(bytes)),Marshallers.Create<TResponse>(value=>value.ToByteArray(),bytes=>response.ParseFrom(bytes)));
-    private sealed class SolidNode(ByteString genesis,bool foreignAccount,bool emptyAccount=false,bool unavailable=false)
+    private sealed class SolidNode(ByteString genesis,bool foreignAccount,bool emptyAccount=false,bool unavailable=false,bool denied=false)
     {
         public int AccountQueries;
         public Task<BlockExtention> GetBlockByNum2(NumberMessage request,ServerCallContext context)
@@ -24,7 +24,7 @@ public class TronPermissionRpcTests
             if(unavailable)throw new RpcException(new Status(StatusCode.Unavailable,"controlled unavailable account query"));
             if(emptyAccount)return Task.FromResult(new Account());
             var address=request.Address.ToByteArray();if(foreignAccount)address[1]^=1;
-            var account=new Account{Address=ByteString.CopyFrom(address),OwnerPermission=new Permission{Id=0,Threshold=1}};
+            var account=new Account{Address=ByteString.CopyFrom(address),OwnerPermission=new Permission{Id=0,Threshold=denied?2:1}};
             account.OwnerPermission.Keys.Add(new Key{Address=account.Address,Weight=1});return Task.FromResult(account);
         }
     }
@@ -32,10 +32,11 @@ public class TronPermissionRpcTests
     [InlineData("valid")] [InlineData("foreign-account")] [InlineData("wrong-genesis")]
     [InlineData("wrong-solidity")] [InlineData("empty-account")] [InlineData("unavailable")]
     [InlineData("prepared")]
+    [InlineData("prepared-denied")]
     public async Task LoaderUsesActualGrpcAndRejectsMismatchedAuthority(string mode)
     {
         var expected=new string('a',64);var served=ByteString.CopyFrom(Convert.FromHexString(mode=="wrong-genesis"||mode=="wrong-solidity"?new string('b',64):expected));
-        var solid=new SolidNode(served,mode=="foreign-account",mode=="empty-account",mode=="unavailable");
+        var solid=new SolidNode(served,mode=="foreign-account",mode=="empty-account",mode=="unavailable",mode=="prepared-denied");
         var service=ServerServiceDefinition.CreateBuilder()
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=mode=="wrong-solidity"?ByteString.CopyFrom(Convert.FromHexString(expected)):served}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),solid.GetBlockByNum2)
@@ -47,10 +48,10 @@ public class TronPermissionRpcTests
             await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),expected);
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
             var address=new TronNet.TronECKey(new string('0',63)+"1",TronNet.TronNetwork.MainNet).GetPublicAddress();
-            if(mode=="valid"||mode=="prepared"){
+            if(mode=="valid"||mode=="prepared"||mode=="prepared-denied"){
                 var account=await runtime.NativeTransfers.LoadPermissionAuthorityAsync(address,deadline.Token);
                 Assert.Equal(21,account.Address.Length);Assert.NotNull(account.OwnerPermission);Assert.Equal(1,solid.AccountQueries);
-                if(mode=="prepared"){
+                if(mode=="prepared"||mode=="prepared-denied"){
                     const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
                     var database="usage_tron_rpc_test_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
                     try{
@@ -69,6 +70,11 @@ public class TronPermissionRpcTests
                         var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
                         var view=runtime.CreatePreparedNativeTransfersWithAccountAuthority(execution,"prepared",address);
                         var callback=(Func<string,string,string,CancellationToken,Task>)typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!.GetValue(view)!;
+                        if(mode=="prepared-denied"){
+                            await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>callback(id,expected,encoded,deadline.Token));
+                            var rejected=await store.GetAsync(execution.OperationId,deadline.Token);
+                            Assert.Empty(rejected.ProviderAttempts);Assert.Equal(0,rejected.NativePreparationBytes);Assert.Equal(2,solid.AccountQueries);return;
+                        }
                         await callback(id,expected,encoded,deadline.Token);
                         var stored=await store.GetAsync(execution.OperationId,deadline.Token);Assert.Single(stored.ProviderAttempts);
                         Assert.Equal(encoded,stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);Assert.Equal(id,stored.ProviderAttempts[0].ProviderRequestId);
