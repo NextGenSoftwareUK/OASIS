@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationT
 [TestClass]
 public class CosmosAssetTests
 {
+    public TestContext TestContext { get; set; } = null!;
     private CosmosBlockChainOASIS _provider = null!;
     private string _owner = null!;
     private string _recipient = null!;
@@ -15,6 +16,8 @@ public class CosmosAssetTests
     private string _recipientKey = null!;
     private string _recipientPublicKey = null!;
     private string _ownerPublicKey = null!;
+    private string? _ownedSymbol;
+    private string? _ownedNftAddress;
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real Cosmos test setting {name} is required; no skipped or mocked evidence.");
 
@@ -33,24 +36,74 @@ public class CosmosAssetTests
         var ownerKey = await _provider.RestoreAccountAsync(Required("OASIS_COSMOS_TEST_KEY"));
         Assert.IsFalse(ownerKey.IsError, ownerKey.Message);
         _ownerPublicKey = ownerKey.Result.PublicKey;
-        var wallet = await _provider.GenerateKeyPairAsync();
-        Assert.IsFalse(wallet.IsError, wallet.Message);
-        _recipient = wallet.Result.WalletAddressLegacy;
-        _recipientKey = wallet.Result.PrivateKey;
-        _recipientPublicKey = wallet.Result.PublicKey;
-        var funded = await _provider.SendTransactionAsync(_owner, _recipient, 100000, "Cosmos asset test actor gas");
-        Assert.IsFalse(funded.IsError, funded.Message);
+        // Reuse the same public local-only actor as native-transfer tests; never lose its signing identity after a failed run.
+        _recipientKey = new string('0',63) + "2";
+        var wallet = await CosmosTransferTests.InvokeSdk("restoreKey", new { privateKey = _recipientKey });
+        _recipient = wallet.GetProperty("address").GetString()!;
+        _recipientPublicKey = wallet.GetProperty("publicKey").GetString()!;
+        var balance = await _provider.GetAccountBalanceAsync(_recipient);
+        Assert.IsFalse(balance.IsError, balance.Message);
+        if (balance.Result < 100000m)
+        {
+            var funded = await _provider.SendTransactionAsync(_owner, _recipient, 100000m - balance.Result, "Cosmos reusable asset actor gas");
+            Assert.IsFalse(funded.IsError, funded.Message);
+        }
     }
 
     [TestCleanup]
-    public void Cleanup() => _provider?.Dispose();
+    public async Task Cleanup()
+    {
+        try
+        {
+            if (_ownedSymbol != null)
+            {
+                var token = await _provider.GetCustomTokenAsync(_ownedSymbol);
+                Assert.IsFalse(token.IsError, token.Message);
+                if (token.Result.GetProperty("locked").GetBoolean())
+                    Assert.IsFalse((await _provider.UnlockTokenAsync(new UnlockWeb3TokenRequest { TokenAddress = _ownedSymbol })).IsError);
+                foreach (var actor in new[] { (_owner,_ownerPublicKey,string.Empty), (_recipient,_recipientPublicKey,_recipientKey) })
+                {
+                    var balance = await _provider.GetCustomTokenBalanceAsync(_ownedSymbol,actor.Item1);
+                    Assert.IsFalse(balance.IsError,balance.Message);
+                    if (balance.Result > 0m)
+                    {
+                        var burned = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { TokenAddress=_ownedSymbol,Amount=balance.Result,
+                            OwnerPublicKey=actor.Item2,OwnerPrivateKey=actor.Item3,OwnerSeedPhrase=string.Empty });
+                        Assert.IsFalse(burned.IsError,burned.Message);
+                    }
+                }
+            }
+            if (_ownedNftAddress != null)
+            {
+                var nft = await _provider.LoadOnChainNFTDataAsync(_ownedNftAddress);
+                Assert.IsFalse(nft.IsError,nft.Message);
+                var owner = nft.Result.SendToAddressAfterMinting;
+                Assert.IsTrue(owner==_owner || owner==_recipient,"Refuse cleanup of a fixture transferred to an unknown owner.");
+                var state = await _provider.QueryContractAsync(_contract,new { nft = new { token_id = _ownedNftAddress.Split('#')[1] } });
+                Assert.IsFalse(state.IsError,state.Message);
+                if (state.Result.GetProperty("locked").GetBoolean())
+                {
+                    var unlocked = await _provider.ExecuteContractAsync(_contract,new { nft_set_locked = new { token_id = _ownedNftAddress.Split('#')[1],locked=false } },
+                        owner==_owner?null:_recipientKey,owner);
+                    Assert.IsFalse(unlocked.IsError,unlocked.Message);
+                }
+                var burned = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress=_ownedNftAddress,
+                    OwnerPublicKey=owner==_owner?_ownerPublicKey:_recipientPublicKey,
+                    OwnerPrivateKey=owner==_owner?string.Empty:_recipientKey,OwnerSeedPhrase=string.Empty });
+                Assert.IsFalse(burned.IsError,burned.Message);
+            }
+        }
+        finally { _provider?.Dispose(); }
+    }
 
     [TestMethod]
     public async Task CustomTokenSupplyBalancesTransferLockAndBurnAreConsensusState()
     {
         var symbol = "TREE" + Guid.NewGuid().ToString("N");
+        TestContext.WriteLine("OwnedCosmosToken=" + symbol);
         var minted = await _provider.MintTokenAsync(new MintWeb3TokenRequest { Symbol = symbol, Title = "Tree token", Amount = 12.5m });
         Assert.IsFalse(minted.IsError, minted.Message);
+        _ownedSymbol = symbol;
         var balance = await _provider.GetCustomTokenBalanceAsync(symbol, _owner);
         Assert.IsFalse(balance.IsError, balance.Message);
         Assert.AreEqual(12.5m, balance.Result);
@@ -99,6 +152,8 @@ public class CosmosAssetTests
         Assert.IsFalse(minted.IsError, minted.Message);
         Assert.IsNotNull(minted.Result.Web3NFT);
         var address = minted.Result.Web3NFT.NFTTokenAddress;
+        _ownedNftAddress = address;
+        TestContext.WriteLine("OwnedCosmosNFT=" + address);
         var tokenId = address.Split('#')[1];
         var loaded = await _provider.LoadOnChainNFTDataAsync(address);
         Assert.IsFalse(loaded.IsError, loaded.Message);
@@ -128,6 +183,7 @@ public class CosmosAssetTests
         Assert.AreEqual(BridgeTransactionStatus.Completed, (await _provider.GetTransactionStatusAsync(released.Result.TransactionId)).Result);
         var burned = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = address, OwnerPublicKey = _recipientPublicKey, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
         Assert.IsFalse(burned.IsError, burned.Message);
+        _ownedNftAddress = null;
         var absent = await _provider.LoadOnChainNFTDataAsync(address);
         Assert.IsTrue(absent.IsError, "Burned NFT must not return a synthetic basic-info record.");
         Assert.IsNull(absent.Result);
