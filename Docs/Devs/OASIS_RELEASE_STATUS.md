@@ -33,6 +33,23 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 
 ## Verification basis
 
+### Partial NuGet publication: verified 12 October 2026
+
+Run 38204827438 successfully uploaded these ten packages before the AbstractOASIS conflict. Every exact version below is present in NuGet's registry. AbstractOASIS 2.0.2 was pre-existing and is not counted as a successful upload from this run. Remaining packages are not yet complete.
+
+| Package | Verified version |
+|---|---|
+| HoloNET ORM | [4.1.4](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.ORM/4.1.4) |
+| Apollo Server | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Apollo.Server/2.0.4) |
+| API Contracts | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Contracts/2.0.4) |
+| API Core | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Core/2.0.4) |
+| Core ARC Membrane | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Core.ARC.Membrane/2.0.4) |
+| DNA | [2.0.3](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.DNA/2.0.3) |
+| Managers | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Managers/2.0.4) |
+| Native Integrated Endpoint | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/2.0.4) |
+| Native Integrated Endpoint Edge | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/1.0.2) |
+| ONODE Core | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.ONODE.Core/2.0.4) |
+
 Links and asset presence were checked using GitHub release APIs; MCP 3.1.0 was checked against NuGet and npm registries. npm's CLI entry point and package checksum match the successful publication.
 
 [Global release run 38189900873](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38189900873) built and published the three runtime releases from the verified master revision. Last check: 11 October 2026, 20:39 America/Cancun (12 October 01:39 UTC): NuGet packaging passed; Edge hApp/Android builds were still running without reported failures. Public release assets establish publication, not physical-device execution. Update this inventory after each verified publication milestone; do not mark pending builds or registry uploads as done.
