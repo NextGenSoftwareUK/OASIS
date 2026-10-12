@@ -1,7 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke, publicationArtifacts, verifiedHistoryTransaction } from './bridge.mjs';
+import { invoke, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt } from './bridge.mjs';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+test('fee receipts retain exact charged failure, payer and signed rebate without double counting', () => {
+  const payer = '0x' + 'a'.repeat(64);
+  const gasUsed = { computationCost: '9007199254740993', storageCost: '7', storageRebate: '3', nonRefundableStorageFee: '2' };
+  const tx = { digest: 'original', checkpoint: '42', timestampMs: 1, status: { success: false }, transaction: { gasData: { owner: payer } },
+    effects: { transactionDigest: 'original', gasUsed } };
+  const receipt = nativeFeeReceipt(tx, 'original');
+  assert.equal(receipt.success, false); assert.equal(receipt.payer, payer);
+  assert.equal(receipt.netUnits, '9007199254740997');
+  assert.equal(nativeFeeReceipt({ ...tx, effects: { ...tx.effects, gasUsed: { ...gasUsed, computationCost: '1', storageCost: '2', storageRebate: '7' } } }, 'original').netUnits, '-4');
+  assert.throws(() => nativeFeeReceipt(tx, 'other'));
+  assert.throws(() => nativeFeeReceipt({ ...tx, transaction: { gasData: { owner: null } } }, 'original'));
+  assert.throws(() => nativeFeeReceipt({ ...tx, checkpoint: null }, 'original'));
+  for (const value of ['-1', '01', '1.5', '18446744073709551616', 7])
+    assert.throws(() => nativeFeeReceipt({ ...tx, effects: { ...tx.effects, gasUsed: { ...gasUsed, storageCost: value } } }, 'original'));
+});
 
 test('history requires original digest and explicit outcome while preserving failed execution', () => {
   const tx = {digest:'original',status:{success:false},transaction:{sender:'owner'},timestampMs:1,effects:{},balanceChanges:[]};
