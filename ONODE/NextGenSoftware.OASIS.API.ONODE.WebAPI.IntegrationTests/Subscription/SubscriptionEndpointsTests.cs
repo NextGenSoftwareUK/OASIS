@@ -45,11 +45,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
-        [Fact]
-        public async Task WalletSendRejectsConflictingSenderAvatarBeforeManagerAccess()
+        [Theory]
+        [InlineData("id")]
+        [InlineData("username")]
+        [InlineData("email")]
+        public async Task WalletSendRejectsConflictingSenderAvatarBeforeManagerAccess(string selector)
         {
-            var response=await _authenticatedClient.PostAsJsonAsync("/api/wallet/send-token",
-                new {FromAvatarId=Guid.Parse("22222222-2222-2222-2222-222222222222"),Amount=0.001m});
+            var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb4TokenRequest {Amount=0.001m};
+            if(selector=="id")request.FromAvatarId=Guid.Parse("22222222-2222-2222-2222-222222222222");
+            if(selector=="username")request.FromAvatarUsername="another-avatar";
+            if(selector=="email")request.FromAvatarEmail="another-avatar@example.invalid";
+            var response=await _authenticatedClient.PostAsJsonAsync("/api/wallet/send-token",request);
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
             (await response.Content.ReadAsStringAsync()).Should().Contain("AVATAR_OPERATION_FORBIDDEN");
         }
@@ -98,6 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 _factory.NativeWalletManagerForTest=(NextGenSoftware.OASIS.API.Core.Managers.WalletManager)constructor.Invoke(new object[] {local,dna,providers,null});
                 var before=await sui.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy);before.IsError.Should().BeFalse();
                 var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb4TokenRequest {
+                    FromAvatarId=avatarId,FromAvatarUsername="native-http-jwt-avatar",FromAvatarEmail="native-http-jwt@example.invalid",
                     FromProvider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),ToProvider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),
                     FromTokenAddress="0x2::sui::SUI",ToWalletAddress=recipient.Result.WalletAddressLegacy,Amount=0.001m};
                 var claims=new[] {new Claim("sub",avatarId.ToString()),new Claim("id",avatarId.ToString())};

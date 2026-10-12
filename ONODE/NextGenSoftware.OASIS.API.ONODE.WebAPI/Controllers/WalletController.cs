@@ -70,11 +70,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync([FromBody] SendWeb4TokenRequest request)
         {
-            if (request.FromAvatarId != Guid.Empty && request.FromAvatarId != AvatarId)
+            if ((request.FromAvatarId != Guid.Empty && request.FromAvatarId != AvatarId)
+                || (!string.IsNullOrWhiteSpace(request.FromAvatarUsername) && !string.Equals(request.FromAvatarUsername, Avatar?.Username, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(request.FromAvatarEmail) && !string.Equals(request.FromAvatarEmail, Avatar?.Email, StringComparison.OrdinalIgnoreCase)))
             {
                 Response.StatusCode = StatusCodes.Status403Forbidden;
                 return new OASISResult<ISendWeb4TokenResponse> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
-                    Message = "Forbidden. The requested sender avatar must match the authenticated avatar." };
+                    Message = "Forbidden. All requested sender avatar selectors must match the authenticated avatar." };
             }
             return await WalletManager.SendTokenAsync(AvatarId, request);
         }
