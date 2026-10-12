@@ -91,18 +91,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
                 if (string.Equals(receiverAccountAddress,_bridgePoolWalletAddress,StringComparison.Ordinal))
                     throw new ArgumentException("Bridge deposit recipient must differ from the pool wallet.");
+                if (_nativeSigningKeyResolver == null)
+                    throw new InvalidOperationException("Bridge pool signing credentials are not configured.");
+                var key = await _nativeSigningKeyResolver(_bridgePoolWalletAddress);
+                if (!System.Text.RegularExpressions.Regex.IsMatch(key ?? "","\\A[0-9a-fA-F]{64}\\z")
+                    || !string.Equals(new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress(),_bridgePoolWalletAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Signing key does not own the canonical TRON pool address.");
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();
                     if (activation.IsError) throw new InvalidOperationException(activation.Message);
                 }
-                var hash = await ExecuteRuntimeAsync(async client =>
-                {
-                    if (_nativeSigningKeyResolver == null)
-                        throw new InvalidOperationException("Bridge pool signing credentials are not configured.");
-                    var key = await _nativeSigningKeyResolver(_bridgePoolWalletAddress);
-                    return await client.SendAsync(_bridgePoolWalletAddress, receiverAccountAddress, amount, key, null);
-                });
+                var hash = await ExecuteRuntimeAsync(client => client.SendAsync(_bridgePoolWalletAddress, receiverAccountAddress, amount, key, null));
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed
