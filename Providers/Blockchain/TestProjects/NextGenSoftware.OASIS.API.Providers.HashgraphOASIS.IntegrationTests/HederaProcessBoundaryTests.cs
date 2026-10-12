@@ -45,7 +45,7 @@ public class HederaProcessBoundaryTests
 
     [DataTestMethod]
     [DataRow("bad-json")] [DataRow("missing")] [DataRow("scalar")] [DataRow("wrong-id")]
-    [DataRow("failed")] [DataRow("bad-status")]
+    [DataRow("failed")] [DataRow("bad-status")] [DataRow("foreign-approval")] [DataRow("invalid-approval")]
     public async Task SuccessfulExitWithoutMatchingMutationReceiptCannotEnableReplay(string mode)
     {
         await WithFixture(async()=>{

@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera success approval identity — 2026-10-12
+
+Success replies now validate any non-null `approvalTransactionId` against the original requested approval ID; malformed or foreign identities require reconciliation and cannot become successful provider results. Optional/null approval remains valid because an operation need not perform an approval. Controlled process cases cover malformed and foreign approval fields. Bounded provider build: 0 errors, 2 existing warnings. Selected non-funded C# suite: **244/244**, zero skips, report `TestResults/HederaCurrent/hedera-response-validation.trx`; funded testnet and actual timeout cases excluded. No SDK/runtime installation or deployment. This boundary evidence does not complete live escrow, storage, routing-policy or durable journal gates.
+
 ### Hedera process communication failures — 2026-10-12
 
 Hedera SDK stdout/stderr use strict UTF-8 decoding. Mutation pipe I/O and decoding failures after process launch now carry the original mutation/possible approval IDs with `process-communication-unverified` evidence and the HyperDrive reconciliation marker. They do not assert ledger acceptance, failure, or fee outcome. Reader observation in cleanup no longer overwrites that primary exception with the same I/O/decoding fault. Pre-launch errors and non-mutation failures are not reclassified as native submissions.

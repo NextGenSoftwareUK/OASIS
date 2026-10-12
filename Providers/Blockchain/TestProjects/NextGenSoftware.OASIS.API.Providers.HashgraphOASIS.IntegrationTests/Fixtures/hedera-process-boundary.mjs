@@ -9,6 +9,8 @@ if(envelope.action==='storageDelete') {
  else process.stdout.write(JSON.stringify(mode==='missing'?{}:mode==='scalar'?[]:mode==='wrong-id'?{transactionId:'another-id',status:'SUCCESS'}
   :mode==='failed'?{transactionId:envelope.request.transactionId,status:'CONTRACT_REVERT_EXECUTED'}
   :mode==='bad-status'?{transactionId:envelope.request.transactionId,status:true}
+  :mode==='foreign-approval'?{transactionId:envelope.request.transactionId,status:'SUCCESS',approvalTransactionId:'untrusted-other-id'}
+  :mode==='invalid-approval'?{transactionId:envelope.request.transactionId,status:'SUCCESS',approvalTransactionId:42}
   :{transactionId:envelope.request.transactionId,status:'SUCCESS'}));
 } else if(envelope.action==='storagePut') {
   setInterval(()=>{},1000);
