@@ -102,9 +102,11 @@ public sealed class TronSdkRuntime : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if(System.Threading.Interlocked.Exchange(ref _disposed,1)!=0)return;
         try { await _services.DisposeAsync(); }
         finally { await Task.WhenAll(_fullNode.ShutdownAsync(), _solidityNode.ShutdownAsync()); }
     }
+    private int _disposed;
 
     private sealed class SharedChannels : IGrpcChannelClient
     {
