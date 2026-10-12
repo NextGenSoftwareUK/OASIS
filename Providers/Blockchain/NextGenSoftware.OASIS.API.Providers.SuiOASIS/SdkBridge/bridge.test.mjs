@@ -14,6 +14,25 @@ function offlineTransaction(signer) {
   return tx;
 }
 const originalDigest = await offlineTransaction(Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7))).getDigest();
+test('bridge entry point validates trusted preparation callback without treating wallet generation as submission', async () => {
+  await assert.rejects(invoke({operation:'generateKey'},true), /awaited callback/);
+  let preparations=0;
+  const wallet=await invoke({operation:'generateKey'},async()=>{preparations++;});
+  assert.ok(wallet.address);assert.equal(preparations,0);
+});
+test('concurrent Sui preparation callbacks remain bound to their own signed operation', async () => {
+  const seen=await Promise.all([7,8].map(async seed=>{
+    const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(seed));
+    const expected=await offlineTransaction(signer).getDigest();let preparations=0;
+    await withNativeMutationEvidence(()=>execute({async executeTransaction(request){
+      await Promise.resolve();return {Transaction:{digest:await Transaction.from(request.transaction).getDigest(),status:{success:true}}};
+    },async waitForTransaction(){}},offlineTransaction(signer),signer),async evidence=>{
+      await Promise.resolve();preparations++;assert.equal(evidence.transactionHash,expected);assert.equal(evidence.sender,signer.toSuiAddress());
+    });
+    assert.equal(preparations,1);return expected;
+  }));
+  assert.notEqual(seen[0],seen[1]);
+});
 test('official Sui signing awaits prepared persistence and rejection prevents submission', async () => {
   const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
   for(const reject of [false,true]) {
