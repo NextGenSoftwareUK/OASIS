@@ -16,6 +16,16 @@ public class SuiRealPreparationTests
     }
 
     [TestMethod]
+    public async Task PreparedProviderEntryPointRejectsMissingExecutionAndPreCancellation()
+    {
+        using var provider=new SuiOASIS("http://127.0.0.1:1","localnet");
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(()=>provider.ExecutePreparedNativeAsync("put",new{key="test",value="test"},null!,"attempt","chain","sender"));
+        using var cancelled=new CancellationTokenSource();cancelled.Cancel();
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>provider.ExecutePreparedNativeAsync("put",null!,null!,"attempt","chain","sender",cancelled.Token));
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [TestMethod]
     public async Task RealSignedEvidenceIsVerifiedThroughCSharpWithoutLedgerSubmission()
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE") ?? Path.Combine(AppContext.BaseDirectory,"SuiSdkBridge","bridge.mjs");
