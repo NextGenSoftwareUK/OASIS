@@ -303,7 +303,7 @@ jobs:
           if ($publishCandidates.Count -ne 9) { throw "Expected exactly nine reviewed Edge NuGet candidates, found $($publishCandidates.Count)." }
           Compress-Archive -LiteralPath $publishCandidates.FullName -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
           ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version '${{ needs.plan.outputs.edge_version }}' -OutputPath 'artifacts/edge-runtime-release/RELEASE_NOTES.md'
-          Compress-Archive -Path 'artifacts/edge-runtime-release/*' -DestinationPath 'artifacts/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip'
+          ./Scripts/New-OASISEdgeRuntimeArchive.ps1 -EvidenceDirectory artifacts/edge-runtime-release -OutputPath 'artifacts/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip'
       - uses: actions/upload-artifact@v7
         with:
           name: global-release-edge-runtime
