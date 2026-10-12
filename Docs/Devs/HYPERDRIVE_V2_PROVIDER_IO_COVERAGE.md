@@ -9,7 +9,7 @@ No provider is currently certified against the entire requested combination of r
 
 | Provider | Real SDK/runtime evidence | Outstanding completion work |
 |---|---|---|
-| TRONOASIS | Signed real node operations; nine current live SDK cases; current combined-branch selected V2 outage failover, replication/measured selection and karma projection | Remaining native/history paths; complete interface/options matrix and hosted routes |
+| TRONOASIS | Signed real node operations; ten current live SDK cases; current selected V2 outage failover, replication/measured selection and karma projection; current real-JWT native HTTP send | Remaining native/history paths; complete interface/options matrix and hosted routes |
 | SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; current combined-branch selected real V2 failover/replication/measured selection; eight native and four deployed-custom-coin named transfer variants | Remaining native/interface/options matrix and hosted routes |
 | CosmosBlockChainOASIS | Official SDK and retained wasmd; current selected live V2 replication/measured selection and two failover cases | Remaining native/history/interface/options matrix and hosted routes |
 | HashgraphOASIS | Official Hiero SDK; real funded HBAR transfer; latest 208/208 non-funded tests | Additional test HBAR; retained-file storage deployment; funded NFT/escrow and real V2 storage/orchestration; hosted routes |
@@ -19,6 +19,10 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4 126/126, zero skips; rebuilt WEB4 host passes. Evidence recorded at `e9302f828`. Task branch contains Development reconciliation, but parent Development/master have not received this task's merge. Hosted dev revision last checked was `f4f6beba`, not the task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Current WEB4 real-JWT native send HTTP checks (2026-10-12)
+
+Selected TRON and Sui native wallet-send HTTP integration scenarios pass **2/2**, zero skips, five seconds (`web4-native-send-current.trx`). Existing real JWT middleware, owned avatar lookup, encrypted default-wallet resolution, native SDK submission, exact +0.001 recipient balance and independent Completed receipt assertions are exercised through HTTP request/response binding. Sui case retains conflicting-recipient validation; stored encrypted private keys remain unchanged. Test-owned manager injection and disabled hosted background services remain factory boundaries, not Railway deployment proof. Existing rebuilt host/test outputs used; no download/install/new environment. Owned Sui PID 168989 stopped and TRON runtime paused afterward. Other mutation/NFT/native interfaces, corrected Cosmos lifecycle and funded Hedera/hosted certification remain open.
 
 ### Current rebuilt WEB4 authenticated read-route selection (2026-10-12)
 
