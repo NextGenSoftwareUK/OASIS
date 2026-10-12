@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos multi-send history implementation (2026-10-12)
+
+Bridge now decodes official registered MsgMultiSend protobuf messages with one input and actual output legs. Indexed native-denomination rows carry original operation and output index; no ambiguous multi-input pairing is fabricated. C# preserves existing MsgSend row GUIDs and gives multi-send outputs distinct identities. SDK test uses actual Registry encode/decode, preserves 9007199254740993 raw units and separate output indices, and rejects ambiguous inputs. SDK suite **28/28**, zero skips; preceding C# suite **48/48** and provider build pass before final row-identity refinement; final rebuild/live multi-send verification still due. User explicitly authorized retained Cosmos node resumption following prior denial; no reset/install/download/public funds authorized or performed. Full native/history/provider/deployment certification remains incomplete.
+
 ### Hosted WEB4 revision refresh (2026-10-12)
 
 Read-only Railway metadata now shows dev deployment `a72ee876-175e-405c-8a0a-4c5fef86865b` SUCCESS at Development `77c65eaa80aa06fb767715322eb97d8d3844282f`, superseding the earlier f4f6beba deployment observation. Refreshed remote Development: no commits are missing from the task branch's Development ancestry, and merge-tree preview is conflict-free. However task HEAD is not an ancestor of deployed Development; direct comparison still shows missing current Sui/Cosmos changes. Hosted anonymous HyperDrive mode returns 401; no existing ONODE_JWT_TOKEN is available in this process. This check establishes current revision/reachability/anonymous rejection only; no authenticated policy or provider behavior was claimed. No deployment, credentials/configuration mutation or image download occurred. Full release gates remain open despite textual mergeability.

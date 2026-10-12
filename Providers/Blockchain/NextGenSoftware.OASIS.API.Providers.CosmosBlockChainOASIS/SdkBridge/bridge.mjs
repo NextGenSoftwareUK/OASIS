@@ -1,6 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -85,14 +85,14 @@ async function execute(input) {
           const block = await client.getBlock(tx.height);
           for (let messageIndex = 0; messageIndex < raw.body.messages.length; messageIndex++) {
             const encoded = raw.body.messages[messageIndex];
-            if (encoded.typeUrl !== "/cosmos.bank.v1beta1.MsgSend") continue;
-            const message = registry.decode(encoded);
-            if (message.fromAddress !== address && message.toAddress !== address) continue;
-            for (const coin of message.amount)
+            for (const leg of bankTransferLegs(encoded,registry)) {
+            if (leg.from !== address && leg.to !== address) continue;
+            for (const coin of leg.coins)
               if (coin.denom === input.denom)
-                transfers.push({ hash: tx.hash, messageIndex, from: message.fromAddress,
-                  to: message.toAddress, amountUnits: coin.amount, denom: coin.denom,
+                transfers.push({ hash: tx.hash, messageIndex, transferIndex:leg.transferIndex, operation:leg.operation, from: leg.from,
+                  to: leg.to, amountUnits: coin.amount, denom: coin.denom,
                   code: tx.code, memo: raw.body.memo, time: block.header.time });
+            }
           }
         }
         return transfers;

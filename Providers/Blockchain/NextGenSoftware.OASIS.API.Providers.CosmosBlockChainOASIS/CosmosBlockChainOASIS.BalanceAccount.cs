@@ -94,13 +94,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                         || (from != walletAddress && to != walletAddress))
                         throw new InvalidOperationException("Cosmos indexed transfer identity, amount, denomination or wallet participation is invalid.");
                     var executionCode = tx.GetProperty("code").GetUInt32();
+                    var operation = tx.GetProperty("operation").GetString();
+                    var transferIndex = tx.GetProperty("transferIndex").GetInt32();
+                    if (transferIndex < 0 || (operation != "/cosmos.bank.v1beta1.MsgSend" && operation != "/cosmos.bank.v1beta1.MsgMultiSend"))
+                        throw new InvalidOperationException("Invalid Cosmos bank history operation or output index.");
+                    var rowIdentity = $"{ProviderType.Value}:tx:{hash}:{tx.GetProperty("messageIndex").GetInt32()}";
+                    if (operation == "/cosmos.bank.v1beta1.MsgMultiSend") rowIdentity += ":" + transferIndex;
                     return new Core.Interfaces.Wallet.Response.WalletTransaction
                     {
-                        TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{hash}:{tx.GetProperty("messageIndex").GetInt32()}"),
+                        TransactionId = CreateDeterministicGuid(rowIdentity),
                         NativeTransactionId = hash,
                         RawAmount = rawAmount,
                         AmountUnit = tx.GetProperty("denom").GetString(),
-                        NativeOperation = "/cosmos.bank.v1beta1.MsgSend",
+                        NativeOperation = operation,
                         NativeExecutionResult = executionCode == 0 ? "Success" : "Failed",
                         NativeError = executionCode == 0 ? null : "Cosmos execution code " + executionCode.ToString(CultureInfo.InvariantCulture),
                         TransactionType = tx.GetProperty("from").GetString() == walletAddress
