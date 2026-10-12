@@ -126,6 +126,19 @@ test('mismatched public key is rejected before opening a network client', async 
     privateKey: first.privateKey, publicKey: second.publicKey
   }), /public key/);
 });
+
+for (const action of ['tokenTransfer', 'tokenMint', 'tokenBurn', 'nftTransfer', 'nftMint', 'nftBurn']) {
+  test(`${action} rejects mismatched public key before network access`, async () => {
+    const signer = PrivateKey.generateED25519();
+    const other = PrivateKey.generateED25519();
+    await assert.rejects(execute(action, {
+      sender: '0.0.1001', recipient: '0.0.1002', tokenId: '0.0.1234', amount: '1',
+      serials: ['1'], metadata: ['owned preflight fixture'], keyType: 'der',
+      privateKey: signer.toStringDer(), publicKey: other.publicKey.toStringDer(),
+      network: 'invalid-network-must-not-be-opened'
+    }), /Signing key does not match the supplied public key/);
+  });
+}
 test('transaction payer mismatch is rejected before opening a network client', async () => {
   const key = await execute('generateKey', { keyType: 'ed25519' });
   await assert.rejects(execute('transfer', {
