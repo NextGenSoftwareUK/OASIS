@@ -10,6 +10,51 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronPermissionRpcTests
 {
+    [Theory]
+    [InlineData("valid")] [InlineData("empty")] [InlineData("foreign")] [InlineData("unavailable")]
+    public async Task AccountCreationReadbackFailurePreservesOneActualSdkSubmission(string mode)
+    {
+        var genesis=new string('a',64);var genesisBytes=ByteString.CopyFrom(Convert.FromHexString(genesis));
+        var originalId=ByteString.Empty;var broadcasts=0;var reads=0;
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"CreateAccount2",AccountCreateContract.Parser,TransactionExtention.Parser),(AccountCreateContract request,ServerCallContext context)=>{
+                var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+                tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.AccountCreateContract,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(request)});
+                return Task.FromResult(new TransactionExtention{Transaction=tx,Result=new Return{Result=true}});
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"BroadcastTransaction",Transaction.Parser,Return.Parser),(Transaction request,ServerCallContext context)=>{
+                broadcasts++;Assert.Single(request.Signature);originalId=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));return Task.FromResult(new Return{Result=true});
+            })
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),(BytesMessage request,ServerCallContext context)=>{
+                Assert.Equal(originalId,request.Value);return Task.FromResult(new TransactionInfo{Id=originalId,BlockNumber=1});
+            })
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                reads++;if(mode=="unavailable")throw new RpcException(new Status(StatusCode.Unavailable,"controlled post-confirmation readback failure"));
+                var address=request.Address.ToByteArray();if(mode=="foreign")address[1]^=1;
+                return Task.FromResult(mode=="empty"?new Account():new Account{Address=ByteString.CopyFrom(address)});
+            }).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try{
+            var port=server.Ports.Single().BoundPort;
+            await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
+            var key=new string('0',63)+"1";var owner=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
+            var created=new TronNet.TronECKey(new string('0',63)+"2",TronNet.TronNetwork.MainNet).GetPublicAddress();
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var operation=runtime.NativeTransfers.CreateLedgerAccountAsync(owner,created,key,deadline.Token);
+            if(mode=="valid"){
+                var returned=await operation;Assert.Equal(Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant(),returned);
+            }
+            else{
+                var failure=await Assert.ThrowsAsync<TronCommittedReadbackException>(()=>operation);
+                Assert.Equal(Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant(),failure.OriginalTransactionId);
+                Assert.Equal(genesis,failure.ChainGenesisId);Assert.IsAssignableFrom<NextGenSoftware.OASIS.API.Core.Interfaces.INativeMutationReconciliationRequired>(failure);
+                if(mode=="unavailable")Assert.IsType<RpcException>(failure.InnerException);else Assert.IsType<InvalidOperationException>(failure.InnerException);
+            }
+            Assert.Equal(1,broadcasts);Assert.Equal(1,reads);
+        }finally{await server.ShutdownAsync();}
+    }
     private static Method<TRequest,TResponse> Rpc<TRequest,TResponse>(string service,string name,MessageParser<TRequest> request,MessageParser<TResponse> response)
         where TRequest:class,IMessage<TRequest> where TResponse:class,IMessage<TResponse>
         =>new(MethodType.Unary,service,name,Marshallers.Create<TRequest>(value=>value.ToByteArray(),bytes=>request.ParseFrom(bytes)),Marshallers.Create<TResponse>(value=>value.ToByteArray(),bytes=>response.ParseFrom(bytes)));
