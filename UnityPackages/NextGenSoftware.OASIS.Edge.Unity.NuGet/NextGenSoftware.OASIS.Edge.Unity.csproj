@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.Edge.Unity</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Unity-specific OASIS Edge integration distribution: validated Unity package with integration scripts, asset metadata and compiled plugins. Not the standalone .NET runtime.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS;Edge;Unity;Offline;Integration</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="$(UnityPackageArchive)" Pack="true" PackagePath="tools/unity/" />
+  </ItemGroup>
+  <Target Name="RequireValidatedUnityArchive" BeforeTargets="Pack">
+    <Error Condition="'$(UnityPackageArchive)' == '' or !Exists('$(UnityPackageArchive)')" Text="UnityPackageArchive must point to the validated com.nextgensoftware.oasis.edge.tgz artifact." />
+  </Target>
+</Project>

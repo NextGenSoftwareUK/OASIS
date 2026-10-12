@@ -32,6 +32,11 @@ on:
         description: Replace only the runtime ZIP on the matching existing release (explicit maintenance)
         type: boolean
         default: false
+      distribution:
+        description: Standalone compiled libraries or Unity integration
+        type: choice
+        options: [Standalone, Unity]
+        default: Standalone
 
 permissions:
   actions: write
@@ -39,7 +44,7 @@ permissions:
 
 jobs:
   dispatch-shared-release:
-    if: inputs.validated_run_id == ''
+    if: inputs.validated_run_id == '' && inputs.distribution == 'Unity'
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch the shared validated Edge release
@@ -59,7 +64,7 @@ jobs:
           echo "The shared Global OASIS Release run was dispatched for OASIS Edge Runtime." >> "$GITHUB_STEP_SUMMARY"
 
   publish-existing-artifacts:
-    if: inputs.validated_run_id != '' && inputs.operation == 'Publish'
+    if: inputs.validated_run_id != '' && inputs.operation == 'Publish' && inputs.distribution == 'Unity'
     runs-on: windows-latest
     permissions:
       actions: read
@@ -86,7 +91,7 @@ jobs:
           if ($published.conclusion -ne 'success' -or @($published.jobs | Where-Object { $_.name -eq 'nuget-publish' -and $_.conclusion -eq 'success' }).Count -ne 1) { throw 'NuGet publication did not succeed.' }
           $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Could not check existing GitHub releases.' }
-          $existing = @($releases | Where-Object tag_name -eq "OASIS-Edge-Runtime-v$env:VERSION")
+          $existing = @($releases | Where-Object tag_name -eq "OASIS-Edge-Unity-v$env:VERSION")
           if ($existing.Count -and (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $source.headSha)) { throw 'Existing release requires explicit maintenance and the same validated source.' }
           "source_sha=$($source.headSha)" >> $env:GITHUB_OUTPUT
           "Validated binary source: $($source.headSha); NuGet source: $($published.headSha)" >> $env:GITHUB_STEP_SUMMARY
@@ -119,19 +124,42 @@ jobs:
           Compress-Archive -LiteralPath $packages.FullName -DestinationPath "$root/nuget-publish-candidates.zip" -Force
           ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version $env:VERSION -OutputPath "$root/RELEASE_NOTES.md"
           @("Reused validated binary/evidence run: $env:VALIDATED_RUN", "Included successful NuGet publication run: $env:NUGET_RUN", 'NuGet candidates and release notes were refreshed; binary validation evidence remains from the original run.') | Set-Content "$root/PUBLICATION_PROVENANCE.md"
-          $archive = "artifacts/OASIS.Edge.Runtime.v$env:VERSION.zip"
+          $archive = "artifacts/OASIS.Edge.Unity.v$env:VERSION.zip"
           ./Scripts/New-OASISEdgeRuntimeArchive.ps1 -EvidenceDirectory $root -OutputPath $archive
           # Evidence remains in workflow artifacts, not in the user-facing runtime ZIP.
           $assets = @((Resolve-Path $archive).Path)
-          $tag = "OASIS-Edge-Runtime-v$env:VERSION"
+          $tag = "OASIS-Edge-Unity-v$env:VERSION"
           $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Could not inspect existing releases.' }
           $existing = @($releases | Where-Object tag_name -eq $tag)
           if (-not $existing.Count) {
-            gh release create $tag --draft --target $env:SOURCE_SHA --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
+            gh release create $tag --draft --target $env:SOURCE_SHA --title "OASIS Edge Unity Integration v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
             if ($LASTEXITCODE -ne 0) { throw 'GitHub draft creation failed.' }
           } elseif (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $env:SOURCE_SHA) { throw 'Existing release is not an authorized matching maintenance target.' }
           gh release upload $tag @assets --clobber
           if ($LASTEXITCODE -ne 0) { throw 'GitHub asset upload failed; draft preserved for recovery.' }
           gh release edit $tag --draft=false --notes-file "$root/RELEASE_NOTES.md"
           if ($LASTEXITCODE -ne 0) { throw 'GitHub publication failed; inspect the draft.' }
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+      - name: Publish the distinct Unity NuGet distribution
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
+          $project = 'UnityPackages/NextGenSoftware.OASIS.Edge.Unity.NuGet/NextGenSoftware.OASIS.Edge.Unity.csproj'
+          $archive = (Resolve-Path 'artifacts/reused-edge/edge-runtime-release/com.nextgensoftware.oasis.edge.tgz').Path
+          dotnet pack $project -c Release -p:UnityPackageArchive="$archive" -o artifacts/unity-nuget
+          if ($LASTEXITCODE -ne 0) { throw 'Unity NuGet packing failed.' }
+          dotnet nuget push artifacts/unity-nuget/NextGenSoftware.OASIS.Edge.Unity.1.0.0.nupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
+          if ($LASTEXITCODE -ne 0) { throw 'Unity NuGet publication failed; do not blindly retry an existing immutable version.' }
+
+  standalone:
+    if: inputs.distribution == 'Standalone'
+    uses: ./.github/workflows/build-edge-standalone.yml
+    with:
+      version: ${{ inputs.manual_version }}
+      publish: ${{ inputs.operation == 'Publish' }}
+    secrets: inherit
