@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual signed Hedera factory/pipe/Mongo integration — 2026-10-12
+
+Positive actual signed evidence case now obtains execution via canonical protocol with controlled offline HTTP authority, uses public expected-key/network/sender factory and writes evidence to existing standalone Mongo before pipe acknowledgement. Readback verifies exact original ID/signed bytes and no consensus acknowledgement. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test warning remains. Exact generated `usage_hedera_signed_test_<guid>` database removed in finally; regenerable by rerunning test. Existing SDK/service reused.
+
+Authority grants test `api.request`, not real native spending. Network/account-key authority are fixtures; negative pipe case still uses controlled in-memory callback. Prepared child execution, crash recovery, stage-aware escrow and full funded/live/deployed gates remain open. No downloads, installs, consensus submissions or release merge.
+
 ### Hedera wrong-key pipe preparation rejection — 2026-10-12
 
 Actual signed evidence sent through a second real parent pipe with unrelated expected public key rejects via official SDK verifier. No acknowledgement, accepted-callback completion or retained original ID. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test-field warning remains. Persistence callback remains controlled in-memory, not Mongo proof. Owned pipes/process closed, environment settings restored.
