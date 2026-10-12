@@ -174,9 +174,9 @@ internal static class HederaSdkClient
             }
             return document.RootElement.Clone();
         }
-        catch(InvalidOperationException failure) when(!preparationObserved&&preparationServer?.PreparedTransactionId!=null)
+        catch(Exception failure) when(failure is not OperationCanceledException && preparationServer?.PreparedTransactionId!=null)
         {
-            if(failure is HederaNativeMutationReconciliationException)throw;
+            if(failure is NextGenSoftware.OASIS.API.Core.Interfaces.INativeMutationReconciliationRequired)throw;
             throw new HederaNativeMutationReconciliationException("Hedera process failed after durable preparation; reconcile the original before retrying.",
                 new HederaNativeMutationEvidence(preparationServer.PreparedTransactionId,
                     preparationServer.PreparedTransactionIds.Contains(originalApprovalId)?originalApprovalId:null,

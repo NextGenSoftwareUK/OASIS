@@ -89,21 +89,30 @@ public class HederaPreparationTests
     [DataTestMethod]
     [DataRow("nftEscrowLock",false)] [DataRow("nftEscrowLock",true)]
     [DataRow("tokenEscrowLock",false)] [DataRow("tokenEscrowLock",true)]
-    public async Task PreparedEscrowChildAcknowledgesExactOptionalSequence(string action,bool skipApproval)
+    [DataRow("nftEscrowLock",false,true)] [DataRow("tokenEscrowLock",false,true)]
+    public async Task PreparedEscrowChildAcknowledgesExactOptionalSequence(string action,bool skipApproval,bool rejectMutation=false)
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
         Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","prepared.mjs"));
         try{
             const string original="0.0.1001@1700000000.000000001",approval="0.0.1001@1700000000.000000002";
             var ids=new System.Collections.Generic.List<string>();
+            var rejection=new InvalidOperationException("controlled second-stage persistence rejection");
             using var server=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer.ForOptionalApproval((evidence,token)=>{
-                ids.Add(evidence.GetProperty("transactionHash").GetString()!);return Task.CompletedTask;
+                var id=evidence.GetProperty("transactionHash").GetString()!;
+                if(rejectMutation&&id==original)throw rejection;
+                ids.Add(id);return Task.CompletedTask;
             },approval,original);
             var client=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!;
             var method=client.GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
             var operation=(Task<JsonElement>)method.Invoke(null,new object[]{action,new{transactionId=original,approvalTransactionId=approval,mode=skipApproval?"skip-approval":"accept"},server,CancellationToken.None})!;
-            Assert.AreEqual(original,(await operation).GetProperty("transactionId").GetString());
-            CollectionAssert.AreEqual(skipApproval?new[]{original}:new[]{approval,original},ids.ToArray());
+            if(rejectMutation){
+                var failure=await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(()=>operation);
+                Assert.AreSame(rejection,failure.InnerException);
+                Assert.AreEqual(approval,failure.OriginalTransactionId);Assert.AreEqual(approval,failure.Evidence.ApprovalTransactionId);
+                Assert.AreEqual(original,failure.Evidence.MutationTransactionId);
+            }else Assert.AreEqual(original,(await operation).GetProperty("transactionId").GetString());
+            CollectionAssert.AreEqual(rejectMutation?new[]{approval}:skipApproval?new[]{original}:new[]{approval,original},ids.ToArray());
         }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
     }
     [TestMethod]
