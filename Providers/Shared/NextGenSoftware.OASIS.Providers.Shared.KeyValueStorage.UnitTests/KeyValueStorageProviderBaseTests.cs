@@ -21,13 +21,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public bool ThrowReads;
         public string FailPutKey;
         public string FailDeleteKey;
+        public int ListCalls;
 
         public Task<string> GetAsync(string key, CancellationToken ct = default) => ThrowReads
             ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
         public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw new InvalidOperationException("controlled write failure"); Items[key] = value; return Task.CompletedTask; }
         public Task DeleteAsync(string key, CancellationToken ct = default) { if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<string>>(Items.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList());
+        { ListCalls++; return Task.FromResult<IReadOnlyList<string>>(Items.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList()); }
         public Task VerifyAsync(CancellationToken ct = default) => Reachable ? Task.CompletedTask : throw new InvalidOperationException("store unreachable");
     }
 
@@ -44,6 +45,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Metadata_query_invalid_selectors_fail_before_backend_reads()
+        {
+            _backend.ThrowReads = true;
+            var invalidMode = await _provider.LoadHolonsByMetaDataAsync(new Dictionary<string, string> { ["key"] = "value" }, (MetaKeyValuePairMatchMode)999);
+            Assert.IsTrue(invalidMode.IsError); StringAssert.Contains(invalidMode.Message, "defined metadata match mode");
+            var blankPair = _provider.LoadHolonsByMetaData(new Dictionary<string, string> { [" "] = "value" }, MetaKeyValuePairMatchMode.All);
+            Assert.IsTrue(blankPair.IsError); StringAssert.Contains(blankPair.Message, "nonblank");
+            var blankSingle = await _provider.LoadHolonsByMetaDataAsync(" ", "value");
+            Assert.IsTrue(blankSingle.IsError); StringAssert.Contains(blankSingle.Message, "nonblank");
+            Assert.AreEqual(0, _backend.ListCalls);
+        }
+
         [TestMethod]
         public async Task Failed_old_parent_index_retirement_does_not_return_wrong_membership()
         {

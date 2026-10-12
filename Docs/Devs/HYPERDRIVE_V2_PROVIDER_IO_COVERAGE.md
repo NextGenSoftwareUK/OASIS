@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Shared metadata selector validation before backend access (2026-10-11)
+
+Undefined metadata match modes previously fell through to All matching. Shared metadata queries now explicitly reject undefined modes and blank single/pair keys before collection access, preserving existing valid Any/All matching. Regression uses a backend list-call counter to prove all invalid requests perform zero enumeration calls; full suite passes **59/59**, zero skips (`shared-current.trx`). Explicit provider build succeeds (zero errors/two warnings). This proves provider preflight behavior, not complete HTTP enum binding, all query types or full cross-provider live coverage. No network/install/download/new environment/merge; remaining release gates stay open.
+
 ### Cosmos default-output module and reused SDK execution (2026-10-11)
 
 Provider project explicitly copies new transaction-results.mjs into build/publish bridge assets; bounded rebuild passes and built module exists. Existing output-dependency reuse helper now supports `-Provider Cosmos` with explicit CosmosSdkBridge output, requiring matching source/output manifest and lockfile plus existing exact-pinned installation, expected junction and full bridge-import verification. Built output passes that verifier and actual Node process SDK key generation/recovery, with secret material retained only in subprocess memory/input and never printed. Initial diagnostic mistakenly read a nonexistent privateKey field from the generation response; corrected invocation uses its documented mnemonic field. Full Cosmos units remain **34/34**, zero skips. No source-bridge override/install/download/new environment/network mutation/merge. This is verified local output execution, not self-contained published image or live chain proof; remaining gates stay open.

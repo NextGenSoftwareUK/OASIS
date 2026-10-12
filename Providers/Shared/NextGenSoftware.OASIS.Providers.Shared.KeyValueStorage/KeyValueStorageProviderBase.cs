@@ -623,6 +623,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (string.IsNullOrWhiteSpace(metaKey)) return Fail<IEnumerable<IHolon>>("A nonblank metadata key is required.");
             return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, h => MetaMatches(h, metaKey, metaValue));
         }
 
@@ -632,6 +633,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) return Fail<IEnumerable<IHolon>>("At least one metadata key/value pair is required.");
+            if (metaKeyValuePairs.Keys.Any(string.IsNullOrWhiteSpace)) return Fail<IEnumerable<IHolon>>("Metadata keys must be nonblank.");
+            if (!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), metaKeyValuePairMatchMode))
+                return Fail<IEnumerable<IHolon>>("A defined metadata match mode is required.");
             bool Match(IHolon h) => metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
                 ? metaKeyValuePairs.Any(kv => MetaMatches(h, kv.Key, kv.Value))
                 : metaKeyValuePairs.All(kv => MetaMatches(h, kv.Key, kv.Value));
