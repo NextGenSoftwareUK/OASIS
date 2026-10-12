@@ -2,6 +2,39 @@ import { TimeoutError } from '@cosmjs/stargate';
 import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
 
+export function cosmosNativeFeeReceipt(tx, requestedHash) {
+  if (!tx || !/^[0-9a-fA-F]{64}$/.test(requestedHash ?? '') || tx.hash !== requestedHash.toUpperCase()
+      || !Number.isSafeInteger(tx.height) || tx.height <= 0 || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295
+      || typeof tx.gasUsed !== 'bigint' || tx.gasUsed < 0n || typeof tx.gasWanted !== 'bigint' || tx.gasWanted < 0n)
+    throw new Error('Cosmos fee receipt lacks exact committed identity, execution code or gas evidence');
+  const entries = tx.events.filter(event => event.type === 'tx' && event.attributes.some(attribute => attribute.key === 'fee'));
+  if (entries.length !== 1) throw new Error('Cosmos receipt must contain one observed fee deduction event');
+  function attribute(key) {
+    const values = entries[0].attributes.filter(item => item.key === key);
+    if (values.length !== 1 || typeof values[0].value !== 'string') throw new Error('Ambiguous or missing Cosmos fee event attribute');
+    return values[0].value;
+  }
+  const payer = attribute('fee_payer');
+  if (!fromBech32(payer, 90).data.length) throw new Error('Invalid actual Cosmos fee payer');
+  const value = attribute('fee');
+  const fees = value === '' ? [] : value.split(',').map(coin => {
+    const match = /^(0|[1-9][0-9]*)([a-zA-Z][a-zA-Z0-9/:._-]{2,127})$/.exec(coin);
+    if (!match || match[1].length > 78 || BigInt(match[1]) >= (1n << 256n)) throw new Error('Malformed exact Cosmos fee coin');
+    return { denom: match[2], amount: match[1] };
+  });
+  if (new Set(fees.map(coin => coin.denom)).size !== fees.length) throw new Error('Duplicate Cosmos fee denominations');
+  const fee = decodeTxRaw(tx.tx).authInfo.fee;
+  if (!fee) throw new Error('Signed Cosmos fee declaration is absent');
+  const normalize = coins => [...coins].filter(coin => coin.amount !== '0').map(coin => `${coin.amount}${coin.denom}`).sort();
+  if (JSON.stringify(normalize(fees)) !== JSON.stringify(normalize(fee.amount)))
+    throw new Error('Observed Cosmos fee deduction disagrees with the signed transaction');
+  if ((fee.granter && payer !== fee.granter) || (!fee.granter && fee.payer && payer !== fee.payer))
+    throw new Error('Observed Cosmos fee payer disagrees with explicit payer/granter');
+  return { transactionHash: tx.hash, success: tx.code === 0, executionCode: tx.code, height: tx.height,
+    payer, feeGranter: fee.granter || null, declaredPayer: fee.payer || null, fees,
+    gasUsed: tx.gasUsed.toString(), gasWanted: tx.gasWanted.toString(), basis: 'observed-ante-fee-deduction' };
+}
+
 export function verifiedNftCustodyReceipt(tx, expected, registry) {
   if (!tx || tx.hash !== expected.transactionHash || tx.code !== 0
       || !Number.isSafeInteger(tx.height) || tx.height <= 0)

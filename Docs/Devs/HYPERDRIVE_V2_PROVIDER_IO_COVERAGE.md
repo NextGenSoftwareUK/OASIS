@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos observed native fee deduction reader implemented (2026-10-12)
+
+Added SDK/C# `GetNativeFeeReceiptAsync`: exact canonical committed hash/height/code, observed single `tx` fee/fee_payer event, actual Bech32 payer (including fee-grant account), exact denomination/amount list matched to the signed AuthInfo fee, chain binding and exact gas counters. Missing/ambiguous/mismatched evidence fails instead of becoming zero. Basis is explicitly **observed ante fee deduction**, not an estimate, post-handler net refund, quote or fiat charge. Event semantics follow the [official Cosmos SDK deduction implementation](https://github.com/cosmos/cosmos-sdk/blob/main/x/auth/ante/fee.go); custom fee/refund chains require their own verified accounting rather than assumed compatibility.
+
+Existing installed `cosmjs-types` 0.11.0 was inspected and promoted to an exact direct manifest/lock pin for real protobuf tests; no install/download or new environment. SDK **32/32** passes (three fee tests), source packaging/import/pin verifier passes; full Cosmos C# **56/56, zero skips**, provider/integration builds zero errors/two warnings. Prepared read-only original-failure fee test builds. Live RPC status check confirms retained endpoint unavailable; no node-start policy bypass/reset was attempted and **no live Cosmos fee pass is claimed**. Successful/multi-denomination/fee-grant chain proofs, pre-submit quotation/reservation and subscription settlement remain open.
+
 ### Sui exact native fee receipts implemented and read-only live verified (2026-10-12)
 
 Added real SDK `nativeFeeReceipt` and C# provider `GetNativeFeeReceiptAsync`: exact original digest/effects identity, explicit successful/failed status, checkpoint/time presence, actual signed gas owner, observed chain identifier, SUI/MIST denomination, canonical unsigned uint64 components and exact signed net units. Per [official Sui gas documentation](https://www.docs.sui.io/develop/transaction-payment/gas-in-sui), net charge is computation plus storage minus rebate; non-refundable storage is reported, not double-added. Negative net rebates are preserved, not fabricated as zero. Numeric/rounded components, malformed payer/digest or uncheckpointed evidence fail rather than inventing a cost.

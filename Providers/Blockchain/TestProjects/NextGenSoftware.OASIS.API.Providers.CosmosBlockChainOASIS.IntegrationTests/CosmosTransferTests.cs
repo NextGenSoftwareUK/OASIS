@@ -8,6 +8,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationT
 public class CosmosTransferTests
 {
     [TestMethod]
+    public async Task OriginalFailedBankFeeReceiptRetainsObservedDeduction()
+    {
+        using var provider = Provider();
+        var hash = Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_FAILED_HASH")
+            ?? throw new InvalidOperationException("Original failure hash required; do not submit a new failure.");
+        var receipt = await provider.GetNativeFeeReceiptAsync(hash);
+        Assert.IsFalse(receipt.IsError, receipt.Message);
+        Assert.AreEqual(Chain, receipt.Result.GetProperty("chainId").GetString());
+        Assert.IsFalse(receipt.Result.GetProperty("success").GetBoolean());
+        Assert.AreEqual("observed-ante-fee-deduction", receipt.Result.GetProperty("basis").GetString());
+        var fees = receipt.Result.GetProperty("fees").EnumerateArray().ToArray();
+        Assert.IsTrue(fees.Any(coin => coin.GetProperty("denom").GetString() == "stake"
+            && System.Numerics.BigInteger.Parse(coin.GetProperty("amount").GetString()!) > 0));
+    }
+
+    [TestMethod]
     public async Task ConfirmedBankFailureIsFailedNotCanceled()
     {
         using var provider = Provider();
