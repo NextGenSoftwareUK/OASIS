@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui failed/missing status with matching receipt identity (2026-10-12)
+
+Two added pure receipt cases verify a matching digest with explicit false success maps Failed, while matching digest without an execution flag errors rather than inferring completion/failure. Full Sui units pass **32/32**, zero skips (`sui-unit-current.trx`). Read-only retained fixture-directory inventory found no failed-digest journal; earlier live failure evidence used OASIS_SUI_TEST_FAILED_DIGEST. No replacement failed transaction was submitted or current live failed-status pass claimed. Recover the original identity through bounded authoritative history or add durable pre-submission journaling before any intentionally new local failure test; do not blindly repeat submissions. No runtime/install/download/new environment/ledger mutation/merge; remaining gates stay open.
+
 ### Live Sui minted/burned digest status identity recheck (2026-10-12)
 
 Expanded encrypted-avatar-wallet NFT scenario passes **1/1**, zero skips, nine seconds (`sui-avatar-nft.trx`). Real mint and burn use the stored wallet with no provider-wide signer; independent GetTransactionStatusAsync calls verify each original digest's returned identity and classify Completed through the new guard. NFT absence after burn and encrypted-at-rest checks remain passing. Original retained node/package/ledger/SDK reused; exact owned PID 115989 stopped after terminal test completion, no Sui process remains. Fixture NFT/wallet map cleaned by test finally. This proves selected real successful status lookup, not live failed/unknown status or full API/provider/image gates. No installs/downloads/new environment/reset/public assets/merge.
