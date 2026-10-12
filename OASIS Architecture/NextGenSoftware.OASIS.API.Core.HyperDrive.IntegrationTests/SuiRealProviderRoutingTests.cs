@@ -139,6 +139,23 @@ public sealed class SuiRealProviderRoutingTests
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
             (await sui.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+            {
+                foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
+                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                    foreach (var read in new[] { router.RouteRequest<IAvatar>(request), await router.RouteRequestAsync<IAvatar>(request) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Id.Should().Be(avatar.Id); }
+                }
+                foreach (var operation in new[] { "LoadAvatarDetail", "LoadAvatarDetailByUsername", "LoadAvatarDetailByEmail" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
+                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                    foreach (var read in new[] { router.RouteRequest<IAvatarDetail>(request), await router.RouteRequestAsync<IAvatarDetail>(request) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Id.Should().Be(avatar.Id); }
+                }
+            }
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
             saved.IsError.Should().BeFalse(saved.Message);

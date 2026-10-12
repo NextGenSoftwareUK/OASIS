@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Expanded live Sui V2 indexed avatar/detail reads (2026-10-12)
+
+Existing retained-node healthy V2 scenario now executes 24 additional assertions: avatar and detail ID/username/email lookups, sync/async, explicitly targeted at both Sui and LocalFile real replicas. All pass within **1/1** scenario, zero skips, 52 seconds (`sui-v2-healthy-current.trx`), retaining replication diagnostics and measured real-provider selection/deletion assertions. Existing checkout/node/package/ledger/SDK/fixed fixtures reused; test finally cleans owned records. Exact owned PID 119626 stopped afterward; no Sui process remains. Approximately 105.77 GB decimal free during run. This expands actual routing evidence, not all 42 operations/options/native/HTTP/image gates. No installs/downloads/new environment/reset/public asset spending/merge.
+
 ### Hedera helper explicit local consensus-node forwarding (2026-10-12)
 
 Public helper accepts optional explicit transferConsensusNodes, copies the map and forwards it with transferNetwork through the existing provider's validation/SDK pipeline. No URL-based network guessing or second client implementation. Focused raw-send suite passes **5/5**, zero skips (`hedera-raw-transfer-current.trx`): controlled local request asserts exact loopback node/account projection, and local-without-nodes fails before submission. Existing testnet signer, sync/async, failure and configuration checks remain passing. Provider build succeeds (zero errors/four warnings). This closes helper configuration forwarding, not live local Hedera node execution; no such runtime was installed. Funded testnet/native/full routing/image gates remain open, no merge.
