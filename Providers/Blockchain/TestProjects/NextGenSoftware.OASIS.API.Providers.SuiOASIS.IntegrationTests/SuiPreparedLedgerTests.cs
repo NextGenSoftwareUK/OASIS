@@ -8,6 +8,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public class SuiPreparedLedgerTests
 {
     [TestMethod]
+    public async Task ExistingOriginalFeeReceiptBindsActualPayerAndExactComponents()
+    {
+        var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained RPC required.");Assert.IsTrue(new Uri(rpc).IsLoopback);
+        var hash=Environment.GetEnvironmentVariable("OASIS_SUI_SUCCESSFUL_FEE_RECEIPT")??throw new InvalidOperationException("Existing original digest required; do not mint a new receipt fixture.");
+        using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained deployment required.")));
+        var settings=deployment.RootElement;
+        using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var result=await provider.GetNativeFeeReceiptAsync(hash,deadline.Token);Assert.IsFalse(result.IsError,result.Message);
+        var receipt=result.Result;Assert.AreEqual(hash,receipt.GetProperty("transactionHash").GetString());Assert.IsTrue(receipt.GetProperty("success").GetBoolean());
+        Assert.AreEqual(settings.GetProperty("chainId").GetString(),receipt.GetProperty("chainIdentifier").GetString());
+        Assert.AreEqual(settings.GetProperty("address").GetString(),receipt.GetProperty("payer").GetString());
+        var components=receipt.GetProperty("components");
+        var expected=System.Numerics.BigInteger.Parse(components.GetProperty("computationCost").GetString()!)
+            +System.Numerics.BigInteger.Parse(components.GetProperty("storageCost").GetString()!)
+            -System.Numerics.BigInteger.Parse(components.GetProperty("storageRebate").GetString()!);
+        Assert.AreEqual(expected,System.Numerics.BigInteger.Parse(receipt.GetProperty("netUnits").GetString()!));
+        Console.WriteLine($"Original native fee verified: digest={hash}; netMIST={expected}; no submission.");
+    }
+    [TestMethod]
     public async Task ActivationVerifiesRealOwnerWithoutNetworkFee()
     {
         var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained RPC required.");
