@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos native wallet-history projection (2026-10-12)
+
+Successful indexed MsgSend rows now populate the existing NativeTransactionId, RawAmount, AmountUnit, NativeOperation, NativeExecutionResult and debit/credit fields instead of exposing only approximate double amount/description and OASIS deterministic row GUID. Raw integer units remain exact above 2^53; the existing GUID is retained as row identity, not misrepresented as chain hash. A focused projection test covers both participants and 9007199254740993 raw units. Provider build zero errors/two warnings; full C# units **40/40**, zero skips. This is DTO projection evidence, not live indexed history. The SDK history currently selects successful native-denom MsgSend only; failed transactions, MsgMultiSend and other bank/contract/token history remain explicit completeness gaps requiring implementation and live proof. No runtime/install/download/ledger mutation.
+
 ### Cosmos upload/instantiation identity integrity (2026-10-12)
 
 Inspected the retained official CosmJS UploadResult/InstantiateResult declarations: both carry committed height/hash; upload includes numeric codeId and instantiation a contractAddress. Both bridge paths now share hash/height validation; upload additionally requires a positive safe-integer code ID, and instantiation validates real bech32 checksum/nonempty bytes plus configured address prefix when supplied. Invalid returned identities preserve the original valid transaction digest in reconciliation errors, not blind resubmission. Existing pinned SDK tests **21/21**, zero skips, including malformed IDs/checksums/wrong prefix and positive result preservation. This is result-boundary evidence, not new live code deployment/contract instantiation. No downloads/install/runtime startup or ledger mutation; current live Cosmos and broader release gates remain open.

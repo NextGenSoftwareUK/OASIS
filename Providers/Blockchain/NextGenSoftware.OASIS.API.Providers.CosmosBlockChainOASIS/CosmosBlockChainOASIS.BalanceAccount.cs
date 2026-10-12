@@ -73,22 +73,34 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     new { walletAddress = request.WalletAddress, denom = _nativeDenom });
                 var transactions = new List<IWalletTransaction>();
                 foreach (var tx in indexed.EnumerateArray())
+                    transactions.Add(MapIndexedWalletTransaction(tx, request.WalletAddress));
+                result.Result = transactions;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            return result;
+        }
+
+        private IWalletTransaction MapIndexedWalletTransaction(System.Text.Json.JsonElement tx, string walletAddress)
+        {
                 {
                     var hash = tx.GetProperty("hash").GetString();
-                    transactions.Add(new Core.Interfaces.Wallet.Response.WalletTransaction
+                    return new Core.Interfaces.Wallet.Response.WalletTransaction
                     {
                         TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{hash}:{tx.GetProperty("messageIndex").GetInt32()}"),
+                        NativeTransactionId = hash,
+                        RawAmount = tx.GetProperty("amountUnits").GetString(),
+                        AmountUnit = tx.GetProperty("denom").GetString(),
+                        NativeOperation = "/cosmos.bank.v1beta1.MsgSend",
+                        NativeExecutionResult = "Success",
+                        TransactionType = tx.GetProperty("from").GetString() == walletAddress
+                            ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
                         FromWalletAddress = tx.GetProperty("from").GetString(),
                         ToWalletAddress = tx.GetProperty("to").GetString(),
                         Amount = (double)NativeDisplayAmount(tx.GetProperty("amountUnits").GetString()),
                         CreatedDate = DateTime.Parse(tx.GetProperty("time").GetString(), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal),
                         Description = $"Cosmos transaction {hash}: {tx.GetProperty("memo").GetString()}"
-                    });
+                    };
                 }
-                result.Result = transactions;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
-            return result;
         }
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
