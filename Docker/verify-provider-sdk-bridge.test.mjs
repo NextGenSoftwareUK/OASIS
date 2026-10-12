@@ -10,6 +10,8 @@ function fixture(source,dependencies={},files={}){
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'oasis-bridge-verifier-'));
  try{
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({name:'verification-fixture',dependencies}));
+  fs.writeFileSync(path.join(root,'package-lock.json'),JSON.stringify({lockfileVersion:3,packages:{
+   '':{dependencies},...Object.fromEntries(Object.entries(dependencies).map(([name,version])=>[`node_modules/${name}`,{version}]))}}));
   fs.writeFileSync(path.join(root,'bridge.mjs'),source);
   for(const [name,contents] of Object.entries(files)){
    const file=path.join(root,name);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,contents);
@@ -35,8 +37,23 @@ test('rejects unused declared SDK',()=>{
 });
 test('uses ESM conditional exports rather than CommonJS entry points',()=>{
  const result=fixture("import sdk from 'conditional-sdk';",{'conditional-sdk':'1.0.0'},{
-  'node_modules/conditional-sdk/package.json':JSON.stringify({name:'conditional-sdk',type:'module',exports:{import:'./esm.mjs',require:'./missing.cjs'}}),
+  'node_modules/conditional-sdk/package.json':JSON.stringify({name:'conditional-sdk',version:'1.0.0',type:'module',exports:{import:'./esm.mjs',require:'./missing.cjs'}}),
   'node_modules/conditional-sdk/esm.mjs':'export default {};'
  });
  assert.equal(result.status,0,result.stderr);
+});
+test('rejects an importable SDK with a different installed version',()=>{
+ const result=fixture("import sdk from 'versioned-sdk';",{'versioned-sdk':'1.0.0'},{
+  'node_modules/versioned-sdk/package.json':JSON.stringify({name:'versioned-sdk',version:'2.0.0',type:'module',exports:'./index.mjs'}),
+  'node_modules/versioned-sdk/index.mjs':'export default {};'
+ });
+ assert.notEqual(result.status,0);assert.match(result.stderr,/Installed SDK.*pinned version/);
+});
+test('rejects a lockfile that differs from the declared SDK pin',()=>{
+ const result=fixture("import sdk from 'versioned-sdk';",{'versioned-sdk':'1.0.0'},{
+  'package-lock.json':JSON.stringify({packages:{'':{dependencies:{'versioned-sdk':'1.0.0'}},'node_modules/versioned-sdk':{version:'2.0.0'}}}),
+  'node_modules/versioned-sdk/package.json':JSON.stringify({name:'versioned-sdk',version:'1.0.0',type:'module',exports:'./index.mjs'}),
+  'node_modules/versioned-sdk/index.mjs':'export default {};'
+ });
+ assert.notEqual(result.status,0);assert.match(result.stderr,/manifest\/lockfile version mismatch/);
 });
