@@ -16,7 +16,7 @@ public partial class CosmosBlockChainOASIS
     {
         token.ThrowIfCancellationRequested();
         using var server = CreateNativePreparationServer(execution, clientRequestId, expectedChainId, expectedSender);
-        return await ((CosmosSdkBackend)Backend).InvokePreparedAsync(operation, args, server, token);
+        return await _sdkBackend.InvokePreparedAsync(operation, args, server, token);
     }
 
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
@@ -30,7 +30,7 @@ public partial class CosmosBlockChainOASIS
     /// <summary>Official offline signed identity verification; no ledger submission or fee permission.</summary>
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation, CancellationToken token = default)
     {
-        var result = await ((CosmosSdkBackend)Backend).InvokeAsync("verifyNativePreparation", new { preparation }, token);
+        var result = await _sdkBackend.InvokeAsync("verifyNativePreparation", new { preparation }, token);
         if (result.ValueKind != JsonValueKind.Object || !result.TryGetProperty("verified", out var verified)
             || verified.ValueKind != JsonValueKind.True
             || !result.TryGetProperty("transactionHash", out var hash) || hash.ValueKind != JsonValueKind.String

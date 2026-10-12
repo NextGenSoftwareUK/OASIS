@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         public void Dispose()
         {
             IsProviderActivated = false;
-            ((CosmosSdkBackend)Backend).Dispose();
+            _sdkBackend.Dispose();
         }
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
             => SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).GetAwaiter().GetResult();
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 var units = checked(amount * scale);
                 if (units != decimal.Truncate(units))
                     throw new ArgumentException("Amount exceeds the native asset precision.", nameof(amount));
-                var committed = await ((CosmosSdkBackend)Backend).InvokeAsync("transfer", new
+                var committed = await _sdkBackend.InvokeAsync("transfer", new
                 {
                     fromWalletAddress,
                     toWalletAddress,

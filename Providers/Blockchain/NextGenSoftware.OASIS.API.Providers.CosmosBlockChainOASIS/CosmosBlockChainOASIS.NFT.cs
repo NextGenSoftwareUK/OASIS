@@ -256,7 +256,7 @@ public partial class CosmosBlockChainOASIS
             {
                 if (!System.Text.RegularExpressions.Regex.IsMatch(sourceTransactionHash, @"\A[0-9a-fA-F]{64}\z"))
                     throw new ArgumentException("Exact Cosmos source transaction hash required.");
-                var proof = await ((CosmosSdkBackend)Backend).InvokeAsync("verifyNftCustodyReceipt", new {
+                var proof = await _sdkBackend.InvokeAsync("verifyNftCustodyReceipt", new {
                     transactionHash = sourceTransactionHash, contractAddress = locator.Contract, tokenId = locator.TokenId, custody = pool });
                 if (!proof.GetProperty("verified").GetBoolean() || proof.GetProperty("transactionHash").GetString() != sourceTransactionHash)
                     throw new InvalidOperationException("Cosmos source custody receipt identity was not verified.");

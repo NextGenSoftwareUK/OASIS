@@ -33,7 +33,7 @@ public partial class CosmosBlockChainOASIS
         }
         if (!string.IsNullOrWhiteSpace(suppliedPublicKey))
         {
-            var restored = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey", new { privateKey = key });
+            var restored = await _sdkBackend.InvokeAsync("restoreKey", new { privateKey = key });
             if (!string.Equals(restored.GetProperty("publicKey").GetString(), suppliedPublicKey, StringComparison.Ordinal))
                 throw new ArgumentException("The supplied public key does not match the signing key.");
         }
@@ -42,7 +42,7 @@ public partial class CosmosBlockChainOASIS
 
     private async Task<string> SignerAddressAsync(string signingKey)
     {
-        var key = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey", new { privateKey = signingKey });
+        var key = await _sdkBackend.InvokeAsync("restoreKey", new { privateKey = signingKey });
         return key.GetProperty("address").GetString();
     }
 
@@ -67,7 +67,7 @@ public partial class CosmosBlockChainOASIS
         {
             if (string.IsNullOrWhiteSpace(contractAddress) || message == null)
                 throw new ArgumentException("Contract address and query message are required.");
-            result.Result = await ((CosmosSdkBackend)Backend).InvokeAsync("query",
+            result.Result = await _sdkBackend.InvokeAsync("query",
                 new { targetContractAddress = contractAddress, message }, token);
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
@@ -83,7 +83,7 @@ public partial class CosmosBlockChainOASIS
             if (string.IsNullOrWhiteSpace(contractAddress) || message == null)
                 throw new ArgumentException("Contract address and execute message are required.");
             var key = signingKey ?? await SigningKeyAsync(Guid.Empty);
-            var committed = await ((CosmosSdkBackend)Backend).InvokeAsync("execute",
+            var committed = await _sdkBackend.InvokeAsync("execute",
                 new { targetContractAddress = contractAddress, message, privateKey = key, fromWalletAddress }, token);
             var hash = committed.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash)) throw new InvalidOperationException("SDK returned no committed contract transaction hash.");
@@ -99,7 +99,7 @@ public partial class CosmosBlockChainOASIS
         try
         {
             if (wasm == null || wasm.Length == 0) throw new ArgumentException("Compiled CosmWasm bytecode is required.");
-            var uploaded = await ((CosmosSdkBackend)Backend).InvokeAsync("upload", new { wasmBase64 = Convert.ToBase64String(wasm) }, token);
+            var uploaded = await _sdkBackend.InvokeAsync("upload", new { wasmBase64 = Convert.ToBase64String(wasm) }, token);
             var codeId = uploaded.GetProperty("codeId").GetInt64();
             var hash = uploaded.GetProperty("transactionHash").GetString();
             if (codeId <= 0 || string.IsNullOrWhiteSpace(hash))
@@ -118,7 +118,7 @@ public partial class CosmosBlockChainOASIS
         {
             if (codeId <= 0 || message == null || string.IsNullOrWhiteSpace(label))
                 throw new ArgumentException("Positive code ID, instantiate message and label are required.");
-            var created = await ((CosmosSdkBackend)Backend).InvokeAsync("instantiate", new { codeId, message, label }, token);
+            var created = await _sdkBackend.InvokeAsync("instantiate", new { codeId, message, label }, token);
             var address = created.GetProperty("contractAddress").GetString();
             var hash = created.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(address) || string.IsNullOrWhiteSpace(hash))
