@@ -12,6 +12,8 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 | OASIS Runtime | Done: 5.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 5.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Runtime-v5.1.0) |
 | STAR Runtime including CLI | Done: 4.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 4.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/STAR-ODK-Runtime-v4.1.0) |
 | Edge Runtime | Done: runtime-only GitHub ZIP 1.1.0; installable Runtime/Editor payload, no test reports/logs/NuGet archives | [Release 1.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Edge-Runtime-v1.1.0) |
+| Edge standalone compiled distribution | 1.2.0 Windows/Linux/macOS five-RID build/publication dispatched; not yet verified live | [Build run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38281946908) |
+| Edge Unity integration distribution | Separate GitHub 1.1.0 and NuGet wrapper NextGenSoftware.OASIS.Edge.Unity 1.0.0 publication dispatched; not yet verified live | [Publication run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38281949903) |
 | OGEngineClient Edge and remote-only profiles | Updated release outstanding | [Existing 2.0.2](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OGEngineClient-v2.0.2) |
 | Integrated Native Endpoint | Done: 2.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 2.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.1.0) |
 | OIDE | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OIDE/releases/tag/v1.0.0) |

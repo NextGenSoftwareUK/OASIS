@@ -92,8 +92,9 @@ function Get-PackageProjects {
             [xml]$xml = Get-Content -LiteralPath $_.FullName -Raw
             $id = Get-ProjectProperty $xml 'PackageId'
             $packable = Get-ProjectProperty $xml 'IsPackable'
+            $releaseChannel = Get-ProjectProperty $xml 'OASISReleaseChannel'
             $webHost = [string]$xml.Project.Sdk -match '^Microsoft\.NET\.Sdk\.Web(?:/|$)'
-            if ($id -and $packable -ne 'false' -and (-not $webHost -or $packable -eq 'true')) {
+            if ($id -and $releaseChannel -ne 'Unity' -and $packable -ne 'false' -and (-not $webHost -or $packable -eq 'true')) {
                 [pscustomobject]@{ File = $_; Xml = $xml; PackageId = $id }
             }
         } | Sort-Object PackageId
