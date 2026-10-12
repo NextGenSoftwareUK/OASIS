@@ -42,6 +42,70 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Holon_lists_children_metadata_and_exports_read_requested_history()
+        {
+            _provider.IsVersionControlEnabled = true;
+            var owner = Guid.NewGuid(); var parent = Guid.NewGuid();
+            var holon = new Holon { Name = "first", ParentHolonId = parent, CreatedByAvatarId = owner,
+                MetaData = new Dictionary<string, object> { ["phase"] = "first" } };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            holon.Name = "second"; holon.MetaData["phase"] = "second";
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            foreach (var result in new[] {
+                await _provider.LoadAllHolonsAsync(loadChildren: false, version: 1),
+                _provider.LoadAllHolons(loadChildren: false, version: 1),
+                await _provider.LoadHolonsForParentAsync(parent, loadChildren: false, version: 1),
+                _provider.LoadHolonsForParent(parent, loadChildren: false, version: 1),
+                await _provider.LoadHolonsByMetaDataAsync("phase", "first", loadChildren: false, version: 1),
+                _provider.LoadHolonsByMetaData("phase", "first", loadChildren: false, version: 1),
+                await _provider.LoadHolonsByMetaDataAsync(new() { ["phase"] = "first" }, MetaKeyValuePairMatchMode.All, version: 1),
+                await _provider.ExportAllAsync(1), await _provider.ExportAllDataForAvatarByIdAsync(owner, 1) })
+            {
+                Assert.IsFalse(result.IsError, result.Message); Assert.AreEqual("first", result.Result.Single().Name);
+                Assert.AreEqual(1, result.Result.Single().Version);
+            }
+            Assert.AreEqual(0, (await _provider.LoadAllHolonsAsync(version: 3)).Result.Count());
+            Assert.AreEqual(0, (await _provider.LoadHolonsByMetaDataAsync("phase", "second", version: 1)).Result.Count());
+        }
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task Avatar_and_detail_lists_honor_explicit_versions_without_returning_latest_as_history(bool keepHistory)
+        {
+            _provider.IsVersionControlEnabled = keepHistory;
+            var avatar = NewAvatar();
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            var detail = new AvatarDetail { Id = avatar.Id, Karma = 10 };
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            avatar.FirstName = "updated"; detail.Karma = 20;
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            foreach (var latest in new[] { _provider.LoadAllAvatars(), await _provider.LoadAllAvatarsAsync() })
+            {
+                Assert.IsFalse(latest.IsError); Assert.AreEqual("updated", latest.Result.Single().FirstName);
+                Assert.AreEqual(2, latest.Result.Single().Version);
+            }
+            foreach (var latest in new[] { _provider.LoadAllAvatarDetails(), await _provider.LoadAllAvatarDetailsAsync() })
+            {
+                Assert.IsFalse(latest.IsError); Assert.AreEqual(20, latest.Result.Single().Karma);
+                Assert.AreEqual(2, latest.Result.Single().Version);
+            }
+            foreach (var history in new[] { _provider.LoadAllAvatars(1), await _provider.LoadAllAvatarsAsync(1) })
+            {
+                Assert.IsFalse(history.IsError); Assert.AreEqual(keepHistory ? 1 : 0, history.Result.Count());
+                if (keepHistory) { Assert.AreEqual("Thomas", history.Result.Single().FirstName); Assert.AreEqual(1, history.Result.Single().Version); }
+            }
+            foreach (var history in new[] { _provider.LoadAllAvatarDetails(1), await _provider.LoadAllAvatarDetailsAsync(1) })
+            {
+                Assert.IsFalse(history.IsError); Assert.AreEqual(keepHistory ? 1 : 0, history.Result.Count());
+                if (keepHistory) { Assert.AreEqual(10, history.Result.Single().Karma); Assert.AreEqual(1, history.Result.Single().Version); }
+            }
+            Assert.AreEqual(0, (await _provider.LoadAllAvatarsAsync(3)).Result.Count());
+            Assert.AreEqual(0, (await _provider.LoadAllAvatarDetailsAsync(3)).Result.Count());
+        }
+
         [DataTestMethod]
         [DataRow(false)]
         [DataRow(true)]

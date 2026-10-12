@@ -145,13 +145,13 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return id;
         }
 
-        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys) where T : class
+        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0) where T : class, IHolonBase
         {
             using var gate = new SemaphoreSlim(MaxParallelReads);
             var tasks = keys.Select(async key =>
             {
                 await gate.WaitAsync();
-                try { return await ReadAsync<T>(key); }
+                try { return await ReadVersionAsync(key, await ReadAsync<T>(key), version); }
                 finally { gate.Release(); }
             });
             return (await Task.WhenAll(tasks)).Where(x => x != null).ToList();
@@ -253,7 +253,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatar/");
-                return Ok<IEnumerable<IAvatar>>(await ReadAllAsync<IAvatar>(keys));
+                return Ok<IEnumerable<IAvatar>>(await ReadAllAsync<IAvatar>(keys, version));
             }
             catch (Exception ex) { return Fail<IEnumerable<IAvatar>>($"Error loading avatars: {ex.Message}", ex); }
         }
@@ -364,7 +364,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}avatardetail/");
-                return Ok<IEnumerable<IAvatarDetail>>(await ReadAllAsync<IAvatarDetail>(keys));
+                return Ok<IEnumerable<IAvatarDetail>>(await ReadAllAsync<IAvatarDetail>(keys, version));
             }
             catch (Exception ex) { return Fail<IEnumerable<IAvatarDetail>>($"Error loading avatar details: {ex.Message}", ex); }
         }
@@ -450,7 +450,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound);
                 if (loadChildren)
                 {
-                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0);
+                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, version);
                     if (children.IsError && !continueOnError) return Fail<IHolon>(children.Message);
                     holon.Children = children.Result?.ToList() ?? new List<IHolon>();
                 }
@@ -470,16 +470,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version)
         {
             var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
-            var children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))));
+            var children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version);
             var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
             if (recursive && !reachedDepth)
             {
                 foreach (var child in children)
                 {
-                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1);
+                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, version);
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }
@@ -488,7 +488,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth); }
+            try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth, version); }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons for parent {id}: {ex.Message}", ex); }
         }
 
@@ -508,7 +508,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
-                var holons = await ReadAllAsync<IHolon>(keys);
+                var holons = await ReadAllAsync<IHolon>(keys, version);
                 return Ok<IEnumerable<IHolon>>(holons.Where(h => type == HolonType.All || h.HolonType == type).ToList());
             }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons: {ex.Message}", ex); }
@@ -522,7 +522,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
             return all.IsError ? all : Ok<IEnumerable<IHolon>>(all.Result.Where(h => MetaMatches(h, metaKey, metaValue)).ToList());
         }
 
@@ -532,7 +532,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) return Fail<IEnumerable<IHolon>>("At least one metadata key/value pair is required.");
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
             if (all.IsError) return all;
             bool Match(IHolon h) => metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
                 ? metaKeyValuePairs.Any(kv => MetaMatches(h, kv.Key, kv.Value))
