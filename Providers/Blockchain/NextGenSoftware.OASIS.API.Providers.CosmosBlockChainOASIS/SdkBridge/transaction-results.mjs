@@ -12,7 +12,8 @@ export function verifiedNftCustodyReceipt(tx, expected, registry) {
     const value = registry.decode(message);
     if (value.contract !== expected.contractAddress || !value.sender || value.sender === expected.custody) return false;
     const payload = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(value.msg));
-    return payload.nft_transfer?.token_id === expected.tokenId && payload.nft_transfer?.recipient === expected.custody;
+    const transfer = payload.asset?.message?.nft_transfer;
+    return transfer?.token_id === expected.tokenId && transfer?.recipient === expected.custody;
   });
   if (matching.length !== 1) throw new Error('Cosmos source receipt does not uniquely transfer the exact NFT into custody');
   return tx;

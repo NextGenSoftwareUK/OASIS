@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos custody verifier aligned to actual OASIS contract envelope (2026-10-12)
+
+Backend/source trace confirmed `ExecuteAssetAsync` submits `{asset:{message:{nft_transfer:...}}}`. Corrected the new receipt verifier to require that actual deployed OASIS ABI rather than a top-level NFT transfer; regression rejects the unsupported unwrapped shape. SDK **29/29** passes. Updated live asset fixture to reject the NFT mint receipt as withdrawal proof, verify custody remains unchanged, and release using the actual withdrawal receipt. Integration project build passes zero errors/two warnings; **this changed live fixture has not executed** while retained-node execution remains policy-blocked. The prior controlled tests alone did not establish deployed ABI compatibility, and no live pass is inferred from this build.
+
 ### Cosmos supplied NFT custody receipt is no longer ignored (2026-10-12)
 
 `DepositNFTAsync` previously ignored `sourceTransactionHash`. A supplied source now requires exact 64-hex identity and production SDK read-only verification before release: committed matching hash/height, execution code zero, official protobuf decode, one exact `MsgExecuteContract` transfer for the selected collection/token into the configured custody wallet, from a different sender. C# also verifies the returned proof identity instead of trusting a boolean alone. Missing, failed, mismatched, ambiguous or malformed proof fails before the release execute. Null proof preserves the existing coordinator-owned direct custody release contract; this is **not** public release authorization, foreign-chain verification or a consumed-source replay registry.
