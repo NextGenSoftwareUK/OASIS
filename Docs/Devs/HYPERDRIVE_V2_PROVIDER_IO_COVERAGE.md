@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Actual API image verification preparation and allocation gate (2026-10-11)
+
+Read-only WSL/root Podman inventory confirms only retained Azure Cosmos emulator (1.69 GB), TRON (278 MB) and wasmd (214 MB) images; no API/.NET build image is cached. C: has approximately 106.02 GB decimal free. User approval requested before allocating one reusable WEB4 image/build cache (several GB) in the existing WSL environment; no build/pull/install/clone has started. Real Dockerfile is `Docker/Dockerfile.web4`; misleading header references to nonexistent Dockerfile.onode were corrected. Existing recipe restores/publishes the actual host and packages exact-pinned provider bridges. Source inspection is not image proof; approval, actual build/execution and bounded owned-layer cleanup remain gates. No goal completion or merge is claimed.
+
 ### Shared metadata selector validation before backend access (2026-10-11)
 
 Undefined metadata match modes previously fell through to All matching. Shared metadata queries now explicitly reject undefined modes and blank single/pair keys before collection access, preserving existing valid Any/All matching. Regression uses a backend list-call counter to prove all invalid requests perform zero enumeration calls; full suite passes **59/59**, zero skips (`shared-current.trx`). Explicit provider build succeeds (zero errors/two warnings). This proves provider preflight behavior, not complete HTTP enum binding, all query types or full cross-provider live coverage. No network/install/download/new environment/merge; remaining release gates stay open.
