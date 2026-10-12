@@ -8,6 +8,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public class SuiHistoryTests
 {
     [TestMethod]
+    public async Task OriginalFailedSubmissionPreservesSignedGasDebitInProviderHistory()
+    {
+        var rpc = Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") ?? throw new InvalidOperationException("Real Sui RPC is required.");
+        Assert.IsTrue(new Uri(rpc).IsLoopback);
+        var path = Environment.GetEnvironmentVariable("OASIS_SUI_FAILED_TRANSACTION_JOURNAL")
+            ?? throw new InvalidOperationException("Original failed transaction journal is required; this test never submits.");
+        using var journal = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(path));
+        var sender = journal.RootElement.GetProperty("sender").GetString()!;
+        var digest = journal.RootElement.GetProperty("digest").GetString()!;
+        var chain = journal.RootElement.GetProperty("chainId").GetString()!;
+        using var provider = new SuiOASIS(rpc, "localnet", chainId: chain);
+        var status = await provider.GetTransactionStatusAsync(digest);
+        Assert.IsFalse(status.IsError, status.Message);
+        Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Failed, status.Result);
+        var history = await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = sender });
+        Assert.IsFalse(history.IsError, history.Message);
+        var rows = history.Result.Where(row => row.NativeTransactionId == digest).ToList();
+        Assert.IsTrue(rows.Count > 0, "Original failed transaction was dropped from provider history.");
+        foreach (var row in rows)
+        {
+            Assert.AreEqual("Failed", row.NativeExecutionResult);
+            Assert.AreEqual("WalletNetBalanceChange", row.NativeOperation);
+        }
+        var gas = rows.Single(row => row.AmountUnit.EndsWith("::sui::SUI:base-unit", StringComparison.Ordinal));
+        Assert.IsTrue(System.Numerics.BigInteger.Parse(gas.RawAmount, System.Globalization.CultureInfo.InvariantCulture) < 0);
+        Assert.AreEqual(TransactionType.Debit, gas.TransactionType);
+        Assert.AreEqual(sender, gas.FromWalletAddress);
+        Assert.IsNull(gas.ToWalletAddress, "Gas is not a fabricated transfer to another wallet.");
+        Assert.IsTrue(gas.Amount > 0);
+    }
+
+    [TestMethod]
     public async Task LedgerHistoryIncludesIncomingAndOutgoingReceiptsAcrossPagesAndPropagatesFailure()
     {
         var rpc = Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") ?? throw new InvalidOperationException("Real Sui RPC is required.");
