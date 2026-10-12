@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Sui history fetched-receipt identity validation (2026-10-12)
+
+History validates that each fetched receipt matches the indexed digest and has an explicit boolean status, sender, timestamp, effects and balance-change array before projection. Failed status false remains valid history; missing/string status or null/missing timestamp cannot silently become a successful row. Added focused helper regression retaining failed receipt and rejecting mismatched/incomplete payloads; installed SDK suite **7/7**, zero skips. No install/download/runtime/ledger mutation. Prior real paged-history result predates this added validator; live recheck is still required. This does not prove live failed-history/gas projection, all metadata or complete provider interfaces.
+
 ### Current Sui paged native history verification (2026-10-12)
 
 Expanded existing real history test asserts NativeTransactionId/exact 1000000 units/WalletNetBalanceChange/Success for 53 incoming native receipts crossing the 50-record page boundary, plus sender receipt presence, unrelated empty history, wrong-chain and unavailable-RPC explicit errors. Passes **1/1**, zero skips, 68 seconds (`TestResults/SuiCurrent/sui-history-current.trx`); integration build zero errors/two warnings. Used existing pinned node/ledger and local faucet only; no downloads/reset/public funds. Owned node PID 156356 stopped afterward; free C: 103.71 GB decimal. This is bounded native history/paging proof, not failed/custom-token/nonmonetary-row coverage or complete hosted provider certification. Test creates synthetic local accounts; ledger evidence remains in the retained blockchain and is not claimed erased by node shutdown.
