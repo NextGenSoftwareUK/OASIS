@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera helper explicit local consensus-node forwarding (2026-10-12)
+
+Public helper accepts optional explicit transferConsensusNodes, copies the map and forwards it with transferNetwork through the existing provider's validation/SDK pipeline. No URL-based network guessing or second client implementation. Focused raw-send suite passes **5/5**, zero skips (`hedera-raw-transfer-current.trx`): controlled local request asserts exact loopback node/account projection, and local-without-nodes fails before submission. Existing testnet signer, sync/async, failure and configuration checks remain passing. Provider build succeeds (zero errors/four warnings). This closes helper configuration forwarding, not live local Hedera node execution; no such runtime was installed. Funded testnet/native/full routing/image gates remain open, no merge.
+
 ### Raw Hedera SDK failure envelope propagation (2026-10-12)
 
 Expanded raw-send controlled transport emits a receipt-stage INSUFFICIENT_TX_FEE failure with the original transaction ID. Existing provider SendToken boundary returns IsError/no successful result and preserves reconciliation identity without the signing key; public HashgraphClient propagates an exception rather than null/success. Positive sync/async/configuration/preflight assertions remain passing in focused **4/4** suite (`hedera-raw-transfer-current.trx`), zero skips. Fixture explicitly opens no SDK/network client and submits no ledger transaction; this verifies process/provider/helper envelope composition, not live fee failure or funded execution. No retry/install/download/new environment/merge; remaining release gates stay open.

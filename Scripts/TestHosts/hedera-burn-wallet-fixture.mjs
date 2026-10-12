@@ -2,7 +2,8 @@
 let input = ''; for await (const chunk of process.stdin) input += chunk;
 const { action, request } = JSON.parse(input);
 if (action === 'transfer') {
-  if (request.network !== 'testnet' || request.sender !== '0.0.1001' || request.recipient !== '0.0.1002'
+  const configuredNetwork = request.network === 'testnet' || (request.network === 'local' && request.nodes?.['127.0.0.1:50211'] === '0.0.3');
+  if (!configuredNetwork || request.sender !== '0.0.1001' || request.recipient !== '0.0.1002'
       || request.privateKey !== 'fixture-transfer-key' || request.tinybars !== '100000000' || request.keyType !== 'der')
     throw new Error('Controlled raw transfer projection mismatch');
 } else if (!['tokenBurn', 'tokenMint'].includes(action) || request.sender !== '0.0.1001' || request.recipient !== '0.0.1001'
