@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Visibility projection preserves authoritative provider errors (2026-10-12)
+
+Source audit confirms existing visibility default-interface overloads preserve partial warnings/metadata, but their null-payload branch overwrote **already failed** provider error code/message with generic `HOLON_COLLECTION_PAYLOAD_REQUIRED`. Fixed the producer in Core `c714d86eec1e2405b000c44c09bc66acf975064d`: existing error with no payload is returned intact; genuinely non-error null payload still fails closed. Errors carrying records still undergo ownership filtering, not an unconditional early error return that could leak another owner's data.
+
+Three new controlled cases verify original sync/async error code/message/count/exception/metadata preservation plus private-record filtering on an error result with data. Full Core **409/409, zero skips**, `TestResults/CoreCurrent/core-current.trx`; build zero errors/254 warnings. Existing partial-warning visibility regression remains passing. Core existing task branch pushed, parent gitlink/manifest advanced together. No runtime/download/new environment or fenced mutation retry. This is default-interface/router contract proof, not hosted HTTP or all-provider ownership/options certification; remaining live/billing/release gates remain open.
+
 ### Continuation does not suppress cancellation, unsupported or critical resource failures (2026-10-12)
 
 Tightened best-effort per-record filter to keep OutOfMemoryException and AccessViolationException fatal alongside cancellation, unsupported operations, JSON/identity/version corruption and argument/format failures. Added four controlled child-read cases for cancellation, unsupported, memory and integrity failures: `continueOnError=true` still returns error, null data and exception, not a partial-warning success. Synthetic memory exception is constructed/thrown without allocating stress memory; no actual process fault or node operation. Existing valid partial-data/strict/cycle behavior remains passing.
