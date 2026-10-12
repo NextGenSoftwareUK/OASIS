@@ -4,6 +4,11 @@ import {spawnSync} from 'node:child_process';
 
 const root=path.resolve(process.argv[2]);
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
+if(manifest.name==='oasis-cosmos-sdk-bridge'){
+ if(manifest.scripts?.postinstall!=='node patch-cosmjs.mjs')throw new Error('Cosmos bridge must apply its reviewed pinned SDK correction during install');
+ const verified=spawnSync(process.execPath,[path.join(root,'patch-cosmjs.mjs'),'--check'],{cwd:root,encoding:'utf8',timeout:20000});
+ if(verified.status!==0)throw new Error(`Cosmos SDK source correction missing or invalid: ${verified.stderr || verified.error?.message}`);
+}
 const external=new Set();
 for(const entry of fs.readdirSync(root).filter(name=>name.endsWith('.mjs'))){
  const file=path.join(root,entry);
