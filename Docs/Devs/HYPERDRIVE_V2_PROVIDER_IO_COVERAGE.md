@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current combined live TRON V2 storage and karma recheck (2026-10-11)
+
+At parent `6ae8a8699`, retained-node `TronRealProviderRoutingTests` and `TronKarmaRoutingTests` pass together **2/2**, zero skips, 91 seconds (`TestResults/HyperDriveTron/tron-v2-current-combined.trx`). Existing serial host reuses one runtime/ledger, fixed fixture directory and leases. Storage scenario verifies its indexed/list/metadata/search/export/delete projections, real pause-induced failover, measured-provider selection and replication/partial-failure diagnostics; karma scenario independently verifies four commands/four durable records and replicated ledger/detail/leaderboard totals. Test-output shared storage DLL hash matches current provider build. Owned logical records are removed by scenario finally blocks; retained runtime was paused after terminal test completion. No reset/download/install/new environment/public-chain spending/merge. These selected scenarios remain narrower than every operation option/provider/API/image combination; full release gates remain open.
+
 ### Hedera stored-wallet mint/burn sync and async projections (2026-10-11)
 
 Expanded existing owned-avatar regression passes **1/1**, zero skips (`hedera-avatar-burn.trx`), now exercising four provider calls: async burn without supplied signer, sync burn with matching supplied private/public keys, and async/sync mint with existing HTS token metadata. Real V2 WalletManager resolves/decrypts the marked default wallet after a decoy; controlled transport asserts the selected treasury account, plaintext fixture key, public key, amount/token/network and returns each original distinct transaction ID. Conflicting-key rejection and encrypted-at-rest checks remain passing; owned wallet map and process environment are cleaned/restored. Existing mint and escrow inspection did not reveal an additional silently ignored signer field requiring a change. This evidence remains controlled transport, not real DER cryptographic keys, HTTP or funded HTS authority/consensus. No install/download/restore/new environment/ledger mutation/merge; all remaining release gates stay open.
