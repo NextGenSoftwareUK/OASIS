@@ -138,13 +138,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private readonly string _accountId;
         private readonly string _privateKey;
         private readonly string _transferNetwork;
+        private readonly IDictionary<string, string> _transferConsensusNodes;
 
-        public HashgraphClient(string networkUrl = "https://mainnet-public.mirrornode.hedera.com", string accountId = "", string privateKey = "", string transferNetwork = "mainnet")
+        public HashgraphClient(string networkUrl = "https://mainnet-public.mirrornode.hedera.com", string accountId = "", string privateKey = "", string transferNetwork = "mainnet", IDictionary<string, string> transferConsensusNodes = null)
         {
             _networkUrl = networkUrl;
             _accountId = accountId;
             _privateKey = privateKey;
             _transferNetwork = transferNetwork;
+            _transferConsensusNodes = transferConsensusNodes == null ? null : new Dictionary<string, string>(transferConsensusNodes);
         }
 
         public async Task<string> ResolveAccountIdFromKeysAsync(string publicKey)
@@ -269,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
         {
             ArgumentNullException.ThrowIfNull(transactionData);
-            var provider = new HashgraphOASIS(network: _transferNetwork, rawTransferAccountId: _accountId, rawTransferSigningKey: () => _privateKey);
+            var provider = new HashgraphOASIS(network: _transferNetwork, consensusNodes: _transferConsensusNodes, rawTransferAccountId: _accountId, rawTransferSigningKey: () => _privateKey);
             var result = await provider.SendTransactionAsync(transactionData.FromAddress, transactionData.ToAddress, transactionData.Amount, transactionData.Memo);
             if (result.IsError) throw new InvalidOperationException(result.Message, result.Exception);
             return new HashgraphTransactionData { FromAddress = transactionData.FromAddress, ToAddress = transactionData.ToAddress,
