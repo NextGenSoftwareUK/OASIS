@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Repeatable current Hedera non-funded output regression (2026-10-11)
+
+Current output suite passes **195/195**, zero skips (`TestResults/HederaCurrent/hedera-nonfunded-current.trx`), including new token-burn seed cases. Initial filter incorrectly excluded `HederaStorageTests` rather than actual `HederaTestnetStorageTests`, causing one extra funded-storage case to fail immediately at missing private-key configuration, before provider construction/network access. The corrected run explicitly excludes both funded classes; it does not convert their pending gates to passes.
+
+New `Scripts/TestHosts/Test-ReusableHederaNonFunded.ps1` codifies bounded no-restore test-project build, existing SDK output-junction/pin verification, exact funded-class exclusions and one fixed TRX destination. Runner itself passes **195/195** with zero skips. Changed provider dependencies must be built first; the runner deliberately does not rebuild the entire graph or install dependencies. This verifies current non-funded regression/default-output dependency resolution, not funded consensus or image packaging. No download/install/new environment/ledger mutation/merge.
+
 ### Hedera SDK public-key agreement across HTS operations (2026-10-11)
 
 Six added official-SDK preflight cases cover token transfer/mint/burn and NFT transfer/mint/burn: generated DER signing keys with a different public key are rejected at signer validation. Each request deliberately supplies an invalid network configuration; the specific signer-mismatch result demonstrates rejection before client creation/network access. Full existing SDK bridge suite passes **85/85**, zero skips (`npm test`), reusing the installed exact-pinned SDK without installation or download. This verifies SDK mismatch handling, including the token-burn public-key field now forwarded by the provider; it does not independently prove provider avatar-wallet resolution/private-key agreement, successful funded authority or consensus. Those remain required checks, along with deferred funding and other release gates. No network mutation/runtime/environment allocation/merge.
