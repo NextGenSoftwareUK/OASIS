@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos read-only activation sequencing guard — 2026-10-12
+
+Added a test-only child that accepts only `probe` and rejects any put/get/delete operation. The actual C# `CosmosSdkBackend.VerifyAsync` completes through it, locking in removal of implicit activation mutations. Selected preparation suite **16/16** passed, zero skips (`cosmos-preparation-current.trx`), using retained dependencies/no restore. This fixture proves C# operation sequencing, not real contract ownership or live activation; independent SDK owner tests remain separate and the live Cosmos runtime gate remains open. No runtime startup, installation, ledger write, deployment or merge.
+
 ### Original prepared Sui native fee live verification — 2026-10-12
 
 Added a read-only integration test for an existing confirmed prepared-write digest (`CoYx7V6D6bGEp5935gAm3txioYcCBtazhoPpbrZfMZT2`). Actual provider native receipt binds that digest, success, configured chain and actual payer; exact BigInteger net MIST equals computation cost + storage cost − storage rebate, without double-counting nonrefundable storage fees. **1/1** passed, zero skips (`sui-prepared-fee-current.trx`), with exact net units in compact report output. No new transaction/fixture submitted. Same node PID 223871 stopped and handle terminal; no installs/reset/public funds. This verifies native receipt cost evidence, not conversion, reservation, user charge, settlement or sponsored-spending authorization. Remaining release gates still prevent merge.
