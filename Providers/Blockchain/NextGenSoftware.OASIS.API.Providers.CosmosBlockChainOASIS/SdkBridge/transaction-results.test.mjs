@@ -12,6 +12,7 @@ import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError, StargateClient } from '@cosmjs/stargate';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { invoke } from './bridge.mjs';
 test('official broadcast clears its polling timer when synchronous broadcast rejects', async () => {
   const client = new StargateClient(undefined, {});
   const failure = new Error('controlled precheck/transport rejection');
@@ -52,6 +53,10 @@ test('official signing waits for durable preparation and persistence failure nev
     assert.deepEqual(doc.bodyBytes,raw.bodyBytes);assert.deepEqual(doc.authInfoBytes,raw.authInfoBytes);
     const bound={...evidence,chainId:'controlled-chain',sender:address};
     assert.equal(verifyCosmosPreparedIdentity(bound).verified,true);
+    assert.equal((await invoke({operation:'verifyNativePreparation',rpcEndpoint:'http://127.0.0.1:1',preparation:bound})).verified,true);
+    await assert.rejects(invoke({operation:'verifyNativePreparation',preparation:{...bound,chainId:'wrong'}}));
+    const extendedDoc=Buffer.concat([Buffer.from(evidence.signDocBase64,'base64'),Buffer.from([0x28,0x01])]);
+    assert.throws(()=>verifyCosmosPreparedIdentity({...bound,signDocBase64:extendedDoc.toString('base64')}),/Canonical Cosmos/);
     for(const changed of [{chainId:'other'},{sender:recipient},{transactionHash:'00'.repeat(32)},{signDocBase64:'AQID'},{signedTransactionBase64:'!'}])
       assert.throws(()=>verifyCosmosPreparedIdentity({...bound,...changed}));
     const altered=TxRaw.decode(signed);altered.signatures[0][0]^=1;

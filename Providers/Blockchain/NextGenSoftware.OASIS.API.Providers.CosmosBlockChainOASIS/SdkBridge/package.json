@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": { "postinstall": "node patch-cosmjs.mjs", "test": "node --test bridge.test.mjs transaction-results.test.mjs" },
   "dependencies": {
+    "@cosmjs/amino": "0.39.0",
+    "@cosmjs/crypto": "0.39.0",
     "@cosmjs/cosmwasm": "0.39.0",
     "@cosmjs/proto-signing": "0.39.0",
     "@cosmjs/stargate": "0.39.0",
