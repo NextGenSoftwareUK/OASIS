@@ -153,15 +153,18 @@ internal sealed class SuiSdkClient : IDisposable
         {
             if (isMutation)
             {
-                const string message = "Sui native mutation process was interrupted with outcome unverified and original signed identity unavailable. Reconcile before retrying; process termination does not cancel a ledger submission.";
-                if (cancellationToken.IsCancellationRequested) throw new SuiNativeMutationCanceledException(message, ex, cancellationToken);
-                throw new SuiNativeMutationTimeoutException(message, ex);
+                var originalId = preparationServer?.PreparedTransactionId;
+                var message = "Sui native mutation process was interrupted with outcome unverified. "
+                    + (originalId == null ? "Original signed identity unavailable. " : "Durably prepared original transaction: " + originalId + ". ")
+                    + "Reconcile before retrying; process termination does not cancel a ledger submission.";
+                if (cancellationToken.IsCancellationRequested) throw new SuiNativeMutationCanceledException(message, ex, cancellationToken, originalId);
+                throw new SuiNativeMutationTimeoutException(message, ex, originalId);
             }
             throw;
         }
         catch (Exception ex) when (isMutation && (ex is IOException || ex is System.Text.DecoderFallbackException))
         {
-            throw InvalidEnvelope(true, "Sui SDK process I/O failed; native outcome is not established.", ex);
+            throw new SuiNativeMutationReconciliationException("Sui SDK process I/O failed; native outcome is not established.", preparationServer?.PreparedTransactionId, null, ex);
         }
         finally
         {
