@@ -1,0 +1,33 @@
+name: Review immutable NuGet recovery
+on:
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Original run containing the reviewed plan and packed packages
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: read
+jobs:
+  reconcile:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-plan
+          path: artifacts/original-plan
+          run-id: ${{ inputs.source_run }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-nuget-packages
+          path: artifacts/original-packages
+          run-id: ${{ inputs.source_run }}
+          github-token: ${{ github.token }}
+      - name: Compare original immutable packages with registry without publishing
+        shell: pwsh
+        run: |
+          ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/original-plan/release-plan.json -PackageDirectory artifacts/original-packages
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

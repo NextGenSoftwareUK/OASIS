@@ -584,12 +584,7 @@ if ($NuGetPackages) {
 if ($Operation -eq 'Pack') { exit 0 }
 if (-not $NuGetApiKey -and $NuGetPackages) { throw 'NUGET_API_KEY is required for Publish.' }
 if ($NuGetPackages) {
-    Get-ChildItem -LiteralPath $packageOutput -Filter '*.nupkg' |
-        Where-Object { $_.Name -notlike '*.symbols.nupkg' } |
-        ForEach-Object {
-            & dotnet nuget push $_.FullName --source https://api.nuget.org/v3/index.json --api-key $NuGetApiKey --skip-duplicate
-            if ($LASTEXITCODE -ne 0) { throw "Publishing $($_.Name) failed." }
-        }
+    & (Join-Path $PSScriptRoot 'Publish-OASISReviewedNuGet.ps1') -PlanPath $planPath -PackageDirectory $packageOutput -Publish -NuGetApiKey $NuGetApiKey
 }
 
 Write-Host 'Selected NuGet packages published. Runtime/GitHub components are built and published by global-release.yml.'
