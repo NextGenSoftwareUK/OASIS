@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Sui owned cleanup action isolation (2026-10-12)
+
+Named-transfer fixture now attempts each owned token-wallet cleanup, wallet-map clear, avatar deletion and provider deactivation independently. Exceptions are collected and thrown together as AggregateException after every action; errors are not swallowed and mutations are not automatically retried. Focused injected-failure contract test passes **1/1**, zero skips (`sui-cleanup-contract-current.trx`): first and third actions fail, middle action still executes, both errors are retained. Integration project build zero errors/five warnings. This supersedes sequential-cleanup limitation for the named-transfer fixture only; live scenario has not yet been rerun with this helper, NFT fixture cleanup is separate, and process-crash reconciliation is not established by this test. No runtime/install/download/ledger mutation. Cosmos retained-node authorization response remains pending.
+
 ### Cosmos execution-code range and live-test authorization (2026-10-12)
 
 History projection reads the native unsigned 32-bit execution code rather than signed int32, retaining valid failures through uint32.MaxValue. Expanded exact-unit/direction/outcome regression covers 4294967295; complete C# suite **48/48**, zero skips; provider build zero errors/two warnings. Negative/noninteger/out-of-range codes cannot become success. Current live runtime start remains deferred under the recorded earlier policy denial; asked the user explicitly whether the already-installed retained wasmd node may resume, with no new download/environment/reset/public funds. No bypass or startup attempted. Balance/account source inspection found no additional fix established this checkpoint; full goal remains incomplete.
