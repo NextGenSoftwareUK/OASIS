@@ -8,6 +8,9 @@ param(
     [bool]$OASISRuntime = $true,
     [bool]$STARRuntime = $true,
     [bool]$EdgeRuntime = $true,
+    [bool]$EdgeUnity = $false,
+    [bool]$OGEngineRemoteOnly = $false,
+    [bool]$OGEngineEdge = $false,
     [bool]$OGEngineClient = $true,
     [bool]$NativeEndpoint = $true,
     [bool]$MCPServer = $true,
@@ -27,6 +30,7 @@ param(
     [bool]$AdvanceWeb6ApiVersion = $false,
     [int]$ApiMinorIncrement = 2,
     [string]$ReleaseNotes = '',
+    [string]$ReviewedPlanPath = '',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\artifacts\global-release'),
     [string]$NuGetApiKey = $env:NUGET_API_KEY,
     [switch]$Offline
@@ -36,11 +40,19 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $planPath = Join-Path $OutputDirectory 'release-plan.json'
+$reviewedPlan = $null
+if ($ReviewedPlanPath) {
+    if ($Operation -ne 'Pack') { throw 'ReviewedPlanPath is supported only for Pack.' }
+    $reviewedPlan = Get-Content -LiteralPath $ReviewedPlanPath -Raw | ConvertFrom-Json
+    $sourceCommit = (& git -C $repoRoot rev-parse HEAD).Trim()
+    if ($reviewedPlan.sourceCommit -ne $sourceCommit) { throw 'The reviewed plan does not match the checked-out source commit.' }
+    if ($reviewedPlan.nugetPackageScope -ne $NuGetPackageScope) { throw 'The reviewed plan package scope does not match packing.' }
+}
 $packageOutput = Join-Path $OutputDirectory 'nuget'
 $planBlockers = [Collections.Generic.List[string]]::new()
 $versionDecisions = [Collections.Generic.List[object]]::new()
-$selectedVersionedComponents = @($OASISRuntime, $STARRuntime, $EdgeRuntime, $OGEngineClient, $NativeEndpoint, $MCPServer, $OurWorld, $ODOOM, $OQUAKE, $OIDE, $ONODEManager, $HyperDriveClient) | Where-Object { $_ }
-if ($EdgeRuntime -and -not $NuGetPackages) {
+$selectedVersionedComponents = @($OASISRuntime, $STARRuntime, $EdgeRuntime, $EdgeUnity, $OGEngineClient, $NativeEndpoint, $MCPServer, $OurWorld, $ODOOM, $OQUAKE, $OIDE, $ONODEManager, $HyperDriveClient) | Where-Object { $_ }
+if ($EdgeUnity -and -not $NuGetPackages) {
     throw 'The coordinated Edge Runtime release requires NuGetPackages because its nine reusable assemblies are part of the release contract.'
 }
 if ($VersionMode -eq 'Manual' -and $selectedVersionedComponents.Count -ne 1) {
@@ -83,8 +95,9 @@ function Get-PackageProjects {
             [xml]$xml = Get-Content -LiteralPath $_.FullName -Raw
             $id = Get-ProjectProperty $xml 'PackageId'
             $packable = Get-ProjectProperty $xml 'IsPackable'
+            $releaseChannel = Get-ProjectProperty $xml 'OASISReleaseChannel'
             $webHost = [string]$xml.Project.Sdk -match '^Microsoft\.NET\.Sdk\.Web(?:/|$)'
-            if ($id -and $packable -ne 'false' -and (-not $webHost -or $packable -eq 'true')) {
+            if ($id -and $releaseChannel -ne 'Unity' -and $packable -ne 'false' -and (-not $webHost -or $packable -eq 'true')) {
                 [pscustomobject]@{ File = $_; Xml = $xml; PackageId = $id }
             }
         } | Sort-Object PackageId
@@ -161,6 +174,7 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
             }
         }
         $previous = @($tags | Sort-Object Version -Descending | Select-Object -First 1)
+        if ($previous.Count -and $previous[0].Version -gt $current) { $current = $previous[0].Version }
         $range = if ($previous.Count) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
         $commits = @(& git -C $GitRoot log $range --no-merges --format='%H%x09%s' -- @Paths | ForEach-Object { $parts=$_ -split "`t",2; if($parts.Count -eq 2 -and $parts[1] -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)'){[pscustomobject]@{Sha=$parts[0];Subject=$parts[1]}} })
         $subjects = @($commits.Subject)
@@ -455,6 +469,17 @@ if ($NuGetPackages) {
         }
     }
     Assert-PackageMetadata $packageProjects
+    if ($reviewedPlan) {
+        if (@($reviewedPlan.packages).Count -ne $packageProjects.Count) { throw 'Reviewed package coverage differs from source.' }
+        foreach ($project in $packageProjects) {
+            $matches = @($reviewedPlan.packages | Where-Object { $_.packageId -eq $project.PackageId })
+            $relative = $project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            if ($matches.Count -ne 1 -or $matches[0].project -ne $relative -or $matches[0].version -notmatch '^\d+\.\d+\.\d+$') {
+                throw "Invalid reviewed package identity/path/version for $($project.PackageId)."
+            }
+        }
+        $packagePlan = @($reviewedPlan.packages)
+    } else {
     $packagePlan = @($packageProjects | ForEach-Object {
         $publishedRelease = Get-LatestNuGetRelease $_.PackageId
         $version = Get-PlannedPackageVersion $_ $publishedRelease
@@ -466,6 +491,7 @@ if ($NuGetPackages) {
             releaseNotes = Get-PackageReleaseNotes $_ $version $publishedRelease
         }
     })
+    }
 }
 
 $components = [ordered]@{
@@ -473,6 +499,9 @@ $components = [ordered]@{
     oasisRuntime = $OASISRuntime
     starRuntime = $STARRuntime
     edgeRuntime = $EdgeRuntime
+    edgeUnity = $EdgeUnity
+    ogEngineRemoteOnly = $OGEngineRemoteOnly -or $OGEngineClient
+    ogEngineEdge = $OGEngineEdge -or $OGEngineClient
     ogEngineClient = $OGEngineClient
     nativeEndpoint = $NativeEndpoint
     mcpServer = $MCPServer
@@ -488,10 +517,15 @@ $components = [ordered]@{
     advanceWeb6ApiVersion = $AdvanceWeb6ApiVersion
 }
 $releaseVersions = [ordered]@{
+    edgeUnityNuget = if ($EdgeUnity) {
+        $unityProject = [pscustomobject]@{ Xml = [xml](Get-Content (Join-Path $repoRoot 'UnityPackages/NextGenSoftware.OASIS.Edge.Unity.NuGet/NextGenSoftware.OASIS.Edge.Unity.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Unity' }
+        Get-PlannedPackageVersion $unityProject (Get-LatestNuGetRelease $unityProject.PackageId)
+    } else { 'not-selected' }
+    edgeUnity = if ($EdgeUnity) { Get-NextReleaseVersion '1.0.0' @('OASIS-Edge-Unity-v') @('UnityPackages','Scripts/build_edge_unity_package.ps1','Scripts/New-OASISEdgeRuntimeArchive.ps1') } else { 'not-selected' }
     oasisRuntime = if ($OASISRuntime) { Get-NextReleaseVersion $bootVersions.OASISRuntimeVersion @('OASIS-Runtime-v') @('OASIS Architecture','ONODE','Providers','ONET','Edge') } else { $bootVersions.OASISRuntimeVersion }
     starRuntime = if ($STARRuntime) { Get-NextReleaseVersion $bootVersions.STARRuntimeVersion @('STAR-ODK-Runtime-v') @('STAR ODK') } else { $bootVersions.STARRuntimeVersion }
     edgeRuntime = if ($EdgeRuntime) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.Edge.Runtime\NextGenSoftware.OASIS.Edge.Runtime.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Runtime' })) @('OASIS-Edge-Runtime-v') @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime','OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime','OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization','OASIS Architecture/NextGenSoftware.OASIS.ONET','Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge','Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity','OASIS Omniverse/OGEngineClient/Edge') } else { 'not-selected' }
-    ogEngineClient = if ($OGEngineClient) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\OGEngineClient.csproj') -Raw); PackageId = 'NextGenSoftware.OGEngine.Client' })) @('OGEngineClient-v', 'STAR-API-CLIENT-v') @('OASIS Omniverse/OGEngineClient','ONET','Edge') } else { 'not-selected' }
+    ogEngineClient = if ($OGEngineClient) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\OGEngineClient.csproj') -Raw); PackageId = 'NextGenSoftware.OGEngine.Client' })) @('OGEngineClient-v', 'STAR-API-CLIENT-v', 'OGEngineClient-RemoteOnly-v', 'OGEngineClient-Edge-v') @('OASIS Omniverse/OGEngineClient','ONET','Edge') } else { 'not-selected' }
     nativeEndpoint = if ($NativeEndpoint) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.API.Native.Integrated.EndPoint' })) @('Native-Endpoint-v', 'v') @('Native EndPoint','OASIS Architecture','ONODE','Providers') } else { 'not-selected' }
     mcpServer = if ($MCPServer) { Get-NextRegistryReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'WEB6\NextGenSoftware.OASIS.MCP.Server\NextGenSoftware.OASIS.MCP.Server.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.MCP.Server' })) @('mcp-v') 'NextGenSoftware.OASIS.MCP.Server' @('WEB6/NextGenSoftware.OASIS.MCP.Server','WEB6/npm','WEB6/NextGenSoftware.OASIS.Web6.Core','WEB7','WEB8','WEB9','WEB10') } else { 'not-selected' }
     ourWorld = if ($OurWorld) { Get-NextOptionalReleaseVersion 'NextGenSoftwareUK/Our-World' @('v', 'Our-World-v') $true } else { 'not-selected' }

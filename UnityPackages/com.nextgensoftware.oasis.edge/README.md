@@ -1,8 +1,16 @@
-# OGEngineClient for Unity
+# OGEngineClient + Edge + Unity
 
 OGEngineClient is the reusable game and application client for OASIS. This Edge-enabled distribution contains the
 same shared client API plus the lightweight OASIS Edge Runtime, HyperDrive synchronization, ONET runtime, durable
 SQLite state and the platform libraries required by Unity IL2CPP builds.
+
+This is the complete **OGEngineClient + Edge + Unity** distribution: the compiled
+`NextGenSoftware.OGEngine.Client.Edge.dll` and its dependencies are bundled under
+`Runtime/Plugins/Managed`, alongside Unity integration scripts and platform plugins.
+Do not install a separate OGEngineClient GitHub ZIP into the same Unity project.
+The GitHub tag family is `OASIS-Edge-Unity-vX.Y.Z`; the NuGet delivery wrapper is
+`NextGenSoftware.OASIS.Edge.Unity`. See the [four-distribution comparison](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/EDGE_DISTRIBUTIONS.md)
+for standalone Edge and non-Unity OGEngineClient alternatives.
 
 ## Supported platforms
 
