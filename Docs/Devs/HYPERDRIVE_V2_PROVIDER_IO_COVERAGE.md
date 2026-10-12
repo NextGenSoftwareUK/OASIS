@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shipping TRON reconciliation exceptions through real V2 router — 2026-10-12
+
+Added `TronReconciliationRoutingTests`: **24/24 passed**, zero skips (`TestResults/TronRuntime/tron-reconciliation-routing.trx`). Real `KeyValueStorageProviderBase` converts controlled backend errors into storage results; real V2 router receives shipping `TronCommittedReadbackException`, `TronEscrowReconciliationException` and `TronBroadcastOutcomeUnknownException`, direct/ordinary-wrapper/aggregate-wrapper, synchronous/asynchronous. Original exception identity survives and alternate backend writes remain zero. Ordinary IOException controls successfully fail over and write through the alternate storage base.
+
+This closes controlled storage-result/router propagation for the concrete exception classes, not actual ledger-failure propagation, mutation replication, hosted routes or full provider certification. Test providers/backends are explicitly controlled in-memory fixtures, not real TRON/LocalFile services. No network, database, funds, installations, merge or deployment affected. Original live TRON outcome still unresolved and replay remains fenced.
+
 ### Current retained TRON read routing and original-transaction lookup — 2026-10-12
 
 Unpaused the existing `oasis-tron-tre` container (PID 193579, OOMKilled false), rebuilt the current integration host and passed `InspectOriginalInterruptedFixtureWithoutMutation` **1/1**, zero skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`). This covers its declared actual account/signature authority, encrypted owned-fixture reads, V2 measured/round-robin/plan selection and closed-channel read failover—not mutation replication or all interfaces.
