@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shared child and collection read continuation implemented with explicit partial diagnostics (2026-10-12)
+
+Closed the source-confirmed option gap below: existing bounded per-record read helper now supports requested best-effort continuation, passed through single holon child reads, parent collections, recursive descendants, all-holon and metadata collections. Failed non-integrity record reads are omitted **only when requested**, with `IsWarning`, failed ID/exception-type details, `partialHolonReads`, string failure count and serialized failure list in the existing string-valued OASISResult metadata. No provider fallback/retry or silent empty success; root/list enumeration failures remain errors when candidates cannot be established. Strict requests still fail. JSON corruption (both serializers), key/ID/version corruption, invalid arguments/format, cycles, cancellation and unsupported operations remain fatal. Shared recursive failure list propagates descendant warnings to root; default non-holon reads remain strict.
+
+New controlled cases cover strict/best-effort sync+async parent read, parent collection and all-holon collection under a single backend read outage, plus corrupt child payload under best effort. Current full shared suite **64/64, zero skips**, `TestResults/SharedStorageCurrent/shared-current.trx`; build zero errors/two warnings, existing cycle/identity/version regressions stay passing. First implementation compile attempt used object metadata while OASISResult expects strings; corrected to its established contract before passing runs. No runtime/download/new environment. This proves shared read behavior, not real native partial transport experiments, all metadata/search continuation options, provider/interface/API or release completion; current TRON historical transaction fence and Cosmos/Hedera/billing gates remain open.
+
 ### Static operation inventory passes; child continuation option remains unproven (2026-10-12)
 
 Current `Scripts/verify_hyperdrive_v2_operation_contracts.ps1` passes for **42** operation labels with paired switch counts and declared provider-boundary cases. Read its entire script: regex inventories labels/declarations; it does not execute branches or prove each provider/option. This is not a 42-operation live certification.
