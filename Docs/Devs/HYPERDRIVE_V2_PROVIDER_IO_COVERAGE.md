@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos malformed error identity/outcome — 2026-10-12
+
+C# native error-envelope parsing now rejects malformed non-null hashes and claimed true/false execution outcomes without a valid original hash. It retains the reconciliation marker but discards invalid identity/outcome evidence rather than presenting it as usable native proof. Controlled invalid-hash and unknown-identity/executed cases added. Provider build passed, 0 errors/warnings; selected C# regression **81/81**, zero skips (actual deadline excluded), fixed report `TestResults/PriorityProviderCurrent/cosmos-hash-validation.trx`. Shape checks are not prepared-byte binding across IPC; durable handshake/outbox/live/deployed gates remain open. No native submission or install.
+
 ### Cosmos C# successful hash shape — 2026-10-12
 
 The C# process boundary now requires successful mutation hashes to be exactly 64 hexadecimal characters, not merely nonempty strings. Malformed success replies require reconciliation rather than becoming successful native results. Controlled NFT fixtures now use a valid-shaped synthetic digest instead of a human-readable invented transaction identity; their assertions were updated without implying ledger evidence. Added invalid-success-hash regression. Provider build passed with 0 errors/warnings; selected C# suite **79/79**, zero skips, report `TestResults/PriorityProviderCurrent/cosmos-hash-validation.trx` (actual deadline excluded). This format check cannot bind the hash to prepared bytes across the process; IPC/outbox integration remains required. No live mutation or deployment.
