@@ -56,6 +56,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
+        public void GetPlans_UsesGbpAndPreservesMonthlyPricesAndContactSales()
+        {
+            var result = (OkObjectResult)_ctrl.GetPlans();
+            using var json = System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(result.Value));
+            var plans = json.RootElement.GetProperty("Result");
+            var expected = new Dictionary<string, decimal> { ["free"] = 0m, ["bronze"] = 9m, ["silver"] = 29m, ["gold"] = 99m, ["enterprise"] = 0m };
+            plans.GetArrayLength().Should().Be(expected.Count);
+            foreach (var plan in plans.EnumerateArray())
+            {
+                var id = plan.GetProperty("Id").GetString()!;
+                plan.GetProperty("Currency").GetString().Should().Be("GBP");
+                plan.GetProperty("PriceMonthly").GetDecimal().Should().Be(expected[id]);
+                plan.GetProperty("IsContactSales").GetBoolean().Should().Be(id == "enterprise");
+            }
+        }
+
+        [Fact]
         public void AuthorizeRequest_ReturnsGoneWithoutCallingSubscriptionService()
         {
             var result = _ctrl.AuthorizeRequest(new AuthorizeSubscriptionRequest { ConsumingService = "WEB6" });
@@ -362,10 +379,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             _svc.VerifyNoOtherCalls();
         }
         [Theory]
-        [InlineData("invoice.paid", "price_bronze", "bronze")]
-        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze")]
-        [InlineData("invoice.paid", "price_retired", null)]
-        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan)
+        [InlineData("invoice.paid", "price_bronze", "bronze", "gbp", true)]
+        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze", "gbp", true)]
+        [InlineData("invoice.paid", "price_retired", null, "gbp", true)]
+        [InlineData("invoice.paid", "price_bronze", "bronze", "usd", false)]
+        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze", "eur", false)]
+        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan, string currency, bool accepted)
         {
             string user = Guid.NewGuid().ToString();
             _svc.Setup(x => x.GetSubscriptionByStripeSubscriptionIdAsync("sub_current"))
@@ -385,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
                 id = "evt_invoice_paid", @object = "event", type = eventType, created = timestamp, api_version = "2025-02-24.acacia",
                 request = new { id = "req_paid_invoice", idempotency_key = (string)null },
                 data = new { @object = new { id = "in_actual", @object = "invoice", subscription = "sub_current", paid = true,
-                    status = "paid", currency = "usd", amount_paid = 1234, created = timestamp,
+                    status = "paid", currency, amount_paid = 1234, created = timestamp,
                     lines = new { @object = "list", data = new[] { new { id = "il_one", @object = "line_item", price = new { id = invoicePrice, @object = "price" } } } } } }
             });
             using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes("whsec_test"));
@@ -394,9 +413,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             context.Request.Headers["Stripe-Signature"] = $"t={timestamp},v1={signature}";
             context.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
             controller.ControllerContext = new ControllerContext { HttpContext = context };
-            (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>();
+            var response = await controller.StripeWebhook();
+            if (!accepted)
+            {
+                response.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+                captured.Should().BeNull();
+                billing.VerifyNoOtherCalls();
+                return;
+            }
+            response.Should().BeOfType<OkObjectResult>();
             captured.Should().NotBeNull(); captured.PlanId.Should().Be(expectedPlan);
             captured.Amount.Should().Be(12.34m); captured.StripeInvoiceId.Should().Be("in_actual");
+            captured.Currency.Should().Be("GBP");
         }
         // ── Helpers ──────────────────────────────────────────────────────────
 

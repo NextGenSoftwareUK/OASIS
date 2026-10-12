@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         {
             var order = new OrderRecord();
             order.Status.Should().Be("paid");
-            order.Currency.Should().Be("USD");
+            order.Currency.Should().Be("GBP");
         }
 
         [Fact]

@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Id = "free",
                 Name = "Free",
                 PriceMonthly = 0m,
-                Currency = "USD",
+                Currency = "GBP",
                 Features = new[] { "1,000 API requests/month", "100 MB storage", "Community support" },
                 MaxRequestsPerMonth = 1000,
                 MaxStorageGB = 0,
@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Id = "bronze",
                 Name = "Bronze",
                 PriceMonthly = 9m,
-                Currency = "USD",
+                Currency = "GBP",
                 Features = new[] { "10,000 API requests/month", "1 GB storage", "Community support", "Basic analytics" },
                 MaxRequestsPerMonth = 10_000,
                 MaxStorageGB = 1,
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Id = "silver",
                 Name = "Silver",
                 PriceMonthly = 29m,
-                Currency = "USD",
+                Currency = "GBP",
                 Features = new[] { "100,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics" },
                 MaxRequestsPerMonth = 100_000,
                 MaxStorageGB = 10,
@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Id = "gold",
                 Name = "Gold",
                 PriceMonthly = 99m,
-                Currency = "USD",
+                Currency = "GBP",
                 Features = new[] { "1,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee" },
                 MaxRequestsPerMonth = 1_000_000,
                 MaxStorageGB = 100,
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Id = "enterprise",
                 Name = "Enterprise",
                 PriceMonthly = 0m,
-                Currency = "USD",
+                Currency = "GBP",
                 Features = new[] { "Unlimited API requests", "Unlimited storage", "Dedicated support", "SLA & SSO", "On-premise deployment", "Custom contracts" },
                 MaxRequestsPerMonth = -1,
                 MaxStorageGB = -1,
@@ -395,11 +395,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             OASISSub.OrderRecord order = null;
             if (stripeEvent.Type is "invoice.paid" or "invoice.payment_succeeded")
             {
-                if (invoice.Status != "paid" || !invoice.Paid || invoice.Currency != "usd")
-                    throw new InvalidOperationException("This billing catalogue requires a paid USD invoice with an actual Stripe amount.");
+                if (invoice.Status != "paid" || !invoice.Paid || invoice.Currency != "gbp")
+                    throw new InvalidOperationException("This billing catalogue requires a paid GBP invoice with an actual Stripe amount.");
                 var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
                 order = new OASISSub.OrderRecord { UserId = userId, PlanId = invoicedPlans.Count == 1 ? invoicedPlans[0].Id : null, StripeInvoiceId = invoice.Id, Amount = invoice.AmountPaid / 100m,
-                    Currency = "USD", Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
+                    Currency = "GBP", Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
             }
             string fingerprint = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawBody)));
             bool applied = await _billingRepository.ApplyStripeEventAsync(stripeEvent.Id, fingerprint, userId, stripeEvent.Created, async ct =>

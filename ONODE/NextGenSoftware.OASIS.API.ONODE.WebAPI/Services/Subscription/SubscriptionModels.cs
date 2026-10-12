@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string StripeInvoiceId { get; set; }
         public string Description { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal Amount { get; set; }
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = "GBP";
         public string Status { get; set; } = "paid"; // paid, open, void, uncollectible
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
