@@ -424,8 +424,10 @@ public sealed class TronNativeTransferClient
         var recipient = _wallet.ParseAddress(to);
         if (source.Length != 21 || recipient.Length != 21 || source[0] != 0x41 || recipient[0] != 0x41)
             throw new ArgumentException("TRON sender and recipient must be 21-byte addresses with the current 0x41 prefix.");
-        if (!_wallet.ParseAddress(signer.GetPublicAddress()).Equals(source))
-            throw new ArgumentException("Signing key does not own the sender address.");
+        var authority = await LoadPermissionAuthorityAsync(from, cancellationToken);
+        TronPermissionVerifier.Verify(authority, source, 0,
+            (int)Transaction.Types.Contract.Types.ContractType.TransferContract,
+            new[] { _wallet.ParseAddress(signer.GetPublicAddress()) });
         var node = _wallet.GetProtocol();
         var headers = _wallet.GetHeaders();
         await VerifyNetworkAsync(cancellationToken);
