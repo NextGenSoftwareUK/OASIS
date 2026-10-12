@@ -5,18 +5,34 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
-/// <summary>One original preparation acknowledgement. Persistence/identity validation belongs to the supplied owner.</summary>
+/// <summary>Ordered original preparation acknowledgements. Persistence/identity validation belongs to the supplied owner.</summary>
 public sealed class PreparedSubmissionServer : IDisposable
 {
     private readonly NamedPipeServerStream _pipe;
     private readonly Func<JsonElement, CancellationToken, Task> _persist;
     private readonly string _expectedTransactionId;
+    private readonly string[] _expectedStages;
+    private string[] _preparedIds = Array.Empty<string>();
     private int _started;
     public string Endpoint { get; }
     public string PreparedTransactionId { get; private set; }
+    public IReadOnlyList<string> PreparedTransactionIds => Array.AsReadOnly(Volatile.Read(ref _preparedIds));
+    /// <summary>Each stage uses a separate connection and is acknowledged only after its own durable persistence.</summary>
+    public static PreparedSubmissionServer ForStages(Func<JsonElement,CancellationToken,Task> persist, params string[] expectedTransactionIds)
+    {
+        if(expectedTransactionIds == null || expectedTransactionIds.Length < 2 || expectedTransactionIds.Length > 16
+            || expectedTransactionIds.Any(id => string.IsNullOrWhiteSpace(id) || id.Length > 256)
+            || expectedTransactionIds.Distinct(StringComparer.Ordinal).Count() != expectedTransactionIds.Length)
+            throw new ArgumentException("Two to sixteen distinct bounded original stage identities required.",nameof(expectedTransactionIds));
+        return new PreparedSubmissionServer(persist,expectedTransactionIds);
+    }
+    private PreparedSubmissionServer(Func<JsonElement,CancellationToken,Task> persist,string[] stages)
+        : this(persist,stages[0]) { _expectedStages = (string[])stages.Clone(); }
     public void ConfigureChild(System.Diagnostics.ProcessStartInfo child, string preparationModulePath)
     {
         if (child == null) throw new ArgumentNullException(nameof(child));
@@ -26,7 +42,7 @@ public sealed class PreparedSubmissionServer : IDisposable
         child.Environment["OASIS_NATIVE_PREPARATION_PIPE"] = Endpoint;
         child.Environment["OASIS_NATIVE_PREPARATION_MODULE"] = preparationModulePath;
     }
-    public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist) : this(persist,null) { }
+    public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist) : this(persist,(string)null) { }
     public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist, string expectedTransactionId)
     {
         _persist = persist ?? throw new ArgumentNullException(nameof(persist));
@@ -43,6 +59,22 @@ public sealed class PreparedSubmissionServer : IDisposable
         if (Interlocked.Exchange(ref _started, 1) != 0) throw new InvalidOperationException("Preparation server cannot be reused for a second submission.");
         try
         {
+            for(var stage=0;stage<(_expectedStages?.Length ?? 1);stage++)
+            {
+                await ServeStageAsync(_expectedStages?[stage] ?? _expectedTransactionId,cancellationToken);
+                if(stage+1<(_expectedStages?.Length ?? 1))
+                {
+                    // The client closes only after reading its acknowledgement; do not discard buffered acknowledgement bytes.
+                    if(await _pipe.ReadAsync(new byte[1],cancellationToken)!=0)
+                        throw new InvalidDataException("Preparation stage requires exactly one frame per connection.");
+                    _pipe.Disconnect();
+                }
+            }
+        }
+        finally { _pipe.Dispose(); }
+    }
+    private async Task ServeStageAsync(string expectedId,CancellationToken cancellationToken)
+    {
             await _pipe.WaitForConnectionAsync(cancellationToken);
             using var frame = new MemoryStream();
             var buffer = new byte[4096];
@@ -63,7 +95,7 @@ public sealed class PreparedSubmissionServer : IDisposable
             var evidence = root.GetProperty("evidence");
             var hash = evidence.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash) || hash.Length > 256) throw new InvalidDataException("Original preparation identity is required.");
-            if(_expectedTransactionId != null && hash != _expectedTransactionId)
+            if(expectedId != null && hash != expectedId)
                 throw new InvalidDataException("Prepared identity does not match the expected original transaction.");
             var encoded = evidence.GetProperty("signedTransactionBase64").GetString();
             byte[] signedBytes;
@@ -73,13 +105,12 @@ public sealed class PreparedSubmissionServer : IDisposable
                 throw new InvalidDataException("Prepared signed bytes must be nonempty canonical base64.");
             await _persist(evidence.Clone(), cancellationToken);
             PreparedTransactionId = hash;
+            Volatile.Write(ref _preparedIds,Volatile.Read(ref _preparedIds).Append(hash).ToArray());
             cancellationToken.ThrowIfCancellationRequested();
             var ack = JsonSerializer.SerializeToUtf8Bytes(new { protocol = "oasis.native-preparation.v1", persisted = true, transactionHash = hash });
             await _pipe.WriteAsync(ack, cancellationToken);
             await _pipe.WriteAsync(new byte[] { 10 }, cancellationToken);
             await _pipe.FlushAsync(cancellationToken);
-        }
-        finally { _pipe.Dispose(); }
     }
     public void Dispose() => _pipe.Dispose();
 }
