@@ -73,6 +73,22 @@ public class SuiRealPreparationTests
             altered["signature"]="invalid";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(invalid.RootElement,deadline.Token));
+            var acceptedInvalid=0;
+            using var rejectedServer=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
+                await provider.VerifyOriginalSignedPreparationAsync(evidence,token);
+                acceptedInvalid++;
+            });
+            var rejectedServe=rejectedServer.ServeAsync(deadline.Token);
+            using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",rejectedServer.Endpoint.Substring(rejectedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                await pipe.ConnectAsync(deadline.Token);
+                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=invalid.RootElement})+"\n");
+                await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>rejectedServe);
+                using var reader=new StreamReader(pipe);
+                Assert.IsNull(await reader.ReadLineAsync(deadline.Token),"Rejected signed evidence must not receive an acknowledgement.");
+            }
+            Assert.AreEqual(0,acceptedInvalid);
+            Assert.IsNull(rejectedServer.PreparedTransactionId);
             Assert.IsFalse(provider.IsProviderActivated);
         } finally {if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
     }
