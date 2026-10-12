@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera fee coverage for implemented mutations — 2026-10-12
+
+Expanded native fee attribution to `FILEUPDATE`, `FILEDELETE`, `TOKENDELETION`, `TOKENUPDATENFTS` and `CRYPTOAPPROVEALLOWANCE`, matching already-implemented file, NFT metadata/collection and escrow approval operations. Read-only official testnet mirror queries for each transaction-type filter returned matching record names; no new transaction was submitted. Existing exact transaction identity, unscheduled nonce-zero parent, terminal status, duplicate-record and integer-fee validation remains unchanged. Ethereum/batch/scheduled attribution remains rejected rather than guessed.
+
+Bounded provider build passed (0 errors, 2 existing warnings). Fee suite **14/14**, zero skips, including five new controlled mapping cases and the existing read-only original charged-failure receipt; report `TestResults/HederaCurrent/hedera-native-fees-current.trx`. This does not prove funded execution of the five operations, fiat quotes, sponsored billing or settlement. No new runtime/download, deployment or Development merge.
+
 ### Retained Sui actual outage failover rerun — 2026-10-12
 
 Resumed the same existing ledger/runtime after verifying `network.yaml`, then ran both `V2FailsOverToRealStoreAfterSuiFailure` cases against the retained integration binaries: **2/2 passed**, zero skips, 13 seconds; report `TestResults/SuiCurrent/sui-v2-outage-current.trx`. One case closes the provider transport; the other stops explicitly owned node PID 208230 using the validated helper. Both V2 writes succeed through actual LocalFile storage and assert its selected-provider failover diagnostic, with owned output deleted afterward. Confirmed `/proc/208230/exe` absent and original process handle terminal. No runtime install, download, ledger reset or public-chain fee occurred.

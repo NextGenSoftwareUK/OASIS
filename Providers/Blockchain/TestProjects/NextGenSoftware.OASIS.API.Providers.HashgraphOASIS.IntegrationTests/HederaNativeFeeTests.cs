@@ -29,6 +29,17 @@ public class HederaNativeFeeTests
         Assert.IsTrue(receipt.GetProperty("success").GetBoolean());
     }
 
+    [DataTestMethod]
+    [DataRow("FILEUPDATE")] [DataRow("FILEDELETE")] [DataRow("TOKENDELETION")]
+    [DataRow("TOKENUPDATENFTS")] [DataRow("CRYPTOAPPROVEALLOWANCE")]
+    public void ImplementedNativeOperationsRetainExactChargedFeeAndPayer(string operation)
+    {
+        var receipt = Map(operation: operation);
+        Assert.AreEqual("9007199254740993", receipt.GetProperty("netUnits").GetString());
+        Assert.AreEqual("0.0.1001", receipt.GetProperty("payer").GetString());
+        Assert.IsTrue(receipt.GetProperty("success").GetBoolean());
+    }
+
     private static JsonElement MapRows(params string[] rows)
     {
         using var document = JsonDocument.Parse("{\"transactions\":[" + string.Join(",", rows) + "]}");

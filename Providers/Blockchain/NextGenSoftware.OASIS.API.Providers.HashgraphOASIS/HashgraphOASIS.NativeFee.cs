@@ -62,8 +62,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 // Ethereum/batch/scheduled execution can have different or multiple fee payers.
                 var operation = tx.GetProperty("name").GetString();
                 if (operation is not ("CRYPTOTRANSFER" or "CONTRACTCREATEINSTANCE" or "CONTRACTCALL"
-                    or "FILECREATE" or "FILEAPPEND" or "TOKENCREATION" or "TOKENMINT" or "TOKENBURN"
-                    or "TOKENASSOCIATE" or "TOKENUPDATE"))
+                    or "FILECREATE" or "FILEAPPEND" or "FILEUPDATE" or "FILEDELETE"
+                    or "TOKENCREATION" or "TOKENMINT" or "TOKENBURN" or "TOKENDELETION" or "TOKENUPDATENFTS"
+                    or "TOKENASSOCIATE" or "TOKENUPDATE" or "CRYPTOAPPROVEALLOWANCE"))
                     throw new InvalidOperationException("Native fee payer attribution is not supported for this operation.");
                 var nativeStatus = tx.GetProperty("result").GetString();
                 var status = nativeStatus == "DUPLICATE_TRANSACTION" ? BridgeTransactionStatus.Failed : MapReceiptStatus(nativeStatus);
