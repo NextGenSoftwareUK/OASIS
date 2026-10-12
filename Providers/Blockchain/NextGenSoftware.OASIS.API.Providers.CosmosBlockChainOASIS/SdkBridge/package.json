@@ -7,6 +7,7 @@
     "@cosmjs/cosmwasm": "0.39.0",
     "@cosmjs/proto-signing": "0.39.0",
     "@cosmjs/stargate": "0.39.0",
-    "@cosmjs/encoding": "0.39.0"
+    "@cosmjs/encoding": "0.39.0",
+    "cosmjs-types": "0.11.0"
   }
 }

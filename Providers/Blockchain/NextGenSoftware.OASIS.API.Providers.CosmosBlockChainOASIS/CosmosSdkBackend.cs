@@ -15,6 +15,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private readonly string _rpcEndpoint, _chainId, _privateKey, _contractAddress;
     private readonly string _addressPrefix, _gasPrice, _nodeExecutable, _bridgePath;
     private bool _disposed;
+    internal string ChainId => _chainId;
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
         string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nodeExecutable = null, string bridgePath = null)
