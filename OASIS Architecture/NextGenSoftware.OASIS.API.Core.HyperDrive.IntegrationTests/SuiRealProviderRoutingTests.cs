@@ -321,14 +321,14 @@ public sealed class SuiRealProviderRoutingTests
         }
         finally
         {
+            try
+            {
             if (!deletedThroughRouter)
             {
                 var deleted = await sui.DeleteHolonAsync(holon.Id);
                 deleted.IsError.Should().BeFalse(deleted.Message);
                 (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
             }
-            await sui.DeActivateProviderAsync();
-            await local.DeActivateProviderAsync();
             if (parentSaved)
             {
                 (await sui.DeleteHolonAsync(parent.Id)).IsError.Should().BeFalse();
@@ -338,11 +338,15 @@ public sealed class SuiRealProviderRoutingTests
             {
                 (await sui.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
                 (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
-                await sui.DeActivateProviderAsync();
-                await local.DeActivateProviderAsync();
                 var ownedDetailFile = Path.GetFullPath(Path.Combine(root, "files", "AvatarDetails", avatar.Id + ".json"));
                 ownedDetailFile.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
                 File.Delete(ownedDetailFile);
+            }
+            }
+            finally
+            {
+                await sui.DeActivateProviderAsync();
+                await local.DeActivateProviderAsync();
             }
         }
     }
