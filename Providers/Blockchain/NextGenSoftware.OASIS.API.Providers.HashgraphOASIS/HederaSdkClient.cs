@@ -82,11 +82,16 @@ internal static class HederaSdkClient
                     using var parsed = JsonDocument.Parse(failure);
                     if (parsed.RootElement.TryGetProperty("transactionId", out var id))
                     {
-                        transactionId = id.GetString();
-                        nativeIdReported = transactionId != null;
+                        var reportedId = id.GetString();
+                        if (reportedId != null && reportedId != originalId && reportedId != originalApprovalId)
+                            throw new InvalidDataException("SDK error identity does not match an original requested transaction.");
+                        transactionId = reportedId ?? originalId;
+                        nativeIdReported = reportedId != null;
                     }
                     if (parsed.RootElement.TryGetProperty("approvalTransactionId", out var approval)) approvalId = approval.GetString();
                     if (parsed.RootElement.TryGetProperty("mutationTransactionId", out var mutation)) mutationId = mutation.GetString();
+                    if ((approvalId != null && approvalId != originalApprovalId) || (mutationId != null && mutationId != originalId))
+                        throw new InvalidDataException("SDK escrow error identities do not match the original requested transactions.");
                     if (parsed.RootElement.TryGetProperty("stage", out var phase)) stage = phase.GetString();
                     if (parsed.RootElement.TryGetProperty("status", out var nativeStatus) && nativeStatus.ValueKind == JsonValueKind.String)
                     {
@@ -94,7 +99,12 @@ internal static class HederaSdkClient
                         if (System.Text.RegularExpressions.Regex.IsMatch(value ?? "", @"\A[A-Z][A-Z0-9_]{0,100}\z")) status = value;
                     }
                 }
-                catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException) { evidenceParseError = ex; }
+                catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException || ex is InvalidDataException)
+                {
+                    evidenceParseError = ex;
+                    transactionId = originalId;
+                    approvalId = null; mutationId = null; stage = null; status = null;
+                }
                 var reconciliation = (approvalId == null ? "" : $" Confirmed approval: {approvalId}.")
                     + (mutationId == null ? "" : $" Original escrow mutation: {mutationId}.")
                     + (stage == null ? "" : $" Failure stage: {stage}.")
@@ -102,7 +112,7 @@ internal static class HederaSdkClient
                 var message = (transactionId == null ? "Hedera SDK operation failed."
                     : $"Hedera verified success was not established for {transactionId}. Track the original transaction before retrying.") + reconciliation;
                 if (isMutation && (approvalId != null || stage is "submission" or "receipt" or "approval" or "mutation" or "readback"
-                    || (stage == null && nativeIdReported) || (evidenceParseError != null && originalId != null)))
+                    || (nativeIdReported && stage is not ("construction" or "signing" or "validation")) || (evidenceParseError != null && originalId != null)))
                     throw new HederaNativeMutationReconciliationException(message,
                         new HederaNativeMutationEvidence(transactionId, approvalId, mutationId, stage, status), evidenceParseError);
                 throw new InvalidOperationException(message, evidenceParseError);
