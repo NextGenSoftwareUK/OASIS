@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Avatar-scoped partial diagnostics omit unverified failed-record IDs (2026-10-12)
+
+Privacy follow-up in Core `96e97ef40fb6e20ffa2b362a5d5d5c4d1a01925a`: visibility default-interface projection cannot establish ownership of records that failed to read. When recognized `partialHolonReads` diagnostics carry `failedHolonReads`, avatar-scoped responses remove record-level IDs/details, mark `failedHolonReadDetailsRedacted`, and use a partial/failure message without those IDs. Warning state/aggregate count, error code/exception and successful visible records remain; unscoped internal responses keep original detailed diagnostics. Redaction runs before null-payload error handling, so declared partial-error metadata cannot bypass it. Existing non-partial error preservation and private-record filtering remain unchanged. This is scoped declared-partial-diagnostic handling, not blanket redaction/certification of arbitrary provider exception contents or every overriding provider implementation.
+
+Three new controlled cases cover scoped/unscoped partial results and scoped declared-partial error without data. Full Core **412/412, zero skips**, `TestResults/CoreCurrent/core-current.trx`; build zero errors/254 warnings. Core pushed and parent gitlink/manifest advanced together. No runtime/download/new environment or fenced mutation retry. Real native scoped-option/HTTP verification, remaining providers/billing and release gates remain open.
+
 ### Visibility projection preserves authoritative provider errors (2026-10-12)
 
 Source audit confirms existing visibility default-interface overloads preserve partial warnings/metadata, but their null-payload branch overwrote **already failed** provider error code/message with generic `HOLON_COLLECTION_PAYLOAD_REQUIRED`. Fixed the producer in Core `c714d86eec1e2405b000c44c09bc66acf975064d`: existing error with no payload is returned intact; genuinely non-error null payload still fails closed. Errors carrying records still undergo ownership filtering, not an unconditional early error return that could leak another owner's data.
