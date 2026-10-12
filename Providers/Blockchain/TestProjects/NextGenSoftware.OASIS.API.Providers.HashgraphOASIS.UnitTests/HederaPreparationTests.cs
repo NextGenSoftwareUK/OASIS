@@ -8,6 +8,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class HederaPreparationTests
 {
+    [TestMethod]
+    public async Task PreparedEntryRejectsMissingExecutionAndPreCancellation()
+    {
+        var provider=new HashgraphOASIS();
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(()=>provider.ExecutePreparedNativeAsync("transfer",new{},null!,"attempt","testnet","0.0.1001","key"));
+        using var cancellation=new CancellationTokenSource();cancellation.Cancel();
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>provider.ExecutePreparedNativeAsync("transfer",new{},null!,"attempt","testnet","0.0.1001","key",cancellation.Token));
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
     [DataTestMethod]
     [DataRow("accept")] [DataRow("reject")] [DataRow("wrong")] [DataRow("hold")]
     [DataRow("no-ack")] [DataRow("bad-utf8")] [DataRow("bad-json")]
