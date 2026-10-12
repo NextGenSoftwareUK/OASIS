@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -46,34 +47,63 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         {
             var id = NativeFeeMirrorId(transactionId);
             var rows = root.GetProperty("transactions");
-            if (rows.GetArrayLength() != 1)
-                throw new InvalidOperationException("A unique parent receipt is required; duplicate/child fees need separate reconciliation.");
-            var tx = rows[0];
-            if (tx.GetProperty("transaction_id").GetString() != id || tx.GetProperty("nonce").GetInt64() != 0
-                || tx.GetProperty("scheduled").GetBoolean()
-                || tx.GetProperty("parent_consensus_timestamp").ValueKind != JsonValueKind.Null)
-                throw new InvalidOperationException("Receipt identity is not the requested unscheduled parent transaction.");
-            // Ethereum/batch/scheduled execution can have different or multiple fee payers.
-            var operation = tx.GetProperty("name").GetString();
-            if (operation is not ("CRYPTOTRANSFER" or "CONTRACTCREATEINSTANCE" or "CONTRACTCALL"
-                or "FILECREATE" or "FILEAPPEND" or "TOKENCREATION" or "TOKENMINT" or "TOKENBURN"
-                or "TOKENASSOCIATE" or "TOKENUPDATE"))
-                throw new InvalidOperationException("Native fee payer attribution is not supported for this operation.");
-            var status = MapReceiptStatus(tx.GetProperty("result").GetString());
-            if (status is BridgeTransactionStatus.Pending or BridgeTransactionStatus.NotFound)
-                throw new InvalidOperationException("Receipt does not establish a terminal consensus outcome.");
-            var timestamp = tx.GetProperty("consensus_timestamp").GetString();
-            if (!Regex.IsMatch(timestamp ?? "", @"\A[0-9]+\.[0-9]{9}\z")
-                || decimal.Parse(timestamp, CultureInfo.InvariantCulture) <= 0)
-                throw new InvalidOperationException("Invalid consensus timestamp.");
-            var fee = tx.GetProperty("charged_tx_fee").GetInt64();
-            if (fee < 0) throw new InvalidOperationException("Charged fee cannot be negative.");
-            return JsonSerializer.SerializeToElement(new {
-                transactionId, network, payer = transactionId.Substring(0, transactionId.IndexOf('@')),
-                currency = "HBAR", unit = "tinybar", netUnits = fee.ToString(CultureInfo.InvariantCulture),
-                success = status == BridgeTransactionStatus.Completed,
-                nativeStatus = tx.GetProperty("result").GetString(), consensusTimestamp = timestamp,
-                basis = "mirror-charged-tx-fee"
+            if (rows.GetArrayLength() == 0)
+                throw new InvalidOperationException("No indexed fee records are available.");
+            var timestamps = new HashSet<string>(StringComparer.Ordinal);
+            var records = new List<JsonElement>();
+            long total = 0;
+            JsonElement? primary = null;
+            foreach (var tx in rows.EnumerateArray())
+            {
+                if (tx.GetProperty("transaction_id").GetString() != id || tx.GetProperty("nonce").GetInt64() != 0
+                    || tx.GetProperty("scheduled").GetBoolean()
+                    || tx.GetProperty("parent_consensus_timestamp").ValueKind != JsonValueKind.Null)
+                    throw new InvalidOperationException("Receipt identity is not the requested unscheduled parent transaction.");
+                // Ethereum/batch/scheduled execution can have different or multiple fee payers.
+                var operation = tx.GetProperty("name").GetString();
+                if (operation is not ("CRYPTOTRANSFER" or "CONTRACTCREATEINSTANCE" or "CONTRACTCALL"
+                    or "FILECREATE" or "FILEAPPEND" or "TOKENCREATION" or "TOKENMINT" or "TOKENBURN"
+                    or "TOKENASSOCIATE" or "TOKENUPDATE"))
+                    throw new InvalidOperationException("Native fee payer attribution is not supported for this operation.");
+                var nativeStatus = tx.GetProperty("result").GetString();
+                var status = nativeStatus == "DUPLICATE_TRANSACTION" ? BridgeTransactionStatus.Failed : MapReceiptStatus(nativeStatus);
+                if (status is BridgeTransactionStatus.Pending or BridgeTransactionStatus.NotFound)
+                    throw new InvalidOperationException("Receipt does not establish a terminal consensus outcome.");
+                var timestamp = tx.GetProperty("consensus_timestamp").GetString();
+                if (!Regex.IsMatch(timestamp ?? "", @"\A[0-9]+\.[0-9]{9}\z")
+                    || decimal.Parse(timestamp, CultureInfo.InvariantCulture) <= 0 || !timestamps.Add(timestamp))
+                    throw new InvalidOperationException("Invalid consensus timestamp.");
+                var fee = tx.GetProperty("charged_tx_fee").GetInt64();
+                if (fee < 0) throw new InvalidOperationException("Charged fee cannot be negative.");
+                total = checked(total + fee);
+                if (nativeStatus != "DUPLICATE_TRANSACTION")
+                {
+                    if (primary.HasValue) throw new InvalidOperationException("Multiple nonduplicate parent outcomes cannot establish one mint result.");
+                    primary = tx;
+                }
+                records.Add(JsonSerializer.SerializeToElement(new
+                {
+                    nativeStatus,
+                    consensusTimestamp = timestamp,
+                    chargedUnits = fee.ToString(CultureInfo.InvariantCulture)
+                }));
+            }
+            if (!primary.HasValue) throw new InvalidOperationException("Duplicate records alone do not establish the original outcome.");
+            var original = primary.Value;
+            return JsonSerializer.SerializeToElement(new
+            {
+                transactionId,
+                network,
+                payer = transactionId.Substring(0, transactionId.IndexOf('@')),
+                currency = "HBAR",
+                unit = "tinybar",
+                netUnits = total.ToString(CultureInfo.InvariantCulture),
+                success = original.GetProperty("result").GetString() == "SUCCESS",
+                nativeStatus = original.GetProperty("result").GetString(),
+                consensusTimestamp = original.GetProperty("consensus_timestamp").GetString(),
+                records,
+                basis = "mirror-charged-tx-fee",
+                coverage = "indexed-native-parent-records"
             });
         }
     }

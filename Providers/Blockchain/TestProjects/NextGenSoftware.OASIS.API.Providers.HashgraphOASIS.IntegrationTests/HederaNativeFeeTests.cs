@@ -29,6 +29,41 @@ public class HederaNativeFeeTests
         Assert.IsTrue(receipt.GetProperty("success").GetBoolean());
     }
 
+    private static JsonElement MapRows(params string[] rows)
+    {
+        using var document = JsonDocument.Parse("{\"transactions\":[" + string.Join(",", rows) + "]}");
+        return (JsonElement)typeof(HashgraphOASIS).GetMethod("MapNativeFeeReceipt", BindingFlags.Static | BindingFlags.NonPublic)!
+            .Invoke(null, new object[] { document.RootElement, Id, "testnet" })!;
+    }
+    private static string Row(string status, string timestamp, long fee) => $$"""
+        {"transaction_id":"0.0.1001-1700000000-000000001","nonce":0,"scheduled":false,
+        "parent_consensus_timestamp":null,"name":"TOKENMINT","result":"{{status}}",
+        "consensus_timestamp":"{{timestamp}}","charged_tx_fee":{{fee}}}
+        """;
+
+    [TestMethod]
+    public void DuplicateSubmissionFeesAreIncludedWithoutReplacingOriginalOutcome()
+    {
+        var receipt = MapRows(Row("DUPLICATE_TRANSACTION", "1700000002.000000001", 7),
+            Row("CONTRACT_REVERT_EXECUTED", "1700000001.000000001", 11));
+        Assert.AreEqual("18", receipt.GetProperty("netUnits").GetString());
+        Assert.IsFalse(receipt.GetProperty("success").GetBoolean());
+        Assert.AreEqual("CONTRACT_REVERT_EXECUTED", receipt.GetProperty("nativeStatus").GetString());
+        Assert.AreEqual(2, receipt.GetProperty("records").GetArrayLength());
+    }
+
+    [TestMethod]
+    public void RepeatedRecordsAndAmbiguousOriginalOutcomesCannotBeBilled()
+    {
+        var original = Row("SUCCESS", "1700000001.000000001", 11);
+        Assert.ThrowsException<TargetInvocationException>(() => MapRows(original, original));
+        Assert.ThrowsException<TargetInvocationException>(() => MapRows(original, Row("SUCCESS", "1700000002.000000001", 7)));
+        Assert.ThrowsException<TargetInvocationException>(() => MapRows(Row("DUPLICATE_TRANSACTION", "1700000002.000000001", 7)));
+        Assert.ThrowsException<TargetInvocationException>(() => MapRows());
+        Assert.ThrowsException<TargetInvocationException>(() => MapRows(Row("SUCCESS", "1700000001.000000001", long.MaxValue),
+            Row("DUPLICATE_TRANSACTION", "1700000002.000000001", 1)));
+    }
+
     [DataTestMethod]
     [DataRow("-1", "SUCCESS", 0, "false", "TOKENMINT")]
     [DataRow("1", "UNKNOWN", 0, "false", "TOKENMINT")]
