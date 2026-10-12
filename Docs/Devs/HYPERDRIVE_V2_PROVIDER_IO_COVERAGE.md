@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Journaled real Sui failed execution and read-only reuse (2026-10-12)
+
+One bounded intentional local zero-mint abort committed original digest `D83kgAWQQbdZdCFbFQivXuRF7MB5YqiqGStZAynz3GGk`, journaled before submission in fixed `TestResults/SuiCurrent/failed-status-journal.json`. Initial subsequent read returned the same failed digest but forced process.exit triggered a Windows Node UV_HANDLE_CLOSING assertion. Removed forced exit; two further invocations perform read-only retained-journal lookup and terminate successfully with the same digest, no resubmission. Current C# confirmed-failure/digest-identity readback passes **1/1**, zero skips (`sui-failed-status-current.trx`), classifying Failed rather than lookup error. Retained runtime/package/ledger/SDK reused; exact owned PID 117895 stopped afterward, no Sui process remains. Failed transaction history/public journal intentionally retained for repeat proof. No install/download/new environment/reset/public asset spending/merge; unknown/missing outcomes still require reconciliation, and full remaining gates stay open.
+
 ### Failed Sui test submission journals original digest before execution (2026-10-12)
 
 Existing local-only failed-status helper now requires an explicit fixed OASIS_SUI_TEST_FAILED_JOURNAL path. It derives the exact digest through installed SDK Transaction.getDigest after resolving/building inputs and exclusively creates a public-identity-only journal before submission. Subsequent calls validate deployment/chain/sender and only read that digest; missing/unverified/mismatched outcomes error without resubmission. Returned failure must match the journal digest. Syntax check passes; SDK installed declarations/source confirm getDigest support. No runtime/transaction was started during this change. Actual first execution and repeated read-only reuse remain required before accepting the helper as live proof; journal directories must already exist and existing foreign files are preserved/refused. No install/download/new environment/merge.
