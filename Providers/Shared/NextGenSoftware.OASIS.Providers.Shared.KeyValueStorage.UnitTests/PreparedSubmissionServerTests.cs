@@ -12,6 +12,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class PreparedSubmissionServerTests
 {
+    [TestMethod]
+    public void PreparationConfigurationIsRestrictedToOwnedChildEnvironment()
+    {
+        using var server=new PreparedSubmissionServer((_,_)=>Task.CompletedTask);
+        var original=Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE");
+        var start=new System.Diagnostics.ProcessStartInfo("node"){UseShellExecute=false};
+        server.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"prepared-submission.mjs"));
+        Assert.AreEqual(server.Endpoint,start.Environment["OASIS_NATIVE_PREPARATION_PIPE"]);
+        Assert.AreEqual(original,Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE"));
+        Assert.ThrowsException<ArgumentException>(()=>server.ConfigureChild(start,"relative.mjs"));
+        start.UseShellExecute=true;
+        Assert.ThrowsException<ArgumentException>(()=>server.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"prepared-submission.mjs")));
+    }
+
     private static System.Diagnostics.ProcessStartInfo NodeClient(string endpoint)
     {
         var start=new System.Diagnostics.ProcessStartInfo("node") { UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true };
