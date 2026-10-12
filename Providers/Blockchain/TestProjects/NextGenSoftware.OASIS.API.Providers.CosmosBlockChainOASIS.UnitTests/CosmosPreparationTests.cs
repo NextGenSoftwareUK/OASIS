@@ -125,6 +125,21 @@ public class CosmosPreparationTests
             var altered=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText())!;altered["chainId"]="foreign-chain";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(invalid.RootElement,deadline.Token));
+            altered["chainId"]="offline-test-chain";altered["signDocBase64"]="AQID";
+            using var invalidDocument=JsonDocument.Parse(JsonSerializer.Serialize(altered));
+            using var rejectedServer=provider.CreateNativePreparationServer(execution,"invalid-document","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
+            var rejectedServing=rejectedServer.ServeAsync(deadline.Token);
+            using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",rejectedServer.Endpoint.Substring(rejectedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                await pipe.ConnectAsync(deadline.Token);
+                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=invalidDocument.RootElement})+"\n");
+                await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>rejectedServing);
+                using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+            }
+            Assert.IsNull(rejectedServer.PreparedTransactionId);
+            var afterRejection=await store.GetAsync(execution.OperationId,deadline.Token);
+            Assert.AreEqual(1,afterRejection.ProviderAttempts.Count);
+            Assert.AreEqual(stored.NativePreparationBytes,afterRejection.NativePreparationBytes);
             Assert.IsFalse(provider.IsProviderActivated);
         }finally{
             try{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
