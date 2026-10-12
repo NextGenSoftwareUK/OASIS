@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON adapter duplicate/genesis/sender snapshot regression — 2026-10-12
+
+Actual signed runtime/Mongo case now mutates caller sender after view creation and proves immutable trusted copy still accepts original. Duplicate preparation rejects `PROVIDER_ATTEMPT_ALREADY_STARTED`; wrong configured genesis rejects before persistence; wrong sender view rejects. One original attempt/evidence-byte budget remains unchanged. Entire TRON unit project **204/204**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; includes new runtime-view and Mongo integration cases, not live ledger proof. Owned database removed; retained environment reused.
+
+Contract owner/account permissions/fee/window binding, full actual admitted submission/recovery and live original reconciliation remain open. No RPC, installs, submissions or release merge.
+
 ### Actual TRON signed runtime adapter/Mongo evidence — 2026-10-12
 
 Real TronNet signed protobuf passed through runtime's execution-owned callback into existing standalone Mongo. Exact original SHA256 ID/signed bytes read back, one attempt, no ledger acknowledgement. Wrong trusted sender callback rejects before write with unchanged attempt/evidence-byte budget. Focused **1/1**, zero skips, `TestResults/PriorityProviderCurrent/tron-signed-mongo.trx`. Controlled offline authority and fixture genesis; signed raw test has no operation contracts, so this is signature/evidence integration not a valid ledger transaction or owner-permission proof.
