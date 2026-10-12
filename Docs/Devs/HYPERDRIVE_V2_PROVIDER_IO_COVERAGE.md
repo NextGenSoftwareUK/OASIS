@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Token-send complete caller selector agreement (2026-10-11)
+
+HTTP send validates every supplied sender avatar ID/username/email against the authenticated avatar; username/email comparisons are ordinal case-insensitive. Conflicting selectors can no longer be ignored while the action silently uses caller ID. Three actual HTTP denial cases pass **3/3**, zero skips (`web4-token-send-identity.trx`), before manager/provider access. Positive real-JWT Sui HTTP transfer with all three matching selectors passes **1/1** and still verifies native digest, exact 0.001 SUI recipient increase and encrypted stored signer. Owned avatar/wallet data cleaned; retained Sui PID 43893 stopped after completion. Host build succeeds; no installs/download/reset/public spending/merge. Receiver-selector semantics, remaining assets/providers/business routes and deployment gates remain open.
+
 ### Token-send caller/sender identity agreement (2026-10-11)
 
 HTTP send now rejects a supplied nonempty `FromAvatarId` that differs from the authenticated caller with HTTP **403/AVATAR_OPERATION_FORBIDDEN**, before WalletManager access. This action always executes using the caller's ID; it does not implement delegated/avatar impersonation, so no Wizard bypass that would silently choose a different wallet is introduced. Empty ID continues to select the authenticated caller as before; explicit external-wallet signing semantics are unchanged. Actual HTTP rejection test **1/1**, zero skips (`web4-token-send-identity.trx`), and host build succeeds. Positive transfer regression after this guard, sender username/email semantics, other native assets/providers and full API/deployment gates remain due. No native mutation/download/install/merge.
