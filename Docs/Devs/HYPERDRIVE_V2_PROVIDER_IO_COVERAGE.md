@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current retained TRON read routing and original-transaction lookup — 2026-10-12
+
+Unpaused the existing `oasis-tron-tre` container (PID 193579, OOMKilled false), rebuilt the current integration host and passed `InspectOriginalInterruptedFixtureWithoutMutation` **1/1**, zero skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`). This covers its declared actual account/signature authority, encrypted owned-fixture reads, V2 measured/round-robin/plan selection and closed-channel read failover—not mutation replication or all interfaces.
+
+Direct current HTTP lookups for original `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` at full-node transaction, full-node receipt and solidity receipt endpoints returned empty objects/no identity. This is still unresolved evidence, NOT proof of non-submission or safe replay. Existing pending journal retained and no transaction submitted. Container restored to paused in `finally` and inspect confirmed paused/OOMKilled false. No install, ledger reset, merge or deployment. Mutation replay/replication remains fenced pending authoritative reconciliation.
+
 ### Positive rotated TRON escrow approval/deposit/unlock — 2026-10-12
 
 Extended actual SDK/controlled gRPC positive owner-rotation tests to escrow lock and unlock. Lock queries balance/allowance for the requested owner, confirms approval before constructing deposit, then verifies the deposit's exact returned amount. Assertions require two distinct original transaction IDs/two broadcasts for approval plus deposit—not duplicate retries. Unlock queries the owner's locked amount and verifies one successful original submission with the exact returned amount. Every actual signed protobuf passes independent permission authority verification at broadcast.
