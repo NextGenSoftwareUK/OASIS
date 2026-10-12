@@ -3,6 +3,30 @@ import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
 import { createHash } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { SignDoc, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { fromBase64 } from '@cosmjs/encoding';
+
+// Capture the actual wallet-returned SignDoc, not a reconstructed account-number guess.
+export function captureCosmosDirectSigning(wallet) {
+  const sign = wallet.signDirect.bind(wallet);
+  let prepared;
+  wallet.signDirect = async (...args) => {
+    prepared = undefined;
+    const result = await sign(...args);
+    const raw = TxRaw.encode(TxRaw.fromPartial({bodyBytes:result.signed.bodyBytes,
+      authInfoBytes:result.signed.authInfoBytes,signatures:[fromBase64(result.signature.signature)]})).finish();
+    prepared = Object.freeze({transactionHash:createHash('sha256').update(raw).digest('hex').toUpperCase(),
+      signDocBase64:Buffer.from(SignDoc.encode(result.signed).finish()).toString('base64')});
+    return result;
+  };
+  return evidence => {
+    if (!prepared || evidence.transactionHash !== prepared.transactionHash)
+      throw new Error('Cosmos preparation lacks the matching original direct SignDoc');
+    const result = Object.freeze({...evidence,signDocBase64:prepared.signDocBase64});
+    prepared = undefined;
+    return result;
+  };
+}
 
 export class CosmosNativeMutationReconciliationError extends Error {
   constructor(message, transactionHash, executionSucceeded, cause) {
