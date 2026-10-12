@@ -22,6 +22,8 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ### Sui owned cleanup action isolation (2026-10-12)
 
+Real named-transfer/native/custom-coin scenario rerun with the new cleanup helper passes **1/1**, zero skips, 42 seconds (`sui-shared-wallet-current.trx`). All eight native named variants, four custom named variants, shared native send and mint/burn receipt/balance assertions remain active; owned cleanup actions complete without aggregate failures. Owned PID 152888 stopped after run; retained ledger/runtime reused. This supersedes the not-yet-live-rerun limitation below, not crash recovery or separate NFT-fixture cleanup.
+
 Named-transfer fixture now attempts each owned token-wallet cleanup, wallet-map clear, avatar deletion and provider deactivation independently. Exceptions are collected and thrown together as AggregateException after every action; errors are not swallowed and mutations are not automatically retried. Focused injected-failure contract test passes **1/1**, zero skips (`sui-cleanup-contract-current.trx`): first and third actions fail, middle action still executes, both errors are retained. Integration project build zero errors/five warnings. This supersedes sequential-cleanup limitation for the named-transfer fixture only; live scenario has not yet been rerun with this helper, NFT fixture cleanup is separate, and process-crash reconciliation is not established by this test. No runtime/install/download/ledger mutation. Cosmos retained-node authorization response remains pending.
 
 ### Cosmos execution-code range and live-test authorization (2026-10-12)
