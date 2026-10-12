@@ -7,6 +7,25 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaProviderValidationTests
 {
     [TestMethod]
+    public async Task NativeNftModelIsAcceptedButForeignModelFailsBeforeSdkSubmission()
+    {
+        var provider = new HashgraphOASIS(network: "testnet");
+        var request = new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.MintWeb3NFTRequest {
+            CollectionPublicKey = "0.0.1001", NumberToMint = 0,
+            NFTStandardType = Core.Enums.NFTStandardType.HederaHTS,
+        };
+        var native = await provider.MintNFTAsync(request);
+        Assert.IsTrue(native.IsError);
+        StringAssert.Contains(native.Message, "1 to 10");
+        request.NFTStandardType = Core.Enums.NFTStandardType.ERC721;
+        var foreign = await provider.MintNFTAsync(request);
+        Assert.IsTrue(foreign.IsError);
+        StringAssert.Contains(foreign.Message, "HederaHTS");
+        Assert.IsNull(native.Result);
+        Assert.IsNull(foreign.Result);
+    }
+
+    [TestMethod]
     public async Task MintRequiresActualAssetAmountAndAvatarBeforeWalletLookup()
     {
         var provider = new HashgraphOASIS(network: "testnet");

@@ -148,7 +148,7 @@ public class CosmosAssetTests
     [TestMethod]
     public async Task NftMintReadTransferLockEscrowReleaseAndBurnEnforceActualOwner()
     {
-        var minted = await _provider.MintNFTAsync(new MintWeb3NFTRequest { Title = "Living Oak", Symbol = "OAK", NumberToMint = 1 });
+        var minted = await _provider.MintNFTAsync(new MintWeb3NFTRequest { Title = "Living Oak", Symbol = "OAK", NumberToMint = 1, NFTStandardType = Core.Enums.NFTStandardType.OASISCosmWasm });
         Assert.IsFalse(minted.IsError, minted.Message);
         Assert.IsNotNull(minted.Result.Web3NFT);
         var address = minted.Result.Web3NFT.NFTTokenAddress;

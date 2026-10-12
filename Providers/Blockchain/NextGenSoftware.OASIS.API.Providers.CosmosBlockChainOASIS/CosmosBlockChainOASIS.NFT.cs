@@ -79,8 +79,8 @@ public partial class CosmosBlockChainOASIS
             if (request == null) throw new ArgumentNullException(nameof(request));
             if (request.NumberToMint.HasValue && request.NumberToMint != 1)
                 throw new ArgumentException("This NFT call mints one unique token; use separate calls for multiple tokens.");
-            if (request.NFTStandardType.HasValue)
-                throw new ArgumentException("ERC721/ERC1155/SPL are not Cosmos OASIS custom-asset standards.");
+            if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.OASISCosmWasm)
+                throw new ArgumentException("OASIS Cosmos custom-asset minting requires OASISCosmWasm, not another chain's standard.");
             if (request.OnChainProvider.HasValue && request.OnChainProvider != Core.Enums.ProviderType.CosmosBlockChainOASIS
                 && request.OnChainProvider != Core.Enums.ProviderType.Default)
                 throw new ArgumentException("OnChainProvider must select CosmosBlockChainOASIS for this provider.");
@@ -98,6 +98,7 @@ public partial class CosmosBlockChainOASIS
             var nft = new Web3NFT
             {
                 Id = id, NFTTokenAddress = locator, CollectionPublicKey = contract,
+                NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.OASISCosmWasm),
                 NFTMintedUsingWalletAddress = signer, OASISMintWalletAddress = signer,
                 SendToAddressAfterMinting = recipient, Title = request.Title, Description = request.Description,
                 Symbol = request.Symbol, JSONMetaData = request.JSONMetaData, JSONMetaDataURL = request.JSONMetaDataURL,
