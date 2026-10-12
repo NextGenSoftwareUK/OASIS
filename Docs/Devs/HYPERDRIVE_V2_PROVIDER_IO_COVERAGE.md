@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Core regression and truthful static operation audit wording (2026-10-11)
+
+Current complete Core unit suite passes **378/378**, zero skips (`TestResults/CoreCurrent/core-current.trx`). Operation audit script identifies all **42** paired sync/async switch labels and declared operation names in provider-boundary tests. Its synopsis/result wording now explicitly labels this a static inventory: it neither executes tests nor proves every branch/option/provider combination. Script passes with clarified wording; Railway manifest/seven Dockerfiles/gitlinks validator passes. Unit suite and source inventory remain distinct evidence, not full live endpoint/provider proof or completion. No install/download/new environment/ledger mutation/merge; image approval, deferred funded Hedera and other release gates remain open.
+
 ### Current WEB4 regression and host Cosmos bridge import check (2026-10-11)
 
 At parent `62b009f19`, bounded WEB4 host rebuild succeeds (zero errors/253 warnings). Host default CosmosSdkBridge includes transaction-results.mjs and passes syntax/static imports/exact SDK pin verification via existing reusable source-dependency junction, without installing or duplicating dependencies. Full WEB4 units pass **113/113**, zero skips (`web4-unit-current.trx`); focused actual test-auth NFT HTTP binding/denial plus controlled Hedera avatar-wallet projection checks pass **5/5**, zero skips (`web4-focused-current.trx`). These use current existing build outputs, not real JWT for the NFT cases, funded Hedera consensus or a self-contained image. API image allocation approval remains pending; no build-image pull/download/install/new environment/merge. All broader provider/native/API/deployment release gates remain open.
