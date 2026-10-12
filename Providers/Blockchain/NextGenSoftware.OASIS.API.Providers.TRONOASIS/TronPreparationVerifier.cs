@@ -18,6 +18,8 @@ public static class TronPreparationVerifier
         var transaction=Transaction.Parser.ParseFrom(bytes);
         if(transaction.RawData==null||transaction.Signature.Count!=1||transaction.Signature[0].Length!=65)
             throw new InvalidDataException("One original recoverable TRON signature required.");
+        if(transaction.RawData.Timestamp<=0||transaction.RawData.Expiration<=transaction.RawData.Timestamp||transaction.RawData.FeeLimit<0)
+            throw new InvalidDataException("Original TRON validity window and nonnegative fee limit required.");
         var digest=SHA256.HashData(transaction.RawData.ToByteArray());
         if(Convert.ToHexString(digest).ToLowerInvariant()!=expectedTransactionId)throw new InvalidDataException("TRON original identity mismatch.");
         if(expectedSender==null||expectedSender.Length!=21||expectedSender[0]!=0x41)throw new ArgumentException("Trusted 21-byte TRON sender required.",nameof(expectedSender));
