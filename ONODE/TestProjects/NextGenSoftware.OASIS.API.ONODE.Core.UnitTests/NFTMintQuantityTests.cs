@@ -9,8 +9,28 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests;
 
+[Collection("NFT provider registry")]
 public sealed class NFTMintQuantityTests
 {
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(0, true)]
+    [InlineData(-1, false)]
+    [InlineData(-1, true)]
+    [InlineData(int.MinValue, false)]
+    public async Task NonpositiveDefaultCountFailsBeforeRequestExpansion(int count, bool emptyList)
+    {
+        var manager = new NFTManager((IOASISStorageProvider)null!, Guid.NewGuid(), new NextGenSoftware.OASIS.API.DNA.OASISDNA());
+        var request = new MintWeb4NFTRequest { NumberToMint = count, Web3NFTs = emptyList ? new List<IMintWeb3NFTRequest>() : null! };
+        var originalList = request.Web3NFTs;
+        var result = await manager.MintNftAsync(request);
+        Assert.True(result.IsError);
+        Assert.Null(result.Result);
+        Assert.Contains("NumberToMint", result.Message);
+        Assert.Same(originalList, request.Web3NFTs);
+        Assert.Equal(count, request.NumberToMint);
+    }
+
     [Theory]
     [InlineData(0, 0)]
     [InlineData(1, 0)]
