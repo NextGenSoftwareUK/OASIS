@@ -7,6 +7,36 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [DataTestMethod]
+    [DataRow(false, null)] [DataRow(false, "fixture-public")] [DataRow(false, "wrong-public")]
+    [DataRow(true, null)] [DataRow(true, "fixture-public")] [DataRow(true, "wrong-public")]
+    public async Task BurnValidatesPublicKeyWithoutTreatingItAsWalletAddress(bool token, string? publicKey)
+    {
+        var previous = Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory, "Fixtures", "nft-signer.mjs"));
+        try
+        {
+            using var provider = new CosmosBlockChainOASIS("http://127.0.0.1:1", "fixture-chain", "different-configured-key", "fixture-contract");
+            if (token)
+            {
+                var result = await provider.BurnTokenAsync(new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest {
+                    TokenAddress = "fixture-token", Amount = 1, OwnerPrivateKey = "test-only-explicit", OwnerSeedPhrase = null, OwnerPublicKey = publicKey });
+                Assert.AreEqual(publicKey == "wrong-public", result.IsError, result.Message);
+                if (publicKey == "wrong-public") { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "public key does not match"); }
+                else Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionResult);
+            }
+            else
+            {
+                var result = await provider.BurnNFTAsync(new BurnWeb3NFTRequest {
+                    NFTTokenAddress = "fixture-contract#fixture-token", OwnerPrivateKey = "test-only-explicit", OwnerSeedPhrase = null, OwnerPublicKey = publicKey });
+                Assert.AreEqual(publicKey == "wrong-public", result.IsError, result.Message);
+                if (publicKey == "wrong-public") { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "public key does not match"); }
+                else Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionResult);
+            }
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
+    }
+
+    [DataTestMethod]
     [DataRow(null, "fixture-contract#fixture-token", false)]
     [DataRow(" ", "fixture-contract#fixture-token", false)]
     [DataRow("fixture-contract#fixture-token", "fixture-contract#fixture-token", false)]

@@ -43,7 +43,7 @@ public partial class CosmosBlockChainOASIS
             if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress)
                 || string.IsNullOrWhiteSpace(request.FromWalletAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
                 throw new ArgumentException("Token identity and sender/recipient wallet addresses are required.");
-            var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase);
+            var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
             if (request.FromTokenAddress == _nativeDenom)
                 return await SendBankTransferAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText, _nativeDenom, key);
             var hash = await ExecuteAssetAsync(new { token_transfer = new
@@ -67,7 +67,7 @@ public partial class CosmosBlockChainOASIS
             if (request == null || string.IsNullOrWhiteSpace(request.Symbol))
                 throw new ArgumentException("Token symbol is required.");
             var amount = AssetUnits(request.Amount);
-            var key = await SigningKeyAsync(Guid.Empty);
+            var key = await SigningKeyAsync(request.MintedByAvatarId);
             var issuer = await SignerAddressAsync(key);
             var hash = await ExecuteAssetAsync(new { token_mint = new
             {
@@ -91,8 +91,8 @@ public partial class CosmosBlockChainOASIS
             if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 throw new ArgumentException("Token identity is required.");
             var amount = AssetUnits(request.Amount);
-            var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase);
-            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol = request.TokenAddress, amount } }, key, request.OwnerPublicKey);
+            var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
+            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol = request.TokenAddress, amount } }, key);
             result.Result = new TransactionResponse { TransactionResult = hash };
             result.Message = "Requested amount burned and on-chain supply reduced.";
         }

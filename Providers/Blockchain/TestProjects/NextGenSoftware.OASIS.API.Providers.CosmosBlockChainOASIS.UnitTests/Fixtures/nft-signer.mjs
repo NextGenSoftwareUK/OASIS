@@ -4,6 +4,8 @@ let result,error;
 if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
 else if(request.operation==='execute'){
  const mint=request.message?.asset?.message?.nft_mint;
+ const burn=request.message?.asset?.message?.nft_burn??request.message?.asset?.message?.token_burn;
+ if(burn&&request.fromWalletAddress!=null)throw new Error('Public key must not be forwarded as a burn wallet address.');
  if(mint){const metadata=JSON.parse(mint.metadata_json);
   if(metadata.Price!==12.5||metadata.Discount!==2||metadata.RoyaltyPercentage!==7||metadata.SellerFeeBasisPoints!==700||metadata.MemoText!=='mint memo')
    throw new Error('Mint economic metadata was not serialized.');}

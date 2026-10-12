@@ -167,13 +167,7 @@ public partial class CosmosBlockChainOASIS
             var locator = NftLocator(addresses[0]);
             if (!string.IsNullOrWhiteSpace(request.TokenId) && request.TokenId != locator.TokenId)
                 throw new ArgumentException("NFT token ID conflicts with its address.");
-            var key = await SigningKeyAsync(Guid.Empty,request.OwnerPrivateKey,request.OwnerSeedPhrase);
-            if (!string.IsNullOrWhiteSpace(request.OwnerPublicKey))
-            {
-                var restored = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey",new { privateKey = key });
-                if (restored.GetProperty("publicKey").GetString() != request.OwnerPublicKey)
-                    throw new ArgumentException("The supplied public key does not match the NFT signing key.");
-            }
+            var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
             var hash = await TransferNftAsync(locator.Address, request.FromWalletAddress, request.ToWalletAddress, key);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
             var loaded = await LoadOnChainNFTDataAsync(locator.Address);
@@ -202,8 +196,8 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             var locator = NftLocator(request.NFTTokenAddress, request.Web3NFTId);
-            var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase);
-            var hash = await ExecuteAssetAsync(new { nft_burn = new { token_id = locator.TokenId } }, key, request.OwnerPublicKey, locator.Contract);
+            var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
+            var hash = await ExecuteAssetAsync(new { nft_burn = new { token_id = locator.TokenId } }, key, contractAddress: locator.Contract);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
