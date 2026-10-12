@@ -26,11 +26,8 @@ export function storageTransaction(action, request) {
     .setFunctionParameters(getBytes(storageAbi.encodeFunctionData(name, args)));
 }
 
-export async function persistSignedSubmission(signed,request,persist){
-  if(!persist)return;
-  if(signed.transactionId.toString()!==request.transactionId)throw new Error('Prepared Hedera original identity mismatch.');
-  await persist(Object.freeze({transactionHash:request.transactionId,chainId:request.network,sender:request.sender,signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')}));
-}
+import {persistSignedSubmission} from './native-preparation.mjs';
+export {persistSignedSubmission} from './native-preparation.mjs';
 async function storageWrite(action, request, persist) {
   const mutation = storageTransaction(action, request);
   const key = restoreKey(request);
@@ -248,9 +245,9 @@ async function executeFile(action, request, persist) {
 export async function execute(action, request, persistPreparedSubmission) {
   if(persistPreparedSubmission!==undefined&&typeof persistPreparedSubmission!=='function')throw new TypeError('Prepared Hedera persistence must be an awaited callback.');
   if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission});
-  if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');
-  if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
-  if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
+  if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn','nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');
+  if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission });
+  if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
     if (request.keyType !== 'ed25519') throw new Error('Mnemonic derivation requires the explicit standard Ed25519 algorithm.');
     if (action === 'restoreMnemonic' && (typeof request.seedPhrase !== 'string' || !request.seedPhrase.trim()))
