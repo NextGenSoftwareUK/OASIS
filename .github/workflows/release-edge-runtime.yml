@@ -20,6 +20,14 @@ on:
         required: false
         type: string
         default: ''
+      validated_run_id:
+        description: Optional prior run with successful Edge validation/assets for artifact-only publication
+        required: false
+        default: ''
+      nuget_run_id:
+        description: Successful Edge-scope NuGet publication run to include (artifact-only mode)
+        required: false
+        default: ''
 
 permissions:
   actions: write
@@ -27,6 +35,7 @@ permissions:
 
 jobs:
   dispatch-shared-release:
+    if: inputs.validated_run_id == ''
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch the shared validated Edge release
@@ -44,3 +53,62 @@ jobs:
             -f mcp_server=false -f optional_components='none' \
             -f version_mode='${{ inputs.version_mode }}' -f manual_version='${{ inputs.manual_version }}'
           echo "The shared Global OASIS Release run was dispatched for OASIS Edge Runtime." >> "$GITHUB_STEP_SUMMARY"
+
+  publish-existing-artifacts:
+    if: inputs.validated_run_id != '' && inputs.operation == 'Publish'
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify the source validation and NuGet publication runs
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VALIDATED_RUN: ${{ inputs.validated_run_id }}
+          NUGET_RUN: ${{ inputs.nuget_run_id }}
+          VERSION: ${{ inputs.manual_version }}
+        run: |
+          if ($env:VALIDATED_RUN -notmatch '^\d+$' -or $env:NUGET_RUN -notmatch '^\d+$' -or $env:VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Artifact publication requires numeric run IDs and an explicit version.' }
+          $source = gh run view $env:VALIDATED_RUN --json headSha,jobs | ConvertFrom-Json
+          foreach ($name in @('edge-runtime-validation / validate', 'edge-runtime-assets')) {
+            $job = @($source.jobs | Where-Object name -eq $name)
+            if ($job.Count -ne 1 -or $job[0].conclusion -ne 'success') { throw "Source job did not succeed: $name" }
+          }
+          $published = gh run view $env:NUGET_RUN --json headSha,jobs,conclusion | ConvertFrom-Json
+          if ($published.conclusion -ne 'success' -or @($published.jobs | Where-Object { $_.name -eq 'nuget-publish' -and $_.conclusion -eq 'success' }).Count -ne 1) { throw 'NuGet publication did not succeed.' }
+          if (gh release view "OASIS-Edge-Runtime-v$env:VERSION" 2>$null) { throw 'The release already exists; do not duplicate it.' }
+          "Validated binary source: $($source.headSha); NuGet source: $($published.headSha)" >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/download-artifact@v7
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.validated_run_id }}
+          name: global-release-edge-runtime
+          path: artifacts/reused-edge
+      - uses: actions/download-artifact@v7
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.nuget_run_id }}
+          name: global-release-nuget-packages
+          path: artifacts/current-edge-nuget
+      - name: Publish the reviewed reused bundle
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.manual_version }}
+          VALIDATED_RUN: ${{ inputs.validated_run_id }}
+          NUGET_RUN: ${{ inputs.nuget_run_id }}
+        run: |
+          $root = 'artifacts/reused-edge/edge-runtime-release'
+          if (-not (Test-Path -LiteralPath $root)) { throw 'Validated release evidence directory missing.' }
+          $packages = @(Get-ChildItem artifacts/current-edge-nuget -Filter '*.nupkg' -File | Where-Object { $_.Name -notlike '*.symbols.nupkg' })
+          if ($packages.Count -ne 9) { throw 'Expected exactly nine Edge-scope packages.' }
+          Compress-Archive -LiteralPath $packages.FullName -DestinationPath "$root/nuget-publish-candidates.zip" -Force
+          ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version $env:VERSION -OutputPath "$root/RELEASE_NOTES.md"
+          @("Reused validated binary/evidence run: $env:VALIDATED_RUN", "Included successful NuGet publication run: $env:NUGET_RUN", 'NuGet candidates and release notes were refreshed; binary validation evidence remains from the original run.') | Set-Content "$root/PUBLICATION_PROVENANCE.md"
+          $archive = "artifacts/OASIS.Edge.Runtime.v$env:VERSION.zip"
+          Compress-Archive -Path "$root/*" -DestinationPath $archive
+          $assets = @((Get-ChildItem -LiteralPath $root -File).FullName) + @((Resolve-Path $archive).Path)
+          gh release create "OASIS-Edge-Runtime-v$env:VERSION" @assets --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }

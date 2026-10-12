@@ -33,6 +33,22 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 
 ## Verification basis
 
+### Edge NuGet uploads: 12 October 2026
+
+[Run 38270870776](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38270870776) successfully packed and uploaded all nine packages below. Public indexing/README rendering was still pending at the last registry check; upload success is not yet confirmation of live page rendering. The GitHub Edge bundle is separate and remains pending.
+
+| Package | Uploaded version |
+|---|---|
+| Native Integrated Endpoint Edge | [1.0.3](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/1.0.3) |
+| EdgeSQLite provider | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/1.0.2) |
+| HoloOASIS Edge provider | [1.0.0](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/1.0.0) |
+| HoloOASIS Unity provider | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/2.0.4) |
+| Contracts | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.Contracts/1.0.2) |
+| Edge ONET Runtime | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.Edge.ONET.Runtime/1.0.2) |
+| Edge Runtime | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.Edge.Runtime/1.0.2) |
+| HyperDrive Synchronization | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.HyperDrive.Synchronization/1.0.2) |
+| ONET | [1.0.2](https://www.nuget.org/packages/NextGenSoftware.OASIS.ONET/1.0.2) |
+
 ### Partial NuGet publication: verified 12 October 2026
 
 Run 38204827438 successfully uploaded these ten packages before the AbstractOASIS conflict. Every exact version below is present in NuGet's registry. AbstractOASIS 2.0.2 was pre-existing and is not counted as a successful upload from this run. Remaining packages are not yet complete.
