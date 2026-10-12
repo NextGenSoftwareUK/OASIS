@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Real provider-key/parent routes expose LocalFile relationship bug (2026-10-11)
+
+Live routing extension initially failed: LocalFile parent query read an empty/stale embedded `Children` snapshot despite separately persisted children with matching `ParentHolonId`. Query now reads actual stored child relationships, preserving provider errors and existing type/version handling. Provider-key fixture explicitly declares LocalFile keys (Shared/TRON keys are IDs); parent provider-key query resolves the persisted parent. New fixed-store regression proves ID/key sync/async parent queries include independently saved children and move membership after reparenting, without editing parent snapshots. Focused LocalFile version/export/deletion/parent suite passes **4/4**, zero skips (`localfile-version-export.trx`). A build was accidentally overlapped with the same project's active test host and failed with MSB3027 file locking; both handles were terminal before sequential rebuild/retest succeeded. No duplicate environment or process killing was used.
+
+Expanded retained TRON V2 scenario passes **1/1**, zero skips, 64 seconds (`tron-v2-routing.trx`), with **12 additional sync/async routed provider-key and ID/key-parent read checks** on both real replicas. Full previous detail-deletion/replication/failover/balancing assertions remain passing. This fixes explicit parent queries, not every recursive embedded-child projection or historical reparenting reconstruction. Owned records cleaned and runtime paused; no install/download/environment duplication/merge. Full remaining gates still open.
+
 ### Close replica detail hard-delete gap and prove routed replication (2026-10-11)
 
 LocalFile now implements ID/username/email sync/async detail deletion rather than inheriting hard-delete unsupported behavior. Soft deletion uses existing detail save; hard deletion validates the resolved exact GUID JSON path inside its detail directory and removes only that file. Identity resolution, read/save/delete errors remain explicit. Class explicitly reimplements `IOASISStorageProvider`: initial interface-dispatch test still reached the inherited default despite concrete methods, and the explicit declaration fixes that mapping. New fixed-store regression exercises all six projections for soft/hard delete, repeat-delete rejection, preserved avatar lookups and an unrelated detail. LocalFile focused version/export/deletion tests pass **3/3**, and existing LocalFile integration suite passes **3/3**, zero skips.

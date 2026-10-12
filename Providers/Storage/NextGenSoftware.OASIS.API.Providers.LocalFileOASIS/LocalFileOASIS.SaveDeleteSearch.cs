@@ -193,16 +193,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                 }
 
-                // Load parent holon first
-                var parentResult = await LoadHolonAsync(id, false, false, 0, continueOnError, loadChildrenFromProvider, version);
-                if (parentResult.IsError || parentResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading parent holon: {parentResult.Message}");
-                    return result;
-                }
-
-                // Get children from parent holon
-                var children = parentResult.Result.Children ?? new List<IHolon>();
+                // Parent membership is defined by each persisted child's ParentHolonId,
+                // not by a potentially stale embedded parent snapshot.
+                var stored = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, continueOnError, loadChildrenFromProvider, version);
+                if (stored.IsError) return stored;
+                if (stored.Result == null) throw new InvalidOperationException("Parent query returned no holon collection.");
+                var children = stored.Result.Where(child => child.ParentHolonId == id).ToList();
                 
                 // Filter by type if specified
                 if (type != HolonType.All)
