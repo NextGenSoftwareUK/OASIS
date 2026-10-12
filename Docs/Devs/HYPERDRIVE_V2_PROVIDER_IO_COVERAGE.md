@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Fungible escrow signed factory coverage — 2026-10-12
+
+The real SDK-to-pipe-to-Mongo escrow factory test now covers fungible token approval and contract lock in addition to NFT escrow, each with approval present and skipped. Token approval uses exact units `9007199254740993` (above JavaScript safe integer range) via the existing SDK bigint constructor; durable evidence readback remains byte-for-byte identical to the signed descriptor, with distinct stage correlations and no manufactured ledger acknowledgement. Full Hedera C# suite **32/32** passed, no skipped tests (`TestResults/PriorityProviderCurrent/hedera-current.trx`), using the same retained source SDK and Mongo service; owned databases are dropped. This verifies signed preparation persistence, not execution, allowance queries, funded receipts, account authority, native fee admission or live V2 failover/load-balancing/replication. No new installation, ledger submission, deployment or merge.
+
 ### Actual signed escrow factory to Mongo — 2026-10-12
 
 Added official Hiero SDK construction/signing of an NFT allowance approval and NFT escrow contract execution, then passed their exact signed descriptors through `CreateEscrowPreparationServer`, its independent SDK signature verification, real pipe acknowledgements and the existing Mongo outbox. Both approval-present and approval-skipped cases pass: Mongo readback preserves exact original IDs and signed bytes under `escrow:approval`/`escrow:mutation`, with each stage visible before its acknowledgement is accepted. Ledger `AcknowledgedAtUtc` remains null. The owned test databases are dropped in `finally`; no credentials, new runtime, ledger or download was created.
