@@ -59,6 +59,26 @@ public sealed class NFTStandardValidationTests : IDisposable
     }
 
     [Fact]
+    public void UnrelatedProviderWithNoSecondaryCapabilitiesDoesNotBreakEvmValidation()
+    {
+        var registry = new ProviderManager(null!, new OASISDNA());
+        var storage = new Mock<IOASISStorageProvider>();
+        storage.SetupGet(x => x.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.LocalFileOASIS));
+        storage.SetupGet(x => x.ProviderCategory).Returns(new EnumValue<ProviderCategory>(ProviderCategory.Storage));
+        storage.SetupGet(x => x.ProviderCapabilities).Returns((List<EnumValue<ProviderCategory>>)null!);
+        Assert.True(registry.RegisterProvider(storage.Object));
+        try
+        {
+            Assert.Empty(registry.GetAllEVMBlockchainProviders());
+            Assert.Empty(registry.GetAllBlockchainProviders());
+        }
+        finally
+        {
+            registry.UnRegisterProvider(storage.Object);
+        }
+    }
+
+    [Fact]
     public void ExistingSerializedEnumValuesAreUnchanged()
     {
         Assert.Equal(0, (int)NFTStandardType.ERC721);
