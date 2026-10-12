@@ -96,9 +96,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     var executionCode = tx.GetProperty("code").GetUInt32();
                     var operation = tx.GetProperty("operation").GetString();
                     var transferIndex = tx.GetProperty("transferIndex").GetInt32();
-                    if (transferIndex < 0 || (operation != "/cosmos.bank.v1beta1.MsgSend" && operation != "/cosmos.bank.v1beta1.MsgMultiSend"))
+                    var messageIndex = tx.GetProperty("messageIndex").GetInt32();
+                    if (messageIndex < 0 || transferIndex < 0
+                        || (operation == "/cosmos.bank.v1beta1.MsgSend" && transferIndex != 0)
+                        || (operation != "/cosmos.bank.v1beta1.MsgSend" && operation != "/cosmos.bank.v1beta1.MsgMultiSend"))
                         throw new InvalidOperationException("Invalid Cosmos bank history operation or output index.");
-                    var rowIdentity = $"{ProviderType.Value}:tx:{hash}:{tx.GetProperty("messageIndex").GetInt32()}";
+                    var rowIdentity = $"{ProviderType.Value}:tx:{hash}:{messageIndex}";
                     if (operation == "/cosmos.bank.v1beta1.MsgMultiSend") rowIdentity += ":" + transferIndex;
                     return new Core.Interfaces.Wallet.Response.WalletTransaction
                     {
