@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Current independent Sui token/NFT lifecycle scenarios (2026-10-12)
+
+Reused retained Sui node/package/currency and token-wallet sidecar. C# token mint/transfer/escrow lock/unlock/burn authorization scenario plus batch NFT metadata/read/transfer/burn scenario pass **2/2**, zero skips, 46 seconds (`sui-assets-current.trx`), using explicitly current source SDK bridge. This independently refreshes native asset evidence beyond the named-transfer scenario. Owned token/NFT cleanup assertions remain in their existing tests; retained issuer/holder identities are not recreated. NFT recipient is synthetic local; ledger entries remain historical evidence. Owned PID 165285 stopped afterward, no installs/downloads/new environment. Complete sync/async/options/hosted/native interface audit, Cosmos corrected rerun and funded Hedera gates remain open.
+
 ### Current Sui native/NFT custody bridge verification (2026-10-12)
 
 Existing real custody bridge scenario now independently checks native withdrawal Completed receipt and explicitly verifies deposit status lookup IsError=false before accepting Completed. Current scenario passes **1/1**, zero skips, 21 seconds (`sui-native-nft-bridge-current.trx`), retaining 0.5 SUI recipient deltas and original NFT custody/release with bound source receipt and owned NFT burn cleanup. Integration build zero errors/two warnings. Pinned existing package/ledger/runtime reused; owned PID 163989 stopped afterward, no installs/downloads/new environment. This proves native custody legs and existing NFT release behavior, not independently authorized cross-chain proof/settlement, hosted pool-release access control or complete native interface options.
