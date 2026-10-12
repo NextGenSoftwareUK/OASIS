@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current-pin real Sui routing/failover recheck (2026-10-11)
+
+At Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b` and current LocalFile export fix, retained Sui 1.81.1 ledger/runtime/deployment are reused. Real replication/measured read-selection scenario passes **1/1**, zero skips, 24 seconds (`sui-v2-routing.trx`). Failover scenarios pass **2/2**, zero skips, 13 seconds (`sui-v2-failover.trx`): closed SDK transport and actual exact-owned-node shutdown both select LocalFile, with real save/readback and diagnostic assertions. Node PID 53550 was stopped by the validating helper; `pgrep -x sui` confirms no remaining process and its original execution session ended. Startup emitted existing epoch execution-chunk/JWK warnings, but readiness/activation and actual operations succeeded; no ledger regeneration or claim of warning-free startup. Source bridge/pinned dependencies reused explicitly, so this is not image packaging proof. No install/download/deployment/reset/environment duplication/public-chain spending/merge. Full operation/native/API/image and Hedera funded gates remain open.
+
 ### LocalFile export ownership regression and current Core suite (2026-10-11)
 
 `HolonExportsExcludeAvatarIdentityAndOtherOwners` reuses the existing fixed LocalFile version-test store and verifies both sync/async full exports contain actual owned/foreign holons but no avatar identity/null entries. All six avatar-scoped ID/username/email export projections include only the `CreatedByAvatarId`-owned record: an owned record with a different parent is included, and a foreign-owned record parented under the avatar is excluded. This locks the actual ownership/type invariant rather than only the preceding positive batch case. Together with retained version/deletion regression, **2/2** pass, zero skips (`localfile-version-export.trx`); owned fixtures removed in `finally`. Current Core full unit suite also passes **362/362**, zero skips (`core-current.trx`). No new provider runtime/install/download/merge; complete live matrix and funded/native/API/image/release gates remain required.
