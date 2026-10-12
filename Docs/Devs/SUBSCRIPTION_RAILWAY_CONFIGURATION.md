@@ -20,6 +20,17 @@ Hosted dev GET `/api/subscription/plans` independently returned USD 9/29/99 for 
 
 Current checkout's structural authority validator failed because STAR/WEB6 middleware source files are absent; rollout validator stopped at absent STAR Program.cs. Neither is a passing release gate. Existing sibling STAR/WEB6 repositories were identified but their revisions differ from this task's pins; no fresh clone/download or substituted source-graph validation was performed.
 
+### Exact pinned-source structural verification — 2026-10-12
+
+Later inspection confirmed both manifest-pinned commits are already available as Git objects in the existing sibling repositories. The validators now offer an explicit immutable-source mode; they read those exact commits, not the sibling worktree/branch tips. Commit objects and the parent committed gitlinks must agree with the manifest. No clone, checkout, fetch, source export or replacement environment is performed. Other service sources are explicitly read from the parent worktree.
+
+```powershell
+python Scripts/validate_web4_subscription_authority.py --pinned-star-repository 'C:\Source\OASIS\STAR ODK' --pinned-web6-repository C:\Source\OASIS\WEB6
+python Scripts/validate_subscription_rollout_gate.py --pinned-star-repository 'C:\Source\OASIS\STAR ODK' --pinned-web6-repository C:\Source\OASIS\WEB6
+```
+
+Both structural checks passed with this exact input. Source-reader tests pass 5/5, covering immutable identity, gitlink mismatch, noncommit/moving-ref rejection, lookup failure without fallback and explicitly retained parent-worktree reads. Default checkout mode still fails for the missing STAR/WEB6 files, reporting them instead of crashing. This is not exact-pin compilation, Docker image reproduction, hosted deployment, webhook delivery, subscription activation, ledger initialization or mint fee authorization; those release gates remain open. Do not interpret this as permission to enable billing or remove the NFT gate.
+
 ### NFT minting is not yet protected by the usage protocol
 
 Source audit on 2026-10-12: `SubscriptionService.AuthorizeUsageAsync` accepts only WEB5–WEB10 consuming services and `ai.tokens`/`api.request` meter categories. WEB4 `NftController.MintNftAsync` directly invokes `NFTManager.MintNftAsync` after its temporary Wizard check; it does not consult the subscription service or reserve/settle native mint fees. The inspected JWT and OASIS middleware do not supply that missing authorization. Therefore even a successful checkout/webhook/consumer-ledger rollout is insufficient by itself to remove the temporary NFT gate.
