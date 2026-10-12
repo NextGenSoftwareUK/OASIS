@@ -11,7 +11,7 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 | OQUAKE | Done: 1.1.0; Windows x64, Linux x64 and macOS ARM64 assets | [Release 1.1.0](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/v1.1.0) |
 | OASIS Runtime | Done: 5.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 5.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Runtime-v5.1.0) |
 | STAR Runtime including CLI | Done: 4.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 4.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/STAR-ODK-Runtime-v4.1.0) |
-| Edge Runtime | 1.1.0 planned; validation and archive packaging passed in run 38204827438; publication blocked by NuGet failure | — |
+| Edge Runtime | Done: GitHub bundle 1.1.0; reuses validated artifacts, includes refreshed nine-package NuGet candidate ZIP and provenance | [Release 1.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Edge-Runtime-v1.1.0) |
 | OGEngineClient Edge and remote-only profiles | Updated release outstanding | [Existing 2.0.2](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OGEngineClient-v2.0.2) |
 | Integrated Native Endpoint | Done: 2.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 2.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.1.0) |
 | OIDE | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OIDE/releases/tag/v1.0.0) |
@@ -35,7 +35,9 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 
 ### Edge NuGet uploads: 12 October 2026
 
-[Run 38270870776](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38270870776) successfully packed and uploaded all nine packages below. Public indexing/README rendering was still pending at the last registry check; upload success is not yet confirmation of live page rendering. The GitHub Edge bundle is separate and remains pending.
+[Run 38270870776](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38270870776) successfully packed and uploaded all nine packages below. Edge Runtime and Edge ONET Runtime 1.0.2 were subsequently verified indexed with their expanded README headings rendered on NuGet. Other exact-version pages require individual rendering verification.
+
+[GitHub publication run 38275862425](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38275862425) published Edge Runtime 1.1.0, verified public/non-draft with nonempty assets and target `54bb599ed3b9b00d3be6711e1ff150b7edb66bb9` matching the validated binary source. Use `nuget-publish-candidates.zip` for the refreshed nine NuGet versions; standalone older `.nupkg` assets are preserved validation evidence, not the newly published versions. `PUBLICATION_PROVENANCE.md` records the separate validation and NuGet publication runs. Existing checksum/attestation evidence applies to original validation artifacts, not automatically to the rebuilt aggregate ZIP or refreshed candidates. Native standalone OGEngine evidence is Windows x64; this bundle does not establish all-platform native OGEngine or physical-device acceptance.
 
 | Package | Uploaded version |
 |---|---|
