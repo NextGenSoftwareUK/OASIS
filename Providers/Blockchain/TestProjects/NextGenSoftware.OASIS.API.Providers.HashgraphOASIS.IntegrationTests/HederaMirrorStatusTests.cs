@@ -8,6 +8,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass]
 public class HederaMirrorStatusTests
 {
+    [TestMethod]
+    public async Task ExistingOwnedTestnetFailureIsReadWithoutSubmission()
+    {
+        var client = new HashgraphClient("https://testnet.mirrornode.hedera.com");
+        var status = await client.GetTransactionStatusAsync("0.0.10993779@1791758571.546470406");
+        Assert.AreEqual(BridgeTransactionStatus.InsufficientFundsForFee, status);
+    }
+
     private static object Map(string json) {
         using var document = JsonDocument.Parse(json);
         return typeof(HashgraphClient).GetMethod("MapMirrorTransactionStatus", BindingFlags.NonPublic | BindingFlags.Static)!
