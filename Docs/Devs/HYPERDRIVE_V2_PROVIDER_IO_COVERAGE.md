@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos indexed failed-send history retention (2026-10-12)
+
+History no longer silently skips indexed transactions with nonzero execution code. The bridge requires exact nonnegative integer code and includes it with each relevant native MsgSend row; C# projects Success/Failed plus explicit numeric failure, while amount/description clearly represent requested value, not confirmed movement. Existing precision/direction test now covers codes zero and five. Full C# suite **41/41**, zero skips; SDK regression **21/21**, zero skips; provider build zero errors/two warnings. This only covers transactions returned by the indexer and recognized MsgSend messages; it does not prove that failed recipient-side transactions are indexed, MsgMultiSend coverage, complete chain history or live failure lookup. Those remain gates. No runtime/install/download/ledger mutation.
+
 ### Cosmos native wallet-history projection (2026-10-12)
 
 Successful indexed MsgSend rows now populate the existing NativeTransactionId, RawAmount, AmountUnit, NativeOperation, NativeExecutionResult and debit/credit fields instead of exposing only approximate double amount/description and OASIS deterministic row GUID. Raw integer units remain exact above 2^53; the existing GUID is retained as row identity, not misrepresented as chain hash. A focused projection test covers both participants and 9007199254740993 raw units. Provider build zero errors/two warnings; full C# units **40/40**, zero skips. This is DTO projection evidence, not live indexed history. The SDK history currently selects successful native-denom MsgSend only; failed transactions, MsgMultiSend and other bank/contract/token history remain explicit completeness gaps requiring implementation and live proof. No runtime/install/download/ledger mutation.
