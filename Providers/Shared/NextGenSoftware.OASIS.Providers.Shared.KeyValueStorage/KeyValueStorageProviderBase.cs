@@ -183,11 +183,6 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 avatar.ProviderUniqueStorageKey[StorageType] = avatar.Id.ToString();
 
                 var previous = await ReadAsync<IAvatar>(AvatarKey(avatar.Id));
-                if (previous != null && !string.IsNullOrWhiteSpace(previous.Username) && !string.Equals(previous.Username, avatar.Username, StringComparison.OrdinalIgnoreCase))
-                    await Backend.DeleteAsync(UsernameKey(previous.Username));
-                if (previous != null && !string.IsNullOrWhiteSpace(previous.Email) && !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase))
-                    await Backend.DeleteAsync(EmailKey(previous.Email));
-
                 if (!string.IsNullOrWhiteSpace(avatar.Username))
                 {
                     var owner = await ReadIdAsync(UsernameKey(avatar.Username));
@@ -203,6 +198,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 await Backend.PutAsync(AvatarKey(avatar.Id), OasisJson.Serialize(avatar));
                 if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.PutAsync(UsernameKey(avatar.Username), avatar.Id.ToString());
                 if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.PutAsync(EmailKey(avatar.Email), avatar.Id.ToString());
+                // Validate replacements before any writes, and retire old indexes only after the new record/indexes exist.
+                if (previous != null && !string.IsNullOrWhiteSpace(previous.Username) && !string.Equals(previous.Username, avatar.Username, StringComparison.OrdinalIgnoreCase))
+                    await Backend.DeleteAsync(UsernameKey(previous.Username));
+                if (previous != null && !string.IsNullOrWhiteSpace(previous.Email) && !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase))
+                    await Backend.DeleteAsync(EmailKey(previous.Email));
 
                 return new OASISResult<IAvatar>(avatar) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
