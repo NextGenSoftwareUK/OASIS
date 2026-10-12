@@ -19,11 +19,13 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public readonly ConcurrentDictionary<string, string> Items = new();
         public bool Reachable = true;
         public bool ThrowReads;
+        public string FailGetKey;
         public string FailPutKey;
         public string FailDeleteKey;
         public int ListCalls;
 
-        public Task<string> GetAsync(string key, CancellationToken ct = default) => ThrowReads
+        public Task<string> GetAsync(string key, CancellationToken ct = default) => key == FailGetKey
+            ? throw new System.IO.IOException("controlled child read outage") : ThrowReads
             ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
         public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw new InvalidOperationException("controlled write failure"); Items[key] = value; return Task.CompletedTask; }
         public Task DeleteAsync(string key, CancellationToken ct = default) { if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
@@ -45,6 +47,49 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task Child_read_continuation_is_explicit_partial_warning_not_silent_success(bool continueOnError)
+        {
+            var parent = new Holon { Id = Guid.NewGuid(), Name = "parent" };
+            var healthy = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Name = "healthy" };
+            var unavailable = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Name = "unavailable" };
+            foreach (var holon in new[] { parent, healthy, unavailable }) Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            _backend.FailGetKey = "oasis/holon/" + unavailable.Id.ToString("N");
+            foreach (var result in new[] { await _provider.LoadHolonAsync(parent.Id, continueOnError: continueOnError),
+                _provider.LoadHolon(parent.Id, continueOnError: continueOnError) })
+            {
+                Assert.AreEqual(!continueOnError, result.IsError, result.Message);
+                if (continueOnError)
+                {
+                    Assert.IsTrue(result.IsWarning);
+                    Assert.AreEqual(healthy.Id, result.Result.Children.Single().Id);
+                    Assert.AreEqual("1", result.MetaData["failedHolonReadCount"]);
+                    StringAssert.Contains(result.Message, unavailable.Id.ToString());
+                }
+            }
+            var children = await _provider.LoadHolonsForParentAsync(parent.Id, continueOnError: continueOnError);
+            Assert.AreEqual(!continueOnError, children.IsError, children.Message);
+            if (continueOnError) { Assert.IsTrue(children.IsWarning); Assert.AreEqual(healthy.Id, children.Result.Single().Id); }
+            var all = await _provider.LoadAllHolonsAsync(loadChildren: false, continueOnError: continueOnError);
+            Assert.AreEqual(!continueOnError, all.IsError, all.Message);
+            if (continueOnError) { Assert.IsTrue(all.IsWarning); Assert.AreEqual(2, all.Result.Count()); }
+        }
+
+        [TestMethod]
+        public async Task Best_effort_never_suppresses_corrupt_child_payload()
+        {
+            var parent = new Holon { Id = Guid.NewGuid() };
+            var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id };
+            Assert.IsFalse((await _provider.SaveHolonAsync(parent)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            _backend.Items["oasis/holon/" + child.Id.ToString("N")] = "{";
+            var result = await _provider.LoadHolonAsync(parent.Id, continueOnError: true);
+            Assert.IsTrue(result.IsError);
+            Assert.IsNotNull(result.Exception);
+        }
+
         [TestMethod]
         public async Task Miskeyed_current_or_historical_records_never_return_another_identity_or_version()
         {

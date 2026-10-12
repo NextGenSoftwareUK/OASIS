@@ -152,7 +152,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return id;
         }
 
-        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0) where T : class, IHolonBase
+        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0, bool continueOnError = false, List<string> failures = null) where T : class, IHolonBase
         {
             if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
             using var gate = new SemaphoreSlim(MaxParallelReads);
@@ -160,9 +160,30 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 await gate.WaitAsync();
                 try { return await ReadVersionAsync(key, await ReadAsync<T>(key), version); }
+                catch (Exception ex) when (continueOnError && failures != null
+                    && ex is not System.IO.InvalidDataException && ex is not System.Text.Json.JsonException
+                    && ex is not Newtonsoft.Json.JsonException
+                    && ex is not OperationCanceledException && ex is not NotSupportedException
+                    && ex is not ArgumentException && ex is not FormatException)
+                {
+                    lock (failures) failures.Add($"{IdFromKey(key)} ({ex.GetType().Name})");
+                    return null;
+                }
                 finally { gate.Release(); }
             });
             return (await Task.WhenAll(tasks)).Where(x => x != null).ToList();
+        }
+
+        private OASISResult<T> MarkPartialRead<T>(OASISResult<T> result, List<string> failures)
+        {
+            if (failures.Count == 0) return result;
+            result.IsWarning = true;
+            result.Message = $"Returned partial holon data; {failures.Count} record reads failed: {string.Join(", ", failures)}";
+            result.MetaData ??= new Dictionary<string, string>();
+            result.MetaData["partialHolonReads"] = "true";
+            result.MetaData["failedHolonReadCount"] = failures.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            result.MetaData["failedHolonReads"] = OasisJson.Serialize(failures.ToArray());
+            return result;
         }
 
         private OASISResult<T> Fail<T>(string message, Exception ex = null, string errorCode = null)
@@ -537,9 +558,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound);
                 if (loadChildren)
                 {
-                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, version);
-                    if (children.IsError && !continueOnError) return Fail<IHolon>(children.Message);
+                    var failures = new List<string>();
+                    var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0, version,
+                        continueOnError: continueOnError, failures: failures);
                     holon.Children = children.Result?.ToList() ?? new List<IHolon>();
+                    return MarkPartialRead(Ok(holon), failures);
                 }
                 return Ok(holon);
             }
@@ -557,8 +580,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null, bool continueOnError = false, List<string> failures = null)
         {
+            failures ??= new List<string>();
             var path = ancestors == null ? new HashSet<Guid>() : new HashSet<Guid>(ancestors);
             if (!path.Add(parentId)) throw new System.IO.InvalidDataException("Cyclic holon parent relationship encountered during recursive child loading.");
             List<IHolon> children;
@@ -566,28 +590,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 // Current parent indexes cannot represent a retained historical record's former parent.
                 var historicalKeys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
-                children = (await ReadAllAsync<IHolon>(historicalKeys, version)).Where(child => child.ParentHolonId == parentId).ToList();
+                children = (await ReadAllAsync<IHolon>(historicalKeys, version, continueOnError, failures)).Where(child => child.ParentHolonId == parentId).ToList();
             }
             else
             {
                 var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
-                children = (await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version)).Where(child => child.ParentHolonId == parentId).ToList();
+                children = (await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version, continueOnError, failures)).Where(child => child.ParentHolonId == parentId).ToList();
             }
             var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
             if (recursive && !reachedDepth)
             {
                 foreach (var child in children)
                 {
-                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, version, path);
+                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, version, path, continueOnError, failures);
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }
-            return Ok<IEnumerable<IHolon>>(children.Where(h => type == HolonType.All || h.HolonType == type).ToList());
+            return MarkPartialRead(Ok<IEnumerable<IHolon>>(children.Where(h => type == HolonType.All || h.HolonType == type).ToList()), failures);
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth, version); }
+            try { return await LoadChildrenAsync(id, type, loadChildren && recursive, maxChildDepth, curentChildDepth, version, continueOnError: continueOnError); }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons for parent {id}: {ex.Message}", ex); }
         }
 
@@ -603,22 +627,24 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version);
+            => await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, continueOnError: continueOnError);
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, int version, Func<IHolon, bool> predicate = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int curentChildDepth, int version, Func<IHolon, bool> predicate = null, bool continueOnError = false)
         {
             try
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
-                var holons = await ReadAllAsync<IHolon>(keys, version);
+                var failures = new List<string>();
+                var holons = await ReadAllAsync<IHolon>(keys, version, continueOnError, failures);
                 var selected = holons.Where(h => (type == HolonType.All || h.HolonType == type) && (predicate == null || predicate(h))).ToList();
                 if (loadChildren)
                     foreach (var holon in selected)
                     {
-                        var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, version);
+                        var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, curentChildDepth, version,
+                            continueOnError: continueOnError, failures: failures);
                         holon.Children = children.Result.ToList();
                     }
-                return Ok<IEnumerable<IHolon>>(selected);
+                return MarkPartialRead(Ok<IEnumerable<IHolon>>(selected), failures);
             }
             catch (Exception ex) { return Fail<IEnumerable<IHolon>>($"Error loading holons: {ex.Message}", ex); }
         }
@@ -632,7 +658,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             if (string.IsNullOrWhiteSpace(metaKey)) return Fail<IEnumerable<IHolon>>("A nonblank metadata key is required.");
-            return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, h => MetaMatches(h, metaKey, metaValue));
+            return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, h => MetaMatches(h, metaKey, metaValue), continueOnError);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -647,7 +673,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             bool Match(IHolon h) => metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
                 ? metaKeyValuePairs.Any(kv => MetaMatches(h, kv.Key, kv.Value))
                 : metaKeyValuePairs.All(kv => MetaMatches(h, kv.Key, kv.Value));
-            return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, Match);
+            return await LoadHolonCollectionAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, version, Match, continueOnError);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
