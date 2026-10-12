@@ -7,6 +7,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.Core.ARC.Membrane</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>2.0.1</Version>
     <Title>OASIS ARC Membrane</Title>
     <Product>OASIS ARC Membrane</Product>
@@ -42,4 +43,7 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
