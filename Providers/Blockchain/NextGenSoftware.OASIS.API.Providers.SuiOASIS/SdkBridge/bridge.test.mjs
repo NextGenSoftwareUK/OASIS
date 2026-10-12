@@ -20,9 +20,15 @@ test('fee receipts retain exact charged failure, payer and signed rebate without
 });
 
 test('history requires original digest and explicit outcome while preserving failed execution', () => {
-  const tx = {digest:'original',status:{success:false},transaction:{sender:'owner'},timestampMs:1,effects:{},balanceChanges:[]};
+  const tx = {digest:'original',status:{success:false},transaction:{sender:'0x'+'1'.repeat(64)},
+    checkpoint:'42',timestampMs:1,effects:{transactionDigest:'original'},balanceChanges:[]};
   assert.equal(verifiedHistoryTransaction(tx,'original'),tx);
   assert.throws(() => verifiedHistoryTransaction(tx,'different'), /mismatched/);
+  for (const checkpoint of [null, undefined, '-1', '1.5', '01', '18446744073709551616'])
+    assert.throws(() => verifiedHistoryTransaction({...tx,checkpoint},'original'), /incomplete/);
+  for (const timestampMs of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])
+    assert.throws(() => verifiedHistoryTransaction({...tx,timestampMs},'original'), /incomplete/);
+  assert.throws(() => verifiedHistoryTransaction({...tx,effects:{transactionDigest:'different'}},'original'), /incomplete/);
   for (const status of [undefined,{}, {success:'false'}])
     assert.throws(() => verifiedHistoryTransaction({...tx,status},'original'), /incomplete/);
   for (const timestampMs of [null,undefined])
