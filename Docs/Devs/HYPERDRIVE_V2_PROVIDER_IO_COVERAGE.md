@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Default NFT batch expansion corrected (2026-10-12)
+
+ONODE Core `8e9823ecb9483d4de024bee5197d41930d2ebe6e` replaces the changing subtractive loop bound with direct current-count comparison. Default Web3 request expansion now reaches the requested count, preserves existing explicit entries without truncating them, and adds no entry for zero. Seven regression cases cover 0/1/2/5/10, partial explicit lists, excess explicit lists and repeated normalization. Together with existing single-submission quantity/restoration and manager batch/partial-delivery tests: **20/20 passed, zero skips**, `TestResults/OnodeCurrent/nft-quantity-current.trx`; rebuilt ONODE Core has zero errors/154 warnings. This fixes list expansion, not the unresolved invalid/nonpositive-count response contract or live positive subscription-protected minting gate. No live mint was submitted.
+
 ### Mint caller defaults and unresolved authorization/count gates (2026-10-12)
 
 Current WEB4 `NftController.MintNftAsync` initializes `MintedByAvatarId` from the authenticated controller `AvatarId` when the request field is omitted or empty. Only its Wizard branch applies a supplied nonempty valid GUID override. Invalid explicit GUIDs are rejected. However, the earlier endpoint gate rejects every non-Wizard, with a subscription error message despite checking `AvatarType.Wizard`, not a subscription. Consequently this does **not** prove normal subscribed users can mint. Resolve the intended existing subscription authorization before changing that policy; do not bypass it to obtain a positive test. The recipient fallback when caller ID is empty is also not proof of authenticated caller identity.

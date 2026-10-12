@@ -12,6 +12,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests;
 public sealed class NFTMintQuantityTests
 {
     [Theory]
+    [InlineData(0, 0)]
+    [InlineData(1, 0)]
+    [InlineData(2, 0)]
+    [InlineData(5, 0)]
+    [InlineData(10, 0)]
+    [InlineData(5, 2)]
+    [InlineData(2, 5)]
+    public void DefaultRequestExpansionHasExactCountAndPreservesExplicitEntries(int requested, int existing)
+    {
+        var entries = Enumerable.Range(0, existing).Select(_ => (IMintWeb3NFTRequest)new MintWeb3NFTRequest { NumberToMint = 7 }).ToList();
+        var request = new MintWeb4NFTRequest { NumberToMint = requested, Web3NFTs = existing == 0 ? null! : entries.ToList() };
+        var method = typeof(NFTManager).GetMethod("ExpandDefaultWeb3MintRequests", BindingFlags.Static | BindingFlags.NonPublic)!;
+        method.Invoke(null, new object[] { request });
+        Assert.Equal(Math.Max(requested, existing), request.Web3NFTs.Count);
+        for (var index = 0; index < existing; index++)
+        {
+            Assert.Same(entries[index], request.Web3NFTs[index]);
+            Assert.Equal(7, request.Web3NFTs[index].NumberToMint);
+        }
+        method.Invoke(null, new object[] { request });
+        Assert.Equal(Math.Max(requested, existing), request.Web3NFTs.Count);
+    }
+
+    [Theory]
     [InlineData(null, 0)]
     [InlineData(5, 5)]
     [InlineData(10, 10)]
