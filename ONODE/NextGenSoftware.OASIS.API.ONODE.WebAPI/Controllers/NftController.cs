@@ -434,16 +434,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
-            var mintedByAvatarId = AvatarId;
-            bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
-            if (!string.IsNullOrEmpty(request.MintedByAvatarId)
-                && (!Guid.TryParse(request.MintedByAvatarId,out var explicitMintActor) || explicitMintActor == Guid.Empty))
-                return new OASISResult<IWeb4NFT> { IsError = true, Message = "MintedByAvatarId must be a nonempty valid GUID when supplied." };
-            // Wizards (e.g. oasismint service account) can mint on behalf of another avatar
-            if (callerIsWizard && !string.IsNullOrEmpty(request.MintedByAvatarId) && Guid.TryParse(request.MintedByAvatarId, out Guid requestedMintedByAvatarId) && requestedMintedByAvatarId != Guid.Empty)
-                mintedByAvatarId = requestedMintedByAvatarId;
-            else if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
-                mintedByAvatarId = sendToAvatarAfterMintingId;
+            Guid mintedByAvatarId;
+            try { mintedByAvatarId = ResolveMintActorAvatarId(AvatarId, Avatar?.AvatarType.Value == AvatarType.Wizard, request.MintedByAvatarId); }
+            catch (Exception ex) when (ex is ArgumentException || ex is UnauthorizedAccessException)
+            { return new OASISResult<IWeb4NFT> { IsError = true, Message = ex.Message }; }
 
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
             {
@@ -486,6 +480,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        private static Guid ResolveMintActorAvatarId(Guid authenticatedAvatarId, bool callerIsWizard, string suppliedAvatarId)
+        {
+            if (authenticatedAvatarId == Guid.Empty)
+                throw new UnauthorizedAccessException("A nonempty authenticated avatar ID is required for NFT minting.");
+            if (string.IsNullOrEmpty(suppliedAvatarId)) return authenticatedAvatarId;
+            if (!callerIsWizard)
+                throw new UnauthorizedAccessException("Only Wizards can supply MintedByAvatarId to mint on behalf of an avatar.");
+            if (!Guid.TryParse(suppliedAvatarId, out var actor) || actor == Guid.Empty)
+                throw new ArgumentException("MintedByAvatarId must be a nonempty valid GUID when supplied.");
+            return actor;
         }
 
         [Authorize(AvatarType.Wizard)]
