@@ -12,6 +12,64 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task RealStorageListsPreserveHistoryAndRejectedRenameIndexes()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/Use-ReusableTronRuntime.ps1"))) directory = directory.Parent;
+        Assert.NotNull(directory);
+        var root = Path.Combine(directory!.FullName, "TestResults/TronRuntime");
+        using var lease = new FileStream(Path.Combine(root, "history.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var contract = (await File.ReadAllTextAsync(Path.Combine(root, "local-store-address.txt"))).Trim();
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), Genesis, contractFeeLimitSun: 1000000000);
+        using var backend = new TronPrivateStorageBackend(runtime.NativeTransfers, new TronECKey(SenderKey, TronNetwork.MainNet).GetPublicAddress(),
+            contract, () => SenderKey, () => System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
+        var provider = new TRONOASIS(rpcEndpoint: "http://127.0.0.1:9090", nativeTransfers: runtime.NativeTransfers, storageBackend: backend)
+            { IsVersionControlEnabled = true };
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.Parse("89139d63-b8d5-4540-9ee4-10495178ef31"),
+            Username = "tron-history-owner", Email = "tron-history-owner@example.invalid", FirstName = "first" };
+        var other = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.Parse("847b058a-7229-47fb-97d4-933d071da31f"),
+            Username = "tron-history-other", Email = "tron-history-other@example.invalid" };
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id = avatar.Id, Karma = 10 };
+        var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.Parse("42f1feee-0f35-4f1e-a62c-784d006573ff"), Name = "first" };
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            Assert.False((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.False((await provider.SaveAvatarAsync(other)).IsError);
+            Assert.False((await provider.SaveAvatarDetailAsync(detail)).IsError);
+            Assert.False((await provider.SaveHolonAsync(holon)).IsError);
+            avatar.FirstName = "second"; detail.Karma = 20; holon.Name = "second";
+            Assert.False((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.False((await provider.SaveAvatarDetailAsync(detail)).IsError);
+            Assert.False((await provider.SaveHolonAsync(holon)).IsError);
+            foreach (var result in new[] { provider.LoadAllAvatars(1), await provider.LoadAllAvatarsAsync(1) })
+            { Assert.False(result.IsError, result.Message); Assert.Equal("first", result.Result.Single(value => value.Id == avatar.Id).FirstName); }
+            foreach (var result in new[] { provider.LoadAllAvatarDetails(1), await provider.LoadAllAvatarDetailsAsync(1) })
+            { Assert.False(result.IsError, result.Message); Assert.Equal(10, result.Result.Single(value => value.Id == avatar.Id).Karma); }
+            foreach (var result in new[] { provider.LoadAllHolons(version: 1), await provider.LoadAllHolonsAsync(version: 1) })
+            { Assert.False(result.IsError, result.Message); Assert.Equal("first", result.Result.Single(value => value.Id == holon.Id).Name); }
+            Assert.Equal("second", (await provider.LoadAllAvatarsAsync()).Result.Single(value => value.Id == avatar.Id).FirstName);
+            foreach (var conflictingEmail in new[] { false, true })
+            {
+                var rejected = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatar.Id,
+                    Username = conflictingEmail ? "tron-history-new" : other.Username,
+                    Email = conflictingEmail ? other.Email : "tron-history-new@example.invalid" };
+                Assert.True((await provider.SaveAvatarAsync(rejected)).IsError);
+                Assert.Equal(avatar.Id, (await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+                Assert.Equal(avatar.Id, (await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
+                Assert.Equal("second", (await provider.LoadAvatarAsync(avatar.Id)).Result.FirstName);
+            }
+        }
+        finally
+        {
+            if ((await provider.LoadHolonAsync(holon.Id)).Result != null) Assert.False((await provider.DeleteHolonAsync(holon.Id)).IsError);
+            foreach (var id in new[] { avatar.Id, other.Id })
+                if ((await provider.LoadAvatarAsync(id)).Result != null) Assert.False((await provider.DeleteAvatarAsync(id, softDelete: false)).IsError);
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [Fact]
     public async Task SharedTokenSendCommitsNativeTrxAndRejectsWrongPublicKeyWithoutSpending()
     {
         using var bounded=new CancellationTokenSource(TimeSpan.FromSeconds(110));
