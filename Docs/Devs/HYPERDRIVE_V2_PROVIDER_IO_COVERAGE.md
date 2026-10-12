@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual SDK TRON weighted multisignature verification — 2026-10-12
+
+Expanded real signed authority case: two distinct SDK-produced signatures on the same raw original meet controlled active-permission threshold 2; replacing second with duplicated first rejects. Single-signature below-threshold rejection remains. Focused signed-contract selection **8/8**, zero skips, `TestResults/PriorityProviderCurrent/tron-signed-authority.trx`. This proves offline recovered weighted signatures, not live account authority, multisignature broadcast or finality.
+
+Live snapshot/runtime admission and submitted recovery, full interface/deployed gates remain open. Existing dependencies reused; no RPC, installs, submissions or release merge.
+
 ### Recovered TRON signatures connected to account permission authority — 2026-10-12
 
 Correction: the focused signed-contract report contains **8/8**, not 7/7.
