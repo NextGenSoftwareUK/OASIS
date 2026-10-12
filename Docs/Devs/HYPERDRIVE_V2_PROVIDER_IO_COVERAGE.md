@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera raw-send positive request projection (2026-10-12)
+
+Focused raw-send suite passes **3/3**, zero skips (`hedera-raw-transfer-current.trx`), including async/sync successful controlled transport with configured testnet account/key, exact 100000000 tinybars for one HBAR, original distinct payer transaction IDs and one resolver invocation per call. Missing-signer/wrong-sender rejection remains passing. Reuses existing controlled Node fixture and dependencies; fixture explicitly performs no SDK/ledger submission. Test class serializes process-environment override and restores it. Existing OASISBootLoader.Register.cs Hedera configuration block located for pending OASISDNA raw-signer wiring; constructor-only configuration is not production integration proof. Funded raw-send/native helper and full remaining gates stay open. No installs/downloads/new environment/ledger mutation/merge.
+
 ### Hedera raw-address provider sends reuse existing signed SDK path (2026-10-12)
 
 Provider raw-address SendTransaction now delegates to existing SendTokenAsync with explicit HBAR, configured network/nodes and an explicitly configured rawTransferAccountId/rawTransferSigningKey resolver. It rejects missing configuration or a different requested sender before resolver/submission, does not silently borrow bridge custody/storage keys, and removes unsigned mirror POST/generic-success-ID fallback from this provider entry point. Native sending no longer requires unrelated storage activation. New constructor fields are optional; application configuration wiring and positive route proof remain required. Provider build succeeds (zero errors/four warnings); two preflight cases prove missing signer and mismatched sender/zero resolver calls. Full non-funded suite passes **205/205**, zero skips (`hedera-nonfunded-current.trx`), including read-only mirror evidence. Positive controlled/raw SDK and funded transfer proof still pending; public HashgraphClient's separate unsigned SendTransaction helper remains an audit gap. No funded mutation/install/download/new environment/merge.
