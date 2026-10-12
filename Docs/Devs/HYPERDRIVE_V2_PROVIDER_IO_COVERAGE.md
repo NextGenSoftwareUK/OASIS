@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON runtime execution-owned verifier/outbox adapter — 2026-10-12
+
+Added runtime prepared view overload requiring supplied execution, unique attempt correlation and trusted 21-byte sender. Sender copied to avoid caller mutation; callback checks expected genesis label, independently recovers original signature sender, then awaits execution-owned native evidence write. Ordinary runtime client remains unchanged and services/channels reused. Focused regression **9/9**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`; new guard checks missing execution. Build 0 errors/21 existing warnings.
+
+Positive adapter/real signed Mongo lifecycle not yet exercised. A supplied execution is not sponsored-fee authority; expected genesis is configuration, not new live network proof. Contract owner/permissions/fee/window and multi-stage correlations, live original recovery and full deployed gates remain open. No RPC, installs, submissions or release merge.
+
 ### TRON execution-owned view reuses exact existing clients — 2026-10-12
 
 Runtime can create an explicit preparation-owned native-client view using the existing native client's wallet/transaction objects and channels, leaving ordinary client callback unchanged. Initial test exposed DI transient resolution producing different client instances; corrected factory to reuse exact existing references. Focused suite **9/9**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`; final build 0 errors/21 existing warnings. No new runtime/service container or RPC.

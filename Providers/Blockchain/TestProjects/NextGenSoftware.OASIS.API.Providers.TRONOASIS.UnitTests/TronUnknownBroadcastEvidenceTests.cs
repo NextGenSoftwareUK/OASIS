@@ -26,6 +26,7 @@ public class TronUnknownBroadcastEvidenceTests
         var hook=typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!;
         Assert.Same(callback,hook.GetValue(prepared));Assert.Null(hook.GetValue(runtime.NativeTransfers));
         Assert.Throws<ArgumentNullException>(()=>runtime.CreatePreparedNativeTransfers(null!));
+        Assert.Throws<ArgumentNullException>(()=>runtime.CreatePreparedNativeTransfers(null!,"attempt",new byte[21]));
     }
     public class InterruptedTransactionProxy : DispatchProxy
     {
