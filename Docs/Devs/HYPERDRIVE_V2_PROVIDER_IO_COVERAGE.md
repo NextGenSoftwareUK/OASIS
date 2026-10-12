@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Expanded real TRON avatar-index projections (2026-10-11)
+
+The retained-node V2 routing scenario now verifies direct replica lookup of both avatar and avatar detail by username and email, through **sync and async** provider projections, on both LocalFile and TRON before deletion (16 additional real indexed reads). Full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`), alongside actual pause failover, measured balancing and replication/recovery assertions. These added reads exercise provider projections directly, not additional routed operation handlers; complete 42-operation routing evidence remains required. Existing node/ledger/contract reused and runtime paused after terminal completion. No install/download/environment duplication/public-chain spending or merge.
+
 ### Reusable default-output Hedera SDK verification (2026-10-11)
 
 `Scripts/TestHosts/Use-ReusableHederaOutputDependencies.ps1` explicitly attaches the existing pinned SDK installation to an existing checkout-local `HederaSdkBridge` output using one junction. It requires exact source/output package and lockfile hashes, verifies the expected SDK exists, rejects an unrelated existing dependency directory/junction, and runs the ESM/module verifier. It performs no install, download, copy or removal. Repeated invocation succeeds without allocating another environment. With **no `OASIS_HEDERA_SDK_BRIDGE` override**, the output non-funded suite passes **193/193**, zero skips (`hedera-output-nonfunded-current.trx`). This closes local default-output dependency resolution, not self-contained published/image dependencies: Docker's existing pinned installation path and actual image execution remain release gates. Free space remains approximately 114.4 GB decimal. Official mirror still reports **391606260 tinybars** for the retained Hedera account; no additional funding or ledger mutation is claimed.
