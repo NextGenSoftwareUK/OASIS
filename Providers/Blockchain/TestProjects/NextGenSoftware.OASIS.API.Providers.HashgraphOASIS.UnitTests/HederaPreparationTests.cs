@@ -9,6 +9,66 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 public class HederaPreparationTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval)
+    {
+        var bridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")??Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","bridge.mjs");
+        var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
+        start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("""
+            import {PrivateKey,AccountId} from '@hiero-ledger/sdk';
+            import {escrowTransaction,escrowApprovalTransaction} from './escrow.mjs';
+            const key=PrivateKey.generateECDSA();
+            const request={sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'1',gas:400000,
+              maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
+              approvalTransactionId:'0.0.1001@1700000000.000000002'};
+            const evidence=[];
+            for(const tx of [escrowApprovalTransaction(request),escrowTransaction('nftEscrowLock',request)]){
+              tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();const signed=await tx.sign(key);
+              evidence.push({transactionHash:tx.transactionId.toString(),sender:request.sender,chainId:'offline-test',signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')});
+            }
+            process.stdout.write(JSON.stringify({publicKey:key.publicKey.toStringDer(),evidence}));
+            """);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        using var child=Process.Start(start)??throw new InvalidOperationException("Cannot start retained SDK.");
+        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+        var database="usage_hedera_escrow_test_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
+        try{
+            var output=child.StandardOutput.ReadToEndAsync(deadline.Token);var error=child.StandardError.ReadToEndAsync(deadline.Token);
+            await child.WaitForExitAsync(deadline.Token);Assert.AreEqual(0,child.ExitCode);Assert.AreEqual("",await error);
+            using var signed=JsonDocument.Parse(await output);var evidence=signed.RootElement.GetProperty("evidence");
+            var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
+            var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
+            var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
+            var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
+                .BeginAsync("test-only-bearer",user,"hedera-escrow-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            using var server=new HashgraphOASIS().CreateEscrowPreparationServer(execution,"escrow","offline-test","0.0.1001",
+                signed.RootElement.GetProperty("publicKey").GetString()!,evidence[0].GetProperty("transactionHash").GetString()!,evidence[1].GetProperty("transactionHash").GetString()!);
+            var serving=server.ServeAsync(deadline.Token);
+            for(var stage=skipApproval?1:0;stage<2;stage++){
+                using var pipe=new System.IO.Pipes.NamedPipeClientStream(".",server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous);
+                await pipe.ConnectAsync(deadline.Token);
+                await pipe.WriteAsync(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=evidence[stage]})+"\n"),deadline.Token);
+                await pipe.FlushAsync(deadline.Token);using var reader=new StreamReader(pipe);
+                using var ack=JsonDocument.Parse(await reader.ReadLineAsync(deadline.Token)??throw new InvalidOperationException("Missing acknowledgement."));
+                Assert.AreEqual(evidence[stage].GetProperty("transactionHash").GetString(),ack.RootElement.GetProperty("transactionHash").GetString());
+                var current=await store.GetAsync(execution.OperationId,deadline.Token);
+                Assert.AreEqual(stage+1-(skipApproval?1:0),current.ProviderAttempts.Count);
+            }
+            await serving;var stored=await store.GetAsync(execution.OperationId,deadline.Token);
+            for(var index=0;index<stored.ProviderAttempts.Count;index++){
+                var stage=index+(skipApproval?1:0);var attempt=stored.ProviderAttempts[index];
+                Assert.AreEqual(stage==0?"escrow:approval":"escrow:mutation",attempt.ClientRequestId);
+                Assert.AreEqual(evidence[stage].GetProperty("transactionHash").GetString(),attempt.ProviderRequestId);
+                Assert.AreEqual(evidence[stage].GetProperty("signedTransactionBase64").GetString(),attempt.NativePreparation.SignedTransactionBase64);
+                Assert.IsNull(attempt.AcknowledgedAtUtc,"Signed preparation is not ledger acceptance.");
+            }
+        }finally{
+            try{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
+            finally{await mongo.DropDatabaseAsync(database);}
+        }
+    }
+    [DataTestMethod]
     [DataRow("nftEscrowLock",false)] [DataRow("nftEscrowLock",true)]
     [DataRow("tokenEscrowLock",false)] [DataRow("tokenEscrowLock",true)]
     public async Task PreparedEscrowChildAcknowledgesExactOptionalSequence(string action,bool skipApproval)

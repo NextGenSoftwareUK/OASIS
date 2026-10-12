@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual signed escrow factory to Mongo — 2026-10-12
+
+Added official Hiero SDK construction/signing of an NFT allowance approval and NFT escrow contract execution, then passed their exact signed descriptors through `CreateEscrowPreparationServer`, its independent SDK signature verification, real pipe acknowledgements and the existing Mongo outbox. Both approval-present and approval-skipped cases pass: Mongo readback preserves exact original IDs and signed bytes under `escrow:approval`/`escrow:mutation`, with each stage visible before its acknowledgement is accepted. Ledger `AcknowledgedAtUtc` remains null. The owned test databases are dropped in `finally`; no credentials, new runtime, ledger or download was created.
+
+Full Hedera C# project **30/30** passed, no skips (`TestResults/PriorityProviderCurrent/hedera-current.trx`), with retained source SDK configuration. Provider build passed with two existing warnings. This uses real signed NFT escrow protobuf transactions but a controlled `api.request` admission authority and `offline-test` network label: it does not prove native fee admission, on-chain account authority, deployed contract identity, funded consensus/custody readback, token escrow signed factory coverage, or live V2 routing. Those gates remain open; no merge or sponsored spending enabled.
+
 ### Hedera lock optional-stage wiring — 2026-10-12
 
 `ExecutePreparedNativeAsync` now selects an explicit escrow preparation factory for NFT/token locks. It validates a bounded request correlation and persists independently verified approval and mutation signed evidence under distinct `:approval` and `:mutation` correlations using the same execution owner and existing native-evidence budget. C# child launch requires the server's exact optional approval/mutation sequence and supplies those IDs only to its owned child; ambient stage environment is cleared. The CLI checks those IDs against its request before enabling lock preparation. Successful child output must match whether approval evidence was persisted. Generic post-preparation failures preserve any persisted approval ID as well as the mutation ID.
