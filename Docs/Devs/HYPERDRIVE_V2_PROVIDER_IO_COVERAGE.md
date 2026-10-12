@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Explicit native TRX shared token-send implementation (2026-10-11)
+
+TRON shared `SendTokenAsync` now recognizes explicit `FromTokenAddress=TRX` and routes it to existing signed native `SendAsync`; TRC20 contract transfer remains distinct. Native amount preflight requires exact positive int64 SUN before provider activation, and the native client checks a supplied public key against the signing key before node access. No storage-contract-as-native-asset inference or new transport is added. Bounded provider build succeeds; full TRON unit suite **177/177**, zero skips (`tron-unit-current.trx`), including sub-SUN precision and native public-key mismatch cases. Live native shared send/HTTP proof remains required; this unit checkpoint is not consensus evidence. No download/install/ledger mutation; retained runtime remains paused and release gates open.
+
 ### Real recipient lookup/default selection and no-submission HTTP proof (2026-10-11)
 
 At Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b`, combined real-JWT Sui send HTTP test passes **1/1**, zero skips, 4 seconds (`web4-sui-token-send-http.trx`). A real persisted recipient avatar supplies ID/username/email plus literal address; its non-default decoy wallet is listed first, while the declared default wallet receives exactly 0.001 SUI. A preceding request supplies a conflicting literal address and receives explicit different-wallet error/no send digest; independent sender and recipient balances remain unchanged, including no sender gas burn. Thus actual wallet/identity lookup, conflict rejection and default selection are proven, not just pure address-array validation. Owned sender/recipient avatars and wallet maps cleaned; static DNA/manager and test hook restored, retained Sui PID 45413 stopped. Host rebuilt; manifest/gitlinks validate. Other assets/providers, full routes/matrix and deployment gates remain open; no installation/download/reset/public spending/merge.

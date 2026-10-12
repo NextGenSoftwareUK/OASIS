@@ -179,10 +179,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (request == null) throw new ArgumentNullException(nameof(request));
                 if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                var native = string.Equals(request.FromTokenAddress, "TRX", StringComparison.OrdinalIgnoreCase);
+                if (native) TronNativeTransferClient.NativeUnits(request.Amount);
                 if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
-                    throw new ArgumentException("TRC20 transfer requires an explicit private signing key; seed phrases are not accepted.");
+                    throw new ArgumentException("TRON token transfer requires an explicit private signing key; seed phrases are not accepted.");
                 if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-                    throw new ArgumentException("A real sender private signing key is required for TRC20 transfer.");
+                    throw new ArgumentException("A real sender private signing key is required for TRON token transfer.");
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -207,10 +209,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                var hash = await ExecuteRuntimeAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
-                    tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey));
+                var hash = native
+                    ? await ExecuteRuntimeAsync(client => client.SendAsync(request.FromWalletAddress, request.ToWalletAddress,
+                        request.Amount, request.OwnerPrivateKey, request.MemoText, publicKey: request.OwnerPublicKey))
+                    : await ExecuteRuntimeAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
+                        tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
-                result.Message = "TRC20 transfer confirmed by solidified contract receipt.";
+                result.Message = native ? "TRX transfer confirmed by solidified native receipt." : "TRC20 transfer confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
