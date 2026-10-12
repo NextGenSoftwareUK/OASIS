@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current WEB4 regression and host Cosmos bridge import check (2026-10-11)
+
+At parent `62b009f19`, bounded WEB4 host rebuild succeeds (zero errors/253 warnings). Host default CosmosSdkBridge includes transaction-results.mjs and passes syntax/static imports/exact SDK pin verification via existing reusable source-dependency junction, without installing or duplicating dependencies. Full WEB4 units pass **113/113**, zero skips (`web4-unit-current.trx`); focused actual test-auth NFT HTTP binding/denial plus controlled Hedera avatar-wallet projection checks pass **5/5**, zero skips (`web4-focused-current.trx`). These use current existing build outputs, not real JWT for the NFT cases, funded Hedera consensus or a self-contained image. API image allocation approval remains pending; no build-image pull/download/install/new environment/merge. All broader provider/native/API/deployment release gates remain open.
+
 ### Actual API image verification preparation and allocation gate (2026-10-11)
 
 Read-only WSL/root Podman inventory confirms only retained Azure Cosmos emulator (1.69 GB), TRON (278 MB) and wasmd (214 MB) images; no API/.NET build image is cached. C: has approximately 106.02 GB decimal free. User approval requested before allocating one reusable WEB4 image/build cache (several GB) in the existing WSL environment; no build/pull/install/clone has started. Real Dockerfile is `Docker/Dockerfile.web4`; misleading header references to nonexistent Dockerfile.onode were corrected. Existing recipe restores/publishes the actual host and packages exact-pinned provider bridges. Source inspection is not image proof; approval, actual build/execution and bounded owned-layer cleanup remain gates. No goal completion or merge is claimed.
