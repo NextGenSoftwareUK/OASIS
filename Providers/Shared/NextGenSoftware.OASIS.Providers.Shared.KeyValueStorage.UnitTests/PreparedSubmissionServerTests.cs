@@ -12,6 +12,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class PreparedSubmissionServerTests
 {
+    private static System.Diagnostics.ProcessStartInfo NodeClient(string endpoint)
+    {
+        var start=new System.Diagnostics.ProcessStartInfo("node") { UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true };
+        start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("import {pathToFileURL} from 'node:url'; const {preparationClient}=await import(pathToFileURL(process.argv[1]).href); try {await preparationClient(process.argv[2],5000)({transactionHash:'original',signedTransactionBase64:'AQID'});} catch {process.exitCode=2;}");
+        start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory,"prepared-submission.mjs"));start.ArgumentList.Add(endpoint);
+        return start;
+    }
     [TestMethod]
     public async Task ParentAcknowledgementFollowsRealMongoPreparedIdentityWrite()
     {
@@ -33,14 +41,13 @@ public class PreparedSubmissionServerTests
                 },token);
             });
             var serving=server.ServeAsync(deadline.Token);
-            var name=OperatingSystem.IsWindows()?server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1):Path.GetFileName(server.Endpoint).Substring("CoreFxPipe_".Length);
-            using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
-            await client.ConnectAsync(deadline.Token);
-            using var writer=new StreamWriter(client,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
-            using var reader=new StreamReader(client,new UTF8Encoding(false,true),leaveOpen:true);
-            await writer.WriteLineAsync("{\"protocol\":\"oasis.native-preparation.v1\",\"evidence\":{\"transactionHash\":\"original\"}}");
-            using var ack=JsonDocument.Parse(await reader.ReadLineAsync(deadline.Token));
-            Assert.IsTrue(ack.RootElement.GetProperty("persisted").GetBoolean());await serving;
+            using var child=System.Diagnostics.Process.Start(NodeClient(server.Endpoint));
+            try {
+                var output=child.StandardOutput.ReadToEndAsync(deadline.Token);
+                var error=child.StandardError.ReadToEndAsync(deadline.Token);
+                await serving;await child.WaitForExitAsync(deadline.Token);
+                Assert.AreEqual(0,child.ExitCode);Assert.AreEqual("",await output);Assert.AreEqual("",await error);
+            } finally {if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
             var persisted=await store.GetAsync(id,deadline.Token);
             Assert.AreEqual(1,persisted.ProviderAttempts.Count);
             Assert.AreEqual("original",persisted.ProviderAttempts[0].ProviderRequestId);
@@ -94,11 +101,7 @@ public class PreparedSubmissionServerTests
             return Task.CompletedTask;
         });
         var serving=server.ServeAsync(deadline.Token);
-        var start=new System.Diagnostics.ProcessStartInfo("node") { UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true };
-        start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
-        start.ArgumentList.Add("import {pathToFileURL} from 'node:url'; const {preparationClient}=await import(pathToFileURL(process.argv[1]).href); try {await preparationClient(process.argv[2],5000)({transactionHash:'original',signedTransactionBase64:'AQID'});} catch {process.exitCode=2;}");
-        start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory,"prepared-submission.mjs"));start.ArgumentList.Add(server.Endpoint);
-        using var process=System.Diagnostics.Process.Start(start);
+        using var process=System.Diagnostics.Process.Start(NodeClient(server.Endpoint));
         try {
             var output=process.StandardOutput.ReadToEndAsync(deadline.Token);
             var error=process.StandardError.ReadToEndAsync(deadline.Token);
