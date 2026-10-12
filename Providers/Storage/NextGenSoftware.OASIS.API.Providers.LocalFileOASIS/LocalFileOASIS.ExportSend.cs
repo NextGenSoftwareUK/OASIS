@@ -309,8 +309,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 {
                     foreach (var searchGroup in searchParams.SearchGroups)
                     {
+                        var text = searchGroup as ISearchTextGroup;
+                        if (text != null && string.IsNullOrWhiteSpace(text.SearchQuery))
+                            throw new ArgumentException("Text search requires a nonempty query.");
+                        bool ContainsQuery(string value) => value != null && value.Contains(text.SearchQuery.Trim(), StringComparison.OrdinalIgnoreCase);
                         // Search holons if requested
-                        if (searchGroup.SearchHolons && searchGroup.HolonSearchParams != null)
+                        if (searchGroup.SearchHolons && (searchGroup.HolonSearchParams != null || text != null))
                         {
                             var holonsToSearch = new List<IHolon>();
 
@@ -353,7 +357,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             // Filter holons based on search criteria
                             foreach (var holon in holonsToSearch)
                             {
-                                bool matches = true;
+                                bool matches = text == null || ContainsQuery(holon.Name) || ContainsQuery(holon.Description)
+                                    || (text.SearchIds && ContainsQuery(holon.Id.ToString()));
 
                                 // Filter by avatar ID if specified
                                 if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty)
@@ -372,7 +377,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         }
 
                         // Search avatars if requested
-                        if (searchGroup.SearchAvatars && searchGroup.AvatarSearchParams != null)
+                        if (searchGroup.SearchAvatars && (searchGroup.AvatarSearchParams != null || text != null))
                         {
                             var avatarsToSearch = new List<IAvatar>();
                             
@@ -386,7 +391,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             // Filter avatars based on search criteria
                             foreach (var avatar in avatarsToSearch)
                             {
-                                bool matches = true;
+                                bool matches = text == null || ContainsQuery(avatar.Username) || ContainsQuery(avatar.Email)
+                                    || ContainsQuery(avatar.FirstName) || ContainsQuery(avatar.LastName)
+                                    || (text.SearchIds && ContainsQuery(avatar.Id.ToString()));
 
                                 // Filter by avatar ID if specified
                                 if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty)

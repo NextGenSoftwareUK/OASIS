@@ -10,6 +10,38 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public class LocalFileLatestVersionTests
 {
     [Fact]
+    public async Task TextSearchUsesQueryWithoutUnrelatedParameterObjects()
+    {
+        var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var provider = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        var match = new Holon { Id = Guid.Parse("7a548245-2789-4462-a945-8d1bd8fcb832"), Name = "TextFixtureMatch" };
+        var decoy = new Holon { Id = Guid.Parse("e3641b2d-2cd3-4c99-9906-a48da9070e54"), Name = "UnrelatedDecoy" };
+        try
+        {
+            foreach (var item in new[] { match, decoy }) (await provider.SaveHolonAsync(item)).IsError.Should().BeFalse();
+            foreach (var query in new[] { "textfixturematch", "absent-query" })
+            {
+                var search = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                    SearchGroups = new() {
+                        new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = query, SearchHolons = true, SearchAvatars = false } } };
+                foreach (var result in new[] { provider.Search(search), await provider.SearchAsync(search) })
+                {
+                    result.IsError.Should().BeFalse(result.Message);
+                    result.Result.SearchResultHolons.Select(value => value.Id).Should().Equal(query == "absent-query" ? Array.Empty<Guid>() : new[] { match.Id });
+                }
+            }
+        }
+        finally
+        {
+            foreach (var item in new[] { match, decoy })
+                if ((await provider.LoadHolonAsync(item.Id, loadChildren: false)).Result != null) (await provider.DeleteHolonAsync(item.Id)).IsError.Should().BeFalse();
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [Fact]
     public async Task ParentQueryUsesPersistedChildRelationshipAfterReparenting()
     {
         var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));

@@ -5,9 +5,11 @@ using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
@@ -55,6 +57,7 @@ public sealed class TronRealProviderRoutingTests
         var paused = false;
         var avatar = new Avatar { Id = Guid.Parse("b531a581-5627-451c-9de5-95c198646c20"),
             Username = "tron-real-v2-avatar", Email = "tron-real-v2-avatar@example.invalid",
+            ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "b531a581-5627-451c-9de5-95c198646c20" },
             VerificationToken = "PublicLocalV2Verification", ResetToken = "PublicLocalV2Reset",
             RefreshTokens = new() { new RefreshToken { Token = "PublicLocalV2Refresh" } } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
@@ -72,7 +75,7 @@ public sealed class TronRealProviderRoutingTests
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id, Username = avatar.Username,
                         Email = avatar.Email, VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken,
-                        RefreshToken = avatar.RefreshTokens[0].Token, PreferredProvider = providerType };
+                        RefreshToken = avatar.RefreshTokens[0].Token, ProviderKey = avatar.Id.ToString(), PreferredProvider = providerType };
                     var sync = router.RouteRequest<T>(request);
                     var asyncResult = await router.RouteRequestAsync<T>(request);
                     foreach (var result in new[] { sync, asyncResult })
@@ -89,6 +92,7 @@ public sealed class TronRealProviderRoutingTests
                 await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetail", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByUsername", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByEmail", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByProviderKey", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByVerificationToken", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByResetToken", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByRefreshToken", absent, value => value.Id);
@@ -215,6 +219,11 @@ public sealed class TronRealProviderRoutingTests
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
             {
+                var search = new StorageOperationRequest { Operation = "Search", PreferredProvider = providerType, LoadChildren = false,
+                    SearchParams = new SearchParams { SearchGroups = new List<ISearchGroupBase> {
+                        new SearchTextGroup { SearchQuery = holon.Name, SearchHolons = true, SearchAvatars = false } } } };
+                foreach (var result in new[] { router.RouteRequest<ISearchResults>(search), await router.RouteRequestAsync<ISearchResults>(search) })
+                { result.IsError.Should().BeFalse(result.Message); result.Result.SearchResultHolons.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
                 var byKey = new StorageOperationRequest { Operation = "LoadHolonByProviderKey", ProviderKey = holon.Id.ToString(),
                     PreferredProvider = providerType, LoadChildren = false };
                 foreach (var result in new[] { router.RouteRequest<IHolon>(byKey), await router.RouteRequestAsync<IHolon>(byKey) })
