@@ -20,6 +20,6 @@
     <ProjectReference Include="../../../../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client/NextGenSoftware.Holochain.HoloNET.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

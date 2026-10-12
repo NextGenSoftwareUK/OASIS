@@ -33,6 +33,6 @@
     <PackageReference Include="Google.Cloud.BigQuery.V2" Version="3.9.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

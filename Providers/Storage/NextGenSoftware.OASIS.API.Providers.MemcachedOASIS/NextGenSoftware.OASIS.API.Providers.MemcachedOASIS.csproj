@@ -33,6 +33,6 @@
     <PackageReference Include="EnyimMemcachedCore" Version="2.5.1" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

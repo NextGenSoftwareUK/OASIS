@@ -33,6 +33,6 @@
     <PackageReference Include="DuckDB.NET.Data.Full" Version="1.1.3" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
