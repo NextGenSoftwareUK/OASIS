@@ -48,8 +48,8 @@ public class TronUnknownBroadcastEvidenceTests
         }
     }
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)]
+    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), genesis);
@@ -66,11 +66,21 @@ public class TronUnknownBroadcastEvidenceTests
             confirmationControl.Original=wallet;confirmationControl.Failure=controlled.Interruption;
             wallet=confirmationWallet;
         }
-        var client = new TronNativeTransferClient(wallet, proxy, genesis);
+        var preparationCalls=0;var persistenceFailure=new InvalidOperationException("controlled persistence failure");
+        var client = new TronNativeTransferClient(wallet, proxy, genesis,100000000,persistenceRejected?async(id,chain,bytes,token)=>{
+            preparationCalls++;Assert.Equal(genesis,chain);
+            var prepared=Transaction.Parser.ParseFrom(Convert.FromBase64String(bytes));
+            Assert.Equal(Convert.ToHexString(SHA256.HashData(prepared.RawData.ToByteArray())).ToLowerInvariant(),id);
+            Assert.Single(prepared.Signature);await Task.CompletedTask;throw persistenceFailure;
+        }:null);
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
         var submit = (Task<string>)typeof(TronNativeTransferClient).GetMethod("SignBroadcastConfirmAsync", flags)!.Invoke(client,
             new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null })!;
+        if(persistenceRejected){
+            Assert.Same(persistenceFailure,await Assert.ThrowsAsync<InvalidOperationException>(()=>submit));
+            Assert.Equal(1,preparationCalls);Assert.Equal(1,controlled.SignCount);Assert.Equal(0,controlled.BroadcastCount);return;
+        }
         var evidence = await Assert.ThrowsAsync<TronBroadcastOutcomeUnknownException>(() => submit);
         Assert.Equal(1, controlled.BroadcastCount);
         Assert.Equal(evidence.TransactionId, ((Core.Interfaces.INativeMutationReconciliationRequired)evidence).OriginalTransactionId);
