@@ -1,7 +1,22 @@
 # HyperDrive V2 provider-I/O coverage
 
-**Verified:** 2026-10-11 (Sui partial checkpoint; prior provider evidence dated below)
+**Updated:** 2026-10-12 (scope-specific evidence below; full completion unproven)
 **Branch:** `codex/hyperdrive-dual-mode-route-matrix`
+
+## Current provider status — not full certification
+
+No provider is currently certified against the entire requested combination of relevant interfaces, live V2 failover/replication/load balancing, and deployed authenticated API behavior. Historical PASS labels mean the stated tests passed; they must not be read as complete provider certification. Controlled/unit tests, official local runtimes, cloud emulators and hosted production/testnet execution are distinct evidence categories.
+
+| Provider | Real SDK/runtime evidence | Outstanding completion work |
+|---|---|---|
+| TRONOASIS | Signed real node operations; storage/token/NFT/escrow lifecycle; selected live V2 outage failover, replication and measured selection | Remaining native/history paths; complete interface/options matrix; current combined-branch live rerun and hosted routes |
+| SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; selected real V2 failover/replication/measured selection | Positive provider username/email transfers; remaining native/interface/options matrix; combined-branch rerun and hosted routes |
+| CosmosBlockChainOASIS | Official SDK and local wasmd; real storage/native lifecycle and selected V2 scenarios at earlier pins | Current live recheck subject to execution-policy gate; remaining native/interface/options matrix and hosted routes |
+| HashgraphOASIS | Official Hiero SDK; real funded HBAR transfer; latest 208/208 non-funded tests | Additional test HBAR; retained-file storage deployment; funded NFT/escrow and real V2 storage/orchestration; hosted routes |
+
+Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB, SQLite, IPFS, Ethereum/local EVM, Neo4j, Polygon, Arbitrum, Rootstock, Avalanche, Base, Solana, Pinata, EOSIO/Telos/SEEDS, Azure Cosmos DB, AWS DynamoDB, Google Firestore, ThreeFold, Holochain and Aptos. See the expanded verification table for precise operations, dates and boundaries. These are not full-interface/three-policy certifications. In particular cloud-emulator results do not prove deployed cloud credentials/configuration, and local EVM chain-ID tests do not prove public-chain execution. Immediate work remains concentrated on Cosmos/Hedera/Sui/TRON; complete broader-provider audit/rechecks remain required by the all-provider request.
+
+Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4 126/126, zero skips; rebuilt WEB4 host passes. Evidence recorded at `e9302f828`. Task branch contains Development reconciliation, but parent Development/master have not received this task's merge. Hosted dev revision last checked was `f4f6beba`, not the task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
 
