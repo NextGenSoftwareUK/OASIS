@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos C# verifier and execution-owned preparation factory — 2026-10-12
+
+Added public offline verification callback through canonical Cosmos backend invocation; requires explicit true acknowledgement matching original hash/sender. Preparation server factory combines this actual SDK verifier with trusted chain/signer and execution-owned persistence adapter. Missing execution rejects before activation; malformed signed evidence rejects through actual installed SDK without provider activation. Focused **2/2**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-preparation.trx`; provider build 0 errors/warnings, existing nullable test-field warning remains.
+
+No mutation invocation has yet switched to prepared lifecycle. Positive signed C#/pipe/Mongo integration, process interruption recovery, native admission and complete live/deployed gates remain required. Existing SDK reused; no downloads, installs, ledger submissions or release merge.
+
 ### SignDoc validation and complete subscription protocol regression — 2026-10-12
 
 Added malformed/empty/noncanonical/oversized signing-document adapter tests: verification callback never runs, no attempt is admitted and evidence-byte budget stays zero. Valid adapter case proves exact SignDoc propagation to Mongo. Entire subscription protocol test project passed **77/77**, zero skips, `TestResults/SubscriptionUsageCurrent/subscription-usage-current.trx`, using existing standalone local Mongo and controlled authority (not replica failover or hosted billing). Existing compiler/analyzer warnings remain. Test teardown removed owned databases. Core test commit `c2b6ca0677634eb12b2a4ddc2918725cdfce8839` pushed, parent pin synchronized.
