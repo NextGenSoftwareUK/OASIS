@@ -46,6 +46,33 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     public class KeyValueStorageProviderBaseTests
     {
         [TestMethod]
+        public async Task Miskeyed_current_or_historical_records_never_return_another_identity_or_version()
+        {
+            _provider.IsVersionControlEnabled = true;
+            var holon = new Holon { Name = "first" };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            holon.Name = "second";
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var currentKey = "oasis/holon/" + holon.Id.ToString("N");
+            var versionKey = "oasis/version/holon/" + holon.Id.ToString("N") + "/0000000001";
+            var currentJson = _backend.Items[currentKey];
+            var historyJson = _backend.Items[versionKey];
+            _backend.Items[currentKey] = currentJson.Replace(holon.Id.ToString(), Guid.NewGuid().ToString());
+            var wrongCurrent = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.IsTrue(wrongCurrent.IsError);
+            StringAssert.Contains(wrongCurrent.Message, "ID does not match");
+            _backend.Items[currentKey] = currentJson;
+            _backend.Items[versionKey] = currentJson;
+            var wrongVersion = await _provider.LoadHolonAsync(holon.Id, loadChildren: false, version: 1);
+            Assert.IsTrue(wrongVersion.IsError);
+            StringAssert.Contains(wrongVersion.Message, "ID or version");
+            _backend.Items[versionKey] = historyJson.Replace(holon.Id.ToString(), Guid.NewGuid().ToString());
+            var wrongIdentity = _provider.LoadHolon(holon.Id, loadChildren: false, version: 1);
+            Assert.IsTrue(wrongIdentity.IsError);
+            StringAssert.Contains(wrongIdentity.Message, "ID or version");
+        }
+
+        [TestMethod]
         public async Task Negative_versions_never_alias_latest_even_when_records_are_absent()
         {
             var id = Guid.NewGuid();
