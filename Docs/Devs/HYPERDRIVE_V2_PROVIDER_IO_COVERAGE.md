@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Current rebuilt WEB4 authenticated read-route selection (2026-10-12)
+
+Rebuilt WEB4 host and HTTP integration project (zero errors/255 and 12 warnings). `HyperDriveReadRoutes` selection passes **12/12**, zero skips, 21 seconds (`web4-real-read-current.trx`). Includes real JWT with persisted owned avatar lookups through LocalFile/TRON/Sui and mode/config/status requests, malformed/anonymous rejection, plus separately test-authenticated cases. Do not label every selected case real-JWT/live-provider; test-auth checks are distinct. Factory disables hosted background services and uses test-owned manager injection, while actual JWT middleware/provider storage are exercised by the three real-JWT variants. No Railway deployment changes; this does not prove all HTTP APIs, authenticated native mutation/NFT routes or hosted packaging. Retained TRON runtime paused and owned Sui PID 166961 stopped afterward; existing reusable STAR source and environments reused, no installs/downloads.
+
 ### Current independent Sui token/NFT lifecycle scenarios (2026-10-12)
 
 Reused retained Sui node/package/currency and token-wallet sidecar. C# token mint/transfer/escrow lock/unlock/burn authorization scenario plus batch NFT metadata/read/transfer/burn scenario pass **2/2**, zero skips, 46 seconds (`sui-assets-current.trx`), using explicitly current source SDK bridge. This independently refreshes native asset evidence beyond the named-transfer scenario. Owned token/NFT cleanup assertions remain in their existing tests; retained issuer/holder identities are not recreated. NFT recipient is synthetic local; ledger entries remain historical evidence. Owned PID 165285 stopped afterward, no installs/downloads/new environment. Complete sync/async/options/hosted/native interface audit, Cosmos corrected rerun and funded Hedera gates remain open.
