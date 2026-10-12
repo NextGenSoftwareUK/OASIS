@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Sui original failed history also verified through the C# provider (2026-10-12)
+
+New read-only `SuiHistoryTests.OriginalFailedSubmissionPreservesSignedGasDebitInProviderHistory` passed **1/1, zero skips**, `TestResults/SuiCurrent/sui-failed-history-current.trx` (10 seconds). It reuses the original journal/digest, independently checks provider Failed status, then the real provider's history: Failed execution, original native identity, WalletNetBalanceChange, negative exact SUI raw amount, Debit direction, actual sender, positive display amount and no fabricated gas recipient. Source SDK override explicitly used; no local signing key, faucet, mint or transfer. Existing pinned ledger resumed and exact owned PID 172685 stopped; no duplicate environment or downloads. This extends the prior SDK history result to actual C# projection, not deployed WEB4 or full-interface certification.
+
 ### Sui original failed transaction is retained in live SDK history (2026-10-12)
 
 Resumed the existing pinned Sui runtime/ledger only (owned PID 171028), then ran new read-only `SdkBridge/test-failed-history.mjs` against `TestResults/SuiCurrent/failed-status-journal.json`. It queried production bridge history for the original sender and exact digest `D83kgAWQQbdZdCFbFQivXuRF7MB5YqiqGStZAynz3GGk`: **PASS**, one failed row, explicit `success=false`, original sender/wallet/digest, integral raw amount/timestamp, negative balance change proving charged gas was not discarded. No signing, publication, faucet or transaction submission occurred. Stopped the exact owned node through its validated stop helper; no installations/downloads/genesis regeneration. Free C after run 103,398,735,872 bytes. Existing runtime startup metric/JWK/execution-chunk warnings remain; not a warning-free run. This proves real SDK history, not the separate C# projection/hosted all-route gate.
