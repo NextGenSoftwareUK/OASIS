@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Positive rotated TRON escrow approval/deposit/unlock — 2026-10-12
+
+Extended actual SDK/controlled gRPC positive owner-rotation tests to escrow lock and unlock. Lock queries balance/allowance for the requested owner, confirms approval before constructing deposit, then verifies the deposit's exact returned amount. Assertions require two distinct original transaction IDs/two broadcasts for approval plus deposit—not duplicate retries. Unlock queries the owner's locked amount and verifies one successful original submission with the exact returned amount. Every actual signed protobuf passes independent permission authority verification at broadcast.
+
+Complete suite **270/270 passed**, zero skips (`tron-current.trx`). This completes the listed controlled positive explicit-owner rotated paths, not actual escrow contracts, active permissions/multisignature, native billing, live V2 marker propagation or all-provider certification. No retained ledger, funded operation, install, merge or deployment affected.
+
 ### Positive rotated TRON NFT/token/approval SDK paths — 2026-10-12
 
 Extended controlled actual SDK/gRPC coverage to NFT mint, NFT transfer with authoritative ownerOf precheck, TRC20 transfer with decimals query and ABI-true receipt, and token approval. The served permission snapshot requires the explicitly requested owner account (different from signing-key-derived address); every account query asserts that owner. Broadcast independently verifies the actual signed protobuf against owner permission authority. Every positive case constructs and broadcasts once and returns the exact original digest. Complete suite **268/268 passed**, zero skips (`tron-current.trx`). Corrected one test call's cancellation-token argument position before passing runs; no production signature or assertion weakened.
