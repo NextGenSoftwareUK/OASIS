@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera wrong-key pipe preparation rejection — 2026-10-12
+
+Actual signed evidence sent through a second real parent pipe with unrelated expected public key rejects via official SDK verifier. No acknowledgement, accepted-callback completion or retained original ID. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test-field warning remains. Persistence callback remains controlled in-memory, not Mongo proof. Owned pipes/process closed, environment settings restored.
+
+Durable factory/outbox integration, prepared child lifecycle, stage-aware escrow and complete funded/live/deployed gates remain open. No installs, submissions or release merge.
+
 ### Real signed Hedera evidence through parent pipe verifier — 2026-10-12
 
 Actual offline Hiero-signed evidence now travels through real Windows preparation pipe; parent callback awaits official C# SDK signature verification with the independently expected public key before acknowledgement. Callback once, acknowledged and retained original IDs match. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test warning remains. Callback persistence is controlled in-memory, so protocol `persisted` acknowledgement here is not Mongo durability evidence.
