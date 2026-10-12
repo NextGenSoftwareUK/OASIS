@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui V2 avatar/detail collection presence and deletion absence (2026-10-12)
+
+Healthy retained-node scenario adds 16 collection assertions: LoadAllAvatars and LoadAllAvatarDetails, sync/async on Sui/LocalFile, presence before and absence after replicated deletion. All pass in **1/1** scenario, zero skips, 59 seconds (`sui-v2-healthy-current.trx`), retaining previous indexed reads/absence and replication/measured selection checks. Original environment/package/ledger/SDK/fixed fixtures reused, finally cleanup completed and exact owned PID 122602 stopped; no Sui process remains. No reset/install/download/new environment/public assets/merge. Collection existence checks do not establish every historical/filter/option/provider/API/image gate; full completion remains unproven.
+
 ### Sui V2 indexed read absence after replicated deletion (2026-10-12)
 
 Healthy retained-node V2 scenario adds 24 post-deletion assertions matching the existing presence matrix: ID/username/email avatar/detail, sync/async on both Sui/LocalFile targets. Router reports non-error authoritative null results after successful replicated identity/detail deletion; no stale record/index is returned. Expanded scenario passes **1/1**, zero skips, 56 seconds (`sui-v2-healthy-current.trx`), including prior presence/replication/measured selection checks. Original runtime/package/ledger/SDK/fixed fixtures reused and cleaned by existing finally. Exact owned PID 121231 stopped after terminal completion; no Sui process remains. No reset/install/download/new environment/public assets/merge. Complete operation/options/native/HTTP/image gates remain open.
