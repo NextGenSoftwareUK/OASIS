@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke, execute, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
+import { invoke, execute, sdkErrorEnvelope, NativeMutationReconciliationError, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
 import { Transaction } from '@mysten/sui/transactions';
 
 test('execution readback failure retains original digest and never resubmits', async () => {
@@ -24,6 +24,7 @@ test('execution readback failure retains original digest and never resubmits', a
     assert.match(error.message, /original-executed-digest/);
     assert.match(error.message, /Reconcile this transaction before any retry/);
     assert.equal(error.cause, readbackError);
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: 'original-executed-digest', executionSucceeded: true });
     return true;
   });
   assert.equal(submissions, 1);
@@ -40,7 +41,11 @@ test('failed execution retains original failure and does not wait or resubmit', 
     },
     async waitForTransaction() { assert.fail('Failed execution must not enter success readback'); }
   };
-  await assert.rejects(execute(client, new Transaction(), signer), /original-failed-digest.*controlled Move abort/);
+  await assert.rejects(execute(client, new Transaction(), signer), error => {
+    assert.match(error.message, /original-failed-digest.*controlled Move abort/);
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: 'original-failed-digest', executionSucceeded: false });
+    return true;
+  });
   assert.equal(submissions, 1);
 });
 
@@ -55,6 +60,49 @@ test('successful execution waits on and returns the original transaction once', 
   assert.equal(await execute(client, new Transaction(), signer), transaction);
   assert.equal(submissions, 1);
   assert.equal(reads, 1);
+});
+
+test('native error envelopes retain explicit outcomes without inventing missing transaction identity', () => {
+  for (const outcome of [true, false, null]) {
+    const error = new NativeMutationReconciliationError('original error', undefined, outcome);
+    const envelope = JSON.parse(JSON.stringify(sdkErrorEnvelope(error)));
+    assert.equal(envelope.error, 'original error');
+    assert.deepEqual(envelope.nativeMutation, { transactionHash: null, executionSucceeded: outcome });
+  }
+  assert.deepEqual(sdkErrorEnvelope(new Error('preflight error')), { ok: false, error: 'preflight error' });
+});
+
+test('missing execution digest remains unreconciled rather than becoming an ordinary retryable error', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  let submissions = 0;
+  await assert.rejects(execute({
+    async signAndExecuteTransaction() { submissions++; return {}; },
+    async waitForTransaction() { assert.fail('No digest is available for readback'); }
+  }, new Transaction(), signer), error => {
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: null, executionSucceeded: null });
+    return true;
+  });
+  assert.equal(submissions, 1);
+});
+
+test('execution response does not manufacture success or failure from missing status', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  for (const [response, outcome] of [
+    [{ FailedTransaction: { digest: 'original-digest' } }, null],
+    [{ Transaction: { digest: 'original-digest', status: { success: false } } }, false],
+    [{ Transaction: { digest: 'original-digest' } }, null],
+    [{ Transaction: { digest: 'original-digest', status: { success: 'true' } } }, null]
+  ]) {
+    let submissions = 0;
+    await assert.rejects(execute({
+      async signAndExecuteTransaction() { submissions++; return response; },
+      async waitForTransaction() { assert.fail('Unverified execution cannot enter successful readback'); }
+    }, new Transaction(), signer), error => {
+      assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: 'original-digest', executionSucceeded: outcome });
+      return true;
+    });
+    assert.equal(submissions, 1);
+  }
 });
 
 test('history completion requires index coverage of the fixed committed checkpoint', () => {
