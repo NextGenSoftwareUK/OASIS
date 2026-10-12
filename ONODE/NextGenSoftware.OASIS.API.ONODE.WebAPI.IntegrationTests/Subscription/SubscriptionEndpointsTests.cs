@@ -43,8 +43,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
-        [Fact]
-        public async Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(bool useSui)
         {
             var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
             while (directory != null && !System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts","verify_hyperdrive_v2_operation_contracts.ps1"))) directory=directory.Parent;
@@ -52,7 +54,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
             var root=System.IO.Path.Combine(directory!.FullName,"TestResults","Web4Current","JwtAvatar");
             System.IO.Directory.CreateDirectory(root);
             using var lease=new System.IO.FileStream(System.IO.Path.Combine(root,"store.lock"),System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);
-            var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:System.IO.Path.Combine(root,"files"));
+            NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider local;
+            var providerType=useSui?NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS:NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS;
+            if(useSui)
+            {
+                var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained real Sui RPC required; no skipped evidence.");
+                new Uri(rpc).IsLoopback.Should().BeTrue();
+                using var deployment=JsonDocument.Parse(System.IO.File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained Sui deployment required.")));
+                var settings=deployment.RootElement;
+                local=new NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+            }
+            else local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:System.IO.Path.Combine(root,"files"));
             const string secret="public-test-only-signing-key-0123456789012345678901234567890123456789";
             var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA();
             dna.OASIS.HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
@@ -79,12 +91,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 var encoded=new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token);
                 foreach(var route in new[] {"mode","config","status"})
                 {
-                    var before=providers.PerformanceMonitor.GetMetrics(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS)?.TotalRequests??0;
+                    var before=providers.PerformanceMonitor.GetMetrics(providerType)?.TotalRequests??0;
                     using var request=new HttpRequestMessage(HttpMethod.Get,"/api/hyperdrive/"+route);
                     request.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",encoded);
                     var response=await _client.SendAsync(request);
                     response.StatusCode.Should().Be(HttpStatusCode.OK);
-                    providers.PerformanceMonitor.GetMetrics(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS).TotalRequests.Should().Be(before+1);
+                    providers.PerformanceMonitor.GetMetrics(providerType).TotalRequests.Should().Be(before+1);
                     var body=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>>(
                         await response.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
                     body.Should().NotBeNull();body!.IsError.Should().BeFalse(body.Message);
@@ -96,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA=priorDna;
                 (await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
                 await local.DeActivateProviderAsync();
+                if(local is IDisposable disposable)disposable.Dispose();
             }
         }
 
