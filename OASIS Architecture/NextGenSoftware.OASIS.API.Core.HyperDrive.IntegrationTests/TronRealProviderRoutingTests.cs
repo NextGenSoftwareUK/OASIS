@@ -56,11 +56,19 @@ public sealed class TronRealProviderRoutingTests
                 manager.RegisterProvider(local);manager.RegisterProvider(tron);
                 manager.SetAndReplaceAutoLoadBalanceListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.LocalFileOASIS),new EnumValue<ProviderType>(ProviderType.TRONOASIS)}).IsError.Should().BeFalse();
                 var router=new OASISHyperDrive(manager);
+                var timings=new Dictionary<ProviderType,double>();
                 foreach(var provider in new IOASISStorageProvider[]{local,tron}){
                     var timer=Stopwatch.StartNew();var measured=await provider.LoadAvatarAsync(id);timer.Stop();
                     measured.Exception.Should().BeNull();
                     manager.PerformanceMonitor.RecordRequest(provider==tron?ProviderType.TRONOASIS:ProviderType.LocalFileOASIS,!measured.IsError,timer.Elapsed.TotalMilliseconds);
+                    timings[provider==tron?ProviderType.TRONOASIS:ProviderType.LocalFileOASIS]=timer.Elapsed.TotalMilliseconds;
                 }
+                var expectedFastest=timings[ProviderType.LocalFileOASIS]<=timings[ProviderType.TRONOASIS]?ProviderType.LocalFileOASIS:ProviderType.TRONOASIS;
+                var fastestBefore=manager.PerformanceMonitor.GetMetrics(expectedFastest).TotalRequests;
+                var performance=await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id},LoadBalancingStrategy.Performance);
+                performance.IsError.Should().BeFalse(performance.Message);
+                manager.PerformanceMonitor.GetMetrics(expectedFastest).TotalRequests.Should().Be(fastestBefore+1);
+                (performance.Result?.Id).Should().Be((expectedFastest==ProviderType.TRONOASIS?avatar.Result:localAvatar.Result)?.Id);
                 var beforeTron=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests;
                 var beforeLocal=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
                 for(var index=0;index<6;index++){
@@ -75,6 +83,17 @@ public sealed class TronRealProviderRoutingTests
                 }
                 manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests.Should().Be(beforeTron+3);
                 manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests.Should().Be(beforeLocal+3);
+                dna.OASIS.SubscriptionConfig.PlanType="Free";
+                var excludedBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests;
+                foreach(var strategy in new[]{LoadBalancingStrategy.RoundRobin,LoadBalancingStrategy.WeightedRoundRobin,
+                    LoadBalancingStrategy.LeastConnections,LoadBalancingStrategy.Geographic,LoadBalancingStrategy.Performance}){
+                    var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id};
+                    foreach(var read in new[]{router.RouteRequest<IAvatar>(request,strategy),await router.RouteRequestAsync<IAvatar>(request,strategy)}){
+                        read.IsError.Should().BeFalse(read.Message);(read.Result?.Id).Should().Be(localAvatar.Result?.Id);
+                        manager.LastProviderSelectionDiagnostic.Candidates.Select(candidate=>candidate.Provider).Should().Equal(ProviderType.LocalFileOASIS);
+                    }
+                }
+                manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests.Should().Be(excludedBefore);
             }finally{await local.DeActivateProviderAsync();}
             File.Exists(Path.Combine(root,"pending-native-outcome.json")).Should().BeTrue();
         }finally{await tron.DeActivateProviderAsync();}
