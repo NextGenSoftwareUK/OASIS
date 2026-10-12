@@ -115,7 +115,9 @@ export function cosmosNativeFeeReceipt(tx, requestedHash) {
 
 export function verifiedNftCustodyReceipt(tx, expected, registry) {
   if (!tx || tx.hash !== expected.transactionHash || tx.code !== 0
-      || !Number.isSafeInteger(tx.height) || tx.height <= 0)
+      || !Number.isSafeInteger(tx.height) || tx.height <= 0
+      || !(tx.tx instanceof Uint8Array)
+      || createHash('sha256').update(tx.tx).digest('hex').toUpperCase() !== tx.hash)
     throw new Error('Cosmos source receipt does not establish the exact successful custody transaction');
   const raw = decodeTxRaw(tx.tx);
   const matching = raw.body.messages.filter(message => {

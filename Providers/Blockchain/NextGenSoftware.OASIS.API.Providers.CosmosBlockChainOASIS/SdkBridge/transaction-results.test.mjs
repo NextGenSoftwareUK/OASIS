@@ -202,19 +202,27 @@ test('custody proof binds exact successful receipt, collection, token and pool',
     const size = [];
     do { const byte = length & 127; length >>>= 7; size.push(byte | (length ? 128 : 0)); } while (length);
     // TxRaw fixture: official encoded TxBody plus empty AuthInfo; no signing or broadcast.
-    return { hash, code: 0, height: 42, tx: Uint8Array.from([10, ...size, ...body, 18, 0]) };
+    const tx = Uint8Array.from([10, ...size, ...body, 18, 0]);
+    return { hash:createHash('sha256').update(tx).digest('hex').toUpperCase(), code: 0, height: 42, tx };
   }
   const tx = receipt([message]);
+  expected.transactionHash = tx.hash;
   assert.equal(verifiedNftCustodyReceipt(tx, expected, registry), tx);
+  assert.throws(() => verifiedNftCustodyReceipt({...tx,hash:'AB'.repeat(32)}, {...expected,transactionHash:'AB'.repeat(32)}, registry));
+  assert.throws(() => verifiedNftCustodyReceipt({...tx,tx:receipt([]).tx}, expected, registry));
   for (const field of ['contractAddress', 'tokenId', 'custody', 'transactionHash'])
     assert.throws(() => verifiedNftCustodyReceipt(tx, { ...expected, [field]: 'other' }, registry));
   assert.throws(() => verifiedNftCustodyReceipt({ ...tx, code: 5 }, expected, registry));
   assert.throws(() => verifiedNftCustodyReceipt(null, expected, registry));
-  assert.throws(() => verifiedNftCustodyReceipt(receipt([message, message]), expected, registry));
-  assert.throws(() => verifiedNftCustodyReceipt(receipt([{ ...message, value: { ...message.value, sender: 'pool' } }]), expected, registry));
-  assert.throws(() => verifiedNftCustodyReceipt(receipt([{ ...message, value: { ...message.value,
+  function rejectMessages(messages) {
+    const invalid=receipt(messages);
+    assert.throws(() => verifiedNftCustodyReceipt(invalid, {...expected,transactionHash:invalid.hash}, registry));
+  }
+  rejectMessages([message, message]);
+  rejectMessages([{ ...message, value: { ...message.value, sender: 'pool' } }]);
+  rejectMessages([{ ...message, value: { ...message.value,
     msg: new TextEncoder().encode(JSON.stringify({ nft_transfer: { token_id: 'token', recipient: 'pool' } })),
-  } }]), expected, registry));
+  } }]);
 });
 test('official protobuf multi-send decoding preserves each actual output and exact units', () => {
   const registry = new Registry(defaultRegistryTypes);
