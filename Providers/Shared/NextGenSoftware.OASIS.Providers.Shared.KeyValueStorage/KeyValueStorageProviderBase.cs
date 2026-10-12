@@ -164,6 +164,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     && ex is not System.IO.InvalidDataException && ex is not System.Text.Json.JsonException
                     && ex is not Newtonsoft.Json.JsonException
                     && ex is not OperationCanceledException && ex is not NotSupportedException
+                    && ex is not OutOfMemoryException && ex is not AccessViolationException
                     && ex is not ArgumentException && ex is not FormatException)
                 {
                     lock (failures)

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Continuation does not suppress cancellation, unsupported or critical resource failures (2026-10-12)
+
+Tightened best-effort per-record filter to keep OutOfMemoryException and AccessViolationException fatal alongside cancellation, unsupported operations, JSON/identity/version corruption and argument/format failures. Added four controlled child-read cases for cancellation, unsupported, memory and integrity failures: `continueOnError=true` still returns error, null data and exception, not a partial-warning success. Synthetic memory exception is constructed/thrown without allocating stress memory; no actual process fault or node operation. Existing valid partial-data/strict/cycle behavior remains passing.
+
+Full current shared **69/69, zero skips**, `TestResults/SharedStorageCurrent/shared-current.trx`; build zero errors/two warnings. No runtime/install/download/new environment or fenced TRON mutation. This is exception-contract proof, not repair/certification of the retained TRON OOM workload. Current native partial-read fixture, remaining providers/options/authenticated billing/API and deployment/merge gates remain scoped and incomplete.
+
 ### Real Sui storage plus controlled child-read fault verifies V2 continuation (2026-10-12)
 
 Added `SuiPartialReadTests`: three owned holons persisted/read/deleted through retained official Sui SDK/backend; a test-only IKeyValueBackend wrapper delegates all operations to that real backend except one exact child Get which throws a controlled IOException. Real parent/healthy child reads then run through shared provider and V2 router with explicit Gold test DNA: strict request errors, best-effort retains exact healthy child and exposes warning/failure count/ID, and original interrupted child's native stored record remains intact. Two injected reads total, no mutation retry or manufactured native response. This is **real SDK storage with controlled fault injection**, not a genuine partial network outage or all provider/options certification.
