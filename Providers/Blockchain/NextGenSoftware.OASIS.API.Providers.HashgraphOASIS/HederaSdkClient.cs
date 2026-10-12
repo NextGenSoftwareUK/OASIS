@@ -157,6 +157,12 @@ internal static class HederaSdkClient
                     new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null));
             return document.RootElement.Clone();
         }
+        catch(InvalidOperationException failure) when(!preparationObserved&&preparationServer?.PreparedTransactionId!=null)
+        {
+            if(failure is HederaNativeMutationReconciliationException)throw;
+            throw new HederaNativeMutationReconciliationException("Hedera process failed after durable preparation; reconcile the original before retrying.",
+                new HederaNativeMutationEvidence(preparationServer.PreparedTransactionId,null,originalId,"prepared-outcome-unverified",null),failure);
+        }
         catch (OperationCanceledException errorException)
         {
             var reason = cancellationToken.IsCancellationRequested ? "canceled" : "timed out";
