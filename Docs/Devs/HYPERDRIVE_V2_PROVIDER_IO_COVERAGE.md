@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera activation account-authority rejection boundary — 2026-10-12
+
+Factored the new actual account-check invariant into one SDK helper and tested matching real SDK AccountId/PublicKey objects, foreign ID/key, null/missing keys, deleted account and absent deletion state. Authority now requires explicit `isDeleted=false`, not merely a falsy missing value. The storage probe calls this helper before its owner query. SDK suite **101/101** passed, zero skips; no network queries or funded operations performed. Controlled account records with real SDK keys do not prove funded consensus account authority; live probe/aggregate query authorization remain open. No install, deployment or merge.
+
 ### Hedera activation replaces implicit writes with authority queries — 2026-10-12
 
 Replaced Hedera's activation put/get/delete probe with `storageProbe`. The real official SDK queries the active payer account, checks its actual single signing key, queries the existing shared storage contract's public immutable `owner()` ABI, and resolves that EVM owner back to the requesting Hedera account using the existing verified account-resolution helper. No new contract ABI implementation or redeployment is required by source: `Providers/Shared/Contracts/OASISKeyValueStore.sol` already exposes that getter. No write transaction IDs are generated for activation.

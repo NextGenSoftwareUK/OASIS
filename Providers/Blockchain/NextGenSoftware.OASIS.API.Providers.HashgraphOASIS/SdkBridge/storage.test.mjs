@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Interface } from 'ethers';
-import { storageReadCall, storageTransaction, validateStoragePage, execute } from './bridge.mjs';
+import { storageReadCall, storageTransaction, validateStoragePage, execute,verifyStorageAccount } from './bridge.mjs';
 import { PrivateKey, ContractExecuteTransaction, Transaction, TransactionId, AccountId } from '@hiero-ledger/sdk';
 
 const abi = new Interface([
@@ -105,4 +105,12 @@ test('storage owner probe uses the deployed immutable-owner ABI',()=>{
 test('storage probe requires bounded consensus query configuration',async()=>{
  await assert.rejects(execute('storageProbe',{contractId:'0.0.123',gas:0}),/gas limit/);
  await assert.rejects(execute('storageProbe',{contractId:'0.0.123',gas:100000}),/fee ceiling/);
+});
+test('storage account authority binds actual SDK account and signer, rejecting missing foreign or deleted records',()=>{
+ const key=PrivateKey.generateECDSA(),other=PrivateKey.generateECDSA(),payer=AccountId.fromString('0.0.1001');
+ const account={accountId:payer,isDeleted:false,key:key.publicKey};
+ assert.doesNotThrow(()=>verifyStorageAccount(account,payer,key));
+ for(const invalid of [null,{}, {...account,isDeleted:true},{...account,isDeleted:undefined},{...account,accountId:AccountId.fromString('0.0.1002')},
+   {...account,key:null},{...account,key:other.publicKey}])
+  assert.throws(()=>verifyStorageAccount(invalid,payer,key),/real active sender single signing key/);
 });
