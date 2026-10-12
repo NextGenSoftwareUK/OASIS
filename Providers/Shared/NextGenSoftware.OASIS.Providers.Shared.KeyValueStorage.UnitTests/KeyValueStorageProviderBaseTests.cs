@@ -20,12 +20,13 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public bool Reachable = true;
         public bool ThrowReads;
         public string FailGetKey;
+        public Exception FailGetException;
         public string FailPutKey;
         public string FailDeleteKey;
         public int ListCalls;
 
         public Task<string> GetAsync(string key, CancellationToken ct = default) => key == FailGetKey
-            ? throw new System.IO.IOException("controlled child read outage") : ThrowReads
+            ? throw (FailGetException ?? new System.IO.IOException("controlled child read outage")) : ThrowReads
             ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
         public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw new InvalidOperationException("controlled write failure"); Items[key] = value; return Task.CompletedTask; }
         public Task DeleteAsync(string key, CancellationToken ct = default) { if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
@@ -47,6 +48,31 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [DataTestMethod]
+        [DataRow("cancelled")]
+        [DataRow("unsupported")]
+        [DataRow("memory")]
+        [DataRow("integrity")]
+        public async Task Best_effort_never_masks_fatal_child_read_failures(string kind)
+        {
+            var parent = new Holon { Id = Guid.NewGuid() };
+            var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id };
+            Assert.IsFalse((await _provider.SaveHolonAsync(parent)).IsError);
+            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            _backend.FailGetKey = "oasis/holon/" + child.Id.ToString("N");
+            _backend.FailGetException = kind switch {
+                "cancelled" => new OperationCanceledException("controlled cancellation"),
+                "unsupported" => new NotSupportedException("controlled unsupported read"),
+                "memory" => new OutOfMemoryException("controlled resource failure; no allocation"),
+                _ => new System.IO.InvalidDataException("controlled integrity failure")
+            };
+            var result = await _provider.LoadHolonAsync(parent.Id, continueOnError: true);
+            Assert.IsTrue(result.IsError, result.Message);
+            Assert.IsFalse(result.IsWarning);
+            Assert.IsNotNull(result.Exception);
+            Assert.IsNull(result.Result);
+        }
+
         [TestMethod]
         public async Task Best_effort_collection_cannot_turn_total_read_failure_into_empty_success()
         {
