@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Provider preparation build-output assets — 2026-10-12
+
+Bounded no-restore Cosmos/Sui provider builds both passed with 0 errors/warnings. Actual Debug/net10.0 bridge outputs contain preparation modules with SHA256 `CA211BC6927076FF450008AC0E870675BE51587350F9D6FAA67E4F26C909155B`, identical to the shared source; Cosmos also contains its correction script. Added reusable read-only `Scripts/verify_provider_preparation_assets.ps1`, which fails on missing/stale modules, checks syntax and compares Cosmos correction/package metadata to source. It passed against both existing outputs; no separate publish directory/environment or dependency install allocated.
+
+This verifies local build-output copy behavior, not Railway publish/image execution, provider process lifecycle or durable full-operation integration. Those gates remain open; no release merge. Reuse existing output directories for future verification.
+
 ### Parent-owned CLI preparation transport settings — 2026-10-12
 
 The C# preparation server can configure only an explicitly owned direct child's environment with its private endpoint and an existing absolute transport module path. It does not mutate parent/global environment. Cosmos/Sui CLI entry points read these parent settings and attach the existing preparation client to their trusted invocation callback; request JSON does not select the callback/transport module. Both projects copy the same shared module source into output/publish bridge artifacts. SDK regressions: Cosmos **50/50**, Sui **24/24**; shared suite **84/84**, zero skips, including child-only settings/path/shell rejection checks. Shared build passed 0 errors/warnings.
