@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained Sui actual outage failover rerun — 2026-10-12
+
+Resumed the same existing ledger/runtime after verifying `network.yaml`, then ran both `V2FailsOverToRealStoreAfterSuiFailure` cases against the retained integration binaries: **2/2 passed**, zero skips, 13 seconds; report `TestResults/SuiCurrent/sui-v2-outage-current.trx`. One case closes the provider transport; the other stops explicitly owned node PID 208230 using the validated helper. Both V2 writes succeed through actual LocalFile storage and assert its selected-provider failover diagnostic, with owned output deleted afterward. Confirmed `/proc/208230/exe` absent and original process handle terminal. No runtime install, download, ledger reset or public-chain fee occurred.
+
+Together with the immediately preceding healthy fixture this is current retained-binary local Sui replication, measured/distributed balancing and outage-failover evidence. It does not certify every operation, authenticated hosted routes or sponsored native fees, nor imply uncertain submitted mutations may be retried. Durable pre-submission journaling, other provider live gates and deployment verification remain outstanding; no Development merge.
+
 ### Retained Sui live replication and load-balancing rerun — 2026-10-12
 
 Resumed the existing Sui 1.81.1 runtime only after verifying the retained `network.yaml`; no genesis reset, installation or download. Rebuilt the integration test project with existing referenced outputs (`--no-restore`, bounded workers, `BuildProjectReferences=false`) and ran `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads`: **1/1 passed**, zero skips, approximately one minute. Fixed report: `TestResults/SuiCurrent/sui-v2-healthy-current.trx`. This fixture exercises actual local Sui and LocalFile storage, replicated avatar/detail/holon writes/deletes and indexed reads, performance selection from measured reads, Free-policy exclusion for five selectors in sync/async paths, and six Gold round-robin reads evenly distributed between the two real providers. Policy here is the configured DNA plan, not authenticated per-avatar hosted subscription admission.
