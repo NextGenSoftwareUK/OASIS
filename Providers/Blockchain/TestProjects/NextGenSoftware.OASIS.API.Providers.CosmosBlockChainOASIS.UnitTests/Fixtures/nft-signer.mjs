@@ -9,6 +9,9 @@ if(['put','get'].includes(request.operation)) {
   try{
    await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE,5000)({transactionHash:'a'.repeat(64),signedTransactionBase64:'AQID'});
    if(mode==='prepared-hold')setInterval(()=>{},1000);
+   else if(mode==='prepared-foreign-error')process.stdout.write(JSON.stringify({ok:false,error:'controlled foreign receipt',nativeMutation:{transactionHash:'b'.repeat(64),executionSucceeded:true}}));
+   else if(mode==='prepared-bad-utf8')process.stdout.write(Buffer.from([255]));
+   else if(mode==='prepared-bad-json')process.stdout.write('invalid JSON');
    else process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:(mode==='prepared-wrong'?'b':'a').repeat(64)}}));
   }catch{process.stdout.write(JSON.stringify({ok:false,error:'controlled persistence rejection'}));process.exitCode=1;}
  }
