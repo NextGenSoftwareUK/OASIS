@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera escrow signed stage preparation hooks — 2026-10-12
+
+NFT/token escrow now await shared signed-evidence persistence separately before original approval and original contract mutation submissions. Approval descriptor uses its distinct approval ID; mutation uses original mutation ID. Helper moved to one imported module and copied into publish output. SDK regression **98/98**, zero skips/todos; not a positive two-stage parent-pipe or funded escrow test.
+
+Existing single-ack parent transport cannot acknowledge both stages in one process; a stage-aware execution/transport protocol remains required before enabling prepared escrow through CLI/C#. Do not mistake added hooks for completed two-stage durable orchestration. Escrow failure wrapping still retains reconciliation metadata; preparation-specific failure lifecycle needs dedicated proof. Signature verification, C# outbox and complete funded/live/deployed gates remain open. No install or funded submission, no release merge.
+
 ### Hedera storage/file/direct mutation preparation hooks — 2026-10-12
 
 Prepared dispatcher now permits storage writes/deletes, file create/update/delete and direct native/HTS/NFT transfer/mint/burn. Shared signed-submission helper binds original ID and awaits actual SDK-byte persistence between signing and execute; preparation rejection preserves the original error. Escrow and read/query actions remain explicitly rejected in prepared mode. Real SDK serialized transaction helper test checks exact bytes, rejection identity and foreign-ID refusal. SDK regression **98/98**, zero skips/todos; this does not separately execute every new callsite with persistence failure or a funded transaction.

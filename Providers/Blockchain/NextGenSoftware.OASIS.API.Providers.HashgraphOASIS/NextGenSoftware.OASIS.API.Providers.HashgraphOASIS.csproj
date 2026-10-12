@@ -65,6 +65,7 @@
     <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\bridge.mjs" />
     <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\prepared-submission.mjs" />
     <None Update="SdkBridge\escrow.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\escrow.mjs" />
+    <None Update="SdkBridge\native-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\native-preparation.mjs" />
     <None Update="SdkBridge\deployment.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\deployment.mjs" />
     <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\package.json" />
     <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\package-lock.json" />
