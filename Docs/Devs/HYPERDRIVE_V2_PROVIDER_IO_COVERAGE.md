@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera child exit between prepared escrow stages — 2026-10-12
+
+Added controlled NFT/token escrow child exits immediately after approval persistence acknowledgement, before any mutation preparation. Actual C# process teardown preserves the reconciliation-required marker, persisted approval ID, requested mutation ID and original child-operation error; only approval appears in the persistence callback. This exercises cancellation of the still-waiting second-stage pipe without replacing the primary failure. Existing production classification passed without speculative changes. Complete Hedera C# suite **39/39** passed, zero skips (`hedera-current.trx`). This is real process/pipe lifecycle with controlled descriptors, not funded ledger approval or multi-stage consensus. No network spending, runtime install, deployment or merge.
+
 ### Account-operation audit: canonical provider versus legacy helper — 2026-10-12
 
 Reviewed Hedera account/fee operation paths rather than inferring full SDK coverage from absence of TODO strings. `HashgraphOASIS.CreateAccountAsync(CancellationToken)` and `RestoreAccountAsync(string,CancellationToken)` use the official SDK mnemonic/key operations and explicitly do not claim funded ledger account creation. No new `CRYPTOCREATEACCOUNT` fee mapping was added: these methods generate/restore signing identities, not that ledger transaction.
