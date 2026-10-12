@@ -33,6 +33,15 @@ public sealed class TronNativeTransferClient
     internal TronNativeTransferClient WithPreparation(Func<string,string,string,CancellationToken,Task> persist)
         => new TronNativeTransferClient(_wallet,_transactions,_genesisBlockId,_contractFeeLimitSun,persist);
 
+    private async Task VerifyOwnerSigningAuthorityAsync(ByteString owner, string privateKey,
+        Transaction.Types.Contract.Types.ContractType operation, CancellationToken token)
+    {
+        if(owner.Length!=21||owner[0]!=0x41)throw new ArgumentException("Current TRON operation owner required.");
+        var account=await LoadPermissionAuthorityAsync(Convert.ToHexString(owner.ToByteArray()),token);
+        var signer=_wallet.ParseAddress(new TronECKey(privateKey,TronNetwork.MainNet).GetPublicAddress());
+        TronPermissionVerifier.Verify(account,owner,0,(int)operation,new[]{signer});
+    }
+
     public TronNativeTransferClient(IWalletClient wallet, ITransactionClient transactions, string genesisBlockId, long contractFeeLimitSun = 100000000)
         : this(wallet,transactions,genesisBlockId,contractFeeLimitSun,null) { }
 
@@ -377,8 +386,7 @@ public sealed class TronNativeTransferClient
         var owner = _wallet.ParseAddress(ownerAddress); var created = _wallet.ParseAddress(newAddress);
         if (owner.Length != 21 || created.Length != 21 || owner[0] != 0x41 || created[0] != 0x41 || owner.Equals(created))
             throw new ArgumentException("Account creation requires distinct current TRON addresses.");
-        if (!_wallet.ParseAddress(new TronECKey(privateKey,TronNetwork.MainNet).GetPublicAddress()).Equals(owner))
-            throw new ArgumentException("Account creation signing key does not own the creator.");
+        await VerifyOwnerSigningAuthorityAsync(owner,privateKey,Transaction.Types.Contract.Types.ContractType.AccountCreateContract,cancellationToken);
         await VerifyNetworkAsync(cancellationToken);
         var node = _wallet.GetProtocol();
         var unsigned = await node.CreateAccount2Async(new AccountCreateContract { OwnerAddress=owner, AccountAddress=created },
@@ -424,10 +432,7 @@ public sealed class TronNativeTransferClient
         var recipient = _wallet.ParseAddress(to);
         if (source.Length != 21 || recipient.Length != 21 || source[0] != 0x41 || recipient[0] != 0x41)
             throw new ArgumentException("TRON sender and recipient must be 21-byte addresses with the current 0x41 prefix.");
-        var authority = await LoadPermissionAuthorityAsync(from, cancellationToken);
-        TronPermissionVerifier.Verify(authority, source, 0,
-            (int)Transaction.Types.Contract.Types.ContractType.TransferContract,
-            new[] { _wallet.ParseAddress(signer.GetPublicAddress()) });
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TransferContract,cancellationToken);
         var node = _wallet.GetProtocol();
         var headers = _wallet.GetHeaders();
         await VerifyNetworkAsync(cancellationToken);
@@ -498,8 +503,7 @@ public sealed class TronNativeTransferClient
         ByteString recipient = null;
         if (from != null)
         {
-            if (!_wallet.ParseAddress(from).Equals(source))
-                throw new ArgumentException("Signing key does not own the requested TRC20 sender address.");
+            source = _wallet.ParseAddress(from);
             recipient = _wallet.ParseAddress(to);
             if (recipient.Length != 21 || recipient[0] != 0x41)
                 throw new ArgumentException("A current TRON recipient address is required.");
@@ -507,6 +511,7 @@ public sealed class TronNativeTransferClient
         var contract = _wallet.ParseAddress(tokenAddress);
         if (contract.Length != 21 || contract[0] != 0x41)
             throw new ArgumentException("A current TRON contract address is required.");
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         await VerifyNetworkAsync(cancellationToken);
         var node = _wallet.GetProtocol();
         var headers = _wallet.GetHeaders();
@@ -584,8 +589,7 @@ public sealed class TronNativeTransferClient
         var owner = _wallet.ParseAddress(ownerAddress);
         var contract = _wallet.ParseAddress(contractAddress);
         EncodeAddressCall("validate(address,address)", owner, contract);
-        if (!owner.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
-            throw new ArgumentException("Contract signing key does not own the requested caller.");
+        await VerifyOwnerSigningAuthorityAsync(owner,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         await VerifyNetworkAsync(cancellationToken);
         return await ExecuteContractAsync(owner, contract, data, privateKey, "", cancellationToken);
     }
@@ -606,8 +610,7 @@ public sealed class TronNativeTransferClient
         if (!System.Text.RegularExpressions.Regex.IsMatch(privateKey ?? "", "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var owner = _wallet.ParseAddress(ownerAddress);
-        if (!owner.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
-            throw new ArgumentException("Deployment signer does not own the requested address.");
+        await VerifyOwnerSigningAuthorityAsync(owner,privateKey,Transaction.Types.Contract.Types.ContractType.CreateSmartContract,cancellationToken);
         var requested = new CreateSmartContract
         {
             OwnerAddress = owner,
@@ -645,8 +648,7 @@ public sealed class TronNativeTransferClient
             || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var source = _wallet.ParseAddress(owner);
-        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
-            throw new ArgumentException("Escrow signing key does not own the requested depositor.");
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         var escrow = _wallet.ParseAddress(escrowAddress);
         var token = _wallet.ParseAddress(tokenAddress);
         var query = EncodeAddressCall("locked(address,address)", token, source);
@@ -694,8 +696,7 @@ public sealed class TronNativeTransferClient
             || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var source = _wallet.ParseAddress(owner);
-        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
-            throw new ArgumentException("NFT signing key does not own the requested minter.");
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         var contract = _wallet.ParseAddress(contractAddress);
         EncodeAddressCall("ownerOf(uint256)", contract);
         var data = EncodeNftMint(_wallet.ParseAddress(recipient), tokenId, metadataUri);
@@ -733,8 +734,7 @@ public sealed class TronNativeTransferClient
             || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var source = _wallet.ParseAddress(from);
-        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
-            throw new ArgumentException("NFT signing key does not own the requested sender.");
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         var recipient = to == null ? null : _wallet.ParseAddress(to);
         var contract = _wallet.ParseAddress(tokenAddress);
         EncodeAddressCall("ownerOf(uint256)", contract); // Validate contract address before node access.
@@ -867,8 +867,7 @@ public sealed class TronNativeTransferClient
             || !System.Text.RegularExpressions.Regex.IsMatch(privateKey, "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var source = _wallet.ParseAddress(owner);
-        if (!source.Equals(_wallet.ParseAddress(new TronECKey(privateKey, TronNetwork.MainNet).GetPublicAddress())))
-            throw new ArgumentException("Escrow signing key does not own the requested depositor.");
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         var escrow = _wallet.ParseAddress(escrowAddress);
         var token = _wallet.ParseAddress(tokenAddress);
         var call = EncodeAddressCall("lockAll(address)", token);
@@ -937,8 +936,7 @@ public sealed class TronNativeTransferClient
             throw new ArgumentException("TRON signing keys require 32-byte hexadecimal encoding.");
         var signer = new TronECKey(privateKey, TronNetwork.MainNet);
         var source = _wallet.ParseAddress(owner);
-        if (!source.Equals(_wallet.ParseAddress(signer.GetPublicAddress())))
-            throw new ArgumentException("Approval signing key does not own the requested token holder.");
+        await VerifyOwnerSigningAuthorityAsync(source,privateKey,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,cancellationToken);
         var contract = _wallet.ParseAddress(tokenAddress);
         if (contract.Length != 21 || contract[0] != 0x41)
             throw new ArgumentException("A current TRON token contract is required.");

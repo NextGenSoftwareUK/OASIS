@@ -10,6 +10,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronPermissionRpcTests
 {
+    internal static async Task WithDefaultOwnerAuthority(Func<TronSdkRuntime,Task> test)
+    {
+        var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>Task.FromResult(new Account{Address=request.Address})).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try{var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);await test(runtime);}
+        finally{await server.ShutdownAsync();}
+    }
     [Theory]
     [InlineData("rotated")] [InlineData("foreign")] [InlineData("threshold")] [InlineData("revoked")]
     public async Task NativeSendUsesSolidifiedOwnerPermissionBeforeConstruction(string mode)
@@ -61,7 +72,7 @@ public class TronPermissionRpcTests
         var service=ServerServiceDefinition.CreateBuilder()
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
                 authorityQueries++;var account=new Account{Address=request.Address};
-                if(mode=="authority"&&authorityQueries>1){account.OwnerPermission=new Permission{Id=0,Threshold=2};account.OwnerPermission.Keys.Add(new Key{Address=request.Address,Weight=1});}
+                if(mode=="authority"&&authorityQueries>3){account.OwnerPermission=new Permission{Id=0,Threshold=2};account.OwnerPermission.Keys.Add(new Key{Address=request.Address,Weight=1});}
                 return Task.FromResult(account);
             })
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
@@ -105,7 +116,7 @@ public class TronPermissionRpcTests
         }finally{await server.ShutdownAsync();}
     }
     [Theory]
-    [InlineData("valid")] [InlineData("empty")] [InlineData("foreign")] [InlineData("unavailable")]
+    [InlineData("valid")] [InlineData("empty")] [InlineData("foreign")] [InlineData("unavailable")] [InlineData("rotated")]
     public async Task AccountCreationReadbackFailurePreservesOneActualSdkSubmission(string mode)
     {
         var genesis=new string('a',64);var genesisBytes=ByteString.CopyFrom(Convert.FromHexString(genesis));
@@ -126,8 +137,15 @@ public class TronPermissionRpcTests
             })
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
                 var ownerBytes=new byte[21];ownerBytes[0]=0x41;
-                new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(ownerBytes,1);
-                if(request.Address.Equals(ByteString.CopyFrom(ownerBytes)))return Task.FromResult(new Account{Address=request.Address});
+                new Nethereum.Signer.EthECKey(new string('0',63)+(mode=="rotated"?"2":"1")).GetPublicAddressAsBytes().CopyTo(ownerBytes,1);
+                if(request.Address.Equals(ByteString.CopyFrom(ownerBytes))){
+                    var account=new Account{Address=request.Address};
+                    if(mode=="rotated"){
+                        var keyAddress=new byte[21];keyAddress[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(keyAddress,1);
+                        account.OwnerPermission=new Permission{Id=0,Threshold=1};account.OwnerPermission.Keys.Add(new Key{Address=ByteString.CopyFrom(keyAddress),Weight=1});
+                    }
+                    return Task.FromResult(account);
+                }
                 reads++;if(mode=="unavailable")throw new RpcException(new Status(StatusCode.Unavailable,"controlled post-confirmation readback failure"));
                 var address=request.Address.ToByteArray();if(mode=="foreign")address[1]^=1;
                 return Task.FromResult(mode=="empty"?new Account():new Account{Address=ByteString.CopyFrom(address)});
@@ -136,11 +154,11 @@ public class TronPermissionRpcTests
         try{
             var port=server.Ports.Single().BoundPort;
             await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
-            var key=new string('0',63)+"1";var owner=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
-            var created=new TronNet.TronECKey(new string('0',63)+"2",TronNet.TronNetwork.MainNet).GetPublicAddress();
+            var key=new string('0',63)+"1";var owner=new TronNet.TronECKey(mode=="rotated"?new string('0',63)+"2":key,TronNet.TronNetwork.MainNet).GetPublicAddress();
+            var created=new TronNet.TronECKey(new string('0',63)+"3",TronNet.TronNetwork.MainNet).GetPublicAddress();
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
             var operation=runtime.NativeTransfers.CreateLedgerAccountAsync(owner,created,key,deadline.Token);
-            if(mode=="valid"){
+            if(mode=="valid"||mode=="rotated"){
                 var returned=await operation;Assert.Equal(Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant(),returned);
             }
             else{
