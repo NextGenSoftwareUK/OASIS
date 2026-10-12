@@ -45,7 +45,7 @@ public partial class SuiOASIS
     }
 
     private Task<JsonElement> InvokeSdkAsync(string operation, object args = null, CancellationToken cancellationToken = default)
-        => ((SuiStorageBackend)Backend).Client.InvokeAsync(operation, args, cancellationToken);
+        => _sdkClient.InvokeAsync(operation, args, cancellationToken);
 
     public async Task<OASISResult<IKeyPairAndWallet>> RestoreKeyPairAsync(string privateKey)
     {
