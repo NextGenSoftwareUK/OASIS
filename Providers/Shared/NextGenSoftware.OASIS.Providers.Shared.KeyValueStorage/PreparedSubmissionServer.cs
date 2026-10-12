@@ -23,6 +23,8 @@ public sealed class PreparedSubmissionServer : IDisposable
     public string Endpoint { get; }
     public string PreparedTransactionId { get; private set; }
     public IReadOnlyList<string> PreparedTransactionIds => Array.AsReadOnly(Volatile.Read(ref _preparedIds));
+    public bool HasOptionalApprovalSequence(string approvalId,string mutationId)
+        => _optionalFirstStage && _expectedStages[0]==approvalId && _expectedStages[1]==mutationId;
     /// <summary>Each stage uses a separate connection and is acknowledged only after its own durable persistence.</summary>
     public static PreparedSubmissionServer ForStages(Func<JsonElement,CancellationToken,Task> persist, params string[] expectedTransactionIds)
     {

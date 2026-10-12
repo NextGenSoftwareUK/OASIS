@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -52,6 +53,8 @@ internal static class HederaSdkClient
         // Preparation belongs to an explicitly configured owned invocation, never ambient host state.
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_APPROVAL_ID");
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_MUTATION_ID");
         var requestJson = JsonSerializer.Serialize(new { action, request });
         using var requestDocument = JsonDocument.Parse(requestJson);
         var originalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("transactionId", out var requestedId)
@@ -66,8 +69,14 @@ internal static class HederaSdkClient
         if (isMutation && string.IsNullOrWhiteSpace(originalId))
             throw new ArgumentException("Hedera native mutations require an explicit original transaction ID before SDK launch.");
         if(preparationServer!=null){
-            if(!isMutation||action is "nftEscrowLock" or "tokenEscrowLock")
+            if(!isMutation)
                 throw new ArgumentException("Prepared Hedera invocation requires a single-stage native mutation.");
+            if(action is "nftEscrowLock" or "tokenEscrowLock"){
+                if(!preparationServer.HasOptionalApprovalSequence(originalApprovalId,originalId))
+                    throw new ArgumentException("Escrow lock requires its exact optional approval and mutation preparation sequence.");
+                start.Environment["OASIS_NATIVE_PREPARATION_APPROVAL_ID"]=originalApprovalId;
+                start.Environment["OASIS_NATIVE_PREPARATION_MUTATION_ID"]=originalId;
+            }
             preparationServer.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","prepared-submission.mjs"));
         }
         using var process = new Process { StartInfo = start };
@@ -155,13 +164,23 @@ internal static class HederaSdkClient
                 && (returnedApproval.ValueKind != JsonValueKind.String || returnedApproval.GetString() != originalApprovalId))
                 throw new HederaNativeMutationReconciliationException("Hedera mutation reply reports an unverified approval identity; reconcile original transactions before retrying.",
                     new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null));
+            if(preparationServer!=null && action is "nftEscrowLock" or "tokenEscrowLock"){
+                var approvalPersisted=preparationServer.PreparedTransactionIds.Contains(originalApprovalId);
+                var approvalReported=document.RootElement.TryGetProperty("approvalTransactionId",out var actualApproval)
+                    && actualApproval.ValueKind==JsonValueKind.String && actualApproval.GetString()==originalApprovalId;
+                if(approvalPersisted!=approvalReported)
+                    throw new HederaNativeMutationReconciliationException("Escrow reply does not match persisted approval preparation.",
+                        new HederaNativeMutationEvidence(originalId,originalApprovalId,originalId,"process-output-unverified",null));
+            }
             return document.RootElement.Clone();
         }
         catch(InvalidOperationException failure) when(!preparationObserved&&preparationServer?.PreparedTransactionId!=null)
         {
             if(failure is HederaNativeMutationReconciliationException)throw;
             throw new HederaNativeMutationReconciliationException("Hedera process failed after durable preparation; reconcile the original before retrying.",
-                new HederaNativeMutationEvidence(preparationServer.PreparedTransactionId,null,originalId,"prepared-outcome-unverified",null),failure);
+                new HederaNativeMutationEvidence(preparationServer.PreparedTransactionId,
+                    preparationServer.PreparedTransactionIds.Contains(originalApprovalId)?originalApprovalId:null,
+                    originalId,"prepared-outcome-unverified",null),failure);
         }
         catch (OperationCanceledException errorException)
         {
