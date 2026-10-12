@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera token-burn signer inputs no longer ignored (2026-10-11)
+
+Token burn previously ignored supplied seed/private/public key fields while resolving the avatar treasury wallet. It now follows the existing NFT-burn policy: reject an unrecovered seed before wallet lookup, require any supplied private key to agree with the resolved wallet, and forward any supplied public key to the existing SDK validation rather than silently replacing it. The actor wallet remains the signing owner; no alternate credential pipeline or automatic retry was added. Provider build succeeds with zero errors/four warnings. Focused token/NFT burn preflight suite passes **12/12**, zero skips (`hedera-burn-preflight.trx`), including both sync/async seed rejection cases. Positive wallet-key agreement/public-key mismatch and funded HTS burn consensus still require further proof; these validation cases do not establish live token authority or full Hedera completion. No network mutation/install/download/new environment/merge.
+
 ### WEB4 NFT file-import denial and export malformed-input HTTP checks (2026-10-11)
 
 Expanded existing test-auth HTTP suite passes **4/4**, zero skips (`web4-nft-binding-http.trx`), retaining the nested-body and invalid-import-body cases and adding another-avatar file-import denial before manager/file access plus invalid-export-body HTTP 400. File import now returns the same HTTP 403/`AVATAR_OPERATION_FORBIDDEN` envelope as object import while preserving the existing Wizard exception. Build succeeds with zero errors/253 warnings. No server files were read/written by these negative cases. They do not establish successful persistence/export, real-JWT authorization or allowed server-path confinement; those remain distinct verification/security gates. No runtime/install/download/environment allocation/merge.
