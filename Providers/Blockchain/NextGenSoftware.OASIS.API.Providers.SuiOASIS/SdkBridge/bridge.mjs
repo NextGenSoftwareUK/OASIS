@@ -184,8 +184,8 @@ async function custodyReceipt(client, request) {
   return { objectId: object.objectId, version: object.version, digest: object.digest };
 }
 
-export async function invoke(request) {
-  return withNativeMutationEvidence(() => invokeCore(request));
+export async function invoke(request, persistPreparedSubmission) {
+  return withNativeMutationEvidence(() => invokeCore(request), persistPreparedSubmission);
 }
 
 async function invokeCore(request) {
