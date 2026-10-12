@@ -19,12 +19,12 @@ public sealed class CosmosNativeMutationReconciliationException : InvalidOperati
 
 public sealed class CosmosNativeMutationCanceledException : OperationCanceledException, INativeMutationReconciliationRequired
 {
-    public string OriginalTransactionId => null;
-    internal CosmosNativeMutationCanceledException(string message, Exception cause, CancellationToken token) : base(message, cause, token) { }
+    public string OriginalTransactionId { get; }
+    internal CosmosNativeMutationCanceledException(string message, Exception cause, CancellationToken token, string original = null) : base(message, cause, token) { OriginalTransactionId = original; }
 }
 
 public sealed class CosmosNativeMutationTimeoutException : TimeoutException, INativeMutationReconciliationRequired
 {
-    public string OriginalTransactionId => null;
-    internal CosmosNativeMutationTimeoutException(string message, Exception cause) : base(message, cause) { }
+    public string OriginalTransactionId { get; }
+    internal CosmosNativeMutationTimeoutException(string message, Exception cause, string original = null) : base(message, cause) { OriginalTransactionId = original; }
 }

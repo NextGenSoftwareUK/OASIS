@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos prepared SDK process lifecycle — 2026-10-12
+
+Added explicit prepared invocation through the single canonical Cosmos backend process implementation. Child-only preparation configuration, awaited parent callback/error preservation, success acknowledgement/original-hash binding, cleanup observation and interruption ID retention now apply to that opt-in path. Ordinary invocations clear inherited preparation settings. Controlled real-pipe child cases accept, preserve parent rejection, reject foreign success identity, retain prepared ID/caller token on cancellation, and reject success without acknowledgement: **5/5**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-prepared-process.trx`. Provider build 0 errors/warnings; existing nullable test warning remains.
+
+Production callers are not yet switched; native admission remains required. Prepared actual timeout/communication and error-receipt paths, real signed provider/pipe/Mongo submission/crash recovery and full interface/live/deployed gates remain unverified. No installation, ledger mutation or release merge.
+
 ### Real Cosmos signed document through C# verifier — 2026-10-12
 
 Added actual retained CosmJS offline wallet/client signing with explicit fixture chain/account number/sequence, no RPC or broadcast. C# provider verifier accepts the original signed TxRaw/SignDoc and rejects changed chain context; provider remains inactive. Owned signing process closed in finally. Preparation suite **3/3**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-preparation.trx`; existing nullable test-field warning remains. This proves the positive SDK/C# verifier boundary, not live network identity, pipe/Mongo factory integration, submission or recovery. Those and full live/deployed gates remain open. No downloads, installs, ledger changes or release merge.
