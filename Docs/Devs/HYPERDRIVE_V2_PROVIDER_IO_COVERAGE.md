@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current live Sui V2 routing matrix — 2026-10-12
+
+Resumed the retained root-owned Sui 1.81.1 ledger without installation/reset and rebuilt the existing HyperDrive integration test project using no restore and bounded workers. `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads` passed **1/1**, zero skips, 1m1s (`TestResults/SuiCurrent/sui-v2-healthy-current.trx`). Current real Sui + LocalFile V2 assertions cover replicated avatar/detail/holon writes, updates, indexed sync/async reads and deletions; measured-performance selection; Free DNA policy exclusion across five selectors; and six Gold round-robin reads evenly distributed between both real providers. Cleanup removes exact owned fixture records.
+
+On that same node, `V2FailsOverToRealStoreAfterSuiFailure` passed **2/2**, zero skips, 13s (`TestResults/SuiCurrent/sui-v2-outage-current.trx`), covering closed Sui transport and real owned-node termination with actual LocalFile persistence and selected-provider failover diagnostics. Node PID 212134 stopped by the validated helper; `/proc/212134/exe` absent and original handle terminal. No public-chain funds, faucet, download or replacement ledger used. Runtime warnings remain. These are live provider routing proofs at this fixture's scope; DNA Free/Gold configuration is not hosted authenticated per-avatar billing admission, and this does not certify every route/interface, other providers or prepared crash recovery. Remaining release gates still prevent merge.
+
 ### Retained Sui original failed outcome live recheck — 2026-10-12
 
 Inspected the retained network configuration and confirmed no active Sui process. Initial startup under ordinary WSL user failed terminally because retained RocksDB CURRENT files are root-owned mode 600. Resumed under the existing root owner without permission changes, genesis reset or new installation. RPC reported chain identifier `fd2b5bb4`; exact owned process PID 210376 used the retained Sui 1.81.1 executable/network. Startup still reports metrics/socket/JWK/execution-chunk warnings; not claimed fixed.
