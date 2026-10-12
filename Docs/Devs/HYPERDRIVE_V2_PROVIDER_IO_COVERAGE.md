@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Complete TRON unit project regression and signer-verification audit — 2026-10-12
+
+Entire current TRON unit project passed **202/202**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`, after preparation-ordering and confirmation-fence changes. Existing retained packages are TronNet 0.2.0 and Nethereum.Signer 7.0.0; no installs. This full project regression supersedes earlier 199-case unit count, not live-node proof.
+
+Audit confirms pre-broadcast boundary validates one 65-byte signature and unchanged raw bytes, but does not independently recover/check signature signer there. Required next verification must recover signer from SHA256(raw protobuf), bind to trusted expected owner/account permissions, and validate actual contract owner/fee/window against admitted request before durable persistence. Do not equate signature length or private-key prechecks in selected callers with independent prepared-evidence verification. Runtime/provider execution-outbox wiring and original live outcome reconciliation remain open; unresolved live original not touched. No RPC/submissions or release merge.
+
 ### TRON preparation completion precedes broadcast — 2026-10-12
 
 Actual SDK signing test now accepts an asynchronous preparation callback (yields before completing) and asserts controlled broadcast sees exactly one completed callback. Subsequent broadcast transport failure retains the same prepared original ID and one broadcast; no new signing/replacement. Unknown-evidence suite **8/8**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`. Callback remains controlled/in-memory, not durable database proof.
