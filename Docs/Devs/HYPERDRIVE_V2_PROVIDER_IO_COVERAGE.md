@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Prepared live cleanup and durable rerun fence — 2026-10-12
+
+Strengthened the live Sui harness: atomically creates fixed `TestResults/SuiCurrent/prepared-live-pending.json` before submission, durably flushes owned key/database/execution identity, and refuses a rerun while it exists. Both write and cleanup now use separately correlated prepared attempts in the same Mongo outbox. Original write and cleanup digests are confirmed Completed and retained in compact TRX output before the owned database/journal are removed. Any failure preserves journal/outbox for original-transaction reconciliation; there is no automatic cleanup retry or unknown-outcome replay.
+
+Current live **1/1** passed, zero skips (`sui-prepared-live-current.trx`); build zero warnings/errors, journal absence verified after successful cleanup. Exact reused node PID 216495 stopped with validated helper and handle terminal. This proves positive prepared cleanup plus journal creation/removal in the successful flow, not a forced crash/recovery or production fee authorization. No installation, public-chain funds, ledger reset or development merge.
+
 ### Live Sui prepared write positive gate — 2026-10-12
 
 Added `PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger` and ran it against the retained local Sui 1.81.1 ledger with the existing SDK dependencies/Mongo service. **1/1 passed**, zero skips (`TestResults/SuiCurrent/sui-prepared-live-current.trx`); integration build zero warnings/errors. Actual storage put uses the canonical prepared provider entry, real SDK signing, independent signature verification and durable Mongo acknowledgement before SDK execution. Returned confirmed digest equals the stored original provider request ID, signed bytes/signature are nonempty, and actual provider transaction status is Completed. Preparation still does not manufacture ledger settlement acknowledgement.
