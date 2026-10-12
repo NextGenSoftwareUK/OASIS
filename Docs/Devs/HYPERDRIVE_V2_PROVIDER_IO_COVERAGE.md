@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Signed TRON permission-update preparation verification — 2026-10-12
+
+Actual installed SDK signing now exercises `AccountPermissionUpdateContract` through the independent preparation verifier. Exact original ID/owner/signature passes; separately signed foreign-owner and foreign-signature variants fail. Full TRON C# suite **242/242** passed, zero skips (`tron-current.trx`). This verifies cryptographic ownership of signed protobuf evidence, not validity of proposed replacement permissions, live account changes or native-spending intent authorization. Fixture does not invoke broadcast or network calls; no installed environment changes, runtime startup or ledger mutation. Original unknown transaction/release gates remain unresolved.
+
 ### TRON permission-update original-owner mapping — 2026-10-12
 
 Shipping-path audit found wallet history already maps `AccountPermissionUpdateContract`, while the shared original-operation-owner mapper used by prepared verification and native fee receipts omitted it. Added the actual protobuf owner address mapping so these paths agree; no transaction is fabricated or broadcast. New controlled receipt test proves exact original payer and total fee beyond JavaScript precision, without requiring a VM execution receipt for a native permission update. Full TRON unit suite **239/239** passed, zero skips (`tron-current.trx`); build zero errors/21 existing warnings. Signed permission-update and live receipt verification remain separate gates; no account permissions changed, installation, network call or merge.

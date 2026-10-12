@@ -12,6 +12,23 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronUnknownBroadcastEvidenceTests
 {
+    [Theory]
+    [InlineData("valid")] [InlineData("foreign-owner")] [InlineData("foreign-signature")]
+    public async Task SignedPermissionUpdateBindsOriginalOwnerAndSignature(string mode)
+    {
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:1"),new Uri("http://127.0.0.1:1"),new string('a',64));
+        var signer=(ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(runtime.NativeTransfers)!;
+        var owner=new byte[21];owner[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(owner,1);
+        var foreign=new byte[21];foreign[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"2").GetPublicAddressAsBytes().CopyTo(foreign,1);
+        var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var transaction=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract,
+            Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new AccountPermissionUpdateContract{OwnerAddress=ByteString.CopyFrom(mode=="foreign-owner"?foreign:owner)})});
+        var signed=signer.GetTransactionSign(transaction,new string('0',63)+(mode=="foreign-signature"?"2":"1"));
+        var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
+        Action verify=()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(signed.ToByteArray()),id,owner,100000000);
+        if(mode=="valid")verify();else Assert.Throws<System.IO.InvalidDataException>(verify);
+    }
     [Fact]
     public async Task PermissionLoaderPreCancellationCannotQueryNetwork()
     {
