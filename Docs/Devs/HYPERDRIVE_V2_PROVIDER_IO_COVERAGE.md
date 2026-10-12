@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### TRON native bridge real pool round trip (2026-10-12)
+
+New bounded live scenario passes **1/1**, zero skips (`tron-native-bridge-current.trx`), on retained TRE ledger/contract/public local actors. Withdraw commits sender key 1 to pool key 2, verifies exact pool +0.001 TRX and independent Completed receipt; deposit resolves only the configured pool signer once, commits back to sender and verifies exact receiver +0.001 TRX and its Completed receipt. Recipient deltas are measured separately from payer gas. Provider deactivates in finally; runtime paused afterward. Integration build zero errors/two warnings, no install/download/new environment. This proves both native bridge legs, not cross-chain settlement, external source-proof authorization, hosted access control or every bridge option.
+
 ### TRON native bridge pool self-transfer preflight (2026-10-12)
 
 Native bridge withdraw/deposit reject exact canonical pool-wallet equality before activation or signing-key lookup, rather than report a self-transfer as bridge movement. Added actual SDK-derived local address regression verifies both errors/null results, inactive provider and zero key reads. Provider build zero errors/23 warnings; full units **184/184**, zero skips (`tron-unit-current.trx`). This is canonical-address preflight proof, not equivalent alternative address encodings, live pool movement or cross-chain settlement authorization. Runtime remained paused, no ledger/install/download/new environment. Broader interface/release gates remain open.
