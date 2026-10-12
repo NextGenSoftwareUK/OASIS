@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Historical interrupted TRON timing cannot be recovered from retained logs (2026-10-12)
+
+Read-only exact-hash search for `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` found no matching record in retained `/tron/FullNode/logs/tron.log` or actual `/tron/FullNode/logs/db/db.log`. Initial database path guesses were wrong; resolved the real path inside the existing container before the authoritative search. Thus no historical signed expiry or original serialized payload is established by those logs. No inferred expiry, fee/outcome or fence clearance. Earlier RPC absence remains absence, not terminal proof.
+
+Briefly unpaused the same container for **inspection only**, read `/tron/quickstart` in its actual namespace and process names: PID1 Java, retained config/output required, exec Java with container support, no initialization path. Paused again; exact same ID `ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12`. No signing/broadcast/replacement mutation or new environment/download. Current interruption-fence remains unresolved; required next recovery work is durable original signed submission evidence before future broadcasts, authoritative reconciliation of historical owned partial state without asserting lost native outcome, and measured JVM/native memory limits before a fresh live workload. Controlled exception tests do not replace these gates. Full Cosmos/Hedera/billing/API/release requirements remain open.
+
 ### TRON actual signing/broadcast interruption path preserves evidence (2026-10-12)
 
 Added controlled client-stage regression invoking the real `SignBroadcastConfirmAsync` with official installed TronNet signer, public local test key, and a DispatchProxy only at broadcast transport. Exactly one SDK sign and one interrupted broadcast; exact SHA256 of observed signed raw payload equals exception ID, original timestamp/expiry/genesis and underlying interruption retained, one65-byte SDK signature. All unexpected proxy operations fail. This proves the actual post-sign client error path, not merely constructing the exception; it deliberately bypasses node construction/genesis handshake and submits no network mutation, so it is not a live outage/consensus proof or real resumed ledger reconciliation.
