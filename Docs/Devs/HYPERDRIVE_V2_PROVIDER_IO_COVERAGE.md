@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Second-stage persistence failure reconciliation fence — 2026-10-12
+
+Fixed a multi-stage error classification gap: observing a mutation persistence error after approval preparation previously bypassed the reconciliation wrapper. Approval may already have been broadcast, so the operation must not become retryable merely because the second preparation was rejected. Any non-cancellation failure after at least one durable stage now retains the reconciliation marker, original cause, persisted approval ID and requested mutation ID; existing reconciliation exceptions remain unchanged. First-stage rejection with no persisted stage still returns the original persistence failure.
+
+Controlled NFT/token lock child tests prove second-stage rejection retains that exact cause and both IDs while only approval is persisted. Full Hedera C# suite **36/36** passed, no skips (`TestResults/PriorityProviderCurrent/hedera-current.trx`); provider build passed with two existing warnings. This proves process error classification, not live failover or ledger submission. No funded transaction, installs, deployment, merge or sponsored spending enabled.
+
 ### Invalid mutation cannot overwrite approval — 2026-10-12
 
 Official SDK signed NFT and fungible escrow tests now include a valid approval followed by a mutation signed with a different unauthorized key. The actual independent SDK verifier rejects the second preparation before persistence or acknowledgement. Mongo still contains only the exact approval attempt/bytes; native-preparation byte budget is unchanged, and the transport retains only the approval original ID. Full Hedera C# suite **34/34** passed, no skips (`TestResults/PriorityProviderCurrent/hedera-current.trx`). Existing SDK/Mongo resources reused, owned databases dropped; no ledger submission or installs. This proves the preparation rejection boundary, not network account authority, contract execution or complete live V2 policy coverage. Release gates remain open.
