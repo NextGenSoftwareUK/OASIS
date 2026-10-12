@@ -43,6 +43,9 @@ public class HederaRawTransferTests
             StringAssert.StartsWith(helperAsync.TransactionId, "0.0.1001@");
             var helperSync = helper.SendTransaction(data);
             Assert.AreNotEqual(helperAsync.TransactionId, helperSync.TransactionId);
+            var localHelper = new HashgraphClient(accountId: "0.0.1001", privateKey: "fixture-transfer-key", transferNetwork: "local",
+                transferConsensusNodes: new Dictionary<string, string> { ["127.0.0.1:50211"] = "0.0.3" });
+            StringAssert.StartsWith((await localHelper.SendTransactionAsync(data)).TransactionId, "0.0.1001@");
             var failed = await provider.SendTransactionAsync("0.0.1001", "0.0.1002", 1m, "controlled-receipt-failure");
             Assert.IsTrue(failed.IsError); Assert.IsNull(failed.Result);
             StringAssert.Contains(failed.Message, "0.0.1001@");
@@ -69,5 +72,13 @@ public class HederaRawTransferTests
         var result = provider.SendTransaction("0.0.1003", "0.0.1002", 1m, "");
         Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.AreEqual(0, calls);
         StringAssert.Contains(result.Message, "does not match");
+    }
+
+    [TestMethod]
+    public async Task HelperLocalNetworkRequiresExplicitLoopbackConsensusNodes()
+    {
+        var helper = new HashgraphClient(accountId: "0.0.1001", privateKey: "unused", transferNetwork: "local");
+        await Assert.ThrowsExceptionAsync<ArgumentException>(() => helper.SendTransactionAsync(new HashgraphTransactionData {
+            FromAddress = "0.0.1001", ToAddress = "0.0.1002", Amount = 1m }));
     }
 }
