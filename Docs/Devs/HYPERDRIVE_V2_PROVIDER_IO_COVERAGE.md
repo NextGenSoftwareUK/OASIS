@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera signer/configuration changes full non-funded regression (2026-10-12)
+
+At parent `93d0b671b`, reusable Hedera runner passes **207/207**, zero skips (`hedera-nonfunded-current.trx`), including current raw-send helper/provider/configuration cases and read-only retained mirror status. Runner uses existing output dependency junction and exact SDK verifier; funded storage/transfer classes remain excluded, not passed. WEB4 host rebuild succeeds with zero errors/253 warnings against current existing referenced outputs. Railway manifest/seven Dockerfiles/gitlinks checks pass; worktree clean before recording evidence. No funded submission, credential logging, install/download/new environment/merge. Positive funded raw send/native custody/storage/V2 orchestration and actual image gates remain required; this regression does not establish full completion.
+
 ### Public Hedera helper no longer sends unsigned mirror JSON (2026-10-12)
 
 HashgraphClient async send now delegates through the same provider raw-transfer/SendToken official-SDK pipeline with its explicitly supplied account/private key and transferNetwork (default mainnet; pass testnet/previewnet explicitly). Synchronous send delegates to that async method instead of a second mirror POST. Errors propagate rather than becoming null, and returned identity is the existing verified SDK receipt ID, not fallback text. Existing raw-send projection regression now exercises both helper sync/async calls with explicit testnet signer and distinct original IDs; focused suite passes **4/4**, zero skips (`hedera-raw-transfer-current.trx`), provider build succeeds (zero errors/four warnings). Controlled transport is not funded consensus. Helper network is explicit, not guessed from mirror URL; custom local helper-node configuration remains unsupported until properly wired (provider itself supports configured local nodes). No installs/downloads/new environment/ledger mutation/merge; remaining gates stay open.
