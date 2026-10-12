@@ -146,9 +146,13 @@ public class SuiAvatarTokenSendTests
             var namedTransfers = new Func<Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>>>[]
             {
                 () => Task.FromResult(sui.SendTransactionByUsername(senderAvatar.Username, recipientAvatar.Username, 0.001m)),
+                () => sui.SendTransactionByUsernameAsync(senderAvatar.Username, recipientAvatar.Username, 0.001m),
+                () => Task.FromResult(sui.SendTransactionByUsername(senderAvatar.Username, recipientAvatar.Username, 0.001m, "0x2::sui::SUI")),
                 () => sui.SendTransactionByUsernameAsync(senderAvatar.Username, recipientAvatar.Username, 0.001m, "0x2::sui::SUI"),
+                () => Task.FromResult(sui.SendTransactionByEmail(senderAvatar.Email, recipientAvatar.Email, 0.001m)),
                 () => sui.SendTransactionByEmailAsync(senderAvatar.Email, recipientAvatar.Email, 0.001m),
-                () => Task.FromResult(sui.SendTransactionByEmail(senderAvatar.Email, recipientAvatar.Email, 0.001m, "0x2::sui::SUI"))
+                () => Task.FromResult(sui.SendTransactionByEmail(senderAvatar.Email, recipientAvatar.Email, 0.001m, "0x2::sui::SUI")),
+                () => sui.SendTransactionByEmailAsync(senderAvatar.Email, recipientAvatar.Email, 0.001m, "0x2::sui::SUI")
             };
             foreach (var transfer in namedTransfers)
             {
