@@ -5,7 +5,7 @@
 
 ## Current provider status — not full certification
 
-Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 428/428; shared storage 74/74; Sui C# 35/35 and SDK 12/12; Cosmos C# 56/56 and SDK 34/34; TRON C# 198/198; Hedera non-funded 218/218; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
+Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 430/430; shared storage 74/74; Sui C# 35/35 and SDK 12/12; Cosmos C# 56/56 and SDK 34/34; TRON C# 198/198; Hedera non-funded 218/218; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
 
 No provider is currently certified against the entire requested combination of relevant interfaces, live V2 failover/replication/load balancing, and deployed authenticated API behavior. Historical PASS labels mean the stated tests passed; they must not be read as complete provider certification. Controlled/unit tests, official local runtimes, cloud emulators and hosted production/testnet execution are distinct evidence categories.
 
@@ -21,6 +21,8 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+Explicit-failover follow-up: two additional controlled cases exercise `FailoverRequestAsync` itself, proving reconciliation-required errors stop before the next provider and leave diagnostics unsuccessful, while ordinary availability errors continue to a successful alternate. Current full Core **430/430**, zero skips, reusing `TestResults/CoreCurrent/core-current.trx`. This supplements the automatic routing cases below without broadening their live/deployed scope.
 
 ### Native uncertain-mutation replay guard (2026-10-12)
 
