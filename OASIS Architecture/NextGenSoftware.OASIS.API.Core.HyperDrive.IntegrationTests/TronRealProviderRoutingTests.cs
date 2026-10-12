@@ -52,7 +52,9 @@ public sealed class TronRealProviderRoutingTests
         var partial = new Holon { Id = Guid.Parse("f8882565-96ba-40f5-b2ac-a47e78ab8ea9"), Name = "Real V2 partial replication" };
         var paused = false;
         var avatar = new Avatar { Id = Guid.Parse("b531a581-5627-451c-9de5-95c198646c20"),
-            Username = "tron-real-v2-avatar", Email = "tron-real-v2-avatar@example.invalid" };
+            Username = "tron-real-v2-avatar", Email = "tron-real-v2-avatar@example.invalid",
+            VerificationToken = "PublicLocalV2Verification", ResetToken = "PublicLocalV2Reset",
+            RefreshTokens = new() { new RefreshToken { Token = "PublicLocalV2Refresh" } } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
         var batch = new IHolon[] {
             new Holon { Id = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"), Name = "V2 TRON batch first", CreatedByAvatarId = avatar.Id },
@@ -66,7 +68,8 @@ public sealed class TronRealProviderRoutingTests
                 foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id, Username = avatar.Username,
-                        Email = avatar.Email, PreferredProvider = providerType };
+                        Email = avatar.Email, VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken,
+                        RefreshToken = avatar.RefreshTokens[0].Token, PreferredProvider = providerType };
                     var sync = router.RouteRequest<T>(request);
                     var asyncResult = await router.RouteRequestAsync<T>(request);
                     foreach (var result in new[] { sync, asyncResult })
@@ -83,6 +86,9 @@ public sealed class TronRealProviderRoutingTests
                 await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetail", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByUsername", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByEmail", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByVerificationToken", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByResetToken", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByRefreshToken", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetailByUsername", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetailByEmail", absent, value => value.Id);
             }
