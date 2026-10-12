@@ -119,7 +119,8 @@ function Get-LatestNuGetRelease([string]$PackageId) {
             }
         }
         $latest = @($entries |
-            Where-Object { $_.listed -ne $false -and $_.version -match '^\d+\.\d+\.\d+$' } |
+            # Unlisted versions still occupy immutable NuGet identities and cannot be republished.
+            Where-Object { $_.version -match '^\d+\.\d+\.\d+$' } |
             Sort-Object { [version]$_.version } -Descending |
             Select-Object -First 1)
         if ($latest.Count -eq 0) { return $null }
