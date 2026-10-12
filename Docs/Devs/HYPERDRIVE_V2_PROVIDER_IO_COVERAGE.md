@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### V2 conversion preserves partial-read warnings and diagnostics (2026-10-12)
+
+Inspected actual result conversion: existing OASISResultHelper copy path preserves provider warning metadata; no production copy/fallback change needed. Added sync/async controlled boundary cases returning requested best-effort holon result with partial flag, count and failed IDs. Router preserves `IsWarning`, message, exact record ID and all partial metadata; enabled automatic failover does not execute the configured alternate or create a failover diagnostic for this non-error partial result. This proves router conversion semantics, not HTTP serialization or a real native partial-outage run.
+
+Full current Core **406/406, zero skips**, `TestResults/CoreCurrent/core-current.trx`, using existing pinned Core `dbcfca480037e8f652fd3bc5087f0681cf1cd9ea`. Shared64 checkpoint remains its own source/controlled-read proof; fresh provider builds/live option tests still required after shared edits. No new runtime/environment/download or unknown TRON mutation retried. Full provider/API/billing/release gates remain open.
+
 ### Shared child and collection read continuation implemented with explicit partial diagnostics (2026-10-12)
 
 Closed the source-confirmed option gap below: existing bounded per-record read helper now supports requested best-effort continuation, passed through single holon child reads, parent collections, recursive descendants, all-holon and metadata collections. Failed non-integrity record reads are omitted **only when requested**, with `IsWarning`, failed ID/exception-type details, `partialHolonReads`, string failure count and serialized failure list in the existing string-valued OASISResult metadata. No provider fallback/retry or silent empty success; root/list enumeration failures remain errors when candidates cannot be established. Strict requests still fail. JSON corruption (both serializers), key/ID/version corruption, invalid arguments/format, cycles, cancellation and unsupported operations remain fatal. Shared recursive failure list propagates descendant warnings to root; default non-holon reads remain strict.
