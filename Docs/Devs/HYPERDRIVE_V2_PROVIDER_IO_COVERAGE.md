@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera successful-exit mutation reply validation (2026-10-12)
+
+C# previously accepted any JSON after a zero-exit SDK process, leaving missing or mismatched mutation fields to fail later as ordinary mapping errors. Mutating replies now require a matching original requested transaction ID and explicit string `SUCCESS`. Invalid JSON, non-object data, absent/mismatched identity and failed/malformed status return reconciliation-required errors retaining the original requested ID, with no inferred native outcome/status. A syntactically successful process exit is not ledger proof. Read/non-mutation replies retain their existing contract.
+
+Seven controlled process cases cover malformed/mismatched/failed replies and matching success. Current selected non-funded Hedera C# **237/237**, zero skips, excludes `HederaTestnet` classes and the previously exercised `ActualProcessTimeout` method; report `TestResults/HederaCurrent/hedera-response-validation.trx`. This selected run is not a replacement full timeout/funded run. SDK **85/85**, zero skips; provider build zero errors/two warnings. Same fixtures/dependencies/environment, no downloads, funded submission or new runtime. Native SDK journal wiring, receipts/fees and remaining live/API/provider/release gates are still open. The sponsored-budget policy question remains pending; no new allowance, spending or mint-gate removal.
+
 ### Reused durable outbox for prepared provider identity (2026-10-12)
 
 Core `f8028771d8b5b451d1981154aa8db868ec1527a0` adds `UsageExecutionHandle.BeginPreparedProviderAttemptAsync`, storing a bounded original provider ID in the existing atomic outbox attempt before execution. It uses the existing independent persistence timeout and majority/journal write settings, not a parallel native journal. Prepared identity leaves `AcknowledgedAtUtc` null: it is intent, not proof of submission/consensus. Mongo acknowledgement now binds the same prepared ID and records acknowledgement time instead of treating prebinding as an already-acknowledged job. A conflicting ID is rejected; duplicate intent never grants another execution; repeated valid acknowledgement preserves the original timestamp. Store validation rejects a caller trying to predeclare acknowledgement, and receipts cannot replace prepared identity.
