@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON actual signing/broadcast interruption path preserves evidence (2026-10-12)
+
+Added controlled client-stage regression invoking the real `SignBroadcastConfirmAsync` with official installed TronNet signer, public local test key, and a DispatchProxy only at broadcast transport. Exactly one SDK sign and one interrupted broadcast; exact SHA256 of observed signed raw payload equals exception ID, original timestamp/expiry/genesis and underlying interruption retained, one65-byte SDK signature. All unexpected proxy operations fail. This proves the actual post-sign client error path, not merely constructing the exception; it deliberately bypasses node construction/genesis handshake and submits no network mutation, so it is not a live outage/consensus proof or real resumed ledger reconciliation.
+
+Full current TRON unit **198/198, zero skips**, fixed `TestResults/PriorityProviderCurrent/TRONOASIS-unit-current.trx`. Existing SDK/runtime services instantiated/disposed locally, no new package/install/download/environment and retained node remains paused. Earlier OOM transaction still lacks historical signed expiry and remains fenced; durable pre-submit journaling, stable live workload memory and broader live/API/billing/release gates remain open.
+
 ### TRON unknown broadcast preserves structured original signed evidence (2026-10-12)
 
 Source-confirmed recovery gap: interrupted SDK broadcast threw only an InvalidOperationException message containing the digest, losing structured original signed timestamp/expiry for later reconciliation. It now throws compatible subclass `TronBroadcastOutcomeUnknownException` carrying exact computed transaction ID, verified configured genesis, original signed timestamp/expiration and the underlying error. No signing key, invented replacement or guessed outcome. `HasOriginalValidityWindow` distinguishes complete bounds; missing/invalid bounds remain raw unverifiable evidence rather than masking the unknown-broadcast error. Broadcast remains exactly once; receipt polling/resubmission behavior unchanged.
