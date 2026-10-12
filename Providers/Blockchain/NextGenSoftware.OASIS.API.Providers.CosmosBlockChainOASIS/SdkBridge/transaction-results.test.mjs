@@ -1,8 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, verifiedContractExecution, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, cosmosFailureMessage } from './transaction-results.mjs';
+import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+test('upload requires exact positive code ID and retains original digest on invalid identity', () => {
+  const result = { transactionHash:hash,height:42,codeId:7 };
+  assert.equal(verifiedUpload(result),result);
+  for (const codeId of [undefined,0,-1,'7',1.5,Number.MAX_SAFE_INTEGER+1])
+    assert.throws(() => verifiedUpload({...result,codeId}), error => error.message.includes(hash));
+});
+test('instantiation validates actual bech32 checksum and configured prefix without losing receipt', () => {
+  const result = {transactionHash:hash,height:42,contractAddress:toBech32('wasm',new Uint8Array(32).fill(1))};
+  assert.equal(verifiedInstantiation(result,'wasm'),result);
+  assert.throws(() => verifiedInstantiation(result,'cosmos'), error => error.message.includes(hash));
+  for (const contractAddress of [undefined,'fabricated',result.contractAddress.slice(0,-1)+'!'])
+    assert.throws(() => verifiedInstantiation({...result,contractAddress},'wasm'), error => error.message.includes(hash));
+});
 test('contract execution preserves verified SDK hash and committed height', () => {
   const result = { transactionHash: hash, height: 42 };
   assert.equal(verifiedContractExecution(result), result);
