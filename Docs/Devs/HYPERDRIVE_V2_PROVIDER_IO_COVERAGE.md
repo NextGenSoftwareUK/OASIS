@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera C# trusted-key verifier/factory — 2026-10-12
+
+Added public offline signature-verification callback and execution-owned preparation factory requiring an independently trusted expected account public key. Verifier requires explicit matching SDK acknowledgement; factory binds expected network/sender via execution adapter. Provider build passed 0 errors/2 existing unused-variable warnings. Added missing-execution/key guard test, but attempted no-restore run failed `NETSDK1004`: this MSTest project's assets file is absent. No passing C# test claim; existing NuGet cache is present and cache-only restore remains next check.
+
+Positive real SDK/C#/pipe/Mongo lifecycle, trusted live account-key authority, stage-aware escrow and full funded/live/deployed gates remain open. No dependencies installed/downloaded, funded submission or release merge.
+
 ### Read-only Hedera preparation verifier dispatch/packaging — 2026-10-12
 
 Dispatcher exposes offline `verifyNativePreparation` with explicitly supplied expected public key; it rejects preparation callbacks for this read-only action. Real signed transaction verifies through dispatch; unrelated trusted-key input rejects. SDK **98/98**, zero skips/todos. Provider build 0 errors/2 existing unused-variable warnings. Source/build-output `native-preparation.mjs` SHA256 matches (`E9276040390AB6C76FCBB256D70A1329EBC8DF49319A2BAFCC0134A0DCC55938`); this is existing Debug packaging evidence, not Railway publish proof.
