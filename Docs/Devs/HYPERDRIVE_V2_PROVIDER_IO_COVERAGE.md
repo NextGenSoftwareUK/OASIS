@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Fresh TRON authority at every shared submission boundary — 2026-10-12
+
+Removed the owner-only verification branch and optional preloaded account parameter. Every call through `SignBroadcastConfirmAsync` now reloads the configured-network solidified operation-owner account and verifies actual recovered SDK signatures against its owner permission before preparation/persistence/broadcast. Native send retains early authority preflight; the shared boundary is the single final authority owner. Address-equality preflights in other methods still restrict rotated-key use and remain an implementation gap, but no longer substitute for ledger permission verification at submission.
+
+Complete suite **259/259 passed**, zero skips (`tron-current.trx`). Added escrow permission-change case: approval confirms, subsequent account snapshot raises the required weight, deposit is rejected with zero second broadcasts and confirmed approval identity remains reconciliation-required. Controlled interrupted-broadcast tests now provide real loopback gRPC genesis/account snapshots; simulated confirmation interruption occurs only after broadcast. Servers shut down in `finally`. A harness collection-index compile error was corrected before passing tests. Build zero errors/21 existing warnings. No live ledger, install, reset, merge or deployment affected. Subsequent chain permission changes remain possible; live, active-permission/multisignature and other release gates remain open.
+
 ### TRON native send refreshes permission before preparation/broadcast — 2026-10-12
 
 The account-authority signing path now reloads the configured-network solidified owner account after SDK signing and before cryptographic authority verification, persistence or broadcast. Controlled real SDK/gRPC test changes the authorised owner key between preflight and construction completion: one construction occurs, the second account query rejects the revoked signer and zero broadcasts occur. Rotated-key success also asserts both account queries. Complete suite **258/258 passed**, zero skips (`tron-current.trx`); build zero errors/21 existing warnings.

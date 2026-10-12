@@ -53,12 +53,17 @@ public class TronPermissionRpcTests
         }finally{await server.ShutdownAsync();}
     }
     [Theory]
-    [InlineData("rejected")] [InlineData("changed")] [InlineData("unavailable")] [InlineData("permission")]
+    [InlineData("rejected")] [InlineData("changed")] [InlineData("unavailable")] [InlineData("permission")] [InlineData("authority")]
     public async Task EscrowConstructionFailureAfterSdkApprovalRequiresOriginalReconciliation(string mode)
     {
         var genesis=new string('a',64);var genesisBytes=ByteString.CopyFrom(Convert.FromHexString(genesis));
-        var approvalId=ByteString.Empty;var broadcasts=0;var constructions=0;
+        var approvalId=ByteString.Empty;var broadcasts=0;var constructions=0;var authorityQueries=0;
         var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                authorityQueries++;var account=new Account{Address=request.Address};
+                if(mode=="authority"&&authorityQueries>1){account.OwnerPermission=new Permission{Id=0,Threshold=2};account.OwnerPermission.Keys.Add(new Key{Address=request.Address,Weight=1});}
+                return Task.FromResult(account);
+            })
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>{
@@ -93,7 +98,9 @@ public class TronPermissionRpcTests
             Assert.Equal(Convert.ToHexString(approvalId.ToByteArray()).ToLowerInvariant(),failure.ApprovalTransactionId);
             Assert.Null(failure.MutationTransactionId);Assert.Equal(failure.ApprovalTransactionId,failure.OriginalTransactionId);
             Assert.True(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
-            if(mode=="unavailable")Assert.IsType<RpcException>(failure.InnerException);else Assert.IsType<InvalidOperationException>(failure.InnerException);
+            if(mode=="unavailable")Assert.IsType<RpcException>(failure.InnerException);
+            else if(mode=="authority")Assert.IsType<System.IO.InvalidDataException>(failure.InnerException);
+            else Assert.IsType<InvalidOperationException>(failure.InnerException);
             Assert.Equal(1,broadcasts);Assert.Equal(2,constructions);
         }finally{await server.ShutdownAsync();}
     }
@@ -118,6 +125,9 @@ public class TronPermissionRpcTests
                 Assert.Equal(originalId,request.Value);return Task.FromResult(new TransactionInfo{Id=originalId,BlockNumber=1});
             })
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                var ownerBytes=new byte[21];ownerBytes[0]=0x41;
+                new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(ownerBytes,1);
+                if(request.Address.Equals(ByteString.CopyFrom(ownerBytes)))return Task.FromResult(new Account{Address=request.Address});
                 reads++;if(mode=="unavailable")throw new RpcException(new Status(StatusCode.Unavailable,"controlled post-confirmation readback failure"));
                 var address=request.Address.ToByteArray();if(mode=="foreign")address[1]^=1;
                 return Task.FromResult(mode=="empty"?new Account():new Account{Address=ByteString.CopyFrom(address)});
@@ -142,7 +152,7 @@ public class TronPermissionRpcTests
             Assert.Equal(1,broadcasts);Assert.Equal(1,reads);
         }finally{await server.ShutdownAsync();}
     }
-    private static Method<TRequest,TResponse> Rpc<TRequest,TResponse>(string service,string name,MessageParser<TRequest> request,MessageParser<TResponse> response)
+    internal static Method<TRequest,TResponse> Rpc<TRequest,TResponse>(string service,string name,MessageParser<TRequest> request,MessageParser<TResponse> response)
         where TRequest:class,IMessage<TRequest> where TResponse:class,IMessage<TResponse>
         =>new(MethodType.Unary,service,name,Marshallers.Create<TRequest>(value=>value.ToByteArray(),bytes=>request.ParseFrom(bytes)),Marshallers.Create<TResponse>(value=>value.ToByteArray(),bytes=>response.ParseFrom(bytes)));
     private sealed class SolidNode(ByteString genesis,bool foreignAccount,bool emptyAccount=false,bool unavailable=false,bool denied=false)
