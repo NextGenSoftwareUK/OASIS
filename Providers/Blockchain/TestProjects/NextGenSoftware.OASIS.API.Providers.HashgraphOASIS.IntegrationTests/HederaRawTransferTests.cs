@@ -43,6 +43,13 @@ public class HederaRawTransferTests
             StringAssert.StartsWith(helperAsync.TransactionId, "0.0.1001@");
             var helperSync = helper.SendTransaction(data);
             Assert.AreNotEqual(helperAsync.TransactionId, helperSync.TransactionId);
+            var failed = await provider.SendTransactionAsync("0.0.1001", "0.0.1002", 1m, "controlled-receipt-failure");
+            Assert.IsTrue(failed.IsError); Assert.IsNull(failed.Result);
+            StringAssert.Contains(failed.Message, "0.0.1001@");
+            Assert.IsFalse(failed.Message.Contains("fixture-transfer-key"));
+            var helperFailure = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => helper.SendTransactionAsync(
+                new HashgraphTransactionData { FromAddress = "0.0.1001", ToAddress = "0.0.1002", Amount = 1m, Memo = "controlled-receipt-failure" }));
+            StringAssert.Contains(helperFailure.Message, "0.0.1001@");
         }
         finally { Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE", previous); }
     }
