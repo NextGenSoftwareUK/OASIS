@@ -9,8 +9,8 @@ No provider is currently certified against the entire requested combination of r
 
 | Provider | Real SDK/runtime evidence | Outstanding completion work |
 |---|---|---|
-| TRONOASIS | Signed real node operations; storage/token/NFT/escrow lifecycle; selected live V2 outage failover, replication and measured selection | Remaining native/history paths; complete interface/options matrix; current combined-branch live rerun and hosted routes |
-| SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; selected real V2 failover/replication/measured selection; eight native and four deployed-custom-coin named transfer variants | Remaining native/interface/options matrix; combined-branch routing rerun and hosted routes |
+| TRONOASIS | Signed real node operations; nine current live SDK cases; current combined-branch selected V2 outage failover, replication/measured selection and karma projection | Remaining native/history paths; complete interface/options matrix and hosted routes |
+| SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; current combined-branch selected real V2 failover/replication/measured selection; eight native and four deployed-custom-coin named transfer variants | Remaining native/interface/options matrix and hosted routes |
 | CosmosBlockChainOASIS | Official SDK and local wasmd; real storage/native lifecycle and selected V2 scenarios at earlier pins | Current live recheck subject to execution-policy gate; remaining native/interface/options matrix and hosted routes |
 | HashgraphOASIS | Official Hiero SDK; real funded HBAR transfer; latest 208/208 non-funded tests | Additional test HBAR; retained-file storage deployment; funded NFT/escrow and real V2 storage/orchestration; hosted routes |
 
@@ -19,6 +19,10 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4 126/126, zero skips; rebuilt WEB4 host passes. Evidence recorded at `e9302f828`. Task branch contains Development reconciliation, but parent Development/master have not received this task's merge. Hosted dev revision last checked was `f4f6beba`, not the task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Combined-branch shared-storage regression (2026-10-12)
+
+At parent `921ff9cec`, rebuilt shared key-value storage passes zero errors/two warnings; its full unit suite **59/59**, zero skips (`TestResults/SharedCurrent/shared-current.trx`). Railway manifest/seven Dockerfiles/committed gitlinks validation passes. This refreshes shared serialization, authoritative absence, indexes/history, child-depth/cycle and metadata-boundary evidence on reconciled dependencies; it is controlled-backend unit coverage, not independent live certification of each provider. Updated top-level Sui/TRON status rows to remove their now-completed selected combined-branch rerun item while preserving complete interface/hosted gaps. No restore/download/install/runtime startup; free C: 103.74 GB decimal. Full goal stays active, no release merge/deployment.
 
 ### Cosmos indexed row identity validation (2026-10-12)
 
