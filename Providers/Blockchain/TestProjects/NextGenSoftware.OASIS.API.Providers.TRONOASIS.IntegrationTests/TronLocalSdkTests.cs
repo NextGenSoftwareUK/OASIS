@@ -12,6 +12,40 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task SharedTokenSendCommitsNativeTrxAndRejectsWrongPublicKeyWithoutSpending()
+    {
+        using var bounded=new CancellationTokenSource(TimeSpan.FromSeconds(110));
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),Genesis,contractFeeLimitSun:1000000000);
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Use-ReusableTronRuntime.ps1")))directory=directory.Parent;
+        Assert.NotNull(directory);
+        var contract=(await File.ReadAllTextAsync(Path.Combine(directory!.FullName,"TestResults/TronRuntime/local-store-address.txt"),bounded.Token)).Trim();
+        var sender=new TronECKey(SenderKey,TronNetwork.MainNet).GetPublicAddress();
+        var recipient=new TronECKey(RecipientKey,TronNetwork.MainNet).GetPublicAddress();
+        using var backend=new TronPrivateStorageBackend(runtime.NativeTransfers,sender,contract,()=>SenderKey,
+            ()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
+        var provider=new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:backend);
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var beforeSender=await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token);
+            var rejected=await provider.SendTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest {
+                FromTokenAddress="TRX",FromWalletAddress=sender,ToWalletAddress=recipient,OwnerPrivateKey=SenderKey,OwnerPublicKey="00",Amount=0.001m});
+            Assert.True(rejected.IsError);Assert.True(string.IsNullOrEmpty(rejected.Result?.TransactionResult));
+            Assert.Equal(beforeSender,await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token));
+            var before=await runtime.NativeTransfers.GetNativeBalanceAsync(recipient,bounded.Token);
+            var sent=await provider.SendTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest {
+                FromTokenAddress="TRX",FromWalletAddress=sender,ToWalletAddress=recipient,OwnerPrivateKey=SenderKey,
+                OwnerPublicKey=Convert.ToHexString(new Nethereum.Signer.EthECKey(SenderKey).GetPubKey()),Amount=0.001m});
+            Assert.False(sent.IsError,sent.Message);Assert.Matches("^[0-9a-f]{64}$",sent.Result.TransactionResult);
+            Assert.Equal(0.001m,(await runtime.NativeTransfers.GetNativeBalanceAsync(recipient,bounded.Token))-before);
+            Assert.Equal(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,
+                await runtime.NativeTransfers.GetTransactionStatusAsync(sent.Result.TransactionResult,bounded.Token));
+        }
+        finally {await provider.DeActivateProviderAsync();}
+    }
+
+    [Fact]
     public async Task AccountCreationCommitsOnceAndMapsActualHistoryParticipants()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(110));

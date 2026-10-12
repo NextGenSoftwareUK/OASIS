@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live shared native TRX transfer proof (2026-10-11)
+
+Shared `TRONOASIS.SendTokenAsync` explicit TRX path passes **1/1**, zero skips (`tron-native-shared-send.trx`): wrong supplied public key produces no digest and unchanged sender balance; valid signer gives a native 64-hex transaction ID, independent Completed status and exact **0.001 TRX** recipient increase. Retained loopback runtime/genesis/storage contract/public local fixture keys reused; no redeployment/reset. Full `TronLocalSdkTests` passes **8/8**, zero skips (`tron-local-sdk-current.trx`), including the new native path alongside existing SDK lifecycle/storage/escrow/account evidence. Runtime paused after completion. This establishes direct shared-provider native send, not combined HTTP/JWT TRON transfer or every native token/interface. Those and other provider/release gates remain open. No installs/download/public-chain spending/merge.
+
 ### Explicit native TRX shared token-send implementation (2026-10-11)
 
 TRON shared `SendTokenAsync` now recognizes explicit `FromTokenAddress=TRX` and routes it to existing signed native `SendAsync`; TRC20 contract transfer remains distinct. Native amount preflight requires exact positive int64 SUN before provider activation, and the native client checks a supplied public key against the signing key before node access. No storage-contract-as-native-asset inference or new transport is added. Bounded provider build succeeds; full TRON unit suite **177/177**, zero skips (`tron-unit-current.trx`), including sub-SUN precision and native public-key mismatch cases. Live native shared send/HTTP proof remains required; this unit checkpoint is not consensus evidence. No download/install/ledger mutation; retained runtime remains paused and release gates open.
