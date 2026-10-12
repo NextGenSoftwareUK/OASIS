@@ -44,6 +44,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
         [Fact]
+        public async Task NativeWalletInjectionUsesSuppliedManagerWithoutProviderActivation()
+        {
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA();
+            var providers=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna);
+            var constructor=typeof(NextGenSoftware.OASIS.API.Core.Managers.WalletManager).GetConstructors(System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
+                .Single(item=>item.GetParameters().Length==4);
+            var manager=(NextGenSoftware.OASIS.API.Core.Managers.WalletManager)constructor.Invoke(new object[] {null,dna,providers,null});
+            var controller=new NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.WalletController();
+            var action=new Microsoft.AspNetCore.Mvc.ActionContext(new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                new Microsoft.AspNetCore.Routing.RouteData(),new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor());
+            var filters=new List<Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata>();
+            var context=new Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext(action,filters,new Dictionary<string,object>(),controller);
+            var proceeded=false;
+            await new NativeWalletTestInjectionFilter(()=>manager).OnActionExecutionAsync(context,()=>
+            {
+                proceeded=true;
+                return Task.FromResult(new Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext(action,filters,controller));
+            });
+            proceeded.Should().BeTrue();controller.WalletManager.Should().BeSameAs(manager);
+        }
+
+        [Fact]
         public async Task NftImportRejectsAnotherAvatarBeforeManagerAccess()
         {
             var response=await _authenticatedClient.PostAsJsonAsync("/api/nft/import-web3-nft",
@@ -332,10 +354,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
     /// <summary>
     /// Shared fixture: boots the WebAPI with mocked subscription storage and explicit test authentication.
-    /// This avoids spinning up OASIS storage providers in CI.
+    /// Native-provider cases supply retained local runtimes explicitly; the factory never installs them.
     /// </summary>
     public class SubscriptionWebAppFactory : WebApplicationFactory<Program>
     {
+        public NextGenSoftware.OASIS.API.Core.Managers.WalletManager NativeWalletManagerForTest { get; set; }
         public Mock<ISubscriptionService> SvcMock { get; } = new();
         public Mock<ISubscriptionUsageRepository> UsageRepositoryMock { get; } = new();
         public Mock<ISubscriptionBillingRepository> BillingRepositoryMock { get; } = new();
@@ -363,6 +386,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
             builder.ConfigureServices(services =>
             {
+                services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+                    options.Filters.Add(new NativeWalletTestInjectionFilter(() => NativeWalletManagerForTest)));
                 services.RemoveAll<ISubscriptionService>();
                 services.RemoveAll<ISubscriptionUsageRepository>();
                 services.RemoveAll<ISubscriptionBillingRepository>();
@@ -380,6 +405,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                     .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
                         TestAuthenticationHandler.SchemeName, _ => { });
             });
+        }
+    }
+
+    // Test-only injection into the existing concrete controller. The supplied
+    // WalletManager still executes real provider operations; no provider mock.
+    public sealed class NativeWalletTestInjectionFilter(Func<NextGenSoftware.OASIS.API.Core.Managers.WalletManager> manager)
+        : Microsoft.AspNetCore.Mvc.Filters.IAsyncActionFilter
+    {
+        public async Task OnActionExecutionAsync(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context,
+            Microsoft.AspNetCore.Mvc.Filters.ActionExecutionDelegate next)
+        {
+            if (context.Controller is NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.WalletController wallet && manager() is { } configured)
+                typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.WalletController)
+                    .GetField("_walletManager",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!
+                    .SetValue(wallet,configured);
+            await next();
         }
     }
 
