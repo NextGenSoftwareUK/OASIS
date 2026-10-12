@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Final shared constructor compatibility regression — 2026-10-12
+
+Rebuilt final shared server overload (0 errors/warnings), then reran shared storage **87/87**, Hedera preparation **13/13**, Sui prepared process **6/6** and Cosmos prepared process **8/8**. Zero skips; reports respectively `TestResults/SharedCurrent/shared-current.trx`, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`, `TestResults/SuiCurrent/sui-prepared-process.trx`, `TestResults/PriorityProviderCurrent/cosmos-prepared-process.trx`. Existing provider-test nullable warnings remain. Actual signed Hedera pipe/Mongo and controlled child selections are distinct; no full live provider certification implied.
+
+Stage-aware escrow, submitted-transaction recovery, actual native admission and full funded/live/deployed gates remain open. Owned test databases cleaned, existing environment reused; no installs, submissions or release merge.
+
 ### Expected original identity rejected before preparation persistence — 2026-10-12
 
 Shared parent server accepts explicit expected-original binding and rejects mismatched child ID before invoking persistence. Existing one-argument constructor retained. Hedera public prepared entry passes its explicit request original ID into factory/server. Controlled foreign preparation test proves zero persistence callbacks; entry/lifecycle selection **10/10**, zero skips, `TestResults/PriorityProviderCurrent/hedera-original-binding.trx`. Shared build 0 errors/warnings, provider build 0 errors/2 existing warnings. Constructor forwarding overload added afterward to preserve existing compiled caller compatibility; next build/regression must include it.
