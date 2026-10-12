@@ -66,6 +66,22 @@ public class PreparedSubmissionServerTests
             Assert.AreEqual(1,persisted.ProviderAttempts.Count);
             Assert.AreEqual("original",persisted.ProviderAttempts[0].ProviderRequestId);
             Assert.IsNull(persisted.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not ledger acknowledgement");
+            using var repeatedServer=new PreparedSubmissionServer(async(evidence,token)=>{
+                await store.BeginProviderAttemptAsync(id,owner,new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProviderAttempt {
+                    ClientRequestId="prepared",Provider="CosmosBlockChainOASIS",ProviderRequestId=evidence.GetProperty("transactionHash").GetString(),StartedAtUtc=DateTime.UtcNow
+                },token);
+            });
+            var repeatedServing=repeatedServer.ServeAsync(deadline.Token);
+            using var repeatedChild=System.Diagnostics.Process.Start(NodeClient(repeatedServer.Endpoint));
+            try {
+                var output=repeatedChild.StandardOutput.ReadToEndAsync(deadline.Token);
+                var error=repeatedChild.StandardError.ReadToEndAsync(deadline.Token);
+                var conflict=await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProtocolException>(()=>repeatedServing);
+                Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",conflict.Code);
+                await repeatedChild.WaitForExitAsync(deadline.Token);
+                Assert.AreEqual(2,repeatedChild.ExitCode);Assert.AreEqual("",await output);Assert.AreEqual("",await error);
+                Assert.AreEqual(1,(await store.GetAsync(id,deadline.Token)).ProviderAttempts.Count);
+            } finally {if(!repeatedChild.HasExited){repeatedChild.Kill(entireProcessTree:true);await repeatedChild.WaitForExitAsync();}}
         } finally {
             // Only this freshly generated owned test database; no shared/user ledger.
             await mongo.DropDatabaseAsync(database);

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real outbox duplicate preparation cannot receive acknowledgement — 2026-10-12
+
+Extended the combined Node/C# pipe/Mongo fixture with a second child attempting the same prepared correlation ID against the same durable operation. Existing atomic outbox insertion rejects it with `PROVIDER_ATTEMPT_ALREADY_STARTED`; parent never acknowledges, child fails, and readback retains exactly one original attempt. Shared suite **87/87**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. Owned children and generated database cleaned up; existing Mongo service reused.
+
+This proves current original-ID issuance protection across actual local transport/storage, not process-crash recovery or signed-byte durability. Outbox presently retains the prepared ID, not the full signed descriptor; model/persistence extension and production provider/authenticated binding remain required. No install, native submission or release merge.
+
 ### Preparation frame requires actual signed-byte encoding — 2026-10-12
 
 Parent preparation frames now require nonempty canonical base64 signed bytes before invoking persistence. Invalid encoding, empty bytes and noncanonical whitespace are rejected without reaching the callback; existing C# frame fixtures now include their controlled bytes. Build passed 0 errors/warnings; shared suite **87/87**, zero skips, report `TestResults/SharedStorageCurrent/shared-current.trx`. Actual Node/Mongo fixture still passes and cleans up its owned child/database.
