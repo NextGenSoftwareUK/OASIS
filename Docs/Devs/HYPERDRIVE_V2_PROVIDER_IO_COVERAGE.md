@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Prepared Sui error identity binding — 2026-10-12
+
+The canonical process boundary now binds post-preparation failure reconciliation to the persisted original identity. A foreign error receipt cannot supply execution success for that original; mismatched/absent identity and generic invalid-operation replies retain the original ID with unknown outcome. Matching typed receipts retain their existing evidence. Parent persistence rejection remains the original exception rather than being wrapped. Controlled foreign-success-claim error test added; lifecycle selection **6/6**, zero skips, `TestResults/SuiCurrent/sui-prepared-process.trx`. Provider build 0 errors/warnings; test compiler retains its existing nullable `_provider` warning.
+
+No live submission, new environment, billing enablement or release merge. Actual signed SDK/outbox submission and crash recovery, production native admission and complete live/deployed gates remain open.
+
 ### Prepared Sui interruption retains persisted identity — 2026-10-12
 
 Cancellation, timeout and process communication failures now retain the parent's durably prepared original transaction ID, without claiming ledger acceptance or execution success. Controlled child cancellation after the actual preparation acknowledgement proves the same original ID and caller cancellation token survive; persistence runs once. Revalidated lifecycle selection **5/5**, zero skips, report `TestResults/SuiCurrent/sui-prepared-process.trx`. Provider build previously passed with 0 errors/warnings. The prepared two-minute timeout and communication-failure paths were not separately executed in this checkpoint.
