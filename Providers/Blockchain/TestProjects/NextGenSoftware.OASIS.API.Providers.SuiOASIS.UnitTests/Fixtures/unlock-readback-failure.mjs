@@ -5,6 +5,15 @@ switch(request.operation){
  case 'verifyNativePreparation':result={verified:request.preparation.mode==='valid',transactionHash:request.preparation.transactionHash,sender:request.preparation.sender};break;
  case 'put': case 'get': {
   const mode=request.mode;
+  if(mode==='prepared') {
+   const {pathToFileURL}=await import('node:url');
+   const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+   try {
+    await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE,5000)({transactionHash:'1'.repeat(32),signedTransactionBase64:'AQID'});
+    process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:'1'.repeat(32)}}));
+   } catch {process.stdout.write(JSON.stringify({ok:false,error:'controlled preparation rejection'}));process.exitCode=1;}
+   break;
+  }
   if(mode==='hold') {setInterval(()=>{},1000);break;}
   if(mode==='empty') {process.stderr.write('untrusted diagnostic test-only-secret');process.exitCode=1;break;}
   if(mode==='bad-json') {process.stdout.write('invalid JSON');process.exitCode=1;break;}

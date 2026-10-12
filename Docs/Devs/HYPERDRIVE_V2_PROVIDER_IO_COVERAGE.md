@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui prepared process acceptance/rejection lifecycle — 2026-10-12
+
+Added controlled child modes using the actual packaged preparation transport. Explicit prepared invocation accepts native success only after one parent callback/ack; callback rejection propagates the original parent exception, without replacing it with the child's generic error. Combined lifecycle cases **3/3**, zero skips, report `TestResults/SuiCurrent/sui-prepared-process.trx`, also retaining no-ack success rejection. Actual local IPC is used, but signed descriptor/native success and persistence callback are controlled; this is not real SDK execution or database durability through this lifecycle.
+
+Positive signed-SDK/outbox submission, cancellation/crash recovery and production admitted call sites remain unwired/unverified. Native billing and complete provider/live/deployed gates remain open. No installation, node or ledger mutation, no release merge.
+
 ### Sui SDK process prepared invocation lifecycle — 2026-10-12
 
 Added explicit `SuiSdkClient.InvokePreparedAsync` through the same canonical process implementation as existing invocation. It configures the owned child/server, observes persistence failure, requires successful preparation completion before accepting native success, and cancels/disposes/observes preparation work during process cleanup. Ungated invocations clear inherited preparation settings; no cross-request global environment mutation. Nonmutation preparation is rejected before launch. Build passed 0 errors/warnings; selected Sui C# regression **64/64**, zero skips, actual deadline excluded, fixed report `TestResults/SuiCurrent/sui-preparation-current.trx`. New controlled child-success-without-ack case requires reconciliation and never invokes persistence.
