@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Read-only live TRON V2 round-robin — 2026-10-12
+
+Extended original fixture inspection with real TRON and LocalFile automatic V2 reads, no save/delete calls. After recording actual timed reads to initialise provider metrics, six alternating sync/async RoundRobin `LoadAvatar` routes execute exactly three times on each provider. Each response matches that selected provider's authoritative fixture presence rather than silently replacing it from the other store. Live **1/1** passed, no skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`). Initial harness run failed because metrics had not yet been recorded; corrected by measuring real reads, not invented timing values. Same node returned to paused. This establishes this read-only selector's live distribution with Gold DNA configuration, not hosted per-avatar authorization, all strategies/routes, replication, failover or original mutation resolution. Pending native fence remains intact.
+
 ### Original TRON fixture read-only provider inspection — 2026-10-12
 
 Added a separately selectable read-only integration test that leases the existing fixture store, requires the original pending-outcome journal, verifies the retained network through the real SDK runtime, and loads only owned avatar `b531a581-5627-451c-9de5-95c198646c20` and its detail through the real encrypted contract backend. It validates fixture identity when present and rejects transport/parser errors rather than treating them as absence; it never invokes save/delete or clears the fence.

@@ -46,6 +46,36 @@ public sealed class TronRealProviderRoutingTests
             if(avatar.Result!=null){avatar.IsError.Should().BeFalse(avatar.Message);avatar.Result.Id.Should().Be(id);avatar.Result.Username.Should().Be("tron-real-v2-avatar");}
             if(detail.Result!=null){detail.IsError.Should().BeFalse(detail.Message);detail.Result.Id.Should().Be(id);detail.Result.Username.Should().Be("tron-real-v2-avatar");}
             Console.WriteLine($"Original owned TRON fixture readback: avatarPresent={avatar.Result!=null}; detailPresent={detail.Result!=null}; original transaction fence retained.");
+            var local=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));
+            (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+            try{
+                var localAvatar=await local.LoadAvatarAsync(id);localAvatar.Exception.Should().BeNull();
+                var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{
+                    HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings(),SubscriptionConfig=new SubscriptionConfig{PlanType="Gold"}}};
+                var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=true};
+                manager.RegisterProvider(local);manager.RegisterProvider(tron);
+                manager.SetAndReplaceAutoLoadBalanceListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.LocalFileOASIS),new EnumValue<ProviderType>(ProviderType.TRONOASIS)}).IsError.Should().BeFalse();
+                var router=new OASISHyperDrive(manager);
+                foreach(var provider in new IOASISStorageProvider[]{local,tron}){
+                    var timer=Stopwatch.StartNew();var measured=await provider.LoadAvatarAsync(id);timer.Stop();
+                    measured.Exception.Should().BeNull();
+                    manager.PerformanceMonitor.RecordRequest(provider==tron?ProviderType.TRONOASIS:ProviderType.LocalFileOASIS,!measured.IsError,timer.Elapsed.TotalMilliseconds);
+                }
+                var beforeTron=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests;
+                var beforeLocal=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
+                for(var index=0;index<6;index++){
+                    var prior=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests;
+                    var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id};
+                    var read=index%2==0?router.RouteRequest<IAvatar>(request,LoadBalancingStrategy.RoundRobin)
+                        :await router.RouteRequestAsync<IAvatar>(request,LoadBalancingStrategy.RoundRobin);
+                    read.IsError.Should().BeFalse(read.Message);
+                    var usedTron=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests>prior;
+                    var expected=usedTron?avatar.Result:localAvatar.Result;
+                    (read.Result?.Id).Should().Be(expected?.Id,"each real provider's authoritative read must be retained, not replaced by another copy");
+                }
+                manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests.Should().Be(beforeTron+3);
+                manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests.Should().Be(beforeLocal+3);
+            }finally{await local.DeActivateProviderAsync();}
             File.Exists(Path.Combine(root,"pending-native-outcome.json")).Should().BeTrue();
         }finally{await tron.DeActivateProviderAsync();}
     }
