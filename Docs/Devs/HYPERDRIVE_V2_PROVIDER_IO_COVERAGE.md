@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real read-only TRON permission-account loader — 2026-10-12
+
+Added native-client loader using existing real full/solidity genesis verification and solidified `GetAccountAsync`, exact requested address match and cloned account snapshot; no invented authority or fallback. Pre-cancelled call proves no address/network work. Entire unit project **226/226**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Positive actual RPC/account snapshot and mismatch scenarios are not tested here.
+
+Runtime pre-submission use/freshness, active/multisign request/signing flow, submitted recovery and full live/deployed gates remain open. No RPC invoked by these tests, installs, submissions or release merge.
+
 ### Actual SDK TRON weighted multisignature verification — 2026-10-12
 
 Expanded real signed authority case: two distinct SDK-produced signatures on the same raw original meet controlled active-permission threshold 2; replacing second with duplicated first rejects. Single-signature below-threshold rejection remains. Focused signed-contract selection **8/8**, zero skips, `TestResults/PriorityProviderCurrent/tron-signed-authority.trx`. This proves offline recovered weighted signatures, not live account authority, multisignature broadcast or finality.

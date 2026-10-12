@@ -19,6 +19,17 @@ public sealed class TronNativeTransferClient
     private readonly Func<string,string,string,CancellationToken,Task> _persistPreparedSubmission;
     internal string ExpectedGenesisBlockId => _genesisBlockId;
     internal long MaximumContractFeeLimitSun => _contractFeeLimitSun;
+    /// <summary>Solidified account snapshot from the configured verified network; no mutation or inferred permissions.</summary>
+    public async Task<Account> LoadPermissionAuthorityAsync(string owner,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();
+        var address=_wallet.ParseAddress(owner);
+        if(address.Length!=21||address[0]!=0x41)throw new ArgumentException("Valid TRON operation owner required.",nameof(owner));
+        await VerifyNetworkAsync(token);
+        var account=await _wallet.GetSolidityProtocol().GetAccountAsync(new Account{Address=address},_wallet.GetHeaders(),DateTime.UtcNow.AddSeconds(15),token);
+        if(account==null||!account.Address.Equals(address))throw new InvalidOperationException("Solidified TRON account authority does not match requested owner.");
+        return account.Clone();
+    }
     internal TronNativeTransferClient WithPreparation(Func<string,string,string,CancellationToken,Task> persist)
         => new TronNativeTransferClient(_wallet,_transactions,_genesisBlockId,_contractFeeLimitSun,persist);
 
