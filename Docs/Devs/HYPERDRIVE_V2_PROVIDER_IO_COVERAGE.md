@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Raw Hedera SDK failure envelope propagation (2026-10-12)
+
+Expanded raw-send controlled transport emits a receipt-stage INSUFFICIENT_TX_FEE failure with the original transaction ID. Existing provider SendToken boundary returns IsError/no successful result and preserves reconciliation identity without the signing key; public HashgraphClient propagates an exception rather than null/success. Positive sync/async/configuration/preflight assertions remain passing in focused **4/4** suite (`hedera-raw-transfer-current.trx`), zero skips. Fixture explicitly opens no SDK/network client and submits no ledger transaction; this verifies process/provider/helper envelope composition, not live fee failure or funded execution. No retry/install/download/new environment/merge; remaining release gates stay open.
+
 ### Hedera signer/configuration changes full non-funded regression (2026-10-12)
 
 At parent `93d0b671b`, reusable Hedera runner passes **207/207**, zero skips (`hedera-nonfunded-current.trx`), including current raw-send helper/provider/configuration cases and read-only retained mirror status. Runner uses existing output dependency junction and exact SDK verifier; funded storage/transfer classes remain excluded, not passed. WEB4 host rebuild succeeds with zero errors/253 warnings against current existing referenced outputs. Railway manifest/seven Dockerfiles/gitlinks checks pass; worktree clean before recording evidence. No funded submission, credential logging, install/download/new environment/merge. Positive funded raw send/native custody/storage/V2 orchestration and actual image gates remain required; this regression does not establish full completion.

@@ -9,4 +9,7 @@ if (action === 'transfer') {
     || request.privateKey !== 'fixture-burn-key' || request.publicKey !== 'fixture-public'
     || request.tokenId !== '0.0.2001' || request.amount !== '1' || request.network !== 'testnet')
   throw new Error('Controlled avatar burn projection mismatch');
-process.stdout.write(JSON.stringify({ transactionId: request.transactionId, status: 'SUCCESS' }));
+if (action === 'transfer' && request.memo === 'controlled-receipt-failure') {
+  process.stderr.write(JSON.stringify({ transactionId: request.transactionId, stage: 'receipt', status: 'INSUFFICIENT_TX_FEE' }));
+  process.exitCode = 1;
+} else process.stdout.write(JSON.stringify({ transactionId: request.transactionId, status: 'SUCCESS' }));
