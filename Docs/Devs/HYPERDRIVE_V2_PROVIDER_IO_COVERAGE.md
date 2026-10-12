@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos trusted entry-point preparation callback — 2026-10-12
+
+Cosmos exports a trusted `invoke(input, persistPreparedSubmission)` entry point, validates its function argument before execution, and forwards it to the central signed-client guard. Importing the module does not consume stdin or execute CLI work; command-line invocation retains the same JSON request/result protocol and uses the same entry point. Tests cover import safety, nonfunction rejection and no submission callback for official key recovery, alongside existing spawned CLI cases. SDK suite **50/50**, zero skips/todos; packaging syntax/import/pin/correction verifier passed on the retained installation. No install, download or ledger mutation.
+
+The CLI still supplies no persistence callback: parent process handshake and durable outbox integration remain unwired. This change supplies the trusted connection point, not authenticated fee admission, chain/payer persistence or crash-safe execution. Full live/deployed gates remain open; no release merge.
+
 ### Sui trusted entry-point preparation callback — 2026-10-12
 
 Exported `invoke` now accepts the trusted preparation callback as a separate function argument and passes it into the existing operation scope; it is not accepted as serialized request data. Tests reject nonfunction callbacks before invocation, confirm wallet generation triggers no submission preparation, and prove concurrent official signed operations each receive only their own digest/sender callback. SDK suite **24/24**, zero skips/todos. Production CLI/C# IPC and durable outbox still do not supply this callback, so the full gate remains unwired; no crash-durability, native billing or certification claim. Existing environment reused, no node/startup or ledger mutation.
