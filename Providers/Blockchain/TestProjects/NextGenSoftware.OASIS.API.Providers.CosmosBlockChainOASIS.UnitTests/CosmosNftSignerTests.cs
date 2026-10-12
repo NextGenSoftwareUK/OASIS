@@ -105,9 +105,10 @@ public class CosmosNftSignerTests
         try
         {
             using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain","test-only-explicit","fixture-contract");
-            var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { Title="Economic metadata",Price=12.5m,Discount=2m,
+            var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { NFTStandardType=Core.Enums.NFTStandardType.OASISCosmWasm, Title="Economic metadata",Price=12.5m,Discount=2m,
                 RoyaltyPercentage=7,IsForSale=true,SaleStartDate=DateTime.UnixEpoch,SaleEndDate=DateTime.UnixEpoch.AddDays(1),MemoText="mint memo" });
             Assert.IsFalse(result.IsError,result.Message);Assert.IsNotNull(result.Result.Web3NFT);
+            Assert.AreEqual(Core.Enums.NFTStandardType.OASISCosmWasm, result.Result.Web3NFT.NFTStandardType.Value);
             Assert.AreEqual(12.5m,result.Result.Web3NFT.Price);
             Assert.AreEqual(7,result.Result.Web3NFT.RoyaltyPercentage);
             Assert.AreEqual(700u,result.Result.Web3NFT.SellerFeeBasisPoints);

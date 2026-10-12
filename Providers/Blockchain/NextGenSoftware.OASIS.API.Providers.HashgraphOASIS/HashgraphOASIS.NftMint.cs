@@ -28,8 +28,8 @@ public partial class HashgraphOASIS
                 throw new ArgumentException("CollectionPublicKey must identify an existing HTS NFT token.");
             if (request.OnChainProvider.HasValue && request.OnChainProvider.Value != ChainProvider.HashgraphOASIS)
                 throw new ArgumentException("The requested on-chain provider must be HashgraphOASIS.");
-            if (request.NFTStandardType.HasValue)
-                throw new ArgumentException("The shared NFT standard enum does not yet expose native HTS; do not request another chain's standard.");
+            if (request.NFTStandardType.HasValue && request.NFTStandardType.Value != Core.Enums.NFTStandardType.HederaHTS)
+                throw new ArgumentException("Native HTS NFT minting requires HederaHTS, not another chain's standard.");
             if (request.FreezeMetadata == true || request.RoyaltyPercentage.GetValueOrDefault() != 0)
                 throw new ArgumentException("Metadata authority and royalty changes require an HTS collection operation, not an NFT mint.");
             if (request.Price < 0 || request.Discount < 0)
@@ -90,6 +90,7 @@ public partial class HashgraphOASIS
             var nft = new Web3NFT
             {
                 NFTTokenAddress = tokenId + "/" + serials[0], CollectionPublicKey = tokenId, MintTransactionHash = mintId,
+                NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.HederaHTS),
                 NFTMintedUsingWalletAddress = wallet.WalletAddress, MintedByAvatarId = request.MintedByAvatarId,
                 Title = request.Title, Description = request.Description, JSONMetaData = request.JSONMetaData,
                 JSONMetaDataURL = request.JSONMetaDataURL, Image = request.Image, ImageUrl = request.ImageUrl,
