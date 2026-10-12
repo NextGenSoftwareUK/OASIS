@@ -23,6 +23,61 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class HyperDriveProviderExecutionTests
 {
+    private sealed class UnreconciledMutationException : InvalidOperationException, INativeMutationReconciliationRequired
+    {
+        public string OriginalTransactionId => "original-controlled-transaction";
+    }
+
+    [Theory]
+    [InlineData(false, false, 0)] [InlineData(true, false, 0)]
+    [InlineData(false, true, 0)] [InlineData(true, true, 0)]
+    [InlineData(false, false, 1)] [InlineData(true, false, 1)]
+    [InlineData(false, true, 1)] [InlineData(true, true, 1)]
+    [InlineData(false, false, 2)] [InlineData(true, false, 2)]
+    [InlineData(false, true, 2)] [InlineData(true, true, 2)]
+    [InlineData(false, false, 3)] [InlineData(true, false, 3)]
+    [InlineData(false, true, 3)] [InlineData(true, true, 3)]
+    public async Task NativeMutationEvidenceStopsReplayButOrdinaryAvailabilityFailureStillFailsOver(bool asynchronous, bool onAlternate, int wrapping)
+    {
+        var holon = new Holon { Id = Guid.NewGuid() };
+        Exception evidence = wrapping switch
+        {
+            0 => new UnreconciledMutationException(),
+            1 => new InvalidOperationException("provider wrapper", new UnreconciledMutationException()),
+            2 => new AggregateException(new IOException("other read error"), new InvalidOperationException("wrapper", new UnreconciledMutationException())),
+            _ => new IOException("ordinary availability failure")
+        };
+        var failure = new OASISResult<IHolon> { IsError = true, Message = "original native failure", Exception = evidence };
+        var initialFailure = new OASISResult<IHolon> { IsError = true, Message = "initial provider unavailable", Exception = new IOException("unavailable") };
+        var primary = CreateActiveProvider(ProviderType.LocalFileOASIS, "native-primary");
+        var alternate = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "native-alternate");
+        var remaining = CreateActiveProvider(ProviderType.MongoDBOASIS, "native-remaining");
+        foreach (var pair in new[] { (primary, onAlternate ? initialFailure : failure), (alternate, onAlternate ? failure : new OASISResult<IHolon>(holon)), (remaining, new OASISResult<IHolon>(holon)) })
+        {
+            pair.Item1.Setup(x => x.SaveHolon(holon, true, true, 0, true, false)).Returns(pair.Item2);
+            pair.Item1.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false)).ReturnsAsync(pair.Item2);
+        }
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
+        manager.RegisterProvider(primary.Object); manager.RegisterProvider(alternate.Object); manager.RegisterProvider(remaining.Object);
+        manager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS };
+        var result = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+        result.IsError.Should().Be(wrapping != 3);
+        if (wrapping != 3)
+        {
+            result.Exception.Should().BeSameAs(evidence);
+            result.Message.Should().Contain("original native failure");
+            if (onAlternate) router.LastFailoverDiagnostic.Succeeded.Should().BeFalse();
+            else router.LastFailoverDiagnostic.Should().BeNull();
+        }
+        else router.LastFailoverDiagnostic.Succeeded.Should().BeTrue();
+        primary.Invocations.Count(x => x.Method.Name is "SaveHolon" or "SaveHolonAsync").Should().Be(1);
+        alternate.Invocations.Count(x => x.Method.Name is "SaveHolon" or "SaveHolonAsync").Should().Be(onAlternate || wrapping == 3 ? 1 : 0);
+        remaining.Invocations.Count(x => x.Method.Name is "SaveHolon" or "SaveHolonAsync").Should().Be(wrapping == 3 && onAlternate ? 1 : 0);
+    }
+
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public void HighLevelKarmaRetainsCommittedResultAndReportsProjectionReplicaWarning(bool ledger)

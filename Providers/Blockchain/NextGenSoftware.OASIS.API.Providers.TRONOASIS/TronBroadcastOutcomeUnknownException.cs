@@ -4,9 +4,11 @@ using System.Text.RegularExpressions;
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 
 /// <summary>Original signed submission evidence, never a replacement transaction or inferred ledger outcome.</summary>
-public sealed class TronBroadcastOutcomeUnknownException : InvalidOperationException
+public sealed class TronBroadcastOutcomeUnknownException : InvalidOperationException,
+    Core.Interfaces.INativeMutationReconciliationRequired
 {
     public string TransactionId { get; }
+    public string OriginalTransactionId => TransactionId;
     public string ChainGenesisId { get; }
     public long TransactionTimestampMilliseconds { get; }
     public long TransactionExpirationMilliseconds { get; }

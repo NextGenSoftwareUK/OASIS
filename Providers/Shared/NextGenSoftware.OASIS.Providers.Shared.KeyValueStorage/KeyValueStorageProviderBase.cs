@@ -507,8 +507,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError);
                         if (saved.IsError)
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{Name}: error saving child holon {child.Id}: {saved.Message}");
-                            if (!continueOnError) return result;
+                            OASISErrorHandling.HandleError(ref result, $"{Name}: error saving child holon {child.Id}: {saved.Message}", saved.Exception);
+                            if (!continueOnError || NativeMutationReconciliation.IsRequired(saved.Exception)) return result;
                         }
                     }
                 }
@@ -542,8 +542,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
                 if (r.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{Name}: error saving holon {holon?.Id}: {r.Message}");
-                    if (!continueOnError) return result;
+                    OASISErrorHandling.HandleError(ref result, $"{Name}: error saving holon {holon?.Id}: {r.Message}", r.Exception);
+                    if (!continueOnError || NativeMutationReconciliation.IsRequired(r.Exception)) return result;
                 }
                 else saved.Add(r.Result);
             }
@@ -769,7 +769,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var saved = await SaveHolonsAsync(holons, true, true, 0, 0, false);
-            return saved.IsError ? Fail<bool>(saved.Message) : new OASISResult<bool>(true) { Message = $"Imported {saved.Result.Count()} holons into {Name}." };
+            return saved.IsError ? Fail<bool>(saved.Message, saved.Exception) : new OASISResult<bool>(true) { Message = $"Imported {saved.Result.Count()} holons into {Name}." };
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();
