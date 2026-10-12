@@ -12,6 +12,34 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class PreparedSubmissionServerTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task OrderedStagesPersistIndividuallyAndRejectReplacement(bool replaceSecond)
+    {
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var persisted=new System.Collections.Generic.List<string>();
+        var ids=new[]{"approval","mutation"};
+        using var server=PreparedSubmissionServer.ForStages((evidence,token)=>{
+            persisted.Add(evidence.GetProperty("transactionHash").GetString());return Task.CompletedTask;
+        },ids);
+        ids[1]="caller-mutated";
+        var name=OperatingSystem.IsWindows()?server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1)
+            :Path.GetFileName(server.Endpoint).Substring("CoreFxPipe_".Length);
+        var serving=server.ServeAsync(deadline.Token);
+        foreach(var id in new[]{"approval",replaceSecond?"replacement":"mutation"}){
+            using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
+            await client.ConnectAsync(deadline.Token);
+            using var writer=new StreamWriter(client,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
+            using var reader=new StreamReader(client,new UTF8Encoding(false,true),leaveOpen:true);
+            await writer.WriteLineAsync(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=new{transactionHash=id,signedTransactionBase64="AQID"}}));
+            var reply=await reader.ReadLineAsync(deadline.Token);
+            if(id=="replacement")Assert.IsNull(reply);
+            else{using var parsed=JsonDocument.Parse(reply);Assert.AreEqual(id,parsed.RootElement.GetProperty("transactionHash").GetString());}
+        }
+        if(replaceSecond)await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>serving);else await serving;
+        CollectionAssert.AreEqual(replaceSecond?new[]{"approval"}:new[]{"approval","mutation"},persisted.ToArray());
+        CollectionAssert.AreEqual(persisted.ToArray(),System.Linq.Enumerable.ToArray(server.PreparedTransactionIds));
+    }
     [TestMethod]
     public void PreparationConfigurationIsRestrictedToOwnedChildEnvironment()
     {
