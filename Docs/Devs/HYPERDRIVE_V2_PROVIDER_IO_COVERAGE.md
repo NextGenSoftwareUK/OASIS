@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera wrong-key factory rejection preserves Mongo evidence — 2026-10-12
+
+Negative real signed-evidence pipe case now uses public execution-owned factory with unrelated trusted-key fixture. Actual SDK verifier rejects before durable attempt write: no acknowledgement/retained ID, Mongo retains one original attempt and unchanged evidence bytes. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable warning remains. Owned generated database removed; retained SDK/Mongo reused.
+
+Controlled authority/account/network fixtures are not live admission or account-key authority. Prepared child submission/crash recovery, stage-aware escrow and full funded/live/deployed gates remain open. No installs, funded submissions or release merge.
+
 ### Actual signed Hedera factory/pipe/Mongo integration — 2026-10-12
 
 Positive actual signed evidence case now obtains execution via canonical protocol with controlled offline HTTP authority, uses public expected-key/network/sender factory and writes evidence to existing standalone Mongo before pipe acknowledgement. Readback verifies exact original ID/signed bytes and no consensus acknowledgement. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test warning remains. Exact generated `usage_hedera_signed_test_<guid>` database removed in finally; regenerable by rerunning test. Existing SDK/service reused.
