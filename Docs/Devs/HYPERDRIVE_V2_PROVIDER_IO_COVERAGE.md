@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real signed Sui evidence through parent pipe verifier — 2026-10-12
+
+Expanded the existing offline official-SDK signing test to send its actual signed transaction descriptor through the real Windows parent pipe. The callback runs the provider's official SDK signature/digest/sender verifier before acknowledgement; ack and retained ID match the signed original, callback runs once. Focused **1/1**, zero skips, `TestResults/SuiCurrent/sui-real-preparation.trx` (this report now contains only the focused case). Callback persistence is controlled/in-memory: this does not prove Mongo durability or ledger submission. Invalid signature rejection remains exercised separately in this case.
+
+Before this test expansion, the broader Sui selection passed **70/70**, zero skips, excluding `ActualMutationProcessDeadline`; `TestResults/SuiCurrent/sui-preparation-current.trx`. Both Sui/Cosmos existing build-output preparation modules match shared source via `Scripts/verify_provider_preparation_assets.ps1`; not Railway publish proof. Existing nullable test-field warning remains. No downloads, installations or ledger changes. Full signed SDK/pipe/outbox recovery, production admission, billing and live/deployed gates remain required.
+
 ### Prepared Sui error identity binding — 2026-10-12
 
 The canonical process boundary now binds post-preparation failure reconciliation to the persisted original identity. A foreign error receipt cannot supply execution success for that original; mismatched/absent identity and generic invalid-operation replies retain the original ID with unknown outcome. Matching typed receipts retain their existing evidence. Parent persistence rejection remains the original exception rather than being wrapped. Controlled foreign-success-claim error test added; lifecycle selection **6/6**, zero skips, `TestResults/SuiCurrent/sui-prepared-process.trx`. Provider build 0 errors/warnings; test compiler retains its existing nullable `_provider` warning.
