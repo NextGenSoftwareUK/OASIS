@@ -39,6 +39,15 @@ public sealed class TronLocalSdkTests
             Assert.Equal(poolBefore,await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token));
             Assert.Equal(senderBeforeRejected,await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token));
             Assert.Equal(0,keyReads);
+            var wrongPoolReads = 0;
+            var wrongPoolProvider = new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:backend,
+                bridgePoolWalletAddress:pool,nativeSigningKeyResolver:address => { Assert.Equal(pool,address); wrongPoolReads++; return Task.FromResult(SenderKey); });
+            var rejectedDeposit = await wrongPoolProvider.DepositAsync(0.001m,sender);
+            Assert.True(rejectedDeposit.IsError); Assert.Null(rejectedDeposit.Result);
+            Assert.Contains("does not own",rejectedDeposit.Message);
+            Assert.False(wrongPoolProvider.IsProviderActivated); Assert.Equal(1,wrongPoolReads);
+            Assert.Equal(poolBefore,await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token));
+            Assert.Equal(senderBeforeRejected,await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token));
             var withdrawn = await provider.WithdrawAsync(0.001m,sender,SenderKey);
             Assert.False(withdrawn.IsError,withdrawn.Message); Assert.True(withdrawn.Result.IsSuccessful);
             Assert.Equal(0.001m,(await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token))-poolBefore);

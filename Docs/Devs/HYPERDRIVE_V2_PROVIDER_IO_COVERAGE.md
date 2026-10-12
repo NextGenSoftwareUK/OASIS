@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### TRON live deposit rejection and ten-case regression (2026-10-12)
+
+Bridge scenario now independently checks wrong pool signing key against real retained node: explicit null error, inactive provider, one resolver read and unchanged sender/pool balances before any positive bridge operations. Complete current `TronLocalSdkTests` passes **10/10**, zero skips, 19 seconds (`tron-local-sdk-current.trx`), including this rejection, both native bridge legs and existing storage/NFT/escrow/history checks. Integration build zero errors/two warnings; runtime paused afterward. This supersedes controlled-only wrong-deposit balance limitation below. No download/install/new environment. Real native bridge legs and authority rejection are proven at this scope, not hosted pool-release authorization or complete cross-chain settlement/native interface certification.
+
 ### TRON deposit signer validation before activation (2026-10-12)
 
 Deposit now resolves the configured pool key once and verifies canonical pool ownership before fee-bearing storage activation, then submits through the existing native SDK path using that verified key. Missing/invalid/mismatched signer produces explicit error, no fabricated success. Added inactive-provider wrong-pool-key test; full units **186/186**, zero skips. Current real bridge round-trip scenario rerun passes **1/1**, zero skips, retaining wrong-withdrawal-key unchanged-balances check and both positive leg receipts/deltas. Wrong-deposit-key unchanged-balances is controlled preflight only, not yet independently live-tested. Provider/integration builds zero errors/23 and two warnings; retained runtime paused, no installs/downloads/new environment. This supersedes deposit-ordering unaudited note for implemented preflight, not hosted release authorization or complete cross-chain settlement.
