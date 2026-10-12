@@ -233,6 +233,13 @@ public class SuiAvatarTokenSendTests
             var finalTokens = await sui.GetTokenBalanceAsync(recipient.Result.WalletAddressLegacy, coinType);
             finalTokens.IsError.Should().BeFalse(finalTokens.Message);
             finalTokens.Result.Should().Be(0m);
+            var history = await sui.GetTransactionsAsync(new GetWeb3TransactionsRequest { WalletAddress = recipient.Result.WalletAddressLegacy });
+            history.IsError.Should().BeFalse(history.Message);
+            var nativeReceipt = history.Result.Single(row => row.NativeTransactionId == sent.Result.SendTransactionResult);
+            nativeReceipt.RawAmount.Should().Be("1000000");
+            nativeReceipt.AmountUnit.Should().Be("0x" + "2".PadLeft(64,'0') + "::sui::SUI:base-unit");
+            nativeReceipt.NativeOperation.Should().Be("WalletNetBalanceChange");
+            nativeReceipt.NativeExecutionResult.Should().Be("Success");
             (await local.LoadProviderWalletsForAvatarByIdAsync(avatarId)).Result[ProviderType.SuiOASIS][0].PrivateKey.Should().Be(encrypted);
         }
         finally
