@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Execution-owned signed native preparation persistence — 2026-10-12
+
+`UsageExecutionHandle.BeginPreparedNativeAttemptAsync` now persists original signed preparation through the existing atomic outbox under its execution owner and independent persistence deadline. It requires a bounded original ID and valid preparation; HTTP cancellation does not silently abandon durable evidence. The existing real-Mongo signed-evidence case now uses this handle and additionally verifies duplicate/replacement issuance is denied. Suite **72/72**, zero skips; net10 build passed 0 errors/129 existing warnings. Core `ad5e632e9fd437b30e297d9b0dc6a4fa74697992` published, gitlink/manifest updated together.
+
+The fixture uses controlled authority replies, not deployed authenticated native admission. Provider callbacks still require cryptographic chain/signer validation and lifecycle wiring; billing, recovery and full live/deployed gates remain open. No new environment, native submission or release merge.
+
 ### Existing outbox signed-preparation storage — 2026-10-12
 
 Core's existing provider-attempt document now optionally stores bounded chain/signer, canonical original signed base64 and serialized signature. Native evidence requires an original identity; existing non-native attempts remain valid. The atomic attempt insertion also increments a stored byte counter and gates aggregate native preparation at 8 MiB, reserving document room rather than permitting 512 unbounded signed payloads. Legacy documents without the counter remain compatible. This is encoding/storage validation, not native cryptographic validation or authenticated binding.
