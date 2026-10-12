@@ -46,6 +46,23 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     public class KeyValueStorageProviderBaseTests
     {
         [TestMethod]
+        public async Task Negative_versions_never_alias_latest_even_when_records_are_absent()
+        {
+            var id = Guid.NewGuid();
+            var missing = await _provider.LoadAvatarAsync(id, -1);
+            Assert.IsTrue(missing.IsError);
+            StringAssert.Contains(missing.Message, "Version must be zero");
+            var all = await _provider.LoadAllAvatarsAsync(-1);
+            Assert.IsTrue(all.IsError);
+            StringAssert.Contains(all.Message, "Version must be zero");
+            var saved = await _provider.SaveAvatarAsync(new Avatar { Id = id, Username = "version-test", Email = "version-test@example.invalid" });
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var existing = _provider.LoadAvatar(id, -1);
+            Assert.IsTrue(existing.IsError);
+            StringAssert.Contains(existing.Message, "Version must be zero");
+        }
+
+        [TestMethod]
         public async Task Metadata_query_invalid_selectors_fail_before_backend_reads()
         {
             _backend.ThrowReads = true;

@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shared storage rejects negative version requests (2026-10-12)
+
+Source-confirmed option gap affecting the priority providers' shared storage path: `ReadVersionAsync` used `version<=0` to select current data, silently aliasing negative requested versions to latest; empty collection reads also skipped version checks. Now negative versions fail explicitly for single and collection reads, while zero retains documented latest behavior and positive versions retain historical lookup. New regression covers absent and present avatar, empty collection and sync wrapper; no error-message fallback or version substitution. Cosmos transfer mapping was inspected in the same audit and already labels execution failure plus requested (not claimed completed) amount; no speculative change made there.
+
+Full shared storage suite **60/60, zero skips**, `TestResults/SharedStorageCurrent/shared-current.trx`, bounded workers/no restore/reused dependencies. This is shared-contract regression, not live per-provider historical-version certification or all V2 policy/options proof. No runtime, download or fresh environment needed; remaining native/billing/live/release gates unchanged.
+
 ### Cosmos wallet history uses one committed-height snapshot (2026-10-12)
 
 Source-confirmed gap: recipient and sender `searchTx` calls had no shared height bound and a Map silently replaced overlapping receipts, allowing a moving ledger view or inconsistent index results. Added `indexedHistorySnapshot`: validate Bech32 before query construction, capture one positive safe-integer committed height, constrain both official CosmJS searches with `tx.height<=height`, require canonical hash/committed height/nonnegative transaction index/uint32 execution code/raw transaction bytes, and reconcile overlapping identities only if original height/index/code/bytes agree. Out-of-snapshot or conflicting indexed data fails, not partial success. CosmJS's existing `txSearchAll` still owns actual pagination; this does not prove index completeness or historical pruning retention. Bank transfer/multi-send decoding remains the existing official-protobuf path.
