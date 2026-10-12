@@ -421,6 +421,43 @@ public sealed class HyperDriveProviderExecutionTests
             It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task VisibilityProjectionNeverReplacesOriginalProviderFailureWithMissingPayload(bool asynchronous)
+    {
+        var original = new IOException("controlled underlying read failure");
+        var source = new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCount = 2,
+            ErrorCode = "ORIGINAL_READ_FAILURE", Message = "Original provider read failed", Exception = original,
+            MetaData = new Dictionary<string, string> { ["read-evidence"] = "original" } };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, true, false, 0)).Returns(source);
+        provider.Setup(x => x.LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, 0)).ReturnsAsync(source);
+        IOASISStorageProvider contract = provider.Object;
+        var owner = Guid.NewGuid();
+        var result = asynchronous
+            ? await contract.LoadAllHolonsAsync(owner, false, HolonType.All, false, false, 0, 0, true, false, 0)
+            : contract.LoadAllHolons(owner, false, HolonType.All, false, false, 0, 0, true, false, 0);
+        result.IsError.Should().BeTrue(); result.ErrorCode.Should().Be("ORIGINAL_READ_FAILURE");
+        result.Message.Should().Be(source.Message); result.ErrorCount.Should().Be(2);
+        result.Exception.Should().BeSameAs(original); result.MetaData["read-evidence"].Should().Be("original");
+    }
+
+    [Fact]
+    public void VisibilityStillFiltersPrivateRecordsWhenErrorResultContainsData()
+    {
+        var owner = Guid.NewGuid();
+        var owned = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = owner };
+        var privateOther = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid() };
+        var source = new OASISResult<IEnumerable<IHolon>>(new[] { owned, privateOther }) { IsError = true, ErrorCode = "PARTIAL_PROVIDER_ERROR" };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, true, false, 0)).Returns(source);
+        IOASISStorageProvider contract = provider.Object;
+        var result = contract.LoadAllHolons(owner, false, HolonType.All, false, false, 0, 0, true, false, 0);
+        result.IsError.Should().BeTrue(); result.ErrorCode.Should().Be("PARTIAL_PROVIDER_ERROR");
+        result.Result.Should().Equal(owned);
+    }
+
     [Fact]
     public void DefaultSynchronousAvatarDetailDeleteNeverCrossesTheAsyncProviderBoundary()
     {
