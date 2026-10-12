@@ -54,6 +54,14 @@ public class TronUnknownBroadcastEvidenceTests
             TronPreparationVerifier.VerifyWithAccountAuthority(encoded,id,sender,100,account);
             permission.Threshold=2;
             Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyWithAccountAuthority(encoded,id,sender,100,account));
+            var secondAddress=new byte[21];secondAddress[0]=0x41;
+            new Nethereum.Signer.EthECKey(new string('0',63)+"2").GetPublicAddressAsBytes().CopyTo(secondAddress,1);
+            permission.Keys.Add(new Key{Address=ByteString.CopyFrom(secondAddress),Weight=1});
+            var twoSignatures=signer.GetTransactionSign(signed,new string('0',63)+"2");
+            Assert.Equal(2,twoSignatures.Signature.Count);
+            TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(twoSignatures.ToByteArray()),id,sender,100,account);
+            twoSignatures.Signature[1]=twoSignatures.Signature[0];
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(twoSignatures.ToByteArray()),id,sender,100,account));
         }
     }
     [Fact]
