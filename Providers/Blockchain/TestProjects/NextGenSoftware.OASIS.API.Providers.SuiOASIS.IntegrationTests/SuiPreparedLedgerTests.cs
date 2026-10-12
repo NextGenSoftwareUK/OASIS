@@ -7,6 +7,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 [TestClass,DoNotParallelize]
 public class SuiPreparedLedgerTests
 {
+    [TestMethod]
+    public async Task ActivationVerifiesRealOwnerWithoutNetworkFee()
+    {
+        var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained RPC required.");
+        Assert.IsTrue(new Uri(rpc).IsLoopback);
+        using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained deployment required.")));
+        var settings=deployment.RootElement;
+        using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var address=settings.GetProperty("address").GetString()!;
+        var before=await provider.GetAccountBalanceAsync(address,deadline.Token);Assert.IsFalse(before.IsError,before.Message);
+        try{
+            var activated=await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);Assert.IsTrue(activated.Result);
+            var after=await provider.GetAccountBalanceAsync(address,deadline.Token);Assert.IsFalse(after.IsError,after.Message);
+            Assert.AreEqual(before.Result,after.Result,"Read-only activation must not charge a network mutation fee.");
+        }finally{await provider.DeActivateProviderAsync();}
+    }
     private sealed class TestAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
