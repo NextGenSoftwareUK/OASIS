@@ -129,7 +129,7 @@ export async function execute(client, tx, signer, include = {}) {
   if (context?.persistPreparedSubmission)
     await context.persistPreparedSubmission(Object.freeze({ transactionHash: originalDigest,
       signedTransactionBase64: Buffer.from(transactionBytes).toString('base64'), signature, sender: signer.toSuiAddress(),
-      ...(context.chainIdentifier ? {chainIdentifier:context.chainIdentifier} : {}) }));
+      ...(context.chainIdentifier ? {chainId:context.chainIdentifier} : {}) }));
   if (context) context.nativeMutation = { transactionHash: originalDigest, executionSucceeded: null };
   let response;
   try {
