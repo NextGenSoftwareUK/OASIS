@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Reusable default-output Hedera SDK verification (2026-10-11)
+
+`Scripts/TestHosts/Use-ReusableHederaOutputDependencies.ps1` explicitly attaches the existing pinned SDK installation to an existing checkout-local `HederaSdkBridge` output using one junction. It requires exact source/output package and lockfile hashes, verifies the expected SDK exists, rejects an unrelated existing dependency directory/junction, and runs the ESM/module verifier. It performs no install, download, copy or removal. Repeated invocation succeeds without allocating another environment. With **no `OASIS_HEDERA_SDK_BRIDGE` override**, the output non-funded suite passes **193/193**, zero skips (`hedera-output-nonfunded-current.trx`). This closes local default-output dependency resolution, not self-contained published/image dependencies: Docker's existing pinned installation path and actual image execution remain release gates. Free space remains approximately 114.4 GB decimal. Official mirror still reports **391606260 tinybars** for the retained Hedera account; no additional funding or ledger mutation is claimed.
+
 ### Current-pin routing and Hedera broader regression recheck (2026-10-11)
 
 At Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b`, retained-node TRON V2 routing passes **1/1**, zero skips, 50 seconds (`TestResults/HyperDriveTron/tron-v2-routing.trx`): real avatar/detail/holon replication, measured read selection, actual node-pause failover, partial replication/deletion warnings and explicit recovery repair. Existing runtime was paused afterward. This does not cover all 42 operations.
